@@ -22,3 +22,11 @@ target_include_directories(an24_codegen PUBLIC ${CMAKE_SOURCE_DIR}/src)
 add_executable(codegen_test codegen_test.cpp)
 target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver spdlog::spdlog)
+
+# Compile and run generated code
+add_executable(test_generated
+    ${CMAKE_SOURCE_DIR}/generated/test_generated.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_an24_composite_test.cpp
+)
+target_include_directories(test_generated PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(test_generated PRIVATE jit_solver spdlog::spdlog)

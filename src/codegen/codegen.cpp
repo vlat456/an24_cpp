@@ -60,10 +60,15 @@ std::string format_value(const std::string& value, const std::string& type) {
         try {
             float f = std::stof(value);
             std::ostringstream oss;
-            oss << f << "f";
-            return oss.str();
+            oss << f;
+            return oss.str();  // C++ infers float from context, no 'f' suffix needed
         } catch (...) {
-            return value + "f";
+            // Ensure decimal point for float literals: 28 -> 28.0
+            std::string v = value;
+            if (v.find('.') == std::string::npos) {
+                v += ".0";
+            }
+            return v;
         }
     } else if (type == "bool") {
         return value;
