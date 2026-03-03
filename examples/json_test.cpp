@@ -100,6 +100,7 @@ int main(int argc, char** argv) {
     // Run simulation with SOR
     std::cout << "\n=== Running Simulation ===\n";
     const float omega = 1.8f;  // SOR over-relaxation
+    const float dt = 0.016f;   // 60 Hz time step
     for (int step = 0; step < 200; ++step) {
         state.clear_through();
         result.systems.solve_step(state, step);
@@ -128,6 +129,9 @@ int main(int argc, char** argv) {
                 state.across[i] += state.through[i] * state.inv_conductance[i] * omega;
             }
         }
+
+        // Apply post-step constraints (relay contacts, etc.) after SOR update
+        result.systems.post_step(state, dt);
     }
 
     // Print results

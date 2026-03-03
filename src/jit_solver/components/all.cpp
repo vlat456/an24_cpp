@@ -40,14 +40,10 @@ void Battery::pre_load() {
 void Relay::solve_electrical(SimulationState& state) {
     if (!closed) return;  // open relay: no connection
 
-    // Closed relay = wire: add very high conductance between in and out
-    float g = 1.0e6f;
-    state.conductance[v_in_idx] += g;
-    state.conductance[v_out_idx] += g;
-    // Current flows from in to out: I = (V_in - V_out) * g
-    float i = (state.across[v_in_idx] - state.across[v_out_idx]) * g;
-    state.through[v_in_idx] -= i;
-    state.through[v_out_idx] += i;
+    // Closed relay is handled in post_step() by directly copying voltage.
+    // Do NOT add conductance here - it conflicts with post_step and causes
+    // SOR instability. The relay is a perfect conductor (wire).
+    (void)state;  // suppress unused warning
 }
 
 void Relay::post_step(SimulationState& state, float /*dt*/) {

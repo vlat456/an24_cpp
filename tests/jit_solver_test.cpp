@@ -2,8 +2,28 @@
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
 #include "jit_solver/components/all.h"
+#include "json_parser/json_parser.h"
 
 using namespace an24;
+
+// =============================================================================
+// Helper: create DeviceInstance with common fields
+// =============================================================================
+static DeviceInstance make_device(
+    const std::string& name,
+    const std::string& internal,
+    std::unordered_map<std::string, std::string> params = {},
+    std::unordered_map<std::string, PortDirection> ports = {}
+) {
+    DeviceInstance dev;
+    dev.name = name;
+    dev.internal = internal;
+    dev.params = std::move(params);
+    for (const auto& [port_name, dir] : ports) {
+        dev.ports[port_name] = Port{dir};
+    }
+    return dev;
+}
 
 // =============================================================================
 // Helper: run SOR simulation to steady state
@@ -135,8 +155,8 @@ TEST(BuildSystemsTest, BasicBuildSingleDevice) {
     battery.name = "bat_main_1";
     battery.internal = "Battery";
     battery.params["v_nominal"] = "28.0";
-    battery.ports["v_in"] = "input";
-    battery.ports["v_out"] = "output";
+    battery.ports["v_in"] = Port{PortDirection::In};
+    battery.ports["v_out"] = Port{PortDirection::Out};
 
     std::vector<DeviceInstance> devices = {battery};
     std::vector<std::pair<std::string, std::string>> connections;
@@ -149,10 +169,11 @@ TEST(BuildSystemsTest, BasicBuildSingleDevice) {
 
 TEST(BuildSystemsTest, ConnectionsMergeSignals) {
     // Two devices connected: their shared ports should map to the same signal
-    DeviceInstance battery{"bat", "Battery", {{"v_nominal", "28.0"}},
-                           {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance relay{"relay", "Relay", {},
-                         {{"v_in", "i"}, {"v_out", "o"}}};
+    auto battery = make_device("bat", "Battery",
+        {{"v_nominal", "28.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
     std::vector<DeviceInstance> devices = {battery, relay};
     std::vector<std::pair<std::string, std::string>> connections = {
@@ -607,4 +628,229 @@ TEST(IntegrationTest, SORConvergence) {
 
     // After 50 and 200 steps, voltage should be nearly identical (converged)
     EXPECT_NEAR(v_50, v_200, 0.01f);
+}
+
+// =============================================================================
+// REGRESSION: March 2026 - Electrical circuit topology fixes
+// =============================================================================
+// These tests verify the fixes for the unstable SOR solver issue where:
+// 1. DC buses were incorrectly modeled as RefNode with fixed voltages
+// 2. Relay had conflicting behavior (conductance + post_step voltage copy)
+// 3. Multiple voltage sources with different values caused NaN explosion
+
+TEST(RegressionTest, BusTypeNotRefNode) {
+    // BUG: dc_bus_1 and dc_bus_2 were RefNode with value=28.0 and value=24.0
+    // This caused them to be marked as fixed signals, creating conflicts when
+    // connected through a closed relay.
+    //
+    // FIX: Buses should use internal="Bus" type - simple connectors without
+    // fixed voltage. Only ground (gnd) should be RefNode with value=0.0.
+
+    auto gnd = make_device("gnd", "RefNode",
+        {{"value", "0.0"}},
+        {{"v", PortDirection::Out}});
+    auto bus1 = make_device("bus1", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bus2 = make_device("bus2", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bat1 = make_device("bat1", "Battery",
+        {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto bat2 = make_device("bat2", "Battery",
+        {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bus1, bus2, bat1, bat2, relay};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat1.v_out", "bus1.v"},
+        {"bat2.v_out", "bus2.v"},
+        {"bus1.v", "relay.v_in"},
+        {"relay.v_out", "bus2.v"},
+        {"bat1.v_in", "gnd.v"},
+        {"bat2.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    // CRITICAL: Only ground should be fixed, NOT the buses
+    EXPECT_EQ(result.fixed_signals.size(), 1u)
+        << "Only ground should be fixed; buses must float";
+    EXPECT_EQ(result.fixed_signals[0], result.port_to_signal["gnd.v"]);
+
+    // Buses should be different signals before relay closes
+    uint32_t bus1_sig = result.port_to_signal["bus1.v"];
+    uint32_t bus2_sig = result.port_to_signal["bus2.v"];
+    uint32_t gnd_sig = result.port_to_signal["gnd.v"];
+
+    EXPECT_NE(bus1_sig, gnd_sig);
+    EXPECT_NE(bus2_sig, gnd_sig);
+
+    // With closed relay, buses should merge to same signal
+    EXPECT_EQ(bus1_sig, bus2_sig)
+        << "Closed relay should connect both buses to same signal";
+}
+
+TEST(RegressionTest, ClosedRelayNoConductance) {
+    // BUG: Relay::solve_electrical() added conductance=1e6 S while post_step()
+    // also copied voltage directly. This dual behavior caused SOR instability.
+    //
+    // FIX: Closed relay is handled ONLY in post_step() by direct voltage copy.
+    // solve_electrical() should NOT add conductance for closed relay.
+
+    auto gnd = make_device("gnd", "RefNode",
+        {{"value", "0.0"}},
+        {{"v", PortDirection::Out}});
+    auto bus = make_device("bus", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bat = make_device("bat", "Battery",
+        {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load = make_device("load", "Resistor",
+        {{"conductance", "0.1"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bus, bat, relay, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "bus.v"},
+        {"bus.v", "relay.v_in"},
+        {"relay.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_bus = get_voltage(state, result, "bus.v");
+    float v_after_relay = get_voltage(state, result, "relay.v_out");
+    float v_gnd = get_voltage(state, result, "gnd.v");
+
+    EXPECT_FLOAT_EQ(v_gnd, 0.0f);
+
+    // Closed relay should have equal voltage on both sides
+    EXPECT_NEAR(v_after_relay, v_bus, 0.01f)
+        << "Closed relay should have equal voltage on both sides";
+
+    // Voltage should be stable (not NaN or exploding)
+    EXPECT_FALSE(std::isnan(v_bus));
+    EXPECT_FALSE(std::isinf(v_bus));
+    EXPECT_GT(v_bus, 0.0f);
+    EXPECT_LT(v_bus, 30.0f);
+}
+
+TEST(RegressionTest, DualBatteryWithRelayStable) {
+    // BUG: Two batteries (28V and 24V) connected through relay caused SOR
+    // to oscillate and produce NaN after ~5 iterations.
+    // Root cause: both buses were RefNode with different fixed voltages.
+    //
+    // FIX: Buses are now Bus type (floating), only ground is fixed.
+
+    auto gnd = make_device("gnd", "RefNode",
+        {{"value", "0.0"}},
+        {{"v", PortDirection::Out}});
+    auto bus1 = make_device("bus1", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bus2 = make_device("bus2", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bat1 = make_device("bat1", "Battery",
+        {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto bat2 = make_device("bat2", "Battery",
+        {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load1 = make_device("load1", "Resistor",
+        {{"conductance", "0.035"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load2 = make_device("load2", "Resistor",
+        {{"conductance", "0.035"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {
+        gnd, bus1, bus2, bat1, bat2, relay, load1, load2
+    };
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat1.v_out", "bus1.v"},
+        {"bat2.v_out", "bus2.v"},
+        {"bus1.v", "relay.v_in"},
+        {"relay.v_out", "bus2.v"},
+        {"bus1.v", "load1.v_in"},
+        {"bus2.v", "load2.v_in"},
+        {"load1.v_out", "gnd.v"},
+        {"load2.v_out", "gnd.v"},
+        {"bat1.v_in", "gnd.v"},
+        {"bat2.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_bus1 = get_voltage(state, result, "bus1.v");
+    float v_bus2 = get_voltage(state, result, "bus2.v");
+    float v_gnd = get_voltage(state, result, "gnd.v");
+
+    // Must not be NaN (was the original bug)
+    EXPECT_FALSE(std::isnan(v_bus1)) << "bus1 voltage is NaN - SOR diverged";
+    EXPECT_FALSE(std::isnan(v_bus2)) << "bus2 voltage is NaN - SOR diverged";
+    EXPECT_FALSE(std::isinf(v_bus1)) << "bus1 voltage is Inf - SOR diverged";
+    EXPECT_FALSE(std::isinf(v_bus2)) << "bus2 voltage is Inf - SOR diverged";
+
+    EXPECT_FLOAT_EQ(v_gnd, 0.0f);
+
+    // With closed relay, both buses should be at same voltage
+    EXPECT_NEAR(v_bus1, v_bus2, 0.1f)
+        << "Closed relay should equalize bus voltages";
+
+    // Voltage should be between 24V and 28V
+    EXPECT_GT(v_bus1, 24.0f);
+    EXPECT_LT(v_bus1, 28.0f);
+}
+
+TEST(RegressionTest, GeneratorAndBatteryOnSameBus) {
+    // Real-world scenario: generator (28.5V) and battery (28V) on same bus.
+    // This was causing instability with RefNode buses.
+
+    auto gnd = make_device("gnd", "RefNode",
+        {{"value", "0.0"}},
+        {{"v", PortDirection::Out}});
+    auto bus = make_device("bus", "Bus", {},
+        {{"v", PortDirection::InOut}});
+    auto bat = make_device("bat", "Battery",
+        {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto gen = make_device("gen", "Generator",
+        {{"v_nominal", "28.5"}, {"internal_r", "0.005"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load = make_device("load", "Resistor",
+        {{"conductance", "0.1"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bus, bat, gen, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "bus.v"},
+        {"gen.v_out", "bus.v"},
+        {"bus.v", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+        {"gen.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_bus = get_voltage(state, result, "bus.v");
+    float v_gnd = get_voltage(state, result, "gnd.v");
+
+    EXPECT_FLOAT_EQ(v_gnd, 0.0f);
+    EXPECT_FALSE(std::isnan(v_bus));
+    EXPECT_FALSE(std::isinf(v_bus));
+
+    // Bus voltage should be between 28V and 28.5V
+    EXPECT_GT(v_bus, 28.0f);
+    EXPECT_LT(v_bus, 28.5f);
 }
