@@ -90,6 +90,9 @@ static void run_simulation(SimState& sim, Systems& systems, int steps = 100) {
                 sim.state.across[i] += sim.state.through[i] * sim.state.inv_conductance[i] * omega;
             }
         }
+
+        // Post-step: relay switches copy voltage
+        systems.post_step(sim.state, 1.0f / 60.0f);
     }
 }
 
@@ -113,7 +116,7 @@ static void test_battery_load() {
     // Expected voltage at load = 28 * 10 / (0.1 + 10) = 27.7V
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Relay", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
 
     std::vector<DeviceInstance> devices = {gnd, battery, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -142,7 +145,7 @@ static void test_generator() {
     // Simple circuit: generator -> load -> ground
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance gen{"generator", "Generator", {{"v_nominal", "28.5"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Relay", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
 
     std::vector<DeviceInstance> devices = {gnd, gen, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -171,7 +174,7 @@ static void test_transformer() {
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance source{"source", "RefNode", {{"value", "100.0"}}, {{"v_in", "i"}, {"v_out", "o"}}};
     DeviceInstance xfmr{"xfmr", "Transformer", {{"ratio", "0.5"}}, {{"primary", "p"}, {"secondary", "s"}}};  // 2:1 step down
-    DeviceInstance load{"load", "Relay", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};  // 10 ohm load
+    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};  // 10 ohm load
 
     std::vector<DeviceInstance> devices = {gnd, source, xfmr, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -196,13 +199,13 @@ static void test_indicator_light() {
     std::cout << "\n=== TEST: Indicator Light ===\n";
 
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
-    DeviceInstance bus{"dc_bus", "RefNode", {{"value", "28.0"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance light{"light", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"power", "p"}, {"brightness", "b"}}};
+    DeviceInstance bus{"dc_bus", "RefNode", {{"value", "28.0"}}, {{"v", "bus"}}};
+    DeviceInstance light{"light", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
 
     std::vector<DeviceInstance> devices = {gnd, bus, light};
     std::vector<std::pair<std::string, std::string>> conn = {
-        {"dc_bus.v_out", "light.power"},
-        {"light.power", "gnd.v"},
+        {"dc_bus.v", "light.v_in"},
+        {"light.v_out", "gnd.v"},
     };
 
     auto result = build_systems_dev(devices, conn);
@@ -261,20 +264,20 @@ static void test_full_dc_bus() {
     DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance dc_bus{"dc_bus", "Bus", {}, {{"v", "bus"}}};
     DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance light1{"light1", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"power", "p"}, {"brightness", "b"}}};
-    DeviceInstance light2{"light2", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"power", "p"}, {"brightness", "b"}}};
+    DeviceInstance light1{"light1", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
+    DeviceInstance light2{"light2", "IndicatorLight", {{"max_brightness", "100.0"}}, {{"v_in", "p"}, {"v_out", "g"}, {"brightness", "b"}}};
 
     std::vector<DeviceInstance> devices = {gnd, dc_bus, battery, light1, light2};
 
     std::vector<std::pair<std::string, std::string>> conn = {
         // Battery + to bus
         {"battery.v_out", "dc_bus.v"},
-        // Bus to lights
-        {"dc_bus.v", "light1.power"},
-        {"dc_bus.v", "light2.power"},
-        // Lights to ground
-        {"light1.power", "gnd.v"},
-        {"light2.power", "gnd.v"},
+        // Bus to lights (high side)
+        {"dc_bus.v", "light1.v_in"},
+        {"dc_bus.v", "light2.v_in"},
+        // Lights return to ground (low side)
+        {"light1.v_out", "gnd.v"},
+        {"light2.v_out", "gnd.v"},
         // Battery - to ground
         {"battery.v_in", "gnd.v"},
     };

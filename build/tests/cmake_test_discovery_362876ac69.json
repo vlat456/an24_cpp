@@ -1,31 +1,123 @@
 {
-  "tests": 3,
+  "tests": 19,
   "name": "AllTests",
   "testsuites": [
     {
-      "name": "JitSolverTest",
-      "tests": 1,
-      "testsuite": [
-        {
-          "name": "BuildSystemsBasic",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 4
-        }
-      ]
-    },
-    {
       "name": "SimulationStateTest",
-      "tests": 2,
+      "tests": 4,
       "testsuite": [
         {
           "name": "AllocateSignal",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 20
+          "line": 72
+        },
+        {
+          "name": "AllocateMultipleSignals",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 82
         },
         {
           "name": "ClearThrough",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 30
+          "line": 98
+        },
+        {
+          "name": "PrecomputeInvConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "name": "BuildSystemsTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "BasicBuildSingleDevice",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 133
+        },
+        {
+          "name": "ConnectionsMergeSignals",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 150
+        },
+        {
+          "name": "RefNodeMarkedFixed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 173
+        }
+      ]
+    },
+    {
+      "name": "RegressionTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "BusAndGroundSignalsSeparate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 192
+        },
+        {
+          "name": "DCBusVoltageNonZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 233
+        },
+        {
+          "name": "ResistorVoltageDifference",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 272
+        },
+        {
+          "name": "IndicatorLightTwoTerminals",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 311
+        }
+      ]
+    },
+    {
+      "name": "IntegrationTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "BatteryWithResistiveLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 342
+        },
+        {
+          "name": "GeneratorWithResistiveLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 366
+        },
+        {
+          "name": "FullDCBusWithTwoLights",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 390
+        },
+        {
+          "name": "BatteryRelayChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 433
+        },
+        {
+          "name": "OpenRelayBlocksCurrent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 469
+        },
+        {
+          "name": "ParallelBatteriesShareLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 501
+        },
+        {
+          "name": "MultipleLightsWithBrightness",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 535
+        },
+        {
+          "name": "SORConvergence",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 583
         }
       ]
     }

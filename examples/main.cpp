@@ -37,7 +37,8 @@ int main() {
     // Create a load
     an24::DeviceInstance load;
     load.name = "load_1";
-    load.internal = "Relay";
+    load.internal = "Resistor";
+    load.params["conductance"] = "0.1";
     load.ports["v_in"] = "input";
     load.ports["v_out"] = "output";
 

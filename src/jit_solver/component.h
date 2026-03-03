@@ -36,8 +36,8 @@ public:
     /// Solve thermal domain (1 Hz)
     virtual void solve_thermal(SimulationState& state) {}
 
-    /// Post-step update (once per frame)
-    virtual void post_step(const SimulationState& state, float dt) {}
+    /// Post-step update (once per frame, after SOR iteration)
+    virtual void post_step(SimulationState& state, float dt) {}
 
     /// Pre-load initialization
     virtual void pre_load() {}

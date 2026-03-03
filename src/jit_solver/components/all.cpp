@@ -32,12 +32,23 @@ void Battery::pre_load() {
     }
 }
 
-void Relay::solve_electrical(SimulationState& state) {
-    // Conductance-based relay (configurable: high = closed, low = open)
-    float v_in = state.across[v_in_idx];
+void Relay::post_step(SimulationState& state, float /*dt*/) {
+    if (!closed) return;  // open relay: no connection
 
-    state.through[v_out_idx] += v_in * conductance;
-    state.through[v_in_idx] -= v_in * conductance;
+    // Closed relay = wire: just copy voltage from in to out.
+    // Skips SOR convergence entirely — no conductance needed.
+    state.across[v_out_idx] = state.across[v_in_idx];
+}
+
+void Resistor::solve_electrical(SimulationState& state) {
+    float v_in = state.across[v_in_idx];
+    float v_out = state.across[v_out_idx];
+
+    // Current based on voltage difference: I = (V_in - V_out) * G
+    float i = (v_in - v_out) * conductance;
+
+    state.through[v_out_idx] += i;
+    state.through[v_in_idx] -= i;
     state.conductance[v_out_idx] += conductance;
     state.conductance[v_in_idx] += conductance;
 }
@@ -113,16 +124,22 @@ void LerpNode::solve_electrical(SimulationState& state) {
 }
 
 void IndicatorLight::solve_electrical(SimulationState& state) {
-    // Light draws power, outputs brightness
-    float v_power = state.across[power_idx];
+    // Light draws power between v_in (bus) and v_out (return/ground)
+    float v_in = state.across[v_in_idx];
+    float v_out = state.across[v_out_idx];
+    float v_diff = v_in - v_out;
 
-    // Conductance (resistive load) - ~10W at 28V = 0.35 ohms
+    // Conductance (resistive load) - ~10W at 28V ≈ 0.35 S
     float g = 0.35f;
-    state.conductance[power_idx] += g;
-    state.through[power_idx] -= v_power * g;  // draws current
+    float i = v_diff * g;
 
-    // Brightness: normalized 0-1 based on voltage, scaled to max_brightness
-    float normalized = std::clamp(v_power / 28.0f, 0.0f, 1.0f);
+    state.through[v_out_idx] += i;    // current into return node
+    state.through[v_in_idx] -= i;     // current out of bus node
+    state.conductance[v_out_idx] += g;
+    state.conductance[v_in_idx] += g;
+
+    // Brightness: normalized 0-1 based on voltage difference
+    float normalized = std::clamp(v_diff / 28.0f, 0.0f, 1.0f);
     float brightness = normalized * max_brightness;
     state.across[brightness_idx] = brightness;
 }

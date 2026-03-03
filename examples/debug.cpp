@@ -11,15 +11,15 @@ int main() {
 
     // Test: Battery -> Load -> Ground (no relay, just wire)
     // Expected: bus voltage should be close to 28V (battery nominal)
-    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
     DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Relay", {}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
 
     std::vector<DeviceInstance> devices = {gnd, battery, load};
     std::vector<std::pair<std::string, std::string>> conn = {
         {"battery.v_out", "load.v_in"},  // battery + to load
-        {"load.v_out", "gnd.v_in"},      // load to ground
-        {"battery.v_in", "gnd.v_in"},    // battery - to ground
+        {"load.v_out", "gnd.v"},         // load to ground
+        {"battery.v_in", "gnd.v"},       // battery - to ground
     };
 
     auto result = build_systems_dev(devices, conn);
@@ -52,7 +52,7 @@ int main() {
             if (it_val != dev.params.end()) {
                 value = std::stof(it_val->second);
             }
-            std::string port = dev.name + ".v_out";
+            std::string port = dev.name + ".v";
             auto it_sig = result.port_to_signal.find(port);
             if (it_sig != result.port_to_signal.end()) {
                 state.across[it_sig->second] = value;

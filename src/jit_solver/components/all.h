@@ -29,17 +29,31 @@ public:
     void pre_load() override;
 };
 
-/// Relay - simple on/off switch
+/// Relay - on/off switch (uses post_step to merge voltages when closed)
 class Relay : public Component {
 public:
     uint32_t v_in_idx = 0;
     uint32_t v_out_idx = 0;
-    float conductance = 1.0e6f;  // default: closed (very low resistance)
+    bool closed = true;
 
-    Relay(uint32_t v_in, uint32_t v_out, float g = 1.0e6f)
-        : v_in_idx(v_in), v_out_idx(v_out), conductance(g) {}
+    Relay(uint32_t v_in, uint32_t v_out, bool is_closed = true)
+        : v_in_idx(v_in), v_out_idx(v_out), closed(is_closed) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Relay"; }
+    void post_step(SimulationState& state, float dt) override;
+};
+
+/// Resistor - pure conductance element (resistive load)
+class Resistor : public Component {
+public:
+    uint32_t v_in_idx = 0;
+    uint32_t v_out_idx = 0;
+    float conductance = 0.1f;
+
+    Resistor(uint32_t v_in, uint32_t v_out, float g = 0.1f)
+        : v_in_idx(v_in), v_out_idx(v_out), conductance(g) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "Resistor"; }
     void solve_electrical(SimulationState& state) override;
 };
 
@@ -128,16 +142,17 @@ public:
     void solve_electrical(SimulationState& state) override;
 };
 
-/// IndicatorLight - aircraft indicator light
+/// IndicatorLight - aircraft indicator light (two power terminals + brightness output)
 class IndicatorLight : public Component {
 public:
-    uint32_t power_idx = 0;
-    uint32_t brightness_idx = 0;
+    uint32_t v_in_idx = 0;        // power input (bus side)
+    uint32_t v_out_idx = 0;       // power return (ground side)
+    uint32_t brightness_idx = 0;  // brightness output signal
     float max_brightness = 100.0f;
     std::string color = "white";
 
-    IndicatorLight(uint32_t power, uint32_t brightness, float max_bright, std::string c)
-        : power_idx(power), brightness_idx(brightness), max_brightness(max_bright), color(std::move(c)) {}
+    IndicatorLight(uint32_t v_in, uint32_t v_out, uint32_t brightness, float max_bright, std::string c)
+        : v_in_idx(v_in), v_out_idx(v_out), brightness_idx(brightness), max_brightness(max_bright), color(std::move(c)) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "IndicatorLight"; }
     void solve_electrical(SimulationState& state) override;

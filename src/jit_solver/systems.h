@@ -41,7 +41,7 @@ public:
     void solve_step(SimulationState& state, size_t step);
 
     /// Post-step updates
-    void post_step(const SimulationState& state, float dt);
+    void post_step(SimulationState& state, float dt);
 
     /// Pre-load initialization
     void pre_load();

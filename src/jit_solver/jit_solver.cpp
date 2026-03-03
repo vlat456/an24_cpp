@@ -58,9 +58,15 @@ std::unique_ptr<Component> create_component(
             get_f("v_nominal", 28.0f), get_f("internal_r", 0.01f));
     }
     else if (device.internal == "Relay") {
+        bool is_closed = device.params.count("closed") ?
+            (device.params.at("closed") != "false") : true;
         return std::make_unique<Relay>(
+            get_port("v_in"), get_port("v_out"), is_closed);
+    }
+    else if (device.internal == "Resistor") {
+        return std::make_unique<Resistor>(
             get_port("v_in"), get_port("v_out"),
-            get_f("conductance", 1.0e6f));
+            get_f("conductance", 0.1f));
     }
     else if (device.internal == "RefNode") {
         return std::make_unique<RefNode>(
@@ -92,7 +98,7 @@ std::unique_ptr<Component> create_component(
     else if (device.internal == "IndicatorLight") {
         std::string color = device.params.count("color") ? device.params.at("color") : "white";
         return std::make_unique<IndicatorLight>(
-            get_port("power"), get_port("brightness"),
+            get_port("v_in"), get_port("v_out"), get_port("brightness"),
             get_f("max_brightness", 100.0f), color);
     }
     else if (device.internal == "HighPowerLoad") {

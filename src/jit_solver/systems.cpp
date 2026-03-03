@@ -59,7 +59,7 @@ void Systems::solve_step(SimulationState& state, size_t step) {
     }
 }
 
-void Systems::post_step(const SimulationState& state, float dt) {
+void Systems::post_step(SimulationState& state, float dt) {
     for (auto& comp : electrical) {
         comp->post_step(state, dt);
     }
