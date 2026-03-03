@@ -84,6 +84,13 @@ std::unique_ptr<Component> create_component(
             get_port("v_in"), get_port("v_out"),
             get_f("v_nominal", 28.5f), get_f("internal_r", 0.005f));
     }
+    else if (device.internal == "GS24") {
+        auto gs = std::make_unique<GS24>(
+            get_port("v_in"), get_port("v_out"),
+            get_f("v_nominal", 28.5f), get_f("internal_r", 0.005f));
+        gs->target_rpm = get_f("target_rpm", 16000.0f);
+        return gs;
+    }
     else if (device.internal == "Gyroscope" || device.internal == "AGK47") {
         // Single-port load to ground
         return std::make_unique<Load>(

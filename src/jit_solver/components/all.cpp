@@ -103,6 +103,51 @@ void Generator::solve_electrical(SimulationState& state) {
     state.conductance[v_in_idx] += g;
 }
 
+void GS24::solve_electrical(SimulationState& state) {
+    float v_bus = state.across[v_out_idx];
+    float v_gnd = state.across[v_in_idx];
+    float speed_factor = current_rpm / target_rpm;  // 0 to 1
+
+    if (!is_generator) {
+        // Motor mode: current drops as RPM increases
+        // I = I_start * (1 - speed_factor), so at 0 RPM: max current
+        float i_start = 1000.0f;  // max current at 0 RPM
+        float current_draw = i_start * (1.0f - speed_factor);
+
+        // Current flows from bus to ground (motor consuming power)
+        // Creates voltage drop on bus
+        float g = current_draw / 28.0f;  // conductance to draw current
+        state.through[v_out_idx] -= current_draw;
+        state.through[v_in_idx] += current_draw;
+        state.conductance[v_out_idx] += g;
+    } else {
+        // Generator mode: produces stable 28.5V
+        float g = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
+        float i = (v_nominal + v_gnd - v_bus) * g;
+        i = std::clamp(i, -500.0f, 500.0f);
+
+        state.through[v_out_idx] += i;
+        state.through[v_in_idx] -= i;
+        state.conductance[v_out_idx] += g;
+        state.conductance[v_in_idx] += g;
+    }
+}
+
+void GS24::post_step(SimulationState& state, float dt) {
+    (void)state;
+
+    // Accelerate from 0 to 50% RPM
+    if (current_rpm < target_rpm * 0.5f) {
+        float acceleration = 300.0f;  // RPM per second (reaches 50% in ~25 sec)
+        current_rpm += acceleration * dt;
+
+        if (current_rpm >= target_rpm * 0.5f) {
+            current_rpm = target_rpm * 0.5f;
+            is_generator = true;  // Transition to generator
+        }
+    }
+}
+
 void Transformer::solve_electrical(SimulationState& state) {
     // Ideal transformer with voltage ratio
     float v_primary = state.across[primary_idx];

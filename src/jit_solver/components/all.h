@@ -119,6 +119,28 @@ public:
     void solve_electrical(SimulationState& state) override;
 };
 
+/// GS24 - Starter-Generator (ГС-24)
+/// Acts as motor initially (consuming power), then transitions to generator
+/// Target: reach 50% mode (half speed) before switching to generation
+class GS24 : public Component {
+public:
+    uint32_t v_in_idx = 0;      // power input (motor mode)
+    uint32_t v_out_idx = 0;     // power output (generator mode)
+    float internal_r = 0.005f;  // internal resistance
+    float v_nominal = 28.5f;   // nominal voltage when generating
+    float target_rpm = 15000.0f;  // target RPM at 100%
+    float current_rpm = 0.0f;  // current RPM
+    bool is_generator = false;  // false = motor, true = generating
+
+    GS24() = default;
+    GS24(uint32_t v_in, uint32_t v_out, float v_nom, float int_r)
+        : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
+    void solve_electrical(SimulationState& state) override;
+    void post_step(SimulationState& state, float dt) override;
+};
+
 /// Transformer - AC transformer with voltage ratio
 class Transformer : public Component {
 public:
