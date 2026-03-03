@@ -1,0 +1,14 @@
+# Target labels
+ spdlog-populate
+# Source files and their labels
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/CMakeFiles/spdlog-populate-complete.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-build.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-configure.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-download.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-install.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-mkdir.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-patch.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-test.rule
+/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/spdlog-populate-prefix/src/spdlog-populate-stamp/spdlog-populate-update.rule

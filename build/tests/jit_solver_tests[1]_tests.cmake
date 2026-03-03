@@ -1,0 +1,7 @@
+add_test([=[JitSolverTest.BuildSystemsBasic]=]  /Users/vladimir/an24_cpp/build/tests/jit_solver_tests [==[--gtest_filter=JitSolverTest.BuildSystemsBasic]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[JitSolverTest.BuildSystemsBasic]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/jit_solver_test.cpp:4 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[SimulationStateTest.AllocateSignal]=]  /Users/vladimir/an24_cpp/build/tests/jit_solver_tests [==[--gtest_filter=SimulationStateTest.AllocateSignal]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[SimulationStateTest.AllocateSignal]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/jit_solver_test.cpp:20 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[SimulationStateTest.ClearThrough]=]  /Users/vladimir/an24_cpp/build/tests/jit_solver_tests [==[--gtest_filter=SimulationStateTest.ClearThrough]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[SimulationStateTest.ClearThrough]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/jit_solver_test.cpp:30 WORKING_DIRECTORY /Users/vladimir/an24_cpp/build/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  jit_solver_tests_TESTS JitSolverTest.BuildSystemsBasic SimulationStateTest.AllocateSignal SimulationStateTest.ClearThrough)

@@ -1,0 +1,14 @@
+# Target labels
+ googletest-populate
+# Source files and their labels
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/CMakeFiles/googletest-populate
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/CMakeFiles/googletest-populate.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/CMakeFiles/googletest-populate-complete.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-build.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-configure.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-download.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-install.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-mkdir.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-patch.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-test.rule
+/Users/vladimir/an24_cpp/build/_deps/googletest-subbuild/googletest-populate-prefix/src/googletest-populate-stamp/googletest-populate-update.rule

@@ -1,0 +1,1 @@
+/usr/bin/c++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/hello_world.dir/main.cpp.o -o hello_world  ../src/jit_solver/libjit_solver.a ../_deps/spdlog-build/libspdlogd.a

@@ -1,0 +1,33 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "JitSolverTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "BuildSystemsBasic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 4
+        }
+      ]
+    },
+    {
+      "name": "SimulationStateTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "AllocateSignal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 20
+        },
+        {
+          "name": "ClearThrough",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 30
+        }
+      ]
+    }
+  ]
+}
