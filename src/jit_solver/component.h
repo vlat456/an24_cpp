@@ -3,18 +3,13 @@
 #include <string>
 #include <memory>
 
+// Include shared types from json_parser
+#include "../json_parser/json_parser.h"
+
 namespace an24 {
 
 /// Forward declaration
 class SimulationState;
-
-/// Physical domain type
-enum class Domain {
-    Electrical,  // 60 Hz
-    Mechanical,  // 20 Hz
-    Hydraulic,   // 5 Hz
-    Thermal     // 1 Hz
-};
 
 /// Component interface - base class for all devices
 class Component {

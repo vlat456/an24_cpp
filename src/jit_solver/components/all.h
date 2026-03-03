@@ -13,6 +13,7 @@ namespace an24 {
 /// Battery - voltage source with internal resistance
 class Battery : public Component {
 public:
+    std::string name;
     uint32_t v_in_idx = 0;
     uint32_t v_out_idx = 0;
     float capacity = 1000.0f;
@@ -40,6 +41,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), closed(is_closed) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Relay"; }
+    void solve_electrical(SimulationState& state) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -54,6 +56,19 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), conductance(g) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Resistor"; }
+    void solve_electrical(SimulationState& state) override;
+};
+
+/// Load - single port resistive load to ground
+class Load : public Component {
+public:
+    uint32_t node_idx = 0;
+    float conductance = 0.1f;  // draws I = V * g
+
+    Load(uint32_t node, float g = 0.1f)
+        : node_idx(node), conductance(g) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "Load"; }
     void solve_electrical(SimulationState& state) override;
 };
 

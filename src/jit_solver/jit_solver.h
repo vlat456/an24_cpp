@@ -5,25 +5,13 @@
 #include <string>
 #include <unordered_map>
 
-namespace an24 {
+// DeviceInstance is defined in json_parser/json_parser.h
+// which is included transitively through component.h -> systems.h
 
-/// Device instance from JSON/KDL
-struct DeviceInstance {
-    std::string name;
-    std::string internal;  // "Battery", "Relay", "RefNode", etc.
-    std::unordered_map<std::string, std::string> params;
-    std::unordered_map<std::string, std::string> ports;
-};
+namespace an24 {
 
 /// Port-to-signal mapping
 using PortToSignal = std::unordered_map<std::string, uint32_t>;
-
-/// Create component from DeviceInstance
-std::unique_ptr<Component> create_component(
-    const DeviceInstance& device,
-    const PortToSignal& port_to_signal,
-    uint32_t signal_count
-);
 
 /// Build complete systems from devices and connections
 /// Returns: systems, signal_count, fixed_signals, port_to_signal

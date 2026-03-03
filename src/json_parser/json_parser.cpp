@@ -54,7 +54,9 @@ static DeviceInstance parse_device(const json& j) {
     if (j.contains("template")) dev.template_name = j["template"].get<std::string>();
     if (j.contains("internal")) dev.internal = j["internal"].get<std::string>();
     if (j.contains("priority")) dev.priority = j["priority"].get<std::string>();
-    if (j.contains("bucket")) dev.bucket = j["bucket"].get<size_t>();
+    if (j.contains("bucket") && !j["bucket"].is_null()) {
+        dev.bucket = j["bucket"].get<size_t>();
+    }
     if (j.contains("critical")) dev.critical = j["critical"].get<bool>();
     if (j.contains("is_composite")) dev.is_composite = j["is_composite"].get<bool>();
 

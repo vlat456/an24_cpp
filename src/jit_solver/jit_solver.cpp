@@ -53,9 +53,11 @@ std::unique_ptr<Component> create_component(
     };
 
     if (device.internal == "Battery") {
-        return std::make_unique<Battery>(
+        auto bat = std::make_unique<Battery>(
             get_port("v_in"), get_port("v_out"),
             get_f("v_nominal", 28.0f), get_f("internal_r", 0.01f));
+        bat->name = device.name;
+        return bat;
     }
     else if (device.internal == "Relay") {
         bool is_closed = device.params.count("closed") ?
@@ -81,6 +83,12 @@ std::unique_ptr<Component> create_component(
         return std::make_unique<Generator>(
             get_port("v_in"), get_port("v_out"),
             get_f("v_nominal", 28.5f), get_f("internal_r", 0.005f));
+    }
+    else if (device.internal == "Gyroscope" || device.internal == "AGK47") {
+        // Single-port load to ground
+        return std::make_unique<Load>(
+            get_port("input"),
+            get_f("conductance", 0.035f));  // ~28V/1A = 28 ohm
     }
     else if (device.internal == "Transformer") {
         return std::make_unique<Transformer>(
@@ -248,13 +256,18 @@ BuildResult build_systems_dev(
     // Sentinel signal for unconnected ports
     result.signal_count++;
 
-    // Find fixed signals (RefNode v) - already remapped via port_to_signal
+    // Mark ground (gnd.RefNode with value=0) as fixed to provide voltage reference
+    // Other RefNodes (dc_bus) are NOT marked fixed - they're just connection points
     for (const auto& dev : devices) {
         if (dev.internal == "RefNode") {
-            std::string v = dev.name + ".v";
-            auto it = result.port_to_signal.find(v);
-            if (it != result.port_to_signal.end()) {
-                result.fixed_signals.push_back(it->second);
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end() && it_val->second == "0.0") {
+                std::string v = dev.name + ".v";
+                auto it = result.port_to_signal.find(v);
+                if (it != result.port_to_signal.end()) {
+                    result.fixed_signals.push_back(it->second);
+                    spdlog::debug("[jit] fixed signal {} for ground reference {}", it->second, dev.name);
+                }
             }
         }
     }

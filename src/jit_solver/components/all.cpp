@@ -13,9 +13,14 @@ void Battery::solve_electrical(SimulationState& state) {
     float v_bus = state.across[v_out_idx];  // bus side
     float g = inv_internal_r;
 
+    spdlog::debug("[Battery {}] v_gnd={:.2f} v_bus={:.2f} g={:.2f}",
+        name, v_gnd, v_bus, g);
+
     // Current: I = (V_nominal + V_gnd - V_bus) / R
     float i = (v_nominal + v_gnd - v_bus) * g;
     i = std::clamp(i, -1000.0f, 1000.0f);  // clamp to prevent instability
+
+    spdlog::debug("[Battery {}] i={:.2f}", name, i);
 
     // Add to through currents
     state.through[v_out_idx] += i;
@@ -30,6 +35,19 @@ void Battery::pre_load() {
     if (internal_r > 0.0f) {
         inv_internal_r = 1.0f / internal_r;
     }
+}
+
+void Relay::solve_electrical(SimulationState& state) {
+    if (!closed) return;  // open relay: no connection
+
+    // Closed relay = wire: add very high conductance between in and out
+    float g = 1.0e6f;
+    state.conductance[v_in_idx] += g;
+    state.conductance[v_out_idx] += g;
+    // Current flows from in to out: I = (V_in - V_out) * g
+    float i = (state.across[v_in_idx] - state.across[v_out_idx]) * g;
+    state.through[v_in_idx] -= i;
+    state.through[v_out_idx] += i;
 }
 
 void Relay::post_step(SimulationState& state, float /*dt*/) {
@@ -51,6 +69,18 @@ void Resistor::solve_electrical(SimulationState& state) {
     state.through[v_in_idx] -= i;
     state.conductance[v_out_idx] += conductance;
     state.conductance[v_in_idx] += conductance;
+}
+
+void Load::solve_electrical(SimulationState& state) {
+    // Single port load to ground: I = V * g
+    float v = state.across[node_idx];
+    float i = v * conductance;  // current flowing to ground
+
+    spdlog::debug("[Load] node={} v={:.2f} g={:.2f} i={:.2f}",
+        node_idx, v, conductance, i);
+
+    state.through[node_idx] -= i;  // current flows out of node to ground
+    state.conductance[node_idx] += conductance;
 }
 
 void RefNode::solve_electrical(SimulationState& state) {
