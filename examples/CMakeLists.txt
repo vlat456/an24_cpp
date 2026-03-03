@@ -30,3 +30,10 @@ add_executable(test_generated
 )
 target_include_directories(test_generated PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(test_generated PRIVATE jit_solver spdlog::spdlog)
+
+add_executable(aot_test
+    ${CMAKE_SOURCE_DIR}/generated/aot_test.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_an24_composite_test.cpp
+)
+target_include_directories(aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(aot_test PRIVATE jit_solver spdlog::spdlog)
