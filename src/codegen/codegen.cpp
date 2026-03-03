@@ -101,57 +101,12 @@ std::string CodeGen::generate_header(
     oss << "#pragma once\n\n";
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
-    oss << "#include <array>\n\n";
+    oss << "#include <array>\n";
+    oss << "#include \"jit_solver/state.h\"\n";
+    oss << "#include \"jit_solver/components/all.h\"\n\n";
     oss << "namespace an24 {\n\n";
 
-    // Generate type definitions for each unique internal type
-    oss << "// ==============================================================================\n";
-    oss << "// GENERATED TYPE DEFINITIONS\n";
-    oss << "// ==============================================================================\n\n";
-
-    std::unordered_map<std::string, std::vector<const DeviceInstance*>> types;
-    for (const auto& dev : devices) {
-        types[dev.internal].push_back(&dev);
-    }
-
-    for (const auto& [internal, devs] : types) {
-        if (internal.empty()) continue;
-
-        const auto* dev = devs.front();
-
-        oss << "/// Auto-generated struct for type \"" << internal << "\"\n";
-        oss << "struct " << internal << " {\n";
-
-        // Port fields first
-        std::vector<std::string> port_names;
-        for (const auto& p : dev->ports) {
-            port_names.push_back(p.first);
-        }
-        std::sort(port_names.begin(), port_names.end());
-
-        for (const auto& port_name : port_names) {
-            oss << "    uint32_t " << port_name << "_idx = 0;\n";
-        }
-
-        // Parameter fields
-        std::vector<std::string> param_names;
-        for (const auto& p : dev->params) {
-            param_names.push_back(p.first);
-        }
-        std::sort(param_names.begin(), param_names.end());
-
-        for (const auto& param_name : param_names) {
-            const auto& value = dev->params.at(param_name);
-            std::string type = infer_type(value);
-            oss << "    " << type << " " << param_name;
-            if (type == "float") oss << " = " << format_value(value, "float");
-            else if (type == "bool") oss << " = " << (value == "true" ? "true" : "false");
-            else if (type == "int32_t") oss << " = " << value;
-            oss << ";\n";
-        }
-
-        oss << "};\n\n";
-    }
+    // Types are already defined in all.h - don't regenerate them
 
     // Signal constants
     oss << "// ==============================================================================\n";
@@ -234,16 +189,14 @@ std::string CodeGen::generate_source(
     oss << "#include \"" << header_name << "\"\n\n";
     oss << "namespace an24 {\n\n";
 
-    // Constructor implementation
+    // Constructor implementation - use designated initializers
     oss << "Systems::Systems()\n";
-    oss << "    : \n";
+    oss << "{\n";
 
     for (size_t i = 0; i < devices.size(); ++i) {
         const auto& dev = devices[i];
-        oss << "      " << dev.name << "{";
 
-        // Port indices
-        bool first = true;
+        // Port indices - map port names to C++ field names
         std::vector<std::string> port_names;
         for (const auto& p : dev.ports) {
             port_names.push_back(p.first);
@@ -253,54 +206,61 @@ std::string CodeGen::generate_source(
         for (const auto& port_name : port_names) {
             std::string port_key = dev.name + "." + port_name;
             uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
-            if (!first) oss << ", ";
-            oss << sig;
-            first = false;
+
+            // Map port name to C++ field name
+            std::string field_name = port_name;
+            if (dev.internal == "Bus") {
+                // Bus uses bus_idx
+                field_name = "bus_idx";
+            } else if (dev.internal == "RefNode") {
+                // RefNode uses node_idx
+                field_name = "node_idx";
+            } else {
+                // Default: port_name + "_idx"
+                field_name = port_name + "_idx";
+            }
+
+            oss << "    " << dev.name << "." << field_name << " = " << sig << ";\n";
         }
 
-        // Parameters
-        std::vector<std::string> param_names;
-        for (const auto& p : dev.params) {
-            param_names.push_back(p.first);
-        }
-        std::sort(param_names.begin(), param_names.end());
-
-        for (const auto& param_name : param_names) {
-            const auto& value = dev.params.at(param_name);
+        // Parameters - only those that differ from defaults
+        // Skip inv_capacity - it's computed in pre_load
+        for (const auto& param_name : dev.params) {
+            const auto& value = param_name.second;
+            if (param_name.first == "internal_r" || param_name.first == "inv_internal_r" || param_name.first == "inv_capacity") continue;
             std::string type = infer_type(value);
-            if (!first) oss << ", ";
-            oss << format_value(value, type);
-            first = false;
+            oss << "    " << dev.name << "." << param_name.first << " = " << format_value(value, type) << ";\n";
         }
-
-        oss << "}";
-        if (i < devices.size() - 1) oss << ",";
-        oss << "\n";
     }
-    oss << "{\n}\n\n";
+    oss << "}\n\n";
 
     // pre_load
     oss << "void Systems::pre_load() {\n";
     for (const auto& dev : devices) {
         if (dev.internal == "Battery") {
-            // Precompute inv_internal_r
+            // Precompute inv_internal_r = 1.0f / internal_r
             if (dev.params.count("internal_r")) {
-                oss << "    // " << dev.name << " pre_load\n";
+                oss << "    " << dev.name << ".inv_internal_r = 1.0f / " << dev.name << ".internal_r;\n";
             }
         }
     }
     oss << "}\n\n";
 
-    // solve_step
+    // solve_step - call solve_electrical on each component
     oss << "void Systems::solve_step(void* state, uint32_t step) {\n";
-    oss << "    // TODO: Call solve_electrical on each component\n";
-    oss << "    (void)state; (void)step;\n";
+    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
+    oss << "    (void)step;\n\n";
+    for (const auto& dev : devices) {
+        oss << "    " << dev.name << ".solve_electrical(*st);\n";
+    }
     oss << "}\n\n";
 
-    // post_step
+    // post_step - call post_step on each component
     oss << "void Systems::post_step(void* state, float dt) {\n";
-    oss << "    // TODO: Call post_step on each component (battery discharge, etc.)\n";
-    oss << "    (void)state; (void)dt;\n";
+    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
+    for (const auto& dev : devices) {
+        oss << "    " << dev.name << ".post_step(*st, dt);\n";
+    }
     oss << "}\n\n";
 
     oss << "} // namespace an24\n";

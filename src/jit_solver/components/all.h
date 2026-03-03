@@ -22,6 +22,7 @@ public:
     float inv_internal_r = 100.0f;
     float v_nominal = 28.0f;
 
+    Battery() = default;
     Battery(uint32_t v_in, uint32_t v_out, float v_nom, float int_r)
         : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
 
@@ -37,6 +38,7 @@ public:
     uint32_t v_out_idx = 0;
     bool closed = true;
 
+    Relay() = default;
     Relay(uint32_t v_in, uint32_t v_out, bool is_closed = true)
         : v_in_idx(v_in), v_out_idx(v_out), closed(is_closed) {}
 
@@ -79,6 +81,7 @@ public:
     uint32_t node_idx = 0;  // single port for the reference node
     float value = 0.0f;
 
+    RefNode() = default;
     RefNode(uint32_t node, float val)
         : node_idx(node), value(val) {}
 
@@ -91,6 +94,7 @@ class Bus : public Component {
 public:
     uint32_t bus_idx = 0;
 
+    Bus() = default;
     explicit Bus(uint32_t idx) : bus_idx(idx) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Bus"; }
@@ -107,6 +111,7 @@ public:
     float internal_r = 0.005f;
     float v_nominal = 28.5f;
 
+    Generator() = default;
     Generator(uint32_t v_in, uint32_t v_out, float v_nom, float int_r)
         : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
 
@@ -196,6 +201,7 @@ class Gyroscope : public Component {
 public:
     uint32_t input_idx = 0;
 
+    Gyroscope() = default;
     explicit Gyroscope(uint32_t input) : input_idx(input) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Gyroscope"; }
@@ -207,6 +213,7 @@ class AGK47 : public Component {
 public:
     uint32_t input_idx = 0;
 
+    AGK47() = default;
     explicit AGK47(uint32_t input) : input_idx(input) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "AGK47"; }
