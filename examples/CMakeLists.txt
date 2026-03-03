@@ -13,3 +13,12 @@ target_link_libraries(debug_test PRIVATE jit_solver spdlog::spdlog)
 add_executable(json_test json_test.cpp)
 target_include_directories(json_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(json_test PRIVATE json_parser jit_solver spdlog::spdlog)
+
+add_library(an24_codegen STATIC
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+)
+target_include_directories(an24_codegen PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+add_executable(codegen_test codegen_test.cpp)
+target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver spdlog::spdlog)
