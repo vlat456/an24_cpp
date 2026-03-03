@@ -171,6 +171,7 @@ public:
     float max_brightness = 100.0f;
     std::string color = "white";
 
+    IndicatorLight() = default;
     IndicatorLight(uint32_t v_in, uint32_t v_out, uint32_t brightness, float max_bright, std::string c)
         : v_in_idx(v_in), v_out_idx(v_out), brightness_idx(brightness), max_brightness(max_bright), color(std::move(c)) {}
 

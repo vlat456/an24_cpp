@@ -74,6 +74,8 @@ std::string format_value(const std::string& value, const std::string& type) {
         return value;
     } else if (type == "int32_t" || type == "int64_t") {
         return value;
+    } else if (type == "std::string") {
+        return "std::string(\"" + value + "\")";
     } else {
         return "\"" + value + "\"";
     }
@@ -215,6 +217,9 @@ std::string CodeGen::generate_source(
             } else if (dev.internal == "RefNode") {
                 // RefNode uses node_idx
                 field_name = "node_idx";
+            } else if (dev.internal == "IndicatorLight" && port_name == "brightness") {
+                // IndicatorLight uses brightness_idx
+                field_name = "brightness_idx";
             } else {
                 // Default: port_name + "_idx"
                 field_name = port_name + "_idx";
