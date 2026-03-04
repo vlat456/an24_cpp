@@ -18,6 +18,13 @@ std::string blueprint_to_json(const Blueprint& bp) {
         node["id"] = n.id;
         node["name"] = n.name;
         node["type_name"] = n.type_name;
+
+        // kind: "Node", "Bus", "Ref"
+        std::string kind_str = "Node";
+        if (n.kind == NodeKind::Bus) kind_str = "Bus";
+        else if (n.kind == NodeKind::Ref) kind_str = "Ref";
+        node["kind"] = kind_str;
+
         node["pos"] = {{"x", n.pos.x}, {"y", n.pos.y}};
         node["size"] = {{"x", n.size.x}, {"y", n.size.y}};
 
@@ -189,6 +196,12 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                 n.id = nj.value("id", "");
                 n.name = nj.value("name", "");
                 n.type_name = nj.value("type_name", "");
+
+                // kind
+                std::string kind_str = nj.value("kind", "Node");
+                if (kind_str == "Bus") n.kind = NodeKind::Bus;
+                else if (kind_str == "Ref") n.kind = NodeKind::Ref;
+                else n.kind = NodeKind::Node;
 
                 if (nj.contains("pos")) {
                     n.pos.x = nj["pos"].value("x", 0.0f);
