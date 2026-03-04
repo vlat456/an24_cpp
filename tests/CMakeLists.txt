@@ -66,6 +66,22 @@ target_link_libraries(editor_interaction_tests PRIVATE
 )
 gtest_discover_tests(editor_interaction_tests)
 
+# Editor render tests (TDD Step 5)
+add_executable(editor_render_tests
+    test_render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+)
+target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_render_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_render_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_render_tests)
+
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
