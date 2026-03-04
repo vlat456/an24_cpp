@@ -15,7 +15,7 @@ constexpr float ZOOM_SPEED = 0.001f;
 Viewport::Viewport()
     : pan(Pt::zero())
     , zoom(1.0f)
-    , grid_step(16.0f)
+    , grid_step(32.0f)
 {}
 
 Pt Viewport::screen_to_world(Pt screen, Pt canvas_min) const {

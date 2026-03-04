@@ -168,6 +168,18 @@ int main(int argc, char** argv) {
     // Приложение редактора
     EditorApp app;
 
+    // Загружаем файл по умолчанию
+    const char* default_file = "/Users/vladimir/an24_cpp/an24_composite_test.json";
+    auto bp = load_blueprint_from_file(default_file);
+    if (bp.has_value()) {
+        app.blueprint = std::move(*bp);
+        app.viewport.pan = app.blueprint.pan;
+        app.viewport.zoom = app.blueprint.zoom;
+        app.viewport.grid_step = app.blueprint.grid_step;
+        app.viewport.clamp_zoom();
+        DEBUG_INFO("Loaded default file: {}", default_file);
+    }
+
     bool running = true;
     while (running) {
         SDL_Event event;
@@ -271,9 +283,12 @@ int main(int argc, char** argv) {
             ImGui::EndMainMenuBar();
         }
 
-        // Canvas область
+        // Canvas область - на весь экран под меню
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+        float menu_height = ImGui::GetFrameHeight();
+        ImGui::SetNextWindowPos(ImVec2(0, menu_height));
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_height));
+        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
         auto canvas_min = ImGui::GetWindowContentRegionMin();
         auto canvas_max = ImGui::GetWindowContentRegionMax();
@@ -296,7 +311,7 @@ int main(int argc, char** argv) {
         // Рендер
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.118f, 0.118f, 0.137f, 1.0f);  // RGB: 30, 30, 35
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
