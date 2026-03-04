@@ -104,9 +104,14 @@ target_include_directories(an24_editor PRIVATE
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${SDL2_INCLUDE_DIRS}
+    ${nfde_SOURCE_DIR}/src/include
 )
 target_link_libraries(an24_editor PRIVATE
     SDL2::SDL2
     "-framework OpenGL"
+    "-framework Foundation"
+    "-framework AppKit"
+    "-framework UniformTypeIdentifiers"
     spdlog::spdlog
+    ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
 )

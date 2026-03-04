@@ -55,6 +55,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
+# native-file-dialog-extended (NFDe)
+FetchContent_Declare(
+    nfde
+    GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+    GIT_TAG v1.3.0
+)
+FetchContent_MakeAvailable(nfde)
+
 # Source directories
 add_subdirectory(src)
 add_subdirectory(examples)

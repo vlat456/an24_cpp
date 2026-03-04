@@ -19,11 +19,13 @@
 #include "editor/render.h"
 #include "editor/persist.h"
 #include "editor/gl_setup.h"
+#include "editor/data/blueprint.h"
 #include "debug.h"
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <SDL2/SDL.h>
+#include <nfd.h>
 
 // OpenGL includes
 #ifdef __APPLE__
@@ -219,10 +221,25 @@ int main(int argc, char** argv) {
                     app.new_circuit();
                 }
                 if (ImGui::MenuItem("Open...", "Ctrl+O")) {
-                    // TODO: file dialog
+                    nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
+                    nfdchar_t* outPath = nullptr;
+                    nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
+                    if (result == NFD_OKAY) {
+                        auto bp = load_blueprint_from_file(outPath);
+                        if (bp.has_value()) {
+                            app.blueprint = std::move(*bp);
+                        }
+                        NFD_FreePath(outPath);
+                    }
                 }
                 if (ImGui::MenuItem("Save", "Ctrl+S")) {
-                    // TODO: save
+                    nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
+                    nfdchar_t* outPath = nullptr;
+                    nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
+                    if (result == NFD_OKAY) {
+                        save_blueprint_to_file(app.blueprint, outPath);
+                        NFD_FreePath(outPath);
+                    }
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit", "Alt+F4")) {
