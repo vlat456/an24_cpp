@@ -58,6 +58,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/pthread_impl.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/qos.h \
@@ -244,6 +245,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/identity.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/invoke.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/is_transparent.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fn.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fun_ref.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/not_fn.h \
@@ -258,6 +260,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unwrap_ref.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/weak_result_type.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional_base \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__hash_table \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/access.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/advance.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/back_insert_iterator.h \
@@ -305,6 +308,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uses_allocator.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/access.h \
@@ -337,6 +341,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef \
@@ -356,8 +361,10 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/iterator \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept \
@@ -370,6 +377,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/tuple \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/vector \
@@ -396,6 +404,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h
 
@@ -825,6 +834,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
@@ -1259,6 +1269,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
@@ -1322,6 +1333,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/pthread_impl.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/qos.h \
@@ -1508,6 +1520,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/identity.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/invoke.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/is_transparent.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fn.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fun_ref.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/not_fn.h \
@@ -1522,6 +1535,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unwrap_ref.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/weak_result_type.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional_base \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__hash_table \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/access.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/advance.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/back_insert_iterator.h \
@@ -1569,6 +1583,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uses_allocator.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/access.h \
@@ -1601,6 +1616,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef \
@@ -1620,8 +1636,10 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/iterator \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept \
@@ -1634,6 +1652,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/include/c++/v1/tuple \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/vector \
@@ -1660,6 +1679,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: /Users/vladimir/an24_cpp/s
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h
 
@@ -2090,6 +2110,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/systems.h
@@ -2121,45 +2142,29 @@ _deps/spdlog-src/include/spdlog/details/circular_q.h:
 
 _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/thread:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/optional:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/math.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/cmath:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__hash_table:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/is_transparent.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp:
 
+/Users/vladimir/an24_cpp/src/jit_solver/state.h:
+
 /Users/vladimir/an24_cpp/src/jit_solver/component.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_end.h:
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_mcontext.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h:
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_ptrdiff_t.h:
 
@@ -2195,7 +2200,11 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/optional:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/memory:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/math.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h:
 
@@ -2212,6 +2221,8 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdlib:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/cmath:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono:
 
@@ -2287,6 +2298,8 @@ _deps/spdlog-src/include/spdlog/common.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/merge.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/exchange.h:
@@ -2327,8 +2340,6 @@ _deps/spdlog-src/include/spdlog/common.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/empty.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/distance.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_n.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/data.h:
@@ -2342,6 +2353,10 @@ _deps/spdlog-src/include/spdlog/common.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/new:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/access.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/distance.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__hash_table:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int8_t.h:
 
@@ -2368,8 +2383,6 @@ _deps/spdlog-src/include/spdlog/common.h:
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_nullptr_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_u_int64_t.h:
 
@@ -2529,10 +2542,6 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/mismatch.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/arm/_structs.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_wchar_t.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/minmax.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h:
@@ -2542,10 +2551,6 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/min.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/lower_bound.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_permutation.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_timespec.h:
 
@@ -2572,8 +2577,6 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/includes.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/generate.h:
 
@@ -2677,9 +2680,17 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istreambuf_iterator.h:
 
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_wchar_t.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/arm/_structs.h:
+
 /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_permutation.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rune_t.h:
 
@@ -2737,6 +2748,10 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_null.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_symbol_aliasing.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mode_t.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/qos.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/pthread_impl.h:
@@ -2757,10 +2772,6 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mode_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_symbol_aliasing.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_if.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h:
@@ -2774,8 +2785,6 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_id_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/move_backward.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/state.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg___gnuc_va_list.h:
 
@@ -2793,15 +2802,13 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_endian.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/as_const.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/limits.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/replace_if.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdio.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_iterator.h:
+
+/Users/vladimir/an24_cpp/src/json_parser/json_parser.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdint.h:
 
@@ -2824,6 +2831,8 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/signal.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/sched.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h:
 
@@ -2863,6 +2872,12 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
 
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_end.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_mcontext.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
@@ -2870,6 +2885,8 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_clock_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/qos.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/is_transparent.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partial_sort_copy.h:
 
@@ -2888,6 +2905,8 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h:
 
@@ -2922,6 +2941,10 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/unary_function.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wctype.h:
+
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/limits.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/as_const.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/syslimits.h:
 

@@ -185,6 +185,20 @@ jit_solver_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/build
 .PHONY : jit_solver_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/json_parser_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/json_parser_tests.dir/rule
+.PHONY : tests/CMakeFiles/json_parser_tests.dir/rule
+
+# Convenience name for target.
+json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/rule
+.PHONY : json_parser_tests
+
+# fast build rule for target.
+json_parser_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
+.PHONY : json_parser_tests/fast
+
 jit_solver_test.o: jit_solver_test.cpp.o
 .PHONY : jit_solver_test.o
 
@@ -209,6 +223,30 @@ jit_solver_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.s
 .PHONY : jit_solver_test.cpp.s
 
+json_parser_test.o: json_parser_test.cpp.o
+.PHONY : json_parser_test.o
+
+# target to build an object file
+json_parser_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.o
+.PHONY : json_parser_test.cpp.o
+
+json_parser_test.i: json_parser_test.cpp.i
+.PHONY : json_parser_test.i
+
+# target to preprocess a source file
+json_parser_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.i
+.PHONY : json_parser_test.cpp.i
+
+json_parser_test.s: json_parser_test.cpp.s
+.PHONY : json_parser_test.s
+
+# target to generate assembly for a file
+json_parser_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.s
+.PHONY : json_parser_test.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -223,9 +261,13 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... jit_solver_tests"
+	@echo "... json_parser_tests"
 	@echo "... jit_solver_test.o"
 	@echo "... jit_solver_test.i"
 	@echo "... jit_solver_test.s"
+	@echo "... json_parser_test.o"
+	@echo "... json_parser_test.i"
+	@echo "... json_parser_test.s"
 .PHONY : help
 
 

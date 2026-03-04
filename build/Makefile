@@ -250,6 +250,19 @@ jit_solver/fast:
 .PHONY : jit_solver/fast
 
 #=============================================================================
+# Target rules for targets named json_parser
+
+# Build rule for target.
+json_parser: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 json_parser
+.PHONY : json_parser
+
+# fast build rule for target.
+json_parser/fast:
+	$(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/build
+.PHONY : json_parser/fast
+
+#=============================================================================
 # Target rules for targets named hello_world
 
 # Build rule for target.
@@ -289,6 +302,84 @@ debug_test/fast:
 .PHONY : debug_test/fast
 
 #=============================================================================
+# Target rules for targets named json_test
+
+# Build rule for target.
+json_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 json_test
+.PHONY : json_test
+
+# fast build rule for target.
+json_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/json_test.dir/build.make examples/CMakeFiles/json_test.dir/build
+.PHONY : json_test/fast
+
+#=============================================================================
+# Target rules for targets named an24_codegen
+
+# Build rule for target.
+an24_codegen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 an24_codegen
+.PHONY : an24_codegen
+
+# fast build rule for target.
+an24_codegen/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/build
+.PHONY : an24_codegen/fast
+
+#=============================================================================
+# Target rules for targets named codegen_test
+
+# Build rule for target.
+codegen_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen_test
+.PHONY : codegen_test
+
+# fast build rule for target.
+codegen_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/build
+.PHONY : codegen_test/fast
+
+#=============================================================================
+# Target rules for targets named test_generated
+
+# Build rule for target.
+test_generated: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_generated
+.PHONY : test_generated
+
+# fast build rule for target.
+test_generated/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_generated.dir/build.make examples/CMakeFiles/test_generated.dir/build
+.PHONY : test_generated/fast
+
+#=============================================================================
+# Target rules for targets named aot_test
+
+# Build rule for target.
+aot_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 aot_test
+.PHONY : aot_test
+
+# fast build rule for target.
+aot_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/aot_test.dir/build.make examples/CMakeFiles/aot_test.dir/build
+.PHONY : aot_test/fast
+
+#=============================================================================
+# Target rules for targets named vsu_aot_test
+
+# Build rule for target.
+vsu_aot_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 vsu_aot_test
+.PHONY : vsu_aot_test
+
+# fast build rule for target.
+vsu_aot_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/build
+.PHONY : vsu_aot_test/fast
+
+#=============================================================================
 # Target rules for targets named jit_solver_tests
 
 # Build rule for target.
@@ -300,6 +391,19 @@ jit_solver_tests: cmake_check_build_system
 jit_solver_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/build
 .PHONY : jit_solver_tests/fast
+
+#=============================================================================
+# Target rules for targets named json_parser_tests
+
+# Build rule for target.
+json_parser_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 json_parser_tests
+.PHONY : json_parser_tests
+
+# fast build rule for target.
+json_parser_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
+.PHONY : json_parser_tests/fast
 
 # Help Target
 help:
@@ -314,6 +418,9 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... an24_codegen"
+	@echo "... aot_test"
+	@echo "... codegen_test"
 	@echo "... components_test"
 	@echo "... debug_test"
 	@echo "... gmock"
@@ -323,7 +430,12 @@ help:
 	@echo "... hello_world"
 	@echo "... jit_solver"
 	@echo "... jit_solver_tests"
+	@echo "... json_parser"
+	@echo "... json_parser_tests"
+	@echo "... json_test"
 	@echo "... spdlog"
+	@echo "... test_generated"
+	@echo "... vsu_aot_test"
 .PHONY : help
 
 

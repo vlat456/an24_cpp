@@ -1,0 +1,2 @@
+/usr/bin/ar qc liban24_codegen.a CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o
+/usr/bin/ranlib liban24_codegen.a

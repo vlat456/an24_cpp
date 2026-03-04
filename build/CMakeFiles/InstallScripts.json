@@ -2,12 +2,14 @@
 	"InstallScripts" : 
 	[
 		"/Users/vladimir/an24_cpp/build/cmake_install.cmake",
+		"/Users/vladimir/an24_cpp/build/_deps/json-build/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/_deps/spdlog-build/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/_deps/googletest-build/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/_deps/googletest-build/googlemock/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/_deps/googletest-build/googletest/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/src/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/src/jit_solver/cmake_install.cmake",
+		"/Users/vladimir/an24_cpp/build/src/json_parser/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/examples/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/tests/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/benchmarks/cmake_install.cmake"
