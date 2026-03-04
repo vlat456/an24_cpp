@@ -28,7 +28,7 @@ int main() {
     const float omega = 1.8f;
     const float dt = 0.016f;
 
-    // Run 5000 steps
+    // Run 5000 steps - AOT uses 1 iteration (smart convergence)
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
         sys.solve_step(&state, step);
