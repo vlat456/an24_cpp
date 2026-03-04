@@ -7,6 +7,16 @@
 namespace an24 {
 
 // =============================================================================
+// Enums
+// =============================================================================
+
+/// GS24 operating modes
+enum class GS24Mode { OFF, STARTER, STARTER_WAIT, GENERATOR };
+
+/// APU (ВСУ) operating states - РУ19А-300
+enum class APUState { OFF, CRANKING, IGNITION, RUNNING, STOPPING };
+
+// =============================================================================
 // Electrical Components
 // =============================================================================
 
@@ -119,22 +129,34 @@ public:
     void solve_electrical(SimulationState& state) override;
 };
 
-/// GS24 - Starter-Generator (ГС-24)
-/// Acts as motor initially (consuming power), then transitions to generator
-/// Target: reach 50% mode (half speed) before switching to generation
+/// GS24 - Starter-Generator (ГС-24) with full state machine
 class GS24 : public Component {
 public:
-    uint32_t v_in_idx = 0;      // power input (motor mode)
-    uint32_t v_out_idx = 0;     // power output (generator mode)
-    float internal_r = 0.005f;  // internal resistance
-    float v_nominal = 28.5f;   // nominal voltage when generating
-    float target_rpm = 15000.0f;  // target RPM at 100%
-    float current_rpm = 0.0f;  // current RPM
-    bool is_generator = false;  // false = motor, true = generating
+    uint32_t v_in_idx = 0;        // ground input
+    uint32_t v_out_idx = 0;        // bus output (generator mode)
+    uint32_t k_mod_idx = 0;        // excitation modulation from RUG82 (0...1)
+
+    // Mode state machine
+    GS24Mode mode = GS24Mode::STARTER;
+    float start_time = 0.0f;       // time since start
+    float wait_time = 0.0f;       // time in wait state
+
+    // Motor mode parameters
+    float r_internal = 0.025f;     // internal resistance (~0.025 Ohm)
+    float k_motor = 0.5f;          // back-EMF constant
+    float i_max_starter = 800.0f;  // max starter current (800A)
+    float rpm_cutoff = 0.45f;      // RPM cutoff to switch to generator (45%)
+
+    // Generator mode parameters
+    float r_norton = 0.08f;        // Norton equivalent resistance (~0.08 Ohm)
+    float target_rpm = 15000.0f;   // target RPM at 100%
+    float current_rpm = 0.0f;      // current RPM
+    float i_max = 400.0f;          // max generator current (400A)
+    float rpm_threshold = 0.4f;    // 40% RPM threshold for self-excitation
 
     GS24() = default;
     GS24(uint32_t v_in, uint32_t v_out, float v_nom, float int_r)
-        : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
+        : v_in_idx(v_in), v_out_idx(v_out), r_internal(int_r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
     void solve_electrical(SimulationState& state) override;
@@ -332,6 +354,108 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "ElectricHeater"; }
     void solve_electrical(SimulationState& state) override;
     void solve_thermal(SimulationState& state) override;
+};
+
+/// RUG-82 - Coal column voltage regulator (Угольный регулятор напряжения)
+/// RUG-82 - Coal column voltage regulator (Norton model)
+/// Input: v_gen (bus voltage), Output: k_mod (0...1 excitation modulation)
+class RUG82 : public Component {
+public:
+    uint32_t v_gen_idx = 0;   // input: generator voltage (U_bus)
+    uint32_t k_mod_idx = 0;   // output: excitation modulation (0...1)
+    float v_target = 28.5f;   // target voltage (28.5V)
+    float k_mod = 0.5f;       // current modulation factor (0...1)
+    float kp = 2.0f;          // proportional gain
+
+    RUG82() = default;
+    RUG82(uint32_t v_gen, uint32_t k_mod)
+        : v_gen_idx(v_gen), k_mod_idx(k_mod) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "RUG82"; }
+    void solve_electrical(SimulationState& state) override;
+};
+
+/// DMR-400 - Differential Minimum Relay (Дифференциально-минимальное реле)
+/// Connects generator to DC bus when ready, disconnects on reverse current
+class DMR400 : public Component {
+public:
+    uint32_t v_gen_idx = 0;        // input: generator voltage
+    uint32_t v_bus_idx = 0;        // input: bus voltage (battery side)
+    uint32_t v_out_idx = 0;        // output: connected to bus
+    uint32_t lamp_idx = 0;         // output: warning lamp (1 = ON when disconnected)
+
+    bool is_closed = false;          // contactor state (default open)
+    float connect_threshold = 2.0f;     // V_gen > V_bus + 2.0V to connect (hysteresis)
+    float disconnect_threshold = 10.0f; // V_bus > V_gen + 10V to disconnect (reverse current)
+    float min_voltage_to_close = 20.0f; // minimum generator voltage to close (starter must be done)
+    float reconnect_delay = 0.0f;      // delay before reconnecting
+
+    DMR400() = default;
+    DMR400(uint32_t v_gen, uint32_t v_bus, uint32_t v_out, uint32_t lamp)
+        : v_gen_idx(v_gen), v_bus_idx(v_bus), v_out_idx(v_out), lamp_idx(lamp) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
+    void solve_electrical(SimulationState& state) override;
+    void post_step(SimulationState& state, float dt) override;
+};
+
+/// RU19A-300 - Auxiliary Power Unit (ВСУ)
+/// Combines: GS24 starter-generator + start sequence automation
+class RU19A : public Component {
+public:
+    // Electrical ports
+    uint32_t v_start_idx = 0;    // starter power input (direct from battery, bypasses DMR)
+    uint32_t v_bus_idx = 0;       // bus voltage output (goes through DMR)
+    uint32_t k_mod_idx = 0;       // excitation modulation to GS24
+    uint32_t v_gen_mon_idx = 0;  // generator voltage monitoring (from bus)
+
+    // Status output ports
+    uint32_t rpm_out_idx = 0;      // RPM output signal
+    uint32_t t4_out_idx = 0;       // T4 temperature output signal
+
+    // State machine
+    APUState state = APUState::OFF;
+    float timer = 0.0f;           // state timer
+
+    // GS24 parameters (embedded)
+    float target_rpm = 16000.0f; // max RPM
+    float current_rpm = 0.0f;     // current RPM
+
+    // Start sequence parameters
+    float crank_time = 2.0f;     // time before ignition (sec)
+    float ignition_time = 3.0f;  // ignition duration (sec)
+    float runup_time = 8.0f;     // time to reach idle (sec)
+    float start_timeout = 30.0f; // max start time (sec)
+
+    // Thermal (T4 - gas temperature after turbine)
+    float t4 = 0.0f;               // current T4 (Celsius)
+    float t4_target = 400.0f;      // target T4 at idle
+    float t4_max = 750.0f;         // max safe T4 (emergency cutoff)
+    float ambient_temp = 20.0f;     // ambient temperature
+
+    // Thermal model parameters
+    float heating_rate = 120.0f;    // heating at ignition (deg/sec)
+    float base_cooling = 110.0f;    // cooling at 60% RPM
+    float thermal_stress_factor = 0.5f;  // stress when RPM < 40%
+
+    // Thermal solver call counter
+    int thermal_counter = 0;
+
+    // Control
+    bool auto_start = true;      // auto-start when battery connected
+
+    void start() { if (state == APUState::OFF) state = APUState::CRANKING; }
+    void stop() { state = APUState::STOPPING; }
+    bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
+
+    RU19A() = default;
+    RU19A(uint32_t v_start, uint32_t v_bus, uint32_t k_mod, uint32_t v_gen_mon, uint32_t rpm_out)
+        : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), v_gen_mon_idx(v_gen_mon), rpm_out_idx(rpm_out) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
+    void solve_electrical(SimulationState& state) override;
+    void solve_thermal(SimulationState& state) override;
+    void post_step(SimulationState& state, float dt) override;
 };
 
 /// Radiator - heat exchanger

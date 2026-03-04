@@ -97,29 +97,34 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Look up signal indices by port name
+    auto get_sig = [&](const std::string& port) -> size_t {
+        auto it = result.port_to_signal.find(port);
+        return (it != result.port_to_signal.end()) ? it->second : 0;
+    };
+
+    // Find common signal indices
+    size_t sig_bus = get_sig("main_bus.v");
+    if (sig_bus == 0) sig_bus = get_sig("bat_main_1.v_out");
+    size_t sig_rpm = get_sig("vsu_1.rpm_out");
+    size_t sig_k_mod = get_sig("rug_vsu.k_mod");
+    size_t sig_brightness = get_sig("light_1.brightness");
+
     // Run simulation with SOR
-    std::cout << "\n=== Running Simulation ===\n";
+    std::cout << "\n=== Running Simulation (5000 cycles) ===\n";
     const float omega = 1.8f;  // SOR over-relaxation
     const float dt = 0.016f;   // 60 Hz time step
-    for (int step = 0; step < 200; ++step) {
+    for (int step = 0; step < 5000; ++step) {
         state.clear_through();
         result.systems.solve_step(state, step);
 
-        // Debug: show voltages after solve
-        if (step < 5 || step == 199) {
-            std::cout << "Step " << step << ": ";
-            for (size_t i = 0; i < state.across.size(); ++i) {
-                std::cout << state.across[i] << " ";
-            }
-            std::cout << "| through: ";
-            for (size_t i = 0; i < state.through.size(); ++i) {
-                std::cout << state.through[i] << " ";
-            }
-            std::cout << "| conductance: ";
-            for (size_t i = 0; i < state.conductance.size(); ++i) {
-                std::cout << state.conductance[i] << " ";
-            }
-            std::cout << "\n";
+        // Show values every 500 cycles
+        if (step % 500 == 0 || step == 4999) {
+            std::cout << "Step " << step
+                      << ": bus=" << state.across[sig_bus] << "V"
+                      << ", rpm=" << state.across[sig_rpm] << "%"
+                      << ", k_mod=" << state.across[sig_k_mod]
+                      << ", brightness=" << state.across[sig_brightness] << "\n";
         }
 
         state.precompute_inv_conductance();

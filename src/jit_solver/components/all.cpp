@@ -106,45 +106,116 @@ void Generator::solve_electrical(SimulationState& state) {
 void GS24::solve_electrical(SimulationState& state) {
     float v_bus = state.across[v_out_idx];
     float v_gnd = state.across[v_in_idx];
-    float speed_factor = current_rpm / target_rpm;  // 0 to 1
+    float rpm_percent = current_rpm / target_rpm;  // 0 to 1
 
-    if (!is_generator) {
-        // Motor mode: current drops as RPM increases
-        // I = I_start * (1 - speed_factor), so at 0 RPM: max current
-        float i_start = 1000.0f;  // max current at 0 RPM
-        float current_draw = i_start * (1.0f - speed_factor);
+    if (mode == GS24Mode::STARTER) {
+        // === STARTER MODE ===
+        // I_cons = (U_bus - K_motor * RPM) / R_internal
+        // Back-EMF reduces current as RPM increases
+        float back_emf = k_motor * current_rpm;  // proportional to RPM
 
-        // Current flows from bus to ground (motor consuming power)
-        // Creates voltage drop on bus
-        float g = current_draw / 28.0f;  // conductance to draw current
-        state.through[v_out_idx] -= current_draw;
-        state.through[v_in_idx] += current_draw;
-        state.conductance[v_out_idx] += g;
+        // Calculate consumed current (can be negative if back_emf > v_bus)
+        float i_consumed = (v_bus - back_emf) / r_internal;
+
+        // Clamp: if positive, it's consumption; if negative, limit to small value
+        // (real starter can't be negative until mode switch)
+        if (i_consumed < 50.0f) i_consumed = 50.0f;  // minimum 50A hold
+        if (i_consumed > i_max_starter) i_consumed = i_max_starter;
+
+        float g_internal = 1.0f / r_internal;
+
+        spdlog::debug("[GS24 starter] v_bus={:.1f} back_emf={:.1f} I={:.0f}A mode=STARTER",
+            v_bus, back_emf, i_consumed);
+
+        // Current flows from bus to ground (consuming power)
+        state.through[v_out_idx] -= i_consumed;
+        state.through[v_in_idx] += i_consumed;
+        state.conductance[v_out_idx] += g_internal;
+
+    } else if (mode == GS24Mode::GENERATOR) {
+        // === GENERATOR MODE (Norton) ===
+        // I_no = I_max * Phi(RPM) * k_mod
+        // Phi(RPM): 0 if <40%, linear 40-60%, 1 if >60%
+        float phi = 0.0f;
+        if (rpm_percent >= 0.6f) {
+            phi = 1.0f;
+        } else if (rpm_percent >= rpm_threshold) {
+            phi = (rpm_percent - rpm_threshold) / 0.2f;
+        }
+
+        // Get k_mod from RUG82 (default 1.0 if not connected)
+        float k_mod = (k_mod_idx > 0) ? state.across[k_mod_idx] : 1.0f;
+
+        // Norton current source
+        float i_no = i_max * phi * k_mod;
+        i_no = std::clamp(i_no, 0.0f, 100.0f);
+
+        float g_norton = (r_norton > 0.0f) ? 1.0f / r_norton : 0.0f;
+
+        spdlog::debug("[GS24 gen] rpm%={:.0f}% phi={:.2f} k_mod={:.2f} I_no={:.1f}A mode=GENERATOR",
+            rpm_percent * 100, phi, k_mod, i_no);
+
+        // Norton: current injected to bus node
+        state.through[v_out_idx] += i_no;
+        state.conductance[v_out_idx] += g_norton;
+
     } else {
-        // Generator mode: produces stable 28.5V
-        float g = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
-        float i = (v_nominal + v_gnd - v_bus) * g;
-        i = std::clamp(i, -500.0f, 500.0f);
-
-        state.through[v_out_idx] += i;
-        state.through[v_in_idx] -= i;
-        state.conductance[v_out_idx] += g;
-        state.conductance[v_in_idx] += g;
+        // OFF or STARTER_WAIT - no current
+        (void)v_bus;
+        (void)v_gnd;
+        (void)rpm_percent;
     }
 }
 
 void GS24::post_step(SimulationState& state, float dt) {
     (void)state;
 
-    // Accelerate from 0 to 50% RPM
-    if (current_rpm < target_rpm * 0.5f) {
-        float acceleration = 300.0f;  // RPM per second (reaches 50% in ~25 sec)
-        current_rpm += acceleration * dt;
+    float rpm_percent = current_rpm / target_rpm;
 
-        if (current_rpm >= target_rpm * 0.5f) {
-            current_rpm = target_rpm * 0.5f;
-            is_generator = true;  // Transition to generator
-        }
+    // State machine transitions
+    switch (mode) {
+        case GS24Mode::STARTER:
+            // Accelerate while in starter mode
+            if (current_rpm < target_rpm * rpm_cutoff) {
+                float acceleration = 300.0f;  // RPM per second
+                current_rpm += acceleration * dt;
+            }
+
+            // Debug: show RPM progress
+            spdlog::debug("[GS24 post] rpm={:.0f} ({:.1f}%) cutoff={:.1f}",
+                current_rpm, rpm_percent * 100, rpm_cutoff * 100);
+
+            // Check for transition to generator (45% RPM)
+            if (rpm_percent >= rpm_cutoff) {
+                current_rpm = target_rpm * rpm_cutoff;
+                mode = GS24Mode::STARTER_WAIT;
+                wait_time = 0.0f;
+                spdlog::info("[GS24] STARTER -> STARTER_WAIT at {:.0f}% RPM", rpm_percent * 100);
+            }
+            break;
+
+        case GS24Mode::STARTER_WAIT:
+            // Brief pause before switching to generator
+            wait_time += dt;
+            if (wait_time >= 1.0f) {  // 1 second wait
+                mode = GS24Mode::GENERATOR;
+                spdlog::info("[GS24] STARTER_WAIT -> GENERATOR");
+            }
+            break;
+
+        case GS24Mode::GENERATOR:
+            // Continue accelerating to target RPM
+            if (current_rpm < target_rpm) {
+                float acceleration = 500.0f;
+                current_rpm += acceleration * dt;
+                if (current_rpm > target_rpm) current_rpm = target_rpm;
+            }
+            break;
+
+        case GS24Mode::OFF:
+        default:
+            // No action
+            break;
     }
 }
 
@@ -333,6 +404,305 @@ void ElectricHeater::solve_thermal(SimulationState& state) {
     float v_in = state.across[power_idx];
     float heat_power = v_in * v_in * efficiency;
     state.through[heat_out_idx] += heat_power;
+}
+
+// =============================================================================
+// RUG-82 Voltage Regulator
+// =============================================================================
+
+void RUG82::solve_electrical(SimulationState& state) {
+    // Read generator voltage (bus voltage)
+    float v_gen = state.across[v_gen_idx];
+
+    // Calculate error from target (28.5V)
+    float error = v_target - v_gen;
+
+    // RUG-82: if V too high, decrease k_mod (reduce excitation)
+    // if V too low, increase k_mod (increase excitation)
+    k_mod += kp * error * 0.01f;  // small time step factor
+
+    // Clamp to 0...1
+    if (k_mod < 0.0f) k_mod = 0.0f;
+    if (k_mod > 1.0f) k_mod = 1.0f;
+
+    spdlog::debug("[RUG82] v_gen={:.2f} error={:.2f} k_mod={:.2f}",
+        v_gen, error, k_mod);
+
+    // Write k_mod to output
+    state.across[k_mod_idx] = k_mod;
+}
+
+// =============================================================================
+// DMR-400 Differential Minimum Relay
+// =============================================================================
+
+void DMR400::solve_electrical(SimulationState& st) {
+    if (!is_closed) {
+        // Contactor open - no connection
+        return;
+    }
+
+    // When closed, connect generator to bus with low resistance (wire)
+    // In Norton model: add parallel conductance between the two nodes
+    float g_closed = 100.0f;  // ~0.01 Ohm when closed
+
+    // Add conductance to both nodes (creates connection in the matrix)
+    st.conductance[v_gen_idx] += g_closed;
+    st.conductance[v_out_idx] += g_closed;
+
+    // Also add current injection to balance the voltages
+    // This helps the solver converge faster
+    float v_avg = (st.across[v_gen_idx] + st.across[v_out_idx]) * 0.5f;
+    st.through[v_gen_idx] += (v_avg - st.across[v_gen_idx]) * g_closed;
+    st.through[v_out_idx] += (v_avg - st.across[v_out_idx]) * g_closed;
+}
+
+void DMR400::post_step(SimulationState& st, float dt) {
+    float v_gen = st.across[v_gen_idx];
+    float v_bus = st.across[v_bus_idx];
+
+    // Update reconnect delay
+    if (reconnect_delay > 0.0f) {
+        reconnect_delay -= dt;
+    }
+
+    if (!is_closed) {
+        // Can close if: V_gen > V_bus + threshold AND V_gen > min_voltage
+        // (min_voltage ensures starter is done)
+        if (reconnect_delay <= 0.0f && v_gen > v_bus + connect_threshold && v_gen > min_voltage_to_close) {
+            is_closed = true;
+            spdlog::info("[DMR400] CONNECTED: V_gen={:.1f} > V_bus={:.1f} + {:.1f}, V_gen > {:.1f}V",
+                v_gen, v_bus, connect_threshold, min_voltage_to_close);
+        }
+    } else {
+        // Check for reverse current: V_bus significantly higher than V_gen
+        if (v_bus > v_gen + disconnect_threshold) {
+            is_closed = false;
+            reconnect_delay = 1.0f;  // 1 second delay before reconnect
+            spdlog::warn("[DMR400] DISCONNECTED: Reverse current V_bus={:.1f} > V_gen={:.1f}",
+                v_bus, v_gen);
+        }
+    }
+
+    // Warning lamp: ON when disconnected, OFF when connected
+    if (lamp_idx > 0) {
+        st.across[lamp_idx] = is_closed ? 0.0f : 1.0f;
+    }
+}
+
+// =============================================================================
+// RU19A-300 APU (ВСУ)
+// =============================================================================
+
+void RU19A::solve_electrical(SimulationState& st) {
+    float v_start = st.across[v_start_idx];
+    float v_bus = st.across[v_bus_idx];
+
+    if (this->state == APUState::OFF) {
+        // No output - waiting for start
+        return;
+    }
+
+    if (this->state == APUState::CRANKING || this->state == APUState::IGNITION) {
+        // === STARTER MODE ===
+        // GS24 acting as starter - consumes power from v_start (bypasses DMR)
+        // Parameters: R_internal = 0.025 Ohm, k_motor = 38.0 V at 100% RPM
+        constexpr float R_START_INTERNAL = 0.025f;
+        constexpr float K_MOTOR_BACK_EMF = 38.0f;
+
+        float rpm_percent = current_rpm / target_rpm;
+        float back_emf = K_MOTOR_BACK_EMF * rpm_percent;
+        float i_consumed = (v_start - back_emf) / R_START_INTERNAL;
+
+        // Physical limits: 0A at stall, up to 1000A on weak batteries
+        if (i_consumed < 0.0f) i_consumed = 0.0f;
+        if (i_consumed > 1000.0f) i_consumed = 1000.0f;
+
+        spdlog::debug("[RU19A] starter mode: v_start={:.1f} back_emf={:.1f} I={:.0f}A",
+            v_start, back_emf, i_consumed);
+
+        // Consume current from v_start (direct battery connection, bypasses DMR)
+        st.through[v_start_idx] -= i_consumed;
+        st.conductance[v_start_idx] += 1.0f / R_START_INTERNAL;
+
+    } else if (this->state == APUState::RUNNING) {
+        // === GENERATOR MODE ===
+        // GS24 acting as generator - produces power to bus (through DMR)
+        float rpm_percent = current_rpm / target_rpm;
+
+        // Phi(RPM): 0 if <40%, linear 40-60%, 1 if >60%
+        float phi = 0.0f;
+        if (rpm_percent >= 0.6f) {
+            phi = 1.0f;
+        } else if (rpm_percent >= 0.4f) {
+            phi = (rpm_percent - 0.4f) / 0.2f;
+        }
+
+        // Get k_mod from RUG82
+        float k_mod = st.across[k_mod_idx];
+
+        // Norton current source
+        float i_no = 400.0f * phi * k_mod;  // I_max = 400A
+        if (i_no > 100.0f) i_no = 100.0f;  // limit for stability
+
+        float g_norton = 1.0f / 0.08f;  // R_norton = 0.08
+
+        spdlog::debug("[RU19A] generator mode: rpm={:.0f}% phi={:.2f} I={:.1f}A",
+            rpm_percent * 100, phi, i_no);
+
+        // Inject current to bus
+        st.through[v_bus_idx] += i_no;
+        st.conductance[v_bus_idx] += g_norton;
+    }
+}
+
+// Thermal solver (runs at 1 Hz)
+void RU19A::solve_thermal(SimulationState& st) {
+    (void)st;
+    // Thermal solver runs at 1 Hz, so dt = 1.0 second
+    float dt_thermal = 1.0f;
+
+    float rpm_percent = current_rpm / target_rpm;
+
+    // Only calculate when fuel is flowing
+    bool fuel_flowing = (this->state == APUState::IGNITION || this->state == APUState::RUNNING);
+
+    if (fuel_flowing && this->state == APUState::IGNITION) {
+        // During ignition: heating - cooling + thermal stress
+
+        // Cooling depends on RPM^2 (air flow through compressor)
+        float rpm_factor = rpm_percent / 0.6f;
+        float cooling = base_cooling * rpm_factor * rpm_factor;
+
+        // Thermal stress: if RPM < 40%, heat builds up (weak battery scenario)
+        float thermal_stress = 0.0f;
+        if (rpm_percent < 0.4f) {
+            thermal_stress = (0.4f - rpm_percent) * 100.0f * thermal_stress_factor;
+        }
+
+        // Temperature change (dt = 1 second)
+        float dT = (heating_rate - cooling + thermal_stress) * dt_thermal;
+        t4 += dT;
+
+        if (t4 < ambient_temp) t4 = ambient_temp;
+
+        spdlog::debug("[RU19A thermal] rpm={:.0f}% heating={:.0f} cooling={:.0f} T4={:.0f}C",
+            rpm_percent * 100, heating_rate, cooling, t4);
+
+        // HOT START CHECK: Emergency abort if T4 exceeds limit
+        if (t4 > t4_max) {
+            spdlog::warn("[RU19A] HOT START ABORT! T4={:.0f}C > {:.0f}C", t4, t4_max);
+            this->state = APUState::STOPPING;
+        }
+
+    } else if (this->state == APUState::RUNNING) {
+        // At idle: T4 stabilized at target
+        t4 += (t4_target - t4) * dt_thermal * 0.5f;
+
+    } else if (this->state == APUState::STOPPING || this->state == APUState::OFF) {
+        // Cooling (forced draft / spooling down)
+        t4 -= (t4 - ambient_temp) * dt_thermal * 2.0f;
+        if (t4 < ambient_temp) t4 = ambient_temp;
+    }
+}
+
+void RU19A::post_step(SimulationState& st, float dt) {
+    float v_start = st.across[v_start_idx];
+    float v_bus = st.across[v_bus_idx];
+    timer += dt;
+
+    // Call thermal solver at 1 Hz (every 60 frames)
+    thermal_counter++;
+    if (thermal_counter >= 60) {
+        thermal_counter = 0;
+        solve_thermal(st);  // dt = 1 second for thermal
+    }
+
+    float rpm_percent = current_rpm / target_rpm;
+
+    switch (this->state) {
+        case APUState::OFF: {
+            // Waiting for start command (external trigger)
+            current_rpm = 0.0f;
+            t4 = ambient_temp;
+            timer = 0.0f;
+            // Auto-start if enabled and battery connected
+            // Check both v_start (new) and v_bus (legacy) for compatibility
+            float start_voltage = (v_start_idx > 0) ? st.across[v_start_idx] : v_bus;
+            if (auto_start && start_voltage > 10.0f) {
+                this->state = APUState::CRANKING;
+                spdlog::info("[RU19A] AUTOSTART - CRANKING");
+            }
+            break;
+        }
+
+        case APUState::CRANKING: {
+            // Cranking with starter (0-2 sec)
+            // RPM acceleration depends on battery voltage
+            float voltage_factor = std::clamp(v_bus / 24.0f, 0.5f, 1.0f);
+            current_rpm += 500.0f * voltage_factor * dt;
+            if (current_rpm > 2000.0f) current_rpm = 2000.0f;
+
+            if (timer >= crank_time) {
+                this->state = APUState::IGNITION;
+                timer = 0.0f;
+                spdlog::info("[RU19A] CRANKING -> IGNITION");
+            }
+            break;
+        }
+
+        case APUState::IGNITION: {
+            // Fuel added, turbine helping (2-7 sec)
+            current_rpm += 1500.0f * dt;
+            if (current_rpm > 5000.0f) current_rpm = 5000.0f;
+
+            if (timer >= ignition_time) {
+                this->state = APUState::RUNNING;
+                timer = 0.0f;
+                spdlog::info("[RU19A] IGNITION -> RUNNING");
+            }
+
+            // Timeout check
+            if (timer > start_timeout) {
+                this->state = APUState::STOPPING;
+                spdlog::warn("[RU19A] Start timeout!");
+            }
+            break;
+        }
+
+        case APUState::RUNNING: {
+            // Reach idle RPM (100% = 16000, idle ~60% = 9600)
+            float idle_rpm = target_rpm * 0.6f;
+            if (current_rpm < idle_rpm) {
+                current_rpm += 2000.0f * dt;
+            }
+            if (current_rpm > idle_rpm) current_rpm = idle_rpm;
+
+            // T4 at idle
+            t4 = t4_target;
+            break;
+        }
+
+        case APUState::STOPPING:
+            current_rpm -= 3000.0f * dt;
+            t4 -= 100.0f * dt;
+            if (current_rpm <= 0.0f) {
+                current_rpm = 0.0f;
+                this->state = APUState::OFF;
+                spdlog::info("[RU19A] STOPPED");
+            }
+            break;
+    }
+
+    // Output RPM for instrumentation
+    if (rpm_out_idx > 0) {
+        st.across[rpm_out_idx] = rpm_percent * 100.0f;  // as percentage
+    }
+
+    // Output T4 for instrumentation
+    if (t4_out_idx > 0) {
+        st.across[t4_out_idx] = t4;
+    }
 }
 
 void Radiator::solve_thermal(SimulationState& state) {

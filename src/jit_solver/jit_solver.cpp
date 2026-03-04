@@ -87,9 +87,29 @@ std::unique_ptr<Component> create_component(
     else if (device.internal == "GS24") {
         auto gs = std::make_unique<GS24>(
             get_port("v_in"), get_port("v_out"),
-            get_f("v_nominal", 28.5f), get_f("internal_r", 0.005f));
+            28.5f, get_f("r_norton", 0.08f));
         gs->target_rpm = get_f("target_rpm", 16000.0f);
+        gs->k_mod_idx = get_port("k_mod");  // connect to RUG82
         return gs;
+    }
+    else if (device.internal == "RUG82") {
+        auto rug = std::make_unique<RUG82>(
+            get_port("v_gen"), get_port("k_mod"));
+        return rug;
+    }
+    else if (device.internal == "RU19A") {
+        auto apu = std::make_unique<RU19A>(
+            get_port("v_start"), get_port("v_bus"), get_port("k_mod"),
+            get_port("v_gen_mon"), get_port("rpm_out"));
+        apu->t4_out_idx = get_port("t4_out");
+        return apu;
+    }
+    else if (device.internal == "DMR400") {
+        auto dmr = std::make_unique<DMR400>(
+            get_port("v_gen"), get_port("v_bus"),
+            get_port("v_out"), get_port("lamp"));
+        // Will be linked to RU19A after all components created
+        return dmr;
     }
     else if (device.internal == "Gyroscope" || device.internal == "AGK47") {
         // Single-port load to ground
@@ -288,9 +308,11 @@ BuildResult build_systems_dev(
         unique_roots.size(), result.signal_count);
 
     // Create components
+    std::vector<std::string> comp_names;
     for (const auto& dev : devices) {
         auto comp = create_component(dev, result.port_to_signal, result.signal_count);
         if (!comp) continue;
+        comp_names.push_back(dev.name);
 
         // Add to electrical domain (all current components are electrical)
         result.systems.add_electrical(std::move(comp));
