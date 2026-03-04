@@ -1,6 +1,7 @@
 #include "render.h"
 #include "trigonometry.h"
 #include "router/crossings.h"
+#include "visual_node.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
@@ -87,8 +88,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             continue;
         }
 
-        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str());
-        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str());
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires, w.id.c_str());
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires, w.id.c_str());
 
         std::vector<Pt> poly;
         poly.push_back(start_pos);
@@ -280,102 +281,20 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         }
     }
 
-    // Рендерим узлы
+    // Рендерим узлы - используем VisualNodeFactory
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
-        // Bus - маленький квадрат, все порты посередине
-        if (n.kind == NodeKind::Bus) {
-            Pt screen_center = vp.world_to_screen(
-                Pt(n.pos.x + n.size.x / 2, n.pos.y + n.size.y / 2), canvas_min);
-            float size = 30.0f * vp.zoom;
-            Pt bus_min(screen_center.x - size, screen_center.y - size);
-            Pt bus_max(screen_center.x + size, screen_center.y + size);
-
-            NodeColors colors = get_node_colors(n.type_name.c_str());
-            dl->add_rect_filled(bus_min, bus_max, colors.fill);
-            dl->add_rect(bus_min, bus_max, colors.border, 1.0f);
-            dl->add_text(Pt(bus_min.x + 3, screen_center.y - 5), n.name.c_str(), COLOR_TEXT, 10.0f);
-
-            // Порты - все в центре
-            float port_radius = 6.0f;
-            for (size_t i = 0; i < n.inputs.size(); i++) {
-                dl->add_circle_filled(screen_center, port_radius, COLOR_PORT_INPUT, 8);
-            }
-            for (size_t i = 0; i < n.outputs.size(); i++) {
-                dl->add_circle_filled(screen_center, port_radius, COLOR_PORT_OUTPUT, 8);
+        // Check if node is selected
+        bool is_selected = false;
+        if (selected_nodes) {
+            for (size_t idx : *selected_nodes) {
+                if (idx == node_idx) { is_selected = true; break; }
             }
         }
-        // Ref - маленький квадрат, порт сверху
-        else if (n.kind == NodeKind::Ref) {
-            Pt screen_center = vp.world_to_screen(
-                Pt(n.pos.x + n.size.x / 2, n.pos.y + n.size.y / 2), canvas_min);
-            float size = 20.0f * vp.zoom;
-            Pt ref_min(screen_center.x - size, screen_center.y - size);
-            Pt ref_max(screen_center.x + size, screen_center.y + size);
 
-            NodeColors colors = get_node_colors(n.type_name.c_str());
-            dl->add_rect_filled(ref_min, ref_max, colors.fill);
-            dl->add_rect(ref_min, ref_max, colors.border, 1.0f);
-            dl->add_text(Pt(ref_min.x + 2, screen_center.y - 5), n.name.c_str(), COLOR_TEXT, 10.0f);
-
-            // Порт сверху
-            Pt port_pos(screen_center.x, ref_min.y);
-            float port_radius = 5.0f;
-            if (!n.outputs.empty()) {
-                dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_OUTPUT, 8);
-            } else if (!n.inputs.empty()) {
-                dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_INPUT, 8);
-            }
-        }
-        // Обычный Node - прямоугольник с header и портами по сторонам
-        else {
-            Pt screen_min = vp.world_to_screen(n.pos, canvas_min);
-            Pt screen_max = vp.world_to_screen(Pt(n.pos.x + n.size.x, n.pos.y + n.size.y), canvas_min);
-
-            NodeColors colors = get_node_colors(n.type_name.c_str());
-            dl->add_rect_filled(screen_min, screen_max, colors.fill);
-
-            // Выделение
-            bool is_selected = false;
-            if (selected_nodes) {
-                for (size_t idx : *selected_nodes) {
-                    if (idx == node_idx) { is_selected = true; break; }
-                }
-            }
-            if (is_selected) {
-                dl->add_rect(screen_min, screen_max, COLOR_SELECTED, 2.0f);
-            } else {
-                dl->add_rect(screen_min, screen_max, colors.border, 1.0f);
-            }
-
-            // Header
-            float header_height = 20.0f * vp.zoom;
-            Pt header_min(screen_min.x, screen_min.y);
-            Pt header_max(screen_max.x, screen_min.y + header_height);
-            uint32_t header_color = (colors.fill & 0xFF000000) | ((colors.fill >> 1) & 0x007F7F7F);
-            dl->add_rect_filled(header_min, header_max, header_color);
-
-            // Текст
-            dl->add_text(Pt(screen_min.x + 5, screen_min.y + header_height / 2 - 6), n.name.c_str(), COLOR_TEXT, 12.0f);
-            if (!n.type_name.empty()) {
-                dl->add_text(Pt(screen_min.x + 5, screen_min.y + header_height + 5), n.type_name.c_str(), COLOR_TEXT_DIM, 10.0f);
-            }
-
-            // Порты
-            float port_radius = 4.0f;
-            for (size_t i = 0; i < n.inputs.size(); i++) {
-                Pt port_world = editor_math::get_port_position(n, n.inputs[i].name.c_str());
-                Pt port_pos = vp.world_to_screen(port_world, canvas_min);
-                dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_INPUT, 8);
-                dl->add_text(Pt(screen_min.x - 30, port_pos.y - 5), n.inputs[i].name.c_str(), COLOR_TEXT_DIM, 9.0f);
-            }
-            for (size_t i = 0; i < n.outputs.size(); i++) {
-                Pt port_world = editor_math::get_port_position(n, n.outputs[i].name.c_str());
-                Pt port_pos = vp.world_to_screen(port_world, canvas_min);
-                dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_OUTPUT, 8);
-                dl->add_text(Pt(screen_max.x + 5, port_pos.y - 5), n.outputs[i].name.c_str(), COLOR_TEXT_DIM, 9.0f);
-            }
-        }
+        // Create visual node using factory (pass wires for Bus dynamic ports)
+        auto visual = VisualNodeFactory::create(n, bp.wires);
+        visual->render(dl, vp, canvas_min, is_selected);
 
         node_idx++;
     }

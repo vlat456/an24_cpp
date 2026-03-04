@@ -161,8 +161,8 @@ void EditorApp::on_key_down(Key key) {
                 }
 
                 if (start_node && end_node) {
-                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str());
-                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str());
+                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires);
+                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires);
 
                     // Build existing wire polylines (all wires except current)
                     std::vector<std::vector<Pt>> existing_paths;
@@ -177,9 +177,9 @@ void EditorApp::on_key_down(Key key) {
                         }
                         if (!sn || !en) continue;
                         std::vector<Pt> poly;
-                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str()));
+                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str(), blueprint.wires));
                         poly.insert(poly.end(), ow.routing_points.begin(), ow.routing_points.end());
-                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str()));
+                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str(), blueprint.wires));
                         existing_paths.push_back(std::move(poly));
                     }
 
@@ -242,8 +242,8 @@ void EditorApp::on_double_click(Pt world_pos) {
             }
             if (!start_node || !end_node) return;
 
-            Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str());
-            Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str());
+            Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires);
+            Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires);
 
             // Ищем ближайший сегмент для вставки
             size_t insert_idx = 0;

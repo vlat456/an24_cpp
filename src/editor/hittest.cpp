@@ -49,8 +49,8 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
 
         if (!start_node || !end_node) continue;
 
-        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str());
-        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str());
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires);
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires);
 
         // Проверяем сегменты: start -> rp[0] -> ... -> rp[n] -> end
         Pt prev = start_pos;

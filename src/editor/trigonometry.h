@@ -2,49 +2,21 @@
 
 #include "data/pt.h"
 #include "data/node.h"
+#include "data/wire.h"
+#include "visual_node.h"
 #include <cmath>
 #include <algorithm>
+#include <vector>
 
 namespace editor_math {
 
-// Точная позиция порта (как в render.cpp)
-inline Pt get_port_position(const Node& node, const char* port_name) {
-    static constexpr float HEADER_HEIGHT = 20.0f;
-
-    // Bus - все порты в центре
-    if (node.kind == NodeKind::Bus) {
-        return Pt(node.pos.x + node.size.x / 2, node.pos.y + node.size.y / 2);
-    }
-
-    // Ref - порт сверху
-    if (node.kind == NodeKind::Ref) {
-        return Pt(node.pos.x + node.size.x / 2, node.pos.y);
-    }
-
-    // Обычный Node - порты по сторонам
-    int num_inputs = (int)node.inputs.size();
-    int num_outputs = (int)node.outputs.size();
-    int max_ports = std::max(num_inputs, num_outputs);
-    if (max_ports == 0) max_ports = 1;
-
-    float port_area_height = node.size.y - HEADER_HEIGHT;
-    if (port_area_height < 1.0f) port_area_height = 1.0f;
-
-    for (size_t i = 0; i < node.inputs.size(); i++) {
-        if (node.inputs[i].name == port_name) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
-        }
-    }
-
-    for (size_t i = 0; i < node.outputs.size(); i++) {
-        if (node.outputs[i].name == port_name) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x + node.size.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
-        }
-    }
-
-    return Pt(node.pos.x + node.size.x / 2, node.pos.y + node.size.y / 2);
+// Точная позиция порта - использует VisualNodeFactory
+inline Pt get_port_position(const Node& node, const char* port_name,
+                            const std::vector<Wire>& wires = {},
+                            const char* wire_id = nullptr) {
+    // Use VisualNodeFactory to get port position
+    auto visual = VisualNodeFactory::create(node, wires);
+    return visual->getPortPosition(port_name, wire_id);
 }
 
 // Расстояние между точками
