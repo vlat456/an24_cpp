@@ -152,18 +152,13 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             dl->add_text(type_pos, n.type_name.c_str(), COLOR_TEXT_DIM, 10.0f);
         }
 
-        // Порты
+        // Порты - используем тот же метод что для wire (world -> screen)
         float port_radius = 4.0f;
 
-        int num_inputs = (int)n.inputs.size();
-        int num_outputs = (int)n.outputs.size();
-        int max_ports = std::max(num_inputs, num_outputs);
-        if (max_ports == 0) max_ports = 1;
-
         // Входные порты (слева)
-        for (int i = 0; i < num_inputs; i++) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            Pt port_pos(screen_min.x, screen_min.y + header_height + (n.size.y - header_height) * t * vp.zoom);
+        for (size_t i = 0; i < n.inputs.size(); i++) {
+            Pt port_world = editor_math::get_port_position(n, n.inputs[i].name.c_str());
+            Pt port_pos = vp.world_to_screen(port_world, canvas_min);
             dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_INPUT, 8);
             // Подпись порта
             Pt label_pos(screen_min.x - 30, port_pos.y - 5);
@@ -171,9 +166,9 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         }
 
         // Выходные порты (справа)
-        for (int i = 0; i < num_outputs; i++) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            Pt port_pos(screen_max.x, screen_min.y + header_height + (n.size.y - header_height) * t * vp.zoom);
+        for (size_t i = 0; i < n.outputs.size(); i++) {
+            Pt port_world = editor_math::get_port_position(n, n.outputs[i].name.c_str());
+            Pt port_pos = vp.world_to_screen(port_world, canvas_min);
             dl->add_circle_filled(port_pos, port_radius, COLOR_PORT_OUTPUT, 8);
             // Подпись порта
             Pt label_pos(screen_max.x + 5, port_pos.y - 5);

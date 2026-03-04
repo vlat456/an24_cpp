@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     EditorApp app;
 
     // Загружаем файл по умолчанию
-    const char* default_file = "/Users/vladimir/an24_cpp/an24_composite_test.json";
+    const char* default_file = "/Users/vladimir/an24_cpp/src/aircraft/vsu_dmr_test.json";
     auto bp = load_blueprint_from_file(default_file);
     if (bp.has_value()) {
         app.blueprint = std::move(*bp);
@@ -341,6 +341,14 @@ int main(int argc, char** argv) {
                 Pt mouse(mouse_pos.x, mouse_pos.y);
                 Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
                 app.on_mouse_down(world, MouseButton::Middle, canvas_min_pt);
+            }
+
+            // Double click - добавить/удалить routing point
+            if (ImGui::IsMouseDoubleClicked(0)) { // Left double click
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse(mouse_pos.x, mouse_pos.y);
+                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                app.on_double_click(world);
             }
 
             // Mouse drag / panning
