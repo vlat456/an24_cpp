@@ -55,6 +55,9 @@ NodeColors get_node_colors(const char* type_name) {
 }
 
 // Найти позицию порта на узле
+// header_height должен соответствовать значению в render_blueprint
+static constexpr float HEADER_HEIGHT = 20.0f;
+
 Pt get_port_position(const Node& node, const char* port_name) {
     // Input - слева, Output - справа
 
@@ -63,11 +66,15 @@ Pt get_port_position(const Node& node, const char* port_name) {
     int max_ports = std::max(num_inputs, num_outputs);
     if (max_ports == 0) max_ports = 1;
 
+    // Высота доступной области для портов (после заголовка)
+    float port_area_height = node.size.y - HEADER_HEIGHT;
+    if (port_area_height < 1.0f) port_area_height = 1.0f;
+
     // Сначала ищем в inputs
     for (size_t i = 0; i < node.inputs.size(); i++) {
         if (node.inputs[i].name == port_name) {
             float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x, node.pos.y + node.size.y * t);
+            return Pt(node.pos.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
         }
     }
 
@@ -75,7 +82,7 @@ Pt get_port_position(const Node& node, const char* port_name) {
     for (size_t i = 0; i < node.outputs.size(); i++) {
         if (node.outputs[i].name == port_name) {
             float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x + node.size.x, node.pos.y + node.size.y * t);
+            return Pt(node.pos.x + node.size.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
         }
     }
 

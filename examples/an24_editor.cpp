@@ -312,7 +312,8 @@ int main(int argc, char** argv) {
             }
 
             // Mouse down
-            bool alt_down = io.KeyAlt || io.KeySuper; // Alt или Cmd
+            bool alt_down = io.KeyAlt; // Alt = marquee
+            bool ctrl_down = io.KeyCtrl || io.KeySuper; // Ctrl/Cmd = add to selection
 
             if (ImGui::IsMouseClicked(0)) { // Left
                 ImVec2 mouse_pos = ImGui::GetMousePos();
@@ -325,7 +326,8 @@ int main(int argc, char** argv) {
                     app.interaction.marquee_start = world;
                     app.interaction.marquee_end = world;
                 } else {
-                    app.on_mouse_down(world, MouseButton::Left, canvas_min_pt);
+                    // Передаем ctrl_down чтобы решить add или replace
+                    app.on_mouse_down(world, MouseButton::Left, canvas_min_pt, ctrl_down);
                 }
             }
             if (ImGui::IsMouseClicked(1)) { // Right

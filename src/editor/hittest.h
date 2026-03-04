@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data/blueprint.h"
-#include "viewport.h"
+#include "viewport/viewport.h"
 #include "data/pt.h"
 
 /// Тип объекта под курсором

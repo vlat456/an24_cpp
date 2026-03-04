@@ -2,7 +2,7 @@
 #include "hittest.h"
 #include <algorithm>
 
-void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min) {
+void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
     (void)canvas_min;
 
     if (btn == MouseButton::Left) {
@@ -10,6 +10,10 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min) {
         HitResult hit = hit_test(blueprint, world_pos, viewport);
 
         if (hit.type == HitType::Node) {
+            // Если не add_to_selection - очищаем предыдущее выделение
+            if (!add_to_selection) {
+                interaction.clear_selection();
+            }
             // Выделяем узел и начинаем drag
             interaction.add_node_selection(hit.node_index);
             interaction.start_drag_node(world_pos);

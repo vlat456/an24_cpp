@@ -42,7 +42,7 @@ gtest_discover_tests(editor_persist_tests)
 # Editor viewport tests (TDD Step 3)
 add_executable(editor_viewport_tests
     test_viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_include_directories(editor_viewport_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -70,7 +70,7 @@ gtest_discover_tests(editor_interaction_tests)
 add_executable(editor_render_tests
     test_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_render_tests PRIVATE
@@ -86,7 +86,7 @@ gtest_discover_tests(editor_render_tests)
 add_executable(editor_hittest_tests
     test_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_include_directories(editor_hittest_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -101,7 +101,7 @@ gtest_discover_tests(editor_hittest_tests)
 add_executable(editor_event_tests
     test_events.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
 )
 target_include_directories(editor_event_tests PRIVATE

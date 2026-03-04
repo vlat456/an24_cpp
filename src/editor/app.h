@@ -1,8 +1,8 @@
 #pragma once
 
 #include "data/blueprint.h"
-#include "viewport.h"
-#include "interaction.h"
+#include "viewport/viewport.h"
+#include "interact/interaction.h"
 #include "hittest.h"
 
 /// Кнопки мыши
@@ -42,7 +42,7 @@ struct EditorApp {
     }
 
     /// Обработка mouse down
-    void on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min);
+    void on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection = false);
 
     /// Обработка mouse up
     void on_mouse_up(MouseButton btn);
