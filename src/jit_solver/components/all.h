@@ -199,6 +199,7 @@ public:
     uint32_t output_idx = 0;
     float factor = 1.0f;  // filter coefficient (0.1 = slow, 1.0 = instant)
 
+    LerpNode() = default;
     LerpNode(uint32_t input, uint32_t output, float f)
         : input_idx(input), output_idx(output), factor(f) {}
 

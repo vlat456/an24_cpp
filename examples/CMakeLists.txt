@@ -37,3 +37,11 @@ add_executable(aot_test
 )
 target_include_directories(aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(aot_test PRIVATE jit_solver spdlog::spdlog)
+
+# AOT compiled VSU test
+add_executable(vsu_aot_test
+    ${CMAKE_SOURCE_DIR}/generated/test_vsu_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
+)
+target_include_directories(vsu_aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(vsu_aot_test PRIVATE jit_solver spdlog::spdlog)
