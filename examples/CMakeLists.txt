@@ -79,3 +79,34 @@ add_executable(profile_vsu_dmr_aot
 )
 target_include_directories(profile_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(profile_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)
+
+# AN-24 Blueprint Editor (imgui + SDL2 + OpenGL)
+find_package(OpenGL REQUIRED)
+
+add_executable(an24_editor
+    ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(an24_editor PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${SDL2_INCLUDE_DIRS}
+)
+target_link_libraries(an24_editor PRIVATE
+    SDL2::SDL2
+    "-framework OpenGL"
+    spdlog::spdlog
+)

@@ -18,16 +18,19 @@
 #include "editor/app.h"
 #include "editor/render.h"
 #include "editor/persist.h"
+#include "editor/gl_setup.h"
 #include "debug.h"
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <SDL2/SDL.h>
 
-// OpenGL includes for macOS
+// OpenGL includes
+#ifdef __APPLE__
+#define GL_SILENCE_DEPRECATION
 #include <OpenGL/gl3.h>
-#ifndef APIENTRY
-#define APIENTRY
+#else
+#include <GL/glew.h>
 #endif
 
 #include <cstdio>
@@ -106,18 +109,47 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    // Используем Metal вместо OpenGL
-    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+    // OpenGL 3.2 Core Profile — минимальная версия для macOS
+    // macOS не поддерживает legacy GLSL (120, 130), только Core Profile 3.2+
+    // Соответствующий шейдерный язык: GLSL 150
+    const char* glsl_version = gl_setup::GLSL_VERSION;
+    if (gl_setup::FORWARD_COMPAT) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    }
+    if (gl_setup::CORE_PROFILE) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    }
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, gl_setup::GL_MAJOR);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_setup::GL_MINOR);
 
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_METAL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    // Depth / Stencil
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, gl_setup::DOUBLE_BUFFER);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, gl_setup::DEPTH_SIZE);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, gl_setup::STENCIL_SIZE);
+
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
     SDL_Window* window = SDL_CreateWindow("AN-24 Blueprint Editor",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         1400, 900, window_flags);
+    if (!window) {
+        printf("Error creating window: %s\n", SDL_GetError());
+        SDL_Quit();
+        return -1;
+    }
 
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+    if (!gl_context) {
+        printf("Error creating GL context: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1); // VSync
+
+    printf("OpenGL version: %s\n", glGetString(GL_VERSION));
+    printf("GLSL version:   %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
     // ImGui инициализация
     IMGUI_CHECKVERSION();
@@ -129,7 +161,7 @@ int main(int argc, char** argv) {
     ImGui::StyleColorsDark();
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL3_Init("#version 120");
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     // Приложение редактора
     EditorApp app;

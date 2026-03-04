@@ -113,6 +113,19 @@ target_link_libraries(editor_event_tests PRIVATE
 )
 gtest_discover_tests(editor_event_tests)
 
+# GL setup configuration tests (TDD Step 9)
+add_executable(editor_gl_setup_tests
+    test_gl_setup.cpp
+)
+target_include_directories(editor_gl_setup_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_gl_setup_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_gl_setup_tests)
+
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
