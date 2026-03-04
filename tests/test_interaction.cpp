@@ -46,8 +46,10 @@ TEST(InteractionTest, StartDragNode) {
 
 TEST(InteractionTest, StartDragRoutingPoint) {
     Interaction i;
-    i.start_drag_routing_point(2, 5); // wire 2, point 5
+    i.start_drag_routing_point(2, 5, Pt(50.0f, 60.0f)); // wire 2, point 5
     EXPECT_EQ(i.dragging, Dragging::RoutingPoint);
+    EXPECT_EQ(i.drag_anchor.x, 50.0f);
+    EXPECT_EQ(i.drag_anchor.y, 60.0f);
 }
 
 TEST(InteractionTest, UpdateDragAnchor) {

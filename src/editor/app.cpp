@@ -21,10 +21,19 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             }
             // Выделяем узел и начинаем drag
             interaction.add_node_selection(hit.node_index);
-            interaction.start_drag_node(world_pos);
+            // drag_anchor = позиция первого выделенного узла (unsnapped accumulator)
+            Pt primary_pos = blueprint.nodes[hit.node_index].pos;
+            interaction.start_drag_node(primary_pos);
+            // Сохраняем смещения относительно anchor для каждого выделенного узла
+            interaction.drag_node_offsets.clear();
+            for (size_t idx : interaction.selected_nodes) {
+                if (idx < blueprint.nodes.size())
+                    interaction.drag_node_offsets.push_back(blueprint.nodes[idx].pos - primary_pos);
+            }
         } else if (hit.type == HitType::RoutingPoint) {
             // Выделяем routing point и начинаем drag
-            interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index);
+            Pt rp_pos = blueprint.wires[hit.wire_index].routing_points[hit.routing_point_index];
+            interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index, rp_pos);
         } else if (hit.type == HitType::Wire) {
             // Выделяем провод
             interaction.selected_wire = hit.wire_index;
@@ -59,28 +68,8 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             interaction.marquee_selecting = false;
         }
 
-        // Заканчиваем panning или drag - применяем snap к сетке
-        if (interaction.dragging == Dragging::Node) {
-            // Snap всех выделенных узлов к сетке
-            for (size_t idx : interaction.selected_nodes) {
-                if (idx < blueprint.nodes.size()) {
-                    blueprint.nodes[idx].pos = editor_math::snap_to_grid(
-                        blueprint.nodes[idx].pos, blueprint.grid_step);
-                }
-            }
-        } else if (interaction.dragging == Dragging::RoutingPoint) {
-            // Snap routing point к сетке
-            size_t wire_idx = interaction.routing_point_wire;
-            size_t rp_idx = interaction.routing_point_index;
-            if (wire_idx < blueprint.wires.size()) {
-                auto& wire = blueprint.wires[wire_idx];
-                if (rp_idx < wire.routing_points.size()) {
-                    wire.routing_points[rp_idx] = editor_math::snap_to_grid(
-                        wire.routing_points[rp_idx], blueprint.grid_step);
-                }
-            }
-        }
-
+        // Snap уже применяется в on_mouse_drag, не нужен на release
+        interaction.drag_node_offsets.clear();
         interaction.set_panning(false);
         interaction.end_drag();
     }
@@ -94,22 +83,27 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
         viewport.pan.x -= world_delta.x;
         viewport.pan.y -= world_delta.y;
     } else if (interaction.dragging == Dragging::Node) {
-        // Перетаскивание узлов - просто добавляем delta (без snap)
-        for (size_t idx : interaction.selected_nodes) {
+        // Accumulate unsnapped delta, then snap
+        interaction.update_drag_anchor(world_delta);
+        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, blueprint.grid_step);
+        for (size_t i = 0; i < interaction.selected_nodes.size(); i++) {
+            size_t idx = interaction.selected_nodes[i];
             if (idx < blueprint.nodes.size()) {
-                blueprint.nodes[idx].pos.x += world_delta.x;
-                blueprint.nodes[idx].pos.y += world_delta.y;
+                Pt offset = (i < interaction.drag_node_offsets.size())
+                    ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
+                blueprint.nodes[idx].pos = snapped + offset;
             }
         }
     } else if (interaction.dragging == Dragging::RoutingPoint) {
-        // Перетаскивание routing point
+        // Accumulate unsnapped delta, then snap
+        interaction.update_drag_anchor(world_delta);
+        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, blueprint.grid_step);
         size_t wire_idx = interaction.routing_point_wire;
         size_t rp_idx = interaction.routing_point_index;
         if (wire_idx < blueprint.wires.size()) {
             auto& wire = blueprint.wires[wire_idx];
             if (rp_idx < wire.routing_points.size()) {
-                wire.routing_points[rp_idx].x += world_delta.x;
-                wire.routing_points[rp_idx].y += world_delta.y;
+                wire.routing_points[rp_idx] = snapped;
             }
         }
     } else if (interaction.marquee_selecting) {

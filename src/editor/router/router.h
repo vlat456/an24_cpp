@@ -18,8 +18,8 @@ inline std::unordered_set<GridPt, GridPtHash> make_obstacles(
     std::unordered_set<GridPt, GridPtHash> obstacles;
 
     for (const auto& node : nodes) {
-        GridPt min = grid_from_world(node.pos, grid_step);
-        GridPt max = grid_from_world(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
+        GridPt min = grid_from_world_floor(node.pos, grid_step);
+        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
 
         // Расширяем на clearance
         for (int x = min.x - clearance; x <= max.x + clearance; x++) {
@@ -43,8 +43,8 @@ inline RoutingGrid make_routing_grid(
 
     // 1. Node obstacles (with clearance)
     for (const auto& node : nodes) {
-        GridPt min = grid_from_world(node.pos, grid_step);
-        GridPt max = grid_from_world(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
+        GridPt min = grid_from_world_floor(node.pos, grid_step);
+        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
 
         for (int x = min.x - clearance; x <= max.x + clearance; x++) {
             for (int y = min.y - clearance; y <= max.y + clearance; y++) {
@@ -142,13 +142,34 @@ inline std::vector<Pt> route_around_nodes(
     if (end_dir.dx == 0 && end_dir.dy == 0) grid_end_arr = grid_end;
 
     // Создаем routing grid (nodes + existing wires)
-    auto grid = make_routing_grid(nodes, existing_wire_paths, grid_step);
+    constexpr int clearance = 1;
+    auto grid = make_routing_grid(nodes, existing_wire_paths, grid_step, clearance);
 
-    // Убираем start/end и their departure/arrival from obstacles
-    grid.cells.erase(grid_start);
-    grid.cells.erase(grid_end);
-    grid.cells.erase(grid_start_dep);
-    grid.cells.erase(grid_end_arr);
+    // Carve corridor: port → departure → 1 extra cell beyond (to connect to free space)
+    // This ensures A* can reach the departure/arrival cells even when
+    // they fall inside the obstacle clearance zone (floor/ceil boundaries).
+    auto carve_corridor = [&](GridPt port, GridPt dep, PortDir dir) {
+        grid.cells.erase(port);
+        grid.cells.erase(dep);
+        // Clear cells beyond departure (outward from node) until outside obstacle zone
+        for (int step = 1; step <= clearance + 1; step++) {
+            grid.cells.erase(GridPt{dep.x + dir.dx * step, dep.y + dir.dy * step});
+        }
+    };
+
+    if (start_dir.dx != 0 || start_dir.dy != 0) {
+        carve_corridor(grid_start, grid_start_dep, start_dir);
+    } else {
+        grid.cells.erase(grid_start);
+        grid.cells.erase(grid_start_dep);
+    }
+
+    if (end_dir.dx != 0 || end_dir.dy != 0) {
+        carve_corridor(grid_end, grid_end_arr, end_dir);
+    } else {
+        grid.cells.erase(grid_end);
+        grid.cells.erase(grid_end_arr);
+    }
 
     // A* поиск from departure to arrival
     auto grid_path = astar_search(grid_start_dep, grid_end_arr, grid);

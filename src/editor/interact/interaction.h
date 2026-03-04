@@ -42,6 +42,9 @@ struct Interaction {
     /// Индекс точки изгиба
     size_t routing_point_index = 0;
 
+    /// Смещения выделенных узлов относительно drag_anchor (для мульти-выделения)
+    std::vector<Pt> drag_node_offsets;
+
     Interaction() = default;
 
     /// Очистить выделение
@@ -68,17 +71,18 @@ struct Interaction {
         return selected_nodes[0];
     }
 
-    /// Начать перетаскивание узла
-    void start_drag_node(Pt anchor) {
+    /// Начать перетаскивание узла (anchor = позиция первого выделенного узла)
+    void start_drag_node(Pt node_pos) {
         dragging = Dragging::Node;
-        drag_anchor = anchor;
+        drag_anchor = node_pos;
     }
 
     /// Начать перетаскивание точки изгиба провода
-    void start_drag_routing_point(size_t wire_idx, size_t point_idx) {
+    void start_drag_routing_point(size_t wire_idx, size_t point_idx, Pt rp_pos) {
         dragging = Dragging::RoutingPoint;
         routing_point_wire = wire_idx;
         routing_point_index = point_idx;
+        drag_anchor = rp_pos;
     }
 
     /// Обновить якорь перетаскивания (добавить delta)

@@ -33,11 +33,27 @@ struct GridPtHash {
     }
 };
 
-/// Конвертировать world position в grid
+/// Конвертировать world position в grid (round — для общих целей)
 inline GridPt grid_from_world(Pt world, float step) {
     return GridPt{
         (int)std::round(world.x / step),
         (int)std::round(world.y / step)
+    };
+}
+
+/// Конвертировать world position в grid (floor — для min-bound obstacles)
+inline GridPt grid_from_world_floor(Pt world, float step) {
+    return GridPt{
+        (int)std::floor(world.x / step),
+        (int)std::floor(world.y / step)
+    };
+}
+
+/// Конвертировать world position в grid (ceil — для max-bound obstacles)
+inline GridPt grid_from_world_ceil(Pt world, float step) {
+    return GridPt{
+        (int)std::ceil(world.x / step),
+        (int)std::ceil(world.y / step)
     };
 }
 
