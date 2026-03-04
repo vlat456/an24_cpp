@@ -228,11 +228,20 @@ int main(int argc, char** argv) {
                         auto bp = load_blueprint_from_file(outPath);
                         if (bp.has_value()) {
                             app.blueprint = std::move(*bp);
+                            // Restore viewport from loaded blueprint
+                            app.viewport.pan = app.blueprint.pan;
+                            app.viewport.zoom = app.blueprint.zoom;
+                            app.viewport.grid_step = app.blueprint.grid_step;
+                            app.viewport.clamp_zoom();
                         }
                         NFD_FreePath(outPath);
                     }
                 }
                 if (ImGui::MenuItem("Save", "Ctrl+S")) {
+                    // Sync viewport to blueprint before saving
+                    app.blueprint.pan = app.viewport.pan;
+                    app.blueprint.zoom = app.viewport.zoom;
+                    app.blueprint.grid_step = app.viewport.grid_step;
                     nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
