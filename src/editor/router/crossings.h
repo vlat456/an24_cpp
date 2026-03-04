@@ -85,21 +85,3 @@ inline std::vector<WireCrossing> find_wire_crossings(
 
     return crossings;
 }
-
-/// Build world-space polyline for a wire (start port -> RPs -> end port)
-inline std::vector<Pt> wire_world_polyline(
-    const struct Wire& wire,
-    const std::vector<struct Node>& nodes,
-    const std::vector<Pt>& default_port_pos) {
-
-    std::vector<Pt> pts;
-
-    // Find start position - use default or look up
-    // For now, use default positions if available
-    if (wire.routing_points.size() >= 2) {
-        // This is a placeholder - actual implementation needs port lookup
-        pts = wire.routing_points;
-    }
-
-    return pts;
-}

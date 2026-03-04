@@ -170,16 +170,44 @@ void EditorApp::on_key_down(Key key) {
                     Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str());
                     Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str());
 
-                    // Роутинг вокруг nodes
-                    auto path = route_around_nodes(start_pos, end_pos, blueprint.nodes, blueprint.grid_step);
+                    // Build existing wire polylines (all wires except current)
+                    std::vector<std::vector<Pt>> existing_paths;
+                    for (size_t i = 0; i < blueprint.wires.size(); i++) {
+                        if (i == wire_idx) continue;
+                        const auto& ow = blueprint.wires[i];
+                        const Node* sn = nullptr;
+                        const Node* en = nullptr;
+                        for (const auto& n : blueprint.nodes) {
+                            if (n.id == ow.start.node_id) sn = &n;
+                            if (n.id == ow.end.node_id) en = &n;
+                        }
+                        if (!sn || !en) continue;
+                        std::vector<Pt> poly;
+                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str()));
+                        poly.insert(poly.end(), ow.routing_points.begin(), ow.routing_points.end());
+                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str()));
+                        existing_paths.push_back(std::move(poly));
+                    }
+
+                    // Роутинг с port departure/arrival + existing wire avoidance
+                    auto path = route_around_nodes(
+                        start_pos, end_pos,
+                        *start_node, wire.start.port_name.c_str(),
+                        *end_node, wire.end.port_name.c_str(),
+                        blueprint.nodes, blueprint.grid_step,
+                        existing_paths);
 
                     if (!path.empty()) {
-                        wire.routing_points = path;
+                        // Strip first and last points (they are port positions, not routing points)
+                        // routing_points = intermediate waypoints only
+                        if (path.size() > 2) {
+                            wire.routing_points.assign(path.begin() + 1, path.end() - 1);
+                        } else {
+                            wire.routing_points.clear();
+                        }
                         DEBUG_LOG("Rerouted wire {} with {} points", wire.id, wire.routing_points.size());
                     } else {
-                        // Fallback: L-shape
-                        wire.routing_points = route_l_shape(start_pos, end_pos, blueprint.grid_step);
-                        DEBUG_LOG("Could not find A* route, using L-shape for wire {}", wire.id);
+                        DEBUG_LOG("Could not find A* route for wire {}", wire.id);
                     }
                 }
             }

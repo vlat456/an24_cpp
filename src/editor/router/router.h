@@ -5,6 +5,7 @@
 #include "data/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
+#include "data/port.h"
 #include <vector>
 #include <unordered_set>
 
@@ -89,7 +90,105 @@ inline RoutingGrid make_routing_grid(
     return grid;
 }
 
+/// Determine departure direction for a port (which way the wire should leave)
+/// Returns a unit offset in grid coordinates: {+1,0} for outputs, {-1,0} for inputs, etc.
+struct PortDir { int dx, dy; };
+
+inline PortDir get_port_departure(const Node& node, const char* port_name) {
+    // Bus: no preferred direction
+    if (node.kind == NodeKind::Bus) {
+        return {0, 0};
+    }
+    // Ref: port is on top → wire departs upward (negative Y)
+    if (node.kind == NodeKind::Ref) {
+        return {0, -1};
+    }
+    // Normal node: inputs on left face → depart left, outputs on right face → depart right
+    for (const auto& p : node.inputs) {
+        if (p.name == port_name) return {-1, 0};
+    }
+    for (const auto& p : node.outputs) {
+        if (p.name == port_name) return {+1, 0};
+    }
+    return {0, 0};  // unknown port
+}
+
 /// Основная функция роутинга: найти путь вокруг nodes
+/// start_node/end_node are needed for port departure direction
+inline std::vector<Pt> route_around_nodes(
+    Pt start,
+    Pt end,
+    const Node& start_node,
+    const char* start_port,
+    const Node& end_node,
+    const char* end_port,
+    const std::vector<Node>& nodes,
+    float grid_step,
+    const std::vector<std::vector<Pt>>& existing_wire_paths = {}) {
+
+    // Конвертируем порт позиции в grid
+    GridPt grid_start = grid_from_world(start, grid_step);
+    GridPt grid_end = grid_from_world(end, grid_step);
+
+    // Departure/arrival: 1 grid cell away from port in port's natural direction
+    PortDir start_dir = get_port_departure(start_node, start_port);
+    PortDir end_dir   = get_port_departure(end_node, end_port);
+
+    GridPt grid_start_dep = {grid_start.x + start_dir.dx, grid_start.y + start_dir.dy};
+    GridPt grid_end_arr   = {grid_end.x + end_dir.dx, grid_end.y + end_dir.dy};
+
+    // If port has no preferred direction (Bus), use the port cell itself
+    if (start_dir.dx == 0 && start_dir.dy == 0) grid_start_dep = grid_start;
+    if (end_dir.dx == 0 && end_dir.dy == 0) grid_end_arr = grid_end;
+
+    // Создаем routing grid (nodes + existing wires)
+    auto grid = make_routing_grid(nodes, existing_wire_paths, grid_step);
+
+    // Убираем start/end и their departure/arrival from obstacles
+    grid.cells.erase(grid_start);
+    grid.cells.erase(grid_end);
+    grid.cells.erase(grid_start_dep);
+    grid.cells.erase(grid_end_arr);
+
+    // A* поиск from departure to arrival
+    auto grid_path = astar_search(grid_start_dep, grid_end_arr, grid);
+
+    if (!grid_path || grid_path->empty()) {
+        return {}; // Путь не найден
+    }
+
+    // Упрощаем путь - оставляем только turning points
+    auto simplified = simplify_path(*grid_path);
+
+    // Конвертируем обратно в world
+    auto world_path = grid_path_to_world(simplified, grid_step);
+
+    // Build result: start port → departure → A* path → arrival → end port
+    std::vector<Pt> result;
+    result.push_back(start);  // оригинальная start позиция (порт)
+
+    // Add departure point if it differs from first A* point
+    Pt dep_world = grid_to_world(grid_start_dep, grid_step);
+    if (!world_path.empty() && !(world_path.front() == dep_world)) {
+        result.push_back(dep_world);
+    }
+
+    for (const auto& pt : world_path) {
+        result.push_back(pt);
+    }
+
+    // Add arrival point if it differs from last A* point
+    Pt arr_world = grid_to_world(grid_end_arr, grid_step);
+    if (!world_path.empty() && !(world_path.back() == arr_world)) {
+        result.push_back(arr_world);
+    }
+
+    result.push_back(end);    // оригинальная end позиция (порт)
+
+    return result;
+}
+
+/// Simplified overload without port info (uses grid-only routing)
 inline std::vector<Pt> route_around_nodes(
     Pt start,
     Pt end,

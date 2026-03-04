@@ -6,6 +6,7 @@
 #include "editor/router/router.h"
 #include "editor/router/crossings.h"
 #include "editor/data/blueprint.h"
+#include "editor/trigonometry.h"
 
 // ============================================================================
 // Grid conversion tests
@@ -533,4 +534,94 @@ TEST(RouterTest, LShapeSamePoint) {
     EXPECT_GE(path.size(), 2u);
     EXPECT_TRUE(path.front() == p);
     EXPECT_TRUE(path.back() == p);
+}
+
+// ============================================================================
+// Port departure direction
+// ============================================================================
+
+TEST(RouterTest, PortDepartureInput) {
+    Node n;
+    n.id = "n1";
+    n.pos = Pt(100, 100);
+    n.size = Pt(120, 80);
+    n.input("v_in");
+    n.output("v_out");
+
+    auto dir = get_port_departure(n, "v_in");
+    EXPECT_EQ(dir.dx, -1);  // input → depart left
+    EXPECT_EQ(dir.dy, 0);
+}
+
+TEST(RouterTest, PortDepartureOutput) {
+    Node n;
+    n.id = "n1";
+    n.pos = Pt(100, 100);
+    n.size = Pt(120, 80);
+    n.input("v_in");
+    n.output("v_out");
+
+    auto dir = get_port_departure(n, "v_out");
+    EXPECT_EQ(dir.dx, +1);  // output → depart right
+    EXPECT_EQ(dir.dy, 0);
+}
+
+TEST(RouterTest, PortDepartureRef) {
+    Node n;
+    n.id = "ref";
+    n.kind = NodeKind::Ref;
+    n.pos = Pt(100, 100);
+    n.size = Pt(120, 80);
+    n.output("v");
+
+    auto dir = get_port_departure(n, "v");
+    EXPECT_EQ(dir.dx, 0);
+    EXPECT_EQ(dir.dy, -1);  // ref → depart upward
+}
+
+TEST(RouterTest, PortDepartureBus) {
+    Node n;
+    n.id = "bus";
+    n.kind = NodeKind::Bus;
+    n.pos = Pt(100, 100);
+    n.size = Pt(120, 80);
+    n.output("v");
+
+    auto dir = get_port_departure(n, "v");
+    EXPECT_EQ(dir.dx, 0);  // bus → no preferred direction
+    EXPECT_EQ(dir.dy, 0);
+}
+
+TEST(RouterTest, RouteWithPortDeparture) {
+    // Route from an output port (right side) to an input port (left side)
+    // Path should start by going RIGHT from start, then LEFT into end
+    Node n1;
+    n1.id = "n1";
+    n1.pos = Pt(0, 0);
+    n1.size = Pt(120, 80);
+    n1.output("out");
+
+    Node n2;
+    n2.id = "n2";
+    n2.pos = Pt(300, 0);
+    n2.size = Pt(120, 80);
+    n2.input("in");
+
+    std::vector<Node> nodes = {n1, n2};
+
+    Pt start_pos = editor_math::get_port_position(n1, "out");  // right side of n1
+    Pt end_pos = editor_math::get_port_position(n2, "in");      // left side of n2
+
+    auto path = route_around_nodes(start_pos, end_pos, n1, "out", n2, "in", nodes, 16.0f);
+    ASSERT_FALSE(path.empty());
+    ASSERT_GE(path.size(), 2u);
+
+    // First point is the port position
+    EXPECT_TRUE(path.front() == start_pos);
+    EXPECT_TRUE(path.back() == end_pos);
+
+    // Second point should be to the RIGHT of start (departure pad)
+    if (path.size() >= 3) {
+        EXPECT_GT(path[1].x, start_pos.x) << "Wire should depart to the right from output port";
+    }
 }

@@ -117,14 +117,130 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
         uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
 
-        // Convert polyline to screen coordinates
-        std::vector<Pt> screen_pts;
-        screen_pts.reserve(poly.size());
-        for (const auto& p : poly) {
-            screen_pts.push_back(vp.world_to_screen(p, canvas_min));
+        const auto& crossings = all_crossings[wire_idx];
+
+        // Collect crossing positions sorted by distance along each segment
+        // For each crossing, compute which segment it's on and the parametric t
+        struct CrossOnSeg {
+            size_t seg_idx;
+            float t;
+            Pt pos;
+            SegDir my_seg_dir;
+        };
+        std::vector<CrossOnSeg> segs_crossings;
+        for (const auto& c : crossings) {
+            // Find which segment this crossing is on
+            for (size_t i = 0; i + 1 < poly.size(); i++) {
+                Pt a = poly[i], b = poly[i + 1];
+                float seg_len_sq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+                if (seg_len_sq < 1e-6f) continue;
+                float t = ((c.pos.x - a.x) * (b.x - a.x) + (c.pos.y - a.y) * (b.y - a.y)) / seg_len_sq;
+                if (t >= -0.01f && t <= 1.01f) {
+                    // Check if point is actually on this segment
+                    Pt proj(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
+                    float dist = std::sqrt((proj.x - c.pos.x) * (proj.x - c.pos.x) +
+                                           (proj.y - c.pos.y) * (proj.y - c.pos.y));
+                    if (dist < 1.0f) {
+                        segs_crossings.push_back({i, std::max(0.0f, std::min(1.0f, t)), c.pos, c.my_seg_dir});
+                        break;
+                    }
+                }
+            }
         }
 
-        dl->add_polyline(screen_pts.data(), screen_pts.size(), wire_color, 2.0f);
+        // Draw the wire polyline with gaps at crossing points
+        if (segs_crossings.empty()) {
+            // No crossings — draw the whole polyline
+            std::vector<Pt> screen_pts;
+            screen_pts.reserve(poly.size());
+            for (const auto& p : poly) {
+                screen_pts.push_back(vp.world_to_screen(p, canvas_min));
+            }
+            dl->add_polyline(screen_pts.data(), screen_pts.size(), wire_color, 2.0f);
+        } else {
+            // Sort crossings by (segment index, t)
+            std::sort(segs_crossings.begin(), segs_crossings.end(),
+                      [](const CrossOnSeg& a, const CrossOnSeg& b) {
+                          return a.seg_idx < b.seg_idx || (a.seg_idx == b.seg_idx && a.t < b.t);
+                      });
+
+            // Draw wire segments with gaps around each crossing
+            // Gap radius in world coordinates
+            float gap_r = ARC_RADIUS_WORLD;
+
+            // We walk through the polyline and emit sub-polylines
+            std::vector<Pt> current_sub;
+            size_t cross_i = 0;
+
+            for (size_t seg = 0; seg + 1 < poly.size(); seg++) {
+                Pt a = poly[seg], b = poly[seg + 1];
+                float seg_len = std::sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+
+                // Collect crossings on this segment
+                std::vector<float> seg_ts;
+                while (cross_i < segs_crossings.size() && segs_crossings[cross_i].seg_idx == seg) {
+                    seg_ts.push_back(segs_crossings[cross_i].t);
+                    cross_i++;
+                }
+
+                if (seg_ts.empty()) {
+                    // No crossing on this segment — add both endpoints
+                    if (current_sub.empty()) {
+                        current_sub.push_back(vp.world_to_screen(a, canvas_min));
+                    }
+                    current_sub.push_back(vp.world_to_screen(b, canvas_min));
+                } else {
+                    // Has crossings — split the segment
+                    float prev_t = 0.0f;
+                    if (current_sub.empty()) {
+                        current_sub.push_back(vp.world_to_screen(a, canvas_min));
+                    }
+                    for (float ct : seg_ts) {
+                        float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
+                        float t_before = ct - gap_t;
+                        float t_after  = ct + gap_t;
+
+                        // Draw from prev_t to t_before
+                        if (t_before > prev_t + 0.001f) {
+                            Pt p_before(a.x + t_before * (b.x - a.x), a.y + t_before * (b.y - a.y));
+                            current_sub.push_back(vp.world_to_screen(p_before, canvas_min));
+                        }
+
+                        // Flush current sub-polyline (end before gap)
+                        if (current_sub.size() >= 2) {
+                            dl->add_polyline(current_sub.data(), current_sub.size(), wire_color, 2.0f);
+                        }
+                        current_sub.clear();
+
+                        // Start new sub-polyline after gap
+                        if (t_after < 1.0f - 0.001f) {
+                            Pt p_after(a.x + t_after * (b.x - a.x), a.y + t_after * (b.y - a.y));
+                            current_sub.push_back(vp.world_to_screen(p_after, canvas_min));
+                        }
+                        prev_t = t_after;
+                    }
+
+                    // Continue after last crossing to segment end
+                    if (prev_t < 1.0f - 0.001f) {
+                        if (current_sub.empty()) {
+                            // Crossing was near end, start fresh at the after-gap point
+                            float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
+                            float last_after = seg_ts.back() + gap_t;
+                            if (last_after < 1.0f) {
+                                Pt p(a.x + last_after * (b.x - a.x), a.y + last_after * (b.y - a.y));
+                                current_sub.push_back(vp.world_to_screen(p, canvas_min));
+                            }
+                        }
+                        current_sub.push_back(vp.world_to_screen(b, canvas_min));
+                    }
+                }
+            }
+
+            // Flush last sub-polyline
+            if (current_sub.size() >= 2) {
+                dl->add_polyline(current_sub.data(), current_sub.size(), wire_color, 2.0f);
+            }
+        }
 
         // Рендерим routing points как кружочки
         for (const auto& rp : w.routing_points) {
@@ -134,7 +250,6 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         }
 
         // Рендерим jump arcs (только для этого провода - он имеет больший индекс)
-        const auto& crossings = all_crossings[wire_idx];
         for (const auto& crossing : crossings) {
             Pt world_cross = crossing.pos;
             Pt screen_cross = vp.world_to_screen(world_cross, canvas_min);
