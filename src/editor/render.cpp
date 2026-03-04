@@ -163,16 +163,23 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             Pt world_cross = crossing.pos;
             Pt screen_cross = vp.world_to_screen(world_cross, canvas_min);
 
-            // Determine arc direction based on which segment is horizontal/vertical
-            // For simplicity, draw a semi-circle
             float arc_radius = ARC_RADIUS_WORLD * vp.zoom;
+
+            // Arc direction: if wire is horizontal, arc goes vertical (and vice versa)
+            bool is_horizontal = (crossing.dir == WireDir::Horizontal);
 
             // Draw arc as polyline (semicircle)
             Pt arc_points[ARC_SEGMENTS + 1];
             for (int i = 0; i <= ARC_SEGMENTS; i++) {
                 float angle = 3.14159265f * i / ARC_SEGMENTS; // 0 to PI
-                // Arc goes "up" (positive Y in screen space)
-                Pt offset(std::cos(angle) * arc_radius, std::sin(angle) * arc_radius);
+                Pt offset;
+                if (is_horizontal) {
+                    // Horizontal wire: arc goes up/down (vertical)
+                    offset = Pt(0.0f, std::sin(angle) * arc_radius);
+                } else {
+                    // Vertical wire: arc goes left/right (horizontal)
+                    offset = Pt(std::cos(angle) * arc_radius, 0.0f);
+                }
                 arc_points[i] = Pt(screen_cross.x + offset.x, screen_cross.y - offset.y);
             }
             dl->add_polyline(arc_points, ARC_SEGMENTS + 1, COLOR_JUMP_ARC, 2.0f);
