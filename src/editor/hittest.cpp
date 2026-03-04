@@ -19,12 +19,13 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
     }
 
     // Потом проверяем routing points (чтобы можно было их выбирать и dragить)
+    constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
         for (size_t rp_idx = 0; rp_idx < w.routing_points.size(); rp_idx++) {
             const Pt& rp = w.routing_points[rp_idx];
             float dist = editor_math::distance(world_pos, rp);
-            if (dist <= 25.0f) { // radius для routing point
+            if (dist <= ROUTING_POINT_HIT_RADIUS) {
                 result.type = HitType::RoutingPoint;
                 result.wire_index = wire_idx;
                 result.routing_point_index = rp_idx;
@@ -64,7 +65,7 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
         }
         // Последний сегмент
         float dist = editor_math::distance_to_segment(world_pos, prev, end_pos);
-        if (dist < 20.0f) {
+        if (dist < 20.0f) { // wire hit tolerance (world units)
             result.type = HitType::Wire;
             result.wire_index = i;
             return result;

@@ -43,6 +43,7 @@ public:
     bool had_line_ = false;
     bool had_rect_ = false;
     bool had_circle_ = false;
+    bool had_polyline_ = false;
 
     void add_line(Pt a, Pt b, uint32_t color, float thickness = 1.0f) override {
         (void)a; (void)b; (void)color; (void)thickness;
@@ -67,11 +68,13 @@ public:
     }
     void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) override {
         (void)points; (void)count; (void)color; (void)thickness;
+        had_polyline_ = true;
     }
 
     bool had_line() const { return had_line_; }
     bool had_rect() const { return had_rect_; }
     bool had_circle() const { return had_circle_; }
+    bool had_polyline() const { return had_polyline_; }
 };
 
 #endif // EDITOR_TESTING

@@ -57,9 +57,10 @@ TEST(EventsTest, MouseDrag_UpdatesViewport) {
     EditorApp app;
     float old_pan_x = app.viewport.pan.x;
 
-    app.on_mouse_down(Pt(0.0f, 0.0f), MouseButton::Middle, Pt(0.0f, 0.0f));
+    // Click on empty space starts panning (Left button in empty area)
+    app.on_mouse_down(Pt(500.0f, 500.0f), MouseButton::Left, Pt(0.0f, 0.0f));
     app.on_mouse_drag(Pt(100.0f, 50.0f), Pt(0.0f, 0.0f));
-    app.on_mouse_up(MouseButton::Middle);
+    app.on_mouse_up(MouseButton::Left);
 
     // Pan должен измениться
     EXPECT_NE(app.viewport.pan.x, old_pan_x);

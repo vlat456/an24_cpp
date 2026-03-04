@@ -3,7 +3,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
-#include "editor/viewport.h"
+#include "editor/viewport/viewport.h"
 
 /// TDD Step 5: Rendering
 
@@ -63,8 +63,8 @@ TEST(RenderTest, Wire_RendersLine) {
     Viewport vp;
     render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
 
-    // Проверяем что линия была добавлена
-    EXPECT_TRUE(dl.had_line());
+    // Проверяем что полилиния была добавлена (провод рендерится как polyline)
+    EXPECT_TRUE(dl.had_polyline());
 }
 
 /// Тест: сетка не крашится

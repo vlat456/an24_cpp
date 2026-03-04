@@ -26,7 +26,10 @@ struct GridPt {
 /// Hash для GridPt
 struct GridPtHash {
     size_t operator()(GridPt const& pt) const noexcept {
-        return (static_cast<size_t>(pt.x) << 32) ^ static_cast<size_t>(pt.y);
+        // Use proper hash combine to avoid collisions / UB on 32-bit
+        size_t h = static_cast<size_t>(pt.x) * 2654435761u;
+        h ^= static_cast<size_t>(pt.y) * 2246822519u;
+        return h;
     }
 };
 
@@ -76,8 +79,11 @@ struct StateHash {
 inline float turn_cost(Dir from, Dir to) {
     if (from == Dir::None) return 0.0f;
     if (from == to) return 0.0f;
-    return 3.0f; // TURN_PENALTY
+    return 15.0f; // TURN_PENALTY (high to avoid staircase)
 }
+
+/// Стоимость прыжка через перпендикулярный провод
+constexpr float JUMP_OVER_COST = 5.0f;
 
 /// Manhattan distance heuristic
 inline float heuristic(GridPt a, GridPt b) {

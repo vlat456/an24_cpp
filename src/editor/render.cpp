@@ -109,46 +109,22 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
     // Рендерим провода (сначала, чтобы были под узлами)
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
+        const auto& poly = all_polylines[wire_idx];
+
+        if (poly.size() < 2) continue;  // orphaned wire — skip
 
         // Цвет провода: выделенный - золотой, невыделенный - серый
         bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
         uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
-        // Находим узлы
-        const Node* start_node = nullptr;
-        const Node* end_node = nullptr;
 
-        for (const auto& n : bp.nodes) {
-            if (n.id == w.start.node_id) start_node = &n;
-            if (n.id == w.end.node_id) end_node = &n;
+        // Convert polyline to screen coordinates
+        std::vector<Pt> screen_pts;
+        screen_pts.reserve(poly.size());
+        for (const auto& p : poly) {
+            screen_pts.push_back(vp.world_to_screen(p, canvas_min));
         }
 
-        if (!start_node || !end_node) continue;
-
-        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str());
-        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str());
-
-        // Преобразуем в экранные координаты
-        Pt screen_start = vp.world_to_screen(start_pos, canvas_min);
-        Pt screen_end = vp.world_to_screen(end_pos, canvas_min);
-
-        // Если есть routing points - используем polyline
-        if (!w.routing_points.empty()) {
-            // Собираем точки
-            Pt points[64]; // max points
-            size_t count = 0;
-
-            points[count++] = screen_start;
-            for (const auto& rp : w.routing_points) {
-                if (count >= 63) break;
-                points[count++] = vp.world_to_screen(rp, canvas_min);
-            }
-            points[count++] = screen_end;
-
-            dl->add_polyline(points, count, wire_color, 2.0f);
-        } else {
-            // Простая линия
-            dl->add_line(screen_start, screen_end, wire_color, 2.0f);
-        }
+        dl->add_polyline(screen_pts.data(), screen_pts.size(), wire_color, 2.0f);
 
         // Рендерим routing points как кружочки
         for (const auto& rp : w.routing_points) {
@@ -165,24 +141,27 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
 
             float arc_radius = ARC_RADIUS_WORLD * vp.zoom;
 
-            // Arc direction: if wire is horizontal, arc goes vertical (and vice versa)
-            bool is_horizontal = (crossing.dir == WireDir::Horizontal);
+            // Arc direction is perpendicular to the wire segment:
+            //   Horizontal wire → arc goes up (vertical)
+            //   Vertical wire   → arc goes left/right (horizontal)
+            bool arc_vertical = (crossing.my_seg_dir == SegDir::Horiz ||
+                                 crossing.my_seg_dir == SegDir::Unknown);
 
             // Draw arc as polyline (semicircle)
             Pt arc_points[ARC_SEGMENTS + 1];
             for (int i = 0; i <= ARC_SEGMENTS; i++) {
                 float angle = 3.14159265f * i / ARC_SEGMENTS; // 0 to PI
-                Pt offset;
-                if (is_horizontal) {
-                    // Horizontal wire: arc goes up/down (vertical)
-                    offset = Pt(0.0f, std::sin(angle) * arc_radius);
+                if (arc_vertical) {
+                    // Horizontal wire: arc goes upward
+                    Pt offset(std::cos(angle) * arc_radius, std::sin(angle) * arc_radius);
+                    arc_points[i] = Pt(screen_cross.x + offset.x, screen_cross.y - offset.y);
                 } else {
-                    // Vertical wire: arc goes left/right (horizontal)
-                    offset = Pt(std::cos(angle) * arc_radius, 0.0f);
+                    // Vertical wire: arc goes to the right
+                    Pt offset(std::sin(angle) * arc_radius, std::cos(angle) * arc_radius);
+                    arc_points[i] = Pt(screen_cross.x + offset.x, screen_cross.y + offset.y);
                 }
-                arc_points[i] = Pt(screen_cross.x + offset.x, screen_cross.y - offset.y);
             }
-            dl->add_polyline(arc_points, ARC_SEGMENTS + 1, COLOR_JUMP_ARC, 2.0f);
+            dl->add_polyline(arc_points, ARC_SEGMENTS + 1, wire_color, 2.0f);
         }
     }
 

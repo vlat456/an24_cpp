@@ -2,24 +2,30 @@
 
 #include "data/pt.h"
 #include <vector>
+#include <optional>
+#include <cmath>
 
-/// Direction of wire segment
-enum class WireDir {
-    Horizontal,
-    Vertical
-};
+/// Direction of the wire segment at a crossing point
+enum class SegDir { Horiz, Vert, Unknown };
 
 /// A crossing point on a wire segment
 struct WireCrossing {
     Pt pos;
-    WireDir dir;  // direction of THIS wire at crossing
+    SegDir my_seg_dir;  ///< Direction of the wire segment that owns this crossing
 };
 
-/// Check if two line segments cross (proper intersection, not just touching)
-/// Returns the intersection point if they cross, along with directions of both segments
-inline std::optional<std::tuple<Pt, WireDir, WireDir>> segment_crosses_with_dir(
-    Pt a0, Pt a1, Pt b0, Pt b1) {
+/// Determine segment direction
+inline SegDir segment_direction(Pt a, Pt b) {
+    float dx = std::abs(b.x - a.x);
+    float dy = std::abs(b.y - a.y);
+    if (dx > dy) return SegDir::Horiz;
+    if (dy > dx) return SegDir::Vert;
+    return SegDir::Unknown;
+}
 
+/// Check if two line segments cross (proper intersection, not just touching)
+/// Returns the intersection point if they cross
+inline std::optional<Pt> segment_crosses(Pt a0, Pt a1, Pt b0, Pt b1) {
     float d1x = a1.x - a0.x;
     float d1y = a1.y - a0.y;
     float d2x = b1.x - b0.x;
@@ -39,23 +45,7 @@ inline std::optional<std::tuple<Pt, WireDir, WireDir>> segment_crosses_with_dir(
     // Strict interior: exclude endpoints to avoid false crossings at corners
     float eps = 0.01f;
     if (t > eps && t < 1.0f - eps && u > eps && u < 1.0f - eps) {
-        Pt intersection(a0.x + t * d1x, a0.y + t * d1y);
-
-        // Determine directions (horizontal if mostly X movement, vertical if mostly Y)
-        WireDir dir1 = (std::abs(d1x) >= std::abs(d1y)) ? WireDir::Horizontal : WireDir::Vertical;
-        WireDir dir2 = (std::abs(d2x) >= std::abs(d2y)) ? WireDir::Horizontal : WireDir::Vertical;
-
-        return std::make_tuple(intersection, dir1, dir2);
-    }
-    return std::nullopt;
-}
-
-/// Check if two line segments cross (proper intersection, not just touching)
-/// Returns the intersection point if they cross
-inline std::optional<Pt> segment_crosses(Pt a0, Pt a1, Pt b0, Pt b1) {
-    auto result = segment_crosses_with_dir(a0, a1, b0, b1);
-    if (result) {
-        return std::get<0>(*result);
+        return Pt(a0.x + t * d1x, a0.y + t * d1y);
     }
     return std::nullopt;
 }
@@ -83,12 +73,11 @@ inline std::vector<WireCrossing> find_wire_crossings(
         // Check all segment pairs
         for (size_t i = 0; i + 1 < my_poly.size(); i++) {
             for (size_t j = 0; j + 1 < other_poly.size(); j++) {
-                auto result = segment_crosses_with_dir(my_poly[i], my_poly[i+1],
-                                                      other_poly[j], other_poly[j+1]);
-                if (result) {
-                    auto [pt, my_dir, other_dir] = *result;
-                    // Store the direction of THIS wire (wire_idx)
-                    crossings.push_back({pt, my_dir});
+                auto pt = segment_crosses(my_poly[i], my_poly[i+1],
+                                         other_poly[j], other_poly[j+1]);
+                if (pt) {
+                    SegDir my_dir = segment_direction(my_poly[i], my_poly[i+1]);
+                    crossings.push_back({*pt, my_dir});
                 }
             }
         }

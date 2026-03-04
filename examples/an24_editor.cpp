@@ -210,6 +210,9 @@ int main(int argc, char** argv) {
             if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
                 app.on_key_down(Key::Delete);
             }
+            if (ImGui::IsKeyPressed(ImGuiKey_R)) {
+                app.on_key_down(Key::R);
+            }
         }
 
         // Меню
@@ -289,7 +292,8 @@ int main(int argc, char** argv) {
         render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
 
         // Blueprint
-        render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt, &app.interaction.selected_nodes);
+        render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
+                         &app.interaction.selected_nodes, app.interaction.selected_wire);
 
         // Marquee selection rectangle
         if (app.interaction.marquee_selecting) {

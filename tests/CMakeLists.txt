@@ -103,6 +103,7 @@ add_executable(editor_event_tests
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
 )
 target_include_directories(editor_event_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

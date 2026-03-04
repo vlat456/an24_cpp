@@ -15,41 +15,14 @@
  *   - Нет проверок
  */
 
-#ifdef DEBUG
-    #include <spdlog/spdlog.h>
+// Всегда отключено - для отладки использовать printf
 
-    /// Основной логгер - Debug уровень
-    #define DEBUG_LOG(fmt, ...) spdlog::debug("[{}] " fmt, __FILE__, ##__VA_ARGS__)
-
-    /// Информационный лог
-    #define DEBUG_INFO(fmt, ...) spdlog::info("[{}] " fmt, __FILE__, ##__VA_ARGS__)
-
-    /// Предупреждение
-    #define DEBUG_WARN(fmt, ...) spdlog::warn("[{}] " fmt, __FILE__, ##__VA_ARGS__)
-
-    /// Ошибка
-    #define DEBUG_ERROR(fmt, ...) spdlog::error("[{}] " fmt, __FILE__, ##__VA_ARGS__)
-
-    /// Assert с сообщением - продолжает выполнение но логирует
-    #define DEBUG_ASSERT(cond, msg) \
-        do { if (!(cond)) { spdlog::error("[{}] Assert failed: {}", __FILE__, msg); } } while(0)
-
-    /// Assert который крашит программу (как стандартный assert)
-    #define DEBUG_ASSERT_FATAL(cond, msg) \
-        do { if (!(cond)) { spdlog::critical("[{}] FATAL: {}", __FILE__, msg); std::abort(); } } while(0)
-
-#else // RELEASE / NDEBUG
-
-    // В RELEASE - всё пустое, ничего не компилируется
-
-    #define DEBUG_LOG(fmt, ...) ((void)0)
-    #define DEBUG_INFO(fmt, ...) ((void)0)
-    #define DEBUG_WARN(fmt, ...) ((void)0)
-    #define DEBUG_ERROR(fmt, ...) ((void)0)
-    #define DEBUG_ASSERT(cond, msg) ((void)0)
-    #define DEBUG_ASSERT_FATAL(cond, msg) ((void)0)
-
-#endif
+#define DEBUG_LOG(fmt, ...) ((void)0)
+#define DEBUG_INFO(fmt, ...) ((void)0)
+#define DEBUG_WARN(fmt, ...) ((void)0)
+#define DEBUG_ERROR(fmt, ...) ((void)0)
+#define DEBUG_ASSERT(cond, msg) ((void)0)
+#define DEBUG_ASSERT_FATAL(cond, msg) ((void)0)
 
 // =============================================================================
 // Примеры использования

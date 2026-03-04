@@ -129,11 +129,27 @@ void EditorApp::on_key_down(Key key) {
     } else if (key == Key::Delete) {
         // Удаление всех выделенных узлов (с конца чтобы не сбить индексы)
         std::sort(interaction.selected_nodes.begin(), interaction.selected_nodes.end(), std::greater<size_t>());
+
+        // Collect IDs of nodes to delete
+        std::vector<std::string> deleted_ids;
         for (size_t idx : interaction.selected_nodes) {
             if (idx < blueprint.nodes.size()) {
+                deleted_ids.push_back(blueprint.nodes[idx].id);
                 blueprint.nodes.erase(blueprint.nodes.begin() + idx);
             }
         }
+
+        // Remove wires that reference deleted nodes
+        blueprint.wires.erase(
+            std::remove_if(blueprint.wires.begin(), blueprint.wires.end(),
+                [&deleted_ids](const Wire& w) {
+                    for (const auto& id : deleted_ids) {
+                        if (w.start.node_id == id || w.end.node_id == id) return true;
+                    }
+                    return false;
+                }),
+            blueprint.wires.end());
+
         interaction.clear_selection();
     } else if (key == Key::R) {
         // R - роутинг выделенного провода

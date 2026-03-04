@@ -1,0 +1,406 @@
+{
+  "grid_step": 16.0,
+  "nodes": [
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "gnd",
+      "inputs": [],
+      "kind": "Ref",
+      "name": "gnd",
+      "outputs": [
+        {
+          "name": "v",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 77.0,
+        "y": 480.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "RefNode"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "bat_main_1",
+      "inputs": [
+        {
+          "name": "v_in",
+          "side": "input"
+        }
+      ],
+      "kind": "Node",
+      "name": "bat_main_1",
+      "outputs": [
+        {
+          "name": "v_out",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 250.0,
+        "y": 50.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "Battery"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "main_bus",
+      "inputs": [],
+      "kind": "Bus",
+      "name": "main_bus",
+      "outputs": [
+        {
+          "name": "v",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 604.0,
+        "y": 470.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "Bus"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "vsu_1",
+      "inputs": [
+        {
+          "name": "k_mod",
+          "side": "input"
+        },
+        {
+          "name": "v_gen_mon",
+          "side": "input"
+        },
+        {
+          "name": "v_start",
+          "side": "input"
+        }
+      ],
+      "kind": "Node",
+      "name": "vsu_1",
+      "outputs": [
+        {
+          "name": "rpm_out",
+          "side": "output"
+        },
+        {
+          "name": "v_bus",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 650.0,
+        "y": 50.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "RU19A"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "rug_vsu",
+      "inputs": [
+        {
+          "name": "v_gen",
+          "side": "input"
+        }
+      ],
+      "kind": "Node",
+      "name": "rug_vsu",
+      "outputs": [
+        {
+          "name": "k_mod",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 50.0,
+        "y": 200.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "RUG82"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "dmr_vsu",
+      "inputs": [
+        {
+          "name": "v_bus",
+          "side": "input"
+        },
+        {
+          "name": "v_gen",
+          "side": "input"
+        }
+      ],
+      "kind": "Node",
+      "name": "dmr_vsu",
+      "outputs": [
+        {
+          "name": "lamp",
+          "side": "output"
+        },
+        {
+          "name": "v_out",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 250.0,
+        "y": 200.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "DMR400"
+    },
+    {
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 0,
+        "unit": "",
+        "value": 0.0
+      },
+      "id": "light_1",
+      "inputs": [
+        {
+          "name": "v_in",
+          "side": "input"
+        }
+      ],
+      "kind": "Node",
+      "name": "light_1",
+      "outputs": [
+        {
+          "name": "brightness",
+          "side": "output"
+        },
+        {
+          "name": "v_out",
+          "side": "output"
+        }
+      ],
+      "pos": {
+        "x": 450.0,
+        "y": 200.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      },
+      "type_name": "IndicatorLight"
+    }
+  ],
+  "pan": {
+    "x": 0.0,
+    "y": 0.0
+  },
+  "wires": [
+    {
+      "end": {
+        "node_id": "bat_main_1",
+        "port_name": "v_in"
+      },
+      "id": "gnd.v→bat_main_1.v_in",
+      "routing_points": [],
+      "start": {
+        "node_id": "gnd",
+        "port_name": "v"
+      }
+    },
+    {
+      "end": {
+        "node_id": "light_1",
+        "port_name": "v_out"
+      },
+      "id": "gnd.v→light_1.v_out",
+      "routing_points": [],
+      "start": {
+        "node_id": "gnd",
+        "port_name": "v"
+      }
+    },
+    {
+      "end": {
+        "node_id": "main_bus",
+        "port_name": "v"
+      },
+      "id": "bat_main_1.v_out→main_bus.v",
+      "routing_points": [
+        {
+          "x": 688.0,
+          "y": 354.0
+        }
+      ],
+      "start": {
+        "node_id": "bat_main_1",
+        "port_name": "v_out"
+      }
+    },
+    {
+      "end": {
+        "node_id": "vsu_1",
+        "port_name": "v_start"
+      },
+      "id": "bat_main_1.v_out→vsu_1.v_start",
+      "routing_points": [],
+      "start": {
+        "node_id": "bat_main_1",
+        "port_name": "v_out"
+      }
+    },
+    {
+      "end": {
+        "node_id": "light_1",
+        "port_name": "v_in"
+      },
+      "id": "main_bus.v→light_1.v_in",
+      "routing_points": [],
+      "start": {
+        "node_id": "main_bus",
+        "port_name": "v"
+      }
+    },
+    {
+      "end": {
+        "node_id": "dmr_vsu",
+        "port_name": "v_bus"
+      },
+      "id": "main_bus.v→dmr_vsu.v_bus",
+      "routing_points": [
+        {
+          "x": 486.0,
+          "y": 495.0
+        }
+      ],
+      "start": {
+        "node_id": "main_bus",
+        "port_name": "v"
+      }
+    },
+    {
+      "end": {
+        "node_id": "dmr_vsu",
+        "port_name": "v_gen"
+      },
+      "id": "vsu_1.v_bus→dmr_vsu.v_gen",
+      "routing_points": [],
+      "start": {
+        "node_id": "vsu_1",
+        "port_name": "v_bus"
+      }
+    },
+    {
+      "end": {
+        "node_id": "main_bus",
+        "port_name": "v"
+      },
+      "id": "dmr_vsu.v_out→main_bus.v",
+      "routing_points": [
+        {
+          "x": 510.0,
+          "y": 438.0
+        }
+      ],
+      "start": {
+        "node_id": "dmr_vsu",
+        "port_name": "v_out"
+      }
+    },
+    {
+      "end": {
+        "node_id": "rug_vsu",
+        "port_name": "v_gen"
+      },
+      "id": "vsu_1.v_bus→rug_vsu.v_gen",
+      "routing_points": [],
+      "start": {
+        "node_id": "vsu_1",
+        "port_name": "v_bus"
+      }
+    },
+    {
+      "end": {
+        "node_id": "vsu_1",
+        "port_name": "k_mod"
+      },
+      "id": "rug_vsu.k_mod→vsu_1.k_mod",
+      "routing_points": [],
+      "start": {
+        "node_id": "rug_vsu",
+        "port_name": "k_mod"
+      }
+    }
+  ],
+  "zoom": 1.0
+}
