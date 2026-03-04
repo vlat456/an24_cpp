@@ -921,6 +921,30 @@ __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
 
+__/src/editor/visual_node.o: __/src/editor/visual_node.cpp.o
+.PHONY : __/src/editor/visual_node.o
+
+# target to build an object file
+__/src/editor/visual_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual_node.cpp.o
+.PHONY : __/src/editor/visual_node.cpp.o
+
+__/src/editor/visual_node.i: __/src/editor/visual_node.cpp.i
+.PHONY : __/src/editor/visual_node.i
+
+# target to preprocess a source file
+__/src/editor/visual_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual_node.cpp.i
+.PHONY : __/src/editor/visual_node.cpp.i
+
+__/src/editor/visual_node.s: __/src/editor/visual_node.cpp.s
+.PHONY : __/src/editor/visual_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual_node.cpp.s
+.PHONY : __/src/editor/visual_node.cpp.s
+
 __/src/editor/wires/hittest.o: __/src/editor/wires/hittest.cpp.o
 .PHONY : __/src/editor/wires/hittest.o
 
@@ -1207,6 +1231,9 @@ help:
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
+	@echo "... __/src/editor/visual_node.o"
+	@echo "... __/src/editor/visual_node.i"
+	@echo "... __/src/editor/visual_node.s"
 	@echo "... __/src/editor/wires/hittest.o"
 	@echo "... __/src/editor/wires/hittest.i"
 	@echo "... __/src/editor/wires/hittest.s"
