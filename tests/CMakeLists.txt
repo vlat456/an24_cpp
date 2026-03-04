@@ -97,6 +97,22 @@ target_link_libraries(editor_hittest_tests PRIVATE
 )
 gtest_discover_tests(editor_hittest_tests)
 
+# Editor event tests (TDD Step 7)
+add_executable(editor_event_tests
+    test_events.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+)
+target_include_directories(editor_event_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_event_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_event_tests)
+
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
