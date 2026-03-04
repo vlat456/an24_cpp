@@ -88,6 +88,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp

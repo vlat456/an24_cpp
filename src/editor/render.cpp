@@ -1,5 +1,5 @@
 #include "render.h"
-#include <cmath>
+#include "trigonometry.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
@@ -15,6 +15,7 @@ constexpr uint32_t COLOR_GRID = 0xFF404040;      // темно-серый
 constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;  // зеленый
 constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;   // синеватый
 constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;  // красноватый
+constexpr uint32_t COLOR_ROUTING_POINT = 0xFFFF8000; // оранжевый
 
 // Node styles - по типу
 struct NodeColors {
@@ -54,42 +55,6 @@ NodeColors get_node_colors(const char* type_name) {
     return {0xFF505050, 0xFF323232}; // default серый
 }
 
-// Найти позицию порта на узле
-// header_height должен соответствовать значению в render_blueprint
-static constexpr float HEADER_HEIGHT = 20.0f;
-
-Pt get_port_position(const Node& node, const char* port_name) {
-    // Input - слева, Output - справа
-
-    int num_inputs = (int)node.inputs.size();
-    int num_outputs = (int)node.outputs.size();
-    int max_ports = std::max(num_inputs, num_outputs);
-    if (max_ports == 0) max_ports = 1;
-
-    // Высота доступной области для портов (после заголовка)
-    float port_area_height = node.size.y - HEADER_HEIGHT;
-    if (port_area_height < 1.0f) port_area_height = 1.0f;
-
-    // Сначала ищем в inputs
-    for (size_t i = 0; i < node.inputs.size(); i++) {
-        if (node.inputs[i].name == port_name) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
-        }
-    }
-
-    // Потом в outputs
-    for (size_t i = 0; i < node.outputs.size(); i++) {
-        if (node.outputs[i].name == port_name) {
-            float t = (float)(i + 1) / (float)(max_ports + 1);
-            return Pt(node.pos.x + node.size.x, node.pos.y + HEADER_HEIGHT + port_area_height * t);
-        }
-    }
-
-    // По умолчанию - центр
-    return Pt(node.pos.x + node.size.x / 2, node.pos.y + node.size.y / 2);
-}
-
 } // namespace
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
@@ -107,8 +72,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
 
         if (!start_node || !end_node) continue;
 
-        Pt start_pos = get_port_position(*start_node, w.start.port_name.c_str());
-        Pt end_pos = get_port_position(*end_node, w.end.port_name.c_str());
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str());
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str());
 
         // Преобразуем в экранные координаты
         Pt screen_start = vp.world_to_screen(start_pos, canvas_min);
@@ -131,6 +96,13 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         } else {
             // Простая линия
             dl->add_line(screen_start, screen_end, COLOR_WIRE, 2.0f);
+        }
+
+        // Рендерим routing points как кружочки
+        for (const auto& rp : w.routing_points) {
+            Pt screen_rp = vp.world_to_screen(rp, canvas_min);
+            dl->add_circle_filled(screen_rp, 6.0f, COLOR_ROUTING_POINT, 12);
+            dl->add_circle(screen_rp, 6.0f, 0xFF000000, 12);
         }
     }
 

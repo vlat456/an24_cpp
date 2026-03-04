@@ -55,4 +55,7 @@ struct EditorApp {
 
     /// Обработка key down
     void on_key_down(Key key);
+
+    /// Обработка double click - добавить/удалить routing point
+    void on_double_click(Pt world_pos);
 };

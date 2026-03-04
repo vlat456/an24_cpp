@@ -135,3 +135,18 @@ target_link_libraries(json_parser_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(json_parser_tests)
+
+# Editor routing tests (TDD - routing points)
+add_executable(editor_routing_tests
+    test_routing.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+)
+target_include_directories(editor_routing_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_routing_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_routing_tests)
