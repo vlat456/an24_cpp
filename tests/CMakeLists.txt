@@ -82,6 +82,21 @@ target_link_libraries(editor_render_tests PRIVATE
 )
 gtest_discover_tests(editor_render_tests)
 
+# Editor hit test tests (TDD Step 6)
+add_executable(editor_hittest_tests
+    test_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport.cpp
+)
+target_include_directories(editor_hittest_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_hittest_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_hittest_tests)
+
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
