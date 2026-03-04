@@ -53,6 +53,19 @@ target_link_libraries(editor_viewport_tests PRIVATE
 )
 gtest_discover_tests(editor_viewport_tests)
 
+# Editor interaction tests (TDD Step 4)
+add_executable(editor_interaction_tests
+    test_interaction.cpp
+)
+target_include_directories(editor_interaction_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_interaction_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_interaction_tests)
+
 add_executable(json_parser_tests
     json_parser_test.cpp
 )
