@@ -28,8 +28,9 @@ void SimulationState::resize_buffers(uint32_t signal_count) {
 }
 
 void SimulationState::clear_through() {
-    std::fill(through.begin(), through.end(), 0.0f);
-    std::fill(conductance.begin(), conductance.end(), 0.0f);
+    // Use memset - faster than std::fill for small arrays
+    std::memset(through.data(), 0, through.size() * sizeof(float));
+    std::memset(conductance.data(), 0, conductance.size() * sizeof(float));
 }
 
 void SimulationState::precompute_inv_conductance() {

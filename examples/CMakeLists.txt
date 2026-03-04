@@ -72,3 +72,10 @@ add_executable(test_vsu_dmr_aot
 )
 target_include_directories(test_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(test_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)
+
+add_executable(profile_vsu_dmr_aot
+    ${CMAKE_SOURCE_DIR}/generated/profile_vsu_dmr_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_dmr_test.cpp
+)
+target_include_directories(profile_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(profile_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)
