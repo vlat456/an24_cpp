@@ -14,11 +14,17 @@
 # EXTERNAL cache entries
 ########################
 
+//Path to a library.
+APPKIT_LIBRARY:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework
+
 //Build benchmarks
 BUILD_BENCHMARKS:BOOL=ON
 
 //Builds the googlemock subproject
 BUILD_GMOCK:BOOL=ON
+
+//Build a shared library instead of static
+BUILD_SHARED_LIBS:BOOL=OFF
 
 //Build tests
 BUILD_TESTS:BOOL=ON
@@ -31,7 +37,7 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_BUILD_TYPE:STRING=Debug
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
@@ -306,8 +312,16 @@ FETCHCONTENT_QUIET:BOOL=ON
 FETCHCONTENT_SOURCE_DIR_GOOGLETEST:PATH=
 
 //When not empty, overrides where to find pre-populated content
+// for imgui
+FETCHCONTENT_SOURCE_DIR_IMGUI:PATH=
+
+//When not empty, overrides where to find pre-populated content
 // for json
 FETCHCONTENT_SOURCE_DIR_JSON:PATH=
+
+//When not empty, overrides where to find pre-populated content
+// for nfde
+FETCHCONTENT_SOURCE_DIR_NFDE:PATH=
 
 //When not empty, overrides where to find pre-populated content
 // for spdlog
@@ -319,8 +333,14 @@ FETCHCONTENT_UPDATES_DISCONNECTED:BOOL=OFF
 //Enables UPDATE_DISCONNECTED behavior just for population of googletest
 FETCHCONTENT_UPDATES_DISCONNECTED_GOOGLETEST:BOOL=OFF
 
+//Enables UPDATE_DISCONNECTED behavior just for population of imgui
+FETCHCONTENT_UPDATES_DISCONNECTED_IMGUI:BOOL=OFF
+
 //Enables UPDATE_DISCONNECTED behavior just for population of json
 FETCHCONTENT_UPDATES_DISCONNECTED_JSON:BOOL=OFF
+
+//Enables UPDATE_DISCONNECTED behavior just for population of nfde
+FETCHCONTENT_UPDATES_DISCONNECTED_NFDE:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of spdlog
 FETCHCONTENT_UPDATES_DISCONNECTED_SPDLOG:BOOL=OFF
@@ -365,6 +385,36 @@ JSON_MultipleHeaders:BOOL=ON
 
 //Include as system headers (skip for clang-tidy).
 JSON_SystemInclude:BOOL=OFF
+
+//Build SDL2 tests for nfd
+NFD_BUILD_SDL2_TESTS:BOOL=OFF
+
+//Build tests for nfd
+NFD_BUILD_TESTS:BOOL=OFF
+
+//Generate install target for nfd
+NFD_INSTALL:BOOL=OFF
+
+//Use defaultPath instead of recent folder on Windows
+NFD_OVERRIDE_RECENT_WITH_DEFAULT:BOOL=OFF
+
+//Use allowedContentTypes for filter lists on macOS >= 11.0
+NFD_USE_ALLOWEDCONTENTTYPES_IF_AVAILABLE:BOOL=ON
+
+//Include for the OpenGL GLU library
+OPENGL_GLU_INCLUDE_DIR:PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+
+//Include for OpenGL
+OPENGL_INCLUDE_DIR:PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+
+//OpenGL GL library
+OPENGL_gl_LIBRARY:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+
+//OpenGL GLU library
+OPENGL_glu_LIBRARY:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework
+
+//The directory containing a CMake configuration file for SDL2.
+SDL2_DIR:PATH=/opt/homebrew/lib/cmake/SDL2
 
 //Build all artifacts
 SPDLOG_BUILD_ALL:BOOL=OFF
@@ -448,6 +498,9 @@ SPDLOG_WCHAR_FILENAMES:BOOL=OFF
 //non supported option
 SPDLOG_WCHAR_SUPPORT:BOOL=OFF
 
+//Path to a library.
+UNIFORMTYPEIDENTIFIERS_LIBRARY:FILEPATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/UniformTypeIdentifiers.framework
+
 //Value Computed by CMake
 an24_cpp_BINARY_DIR:STATIC=/Users/vladimir/an24_cpp/build
 
@@ -502,6 +555,18 @@ gtest_force_shared_crt:BOOL=ON
 
 //Build gtest with internal symbols hidden in shared libraries.
 gtest_hide_internal_symbols:BOOL=OFF
+
+//Value Computed by CMake
+nativefiledialog-extended_BINARY_DIR:STATIC=/Users/vladimir/an24_cpp/build/_deps/nfde-build
+
+//Value Computed by CMake
+nativefiledialog-extended_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+nativefiledialog-extended_SOURCE_DIR:STATIC=/Users/vladimir/an24_cpp/build/_deps/nfde-src
+
+//Dependencies for the target
+nfd_LIB_DEPENDS:STATIC=general;/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework;general;/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/UniformTypeIdentifiers.framework;
 
 //Value Computed by CMake
 nlohmann_json_BINARY_DIR:STATIC=/Users/vladimir/an24_cpp/build/_deps/json-build
@@ -656,7 +721,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=12
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=14
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -701,13 +766,25 @@ CMAKE_TAPI-ADVANCED:INTERNAL=1
 CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
+//Details about finding OpenGL
+FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework][/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework][ ][v()]
 //Details about finding Python3
 FIND_PACKAGE_MESSAGE_DETAILS_Python3:INTERNAL=[/opt/homebrew/Frameworks/Python.framework/Versions/3.14/bin/python3.14][found components: Interpreter ][v3.14.2()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
+//Test NFD_USE_ALLOWEDCONTENTTYPES
+NFD_USE_ALLOWEDCONTENTTYPES:INTERNAL=1
 NLOHMANN_JSON_CONFIG_INSTALL_DIR:INTERNAL=share/cmake/nlohmann_json
+//ADVANCED property for variable: OPENGL_GLU_INCLUDE_DIR
+OPENGL_GLU_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_INCLUDE_DIR
+OPENGL_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_gl_LIBRARY
+OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_glu_LIBRARY
+OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=/usr/local
 //Compiler reason failure

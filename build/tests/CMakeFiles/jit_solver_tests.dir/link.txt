@@ -1,1 +1,1 @@
-/usr/bin/c++ -O3 -DNDEBUG -O3 -ffast-math -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.o -o jit_solver_tests  ../src/jit_solver/libjit_solver.a ../lib/libgtest_main.a ../_deps/spdlog-build/libspdlog.a ../lib/libgtest.a
+/usr/bin/c++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.o -o jit_solver_tests  ../src/jit_solver/libjit_solver.a ../lib/libgtest_main.a ../_deps/spdlog-build/libspdlogd.a ../lib/libgtest.a

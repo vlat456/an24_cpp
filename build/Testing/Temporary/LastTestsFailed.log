@@ -1,1 +1,10 @@
-12:RegressionTest.BusTypeNotRefNode
+1:jit_solver_tests_NOT_BUILT
+2:editor_data_tests_NOT_BUILT
+3:editor_persist_tests_NOT_BUILT
+4:editor_viewport_tests_NOT_BUILT
+5:editor_interaction_tests_NOT_BUILT
+6:editor_render_tests_NOT_BUILT
+7:editor_hittest_tests_NOT_BUILT
+8:editor_event_tests_NOT_BUILT
+9:editor_gl_setup_tests_NOT_BUILT
+10:json_parser_tests_NOT_BUILT

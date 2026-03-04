@@ -1,860 +1,163 @@
-Start testing: Mar 03 23:51 CET
+Start testing: Mar 04 15:25 CET
 ----------------------------------------------------------
-1/31 Testing: SimulationStateTest.AllocateSignal
-1/31 Test: SimulationStateTest.AllocateSignal
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=SimulationStateTest.AllocateSignal" "--gtest_also_run_disabled_tests"
+Unable to find executable: jit_solver_tests_NOT_BUILT
+1/10 Testing: jit_solver_tests_NOT_BUILT
+1/10 Test: jit_solver_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"SimulationStateTest.AllocateSignal" start time: Mar 03 23:51 CET
+"jit_solver_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = SimulationStateTest.AllocateSignal
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from SimulationStateTest
-[ RUN      ] SimulationStateTest.AllocateSignal
-[       OK ] SimulationStateTest.AllocateSignal (0 ms)
-[----------] 1 test from SimulationStateTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SimulationStateTest.AllocateSignal" end time: Mar 03 23:51 CET
-"SimulationStateTest.AllocateSignal" time elapsed: 00:00:00
+"jit_solver_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"jit_solver_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-2/31 Testing: SimulationStateTest.AllocateMultipleSignals
-2/31 Test: SimulationStateTest.AllocateMultipleSignals
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=SimulationStateTest.AllocateMultipleSignals" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_data_tests_NOT_BUILT
+2/10 Testing: editor_data_tests_NOT_BUILT
+2/10 Test: editor_data_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"SimulationStateTest.AllocateMultipleSignals" start time: Mar 03 23:51 CET
+"editor_data_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = SimulationStateTest.AllocateMultipleSignals
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from SimulationStateTest
-[ RUN      ] SimulationStateTest.AllocateMultipleSignals
-[       OK ] SimulationStateTest.AllocateMultipleSignals (0 ms)
-[----------] 1 test from SimulationStateTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SimulationStateTest.AllocateMultipleSignals" end time: Mar 03 23:51 CET
-"SimulationStateTest.AllocateMultipleSignals" time elapsed: 00:00:00
+"editor_data_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_data_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-3/31 Testing: SimulationStateTest.ClearThrough
-3/31 Test: SimulationStateTest.ClearThrough
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=SimulationStateTest.ClearThrough" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_persist_tests_NOT_BUILT
+3/10 Testing: editor_persist_tests_NOT_BUILT
+3/10 Test: editor_persist_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"SimulationStateTest.ClearThrough" start time: Mar 03 23:51 CET
+"editor_persist_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = SimulationStateTest.ClearThrough
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from SimulationStateTest
-[ RUN      ] SimulationStateTest.ClearThrough
-[       OK ] SimulationStateTest.ClearThrough (0 ms)
-[----------] 1 test from SimulationStateTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SimulationStateTest.ClearThrough" end time: Mar 03 23:51 CET
-"SimulationStateTest.ClearThrough" time elapsed: 00:00:00
+"editor_persist_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_persist_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-4/31 Testing: SimulationStateTest.PrecomputeInvConductance
-4/31 Test: SimulationStateTest.PrecomputeInvConductance
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=SimulationStateTest.PrecomputeInvConductance" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_viewport_tests_NOT_BUILT
+4/10 Testing: editor_viewport_tests_NOT_BUILT
+4/10 Test: editor_viewport_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"SimulationStateTest.PrecomputeInvConductance" start time: Mar 03 23:51 CET
+"editor_viewport_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = SimulationStateTest.PrecomputeInvConductance
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from SimulationStateTest
-[ RUN      ] SimulationStateTest.PrecomputeInvConductance
-[       OK ] SimulationStateTest.PrecomputeInvConductance (0 ms)
-[----------] 1 test from SimulationStateTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"SimulationStateTest.PrecomputeInvConductance" end time: Mar 03 23:51 CET
-"SimulationStateTest.PrecomputeInvConductance" time elapsed: 00:00:00
+"editor_viewport_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_viewport_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-5/31 Testing: BuildSystemsTest.BasicBuildSingleDevice
-5/31 Test: BuildSystemsTest.BasicBuildSingleDevice
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=BuildSystemsTest.BasicBuildSingleDevice" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_interaction_tests_NOT_BUILT
+5/10 Testing: editor_interaction_tests_NOT_BUILT
+5/10 Test: editor_interaction_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"BuildSystemsTest.BasicBuildSingleDevice" start time: Mar 03 23:51 CET
+"editor_interaction_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = BuildSystemsTest.BasicBuildSingleDevice
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from BuildSystemsTest
-[ RUN      ] BuildSystemsTest.BasicBuildSingleDevice
-[2026-03-03 23:51:59.677] [info] Built JIT systems: 3 signals, 0 fixed
-[       OK ] BuildSystemsTest.BasicBuildSingleDevice (0 ms)
-[----------] 1 test from BuildSystemsTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BuildSystemsTest.BasicBuildSingleDevice" end time: Mar 03 23:51 CET
-"BuildSystemsTest.BasicBuildSingleDevice" time elapsed: 00:00:00
+"editor_interaction_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_interaction_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-6/31 Testing: BuildSystemsTest.ConnectionsMergeSignals
-6/31 Test: BuildSystemsTest.ConnectionsMergeSignals
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=BuildSystemsTest.ConnectionsMergeSignals" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_render_tests_NOT_BUILT
+6/10 Testing: editor_render_tests_NOT_BUILT
+6/10 Test: editor_render_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"BuildSystemsTest.ConnectionsMergeSignals" start time: Mar 03 23:51 CET
+"editor_render_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = BuildSystemsTest.ConnectionsMergeSignals
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from BuildSystemsTest
-[ RUN      ] BuildSystemsTest.ConnectionsMergeSignals
-[2026-03-03 23:51:59.692] [info] Built JIT systems: 4 signals, 0 fixed
-[       OK ] BuildSystemsTest.ConnectionsMergeSignals (0 ms)
-[----------] 1 test from BuildSystemsTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BuildSystemsTest.ConnectionsMergeSignals" end time: Mar 03 23:51 CET
-"BuildSystemsTest.ConnectionsMergeSignals" time elapsed: 00:00:00
+"editor_render_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_render_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-7/31 Testing: BuildSystemsTest.RefNodeMarkedFixed
-7/31 Test: BuildSystemsTest.RefNodeMarkedFixed
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=BuildSystemsTest.RefNodeMarkedFixed" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_hittest_tests_NOT_BUILT
+7/10 Testing: editor_hittest_tests_NOT_BUILT
+7/10 Test: editor_hittest_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"BuildSystemsTest.RefNodeMarkedFixed" start time: Mar 03 23:51 CET
+"editor_hittest_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = BuildSystemsTest.RefNodeMarkedFixed
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from BuildSystemsTest
-[ RUN      ] BuildSystemsTest.RefNodeMarkedFixed
-[2026-03-03 23:51:59.707] [info] Built JIT systems: 2 signals, 1 fixed
-[       OK ] BuildSystemsTest.RefNodeMarkedFixed (0 ms)
-[----------] 1 test from BuildSystemsTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"BuildSystemsTest.RefNodeMarkedFixed" end time: Mar 03 23:51 CET
-"BuildSystemsTest.RefNodeMarkedFixed" time elapsed: 00:00:00
+"editor_hittest_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_hittest_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-8/31 Testing: RegressionTest.BusAndGroundSignalsSeparate
-8/31 Test: RegressionTest.BusAndGroundSignalsSeparate
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.BusAndGroundSignalsSeparate" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_event_tests_NOT_BUILT
+8/10 Testing: editor_event_tests_NOT_BUILT
+8/10 Test: editor_event_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.BusAndGroundSignalsSeparate" start time: Mar 03 23:51 CET
+"editor_event_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.BusAndGroundSignalsSeparate
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.BusAndGroundSignalsSeparate
-[2026-03-03 23:51:59.721] [info] Built JIT systems: 5 signals, 1 fixed
-[       OK ] RegressionTest.BusAndGroundSignalsSeparate (0 ms)
-[----------] 1 test from RegressionTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"RegressionTest.BusAndGroundSignalsSeparate" end time: Mar 03 23:51 CET
-"RegressionTest.BusAndGroundSignalsSeparate" time elapsed: 00:00:00
+"editor_event_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_event_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-9/31 Testing: RegressionTest.DCBusVoltageNonZero
-9/31 Test: RegressionTest.DCBusVoltageNonZero
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.DCBusVoltageNonZero" "--gtest_also_run_disabled_tests"
+Unable to find executable: editor_gl_setup_tests_NOT_BUILT
+9/10 Testing: editor_gl_setup_tests_NOT_BUILT
+9/10 Test: editor_gl_setup_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.DCBusVoltageNonZero" start time: Mar 03 23:51 CET
+"editor_gl_setup_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.DCBusVoltageNonZero
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.DCBusVoltageNonZero
-[2026-03-03 23:51:59.736] [info] Built JIT systems: 5 signals, 1 fixed
-[       OK ] RegressionTest.DCBusVoltageNonZero (1 ms)
-[----------] 1 test from RegressionTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"RegressionTest.DCBusVoltageNonZero" end time: Mar 03 23:51 CET
-"RegressionTest.DCBusVoltageNonZero" time elapsed: 00:00:00
+"editor_gl_setup_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"editor_gl_setup_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-10/31 Testing: RegressionTest.ResistorVoltageDifference
-10/31 Test: RegressionTest.ResistorVoltageDifference
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.ResistorVoltageDifference" "--gtest_also_run_disabled_tests"
+Unable to find executable: json_parser_tests_NOT_BUILT
+10/10 Testing: json_parser_tests_NOT_BUILT
+10/10 Test: json_parser_tests_NOT_BUILT
+Command: ""
 Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.ResistorVoltageDifference" start time: Mar 03 23:51 CET
+"json_parser_tests_NOT_BUILT" start time: 
 Output:
 ----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.ResistorVoltageDifference
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.ResistorVoltageDifference
-[2026-03-03 23:51:59.751] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] RegressionTest.ResistorVoltageDifference (1 ms)
-[----------] 1 test from RegressionTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
 <end of output>
-Test time =   0.01 sec
+Test time =   0.00 sec
 ----------------------------------------------------------
 Test Passed.
-"RegressionTest.ResistorVoltageDifference" end time: Mar 03 23:51 CET
-"RegressionTest.ResistorVoltageDifference" time elapsed: 00:00:00
+"json_parser_tests_NOT_BUILT" end time: Mar 04 15:25 CET
+"json_parser_tests_NOT_BUILT" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-11/31 Testing: RegressionTest.IndicatorLightTwoTerminals
-11/31 Test: RegressionTest.IndicatorLightTwoTerminals
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.IndicatorLightTwoTerminals" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.IndicatorLightTwoTerminals" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.IndicatorLightTwoTerminals
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.IndicatorLightTwoTerminals
-[2026-03-03 23:51:59.766] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] RegressionTest.IndicatorLightTwoTerminals (0 ms)
-[----------] 1 test from RegressionTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"RegressionTest.IndicatorLightTwoTerminals" end time: Mar 03 23:51 CET
-"RegressionTest.IndicatorLightTwoTerminals" time elapsed: 00:00:00
-----------------------------------------------------------
-
-12/31 Testing: RegressionTest.BusTypeNotRefNode
-12/31 Test: RegressionTest.BusTypeNotRefNode
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.BusTypeNotRefNode" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.BusTypeNotRefNode" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.BusTypeNotRefNode
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.BusTypeNotRefNode
-[2026-03-03 23:51:59.781] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] RegressionTest.BusTypeNotRefNode (0 ms)
-[----------] 1 test from RegressionTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"RegressionTest.BusTypeNotRefNode" end time: Mar 03 23:51 CET
-"RegressionTest.BusTypeNotRefNode" time elapsed: 00:00:00
-----------------------------------------------------------
-
-13/31 Testing: RegressionTest.ClosedRelayNoConductance
-13/31 Test: RegressionTest.ClosedRelayNoConductance
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.ClosedRelayNoConductance" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.ClosedRelayNoConductance" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.ClosedRelayNoConductance
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.ClosedRelayNoConductance
-[2026-03-03 23:51:59.795] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] RegressionTest.ClosedRelayNoConductance (1 ms)
-[----------] 1 test from RegressionTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"RegressionTest.ClosedRelayNoConductance" end time: Mar 03 23:51 CET
-"RegressionTest.ClosedRelayNoConductance" time elapsed: 00:00:00
-----------------------------------------------------------
-
-14/31 Testing: RegressionTest.DualBatteryWithRelayStable
-14/31 Test: RegressionTest.DualBatteryWithRelayStable
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.DualBatteryWithRelayStable" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.DualBatteryWithRelayStable" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.DualBatteryWithRelayStable
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.DualBatteryWithRelayStable
-[2026-03-03 23:51:59.810] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] RegressionTest.DualBatteryWithRelayStable (1 ms)
-[----------] 1 test from RegressionTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"RegressionTest.DualBatteryWithRelayStable" end time: Mar 03 23:51 CET
-"RegressionTest.DualBatteryWithRelayStable" time elapsed: 00:00:00
-----------------------------------------------------------
-
-15/31 Testing: RegressionTest.GeneratorAndBatteryOnSameBus
-15/31 Test: RegressionTest.GeneratorAndBatteryOnSameBus
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=RegressionTest.GeneratorAndBatteryOnSameBus" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"RegressionTest.GeneratorAndBatteryOnSameBus" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = RegressionTest.GeneratorAndBatteryOnSameBus
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from RegressionTest
-[ RUN      ] RegressionTest.GeneratorAndBatteryOnSameBus
-[2026-03-03 23:51:59.825] [info] Built JIT systems: 3 signals, 1 fixed
-[       OK ] RegressionTest.GeneratorAndBatteryOnSameBus (1 ms)
-[----------] 1 test from RegressionTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"RegressionTest.GeneratorAndBatteryOnSameBus" end time: Mar 03 23:51 CET
-"RegressionTest.GeneratorAndBatteryOnSameBus" time elapsed: 00:00:00
-----------------------------------------------------------
-
-16/31 Testing: IntegrationTest.BatteryWithResistiveLoad
-16/31 Test: IntegrationTest.BatteryWithResistiveLoad
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.BatteryWithResistiveLoad" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.BatteryWithResistiveLoad" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.BatteryWithResistiveLoad
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.BatteryWithResistiveLoad
-[2026-03-03 23:51:59.840] [info] Built JIT systems: 3 signals, 1 fixed
-[       OK ] IntegrationTest.BatteryWithResistiveLoad (0 ms)
-[----------] 1 test from IntegrationTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.BatteryWithResistiveLoad" end time: Mar 03 23:51 CET
-"IntegrationTest.BatteryWithResistiveLoad" time elapsed: 00:00:00
-----------------------------------------------------------
-
-17/31 Testing: IntegrationTest.GeneratorWithResistiveLoad
-17/31 Test: IntegrationTest.GeneratorWithResistiveLoad
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.GeneratorWithResistiveLoad" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.GeneratorWithResistiveLoad" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.GeneratorWithResistiveLoad
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.GeneratorWithResistiveLoad
-[2026-03-03 23:51:59.855] [info] Built JIT systems: 3 signals, 1 fixed
-[       OK ] IntegrationTest.GeneratorWithResistiveLoad (0 ms)
-[----------] 1 test from IntegrationTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.GeneratorWithResistiveLoad" end time: Mar 03 23:51 CET
-"IntegrationTest.GeneratorWithResistiveLoad" time elapsed: 00:00:00
-----------------------------------------------------------
-
-18/31 Testing: IntegrationTest.FullDCBusWithTwoLights
-18/31 Test: IntegrationTest.FullDCBusWithTwoLights
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.FullDCBusWithTwoLights" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.FullDCBusWithTwoLights" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.FullDCBusWithTwoLights
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.FullDCBusWithTwoLights
-[2026-03-03 23:51:59.870] [info] Built JIT systems: 5 signals, 1 fixed
-[       OK ] IntegrationTest.FullDCBusWithTwoLights (1 ms)
-[----------] 1 test from IntegrationTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.FullDCBusWithTwoLights" end time: Mar 03 23:51 CET
-"IntegrationTest.FullDCBusWithTwoLights" time elapsed: 00:00:00
-----------------------------------------------------------
-
-19/31 Testing: IntegrationTest.BatteryRelayChain
-19/31 Test: IntegrationTest.BatteryRelayChain
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.BatteryRelayChain" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.BatteryRelayChain" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.BatteryRelayChain
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.BatteryRelayChain
-[2026-03-03 23:51:59.885] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] IntegrationTest.BatteryRelayChain (1 ms)
-[----------] 1 test from IntegrationTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.BatteryRelayChain" end time: Mar 03 23:51 CET
-"IntegrationTest.BatteryRelayChain" time elapsed: 00:00:00
-----------------------------------------------------------
-
-20/31 Testing: IntegrationTest.OpenRelayBlocksCurrent
-20/31 Test: IntegrationTest.OpenRelayBlocksCurrent
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.OpenRelayBlocksCurrent" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.OpenRelayBlocksCurrent" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.OpenRelayBlocksCurrent
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.OpenRelayBlocksCurrent
-[2026-03-03 23:51:59.900] [info] Built JIT systems: 4 signals, 1 fixed
-[       OK ] IntegrationTest.OpenRelayBlocksCurrent (0 ms)
-[----------] 1 test from IntegrationTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.OpenRelayBlocksCurrent" end time: Mar 03 23:51 CET
-"IntegrationTest.OpenRelayBlocksCurrent" time elapsed: 00:00:00
-----------------------------------------------------------
-
-21/31 Testing: IntegrationTest.ParallelBatteriesShareLoad
-21/31 Test: IntegrationTest.ParallelBatteriesShareLoad
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.ParallelBatteriesShareLoad" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.ParallelBatteriesShareLoad" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.ParallelBatteriesShareLoad
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.ParallelBatteriesShareLoad
-[2026-03-03 23:51:59.915] [info] Built JIT systems: 3 signals, 1 fixed
-[       OK ] IntegrationTest.ParallelBatteriesShareLoad (1 ms)
-[----------] 1 test from IntegrationTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.ParallelBatteriesShareLoad" end time: Mar 03 23:51 CET
-"IntegrationTest.ParallelBatteriesShareLoad" time elapsed: 00:00:00
-----------------------------------------------------------
-
-22/31 Testing: IntegrationTest.MultipleLightsWithBrightness
-22/31 Test: IntegrationTest.MultipleLightsWithBrightness
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.MultipleLightsWithBrightness" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.MultipleLightsWithBrightness" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.MultipleLightsWithBrightness
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.MultipleLightsWithBrightness
-[2026-03-03 23:51:59.930] [info] Built JIT systems: 6 signals, 1 fixed
-[       OK ] IntegrationTest.MultipleLightsWithBrightness (1 ms)
-[----------] 1 test from IntegrationTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.MultipleLightsWithBrightness" end time: Mar 03 23:51 CET
-"IntegrationTest.MultipleLightsWithBrightness" time elapsed: 00:00:00
-----------------------------------------------------------
-
-23/31 Testing: IntegrationTest.SORConvergence
-23/31 Test: IntegrationTest.SORConvergence
-Command: "/Users/vladimir/an24_cpp/build/tests/jit_solver_tests" "--gtest_filter=IntegrationTest.SORConvergence" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"IntegrationTest.SORConvergence" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = IntegrationTest.SORConvergence
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from IntegrationTest
-[ RUN      ] IntegrationTest.SORConvergence
-[2026-03-03 23:51:59.945] [info] Built JIT systems: 3 signals, 1 fixed
-[2026-03-03 23:51:59.945] [info] Built JIT systems: 3 signals, 1 fixed
-[       OK ] IntegrationTest.SORConvergence (1 ms)
-[----------] 1 test from IntegrationTest (1 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (1 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.01 sec
-----------------------------------------------------------
-Test Passed.
-"IntegrationTest.SORConvergence" end time: Mar 03 23:51 CET
-"IntegrationTest.SORConvergence" time elapsed: 00:00:00
-----------------------------------------------------------
-
-24/31 Testing: JsonParserTest.ParseEmptyContext
-24/31 Test: JsonParserTest.ParseEmptyContext
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseEmptyContext" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseEmptyContext" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseEmptyContext
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseEmptyContext
-[       OK ] JsonParserTest.ParseEmptyContext (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseEmptyContext" end time: Mar 03 23:51 CET
-"JsonParserTest.ParseEmptyContext" time elapsed: 00:00:00
-----------------------------------------------------------
-
-25/31 Testing: JsonParserTest.ParseErrorOnInvalidJson
-25/31 Test: JsonParserTest.ParseErrorOnInvalidJson
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseErrorOnInvalidJson" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseErrorOnInvalidJson" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseErrorOnInvalidJson
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseErrorOnInvalidJson
-[       OK ] JsonParserTest.ParseErrorOnInvalidJson (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseErrorOnInvalidJson" end time: Mar 03 23:51 CET
-"JsonParserTest.ParseErrorOnInvalidJson" time elapsed: 00:00:00
-----------------------------------------------------------
-
-26/31 Testing: JsonParserTest.ParseAndSerializeRoundTrip
-26/31 Test: JsonParserTest.ParseAndSerializeRoundTrip
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseAndSerializeRoundTrip" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseAndSerializeRoundTrip" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseAndSerializeRoundTrip
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseAndSerializeRoundTrip
-[       OK ] JsonParserTest.ParseAndSerializeRoundTrip (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseAndSerializeRoundTrip" end time: Mar 03 23:51 CET
-"JsonParserTest.ParseAndSerializeRoundTrip" time elapsed: 00:00:00
-----------------------------------------------------------
-
-27/31 Testing: JsonParserTest.RoundTripWithTemplates
-27/31 Test: JsonParserTest.RoundTripWithTemplates
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.RoundTripWithTemplates" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.RoundTripWithTemplates" start time: Mar 03 23:51 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.RoundTripWithTemplates
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.RoundTripWithTemplates
-[       OK ] JsonParserTest.RoundTripWithTemplates (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.RoundTripWithTemplates" end time: Mar 03 23:52 CET
-"JsonParserTest.RoundTripWithTemplates" time elapsed: 00:00:00
-----------------------------------------------------------
-
-28/31 Testing: JsonParserTest.ParseMultipleDomains
-28/31 Test: JsonParserTest.ParseMultipleDomains
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseMultipleDomains" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseMultipleDomains" start time: Mar 03 23:52 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseMultipleDomains
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseMultipleDomains
-[       OK ] JsonParserTest.ParseMultipleDomains (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseMultipleDomains" end time: Mar 03 23:52 CET
-"JsonParserTest.ParseMultipleDomains" time elapsed: 00:00:00
-----------------------------------------------------------
-
-29/31 Testing: JsonParserTest.ParseDevicesWithAllFields
-29/31 Test: JsonParserTest.ParseDevicesWithAllFields
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseDevicesWithAllFields" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseDevicesWithAllFields" start time: Mar 03 23:52 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseDevicesWithAllFields
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseDevicesWithAllFields
-[       OK ] JsonParserTest.ParseDevicesWithAllFields (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseDevicesWithAllFields" end time: Mar 03 23:52 CET
-"JsonParserTest.ParseDevicesWithAllFields" time elapsed: 00:00:00
-----------------------------------------------------------
-
-30/31 Testing: JsonParserTest.ParseConnectionFormats
-30/31 Test: JsonParserTest.ParseConnectionFormats
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.ParseConnectionFormats" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.ParseConnectionFormats" start time: Mar 03 23:52 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.ParseConnectionFormats
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.ParseConnectionFormats
-[       OK ] JsonParserTest.ParseConnectionFormats (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.ParseConnectionFormats" end time: Mar 03 23:52 CET
-"JsonParserTest.ParseConnectionFormats" time elapsed: 00:00:00
-----------------------------------------------------------
-
-31/31 Testing: JsonParserTest.SerializePreservesData
-31/31 Test: JsonParserTest.SerializePreservesData
-Command: "/Users/vladimir/an24_cpp/build/tests/json_parser_tests" "--gtest_filter=JsonParserTest.SerializePreservesData" "--gtest_also_run_disabled_tests"
-Directory: /Users/vladimir/an24_cpp/build/tests
-"JsonParserTest.SerializePreservesData" start time: Mar 03 23:52 CET
-Output:
-----------------------------------------------------------
-Running main() from /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/src/gtest_main.cc
-Note: Google Test filter = JsonParserTest.SerializePreservesData
-[==========] Running 1 test from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 1 test from JsonParserTest
-[ RUN      ] JsonParserTest.SerializePreservesData
-[       OK ] JsonParserTest.SerializePreservesData (0 ms)
-[----------] 1 test from JsonParserTest (0 ms total)
-
-[----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (0 ms total)
-[  PASSED  ] 1 test.
-<end of output>
-Test time =   0.02 sec
-----------------------------------------------------------
-Test Passed.
-"JsonParserTest.SerializePreservesData" end time: Mar 03 23:52 CET
-"JsonParserTest.SerializePreservesData" time elapsed: 00:00:00
-----------------------------------------------------------
-
-End testing: Mar 03 23:52 CET
+End testing: Mar 04 15:25 CET

@@ -7,6 +7,7 @@
 subdirs("_deps/json-build")
 subdirs("_deps/spdlog-build")
 subdirs("_deps/googletest-build")
+subdirs("_deps/nfde-build")
 subdirs("src")
 subdirs("examples")
 subdirs("tests")

@@ -112,7 +112,7 @@ examples/test_generated: examples/CMakeFiles/test_generated.dir/__/generated/tes
 examples/test_generated: examples/CMakeFiles/test_generated.dir/__/generated/generated_an24_composite_test.cpp.o
 examples/test_generated: examples/CMakeFiles/test_generated.dir/build.make
 examples/test_generated: src/jit_solver/libjit_solver.a
-examples/test_generated: _deps/spdlog-build/libspdlog.a
+examples/test_generated: _deps/spdlog-build/libspdlogd.a
 examples/test_generated: examples/CMakeFiles/test_generated.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable test_generated"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test_generated.dir/link.txt --verbose=$(VERBOSE)

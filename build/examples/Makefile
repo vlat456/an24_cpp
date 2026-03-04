@@ -367,6 +367,164 @@ profile_vsu_dmr_aot/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/build
 .PHONY : profile_vsu_dmr_aot/fast
 
+# Convenience name for target.
+examples/CMakeFiles/an24_editor.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_editor.dir/rule
+.PHONY : examples/CMakeFiles/an24_editor.dir/rule
+
+# Convenience name for target.
+an24_editor: examples/CMakeFiles/an24_editor.dir/rule
+.PHONY : an24_editor
+
+# fast build rule for target.
+an24_editor/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
+.PHONY : an24_editor/fast
+
+__/_deps/imgui-src/backends/imgui_impl_opengl3.o: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.o
+
+# target to build an object file
+__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
+
+__/_deps/imgui-src/backends/imgui_impl_opengl3.i: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.i
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.i
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.i
+
+__/_deps/imgui-src/backends/imgui_impl_opengl3.s: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.s
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.s
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.s
+
+__/_deps/imgui-src/backends/imgui_impl_sdl2.o: __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.o
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.o
+
+# target to build an object file
+__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.o
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.o
+
+__/_deps/imgui-src/backends/imgui_impl_sdl2.i: __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.i
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.i
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.i
+
+__/_deps/imgui-src/backends/imgui_impl_sdl2.s: __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.s
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.s
+.PHONY : __/_deps/imgui-src/backends/imgui_impl_sdl2.cpp.s
+
+__/_deps/imgui-src/imgui.o: __/_deps/imgui-src/imgui.cpp.o
+.PHONY : __/_deps/imgui-src/imgui.o
+
+# target to build an object file
+__/_deps/imgui-src/imgui.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui.cpp.o
+.PHONY : __/_deps/imgui-src/imgui.cpp.o
+
+__/_deps/imgui-src/imgui.i: __/_deps/imgui-src/imgui.cpp.i
+.PHONY : __/_deps/imgui-src/imgui.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/imgui.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui.cpp.i
+.PHONY : __/_deps/imgui-src/imgui.cpp.i
+
+__/_deps/imgui-src/imgui.s: __/_deps/imgui-src/imgui.cpp.s
+.PHONY : __/_deps/imgui-src/imgui.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/imgui.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui.cpp.s
+.PHONY : __/_deps/imgui-src/imgui.cpp.s
+
+__/_deps/imgui-src/imgui_draw.o: __/_deps/imgui-src/imgui_draw.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_draw.o
+
+# target to build an object file
+__/_deps/imgui-src/imgui_draw.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_draw.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_draw.cpp.o
+
+__/_deps/imgui-src/imgui_draw.i: __/_deps/imgui-src/imgui_draw.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_draw.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/imgui_draw.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_draw.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_draw.cpp.i
+
+__/_deps/imgui-src/imgui_draw.s: __/_deps/imgui-src/imgui_draw.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_draw.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/imgui_draw.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_draw.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_draw.cpp.s
+
+__/_deps/imgui-src/imgui_tables.o: __/_deps/imgui-src/imgui_tables.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_tables.o
+
+# target to build an object file
+__/_deps/imgui-src/imgui_tables.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_tables.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_tables.cpp.o
+
+__/_deps/imgui-src/imgui_tables.i: __/_deps/imgui-src/imgui_tables.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_tables.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/imgui_tables.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_tables.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_tables.cpp.i
+
+__/_deps/imgui-src/imgui_tables.s: __/_deps/imgui-src/imgui_tables.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_tables.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/imgui_tables.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_tables.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_tables.cpp.s
+
+__/_deps/imgui-src/imgui_widgets.o: __/_deps/imgui-src/imgui_widgets.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_widgets.o
+
+# target to build an object file
+__/_deps/imgui-src/imgui_widgets.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.o
+.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.o
+
+__/_deps/imgui-src/imgui_widgets.i: __/_deps/imgui-src/imgui_widgets.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_widgets.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/imgui_widgets.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.i
+.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.i
+
+__/_deps/imgui-src/imgui_widgets.s: __/_deps/imgui-src/imgui_widgets.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_widgets.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/imgui_widgets.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
+.PHONY : __/_deps/imgui-src/imgui_widgets.cpp.s
+
 __/generated/aot_test.o: __/generated/aot_test.cpp.o
 .PHONY : __/generated/aot_test.o
 
@@ -643,6 +801,174 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
 
+__/src/editor/app.o: __/src/editor/app.cpp.o
+.PHONY : __/src/editor/app.o
+
+# target to build an object file
+__/src/editor/app.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app.cpp.o
+.PHONY : __/src/editor/app.cpp.o
+
+__/src/editor/app.i: __/src/editor/app.cpp.i
+.PHONY : __/src/editor/app.i
+
+# target to preprocess a source file
+__/src/editor/app.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app.cpp.i
+.PHONY : __/src/editor/app.cpp.i
+
+__/src/editor/app.s: __/src/editor/app.cpp.s
+.PHONY : __/src/editor/app.s
+
+# target to generate assembly for a file
+__/src/editor/app.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app.cpp.s
+.PHONY : __/src/editor/app.cpp.s
+
+__/src/editor/hittest.o: __/src/editor/hittest.cpp.o
+.PHONY : __/src/editor/hittest.o
+
+# target to build an object file
+__/src/editor/hittest.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/hittest.cpp.o
+.PHONY : __/src/editor/hittest.cpp.o
+
+__/src/editor/hittest.i: __/src/editor/hittest.cpp.i
+.PHONY : __/src/editor/hittest.i
+
+# target to preprocess a source file
+__/src/editor/hittest.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/hittest.cpp.i
+.PHONY : __/src/editor/hittest.cpp.i
+
+__/src/editor/hittest.s: __/src/editor/hittest.cpp.s
+.PHONY : __/src/editor/hittest.s
+
+# target to generate assembly for a file
+__/src/editor/hittest.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/hittest.cpp.s
+.PHONY : __/src/editor/hittest.cpp.s
+
+__/src/editor/persist.o: __/src/editor/persist.cpp.o
+.PHONY : __/src/editor/persist.o
+
+# target to build an object file
+__/src/editor/persist.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/persist.cpp.o
+.PHONY : __/src/editor/persist.cpp.o
+
+__/src/editor/persist.i: __/src/editor/persist.cpp.i
+.PHONY : __/src/editor/persist.i
+
+# target to preprocess a source file
+__/src/editor/persist.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/persist.cpp.i
+.PHONY : __/src/editor/persist.cpp.i
+
+__/src/editor/persist.s: __/src/editor/persist.cpp.s
+.PHONY : __/src/editor/persist.s
+
+# target to generate assembly for a file
+__/src/editor/persist.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/persist.cpp.s
+.PHONY : __/src/editor/persist.cpp.s
+
+__/src/editor/render.o: __/src/editor/render.cpp.o
+.PHONY : __/src/editor/render.o
+
+# target to build an object file
+__/src/editor/render.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/render.cpp.o
+.PHONY : __/src/editor/render.cpp.o
+
+__/src/editor/render.i: __/src/editor/render.cpp.i
+.PHONY : __/src/editor/render.i
+
+# target to preprocess a source file
+__/src/editor/render.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/render.cpp.i
+.PHONY : __/src/editor/render.cpp.i
+
+__/src/editor/render.s: __/src/editor/render.cpp.s
+.PHONY : __/src/editor/render.s
+
+# target to generate assembly for a file
+__/src/editor/render.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/render.cpp.s
+.PHONY : __/src/editor/render.cpp.s
+
+__/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
+.PHONY : __/src/editor/viewport/viewport.o
+
+# target to build an object file
+__/src/editor/viewport/viewport.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/viewport/viewport.cpp.o
+.PHONY : __/src/editor/viewport/viewport.cpp.o
+
+__/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
+.PHONY : __/src/editor/viewport/viewport.i
+
+# target to preprocess a source file
+__/src/editor/viewport/viewport.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/viewport/viewport.cpp.i
+.PHONY : __/src/editor/viewport/viewport.cpp.i
+
+__/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
+.PHONY : __/src/editor/viewport/viewport.s
+
+# target to generate assembly for a file
+__/src/editor/viewport/viewport.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/viewport/viewport.cpp.s
+.PHONY : __/src/editor/viewport/viewport.cpp.s
+
+__/src/editor/wires/hittest.o: __/src/editor/wires/hittest.cpp.o
+.PHONY : __/src/editor/wires/hittest.o
+
+# target to build an object file
+__/src/editor/wires/hittest.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/wires/hittest.cpp.o
+.PHONY : __/src/editor/wires/hittest.cpp.o
+
+__/src/editor/wires/hittest.i: __/src/editor/wires/hittest.cpp.i
+.PHONY : __/src/editor/wires/hittest.i
+
+# target to preprocess a source file
+__/src/editor/wires/hittest.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/wires/hittest.cpp.i
+.PHONY : __/src/editor/wires/hittest.cpp.i
+
+__/src/editor/wires/hittest.s: __/src/editor/wires/hittest.cpp.s
+.PHONY : __/src/editor/wires/hittest.s
+
+# target to generate assembly for a file
+__/src/editor/wires/hittest.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/wires/hittest.cpp.s
+.PHONY : __/src/editor/wires/hittest.cpp.s
+
+an24_editor.o: an24_editor.cpp.o
+.PHONY : an24_editor.o
+
+# target to build an object file
+an24_editor.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/an24_editor.cpp.o
+.PHONY : an24_editor.cpp.o
+
+an24_editor.i: an24_editor.cpp.i
+.PHONY : an24_editor.i
+
+# target to preprocess a source file
+an24_editor.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/an24_editor.cpp.i
+.PHONY : an24_editor.cpp.i
+
+an24_editor.s: an24_editor.cpp.s
+.PHONY : an24_editor.s
+
+# target to generate assembly for a file
+an24_editor.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/an24_editor.cpp.s
+.PHONY : an24_editor.cpp.s
+
 benchmark.o: benchmark.cpp.o
 .PHONY : benchmark.o
 
@@ -801,6 +1127,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... an24_codegen"
+	@echo "... an24_editor"
 	@echo "... aot_test"
 	@echo "... bench_vsu_aot"
 	@echo "... bench_vsu_dmr_aot"
@@ -814,6 +1141,24 @@ help:
 	@echo "... test_generated"
 	@echo "... test_vsu_dmr_aot"
 	@echo "... vsu_aot_test"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.o"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.i"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.s"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_sdl2.o"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_sdl2.i"
+	@echo "... __/_deps/imgui-src/backends/imgui_impl_sdl2.s"
+	@echo "... __/_deps/imgui-src/imgui.o"
+	@echo "... __/_deps/imgui-src/imgui.i"
+	@echo "... __/_deps/imgui-src/imgui.s"
+	@echo "... __/_deps/imgui-src/imgui_draw.o"
+	@echo "... __/_deps/imgui-src/imgui_draw.i"
+	@echo "... __/_deps/imgui-src/imgui_draw.s"
+	@echo "... __/_deps/imgui-src/imgui_tables.o"
+	@echo "... __/_deps/imgui-src/imgui_tables.i"
+	@echo "... __/_deps/imgui-src/imgui_tables.s"
+	@echo "... __/_deps/imgui-src/imgui_widgets.o"
+	@echo "... __/_deps/imgui-src/imgui_widgets.i"
+	@echo "... __/_deps/imgui-src/imgui_widgets.s"
 	@echo "... __/generated/aot_test.o"
 	@echo "... __/generated/aot_test.i"
 	@echo "... __/generated/aot_test.s"
@@ -847,6 +1192,27 @@ help:
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... __/src/editor/app.o"
+	@echo "... __/src/editor/app.i"
+	@echo "... __/src/editor/app.s"
+	@echo "... __/src/editor/hittest.o"
+	@echo "... __/src/editor/hittest.i"
+	@echo "... __/src/editor/hittest.s"
+	@echo "... __/src/editor/persist.o"
+	@echo "... __/src/editor/persist.i"
+	@echo "... __/src/editor/persist.s"
+	@echo "... __/src/editor/render.o"
+	@echo "... __/src/editor/render.i"
+	@echo "... __/src/editor/render.s"
+	@echo "... __/src/editor/viewport/viewport.o"
+	@echo "... __/src/editor/viewport/viewport.i"
+	@echo "... __/src/editor/viewport/viewport.s"
+	@echo "... __/src/editor/wires/hittest.o"
+	@echo "... __/src/editor/wires/hittest.i"
+	@echo "... __/src/editor/wires/hittest.s"
+	@echo "... an24_editor.o"
+	@echo "... an24_editor.i"
+	@echo "... an24_editor.s"
 	@echo "... benchmark.o"
 	@echo "... benchmark.i"
 	@echo "... benchmark.s"

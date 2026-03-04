@@ -10,6 +10,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -442,6 +443,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -894,6 +896,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/cfg.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -1374,6 +1377,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/color_sinks.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -1810,6 +1814,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/file_sinks.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -2242,6 +2247,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h
@@ -2727,6 +2733,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/stdout_sinks.cpp.o
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h
+ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h
  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h

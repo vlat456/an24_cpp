@@ -1,32 +1,21 @@
-SimulationStateTest.AllocateSignal 6 0.00228668
-SimulationStateTest.AllocateMultipleSignals 6 0.00227435
-SimulationStateTest.ClearThrough 6 0.00224653
-SimulationStateTest.PrecomputeInvConductance 6 0.00223449
-BuildSystemsTest.BasicBuildSingleDevice 6 0.00241953
-BuildSystemsTest.ConnectionsMergeSignals 6 0.00249374
-BuildSystemsTest.RefNodeMarkedFixed 6 0.00238901
-RegressionTest.BusAndGroundSignalsSeparate 7 0.00202881
-RegressionTest.DCBusVoltageNonZero 7 0.00209203
-RegressionTest.ResistorVoltageDifference 7 0.00213074
-RegressionTest.IndicatorLightTwoTerminals 7 0.00208448
-IntegrationTest.BatteryWithResistiveLoad 6 0.0024353
-IntegrationTest.GeneratorWithResistiveLoad 6 0.00240094
-IntegrationTest.FullDCBusWithTwoLights 6 0.00250287
-IntegrationTest.BatteryRelayChain 6 0.002466
-IntegrationTest.OpenRelayBlocksCurrent 6 0.00244442
-IntegrationTest.ParallelBatteriesShareLoad 6 0.00242902
-IntegrationTest.MultipleLightsWithBrightness 6 0.00244965
-IntegrationTest.SORConvergence 6 0.00241324
-JsonParserTest.ParseEmptyContext 6 0.00281714
-JsonParserTest.ParseErrorOnInvalidJson 6 0.00276936
-JsonParserTest.ParseAndSerializeRoundTrip 6 0.00281631
-JsonParserTest.RoundTripWithTemplates 6 0.00290346
-JsonParserTest.ParseMultipleDomains 6 0.0028424
-JsonParserTest.ParseDevicesWithAllFields 6 0.00279616
-JsonParserTest.ParseConnectionFormats 6 0.0028437
-JsonParserTest.SerializePreservesData 6 0.00287102
-RegressionTest.BusTypeNotRefNode 2 0.007073
-RegressionTest.ClosedRelayNoConductance 3 0.00480613
-RegressionTest.DualBatteryWithRelayStable 3 0.00487654
-RegressionTest.GeneratorAndBatteryOnSameBus 3 0.00501101
+jit_solver_tests_NOT_BUILT 0 0
+editor_data_tests_NOT_BUILT 0 0
+editor_persist_tests_NOT_BUILT 0 0
+editor_viewport_tests_NOT_BUILT 0 0
+editor_interaction_tests_NOT_BUILT 0 0
+editor_render_tests_NOT_BUILT 0 0
+editor_hittest_tests_NOT_BUILT 0 0
+editor_event_tests_NOT_BUILT 0 0
+editor_gl_setup_tests_NOT_BUILT 0 0
+json_parser_tests_NOT_BUILT 0 0
 ---
+jit_solver_tests_NOT_BUILT
+editor_data_tests_NOT_BUILT
+editor_persist_tests_NOT_BUILT
+editor_viewport_tests_NOT_BUILT
+editor_interaction_tests_NOT_BUILT
+editor_render_tests_NOT_BUILT
+editor_hittest_tests_NOT_BUILT
+editor_event_tests_NOT_BUILT
+editor_gl_setup_tests_NOT_BUILT
+json_parser_tests_NOT_BUILT
