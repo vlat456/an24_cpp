@@ -16,19 +16,23 @@ void Battery::solve_electrical(SimulationState& state) {
     spdlog::debug("[Battery {}] v_gnd={:.2f} v_bus={:.2f} g={:.2f}",
         name, v_gnd, v_bus, g);
 
-    // Current: I = (V_nominal + V_gnd - V_bus) / R
+    // Оптимизация: Thevenin→Norton: I = (V + V_gnd - V_bus) / R
     float i = (v_nominal + v_gnd - v_bus) * g;
     i = std::clamp(i, -1000.0f, 1000.0f);  // clamp to prevent instability
 
     spdlog::debug("[Battery {}] i={:.2f}", name, i);
 
-    // Add to through currents
-    state.through[v_out_idx] += i;
-    state.through[v_in_idx] -= i;
-
-    // Add conductance
-    state.conductance[v_out_idx] += g;
-    state.conductance[v_in_idx] += g;
+    // Было:
+    // state.through[v_out_idx] += i;
+    // state.through[v_in_idx] -= i;
+    // state.conductance[v_out_idx] += g;
+    // state.conductance[v_in_idx] += g;
+    // Стало - используем helper:
+    stamp_two_port(state.conductance.data(), state.through.data(), state.across.data(),
+                   v_out_idx, v_in_idx, g);
+    // Корректируем ток (он уже посчитан с учетом V_nominal)
+    state.through[v_out_idx] += v_nominal * g;
+    state.through[v_in_idx] -= v_nominal * g;
 }
 
 void Battery::pre_load() {
@@ -55,16 +59,17 @@ void Relay::post_step(SimulationState& state, float /*dt*/) {
 }
 
 void Resistor::solve_electrical(SimulationState& state) {
-    float v_in = state.across[v_in_idx];
-    float v_out = state.across[v_out_idx];
-
-    // Current based on voltage difference: I = (V_in - V_out) * G
-    float i = (v_in - v_out) * conductance;
-
-    state.through[v_out_idx] += i;
-    state.through[v_in_idx] -= i;
-    state.conductance[v_out_idx] += conductance;
-    state.conductance[v_in_idx] += conductance;
+    // Было:
+    // float v_in = state.across[v_in_idx];
+    // float v_out = state.across[v_out_idx];
+    // float i = (v_in - v_out) * conductance;
+    // state.through[v_out_idx] += i;
+    // state.through[v_in_idx] -= i;
+    // state.conductance[v_out_idx] += conductance;
+    // state.conductance[v_in_idx] += conductance;
+    // Стало - используем helper (DRY, читаемость):
+    stamp_two_port(state.conductance.data(), state.through.data(), state.across.data(),
+                   v_out_idx, v_in_idx, conductance);
 }
 
 void Load::solve_electrical(SimulationState& state) {
@@ -75,8 +80,14 @@ void Load::solve_electrical(SimulationState& state) {
     spdlog::debug("[Load] node={} v={:.2f} g={:.2f} i={:.2f}",
         node_idx, v, conductance, i);
 
-    state.through[node_idx] -= i;  // current flows out of node to ground
-    state.conductance[node_idx] += conductance;
+    // Было:
+    // state.through[node_idx] -= i;
+    // state.conductance[node_idx] += conductance;
+    // Стало - используем helper:
+    stamp_one_port_ground(state.conductance.data(), state.through.data(), state.across.data(),
+                          node_idx, conductance);
+    // Корректируем направление тока (из node в ground)
+    state.through[node_idx] -= 2.0f * i;  // компенсация
 }
 
 void RefNode::solve_electrical(SimulationState& state) {

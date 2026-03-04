@@ -1,0 +1,46 @@
+{
+  "templates": {},
+  "devices": [
+    { "name": "gnd", "template_name": "", "internal": "RefNode", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
+      "ports": { "v": { "direction": "Out" } },
+      "params": { "value": "0.0" },
+      "explicit_domains": ["Electrical"] },
+    { "name": "bat_main_1", "template_name": "", "internal": "Battery", "priority": "high", "bucket": null, "critical": true, "is_composite": false,
+      "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" } },
+      "params": { "v_nominal": "28.0", "internal_r": "0.01", "inv_internal_r": "100.0", "capacity": "1000.0", "inv_capacity": "0.001", "charge": "1000.0" },
+      "explicit_domains": ["Electrical"] },
+    { "name": "main_bus", "template_name": "", "internal": "Bus", "priority": "high", "bucket": null, "critical": true, "is_composite": false,
+      "ports": { "v": { "direction": "Out" } },
+      "params": {},
+      "explicit_domains": ["Electrical"] },
+    { "name": "vsu_1", "template_name": "", "internal": "RU19A", "priority": "high", "bucket": null, "critical": false, "is_composite": false,
+      "ports": { "v_start": { "direction": "In" }, "v_bus": { "direction": "Out" }, "k_mod": { "direction": "In" }, "v_gen_mon": { "direction": "In" }, "rpm_out": { "direction": "Out" } },
+      "params": { "target_rpm": "16000.0" },
+      "explicit_domains": ["Electrical"] },
+    { "name": "rug_vsu", "template_name": "", "internal": "RUG82", "priority": "high", "bucket": null, "critical": false, "is_composite": false,
+      "ports": { "v_gen": { "direction": "In" }, "k_mod": { "direction": "Out" } },
+      "params": { "v_target": "28.5" },
+      "explicit_domains": ["Electrical"] },
+    { "name": "dmr_vsu", "template_name": "", "internal": "DMR400", "priority": "high", "bucket": null, "critical": false, "is_composite": false,
+      "ports": { "v_gen": { "direction": "In" }, "v_bus": { "direction": "In" }, "v_out": { "direction": "Out" }, "lamp": { "direction": "Out" } },
+      "params": {},
+      "explicit_domains": ["Electrical"] },
+    { "name": "light_1", "template_name": "", "internal": "IndicatorLight", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
+      "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" }, "brightness": { "direction": "Out" } },
+      "params": { "max_brightness": "100.0", "color": "white" },
+      "explicit_domains": ["Electrical"] }
+  ],
+
+  "connections": [
+    { "from": "gnd.v", "to": "bat_main_1.v_in" },
+    { "from": "gnd.v", "to": "light_1.v_out" },
+    { "from": "bat_main_1.v_out", "to": "main_bus.v" },
+    { "from": "bat_main_1.v_out", "to": "vsu_1.v_start" },
+    { "from": "main_bus.v", "to": "light_1.v_in" },
+    { "from": "main_bus.v", "to": "dmr_vsu.v_bus" },
+    { "from": "vsu_1.v_bus", "to": "dmr_vsu.v_gen" },
+    { "from": "dmr_vsu.v_out", "to": "main_bus.v" },
+    { "from": "vsu_1.v_bus", "to": "rug_vsu.v_gen" },
+    { "from": "rug_vsu.k_mod", "to": "vsu_1.k_mod" }
+  ]
+}

@@ -228,6 +228,20 @@ json_test/fast:
 .PHONY : json_test/fast
 
 # Convenience name for target.
+examples/CMakeFiles/benchmark.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/benchmark.dir/rule
+.PHONY : examples/CMakeFiles/benchmark.dir/rule
+
+# Convenience name for target.
+benchmark: examples/CMakeFiles/benchmark.dir/rule
+.PHONY : benchmark
+
+# fast build rule for target.
+benchmark/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark.dir/build.make examples/CMakeFiles/benchmark.dir/build
+.PHONY : benchmark/fast
+
+# Convenience name for target.
 examples/CMakeFiles/an24_codegen.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_codegen.dir/rule
 .PHONY : examples/CMakeFiles/an24_codegen.dir/rule
@@ -297,6 +311,48 @@ vsu_aot_test/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/build
 .PHONY : vsu_aot_test/fast
 
+# Convenience name for target.
+examples/CMakeFiles/bench_vsu_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/bench_vsu_aot.dir/rule
+.PHONY : examples/CMakeFiles/bench_vsu_aot.dir/rule
+
+# Convenience name for target.
+bench_vsu_aot: examples/CMakeFiles/bench_vsu_aot.dir/rule
+.PHONY : bench_vsu_aot
+
+# fast build rule for target.
+bench_vsu_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
+.PHONY : bench_vsu_aot/fast
+
+# Convenience name for target.
+examples/CMakeFiles/bench_vsu_dmr_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/bench_vsu_dmr_aot.dir/rule
+.PHONY : examples/CMakeFiles/bench_vsu_dmr_aot.dir/rule
+
+# Convenience name for target.
+bench_vsu_dmr_aot: examples/CMakeFiles/bench_vsu_dmr_aot.dir/rule
+.PHONY : bench_vsu_dmr_aot
+
+# fast build rule for target.
+bench_vsu_dmr_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/build
+.PHONY : bench_vsu_dmr_aot/fast
+
+# Convenience name for target.
+examples/CMakeFiles/test_vsu_dmr_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/test_vsu_dmr_aot.dir/rule
+.PHONY : examples/CMakeFiles/test_vsu_dmr_aot.dir/rule
+
+# Convenience name for target.
+test_vsu_dmr_aot: examples/CMakeFiles/test_vsu_dmr_aot.dir/rule
+.PHONY : test_vsu_dmr_aot
+
+# fast build rule for target.
+test_vsu_dmr_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/build
+.PHONY : test_vsu_dmr_aot/fast
+
 __/generated/aot_test.o: __/generated/aot_test.cpp.o
 .PHONY : __/generated/aot_test.o
 
@@ -320,6 +376,54 @@ __/generated/aot_test.s: __/generated/aot_test.cpp.s
 __/generated/aot_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/aot_test.dir/build.make examples/CMakeFiles/aot_test.dir/__/generated/aot_test.cpp.s
 .PHONY : __/generated/aot_test.cpp.s
+
+__/generated/bench_vsu_aot.o: __/generated/bench_vsu_aot.cpp.o
+.PHONY : __/generated/bench_vsu_aot.o
+
+# target to build an object file
+__/generated/bench_vsu_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o
+.PHONY : __/generated/bench_vsu_aot.cpp.o
+
+__/generated/bench_vsu_aot.i: __/generated/bench_vsu_aot.cpp.i
+.PHONY : __/generated/bench_vsu_aot.i
+
+# target to preprocess a source file
+__/generated/bench_vsu_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.i
+.PHONY : __/generated/bench_vsu_aot.cpp.i
+
+__/generated/bench_vsu_aot.s: __/generated/bench_vsu_aot.cpp.s
+.PHONY : __/generated/bench_vsu_aot.s
+
+# target to generate assembly for a file
+__/generated/bench_vsu_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.s
+.PHONY : __/generated/bench_vsu_aot.cpp.s
+
+__/generated/bench_vsu_dmr_aot.o: __/generated/bench_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/bench_vsu_dmr_aot.o
+
+# target to build an object file
+__/generated/bench_vsu_dmr_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/bench_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/bench_vsu_dmr_aot.cpp.o
+
+__/generated/bench_vsu_dmr_aot.i: __/generated/bench_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/bench_vsu_dmr_aot.i
+
+# target to preprocess a source file
+__/generated/bench_vsu_dmr_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/bench_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/bench_vsu_dmr_aot.cpp.i
+
+__/generated/bench_vsu_dmr_aot.s: __/generated/bench_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/bench_vsu_dmr_aot.s
+
+# target to generate assembly for a file
+__/generated/bench_vsu_dmr_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/bench_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/bench_vsu_dmr_aot.cpp.s
 
 __/generated/generated_an24_composite_test.o: __/generated/generated_an24_composite_test.cpp.o
 .PHONY : __/generated/generated_an24_composite_test.o
@@ -348,12 +452,40 @@ __/generated/generated_an24_composite_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/aot_test.dir/build.make examples/CMakeFiles/aot_test.dir/__/generated/generated_an24_composite_test.cpp.s
 .PHONY : __/generated/generated_an24_composite_test.cpp.s
 
+__/generated/generated_vsu_dmr_test.o: __/generated/generated_vsu_dmr_test.cpp.o
+.PHONY : __/generated/generated_vsu_dmr_test.o
+
+# target to build an object file
+__/generated/generated_vsu_dmr_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.o
+.PHONY : __/generated/generated_vsu_dmr_test.cpp.o
+
+__/generated/generated_vsu_dmr_test.i: __/generated/generated_vsu_dmr_test.cpp.i
+.PHONY : __/generated/generated_vsu_dmr_test.i
+
+# target to preprocess a source file
+__/generated/generated_vsu_dmr_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.i
+.PHONY : __/generated/generated_vsu_dmr_test.cpp.i
+
+__/generated/generated_vsu_dmr_test.s: __/generated/generated_vsu_dmr_test.cpp.s
+.PHONY : __/generated/generated_vsu_dmr_test.s
+
+# target to generate assembly for a file
+__/generated/generated_vsu_dmr_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.s
+.PHONY : __/generated/generated_vsu_dmr_test.cpp.s
+
 __/generated/generated_vsu_test.o: __/generated/generated_vsu_test.cpp.o
 .PHONY : __/generated/generated_vsu_test.o
 
 # target to build an object file
 __/generated/generated_vsu_test.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/__/generated/generated_vsu_test.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o
 .PHONY : __/generated/generated_vsu_test.cpp.o
 
 __/generated/generated_vsu_test.i: __/generated/generated_vsu_test.cpp.i
@@ -362,6 +494,7 @@ __/generated/generated_vsu_test.i: __/generated/generated_vsu_test.cpp.i
 # target to preprocess a source file
 __/generated/generated_vsu_test.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/__/generated/generated_vsu_test.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.i
 .PHONY : __/generated/generated_vsu_test.cpp.i
 
 __/generated/generated_vsu_test.s: __/generated/generated_vsu_test.cpp.s
@@ -370,6 +503,7 @@ __/generated/generated_vsu_test.s: __/generated/generated_vsu_test.cpp.s
 # target to generate assembly for a file
 __/generated/generated_vsu_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/__/generated/generated_vsu_test.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.s
 .PHONY : __/generated/generated_vsu_test.cpp.s
 
 __/generated/test_generated.o: __/generated/test_generated.cpp.o
@@ -420,6 +554,30 @@ __/generated/test_vsu_aot.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/__/generated/test_vsu_aot.cpp.s
 .PHONY : __/generated/test_vsu_aot.cpp.s
 
+__/generated/test_vsu_dmr_aot.o: __/generated/test_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/test_vsu_dmr_aot.o
+
+# target to build an object file
+__/generated/test_vsu_dmr_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/test_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/test_vsu_dmr_aot.cpp.o
+
+__/generated/test_vsu_dmr_aot.i: __/generated/test_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/test_vsu_dmr_aot.i
+
+# target to preprocess a source file
+__/generated/test_vsu_dmr_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/test_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/test_vsu_dmr_aot.cpp.i
+
+__/generated/test_vsu_dmr_aot.s: __/generated/test_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/test_vsu_dmr_aot.s
+
+# target to generate assembly for a file
+__/generated/test_vsu_dmr_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/test_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/test_vsu_dmr_aot.cpp.s
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -443,6 +601,30 @@ __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
 __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
+
+benchmark.o: benchmark.cpp.o
+.PHONY : benchmark.o
+
+# target to build an object file
+benchmark.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark.dir/build.make examples/CMakeFiles/benchmark.dir/benchmark.cpp.o
+.PHONY : benchmark.cpp.o
+
+benchmark.i: benchmark.cpp.i
+.PHONY : benchmark.i
+
+# target to preprocess a source file
+benchmark.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark.dir/build.make examples/CMakeFiles/benchmark.dir/benchmark.cpp.i
+.PHONY : benchmark.cpp.i
+
+benchmark.s: benchmark.cpp.s
+.PHONY : benchmark.s
+
+# target to generate assembly for a file
+benchmark.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark.dir/build.make examples/CMakeFiles/benchmark.dir/benchmark.cpp.s
+.PHONY : benchmark.cpp.s
 
 codegen_test.o: codegen_test.cpp.o
 .PHONY : codegen_test.o
@@ -579,19 +761,32 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... aot_test"
+	@echo "... bench_vsu_aot"
+	@echo "... bench_vsu_dmr_aot"
+	@echo "... benchmark"
 	@echo "... codegen_test"
 	@echo "... components_test"
 	@echo "... debug_test"
 	@echo "... hello_world"
 	@echo "... json_test"
 	@echo "... test_generated"
+	@echo "... test_vsu_dmr_aot"
 	@echo "... vsu_aot_test"
 	@echo "... __/generated/aot_test.o"
 	@echo "... __/generated/aot_test.i"
 	@echo "... __/generated/aot_test.s"
+	@echo "... __/generated/bench_vsu_aot.o"
+	@echo "... __/generated/bench_vsu_aot.i"
+	@echo "... __/generated/bench_vsu_aot.s"
+	@echo "... __/generated/bench_vsu_dmr_aot.o"
+	@echo "... __/generated/bench_vsu_dmr_aot.i"
+	@echo "... __/generated/bench_vsu_dmr_aot.s"
 	@echo "... __/generated/generated_an24_composite_test.o"
 	@echo "... __/generated/generated_an24_composite_test.i"
 	@echo "... __/generated/generated_an24_composite_test.s"
+	@echo "... __/generated/generated_vsu_dmr_test.o"
+	@echo "... __/generated/generated_vsu_dmr_test.i"
+	@echo "... __/generated/generated_vsu_dmr_test.s"
 	@echo "... __/generated/generated_vsu_test.o"
 	@echo "... __/generated/generated_vsu_test.i"
 	@echo "... __/generated/generated_vsu_test.s"
@@ -601,9 +796,15 @@ help:
 	@echo "... __/generated/test_vsu_aot.o"
 	@echo "... __/generated/test_vsu_aot.i"
 	@echo "... __/generated/test_vsu_aot.s"
+	@echo "... __/generated/test_vsu_dmr_aot.o"
+	@echo "... __/generated/test_vsu_dmr_aot.i"
+	@echo "... __/generated/test_vsu_dmr_aot.s"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... benchmark.o"
+	@echo "... benchmark.i"
+	@echo "... benchmark.s"
 	@echo "... codegen_test.o"
 	@echo "... codegen_test.i"
 	@echo "... codegen_test.s"

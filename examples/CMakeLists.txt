@@ -14,6 +14,10 @@ add_executable(json_test json_test.cpp)
 target_include_directories(json_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(json_test PRIVATE json_parser jit_solver spdlog::spdlog)
 
+add_executable(benchmark benchmark.cpp)
+target_include_directories(benchmark PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(benchmark PRIVATE json_parser jit_solver spdlog::spdlog)
+
 add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
 )
@@ -45,3 +49,26 @@ add_executable(vsu_aot_test
 )
 target_include_directories(vsu_aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(vsu_aot_test PRIVATE jit_solver spdlog::spdlog)
+
+# AOT benchmark
+add_executable(bench_vsu_aot
+    ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
+)
+target_include_directories(bench_vsu_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(bench_vsu_aot PRIVATE jit_solver spdlog::spdlog)
+
+# AOT benchmark with DMR
+add_executable(bench_vsu_dmr_aot
+    ${CMAKE_SOURCE_DIR}/generated/bench_vsu_dmr_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_dmr_test.cpp
+)
+target_include_directories(bench_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(bench_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)
+
+add_executable(test_vsu_dmr_aot
+    ${CMAKE_SOURCE_DIR}/generated/test_vsu_dmr_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_dmr_test.cpp
+)
+target_include_directories(test_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(test_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)

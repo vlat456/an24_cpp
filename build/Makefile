@@ -315,6 +315,19 @@ json_test/fast:
 .PHONY : json_test/fast
 
 #=============================================================================
+# Target rules for targets named benchmark
+
+# Build rule for target.
+benchmark: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 benchmark
+.PHONY : benchmark
+
+# fast build rule for target.
+benchmark/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark.dir/build.make examples/CMakeFiles/benchmark.dir/build
+.PHONY : benchmark/fast
+
+#=============================================================================
 # Target rules for targets named an24_codegen
 
 # Build rule for target.
@@ -380,6 +393,45 @@ vsu_aot_test/fast:
 .PHONY : vsu_aot_test/fast
 
 #=============================================================================
+# Target rules for targets named bench_vsu_aot
+
+# Build rule for target.
+bench_vsu_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bench_vsu_aot
+.PHONY : bench_vsu_aot
+
+# fast build rule for target.
+bench_vsu_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
+.PHONY : bench_vsu_aot/fast
+
+#=============================================================================
+# Target rules for targets named bench_vsu_dmr_aot
+
+# Build rule for target.
+bench_vsu_dmr_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bench_vsu_dmr_aot
+.PHONY : bench_vsu_dmr_aot
+
+# fast build rule for target.
+bench_vsu_dmr_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/build
+.PHONY : bench_vsu_dmr_aot/fast
+
+#=============================================================================
+# Target rules for targets named test_vsu_dmr_aot
+
+# Build rule for target.
+test_vsu_dmr_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_vsu_dmr_aot
+.PHONY : test_vsu_dmr_aot
+
+# fast build rule for target.
+test_vsu_dmr_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/build
+.PHONY : test_vsu_dmr_aot/fast
+
+#=============================================================================
 # Target rules for targets named jit_solver_tests
 
 # Build rule for target.
@@ -420,6 +472,9 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... aot_test"
+	@echo "... bench_vsu_aot"
+	@echo "... bench_vsu_dmr_aot"
+	@echo "... benchmark"
 	@echo "... codegen_test"
 	@echo "... components_test"
 	@echo "... debug_test"
@@ -435,6 +490,7 @@ help:
 	@echo "... json_test"
 	@echo "... spdlog"
 	@echo "... test_generated"
+	@echo "... test_vsu_dmr_aot"
 	@echo "... vsu_aot_test"
 .PHONY : help
 
