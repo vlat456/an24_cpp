@@ -2,6 +2,7 @@
 #include "hittest.h"
 #include "wires/hittest.h"
 #include "trigonometry.h"
+#include "router/router.h"
 #include "debug.h"
 #include <algorithm>
 
@@ -58,7 +59,28 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             interaction.marquee_selecting = false;
         }
 
-        // Заканчиваем panning или drag
+        // Заканчиваем panning или drag - применяем snap к сетке
+        if (interaction.dragging == Dragging::Node) {
+            // Snap всех выделенных узлов к сетке
+            for (size_t idx : interaction.selected_nodes) {
+                if (idx < blueprint.nodes.size()) {
+                    blueprint.nodes[idx].pos = editor_math::snap_to_grid(
+                        blueprint.nodes[idx].pos, blueprint.grid_step);
+                }
+            }
+        } else if (interaction.dragging == Dragging::RoutingPoint) {
+            // Snap routing point к сетке
+            size_t wire_idx = interaction.routing_point_wire;
+            size_t rp_idx = interaction.routing_point_index;
+            if (wire_idx < blueprint.wires.size()) {
+                auto& wire = blueprint.wires[wire_idx];
+                if (rp_idx < wire.routing_points.size()) {
+                    wire.routing_points[rp_idx] = editor_math::snap_to_grid(
+                        wire.routing_points[rp_idx], blueprint.grid_step);
+                }
+            }
+        }
+
         interaction.set_panning(false);
         interaction.end_drag();
     }
@@ -72,7 +94,7 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
         viewport.pan.x -= world_delta.x;
         viewport.pan.y -= world_delta.y;
     } else if (interaction.dragging == Dragging::Node) {
-        // Перетаскивание всех выделенных узлов
+        // Перетаскивание узлов - просто добавляем delta (без snap)
         for (size_t idx : interaction.selected_nodes) {
             if (idx < blueprint.nodes.size()) {
                 blueprint.nodes[idx].pos.x += world_delta.x;
@@ -80,14 +102,14 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
             }
         }
     } else if (interaction.dragging == Dragging::RoutingPoint) {
-        // Перетаскивание routing point с привязкой к сетке
+        // Перетаскивание routing point
         size_t wire_idx = interaction.routing_point_wire;
         size_t rp_idx = interaction.routing_point_index;
         if (wire_idx < blueprint.wires.size()) {
             auto& wire = blueprint.wires[wire_idx];
             if (rp_idx < wire.routing_points.size()) {
-                Pt new_pos = wire.routing_points[rp_idx] + world_delta;
-                wire.routing_points[rp_idx] = new_pos;
+                wire.routing_points[rp_idx].x += world_delta.x;
+                wire.routing_points[rp_idx].y += world_delta.y;
             }
         }
     } else if (interaction.marquee_selecting) {
@@ -113,6 +135,39 @@ void EditorApp::on_key_down(Key key) {
             }
         }
         interaction.clear_selection();
+    } else if (key == Key::R) {
+        // R - роутинг выделенного провода
+        if (interaction.selected_wire.has_value()) {
+            size_t wire_idx = *interaction.selected_wire;
+            if (wire_idx < blueprint.wires.size()) {
+                Wire& wire = blueprint.wires[wire_idx];
+
+                // Находим start и end node
+                const Node* start_node = nullptr;
+                const Node* end_node = nullptr;
+                for (const auto& n : blueprint.nodes) {
+                    if (n.id == wire.start.node_id) start_node = &n;
+                    if (n.id == wire.end.node_id) end_node = &n;
+                }
+
+                if (start_node && end_node) {
+                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str());
+                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str());
+
+                    // Роутинг вокруг nodes
+                    auto path = route_around_nodes(start_pos, end_pos, blueprint.nodes, blueprint.grid_step);
+
+                    if (!path.empty()) {
+                        wire.routing_points = path;
+                        DEBUG_LOG("Rerouted wire {} with {} points", wire.id, wire.routing_points.size());
+                    } else {
+                        // Fallback: L-shape
+                        wire.routing_points = route_l_shape(start_pos, end_pos, blueprint.grid_step);
+                        DEBUG_LOG("Could not find A* route, using L-shape for wire {}", wire.id);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -168,8 +223,9 @@ void EditorApp::on_double_click(Pt world_pos) {
                 prev = next;
             }
 
-            // Вставляем точно в позицию double click
-            wire.routing_points.insert(wire.routing_points.begin() + insert_idx, world_pos);
+            // Вставляем с привязкой к сетке
+            Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
+            wire.routing_points.insert(wire.routing_points.begin() + insert_idx, snapped_pos);
         }
     }
 }

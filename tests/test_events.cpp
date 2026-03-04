@@ -35,8 +35,8 @@ TEST(EventsTest, MouseDown_OnNode_Selects) {
     // Клик на узел (внутри rect)
     app.on_mouse_down(Pt(150.0f, 90.0f), MouseButton::Left, Pt(0.0f, 0.0f));
 
-    ASSERT_TRUE(app.interaction.selected_node.has_value());
-    EXPECT_EQ(*app.interaction.selected_node, 0);
+    ASSERT_FALSE(app.interaction.selected_nodes.empty());
+    EXPECT_EQ(app.interaction.selected_nodes[0], 0);
 }
 
 TEST(EventsTest, MouseDown_Empty_SelectsNothing) {
@@ -50,7 +50,7 @@ TEST(EventsTest, MouseDown_Empty_SelectsNothing) {
     // Клик вне узла
     app.on_mouse_down(Pt(10.0f, 10.0f), MouseButton::Left, Pt(0.0f, 0.0f));
 
-    EXPECT_FALSE(app.interaction.selected_node.has_value());
+    EXPECT_TRUE(app.interaction.selected_nodes.empty());
 }
 
 TEST(EventsTest, MouseDrag_UpdatesViewport) {
@@ -76,9 +76,9 @@ TEST(EventsTest, MouseWheel_Zooms) {
 
 TEST(EventsTest, KeyDown_Escape_ClearsSelection) {
     EditorApp app;
-    app.interaction.selected_node = 5;
+    app.interaction.add_node_selection(5);
 
     app.on_key_down(Key::Escape);
 
-    EXPECT_FALSE(app.interaction.selected_node.has_value());
+    EXPECT_TRUE(app.interaction.selected_nodes.empty());
 }

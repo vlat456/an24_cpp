@@ -72,4 +72,12 @@ inline float distance_to_segment(Pt p, Pt a, Pt b) {
     return distance(p, closest);
 }
 
+/// Привязка точки к сетке (snap to grid)
+inline Pt snap_to_grid(Pt pos, float grid_step) {
+    return Pt(
+        std::round(pos.x / grid_step) * grid_step,
+        std::round(pos.y / grid_step) * grid_step
+    );
+}
+
 } // namespace editor_math

@@ -5,6 +5,7 @@
 #include "data/pt.h"
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 /// Абстрактный DrawList - для рендеринга
 ///imgui совместимый интерфейс
@@ -22,8 +23,10 @@ struct IDrawList {
 
 /// Рендерит Blueprint (узлы и провода) в IDrawList
 /// @param selected_nodes - опционально, индексы выделенных узлов для подсветки
+/// @param selected_wire - опционально, индекс выделенного провода для подсветки
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
-                      const std::vector<size_t>* selected_nodes = nullptr);
+                      const std::vector<size_t>* selected_nodes = nullptr,
+                      std::optional<size_t> selected_wire = std::nullopt);
 
 /// Рендерит сетку
 void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max);

@@ -7,7 +7,7 @@
 
 TEST(InteractionTest, DefaultIsEmpty) {
     Interaction i;
-    EXPECT_FALSE(i.selected_node.has_value());
+    EXPECT_TRUE(i.selected_nodes.empty());
     EXPECT_FALSE(i.selected_wire.has_value());
     EXPECT_EQ(i.dragging, Dragging::None);
     EXPECT_FALSE(i.panning);
@@ -15,9 +15,9 @@ TEST(InteractionTest, DefaultIsEmpty) {
 
 TEST(InteractionTest, SelectNode) {
     Interaction i;
-    i.selected_node = 5;
-    ASSERT_TRUE(i.selected_node.has_value());
-    EXPECT_EQ(*i.selected_node, 5);
+    i.add_node_selection(5);
+    ASSERT_FALSE(i.selected_nodes.empty());
+    EXPECT_EQ(i.selected_nodes[0], 5);
 }
 
 TEST(InteractionTest, SelectWire) {
@@ -29,9 +29,10 @@ TEST(InteractionTest, SelectWire) {
 
 TEST(InteractionTest, ClearSelection) {
     Interaction i;
-    i.selected_node = 5;
+    i.add_node_selection(5);
+    i.selected_wire = 3;
     i.clear_selection();
-    EXPECT_FALSE(i.selected_node.has_value());
+    EXPECT_TRUE(i.selected_nodes.empty());
     EXPECT_FALSE(i.selected_wire.has_value());
 }
 

@@ -150,3 +150,16 @@ target_link_libraries(editor_routing_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_routing_tests)
+
+# A* Router tests
+add_executable(editor_router_tests
+    test_router.cpp
+)
+target_include_directories(editor_router_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_router_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_router_tests)

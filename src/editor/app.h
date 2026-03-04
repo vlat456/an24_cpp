@@ -18,7 +18,7 @@ enum class Key {
     Delete,
     S,       // Ctrl+S = save
     Z,       // Ctrl+Z = undo
-    // Добавить по необходимости
+    R,       // R = reroute selected wire
 };
 
 /// Главное приложение редактора

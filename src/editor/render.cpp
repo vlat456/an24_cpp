@@ -9,8 +9,8 @@ namespace {
 // Цвета (ImGui: byte0=R, byte1=G, byte2=B, byte3=A -> 0xAABBGGRR)
 constexpr uint32_t COLOR_TEXT = 0xFFFFFFFF;       // белый
 constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;   // серый текст
-constexpr uint32_t COLOR_WIRE = 0xFF50DCFF;      // золотистый (255, 220, 80)
-constexpr uint32_t COLOR_WIRE_SELECTED = 0xFF96C8FF;
+constexpr uint32_t COLOR_WIRE = 0xFF50DCFF;      // золотистый (255, 220, 80) - выделенный
+constexpr uint32_t COLOR_WIRE_UNSEL = 0xFF606060; // серый - невыделенный
 constexpr uint32_t COLOR_GRID = 0xFF404040;      // темно-серый
 constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;  // зеленый
 constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;   // синеватый
@@ -58,9 +58,14 @@ NodeColors get_node_colors(const char* type_name) {
 } // namespace
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
-                      const std::vector<size_t>* selected_nodes) {
+                      const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire) {
     // Рендерим провода (сначала, чтобы были под узлами)
-    for (const auto& w : bp.wires) {
+    for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
+        const auto& w = bp.wires[wire_idx];
+
+        // Цвет провода: выделенный - золотой, невыделенный - серый
+        bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
+        uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
         // Находим узлы
         const Node* start_node = nullptr;
         const Node* end_node = nullptr;
@@ -92,10 +97,10 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             }
             points[count++] = screen_end;
 
-            dl->add_polyline(points, count, COLOR_WIRE, 2.0f);
+            dl->add_polyline(points, count, wire_color, 2.0f);
         } else {
             // Простая линия
-            dl->add_line(screen_start, screen_end, COLOR_WIRE, 2.0f);
+            dl->add_line(screen_start, screen_end, wire_color, 2.0f);
         }
 
         // Рендерим routing points как кружочки
