@@ -81,6 +81,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_dmr_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test_vsu_dmr_aot.dir
+/Users/vladimir/an24_cpp/build/examples/CMakeFiles/profile_vsu_dmr_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/rebuild_cache.dir

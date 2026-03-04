@@ -1,1 +1,1 @@
-/usr/bin/c++ -O3 -DNDEBUG -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/debug_test.dir/debug.cpp.o -o debug_test  ../src/jit_solver/libjit_solver.a ../_deps/spdlog-build/libspdlog.a
+/usr/bin/c++ -O3 -DNDEBUG -O3 -ffast-math -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/debug_test.dir/debug.cpp.o -o debug_test  ../src/jit_solver/libjit_solver.a ../_deps/spdlog-build/libspdlog.a

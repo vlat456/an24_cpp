@@ -6,7 +6,7 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -I/Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest
 
-CXX_FLAGSarm64 = -O3 -DNDEBUG -std=c++20 -arch arm64  -DGTEST_HAS_PTHREAD=1  
+CXX_FLAGSarm64 = -O3 -DNDEBUG -O3 -ffast-math -std=c++20 -arch arm64  -DGTEST_HAS_PTHREAD=1  
 
-CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -arch arm64  -DGTEST_HAS_PTHREAD=1  
+CXX_FLAGS = -O3 -DNDEBUG -O3 -ffast-math -std=c++20 -arch arm64  -DGTEST_HAS_PTHREAD=1  
 

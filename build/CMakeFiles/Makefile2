@@ -242,6 +242,7 @@ examples/all: examples/CMakeFiles/vsu_aot_test.dir/all
 examples/all: examples/CMakeFiles/bench_vsu_aot.dir/all
 examples/all: examples/CMakeFiles/bench_vsu_dmr_aot.dir/all
 examples/all: examples/CMakeFiles/test_vsu_dmr_aot.dir/all
+examples/all: examples/CMakeFiles/profile_vsu_dmr_aot.dir/all
 .PHONY : examples/all
 
 # Recursive "codegen" directory target.
@@ -258,6 +259,7 @@ examples/codegen: examples/CMakeFiles/vsu_aot_test.dir/codegen
 examples/codegen: examples/CMakeFiles/bench_vsu_aot.dir/codegen
 examples/codegen: examples/CMakeFiles/bench_vsu_dmr_aot.dir/codegen
 examples/codegen: examples/CMakeFiles/test_vsu_dmr_aot.dir/codegen
+examples/codegen: examples/CMakeFiles/profile_vsu_dmr_aot.dir/codegen
 .PHONY : examples/codegen
 
 # Recursive "preinstall" directory target.
@@ -278,6 +280,7 @@ examples/clean: examples/CMakeFiles/vsu_aot_test.dir/clean
 examples/clean: examples/CMakeFiles/bench_vsu_aot.dir/clean
 examples/clean: examples/CMakeFiles/bench_vsu_dmr_aot.dir/clean
 examples/clean: examples/CMakeFiles/test_vsu_dmr_aot.dir/clean
+examples/clean: examples/CMakeFiles/profile_vsu_dmr_aot.dir/clean
 .PHONY : examples/clean
 
 #=============================================================================
@@ -370,7 +373,7 @@ tests/clean: tests/CMakeFiles/json_parser_tests.dir/clean
 _deps/spdlog-build/CMakeFiles/spdlog.dir/all:
 	$(MAKE) $(MAKESILENT) -f _deps/spdlog-build/CMakeFiles/spdlog.dir/build.make _deps/spdlog-build/CMakeFiles/spdlog.dir/depend
 	$(MAKE) $(MAKESILENT) -f _deps/spdlog-build/CMakeFiles/spdlog.dir/build.make _deps/spdlog-build/CMakeFiles/spdlog.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44,45,46,47,48,49,50,51 "Built target spdlog"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=47,48,49,50,51,52,53,54 "Built target spdlog"
 .PHONY : _deps/spdlog-build/CMakeFiles/spdlog.dir/all
 
 # Build rule for subdir invocation for target.
@@ -387,7 +390,7 @@ spdlog: _deps/spdlog-build/CMakeFiles/spdlog.dir/rule
 # codegen rule for target.
 _deps/spdlog-build/CMakeFiles/spdlog.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f _deps/spdlog-build/CMakeFiles/spdlog.dir/build.make _deps/spdlog-build/CMakeFiles/spdlog.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44,45,46,47,48,49,50,51 "Finished codegen for target spdlog"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=47,48,49,50,51,52,53,54 "Finished codegen for target spdlog"
 .PHONY : _deps/spdlog-build/CMakeFiles/spdlog.dir/codegen
 
 # clean rule for target.
@@ -830,7 +833,7 @@ examples/CMakeFiles/test_generated.dir/all: _deps/spdlog-build/CMakeFiles/spdlog
 examples/CMakeFiles/test_generated.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_generated.dir/build.make examples/CMakeFiles/test_generated.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_generated.dir/build.make examples/CMakeFiles/test_generated.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=52,53,54 "Built target test_generated"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=55,56,57 "Built target test_generated"
 .PHONY : examples/CMakeFiles/test_generated.dir/all
 
 # Build rule for subdir invocation for target.
@@ -847,7 +850,7 @@ test_generated: examples/CMakeFiles/test_generated.dir/rule
 # codegen rule for target.
 examples/CMakeFiles/test_generated.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_generated.dir/build.make examples/CMakeFiles/test_generated.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=52,53,54 "Finished codegen for target test_generated"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=55,56,57 "Finished codegen for target test_generated"
 .PHONY : examples/CMakeFiles/test_generated.dir/codegen
 
 # clean rule for target.
@@ -896,7 +899,7 @@ examples/CMakeFiles/vsu_aot_test.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.d
 examples/CMakeFiles/vsu_aot_test.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=58,59,60 "Built target vsu_aot_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=61,62,63 "Built target vsu_aot_test"
 .PHONY : examples/CMakeFiles/vsu_aot_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -913,7 +916,7 @@ vsu_aot_test: examples/CMakeFiles/vsu_aot_test.dir/rule
 # codegen rule for target.
 examples/CMakeFiles/vsu_aot_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=58,59,60 "Finished codegen for target vsu_aot_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=61,62,63 "Finished codegen for target vsu_aot_test"
 .PHONY : examples/CMakeFiles/vsu_aot_test.dir/codegen
 
 # clean rule for target.
@@ -995,7 +998,7 @@ examples/CMakeFiles/test_vsu_dmr_aot.dir/all: _deps/spdlog-build/CMakeFiles/spdl
 examples/CMakeFiles/test_vsu_dmr_aot.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/depend
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=55,56,57 "Built target test_vsu_dmr_aot"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=58,59,60 "Built target test_vsu_dmr_aot"
 .PHONY : examples/CMakeFiles/test_vsu_dmr_aot.dir/all
 
 # Build rule for subdir invocation for target.
@@ -1012,13 +1015,46 @@ test_vsu_dmr_aot: examples/CMakeFiles/test_vsu_dmr_aot.dir/rule
 # codegen rule for target.
 examples/CMakeFiles/test_vsu_dmr_aot.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=55,56,57 "Finished codegen for target test_vsu_dmr_aot"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=58,59,60 "Finished codegen for target test_vsu_dmr_aot"
 .PHONY : examples/CMakeFiles/test_vsu_dmr_aot.dir/codegen
 
 # clean rule for target.
 examples/CMakeFiles/test_vsu_dmr_aot.dir/clean:
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/clean
 .PHONY : examples/CMakeFiles/test_vsu_dmr_aot.dir/clean
+
+#=============================================================================
+# Target rules for target examples/CMakeFiles/profile_vsu_dmr_aot.dir
+
+# All Build rule for target.
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/depend
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44,45,46 "Built target profile_vsu_dmr_aot"
+.PHONY : examples/CMakeFiles/profile_vsu_dmr_aot.dir/all
+
+# Build rule for subdir invocation for target.
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 17
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/profile_vsu_dmr_aot.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
+.PHONY : examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule
+
+# Convenience name for target.
+profile_vsu_dmr_aot: examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule
+.PHONY : profile_vsu_dmr_aot
+
+# codegen rule for target.
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=44,45,46 "Finished codegen for target profile_vsu_dmr_aot"
+.PHONY : examples/CMakeFiles/profile_vsu_dmr_aot.dir/codegen
+
+# clean rule for target.
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/clean:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/clean
+.PHONY : examples/CMakeFiles/profile_vsu_dmr_aot.dir/clean
 
 #=============================================================================
 # Target rules for target tests/CMakeFiles/jit_solver_tests.dir

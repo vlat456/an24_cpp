@@ -143,6 +143,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "examples/CMakeFiles/bench_vsu_aot.dir/DependInfo.cmake"
   "examples/CMakeFiles/bench_vsu_dmr_aot.dir/DependInfo.cmake"
   "examples/CMakeFiles/test_vsu_dmr_aot.dir/DependInfo.cmake"
+  "examples/CMakeFiles/profile_vsu_dmr_aot.dir/DependInfo.cmake"
   "tests/CMakeFiles/jit_solver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/json_parser_tests.dir/DependInfo.cmake"
   )

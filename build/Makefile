@@ -432,6 +432,19 @@ test_vsu_dmr_aot/fast:
 .PHONY : test_vsu_dmr_aot/fast
 
 #=============================================================================
+# Target rules for targets named profile_vsu_dmr_aot
+
+# Build rule for target.
+profile_vsu_dmr_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 profile_vsu_dmr_aot
+.PHONY : profile_vsu_dmr_aot
+
+# fast build rule for target.
+profile_vsu_dmr_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/build
+.PHONY : profile_vsu_dmr_aot/fast
+
+#=============================================================================
 # Target rules for targets named jit_solver_tests
 
 # Build rule for target.
@@ -488,6 +501,7 @@ help:
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... json_test"
+	@echo "... profile_vsu_dmr_aot"
 	@echo "... spdlog"
 	@echo "... test_generated"
 	@echo "... test_vsu_dmr_aot"

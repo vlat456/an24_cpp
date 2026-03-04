@@ -353,6 +353,20 @@ test_vsu_dmr_aot/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/build
 .PHONY : test_vsu_dmr_aot/fast
 
+# Convenience name for target.
+examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule
+.PHONY : examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule
+
+# Convenience name for target.
+profile_vsu_dmr_aot: examples/CMakeFiles/profile_vsu_dmr_aot.dir/rule
+.PHONY : profile_vsu_dmr_aot
+
+# fast build rule for target.
+profile_vsu_dmr_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/build
+.PHONY : profile_vsu_dmr_aot/fast
+
 __/generated/aot_test.o: __/generated/aot_test.cpp.o
 .PHONY : __/generated/aot_test.o
 
@@ -459,6 +473,7 @@ __/generated/generated_vsu_dmr_test.o: __/generated/generated_vsu_dmr_test.cpp.o
 __/generated/generated_vsu_dmr_test.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.o
 .PHONY : __/generated/generated_vsu_dmr_test.cpp.o
 
 __/generated/generated_vsu_dmr_test.i: __/generated/generated_vsu_dmr_test.cpp.i
@@ -468,6 +483,7 @@ __/generated/generated_vsu_dmr_test.i: __/generated/generated_vsu_dmr_test.cpp.i
 __/generated/generated_vsu_dmr_test.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.i
 .PHONY : __/generated/generated_vsu_dmr_test.cpp.i
 
 __/generated/generated_vsu_dmr_test.s: __/generated/generated_vsu_dmr_test.cpp.s
@@ -477,6 +493,7 @@ __/generated/generated_vsu_dmr_test.s: __/generated/generated_vsu_dmr_test.cpp.s
 __/generated/generated_vsu_dmr_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_dmr_aot.dir/build.make examples/CMakeFiles/bench_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_vsu_dmr_aot.dir/build.make examples/CMakeFiles/test_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/generated_vsu_dmr_test.cpp.s
 .PHONY : __/generated/generated_vsu_dmr_test.cpp.s
 
 __/generated/generated_vsu_test.o: __/generated/generated_vsu_test.cpp.o
@@ -505,6 +522,30 @@ __/generated/generated_vsu_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/vsu_aot_test.dir/build.make examples/CMakeFiles/vsu_aot_test.dir/__/generated/generated_vsu_test.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.s
 .PHONY : __/generated/generated_vsu_test.cpp.s
+
+__/generated/profile_vsu_dmr_aot.o: __/generated/profile_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/profile_vsu_dmr_aot.o
+
+# target to build an object file
+__/generated/profile_vsu_dmr_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/profile_vsu_dmr_aot.cpp.o
+.PHONY : __/generated/profile_vsu_dmr_aot.cpp.o
+
+__/generated/profile_vsu_dmr_aot.i: __/generated/profile_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/profile_vsu_dmr_aot.i
+
+# target to preprocess a source file
+__/generated/profile_vsu_dmr_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/profile_vsu_dmr_aot.cpp.i
+.PHONY : __/generated/profile_vsu_dmr_aot.cpp.i
+
+__/generated/profile_vsu_dmr_aot.s: __/generated/profile_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/profile_vsu_dmr_aot.s
+
+# target to generate assembly for a file
+__/generated/profile_vsu_dmr_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/__/generated/profile_vsu_dmr_aot.cpp.s
+.PHONY : __/generated/profile_vsu_dmr_aot.cpp.s
 
 __/generated/test_generated.o: __/generated/test_generated.cpp.o
 .PHONY : __/generated/test_generated.o
@@ -769,6 +810,7 @@ help:
 	@echo "... debug_test"
 	@echo "... hello_world"
 	@echo "... json_test"
+	@echo "... profile_vsu_dmr_aot"
 	@echo "... test_generated"
 	@echo "... test_vsu_dmr_aot"
 	@echo "... vsu_aot_test"
@@ -790,6 +832,9 @@ help:
 	@echo "... __/generated/generated_vsu_test.o"
 	@echo "... __/generated/generated_vsu_test.i"
 	@echo "... __/generated/generated_vsu_test.s"
+	@echo "... __/generated/profile_vsu_dmr_aot.o"
+	@echo "... __/generated/profile_vsu_dmr_aot.i"
+	@echo "... __/generated/profile_vsu_dmr_aot.s"
 	@echo "... __/generated/test_generated.o"
 	@echo "... __/generated/test_generated.i"
 	@echo "... __/generated/test_generated.s"
