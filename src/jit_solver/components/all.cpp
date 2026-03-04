@@ -253,6 +253,7 @@ void Inverter::solve_electrical(SimulationState& state) {
 
 void LerpNode::solve_electrical(SimulationState& state) {
     // First-order lag: output follows input with factor
+    // This is the electrical connection (for voltage signals)
     float v_input = state.across[input_idx];
     float v_output = state.across[output_idx];
 
@@ -263,6 +264,19 @@ void LerpNode::solve_electrical(SimulationState& state) {
     // Current based on difference
     float i = (v_input - v_output) * factor * g;
     state.through[output_idx] += i;
+}
+
+void LerpNode::post_step(SimulationState& state, float dt) {
+    // First-order filter: output = output + factor * (input - output)
+    // This provides thermal inertia / sensor lag
+    // factor = 0.1 means 10% of the difference is applied each step
+    // At 60Hz, this gives ~6x per second, so settling time is about 1/factor seconds
+    float v_input = state.across[input_idx];
+    float v_output = state.across[output_idx];
+
+    // Apply filter
+    float new_output = v_output + factor * (v_input - v_output);
+    state.across[output_idx] = new_output;
 }
 
 void IndicatorLight::solve_electrical(SimulationState& state) {

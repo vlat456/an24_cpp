@@ -197,13 +197,14 @@ class LerpNode : public Component {
 public:
     uint32_t input_idx = 0;
     uint32_t output_idx = 0;
-    float factor = 1.0f;
+    float factor = 1.0f;  // filter coefficient (0.1 = slow, 1.0 = instant)
 
     LerpNode(uint32_t input, uint32_t output, float f)
         : input_idx(input), output_idx(output), factor(f) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "LerpNode"; }
     void solve_electrical(SimulationState& state) override;
+    void post_step(SimulationState& state, float dt) override;
 };
 
 /// IndicatorLight - aircraft indicator light (two power terminals + brightness output)
