@@ -2,6 +2,8 @@
 
 #include "data/pt.h"
 #include <optional>
+#include <vector>
+#include <algorithm>
 
 /// Состояние перетаскивания
 enum class Dragging {
@@ -14,10 +16,10 @@ enum class Dragging {
 ///
 /// Хранит selection, drag state, panning state.
 struct Interaction {
-    /// Выделенный узел
-    std::optional<size_t> selected_node;
+    /// Выделенные узлы (для множественного выделения)
+    std::vector<size_t> selected_nodes;
 
-    /// Выделенный провод
+    /// Выделенный провод (пока один)
     std::optional<size_t> selected_wire;
 
     /// Текущее перетаскивание
@@ -25,6 +27,11 @@ struct Interaction {
 
     /// Режим панорамирования
     bool panning = false;
+
+    /// Marquee selection (Alt/ Cmd drag)
+    bool marquee_selecting = false;
+    Pt marquee_start;
+    Pt marquee_end;
 
     /// Якорь перетаскивания (накопление дробных смещений)
     Pt drag_anchor;
@@ -39,8 +46,26 @@ struct Interaction {
 
     /// Очистить выделение
     void clear_selection() {
-        selected_node.reset();
+        selected_nodes.clear();
         selected_wire.reset();
+    }
+
+    /// Добавить узел к выделению
+    void add_node_selection(size_t idx) {
+        if (std::find(selected_nodes.begin(), selected_nodes.end(), idx) == selected_nodes.end()) {
+            selected_nodes.push_back(idx);
+        }
+    }
+
+    /// Проверить, выделен ли узел
+    bool is_node_selected(size_t idx) const {
+        return std::find(selected_nodes.begin(), selected_nodes.end(), idx) != selected_nodes.end();
+    }
+
+    /// Получить первый выделенный узел
+    std::optional<size_t> first_selected_node() const {
+        if (selected_nodes.empty()) return std::nullopt;
+        return selected_nodes[0];
     }
 
     /// Начать перетаскивание узла
@@ -63,6 +88,11 @@ struct Interaction {
 
     /// Закончить перетаскивание
     void end_drag() {
+        dragging = Dragging::None;
+    }
+
+    /// Сбросить drag (без изменения panning)
+    void clear_drag() {
         dragging = Dragging::None;
     }
 

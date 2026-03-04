@@ -21,6 +21,9 @@
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
 #include "debug.h"
+
+// DEBUG: включить для отладки событий мыши
+#define DEBUG_MOUSE_EVENTS
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -36,6 +39,7 @@
 #endif
 
 #include <cstdio>
+#include <algorithm>
 
 // Обертка IDrawList для imgui
 class ImGuiDrawList : public IDrawList {
@@ -190,41 +194,23 @@ int main(int argc, char** argv) {
                 running = false;
             }
 
-            // Обработка событий мыши для редактора (когда не в ImGui)
-            if (!io.WantCaptureMouse) {
-                if (event.type == SDL_MOUSEBUTTONDOWN) {
-                    Pt mouse(event.button.x, event.button.y);
-                    Pt canvas_min(0, 0); // TODO: получить реальный canvas
-                    MouseButton btn = (event.button.button == SDL_BUTTON_LEFT) ? MouseButton::Left :
-                                     (event.button.button == SDL_BUTTON_MIDDLE) ? MouseButton::Middle : MouseButton::Right;
-                    Pt world = app.viewport.screen_to_world(mouse, canvas_min);
-                    app.on_mouse_down(world, btn, canvas_min);
-                }
-                if (event.type == SDL_MOUSEBUTTONUP) {
-                    MouseButton btn = (event.button.button == SDL_BUTTON_LEFT) ? MouseButton::Left :
-                                     (event.button.button == SDL_BUTTON_MIDDLE) ? MouseButton::Middle : MouseButton::Right;
-                    app.on_mouse_up(btn);
-                }
-                if (event.type == SDL_MOUSEWHEEL) {
-                    Pt mouse(event.wheel.x, event.wheel.y);
-                    app.on_scroll((float)event.wheel.y * 0.1f, mouse, Pt(0, 0));
-                }
-            }
-
-            // Обработка клавиатуры
-            if (!io.WantCaptureKeyboard && event.type == SDL_KEYDOWN) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    app.on_key_down(Key::Escape);
-                } else if (event.key.keysym.sym == SDLK_DELETE) {
-                    app.on_key_down(Key::Delete);
-                }
-            }
+            // Клавиатура через ImGui - после ImGui::NewFrame()
         }
 
         // ImGui новый кадр
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
+
+        // Обработка клавиатуры через ImGui
+        if (!io.WantCaptureKeyboard) {
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                app.on_key_down(Key::Escape);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+                app.on_key_down(Key::Delete);
+            }
+        }
 
         // Меню
         if (ImGui::BeginMainMenuBar()) {
@@ -303,7 +289,92 @@ int main(int argc, char** argv) {
         render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
 
         // Blueprint
-        render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
+        render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt, &app.interaction.selected_nodes);
+
+        // Marquee selection rectangle
+        if (app.interaction.marquee_selecting) {
+            Pt start_screen = app.viewport.world_to_screen(app.interaction.marquee_start, canvas_min_pt);
+            Pt end_screen = app.viewport.world_to_screen(app.interaction.marquee_end, canvas_min_pt);
+            Pt min(std::min(start_screen.x, end_screen.x), std::min(start_screen.y, end_screen.y));
+            Pt max(std::max(start_screen.x, end_screen.x), std::max(start_screen.y, end_screen.y));
+            // Transparent fill + border
+            imgui_dl.add_rect_filled(min, max, 0x4000FF00); // semi-transparent green
+            imgui_dl.add_rect(min, max, 0xFF00FF00, 1.0f); // green border
+        }
+
+        // Обработка мыши через ImGui (когда канва под мышью)
+        if (ImGui::IsWindowHovered()) {
+            // Zoom через колесико
+            if (io.MouseWheel != 0.0f) {
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse_screen(mouse_pos.x - canvas_min_pt.x, mouse_pos.y - canvas_min_pt.y);
+                app.on_scroll(io.MouseWheel * 10.0f, mouse_screen, canvas_min_pt);
+            }
+
+            // Mouse down
+            bool alt_down = io.KeyAlt || io.KeySuper; // Alt или Cmd
+
+            if (ImGui::IsMouseClicked(0)) { // Left
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse(mouse_pos.x, mouse_pos.y);
+                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+
+                if (alt_down) {
+                    // Marquee selection
+                    app.interaction.marquee_selecting = true;
+                    app.interaction.marquee_start = world;
+                    app.interaction.marquee_end = world;
+                } else {
+                    app.on_mouse_down(world, MouseButton::Left, canvas_min_pt);
+                }
+            }
+            if (ImGui::IsMouseClicked(1)) { // Right
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse(mouse_pos.x, mouse_pos.y);
+                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                app.on_mouse_down(world, MouseButton::Right, canvas_min_pt);
+            }
+            if (ImGui::IsMouseClicked(2)) { // Middle
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse(mouse_pos.x, mouse_pos.y);
+                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                app.on_mouse_down(world, MouseButton::Middle, canvas_min_pt);
+            }
+
+            // Mouse drag / panning
+            if (ImGui::IsMouseDragging(2)) { // Middle button = panning
+                ImVec2 delta = ImGui::GetMouseDragDelta(2);
+                Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
+                app.on_mouse_drag(world_delta, canvas_min_pt);
+                ImGui::ResetMouseDragDelta(2);
+            }
+            if (ImGui::IsMouseDragging(0)) { // Left button = node drag or marquee
+                ImVec2 delta = ImGui::GetMouseDragDelta(0);
+                Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
+
+                if (app.interaction.marquee_selecting) {
+                    // Marquee selection drag
+                    ImVec2 mouse_pos = ImGui::GetMousePos();
+                    Pt mouse(mouse_pos.x, mouse_pos.y);
+                    Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                    app.interaction.marquee_end = world;
+                } else {
+                    app.on_mouse_drag(world_delta, canvas_min_pt);
+                }
+                ImGui::ResetMouseDragDelta(0);
+            }
+
+            // Mouse up
+            if (ImGui::IsMouseReleased(0)) {
+                app.on_mouse_up(MouseButton::Left);
+            }
+            if (ImGui::IsMouseReleased(1)) {
+                app.on_mouse_up(MouseButton::Right);
+            }
+            if (ImGui::IsMouseReleased(2)) {
+                app.on_mouse_up(MouseButton::Middle);
+            }
+        }
 
         ImGui::End();
         ImGui::PopStyleVar();

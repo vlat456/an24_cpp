@@ -85,7 +85,8 @@ Pt get_port_position(const Node& node, const char* port_name) {
 
 } // namespace
 
-void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max) {
+void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
+                      const std::vector<size_t>* selected_nodes) {
     // Рендерим провода (сначала, чтобы были под узлами)
     for (const auto& w : bp.wires) {
         // Находим узлы
@@ -127,6 +128,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
     }
 
     // Рендерим узлы
+    size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
         Pt screen_min = vp.world_to_screen(n.pos, canvas_min);
         Pt screen_max = vp.world_to_screen(Pt(n.pos.x + n.size.x, n.pos.y + n.size.y), canvas_min);
@@ -136,7 +138,22 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
 
         // Rect узла - фон
         dl->add_rect_filled(screen_min, screen_max, colors.fill);
-        dl->add_rect(screen_min, screen_max, colors.border, 1.0f);
+
+        // Если узел выделен - рисуем зеленую рамку
+        bool is_selected = false;
+        if (selected_nodes) {
+            for (size_t idx : *selected_nodes) {
+                if (idx == node_idx) {
+                    is_selected = true;
+                    break;
+                }
+            }
+        }
+        if (is_selected) {
+            dl->add_rect(screen_min, screen_max, COLOR_SELECTED, 2.0f);
+        } else {
+            dl->add_rect(screen_min, screen_max, colors.border, 1.0f);
+        }
 
         // Header - более темная полоска сверху
         float header_height = 20.0f * vp.zoom;
@@ -183,6 +200,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             Pt label_pos(screen_max.x + 5, port_pos.y - 5);
             dl->add_text(label_pos, n.outputs[i].name.c_str(), COLOR_TEXT_DIM, 9.0f);
         }
+
+        node_idx++;
     }
 }
 
