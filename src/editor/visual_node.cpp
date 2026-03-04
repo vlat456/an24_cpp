@@ -23,6 +23,14 @@ inline Pt snap_to_grid(Pt pos) {
     );
 }
 
+// Snap size to grid (ensure edges align with grid)
+inline Pt snap_size_to_grid(Pt size) {
+    return Pt(
+        std::round(size.x / GRID_STEP) * GRID_STEP,
+        std::round(size.y / GRID_STEP) * GRID_STEP
+    );
+}
+
 // Colors (matching render.cpp)
 constexpr uint32_t COLOR_TEXT = 0xFFFFFFFF;
 constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
@@ -39,8 +47,8 @@ constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;
 // ============================================================================
 
 BaseVisualNode::BaseVisualNode(const Node& node)
-    : position_(node.pos)
-    , size_(node.size)
+    : position_(snap_to_grid(node.pos))
+    , size_(snap_size_to_grid(node.size))
     , node_id_(node.id)
     , ports_()
 {}
@@ -84,11 +92,12 @@ Pt StandardVisualNode::calculatePortPosition(size_t index, PortSide side) const 
     float step = GRID_STEP;
     float y = position_.y + HEADER_HEIGHT + step * (index + 1);
 
+    // Ports are ON the edge (not outside)
     float x;
     if (side == PortSide::Input) {
-        x = position_.x - PORT_RADIUS; // Left side - offset outward
+        x = position_.x; // Left edge
     } else {
-        x = position_.x + size_.x + PORT_RADIUS; // Right side - offset outward
+        x = position_.x + size_.x; // Right edge
     }
 
     return snap_to_grid(Pt(x, y));
@@ -250,18 +259,16 @@ Pt BusVisualNode::calculateBusSize(size_t port_count) const {
     // If height >= width, ports go on right (vertical bus)
     // For now use orientation
 
+    Pt size;
     if (orientation_ == BusOrientation::Horizontal) {
         // Horizontal: width scales with port count, height is fixed
         // Width = (port_count + 2) * GRID_STEP for ports + margins
-        float width = (port_count + 2) * GRID_STEP;
-        float height = GRID_STEP * 2;
-        return snap_to_grid(Pt(width, height));
+        size = Pt((port_count + 2) * GRID_STEP, GRID_STEP * 2);
     } else {
         // Vertical: width is fixed, height scales with port count
-        float width = GRID_STEP * 2;
-        float height = (port_count + 2) * GRID_STEP;
-        return snap_to_grid(Pt(width, height));
+        size = Pt(GRID_STEP * 2, (port_count + 2) * GRID_STEP);
     }
+    return snap_size_to_grid(size);
 }
 
 Pt BusVisualNode::calculatePortPosition(size_t index) const {
@@ -279,14 +286,13 @@ Pt BusVisualNode::calculatePortPosition(size_t index) const {
     float step = GRID_STEP;
 
     if (ports_on_bottom) {
-        // Ports on bottom side - distribute along bottom edge
-        // Start from left edge of bus
+        // Ports on bottom edge (ON the edge, not outside)
         float x = position_.x + step * (index + 1);
-        float y = position_.y + size_.y + PORT_RADIUS;
+        float y = position_.y + size_.y; // On bottom edge
         return snap_to_grid(Pt(x, y));
     } else {
-        // Ports on right side - distribute along right edge
-        float x = position_.x + size_.x + PORT_RADIUS;
+        // Ports on right edge (ON the edge, not outside)
+        float x = position_.x + size_.x; // On right edge
         float y = position_.y + step * (index + 1);
         return snap_to_grid(Pt(x, y));
     }
@@ -462,8 +468,8 @@ std::vector<std::string> RefVisualNode::getPortNames() const {
 
 Pt RefVisualNode::getPortPosition(const std::string& port_name, const char* wire_id) const {
     (void)wire_id; // Not used for RefVisualNode
-    // Ref nodes always have a single "ref" port on top - snapped to grid
-    return snap_to_grid(Pt(position_.x + size_.x / 2, position_.y - PORT_RADIUS));
+    // Ref nodes always have a single "ref" port on TOP edge - snapped to grid
+    return snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
 }
 
 void RefVisualNode::connectWire(const Wire& wire) {

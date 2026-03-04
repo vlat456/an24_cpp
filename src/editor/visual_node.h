@@ -26,7 +26,7 @@ public:
     void setPosition(Pt pos) { position_ = pos; }
 
     Pt getSize() const { return size_; }
-    void setSize(Pt size) { size_ = size; }
+    void setSize(Pt size) { size_ = size; }  // Size should already be snapped
 
     const std::string& getId() const { return node_id_; }
 

@@ -65,7 +65,7 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
         }
         // Последний сегмент
         float dist = editor_math::distance_to_segment(world_pos, prev, end_pos);
-        if (dist < 20.0f) { // wire hit tolerance (world units)
+        if (dist < 5.0f) { // wire hit tolerance (world units)
             result.type = HitType::Wire;
             result.wire_index = i;
             return result;
