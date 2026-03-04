@@ -77,12 +77,101 @@ std::string blueprint_to_json(const Blueprint& bp) {
     return j.dump(2);
 }
 
+// Конвертировать device в Node
+static Node device_to_node(const json& d, int index) {
+    Node n;
+    n.id = d.value("name", "");
+    n.name = d.value("name", "");
+    n.type_name = d.value("internal", "");
+
+    // Размер по умолчанию
+    n.size = Pt(120, 80);
+
+    // Позиция - сетка
+    int col = index % 4;
+    int row = index / 4;
+    n.pos = Pt(50 + col * 200, 50 + row * 150);
+
+    // Ports из ports
+    if (d.contains("ports") && d["ports"].is_object()) {
+        for (auto& [port_name, port_info] : d["ports"].items()) {
+            Port p;
+            p.name = port_name;
+            std::string dir = port_info.value("direction", "In");
+            if (dir == "Out" || dir == "InOut") {
+                p.side = PortSide::Output;
+                n.outputs.push_back(p);
+            }
+            if (dir == "In" || dir == "InOut") {
+                p.side = PortSide::Input;
+                n.inputs.push_back(p);
+            }
+        }
+    }
+
+    return n;
+}
+
+// Разобрать "device.port" на component и port
+static bool parse_port_ref(const std::string& ref, std::string& device, std::string& port) {
+    size_t dot = ref.find('.');
+    if (dot == std::string::npos) return false;
+    device = ref.substr(0, dot);
+    port = ref.substr(dot + 1);
+    return true;
+}
+
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
     try {
         json j = json::parse(json_str);
         Blueprint bp;
 
-        // nodes
+        // Проверяем формат: если есть "devices" - это формат симулятора
+        if (j.contains("devices") && j["devices"].is_array()) {
+            // Формат симулятора: devices + connections
+            std::map<std::string, size_t> device_indices;
+
+            // Конвертируем devices в nodes
+            int idx = 0;
+            for (const auto& dev : j["devices"]) {
+                Node n = device_to_node(dev, idx);
+                device_indices[n.id] = bp.nodes.size();
+                bp.nodes.push_back(n);
+                idx++;
+            }
+
+            // Конвертируем connections в wires
+            if (j.contains("connections") && j["connections"].is_array()) {
+                for (const auto& conn : j["connections"]) {
+                    std::string from = conn.value("from", "");
+                    std::string to = conn.value("to", "");
+
+                    std::string from_device, from_port;
+                    std::string to_device, to_port;
+
+                    if (parse_port_ref(from, from_device, from_port) &&
+                        parse_port_ref(to, to_device, to_port)) {
+
+                        auto it_from = device_indices.find(from_device);
+                        auto it_to = device_indices.find(to_device);
+
+                        if (it_from != device_indices.end() && it_to != device_indices.end()) {
+                            Wire w;
+                            w.id = from + "→" + to;
+                            w.start.node_id = from_device;
+                            w.start.port_name = from_port;
+                            w.end.node_id = to_device;
+                            w.end.port_name = to_port;
+                            bp.wires.push_back(w);
+                        }
+                    }
+                }
+            }
+
+            return bp;
+        }
+
+        // Иначе - нативный формат Blueprint (nodes + wires)
         if (j.contains("nodes") && j["nodes"].is_array()) {
             for (const auto& nj : j["nodes"]) {
                 Node n;
