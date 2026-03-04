@@ -84,6 +84,17 @@ static Node device_to_node(const json& d, int index) {
     n.name = d.value("name", "");
     n.type_name = d.value("internal", "");
 
+    // Определяем вид узла по типу
+    if (n.type_name == "Bus") {
+        n.kind = NodeKind::Bus;
+        n.size = Pt(40, 40); // маленький квадрат
+    } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
+        n.kind = NodeKind::Ref;
+        n.size = Pt(40, 40);
+    } else {
+        n.kind = NodeKind::Node;
+    }
+
     // Размер по умолчанию
     n.size = Pt(120, 80);
 

@@ -5,6 +5,13 @@
 #include <string>
 #include <vector>
 
+/// Вид узла (для рендеринга)
+enum class NodeKind {
+    Node,       ///< Обычный компонент (батарея, насос, etc.)
+    Bus,        ///< Шина/мультиплексор - маленький квадрат
+    Ref         ///< Reference node (ground, voltage source)
+};
+
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
     None,
@@ -29,7 +36,8 @@ struct NodeContent {
 struct Node {
     std::string id;          ///< Уникальный ID
     std::string name;        ///< Отображаемое имя
-    std::string type_name;   ///< Тип (Battery, Pump, Relay, etc.)
+    std::string type_name;   ///< Тип (Battery, Pump, Bus, etc.)
+    NodeKind kind = NodeKind::Node;  ///< Вид узла для рендеринга
 
     Pt pos;                  ///< Позиция (верхний левый угол)
     Pt size;                 ///< Размеры (ширина × высота)
@@ -43,6 +51,7 @@ struct Node {
         : id()
         , name()
         , type_name()
+        , kind(NodeKind::Node)
         , pos(Pt::zero())
         , size(120.0f, 80.0f)
         , inputs()

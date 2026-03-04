@@ -11,6 +11,17 @@ namespace editor_math {
 inline Pt get_port_position(const Node& node, const char* port_name) {
     static constexpr float HEADER_HEIGHT = 20.0f;
 
+    // Bus - все порты в центре
+    if (node.kind == NodeKind::Bus) {
+        return Pt(node.pos.x + node.size.x / 2, node.pos.y + node.size.y / 2);
+    }
+
+    // Ref - порт сверху
+    if (node.kind == NodeKind::Ref) {
+        return Pt(node.pos.x + node.size.x / 2, node.pos.y);
+    }
+
+    // Обычный Node - порты по сторонам
     int num_inputs = (int)node.inputs.size();
     int num_outputs = (int)node.outputs.size();
     int max_ports = std::max(num_inputs, num_outputs);
