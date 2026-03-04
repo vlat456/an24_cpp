@@ -44,6 +44,17 @@ if(BUILD_TESTS)
     enable_testing()
 endif()
 
+# SDL2
+find_package(SDL2 REQUIRED)
+
+# imgui
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.90
+)
+FetchContent_MakeAvailable(imgui)
+
 # Source directories
 add_subdirectory(src)
 add_subdirectory(examples)
