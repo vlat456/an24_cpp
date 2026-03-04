@@ -91,6 +91,12 @@ public:
         dl->AddText(font, font_size, ImVec2(pos.x, pos.y), c, text);
     }
 
+    Pt calc_text_size(const char* text, float font_size) const override {
+        ImFont* font = ImGui::GetFont();
+        ImVec2 size = font->CalcTextSizeA(font_size, FLT_MAX, FLT_MAX, text);
+        return Pt(size.x, size.y);
+    }
+
     void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) override {
         if (count < 2) return;
         ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,

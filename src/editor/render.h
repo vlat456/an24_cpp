@@ -4,6 +4,7 @@
 #include "viewport/viewport.h"
 #include "data/pt.h"
 #include <cstdint>
+#include <cstring>
 #include <vector>
 #include <optional>
 
@@ -19,6 +20,7 @@ struct IDrawList {
     virtual void add_circle_filled(Pt center, float radius, uint32_t color, int segments = 12) = 0;
     virtual void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) = 0;
     virtual void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) = 0;
+    virtual Pt calc_text_size(const char* text, float font_size) const = 0;
 };
 
 /// Рендерит Blueprint (узлы и провода) в IDrawList
@@ -65,6 +67,10 @@ public:
     }
     void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) override {
         (void)pos; (void)text; (void)color; (void)font_size;
+    }
+    Pt calc_text_size(const char* text, float font_size) const override {
+        // Approximate: width = len * font_size * 0.6
+        return Pt(strlen(text) * font_size * 0.6f, font_size);
     }
     void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) override {
         (void)points; (void)count; (void)color; (void)thickness;

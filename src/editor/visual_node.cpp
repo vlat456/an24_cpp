@@ -183,34 +183,45 @@ void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min
     uint32_t border_color = is_selected ? COLOR_SELECTED : COLOR_BUS_BORDER;
     dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 
-    // Name
+    // Name in header
     Pt text_pos(screen_min.x + 5 * vp.zoom, screen_min.y + header_height / 2 - 6 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 12.0f * vp.zoom);
 
-    // Type name
-    Pt type_pos(screen_min.x + 5 * vp.zoom, screen_min.y + header_height + 5 * vp.zoom);
-    dl->add_text(type_pos, type_name_.c_str(), COLOR_TEXT_DIM, 10.0f * vp.zoom);
+    // Type name at bottom center (inside node body, not going outside)
+    float type_font_size = 10.0f * vp.zoom;
+    Pt type_size = dl->calc_text_size(type_name_.c_str(), type_font_size);
+    // Bottom of body = screen_max.y - margin
+    float body_bottom = screen_max.y - 5 * vp.zoom;
+    Pt type_pos(screen_min.x + (screen_max.x - screen_min.x) / 2 - type_size.x / 2,
+                body_bottom - type_font_size);
+    dl->add_text(type_pos, type_name_.c_str(), COLOR_TEXT_DIM, type_font_size);
 
-    // Input ports (left side)
+    // Input ports (left side) - port is ON the edge, label to the RIGHT of port
     for (size_t i = 0; i < inputs_.size(); i++) {
         Pt world_pos = calculatePortPosition(i, PortSide::Input);
         Pt screen_pos = vp.world_to_screen(world_pos, canvas_min);
         dl->add_circle_filled(screen_pos, PORT_RADIUS * vp.zoom, COLOR_PORT_INPUT, 8);
 
-        // Port label
-        Pt label_pos(screen_min.x - 30 * vp.zoom, screen_pos.y - 5 * vp.zoom);
+        // Port label - just right of the port circle, vertically centered
+        float r = PORT_RADIUS * vp.zoom;
+        Pt label_pos(screen_pos.x + r + 3 * vp.zoom, screen_pos.y - 5 * vp.zoom);
         dl->add_text(label_pos, inputs_[i].name.c_str(), COLOR_TEXT_DIM, 9.0f * vp.zoom);
     }
 
-    // Output ports (right side)
+    // Output ports (right side) - port is ON the edge, label to the LEFT of port
+    // Like Rust: Align2::RIGHT_CENTER means right edge of text at position
     for (size_t i = 0; i < outputs_.size(); i++) {
         Pt world_pos = calculatePortPosition(i, PortSide::Output);
         Pt screen_pos = vp.world_to_screen(world_pos, canvas_min);
         dl->add_circle_filled(screen_pos, PORT_RADIUS * vp.zoom, COLOR_PORT_OUTPUT, 8);
 
-        // Port label
-        Pt label_pos(screen_max.x + 5 * vp.zoom, screen_pos.y - 5 * vp.zoom);
-        dl->add_text(label_pos, outputs_[i].name.c_str(), COLOR_TEXT_DIM, 9.0f * vp.zoom);
+        // Port label - right edge at port left edge (like Rust Align2::RIGHT_CENTER)
+        float r = PORT_RADIUS * vp.zoom;
+        float font_size = 9.0f * vp.zoom;
+        // Use calc_text_size to get exact width
+        Pt text_size = dl->calc_text_size(outputs_[i].name.c_str(), font_size);
+        Pt label_pos(screen_pos.x - r - 3 * vp.zoom - text_size.x, screen_pos.y - 5 * vp.zoom);
+        dl->add_text(label_pos, outputs_[i].name.c_str(), COLOR_TEXT_DIM, font_size);
     }
 }
 
