@@ -1,8 +1,10 @@
 #include "render.h"
 #include "trigonometry.h"
+#include "router/crossings.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
+#include <cmath>
 
 namespace {
 
@@ -16,6 +18,12 @@ constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;  // зеленый
 constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;   // синеватый
 constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;  // красноватый
 constexpr uint32_t COLOR_ROUTING_POINT = 0xFFFF8000; // оранжевый
+constexpr uint32_t COLOR_JUMP_ARC = 0xFF404040;    // темный для jump arc
+
+// Radius of the semicircular arc drawn at wire crossings (world units)
+constexpr float ARC_RADIUS_WORLD = 5.0f;
+// Number of line segments used to approximate the semicircle
+constexpr int ARC_SEGMENTS = 8;
 
 // Node styles - по типу
 struct NodeColors {
@@ -59,6 +67,45 @@ NodeColors get_node_colors(const char* type_name) {
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire) {
+
+    // Build polylines for all wires first (for crossing detection)
+    std::vector<std::vector<Pt>> all_polylines;
+    all_polylines.reserve(bp.wires.size());
+
+    for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
+        const auto& w = bp.wires[wire_idx];
+
+        const Node* start_node = nullptr;
+        const Node* end_node = nullptr;
+        for (const auto& n : bp.nodes) {
+            if (n.id == w.start.node_id) start_node = &n;
+            if (n.id == w.end.node_id) end_node = &n;
+        }
+
+        if (!start_node || !end_node) {
+            all_polylines.push_back({});
+            continue;
+        }
+
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str());
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str());
+
+        std::vector<Pt> poly;
+        poly.push_back(start_pos);
+        poly.insert(poly.end(), w.routing_points.begin(), w.routing_points.end());
+        poly.push_back(end_pos);
+
+        all_polylines.push_back(std::move(poly));
+    }
+
+    // Find all crossings (only higher-index wire draws arc)
+    std::vector<std::vector<WireCrossing>> all_crossings;
+    all_crossings.resize(bp.wires.size());
+
+    for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
+        all_crossings[wire_idx] = find_wire_crossings(wire_idx, all_polylines);
+    }
+
     // Рендерим провода (сначала, чтобы были под узлами)
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
@@ -108,6 +155,27 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             Pt screen_rp = vp.world_to_screen(rp, canvas_min);
             dl->add_circle_filled(screen_rp, 6.0f, COLOR_ROUTING_POINT, 12);
             dl->add_circle(screen_rp, 6.0f, 0xFF000000, 12);
+        }
+
+        // Рендерим jump arcs (только для этого провода - он имеет больший индекс)
+        const auto& crossings = all_crossings[wire_idx];
+        for (const auto& crossing : crossings) {
+            Pt world_cross = crossing.pos;
+            Pt screen_cross = vp.world_to_screen(world_cross, canvas_min);
+
+            // Determine arc direction based on which segment is horizontal/vertical
+            // For simplicity, draw a semi-circle
+            float arc_radius = ARC_RADIUS_WORLD * vp.zoom;
+
+            // Draw arc as polyline (semicircle)
+            Pt arc_points[ARC_SEGMENTS + 1];
+            for (int i = 0; i <= ARC_SEGMENTS; i++) {
+                float angle = 3.14159265f * i / ARC_SEGMENTS; // 0 to PI
+                // Arc goes "up" (positive Y in screen space)
+                Pt offset(std::cos(angle) * arc_radius, std::sin(angle) * arc_radius);
+                arc_points[i] = Pt(screen_cross.x + offset.x, screen_cross.y - offset.y);
+            }
+            dl->add_polyline(arc_points, ARC_SEGMENTS + 1, COLOR_JUMP_ARC, 2.0f);
         }
     }
 
