@@ -64,10 +64,10 @@ InteractionTest.StartDragRoutingPoint 3 0.00650132
 InteractionTest.UpdateDragAnchor 3 0.00574868
 InteractionTest.EndDrag 3 0.00697263
 InteractionTest.SetPanning 3 0.00616486
-RenderTest.EmptyBlueprint_DoesNotCrash 3 0.0238169
-RenderTest.Node_RendersRect 3 0.0143598
-RenderTest.Wire_RendersLine 3 0.0136627
-RenderTest.Grid_DoesNotCrash 3 0.0136943
+RenderTest.EmptyBlueprint_DoesNotCrash 8 0.00242605
+RenderTest.Node_RendersRect 8 0.00241422
+RenderTest.Wire_RendersLine 8 0.00237877
+RenderTest.Grid_DoesNotCrash 8 0.0024204
 HitTest.EmptyBlueprint_ReturnsNone 3 0.00858361
 HitTest.Node_Inside_ReturnsNode 3 0.00748407
 HitTest.Node_Outside_ReturnsNone 3 0.00683618
@@ -211,12 +211,12 @@ PersistTest.NodeKind_Roundtrip_Ref 1 0.0190578
 PersistTest.NodeKind_Roundtrip_Node 1 0.0188177
 PersistTest.NodeKind_BackwardCompat_NoKindField 1 0.0195478
 PersistTest.RefNode_ValueByKind_NotTypeName 1 0.016566
-RenderTest.WireHighlighting_EnergizedWiresAreYellow 1 0.0372305
-RenderTest.WireHighlighting_WithoutSimulation_NoYellow 1 0.0342032
-RenderTest.Tooltip_PortHover_ShowsValue 1 0.0311065
-RenderTest.Tooltip_NoSimulation_NoTooltip 1 0.0296743
-RenderTest.RenderTooltip_DrawsTextAndBackground 1 0.0290303
-RenderTest.RenderTooltip_InactiveDoesNothing 1 0.0308702
+RenderTest.WireHighlighting_EnergizedWiresAreYellow 6 0.00361031
+RenderTest.WireHighlighting_WithoutSimulation_NoYellow 6 0.00320917
+RenderTest.Tooltip_PortHover_ShowsValue 6 0.00351558
+RenderTest.Tooltip_NoSimulation_NoTooltip 6 0.00324548
+RenderTest.RenderTooltip_DrawsTextAndBackground 6 0.0032049
+RenderTest.RenderTooltip_InactiveDoesNothing 6 0.00324126
 SimulationTest.BuildsFromBlueprint 1 0.033871
 SimulationTest.StepCounterIncrements 1 0.0333702
 SimulationTest.RunningFlag 1 0.0304609
@@ -229,4 +229,6 @@ SimulationTest.WireIsEnergized_ActiveCircuit 1 0.0330153
 SimulationTest.WireIsEnergized_NoSimulation 1 0.0284534
 SimulationTest.StepWithoutBuild_NoCrash 1 0.0300732
 SimulationTest.DMR_5000Step_ViaEditorPipeline 1 0.775424
+RenderTest.Tooltip_WireHover_ShowsVoltage 2 0.0106514
+RenderTest.Tooltip_WireHover_NoSimulation_NoTooltip 3 0.00639201
 ---
