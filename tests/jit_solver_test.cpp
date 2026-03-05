@@ -1004,8 +1004,8 @@ TEST(HoldButtonTest, OnRelease_ReleasedOutput) {
     EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "State should stay 0.0V after release";
 }
 
-TEST(HoldButtonTest, ResetToIdle_ClearsOutputs) {
-    // Control Protocol: setting control=0.0V resets to idle
+TEST(HoldButtonTest, ZeroVolts_PreservesState) {
+    // Control Protocol: setting control=0.0V preserves current state (sticky)
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto btn = make_device("btn", "HoldButton", {{}},
         {{"control", PortDirection::In}, {"state", PortDirection::Out}});
@@ -1026,20 +1026,18 @@ TEST(HoldButtonTest, ResetToIdle_ClearsOutputs) {
     float state_voltage = get_voltage(state, result, "btn.state");
     EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should be 1.0V when pressed";
 
-    // Reset to idle
+    // Set control to 0.0V (idle/no signal)
     state.across[ctrl_it->second] = 0.0f;
     result.systems.post_step(state, 0.016f);
 
-    // State output should be 0.0V after reset
+    // State should NOT reset - it's sticky!
     state_voltage = get_voltage(state, result, "btn.state");
-
-    EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "State should be 0.0V after reset";
+    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should stay 1.0V when control=0.0V (sticky)";
 
     // State should persist in following steps
     result.systems.post_step(state, 0.016f);
     result.systems.post_step(state, 0.016f);
 
     state_voltage = get_voltage(state, result, "btn.state");
-
-    EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "State should stay 0.0V";
+    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should persist at 1.0V";
 }

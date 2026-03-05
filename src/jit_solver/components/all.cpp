@@ -98,26 +98,21 @@ void Relay::post_step(SimulationState& state, float /*dt*/) {
 void HoldButton::post_step(SimulationState& state, float /*dt*/) {
     float current = state.across[control_idx];
 
-    // Detect state transitions (Control Protocol)
+    // Edge detection only - explicit press/release commands
     // 0.0V → 1.0V = Pressed (onClick)
     // 1.0V → 2.0V = Released (onRelease)
-    // 2.0V → 0.0V = Reset to idle
+    // No automatic reset on 0.0V - state persists until explicit command
 
     if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
-        // Transition to Pressed state
+        // Rising edge: transition to Pressed state
         is_pressed = true;
         spdlog::info("[HoldButton] PRESSED (onClick)");
     } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
-        // Transition to Released state
+        // Rising edge: transition to Released state
         is_pressed = false;
         spdlog::info("[HoldButton] RELEASED (onRelease)");
-    } else if (std::abs(current - 0.0f) < 0.1f) {
-        // Reset to idle
-        if (is_pressed) {
-            spdlog::info("[HoldButton] RESET to idle (was PRESSED)");
-        }
-        is_pressed = false;
     }
+    // Note: when current = 0.0V, just maintain current state (no reset)
 
     // Store for next step
     last_control = current;
