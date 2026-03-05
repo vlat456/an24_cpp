@@ -18,6 +18,9 @@ void SimulationController::build(const Blueprint& bp) {
 
     build_result = build_systems_dev(ctx.devices, connections);
 
+    // Reset state before allocating (critical for rebuild)
+    state = SimulationState();
+
     // Allocate signals
     for (uint32_t i = 0; i < build_result->signal_count; ++i) {
         bool is_fixed = std::binary_search(
@@ -43,13 +46,14 @@ void SimulationController::build(const Blueprint& bp) {
 
     running = false;
     time = 0.0f;
+    step_count = 0;
 }
 
 void SimulationController::step(float dt) {
     if (!build_result.has_value()) return;
 
     state.clear_through();
-    build_result->systems.solve_step(state, static_cast<size_t>(time / this->dt));
+    build_result->systems.solve_step(state, step_count);
     state.precompute_inv_conductance();
 
     // SOR update
@@ -61,6 +65,7 @@ void SimulationController::step(float dt) {
 
     build_result->systems.post_step(state, dt);
     time += dt;
+    step_count++;
 }
 
 float SimulationController::get_wire_voltage(const std::string& port_name) const {
@@ -69,10 +74,15 @@ float SimulationController::get_wire_voltage(const std::string& port_name) const
     auto it = build_result->port_to_signal.find(port_name);
     if (it == build_result->port_to_signal.end()) return 0.0f;
 
+    if (it->second >= state.across.size()) return 0.0f;
     return state.across[it->second];
 }
 
-bool SimulationController::wire_has_current(const std::string& wire_id) const {
-    // For now, check if there's a voltage difference across the wire
-    return false;
+float SimulationController::get_port_value(const std::string& node_id, const std::string& port_name) const {
+    return get_wire_voltage(node_id + "." + port_name);
+}
+
+bool SimulationController::wire_is_energized(const std::string& port_name, float threshold) const {
+    float v = get_wire_voltage(port_name);
+    return std::abs(v) > threshold;
 }

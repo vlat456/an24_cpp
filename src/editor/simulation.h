@@ -22,6 +22,9 @@ struct SimulationController {
     /// Accumulated simulation time
     float time = 0.0f;
 
+    /// Integer step counter (avoids float drift)
+    uint64_t step_count = 0;
+
     /// SOR over-relaxation factor
     float omega = 1.8f;
 
@@ -43,6 +46,9 @@ struct SimulationController {
     /// Get voltage at a port (e.g., "battery.v_out")
     float get_wire_voltage(const std::string& port_name) const;
 
-    /// Check if wire has voltage difference (for highlighting)
-    bool wire_has_current(const std::string& wire_id) const;
+    /// Get value at a port by node_id and port_name
+    float get_port_value(const std::string& node_id, const std::string& port_name) const;
+
+    /// Check if a wire is energized (its signal voltage is nonzero)
+    bool wire_is_energized(const std::string& port_name, float threshold = 0.5f) const;
 };

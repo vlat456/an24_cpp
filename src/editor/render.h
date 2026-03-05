@@ -5,6 +5,7 @@
 #include "data/pt.h"
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <vector>
 #include <optional>
 
@@ -23,14 +24,26 @@ struct IDrawList {
     virtual Pt calc_text_size(const char* text, float font_size) const = 0;
 };
 
+/// Tooltip info for hovered elements (port/wire)
+struct TooltipInfo {
+    bool active = false;
+    Pt screen_pos;           // screen position for tooltip
+    std::string text;        // tooltip text (e.g., "28.3")
+    std::string label;       // label (e.g., "bat.v_out")
+};
+
 /// Рендерит Blueprint (узлы и провода) в IDrawList
-/// @param selected_nodes - опционально, индексы выделенных узлов для подсветки
-/// @param selected_wire - опционально, индекс выделенного провода для подсветки
-/// @param simulation - опционально, симуляция для подсветки проводов с током (желтый)
+/// @param hover_world_pos - optional mouse position in world coords (for tooltip)
+/// @param out_tooltip - optional, filled if cursor is over a port/wire
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes = nullptr,
                       std::optional<size_t> selected_wire = std::nullopt,
-                      const struct SimulationController* simulation = nullptr);
+                      const struct SimulationController* simulation = nullptr,
+                      const Pt* hover_world_pos = nullptr,
+                      TooltipInfo* out_tooltip = nullptr);
+
+/// Рендерит tooltip (вызывается после render_blueprint)
+void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip);
 
 /// Рендерит сетку
 void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max);
@@ -48,6 +61,14 @@ public:
     bool had_rect_ = false;
     bool had_circle_ = false;
     bool had_polyline_ = false;
+
+    struct TextEntry {
+        Pt pos;
+        std::string text;
+        uint32_t color;
+    };
+    std::vector<TextEntry> texts_;
+    std::vector<uint32_t> polyline_colors_;
 
     void add_line(Pt a, Pt b, uint32_t color, float thickness = 1.0f) override {
         (void)a; (void)b; (void)color; (void)thickness;
@@ -68,21 +89,29 @@ public:
         (void)center; (void)radius; (void)color; (void)segments;
     }
     void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) override {
-        (void)pos; (void)text; (void)color; (void)font_size;
+        (void)font_size;
+        texts_.push_back({pos, std::string(text), color});
     }
     Pt calc_text_size(const char* text, float font_size) const override {
-        // Approximate: width = len * font_size * 0.6
         return Pt(strlen(text) * font_size * 0.6f, font_size);
     }
     void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) override {
-        (void)points; (void)count; (void)color; (void)thickness;
+        (void)points; (void)count; (void)thickness;
         had_polyline_ = true;
+        polyline_colors_.push_back(color);
     }
 
     bool had_line() const { return had_line_; }
     bool had_rect() const { return had_rect_; }
     bool had_circle() const { return had_circle_; }
     bool had_polyline() const { return had_polyline_; }
+
+    bool has_polyline_with_color(uint32_t color) const {
+        for (auto c : polyline_colors_) {
+            if (c == color) return true;
+        }
+        return false;
+    }
 };
 
 #endif // EDITOR_TESTING

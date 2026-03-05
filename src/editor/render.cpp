@@ -69,7 +69,9 @@ NodeColors get_node_colors(const char* type_name) {
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
-                      const SimulationController* simulation) {
+                      const SimulationController* simulation,
+                      const Pt* hover_world_pos,
+                      TooltipInfo* out_tooltip) {
 
     // Wire has current color - yellow
     constexpr uint32_t COLOR_WIRE_CURRENT = 0xFF44AAFF; // yellow AA (FF,, 44)
@@ -126,10 +128,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         // Подсветка проводов с током (симуляция запущена)
         if (simulation && simulation->running && !w.start.node_id.empty()) {
             std::string start_port = w.start.node_id + "." + w.start.port_name;
-            std::string end_port = w.end.node_id + "." + w.end.port_name;
-            float v_start = simulation->get_wire_voltage(start_port);
-            float v_end = simulation->get_wire_voltage(end_port);
-            if (std::abs(v_start - v_end) > 0.1f) {
+            if (simulation->wire_is_energized(start_port, 0.5f)) {
                 wire_color = COLOR_WIRE_CURRENT; // желтый - есть ток
             }
         }
@@ -314,6 +313,81 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
 
         node_idx++;
     }
+
+    // --- Tooltip detection ---
+    if (hover_world_pos && out_tooltip && simulation && simulation->running) {
+        constexpr float PORT_RADIUS = 8.0f;
+        // Check ports
+        for (const auto& n : bp.nodes) {
+            auto vis = VisualNodeFactory::create(n, bp.wires);
+            for (size_t pi = 0; pi < vis->getPortCount(); pi++) {
+                auto* port = vis->getPort(pi);
+                if (!port) continue;
+                float dx = hover_world_pos->x - port->world_position.x;
+                float dy = hover_world_pos->y - port->world_position.y;
+                if (dx * dx + dy * dy < PORT_RADIUS * PORT_RADIUS) {
+                    float val = simulation->get_port_value(n.id, port->name);
+                    char buf[64];
+                    std::snprintf(buf, sizeof(buf), "%.3f", val);
+                    out_tooltip->active = true;
+                    out_tooltip->screen_pos = vp.world_to_screen(port->world_position, canvas_min);
+                    out_tooltip->label = n.id + "." + port->name;
+                    out_tooltip->text = buf;
+                    return;
+                }
+            }
+        }
+        // Check wire segments
+        for (size_t wi = 0; wi < bp.wires.size(); wi++) {
+            const auto& poly = all_polylines[wi];
+            for (size_t i = 0; i + 1 < poly.size(); i++) {
+                Pt a = poly[i], b = poly[i + 1];
+                float seg_len_sq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
+                if (seg_len_sq < 1e-6f) continue;
+                float t = ((hover_world_pos->x - a.x) * (b.x - a.x) + (hover_world_pos->y - a.y) * (b.y - a.y)) / seg_len_sq;
+                t = std::max(0.0f, std::min(1.0f, t));
+                Pt proj(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
+                float dx = hover_world_pos->x - proj.x;
+                float dy = hover_world_pos->y - proj.y;
+                if (dx * dx + dy * dy < PORT_RADIUS * PORT_RADIUS) {
+                    const auto& w = bp.wires[wi];
+                    std::string port = w.start.node_id + "." + w.start.port_name;
+                    float val = simulation->get_wire_voltage(port);
+                    char buf[64];
+                    std::snprintf(buf, sizeof(buf), "%.3f", val);
+                    out_tooltip->active = true;
+                    out_tooltip->screen_pos = vp.world_to_screen(proj, canvas_min);
+                    out_tooltip->label = port;
+                    out_tooltip->text = buf;
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip) {
+    if (!tooltip.active) return;
+
+    constexpr float FONT_SIZE = 14.0f;
+    constexpr float PAD = 4.0f;
+    constexpr uint32_t BG_COLOR = 0xCC1A1A1A;    // dark bg
+    constexpr uint32_t LABEL_COLOR = 0xFFAAAAAA;  // gray label
+    constexpr uint32_t VALUE_COLOR = 0xFFFFFFFF;  // white value
+
+    std::string full = tooltip.label + ": " + tooltip.text;
+    Pt text_size = dl->calc_text_size(full.c_str(), FONT_SIZE);
+
+    Pt bg_min(tooltip.screen_pos.x, tooltip.screen_pos.y - text_size.y - PAD * 2);
+    Pt bg_max(tooltip.screen_pos.x + text_size.x + PAD * 2, tooltip.screen_pos.y);
+
+    dl->add_rect_filled(bg_min, bg_max, BG_COLOR);
+    dl->add_text(Pt(bg_min.x + PAD, bg_min.y + PAD),
+                 (tooltip.label + ": ").c_str(), LABEL_COLOR, FONT_SIZE);
+
+    Pt label_size = dl->calc_text_size((tooltip.label + ": ").c_str(), FONT_SIZE);
+    dl->add_text(Pt(bg_min.x + PAD + label_size.x, bg_min.y + PAD),
+                 tooltip.text.c_str(), VALUE_COLOR, FONT_SIZE);
 }
 
 void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max) {

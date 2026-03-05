@@ -226,3 +226,100 @@ TEST(PersistTest, AutoLayout_CompositeTestFile) {
     ASSERT_NE(bus, nullptr);
     EXPECT_LT(bat->pos.x, bus->pos.x) << "Battery should be left of bus";
 }
+
+// ─── NodeKind persistence tests ───
+
+TEST(PersistTest, NodeKind_Roundtrip_Bus) {
+    Blueprint bp;
+    Node n;
+    n.id = "mybus";
+    n.name = "Custom Bus";
+    n.type_name = "MyCustomBusType"; // Not "Bus" — user-chosen type name
+    n.kind = NodeKind::Bus;
+    n.output("v");
+    n.at(100, 100);
+    n.size_wh(40, 40);
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Bus)
+        << "Kind should be preserved via 'kind' field, not derived from type_name";
+}
+
+TEST(PersistTest, NodeKind_Roundtrip_Ref) {
+    Blueprint bp;
+    Node n;
+    n.id = "myref";
+    n.name = "Custom Ref";
+    n.type_name = "UserGround"; // Not "RefNode" — user-chosen type name
+    n.kind = NodeKind::Ref;
+    n.output("v");
+    n.at(50, 50);
+    n.size_wh(40, 40);
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
+        << "Kind should be preserved via 'kind' field, not derived from type_name";
+}
+
+TEST(PersistTest, NodeKind_Roundtrip_Node) {
+    Blueprint bp;
+    Node n;
+    n.id = "comp1";
+    n.name = "Some Component";
+    n.type_name = "Battery";
+    n.kind = NodeKind::Node;
+    n.input("v_in");
+    n.output("v_out");
+    n.at(200, 200);
+    n.size_wh(120, 80);
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Node);
+}
+
+TEST(PersistTest, NodeKind_BackwardCompat_NoKindField) {
+    // Old JSON without "kind" field — should fall back to type_name matching
+    const char* json = R"({
+        "devices": [
+            {"name": "b", "internal": "Bus", "ports": {"v": {"direction": "Out"}}},
+            {"name": "r", "internal": "RefNode", "ports": {"v": {"direction": "Out"}}},
+            {"name": "batt", "internal": "Battery", "ports": {"v_in": {"direction": "In"}}}
+        ],
+        "connections": []
+    })";
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->nodes.size(), 3);
+    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Bus);
+    EXPECT_EQ(bp->nodes[1].kind, NodeKind::Ref);
+    EXPECT_EQ(bp->nodes[2].kind, NodeKind::Node);
+}
+
+TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
+    // A Ref node with a non-standard type_name should still get value=0.0
+    Blueprint bp;
+    Node n;
+    n.id = "gnd";
+    n.name = "Ground";
+    n.type_name = "CustomGround"; // NOT "RefNode"
+    n.kind = NodeKind::Ref;
+    n.output("v");
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_json(bp);
+    // value=0.0 should be set based on kind=Ref, not type_name
+    EXPECT_NE(json.find("\"value\": \"0.0\""), std::string::npos)
+        << "RefNode value should be set by kind, not type_name";
+}

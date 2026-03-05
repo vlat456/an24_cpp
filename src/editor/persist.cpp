@@ -29,6 +29,12 @@ std::string blueprint_to_json(const Blueprint& bp) {
         device["name"] = n.id;
         device["template_name"] = "";
         device["internal"] = n.type_name;
+        // Store NodeKind explicitly so it roundtrips correctly
+        switch (n.kind) {
+            case NodeKind::Bus: device["kind"] = "Bus"; break;
+            case NodeKind::Ref: device["kind"] = "Ref"; break;
+            default: device["kind"] = "Node"; break;
+        }
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
@@ -50,6 +56,10 @@ std::string blueprint_to_json(const Blueprint& bp) {
             params["min"] = std::to_string(n.node_content.min);
             params["max"] = std::to_string(n.node_content.max);
             if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
+        }
+        // Ref nodes always get value=0.0 (ground reference)
+        if (n.kind == NodeKind::Ref && !params.contains("value")) {
+            params["value"] = "0.0";
         }
         if (!params.empty()) {
             device["params"] = params;
@@ -115,10 +125,22 @@ static Node device_to_node(const json& d, int index) {
     n.name = d.value("name", "");
     n.type_name = d.value("internal", "");
 
-    // Определяем вид узла по типу
-    if (n.type_name == "Bus") {
+    // Определяем вид узла: сначала по явному kind, потом по type_name (backward compat)
+    if (d.contains("kind")) {
+        std::string kind_str = d["kind"].get<std::string>();
+        if (kind_str == "Bus") {
+            n.kind = NodeKind::Bus;
+            n.size = Pt(40, 40);
+        } else if (kind_str == "Ref") {
+            n.kind = NodeKind::Ref;
+            n.size = Pt(40, 40);
+        } else {
+            n.kind = NodeKind::Node;
+            n.size = Pt(120, 80);
+        }
+    } else if (n.type_name == "Bus") {
         n.kind = NodeKind::Bus;
-        n.size = Pt(40, 40); // маленький квадрат
+        n.size = Pt(40, 40);
     } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
         n.kind = NodeKind::Ref;
         n.size = Pt(40, 40);

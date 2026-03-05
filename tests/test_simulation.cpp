@@ -1,12 +1,13 @@
 #include <gtest/gtest.h>
 #include "editor/simulation.h"
+#include "editor/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 
-/// Simulation integration tests (TDD)
+/// Simulation integration tests
 
-/// Helper to create a simple test circuit
+/// Helper to create a simple test circuit: gnd → battery → resistor → gnd
 static Blueprint create_simple_circuit() {
     Blueprint bp;
     bp.grid_step = 16.0f;
@@ -20,12 +21,8 @@ static Blueprint create_simple_circuit() {
     gnd.output("v");
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
-    // Set value param for ground reference (required for fixed signal)
     gnd.node_content.type = NodeContentType::Value;
     gnd.node_content.value = 0.0f;
-    gnd.node_content.min = 0.0f;
-    gnd.node_content.max = 28.0f;
-    gnd.node_content.unit = "V";
     bp.add_node(std::move(gnd));
 
     // Battery
@@ -79,28 +76,27 @@ static Blueprint create_simple_circuit() {
     return bp;
 }
 
+// ─── Build & basic lifecycle ───
+
 TEST(SimulationTest, BuildsFromBlueprint) {
     Blueprint bp = create_simple_circuit();
     SimulationController sim;
     sim.build(bp);
 
     ASSERT_TRUE(sim.build_result.has_value());
-    EXPECT_GE(sim.build_result->signal_count, 1u);
+    EXPECT_GE(sim.build_result->signal_count, 2u); // at least gnd + battery
 }
 
-TEST(SimulationTest, StepUpdatesState) {
+TEST(SimulationTest, StepCounterIncrements) {
     Blueprint bp = create_simple_circuit();
     SimulationController sim;
     sim.build(bp);
 
-    // Initial state - all zeros
-    EXPECT_EQ(sim.state.across[0], 0.0f);
-
-    // Step simulation
+    EXPECT_EQ(sim.step_count, 0u);
     sim.step(0.016f);
-
-    // After stepping, we should have non-zero voltages (battery charging up)
-    // The exact values depend on solver convergence
+    EXPECT_EQ(sim.step_count, 1u);
+    sim.step(0.016f);
+    EXPECT_EQ(sim.step_count, 2u);
 }
 
 TEST(SimulationTest, RunningFlag) {
@@ -110,10 +106,8 @@ TEST(SimulationTest, RunningFlag) {
     Blueprint bp = create_simple_circuit();
     sim.build(bp);
     sim.start();
-
     EXPECT_TRUE(sim.running);
 
-    // Step simulation to advance time
     sim.step(0.016f);
     EXPECT_GT(sim.time, 0.0f);
 
@@ -121,23 +115,133 @@ TEST(SimulationTest, RunningFlag) {
     EXPECT_FALSE(sim.running);
 }
 
-TEST(SimulationTest, GetWireVoltage) {
+// ─── State reset on rebuild ───
+
+TEST(SimulationTest, RebuildResetsState) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+
+    // First build
+    sim.build(bp);
+    size_t signals_first = sim.state.across.size();
+
+    // Run a few steps
+    for (int i = 0; i < 50; i++) sim.step(0.016f);
+    EXPECT_GT(sim.time, 0.0f);
+    EXPECT_GT(sim.step_count, 0u);
+
+    // Rebuild — state should reset, not accumulate signals
+    sim.build(bp);
+    EXPECT_EQ(sim.state.across.size(), signals_first);
+    EXPECT_EQ(sim.time, 0.0f);
+    EXPECT_EQ(sim.step_count, 0u);
+}
+
+// ─── Voltage convergence ───
+
+TEST(SimulationTest, BatteryVoltageConverges) {
     Blueprint bp = create_simple_circuit();
     SimulationController sim;
     sim.build(bp);
 
-    // Run simulation for a while to converge
-    for (int i = 0; i < 100; i++) {
+    // Run enough steps for SOR convergence
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    float v_bat = sim.get_wire_voltage("bat.v_out");
+    // Battery default v_nominal=28V, with resistor load should converge to ~26-28V
+    EXPECT_GT(v_bat, 5.0f) << "Battery should produce significant voltage";
+    EXPECT_LT(v_bat, 50.0f) << "Voltage should be reasonable";
+}
+
+TEST(SimulationTest, GroundRemainsZero) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    float v_gnd = sim.get_wire_voltage("gnd.v");
+    EXPECT_NEAR(v_gnd, 0.0f, 0.01f) << "Ground reference should stay at 0V";
+}
+
+// ─── Port value accessor ───
+
+TEST(SimulationTest, GetPortValue) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    // get_port_value(node_id, port_name) should equal get_wire_voltage("node.port")
+    float v1 = sim.get_port_value("bat", "v_out");
+    float v2 = sim.get_wire_voltage("bat.v_out");
+    EXPECT_FLOAT_EQ(v1, v2);
+}
+
+TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    EXPECT_EQ(sim.get_port_value("nonexistent", "port"), 0.0f);
+}
+
+// ─── Wire energized detection ───
+
+TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    // Battery output wire should be energized
+    EXPECT_TRUE(sim.wire_is_energized("bat.v_out", 0.5f));
+    // Ground wire should NOT be energized (0V)
+    EXPECT_FALSE(sim.wire_is_energized("gnd.v", 0.5f));
+}
+
+TEST(SimulationTest, WireIsEnergized_NoSimulation) {
+    SimulationController sim;
+    // Not built yet
+    EXPECT_FALSE(sim.wire_is_energized("bat.v_out"));
+}
+
+// ─── Step without build should not crash ───
+
+TEST(SimulationTest, StepWithoutBuild_NoCrash) {
+    SimulationController sim;
+    sim.step(0.016f); // should do nothing
+    EXPECT_EQ(sim.step_count, 0u);
+}
+
+// ─── DMR test JSON: full 5000-step simulation via editor pipeline ───
+
+TEST(SimulationTest, DMR_5000Step_ViaEditorPipeline) {
+    // Load the real DMR test JSON as a blueprint, then run simulation
+    auto bp = load_blueprint_from_file(
+        "/Users/vladimir/an24_cpp/src/aircraft/vsu_dmr_test.json");
+    ASSERT_TRUE(bp.has_value()) << "Should load vsu_dmr_test.json";
+
+    SimulationController sim;
+    sim.build(*bp);
+    ASSERT_TRUE(sim.build_result.has_value());
+
+    // Run 5000 steps (same as the standalone JIT test)
+    for (int i = 0; i < 5000; i++) {
         sim.step(0.016f);
     }
 
-    // Get voltage at wire start (battery positive terminal)
-    float v = sim.get_wire_voltage("bat.v_out");
-    EXPECT_GT(v, 0.0f);  // Should have positive voltage
-}
+    // Verify key signals converged
+    float v_bus = sim.get_wire_voltage("main_bus.v");
+    float v_gnd = sim.get_wire_voltage("gnd.v");
 
-TEST(SimulationTest, WireHasVoltageDifference) {
-    // Skip for now - requires proper value="0.0" string in JSON
-    // The simulation runs but without fixed ground reference
-    SUCCEED() << "Skipped - requires fixed signal setup";
+    EXPECT_NEAR(v_gnd, 0.0f, 0.5f) << "Ground should be near 0V";
+    EXPECT_GT(v_bus, 20.0f) << "Main bus should have significant voltage after 5000 steps";
+    EXPECT_LT(v_bus, 40.0f) << "Bus voltage should be reasonable (28V nominal)";
+
+    // Battery wire should be energized, ground should not
+    EXPECT_TRUE(sim.wire_is_energized("bat_main_1.v_out", 0.5f));
+    EXPECT_FALSE(sim.wire_is_energized("gnd.v", 0.5f));
 }

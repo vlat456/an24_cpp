@@ -73,14 +73,19 @@ add_executable(editor_render_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
 )
 target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_render_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
+    ${json_SOURCE_DIR}/include
 )
 target_link_libraries(editor_render_tests PRIVATE
     GTest::gtest_main
+    jit_solver
+    json_parser
 )
 gtest_discover_tests(editor_render_tests)
 
@@ -110,12 +115,17 @@ add_executable(editor_event_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
 )
 target_include_directories(editor_event_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(editor_event_tests PRIVATE
+    jit_solver
+    json_parser
     GTest::gtest_main
 )
 gtest_discover_tests(editor_event_tests)
