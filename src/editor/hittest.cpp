@@ -113,13 +113,28 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
 
                 // Determine port side by checking if it's in inputs or outputs
                 bool is_input = false;
+                bool is_output = false;
                 for (const auto& p : node.inputs) {
                     if (p.name == port->name) {
                         is_input = true;
                         break;
                     }
                 }
-                result.port_side = is_input ? PortSide::Input : PortSide::Output;
+                for (const auto& p : node.outputs) {
+                    if (p.name == port->name) {
+                        is_output = true;
+                        break;
+                    }
+                }
+
+                // Set port side based on membership
+                if (is_input && is_output) {
+                    result.port_side = PortSide::InOut;
+                } else if (is_input) {
+                    result.port_side = PortSide::Input;
+                } else {
+                    result.port_side = PortSide::Output;
+                }
 
                 return result;
             }
