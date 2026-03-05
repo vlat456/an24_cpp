@@ -906,3 +906,115 @@ TEST(SwitchTest, ToggleOnControlEdge) {
     // Sanity check: system was built successfully
     EXPECT_GT(result.signal_count, 0u);
 }
+
+// ============================================================================
+// HoldButton tests (Control Protocol: 0=Idle, 1=Pressed, 2=Released)
+// ============================================================================
+
+TEST(HoldButtonTest, InitialState_Idle) {
+    // HoldButton starts in idle state (all outputs 0.0V)
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto btn = make_device("btn", "HoldButton", {{}},
+        {{"control", PortDirection::In}, {"pressed", PortDirection::Out}, {"released", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, btn};
+    std::vector<std::pair<std::string, std::string>> connections = {};
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 10);
+
+    // Initial state: all outputs should be 0.0V
+    float pressed = get_voltage(state, result, "btn.pressed");
+    float released = get_voltage(state, result, "btn.released");
+
+    EXPECT_FLOAT_EQ(pressed, 0.0f) << "Initial pressed should be 0.0V";
+    EXPECT_FLOAT_EQ(released, 0.0f) << "Initial released should be 0.0V";
+}
+
+TEST(HoldButtonTest, OnClick_PressedOutput) {
+    // Control Protocol: setting control=1.0V triggers onClick
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto btn = make_device("btn", "HoldButton", {{}},
+        {{"control", PortDirection::In}, {"pressed", PortDirection::Out}, {"released", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, btn};
+    std::vector<std::pair<std::string, std::string>> connections = {};
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 10);
+
+    // Set control to 1.0V (Pressed command)
+    auto ctrl_it = result.port_to_signal.find("btn.control");
+    ASSERT_NE(ctrl_it, result.port_to_signal.end());
+    state.across[ctrl_it->second] = 1.0f;
+
+    // Run one step
+    result.systems.post_step(state, 0.016f);
+
+    // Check pressed output
+    float pressed = get_voltage(state, result, "btn.pressed");
+    float released = get_voltage(state, result, "btn.released");
+
+    EXPECT_FLOAT_EQ(pressed, 1.0f) << "Pressed should be 1.0V after onClick";
+    EXPECT_FLOAT_EQ(released, 0.0f) << "Released should be 0.0V after onClick";
+}
+
+TEST(HoldButtonTest, OnRelease_ReleasedOutput) {
+    // Control Protocol: setting control=2.0V triggers onRelease
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto btn = make_device("btn", "HoldButton", {{}},
+        {{"control", PortDirection::In}, {"pressed", PortDirection::Out}, {"released", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, btn};
+    std::vector<std::pair<std::string, std::string>> connections = {};
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 10);
+
+    // First set control to 1.0V (Pressed)
+    auto ctrl_it = result.port_to_signal.find("btn.control");
+    ASSERT_NE(ctrl_it, result.port_to_signal.end());
+    state.across[ctrl_it->second] = 1.0f;
+    result.systems.post_step(state, 0.016f);
+
+    // Then set control to 2.0V (Released)
+    state.across[ctrl_it->second] = 2.0f;
+    result.systems.post_step(state, 0.016f);
+
+    // Check released output
+    float pressed = get_voltage(state, result, "btn.pressed");
+    float released = get_voltage(state, result, "btn.released");
+
+    EXPECT_FLOAT_EQ(pressed, 0.0f) << "Pressed should be 0.0V after onRelease";
+    EXPECT_FLOAT_EQ(released, 1.0f) << "Released should be 1.0V after onRelease";
+}
+
+TEST(HoldButtonTest, ResetToIdle_ClearsOutputs) {
+    // Control Protocol: setting control=0.0V resets to idle
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto btn = make_device("btn", "HoldButton", {{}},
+        {{"control", PortDirection::In}, {"pressed", PortDirection::Out}, {"released", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, btn};
+    std::vector<std::pair<std::string, std::string>> connections = {};
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 10);
+
+    // Set control to 1.0V (Pressed)
+    auto ctrl_it = result.port_to_signal.find("btn.control");
+    ASSERT_NE(ctrl_it, result.port_to_signal.end());
+    state.across[ctrl_it->second] = 1.0f;
+    result.systems.post_step(state, 0.016f);
+
+    // Reset to idle
+    state.across[ctrl_it->second] = 0.0f;
+    result.systems.post_step(state, 0.016f);
+
+    // Both outputs should be 0.0V
+    float pressed = get_voltage(state, result, "btn.pressed");
+    float released = get_voltage(state, result, "btn.released");
+
+    EXPECT_FLOAT_EQ(pressed, 0.0f) << "Pressed should be 0.0V after reset";
+    EXPECT_FLOAT_EQ(released, 0.0f) << "Released should be 0.0V after reset";
+}

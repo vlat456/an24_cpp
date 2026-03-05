@@ -1,0 +1,16 @@
+{
+  "classname": "HoldButton",
+  "description": "Hold-to-operate button with press/release detection. Outputs 1.0V when pressed, 2.0V when released.",
+  "default_ports": {
+    "control": { "direction": "In" },
+    "pressed": { "direction": "Out" },
+    "released": { "direction": "Out" }
+  },
+  "default_params": {
+    "idle": "0.0"
+  },
+  "default_domains": ["Electrical"],
+  "default_priority": "med",
+  "default_critical": false,
+  "default_content_type": "Switch"
+}

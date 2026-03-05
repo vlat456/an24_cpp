@@ -1,5 +1,5 @@
 {
-  "tests": 26,
+  "tests": 30,
   "name": "AllTests",
   "testsuites": [
     {
@@ -159,6 +159,32 @@
           "name": "ToggleOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
           "line": 886
+        }
+      ]
+    },
+    {
+      "name": "HoldButtonTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "InitialState_Idle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 914
+        },
+        {
+          "name": "OnClick_PressedOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 934
+        },
+        {
+          "name": "OnRelease_ReleasedOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 962
+        },
+        {
+          "name": "ResetToIdle_ClearsOutputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 992
         }
       ]
     }

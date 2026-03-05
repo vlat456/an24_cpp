@@ -95,6 +95,35 @@ void Relay::post_step(SimulationState& state, float /*dt*/) {
     state.across[v_out_idx] = state.across[v_in_idx];
 }
 
+void HoldButton::post_step(SimulationState& state, float /*dt*/) {
+    float current = state.across[control_idx];
+
+    // Detect state transitions (Control Protocol)
+    // 0.0V → 1.0V = Pressed (onClick)
+    // 1.0V → 2.0V = Released (onRelease)
+    // 2.0V → 0.0V = Reset to idle
+
+    float pressed_out = 0.0f;
+    float released_out = 0.0f;
+
+    if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
+        // Transition to Pressed state
+        pressed_out = 1.0f;
+        spdlog::info("[HoldButton] PRESSED (onClick)");
+    } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
+        // Transition to Released state
+        released_out = 1.0f;
+        spdlog::info("[HoldButton] RELEASED (onRelease)");
+    }
+
+    // Store for next step
+    last_control = current;
+
+    // Set outputs
+    state.across[pressed_idx] = pressed_out;
+    state.across[released_idx] = released_out;
+}
+
 void Resistor::solve_electrical(SimulationState& state) {
     // Было:
     // float v_in = state.across[v_in_idx];

@@ -78,6 +78,23 @@ public:
     void post_step(SimulationState& state, float dt) override;
 };
 
+/// HoldButton - hold-to-operate button with press/release detection
+/// Control Protocol: 0.0V=Idle, 1.0V=Pressed, 2.0V=Released
+class HoldButton : public Component {
+public:
+    uint32_t control_idx = 0;   // Control input (commands from UI)
+    uint32_t pressed_idx = 0;   // Output: 1.0V when button pressed
+    uint32_t released_idx = 0;  // Output: 1.0V when button released
+    float last_control = 0.0f;   // Previous control value (edge detection)
+
+    HoldButton() = default;
+    HoldButton(uint32_t control, uint32_t pressed, uint32_t released)
+        : control_idx(control), pressed_idx(pressed), released_idx(released), last_control(0.0f) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
+    void post_step(SimulationState& state, float dt) override;
+};
+
 /// Resistor - pure conductance element (resistive load)
 class Resistor : public Component {
 public:
