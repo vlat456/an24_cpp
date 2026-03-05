@@ -89,6 +89,10 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
     for (size_t node_idx = 0; node_idx < bp.nodes.size(); node_idx++) {
         const auto& node = bp.nodes[node_idx];
         auto* visual = const_cast<VisualNodeCache&>(cache).get(node.id);
+        if (!visual) {
+            // Create visual node on the fly if not in cache
+            visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node);
+        }
         if (!visual) continue;
 
         // Проверяем все порты
@@ -106,7 +110,17 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
                 result.port_node_id = node.id;
                 result.port_name = port->name;
                 result.port_position = port_pos;
-                result.port_side = PortSide::Input;  // TODO: определить из node.inputs/outputs
+
+                // Determine port side by checking if it's in inputs or outputs
+                bool is_input = false;
+                for (const auto& p : node.inputs) {
+                    if (p.name == port->name) {
+                        is_input = true;
+                        break;
+                    }
+                }
+                result.port_side = is_input ? PortSide::Input : PortSide::Output;
+
                 return result;
             }
         }

@@ -59,6 +59,9 @@ struct EditorApp {
     /// HoldButtons currently being held (mouse is down on them)
     std::unordered_set<std::string> held_buttons;
 
+    /// Last mouse position (for wire creation, etc.)
+    Pt last_mouse_pos;
+
     EditorApp() {
         // Load component registry at startup
         component_registry = load_component_registry();

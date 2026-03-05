@@ -5,12 +5,28 @@
 #include "router/router.h"
 #include "visual_node.h"
 #include "debug.h"
+#include "data/wire.h"
 #include <algorithm>
 
 void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
     (void)canvas_min;
+    last_mouse_pos = world_pos;  // Store last mouse position
 
     if (btn == MouseButton::Left) {
+        // Сначала проверяем порты для создания проводов
+        HitResult port_hit = hit_test_ports(blueprint, visual_cache, world_pos);
+        if (port_hit.type == HitType::Port) {
+            // Начинаем создание провода из порта
+            interaction.start_wire_creation(
+                port_hit.port_node_id,
+                port_hit.port_name,
+                port_hit.port_side,
+                port_hit.port_position
+            );
+            DEBUG_LOG("Started wire creation from port: {}.{}", port_hit.port_node_id, port_hit.port_name);
+            return;
+        }
+
         // Hit test - что под курсром?
         HitResult hit = hit_test(blueprint, world_pos, viewport);
         DEBUG_LOG("Hit test at ({:.1f}, {:.1f}): type={}", world_pos.x, world_pos.y, (int)hit.type);
@@ -62,6 +78,49 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
 
 void EditorApp::on_mouse_up(MouseButton btn) {
     if (btn == MouseButton::Left) {
+        // Handle wire creation
+        if (interaction.dragging == Dragging::CreatingWire) {
+            // Check if we're over a compatible port
+            HitResult port_hit = hit_test_ports(blueprint, visual_cache, last_mouse_pos);
+
+            if (port_hit.type == HitType::Port) {
+                // Get the wire start information
+                const std::string& start_node = interaction.get_wire_start_node();
+                const std::string& start_port = interaction.get_wire_start_port();
+                PortSide start_side = interaction.get_wire_start_side();
+
+                // Check compatibility:
+                // 1. Can't connect a port to itself
+                // 2. Input should connect to output (or output to input)
+                bool same_port = (port_hit.port_node_id == start_node &&
+                                  port_hit.port_name == start_port);
+                bool compatible = !same_port &&
+                                  (port_hit.port_side != start_side);
+
+                if (compatible) {
+                    // Create the wire
+                    WireEnd start_end(start_node.c_str(), start_port.c_str(), start_side);
+                    WireEnd end_end(port_hit.port_node_id.c_str(),
+                                   port_hit.port_name.c_str(),
+                                   port_hit.port_side);
+
+                    Wire w = Wire::make(
+                        ("wire_" + std::to_string(blueprint.wires.size())).c_str(),
+                        start_end,
+                        end_end
+                    );
+                    blueprint.add_wire(std::move(w));
+                    rebuild_simulation();  // Update simulation with new wire
+                    DEBUG_LOG("Created wire from {}.{} to {}.{}",
+                             start_node, start_port, port_hit.port_node_id, port_hit.port_name);
+                }
+            }
+
+            // Always clear wire creation state
+            interaction.clear_wire_creation();
+            return;
+        }
+
         // Если был marquee selection - применить его
         if (interaction.marquee_selecting) {
             // Marquee selection - выделить все узлы в прямоугольнике
@@ -93,6 +152,9 @@ void EditorApp::on_mouse_up(MouseButton btn) {
 
 void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     (void)canvas_min;
+
+    // Update last mouse position for wire creation
+    last_mouse_pos = last_mouse_pos + world_delta;
 
     if (interaction.panning) {
         // Панорамирование - обратный delta
@@ -130,6 +192,9 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     } else if (interaction.marquee_selecting) {
         // Обновляем конец marquee
         interaction.marquee_end = interaction.marquee_end + world_delta;
+    } else if (interaction.dragging == Dragging::CreatingWire) {
+        // Wire creation - just update last_mouse_pos (already done above)
+        // No additional logic needed
     }
 }
 

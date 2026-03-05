@@ -128,6 +128,9 @@ public:
     /// Получить данные для создания провода
     bool has_wire_start() const { return !wire_start_node.empty(); }
     Pt get_wire_start_pos() const { return wire_start_pos; }
+    const std::string& get_wire_start_node() const { return wire_start_node; }
+    const std::string& get_wire_start_port() const { return wire_start_port; }
+    PortSide get_wire_start_side() const { return wire_start_side; }
 
     /// Очистить данные создания провода
     void clear_wire_creation() {

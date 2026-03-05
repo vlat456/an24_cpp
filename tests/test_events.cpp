@@ -309,6 +309,10 @@ TEST(WireCreationTest, MouseUpOnCompatiblePort_CreatesWire) {
     app.on_mouse_down(batt_out_pos, MouseButton::Left, Pt(0.0f, 0.0f));
     ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
 
+    // Simulate dragging to load input position
+    Pt drag_delta = load_in_pos - batt_out_pos;
+    app.on_mouse_drag(drag_delta, Pt(0.0f, 0.0f));
+
     // Release on load input
     size_t wire_count_before = app.blueprint.wires.size();
     app.on_mouse_up(MouseButton::Left);
