@@ -1,8 +1,13 @@
 #include "persist.h"
+#include "router/router.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
 #include <optional>
+#include <algorithm>
+#include <map>
+#include <set>
+#include <queue>
 
 using json = nlohmann::json;
 
@@ -119,10 +124,8 @@ static Node device_to_node(const json& d, int index) {
         n.size = Pt(40, 40);
     } else {
         n.kind = NodeKind::Node;
+        n.size = Pt(120, 80);
     }
-
-    // Размер по умолчанию
-    n.size = Pt(120, 80);
 
     // Позиция - сетка
     int col = index % 4;
@@ -156,6 +159,144 @@ static bool parse_port_ref(const std::string& ref, std::string& device, std::str
     device = ref.substr(0, dot);
     port = ref.substr(dot + 1);
     return true;
+}
+
+// ─── Auto-layout: compute port center from Node data ───
+
+static constexpr float LAYOUT_GRID = 16.0f;
+
+static Pt snap(Pt p) {
+    return Pt(std::round(p.x / LAYOUT_GRID) * LAYOUT_GRID,
+              std::round(p.y / LAYOUT_GRID) * LAYOUT_GRID);
+}
+
+/// Compute world position of a port on a node (without VisualNode objects).
+/// Inputs on left edge, Outputs on right edge, Bus center-bottom, Ref center-top.
+static Pt port_center(const Node& n, const std::string& port_name) {
+    if (n.kind == NodeKind::Ref) {
+        return snap(Pt(n.pos.x + n.size.x / 2, n.pos.y));  // top center
+    }
+    if (n.kind == NodeKind::Bus) {
+        return snap(Pt(n.pos.x + n.size.x / 2, n.pos.y + n.size.y));  // bottom center
+    }
+    // Standard node: inputs on left, outputs on right
+    for (size_t i = 0; i < n.inputs.size(); i++) {
+        if (n.inputs[i].name == port_name) {
+            float step = n.size.y / (float)(n.inputs.size() + 1);
+            return snap(Pt(n.pos.x, n.pos.y + step * (i + 1)));
+        }
+    }
+    for (size_t i = 0; i < n.outputs.size(); i++) {
+        if (n.outputs[i].name == port_name) {
+            float step = n.size.y / (float)(n.outputs.size() + 1);
+            return snap(Pt(n.pos.x + n.size.x, n.pos.y + step * (i + 1)));
+        }
+    }
+    return snap(Pt(n.pos.x + n.size.x / 2, n.pos.y + n.size.y / 2));
+}
+
+// ─── Auto-layout: assign node positions by circuit topology ───
+
+enum class NodeRole { Source, Bus, Load, Ground };
+
+static NodeRole classify_node(const Node& n) {
+    if (n.type_name == "RefNode" || n.type_name == "Ref") return NodeRole::Ground;
+    if (n.type_name == "Bus") return NodeRole::Bus;
+    if (n.type_name == "Battery" || n.type_name == "Generator")
+        return NodeRole::Source;
+    return NodeRole::Load;
+}
+
+/// Auto-layout the blueprint nodes by topology and auto-route wires.
+static void auto_layout(Blueprint& bp) {
+    if (bp.nodes.empty()) return;
+
+    // Classify nodes into layers
+    std::vector<size_t> sources, buses, loads, grounds;
+    for (size_t i = 0; i < bp.nodes.size(); i++) {
+        switch (classify_node(bp.nodes[i])) {
+        case NodeRole::Ground: grounds.push_back(i); break;
+        case NodeRole::Source: sources.push_back(i); break;
+        case NodeRole::Bus:    buses.push_back(i); break;
+        case NodeRole::Load:   loads.push_back(i); break;
+        }
+    }
+
+    // Build adjacency: for each bus, find connected sources/loads to order them
+    std::map<std::string, std::set<std::string>> bus_connections;
+    for (const auto& w : bp.wires) {
+        bus_connections[w.start.node_id].insert(w.end.node_id);
+        bus_connections[w.end.node_id].insert(w.start.node_id);
+    }
+
+    // Layout constants
+    constexpr float col_spacing = 240.0f;
+    constexpr float row_spacing = 160.0f;
+    constexpr float origin_x = 80.0f;
+    constexpr float origin_y = 80.0f;
+
+    // Column X positions: sources | buses | loads
+    float src_x = origin_x;
+    float bus_x = origin_x + col_spacing;
+    float load_x = origin_x + col_spacing * 2;
+
+    // Place sources vertically
+    for (size_t i = 0; i < sources.size(); i++) {
+        auto& n = bp.nodes[sources[i]];
+        n.pos = snap(Pt(src_x, origin_y + i * row_spacing));
+    }
+
+    // Place buses vertically, sizing based on connection count
+    for (size_t i = 0; i < buses.size(); i++) {
+        auto& n = bp.nodes[buses[i]];
+        size_t conn_count = bus_connections[n.id].size();
+        float bus_w = std::max(3.0f, (float)(conn_count + 2)) * LAYOUT_GRID;
+        n.size = snap(Pt(bus_w, LAYOUT_GRID * 2));
+        n.pos = snap(Pt(bus_x, origin_y + i * row_spacing));
+    }
+
+    // Place loads vertically
+    for (size_t i = 0; i < loads.size(); i++) {
+        auto& n = bp.nodes[loads[i]];
+        n.pos = snap(Pt(load_x, origin_y + i * row_spacing));
+    }
+
+    // Place grounds below sources, centered under bus column
+    float ground_y = origin_y + std::max({sources.size(), buses.size(), loads.size()}) * row_spacing;
+    for (size_t i = 0; i < grounds.size(); i++) {
+        auto& n = bp.nodes[grounds[i]];
+        n.pos = snap(Pt(bus_x, ground_y + i * row_spacing));
+    }
+
+    // Auto-route wires using A* router
+    std::map<std::string, size_t> id_to_index;
+    for (size_t i = 0; i < bp.nodes.size(); i++)
+        id_to_index[bp.nodes[i].id] = i;
+
+    std::vector<std::vector<Pt>> existing_paths;
+    for (auto& w : bp.wires) {
+        auto it_s = id_to_index.find(w.start.node_id);
+        auto it_e = id_to_index.find(w.end.node_id);
+        if (it_s == id_to_index.end() || it_e == id_to_index.end()) continue;
+
+        const Node& sn = bp.nodes[it_s->second];
+        const Node& en = bp.nodes[it_e->second];
+        Pt start = port_center(sn, w.start.port_name);
+        Pt end   = port_center(en, w.end.port_name);
+
+        auto path = route_around_nodes(
+            start, end, sn, w.start.port_name.c_str(),
+            en, w.end.port_name.c_str(),
+            bp.nodes, LAYOUT_GRID, existing_paths);
+
+        if (!path.empty()) {
+            // Store routing points (skip first and last — they're port positions)
+            w.routing_points.clear();
+            for (size_t i = 1; i + 1 < path.size(); i++)
+                w.routing_points.push_back(path[i]);
+            existing_paths.push_back(std::move(path));
+        }
+    }
 }
 
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
@@ -267,6 +408,9 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                     }
                 }
             }
+        } else {
+            // No editor metadata — auto-layout nodes and route wires
+            auto_layout(bp);
         }
 
         return bp;

@@ -3,6 +3,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include <set>
 
 /// TDD Step 2: Persist - сначала тесты
 
@@ -147,4 +148,81 @@ TEST(PersistTest, LoadSimulatorFormat_VsuTest) {
     auto* gnd = bp->find_node("gnd");
     ASSERT_NE(gnd, nullptr);
     EXPECT_EQ(gnd->type_name, "RefNode");
+}
+
+/// Test auto-layout: loading JSON without editor block produces valid positions
+TEST(PersistTest, AutoLayout_NoEditorBlock) {
+    // Minimal JSON with devices + connections, no "editor" block
+    const char* json = R"({
+        "devices": [
+            { "name": "gnd", "internal": "RefNode",
+              "ports": { "v": { "direction": "Out" } },
+              "explicit_domains": ["Electrical"] },
+            { "name": "bat1", "internal": "Battery",
+              "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" } },
+              "explicit_domains": ["Electrical"] },
+            { "name": "bus1", "internal": "Bus",
+              "ports": { "v": { "direction": "InOut" } },
+              "explicit_domains": ["Electrical"] },
+            { "name": "load1", "internal": "Load",
+              "ports": { "input": { "direction": "In" } },
+              "explicit_domains": ["Electrical"] }
+        ],
+        "connections": [
+            { "from": "gnd.v", "to": "bat1.v_in" },
+            { "from": "bat1.v_out", "to": "bus1.v" },
+            { "from": "bus1.v", "to": "load1.input" }
+        ]
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    EXPECT_EQ(bp->nodes.size(), 4);
+    EXPECT_EQ(bp->wires.size(), 3);
+
+    // Bus/Ref should have small sizes (40x40), not the default 120x80
+    auto* bus = bp->find_node("bus1");
+    ASSERT_NE(bus, nullptr);
+    EXPECT_EQ(bus->kind, NodeKind::Bus);
+    EXPECT_LT(bus->size.y, 80.0f);  // bus height should be small
+
+    auto* gnd = bp->find_node("gnd");
+    ASSERT_NE(gnd, nullptr);
+    EXPECT_EQ(gnd->kind, NodeKind::Ref);
+
+    // All nodes should have distinct positions (not all at origin)
+    std::set<std::pair<float, float>> positions;
+    for (const auto& n : bp->nodes) {
+        positions.insert({n.pos.x, n.pos.y});
+    }
+    EXPECT_EQ(positions.size(), bp->nodes.size()) << "All nodes should have unique positions";
+
+    // Wires should have routing points (auto-routed)
+    int routed = 0;
+    for (const auto& w : bp->wires) {
+        if (!w.routing_points.empty()) routed++;
+    }
+    EXPECT_GT(routed, 0) << "At least some wires should have auto-routed paths";
+}
+
+/// Test auto-layout with the real composite test file (no editor block)
+TEST(PersistTest, AutoLayout_CompositeTestFile) {
+    auto bp = load_blueprint_from_file("/Users/vladimir/an24_cpp/an24_composite_test.json");
+    ASSERT_TRUE(bp.has_value());
+    EXPECT_EQ(bp->nodes.size(), 9);
+    EXPECT_EQ(bp->wires.size(), 10);
+
+    // All nodes should have unique positions
+    std::set<std::pair<float, float>> positions;
+    for (const auto& n : bp->nodes) {
+        positions.insert({n.pos.x, n.pos.y});
+    }
+    EXPECT_EQ(positions.size(), bp->nodes.size());
+
+    // Buses should be in the Bus column (center), sources in source column (left)
+    auto* bat = bp->find_node("bat_main_1");
+    auto* bus = bp->find_node("dc_bus_1");
+    ASSERT_NE(bat, nullptr);
+    ASSERT_NE(bus, nullptr);
+    EXPECT_LT(bat->pos.x, bus->pos.x) << "Battery should be left of bus";
 }
