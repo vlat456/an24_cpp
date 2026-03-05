@@ -269,37 +269,45 @@ BusVisualNode::BusVisualNode(const Node& node, BusOrientation orientation,
     , name_(node.name)
     , wires_(wires)
 {
-    distributePortsInRow(wires);
+    // Always create at least the main "v" port so Bus can be connected
+    Port v_port;
+    v_port.name = "v";
+    v_port.target_port = "";  // Empty means same as name (logical port)
+    v_port.world_position = calculatePortPosition(0);
+    ports_.push_back(v_port);
+    size_ = calculateBusSize(ports_.size());
+
+    // Then add ports for each connected wire
+    distributePortsInRow(wires_);
 }
 
 void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     ports_.clear();
 
-    size_t port_count = 0;
+    // Always create the main "v" port first (even if no wires)
+    Port v_port;
+    v_port.name = "v";
+    v_port.target_port = "";  // Empty means same as name (logical port)
+    v_port.world_position = calculatePortPosition(0);
+    ports_.push_back(v_port);
+
+    // Add ports for each connected wire (named after wire ID)
+    // These are visual aliases that target the logical port "v"
     for (const auto& w : wires) {
         if (w.start.node_id == node_id_ || w.end.node_id == node_id_) {
-            port_count++;
+            Port p;
+            p.name = w.id;              // Visual alias name (wire ID)
+            p.target_port = "v";        // Targets logical port "v"
+            p.world_position = calculatePortPosition(ports_.size());
+            ports_.push_back(p);
         }
     }
 
-    // Always have at least 1 port (the main "v" port) for hit testing
-    if (port_count == 0) {
-        port_count = 1;
-    }
+    size_ = calculateBusSize(ports_.size());
 
-    size_ = calculateBusSize(port_count);
-
-    // Create ports
-    for (size_t idx = 0; idx < port_count; idx++) {
-        Port p;
-        // First port is the main "v" port, others are wire attachment points
-        if (idx == 0) {
-            p.name = "v";
-        } else {
-            p.name = "inout_" + std::to_string(idx - 1);
-        }
-        p.world_position = calculatePortPosition(idx);
-        ports_.push_back(p);
+    // Recalculate all port positions
+    for (size_t i = 0; i < ports_.size(); i++) {
+        ports_[i].world_position = calculatePortPosition(i);
     }
 }
 
@@ -374,18 +382,8 @@ Pt BusVisualNode::getPortPosition(const std::string& port_name,
 
 void BusVisualNode::connectWire(const Wire& wire) {
     if (wire.start.node_id == node_id_ || wire.end.node_id == node_id_) {
-        std::string port_name = wire.id;
-        for (const auto& p : ports_) {
-            if (p.name == port_name) return;
-        }
-        Port p;
-        p.name = port_name;
-        p.world_position = calculatePortPosition(ports_.size());
-        ports_.push_back(p);
-        size_ = calculateBusSize(ports_.size());
-        for (size_t i = 0; i < ports_.size(); i++) {
-            ports_[i].world_position = calculatePortPosition(i);
-        }
+        // Simply redistribute all ports (including the new wire)
+        distributePortsInRow(wires_);
     }
 }
 
@@ -402,7 +400,7 @@ void BusVisualNode::disconnectWire(const Wire& wire) {
 }
 
 void BusVisualNode::recalculatePorts() {
-    distributePortsInRow();
+    distributePortsInRow(wires_);
 }
 
 void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
@@ -501,10 +499,10 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 // VisualNodeCache
 // ============================================================================
 
-BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node) {
+BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wire>& wires) {
     auto it = cache_.find(node.id);
     if (it == cache_.end()) {
-        auto visual = VisualNodeFactory::create(node);
+        auto visual = VisualNodeFactory::create(node, wires);
         auto* ptr = visual.get();
         cache_[node.id] = std::move(visual);
         return ptr;

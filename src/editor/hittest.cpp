@@ -90,8 +90,8 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
         const auto& node = bp.nodes[node_idx];
         auto* visual = const_cast<VisualNodeCache&>(cache).get(node.id);
         if (!visual) {
-            // Create visual node on the fly if not in cache
-            visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node);
+            // Create visual node on the fly if not in cache (pass wires for Bus nodes)
+            visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node, bp.wires);
         }
         if (!visual) continue;
 
@@ -108,20 +108,24 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
                 result.port_index = port_idx;
                 result.is_input = (port->name == "v") ? false : (node_idx < port_idx);  // Простая эвристика
                 result.port_node_id = node.id;
-                result.port_name = port->name;
+                // Use target_port if set (for PortAlias), otherwise use port name
+                result.port_name = port->target_port.empty() ? port->name : port->target_port;
                 result.port_position = port_pos;
 
                 // Determine port side by checking if it's in inputs or outputs
+                // For aliased ports, check the target port instead
+                std::string port_to_check = port->target_port.empty() ? port->name : port->target_port;
+
                 bool is_input = false;
                 bool is_output = false;
                 for (const auto& p : node.inputs) {
-                    if (p.name == port->name) {
+                    if (p.name == port_to_check) {
                         is_input = true;
                         break;
                     }
                 }
                 for (const auto& p : node.outputs) {
-                    if (p.name == port->name) {
+                    if (p.name == port_to_check) {
                         is_output = true;
                         break;
                     }

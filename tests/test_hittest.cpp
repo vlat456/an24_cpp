@@ -141,7 +141,7 @@ TEST(PortAliasTest, BusWithWire_ShouldCreateMultipleVisualPorts) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
-    auto* visual = cache.getOrCreate(bp.nodes[0]);
+    auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
     // Should have 2 visual ports: "v" + wire port
@@ -165,7 +165,7 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
-    auto* visual = cache.getOrCreate(bp.nodes[0]);
+    auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
     // Get position of visual port created for wire

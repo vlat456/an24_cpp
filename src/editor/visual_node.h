@@ -43,7 +43,8 @@ public:
     }
 
     struct Port {
-        std::string name;
+        std::string name;           ///< Visual port name (e.g., wire ID for dynamic aliases)
+        std::string target_port;    ///< Target logical port (empty if same as name)
         Pt world_position;
     };
 
@@ -219,7 +220,7 @@ class VisualNodeCache {
 public:
     VisualNodeCache() = default;
 
-    BaseVisualNode* getOrCreate(const Node& node);
+    BaseVisualNode* getOrCreate(const Node& node, const std::vector<Wire>& wires = {});
     BaseVisualNode* get(const std::string& node_id);
     void clear() { cache_.clear(); }
 
