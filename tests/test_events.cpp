@@ -255,3 +255,124 @@ TEST(EventsTest, AddComponent_UniqueIds) {
     ASSERT_EQ(app.blueprint.nodes.size(), 2);
     EXPECT_NE(app.blueprint.nodes[0].id, app.blueprint.nodes[1].id);
 }
+
+// ============================================================================
+// Wire Creation via Mouse Drag (TDD)
+// ============================================================================
+
+TEST(WireCreationTest, MouseDownOnPort_StartsCreatingWire) {
+    EditorApp app;
+
+    // Add battery component
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+
+    const auto& node = app.blueprint.nodes[0];
+    ASSERT_FALSE(node.outputs.empty());
+
+    // Get the position of the output port
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+    ASSERT_NE(visual, nullptr);
+
+    Pt port_pos = visual->getPortPosition(node.outputs[0].name);
+
+    // Mouse down on the output port
+    app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+
+    // Should start wire creation
+    EXPECT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+    EXPECT_TRUE(app.interaction.has_wire_start());
+}
+
+TEST(WireCreationTest, MouseUpOnCompatiblePort_CreatesWire) {
+    EditorApp app;
+
+    // Add battery and load components
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("HighPowerLoad", Pt(300, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 2);
+
+    const auto& batt = app.blueprint.nodes[0];
+    const auto& load = app.blueprint.nodes[1];
+
+    VisualNodeCache cache;
+    auto* batt_visual = cache.getOrCreate(batt);
+    auto* load_visual = cache.getOrCreate(load);
+    ASSERT_NE(batt_visual, nullptr);
+    ASSERT_NE(load_visual, nullptr);
+
+    Pt batt_out_pos = batt_visual->getPortPosition(batt.outputs[0].name);
+    Pt load_in_pos = load_visual->getPortPosition(load.inputs[0].name);
+
+    // Start dragging from battery output
+    app.on_mouse_down(batt_out_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+    ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+
+    // Release on load input
+    size_t wire_count_before = app.blueprint.wires.size();
+    app.on_mouse_up(MouseButton::Left);
+    size_t wire_count_after = app.blueprint.wires.size();
+
+    // Should create a wire
+    EXPECT_GT(wire_count_after, wire_count_before);
+}
+
+TEST(WireCreationTest, MouseUpOnIncompatiblePort_DoesNotCreateWire) {
+    EditorApp app;
+
+    // Add two batteries (output-to-output is invalid)
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("Battery", Pt(300, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 2);
+
+    const auto& batt1 = app.blueprint.nodes[0];
+    const auto& batt2 = app.blueprint.nodes[1];
+
+    VisualNodeCache cache;
+    auto* batt1_visual = cache.getOrCreate(batt1);
+    auto* batt2_visual = cache.getOrCreate(batt2);
+    ASSERT_NE(batt1_visual, nullptr);
+    ASSERT_NE(batt2_visual, nullptr);
+
+    Pt batt1_out_pos = batt1_visual->getPortPosition(batt1.outputs[0].name);
+    Pt batt2_out_pos = batt2_visual->getPortPosition(batt2.outputs[0].name);
+
+    // Start dragging from first battery output
+    app.on_mouse_down(batt1_out_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+    ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+
+    // Release on second battery output (output-to-output should fail)
+    size_t wire_count_before = app.blueprint.wires.size();
+    app.on_mouse_up(MouseButton::Left);
+    size_t wire_count_after = app.blueprint.wires.size();
+
+    // Should NOT create a wire
+    EXPECT_EQ(wire_count_after, wire_count_before);
+}
+
+TEST(WireCreationTest, MouseUpOnEmptySpace_CancelsWireCreation) {
+    EditorApp app;
+
+    // Add battery component
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+
+    const auto& node = app.blueprint.nodes[0];
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+    ASSERT_NE(visual, nullptr);
+
+    Pt port_pos = visual->getPortPosition(node.outputs[0].name);
+
+    // Start dragging from output port
+    app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+    ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+
+    // Release on empty space
+    app.on_mouse_up(MouseButton::Left);
+
+    // Should cancel wire creation
+    EXPECT_EQ(app.interaction.dragging, Dragging::None);
+    EXPECT_FALSE(app.interaction.has_wire_start());
+}
