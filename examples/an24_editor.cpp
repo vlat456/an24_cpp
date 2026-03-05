@@ -512,8 +512,8 @@ int main(int argc, char** argv) {
                 const auto* def = app.component_registry.get(classname);
                 if (def && ImGui::MenuItem(classname.c_str())) {
                     // TODO: Add component to blueprint at context_menu_pos
-                    DEBUG_INFO("Selected component: {} at ({:.1f}, {:.1f})",
-                             classname, app.context_menu_pos.x, app.context_menu_pos.y);
+                    printf("Selected component: %s at (%.1f, %.1f)\n",
+                           classname.c_str(), app.context_menu_pos.x, app.context_menu_pos.y);
                 }
             }
 

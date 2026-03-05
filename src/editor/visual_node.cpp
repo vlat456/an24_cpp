@@ -234,12 +234,8 @@ Bounds StandardVisualNode::getContentBounds() const {
     }
 
     if (!content_widget) {
-        printf("  No ContentWidget found\n");
         return {};
     }
-
-    printf("  ContentWidget: x=%.2f, w=%.2f, h=%.2f\n", content_widget->x(), content_widget->width(), content_height);
-    printf("  Computed bounds: left_edge=%.2f, right_edge=%.2f\n", max_left_edge, max_right_edge);
 
     // Use port row bounds if available, otherwise use widget's own content area
     if (found_any_port_row && max_right_edge > max_left_edge) {
@@ -249,7 +245,6 @@ Bounds StandardVisualNode::getContentBounds() const {
             std::max(0.0f, max_right_edge - max_left_edge),
             content_height
         };
-        printf("  Result (from port rows): x=%.2f, w=%.2f, h=%.2f\n", result.x, result.w, result.h);
         return result;
     }
 
@@ -261,7 +256,6 @@ Bounds StandardVisualNode::getContentBounds() const {
         content_area.w,
         content_area.h
     };
-    printf("  Result (fallback): x=%.2f, w=%.2f, h=%.2f\n", result.x, result.w, result.h);
     return result;
 }
 
