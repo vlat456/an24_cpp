@@ -48,6 +48,15 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             interaction.clear_selection();
             interaction.set_panning(true);
         }
+    } else if (btn == MouseButton::Right) {
+        // Right click - show context menu
+        HitResult hit = hit_test(blueprint, world_pos, viewport);
+        if (hit.type == HitType::None) {
+            // Click on empty space - show add component menu
+            show_context_menu = true;
+            context_menu_pos = world_pos;
+        }
+        // For other hit types, we could show context menus later (delete, properties, etc.)
     }
 }
 

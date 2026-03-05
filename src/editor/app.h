@@ -6,6 +6,8 @@
 #include "hittest.h"
 #include "visual_node.h"
 #include "simulation.h"
+#include "json_parser/json_parser.h"
+#include <optional>
 
 /// Кнопки мыши
 enum class MouseButton {
@@ -42,7 +44,17 @@ struct EditorApp {
     SimulationController simulation;
     bool simulation_running = false;
 
-    EditorApp() = default;
+    /// Component registry (loaded from components/*.json)
+    ComponentRegistry component_registry;
+
+    /// Context menu state
+    bool show_context_menu = false;
+    Pt context_menu_pos;
+
+    EditorApp() {
+        // Load component registry at startup
+        component_registry = load_component_registry();
+    }
 
     /// Создать новую схему
     void new_circuit() {

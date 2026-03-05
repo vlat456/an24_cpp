@@ -493,6 +493,33 @@ int main(int argc, char** argv) {
         ImGui::End();
         ImGui::PopStyleVar();
 
+        // Context menu for adding components (right-click on empty space)
+        if (app.show_context_menu) {
+            ImGui::OpenPopup("AddComponent");
+            app.show_context_menu = false; // Reset flag
+        }
+
+        if (ImGui::BeginPopup("AddComponent")) {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Add Component");
+            ImGui::Separator();
+
+            // Get sorted list of component classnames
+            auto classnames = app.component_registry.list_classnames();
+            std::sort(classnames.begin(), classnames.end());
+
+            // Show menu items for each component
+            for (const auto& classname : classnames) {
+                const auto* def = app.component_registry.get(classname);
+                if (def && ImGui::MenuItem(classname.c_str())) {
+                    // TODO: Add component to blueprint at context_menu_pos
+                    DEBUG_INFO("Selected component: {} at ({:.1f}, {:.1f})",
+                             classname, app.context_menu_pos.x, app.context_menu_pos.y);
+                }
+            }
+
+            ImGui::EndPopup();
+        }
+
         // Рендер
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
