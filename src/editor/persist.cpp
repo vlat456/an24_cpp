@@ -171,6 +171,27 @@ static Node device_to_node(const json& d, int index) {
         }
     }
 
+    // Auto-generate node_content based on device type
+    if (n.type_name == "Battery") {
+        n.node_content.type = NodeContentType::Gauge;
+        n.node_content.label = "V";
+        n.node_content.value = 0.0f;
+        n.node_content.min = 0.0f;
+        n.node_content.max = 30.0f;
+        n.node_content.unit = "V";
+    } else if (n.type_name == "Switch") {
+        n.node_content.type = NodeContentType::Switch;
+        n.node_content.label = "ON";
+        n.node_content.state = false;
+    } else if (n.type_name == "IndicatorLight") {
+        n.node_content.type = NodeContentType::Text;
+        n.node_content.label = "OFF";
+    } else if (n.type_name == "DMR400") {
+        n.node_content.type = NodeContentType::Switch;
+        n.node_content.label = "ON";
+        n.node_content.state = false;
+    }
+
     return n;
 }
 
