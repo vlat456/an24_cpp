@@ -639,6 +639,19 @@ editor_widget_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/build
 .PHONY : editor_widget_tests/fast
 
+#=============================================================================
+# Target rules for targets named editor_simulation_tests
+
+# Build rule for target.
+editor_simulation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_simulation_tests
+.PHONY : editor_simulation_tests
+
+# fast build rule for target.
+editor_simulation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
+.PHONY : editor_simulation_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -670,6 +683,7 @@ help:
 	@echo "... editor_render_tests"
 	@echo "... editor_router_tests"
 	@echo "... editor_routing_tests"
+	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
 	@echo "... gmock"

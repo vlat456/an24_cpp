@@ -118,6 +118,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_routing_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_router_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_widget_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

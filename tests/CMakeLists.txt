@@ -190,3 +190,21 @@ target_link_libraries(editor_widget_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_widget_tests)
+
+# Editor simulation tests (TDD - integration with JIT solver)
+add_executable(editor_simulation_tests
+    test_simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+)
+target_include_directories(editor_simulation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(editor_simulation_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_simulation_tests)
