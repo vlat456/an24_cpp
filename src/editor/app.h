@@ -51,6 +51,7 @@ struct EditorApp {
         interaction = Interaction();
         simulation = SimulationController();
         simulation_running = false;
+        visual_cache.clear();
     }
 
     /// Запустить симуляцию

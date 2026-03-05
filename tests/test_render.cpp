@@ -5,6 +5,7 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/viewport/viewport.h"
+#include "editor/visual_node.h"
 
 /// TDD Step 5: Rendering
 
@@ -266,4 +267,81 @@ TEST(RenderTest, Tooltip_WireHover_NoSimulation_NoTooltip) {
 
     // Without simulation, no tooltip
     EXPECT_FALSE(tooltip.active) << "Tooltip should not be active without simulation";
+}
+
+// ─── VisualNodeCache regression tests ───
+
+TEST(RenderTest, VisualNodeCache_NodeContent_SyncsAfterClear) {
+    // Create a node without content
+    Node node;
+    node.id = "test_node";
+    node.name = "Test";
+    node.type_name = "Battery";
+    node.input("v_in");
+    node.output("v_out");
+    node.at(100, 100);
+    node.size_wh(120, 80);
+
+    VisualNodeCache cache;
+
+    // First, create a visual node without content
+    auto* visual1 = cache.getOrCreate(node);
+    EXPECT_EQ(visual1->getContentType(), NodeContentType::None)
+        << "Initial visual node should have no content";
+
+    // Now update the node to have content
+    NodeContent content;
+    content.type = NodeContentType::Switch;
+    content.state = true;
+    node.node_content = content;
+
+    // Get visual node again WITHOUT clearing cache - should still return cached version
+    auto* visual2 = cache.getOrCreate(node);
+    EXPECT_EQ(visual2->getContentType(), NodeContentType::None)
+        << "Cached visual node should still have no content (stale cache)";
+
+    // Clear the cache
+    cache.clear();
+
+    // Now get visual node again - should have updated content
+    auto* visual3 = cache.getOrCreate(node);
+    EXPECT_EQ(visual3->getContentType(), NodeContentType::Switch)
+        << "After cache clear, visual node should have updated content";
+}
+
+TEST(RenderTest, VisualNodeCache_GetContentBounds_WithContent) {
+    // Create a node with content
+    Node node;
+    node.id = "test_node";
+    node.name = "Test";
+    node.type_name = "Battery";
+    node.input("v_in");
+    node.output("v_out");
+    node.at(100, 100);
+    node.size_wh(120, 80);
+
+    NodeContent content;
+    content.type = NodeContentType::Value;
+    content.value = 42.0f;
+    content.min = 0.0f;
+    content.max = 100.0f;
+    content.label = "Voltage";
+    node.node_content = content;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+
+    // Verify content type is set correctly
+    EXPECT_EQ(visual->getContentType(), NodeContentType::Value);
+
+    // Verify content bounds are valid (not empty)
+    Bounds bounds = visual->getContentBounds();
+    EXPECT_GT(bounds.w, 0.0f) << "Content bounds should have positive width";
+    EXPECT_GT(bounds.h, 0.0f) << "Content bounds should have positive height";
+
+    // Verify content value matches
+    const NodeContent& node_content = visual->getNodeContent();
+    EXPECT_EQ(node_content.type, NodeContentType::Value);
+    EXPECT_FLOAT_EQ(node_content.value, 42.0f);
+    EXPECT_EQ(node_content.label, "Voltage");
 }

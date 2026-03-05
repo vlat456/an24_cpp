@@ -187,6 +187,8 @@ int main(int argc, char** argv) {
         app.viewport.zoom = app.blueprint.zoom;
         app.viewport.grid_step = app.blueprint.grid_step;
         app.viewport.clamp_zoom();
+        // Clear visual cache to rebuild nodes with correct node_content
+        app.visual_cache.clear();
         DEBUG_INFO("Loaded default file: {}", default_file);
     }
 
@@ -252,6 +254,8 @@ int main(int argc, char** argv) {
                             app.viewport.zoom = app.blueprint.zoom;
                             app.viewport.grid_step = app.blueprint.grid_step;
                             app.viewport.clamp_zoom();
+                            // Clear visual cache to rebuild nodes with correct node_content
+                            app.visual_cache.clear();
                         }
                         NFD_FreePath(outPath);
                     }
