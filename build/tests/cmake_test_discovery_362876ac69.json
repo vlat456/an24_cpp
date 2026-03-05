@@ -174,17 +174,17 @@
         {
           "name": "OnClick_PressedOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 934
+          "line": 932
         },
         {
           "name": "OnRelease_ReleasedOutput",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 962
+          "line": 967
         },
         {
-          "name": "ResetToIdle_ClearsOutputs",
+          "name": "ZeroVolts_PreservesState",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 992
+          "line": 1007
         }
       ]
     }
