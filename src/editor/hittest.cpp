@@ -73,3 +73,44 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
 
     return result;
 }
+
+// ============================================================================
+// Port Hit Testing
+// ============================================================================
+
+namespace {
+    constexpr float PORT_HIT_RADIUS = 10.0f;  // Радиус зоны клика порта
+}
+
+HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt world_pos) {
+    HitResult result;
+
+    // Проверяем порты всех узлов
+    for (size_t node_idx = 0; node_idx < bp.nodes.size(); node_idx++) {
+        const auto& node = bp.nodes[node_idx];
+        auto* visual = const_cast<VisualNodeCache&>(cache).get(node.id);
+        if (!visual) continue;
+
+        // Проверяем все порты
+        for (size_t port_idx = 0; port_idx < visual->getPortCount(); port_idx++) {
+            const auto* port = visual->getPort(port_idx);
+            if (!port) break;
+
+            Pt port_pos = visual->getPortPosition(port->name);
+            float dist = editor_math::distance(world_pos, port_pos);
+            if (dist <= PORT_HIT_RADIUS) {
+                result.type = HitType::Port;
+                result.node_index = node_idx;
+                result.port_index = port_idx;
+                result.is_input = (port->name == "v") ? false : (node_idx < port_idx);  // Простая эвристика
+                result.port_node_id = node.id;
+                result.port_name = port->name;
+                result.port_position = port_pos;
+                result.port_side = PortSide::Input;  // TODO: определить из node.inputs/outputs
+                return result;
+            }
+        }
+    }
+
+    return result;
+}

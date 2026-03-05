@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data/pt.h"
+#include "data/port.h"
 #include <optional>
 #include <vector>
 #include <algorithm>
@@ -9,13 +10,22 @@
 enum class Dragging {
     None,           ///< Ничего не перетаскивается
     Node,           ///< Перетаскивается узел
-    RoutingPoint    ///< Перетаскивается точка изгиба провода
+    RoutingPoint,   ///< Перетаскивается точка изгиба провода
+    CreatingWire    ///< Создаётся новый провод
 };
 
 /// Interaction state - состояние взаимодействия с канвой
 ///
 /// Хранит selection, drag state, panning state.
 struct Interaction {
+private:
+    /// Данные для создания провода
+    std::string wire_start_node;    ///< Откуда тянем провод
+    std::string wire_start_port;    ///< Какой порт
+    Pt wire_start_pos;              ///< Позиция порта
+    PortSide wire_start_side;        ///< Input/Output
+
+public:
     /// Выделенные узлы (для множественного выделения)
     std::vector<size_t> selected_nodes;
 
@@ -103,5 +113,27 @@ struct Interaction {
     /// Установить режим панорамирования
     void set_panning(bool value) {
         panning = value;
+    }
+
+    /// Начать создание провода из порта
+    void start_wire_creation(const std::string& node_id, const std::string& port_name,
+                            PortSide side, Pt port_pos) {
+        dragging = Dragging::CreatingWire;
+        wire_start_node = node_id;
+        wire_start_port = port_name;
+        wire_start_side = side;
+        wire_start_pos = port_pos;
+    }
+
+    /// Получить данные для создания провода
+    bool has_wire_start() const { return !wire_start_node.empty(); }
+    Pt get_wire_start_pos() const { return wire_start_pos; }
+
+    /// Очистить данные создания провода
+    void clear_wire_creation() {
+        wire_start_node.clear();
+        wire_start_port.clear();
+        wire_start_side = PortSide::Input;
+        wire_start_pos = Pt::zero();
     }
 };
