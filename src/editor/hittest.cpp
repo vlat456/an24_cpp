@@ -88,11 +88,9 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
     // Проверяем порты всех узлов
     for (size_t node_idx = 0; node_idx < bp.nodes.size(); node_idx++) {
         const auto& node = bp.nodes[node_idx];
-        auto* visual = const_cast<VisualNodeCache&>(cache).get(node.id);
-        if (!visual) {
-            // Create visual node on the fly if not in cache (pass wires for Bus nodes)
-            visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node, bp.wires);
-        }
+        // Always call getOrCreate with wires to ensure BusVisualNode has dynamic ports
+        // This is important because Bus nodes create visual ports based on wire connections
+        auto* visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node, bp.wires);
         if (!visual) continue;
 
         // Проверяем все порты

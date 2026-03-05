@@ -1,4 +1,5 @@
 #include "visual_node.h"
+#include "data/node.h"
 #include "render.h"
 #include <algorithm>
 #include <cmath>
@@ -516,35 +517,38 @@ BaseVisualNode* VisualNodeCache::get(const std::string& node_id) {
 }
 
 void VisualNodeCache::onWireAdded(const Wire& wire, const std::vector<Node>& all_nodes) {
+    (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
-        if (node.id == wire.start.node_id) {
-            auto* visual = getOrCreate(node);
-            visual->connectWire(wire);
-            break;
-        }
-    }
-    for (const auto& node : all_nodes) {
-        if (node.id == wire.end.node_id) {
-            auto* visual = getOrCreate(node);
-            visual->connectWire(wire);
-            break;
+        if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
+            // For Bus nodes, remove from cache to force recreation with updated wire list
+            // This is necessary because BusVisualNode creates dynamic ports based on ALL wires
+            if (node.kind == NodeKind::Bus) {
+                cache_.erase(node.id);
+            } else {
+                // For other nodes, use connectWire method
+                auto* visual = get(node.id);
+                if (visual) {
+                    visual->connectWire(wire);
+                }
+            }
         }
     }
 }
 
 void VisualNodeCache::onWireDeleted(const Wire& wire, const std::vector<Node>& all_nodes) {
+    (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
-        if (node.id == wire.start.node_id) {
-            auto* visual = get(node.id);
-            if (visual) visual->disconnectWire(wire);
-            break;
-        }
-    }
-    for (const auto& node : all_nodes) {
-        if (node.id == wire.end.node_id) {
-            auto* visual = get(node.id);
-            if (visual) visual->disconnectWire(wire);
-            break;
+        if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
+            // For Bus nodes, remove from cache to force recreation with updated wire list
+            if (node.kind == NodeKind::Bus) {
+                cache_.erase(node.id);
+            } else {
+                // For other nodes, use disconnectWire method
+                auto* visual = get(node.id);
+                if (visual) {
+                    visual->disconnectWire(wire);
+                }
+            }
         }
     }
 }
