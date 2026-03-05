@@ -119,3 +119,66 @@ TEST(PortHitTest, ClickFarFromPorts_ReturnsNone) {
     auto hit = hit_test_ports(bp, cache, Pt(1000.0f, 1000.0f));
     EXPECT_EQ(hit.type, HitType::None);
 }
+
+// ============================================================================
+// PortAlias Tests (TDD)
+// ============================================================================
+
+TEST(PortAliasTest, BusWithWire_ShouldCreateMultipleVisualPorts) {
+    // Create a Bus with a wire
+    Blueprint bp;
+    Node bus;
+    bus.id = "bus_1";
+    bus.kind = NodeKind::Bus;
+    bus.at(100.0f, 100.0f);
+    bus.size_wh(40.0f, 40.0f);
+    bus.input("v").output("v");  // InOut port
+    bp.add_node(std::move(bus));
+
+    Wire w = Wire::make("wire_1",
+        WireEnd("battery_1", "v_out", PortSide::Output),
+        WireEnd("bus_1", "v", PortSide::InOut));
+    bp.add_wire(std::move(w));
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(bp.nodes[0]);
+    ASSERT_NE(visual, nullptr);
+
+    // Should have 2 visual ports: "v" + wire port
+    EXPECT_EQ(visual->getPortCount(), 2);  // FAILS - currently only 1
+}
+
+TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
+    // Create a Bus with wire
+    Blueprint bp;
+    Node bus;
+    bus.id = "bus_1";
+    bus.kind = NodeKind::Bus;
+    bus.at(100.0f, 100.0f);
+    bus.size_wh(40.0f, 40.0f);
+    bus.input("v").output("v");
+    bp.add_node(std::move(bus));
+
+    Wire w = Wire::make("wire_1",
+        WireEnd("battery_1", "v_out", PortSide::Output),
+        WireEnd("bus_1", "v", PortSide::InOut));
+    bp.add_wire(std::move(w));
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(bp.nodes[0]);
+    ASSERT_NE(visual, nullptr);
+
+    // Get position of visual port created for wire
+    Pt wire_port_pos = visual->getPortPosition("wire_1");
+
+    // Hit test should find the port
+    auto hit = hit_test_ports(bp, cache, wire_port_pos);
+    EXPECT_EQ(hit.type, HitType::Port);
+    EXPECT_EQ(hit.port_node_id, "bus_1");
+
+    // Should return TARGET port "v", not visual alias name "wire_1"
+    // This ensures wire creation uses correct port names
+    EXPECT_EQ(hit.port_name, "v");  // FAILS - returns "wire_1"
+}
+
+
