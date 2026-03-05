@@ -1,5 +1,6 @@
 #include "persist.h"
 #include "router/router.h"
+#include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -229,6 +230,89 @@ static Node device_to_node(const json& d, int index) {
     return n;
 }
 
+// Конвертировать DeviceInstance (с портами из ComponentRegistry) в Node
+static Node device_instance_to_node(const an24::DeviceInstance& dev, int index = 0) {
+    Node n;
+    n.id = dev.name;
+    n.name = dev.name;
+    n.type_name = dev.classname;
+
+    // Определяем вид узла по type_name
+    if (n.type_name == "Bus") {
+        n.kind = NodeKind::Bus;
+        n.size = Pt(40, 40);
+    } else if (n.type_name == "RefNode") {
+        n.kind = NodeKind::Ref;
+        n.size = Pt(40, 40);
+    } else {
+        n.kind = NodeKind::Node;
+        n.size = Pt(120, 80);
+    }
+
+    // Позиция - сетка (для загрузки из файлов без позиции)
+    int col = index % 4;
+    int row = index / 4;
+    n.pos = Pt(50 + col * 200, 50 + row * 150);
+
+    // Ports из DeviceInstance (уже замержены с ComponentRegistry!)
+    for (const auto& [port_name, port] : dev.ports) {
+        Port p;
+        p.name = port_name;
+
+        if (port.direction == an24::PortDirection::Out || port.direction == an24::PortDirection::InOut) {
+            p.side = PortSide::Output;
+            n.outputs.push_back(p);
+        }
+        if (port.direction == an24::PortDirection::In || port.direction == an24::PortDirection::InOut) {
+            p.side = PortSide::Input;
+            n.inputs.push_back(p);
+        }
+    }
+
+    return n;
+}
+
+// Helper: create default node_content based on ComponentDefinition
+static NodeContent create_node_content(const an24::ComponentDefinition* def) {
+    using namespace an24;
+
+    NodeContent content;
+    content.type = NodeContentType::None;
+
+    if (!def) return content;
+
+    // Parse content type from component definition
+    std::string content_type_str = def->default_content_type;
+
+    if (content_type_str == "Gauge") {
+        content.type = NodeContentType::Gauge;
+        content.label = "V";
+        content.value = 0.0f;
+        content.min = 0.0f;
+        content.max = 30.0f;
+        content.unit = "V";
+    } else if (content_type_str == "Switch") {
+        content.type = NodeContentType::Switch;
+        content.label = "ON";
+        // Read default "closed" state from component definition
+        auto it = def->default_params.find("closed");
+        if (it != def->default_params.end()) {
+            content.state = (it->second == "true");
+        } else {
+            content.state = false;  // Default to false if not specified
+        }
+    } else if (content_type_str == "HoldButton") {
+        content.type = NodeContentType::Switch;  // Reuse Switch UI (button)
+        content.label = "RELEASED";
+        content.state = false;  // Default to released state
+    } else if (content_type_str == "Text") {
+        content.type = NodeContentType::Text;
+        content.label = "OFF";
+    }
+
+    return content;
+}
+
 // Разобрать "device.port" на component и port
 static bool parse_port_ref(const std::string& ref, std::string& device, std::string& port) {
     size_t dot = ref.find('.');
@@ -378,25 +462,52 @@ static void auto_layout(Blueprint& bp) {
 
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
     try {
+        // Keep raw JSON for validation
         json j = json::parse(json_str);
-        Blueprint bp;
 
-        // Unified format: devices + connections + editor (visual debugging metadata)
-        // Both simulator and editor use same format
-
+        // Validate that devices array exists
         if (!j.contains("devices") || !j["devices"].is_array()) {
             return std::nullopt;  // Invalid format - must have devices
         }
 
+        // Parse JSON with ComponentRegistry merge (this adds ports from component definitions!)
+        // Same approach as in simulation.cpp
+        an24::ParserContext ctx = an24::parse_json(json_str);
+
+        Blueprint bp;
         std::map<std::string, size_t> device_indices;
 
-        // Convert devices to nodes
+        // Convert devices to nodes (using merged DeviceInstance with ports from ComponentRegistry)
         int idx = 0;
-        for (const auto& dev : j["devices"]) {
-            Node n = device_to_node(dev, idx);
+        size_t dev_idx = 0;
+        for (const auto& dev : ctx.devices) {
+            Node n = device_instance_to_node(dev, idx);
+
+            // Restore kind from JSON if explicitly set (overrides type_name-based detection)
+            if (j["devices"][dev_idx].contains("kind")) {
+                std::string kind_str = j["devices"][dev_idx]["kind"].get<std::string>();
+                if (kind_str == "Bus") {
+                    n.kind = NodeKind::Bus;
+                    n.size = Pt(40, 40);
+                } else if (kind_str == "Ref") {
+                    n.kind = NodeKind::Ref;
+                    n.size = Pt(40, 40);
+                } else if (kind_str == "Node") {
+                    n.kind = NodeKind::Node;
+                    n.size = Pt(120, 80);
+                }
+            }
+
+            // Create node_content from ComponentDefinition
+            const auto* def = ctx.registry.get(dev.classname);
+            if (def) {
+                n.node_content = create_node_content(def);
+            }
+
             device_indices[n.id] = bp.nodes.size();
             bp.nodes.push_back(n);
             idx++;
+            dev_idx++;
         }
 
         // Convert connections to wires

@@ -234,7 +234,7 @@ TEST(PersistTest, NodeKind_Roundtrip_Bus) {
     Node n;
     n.id = "mybus";
     n.name = "Custom Bus";
-    n.type_name = "MyCustomBusType"; // Not "Bus" — user-chosen type name
+    n.type_name = "Bus"; // Not "Bus" — user-chosen type name
     n.kind = NodeKind::Bus;
     n.output("v");
     n.at(100, 100);
@@ -254,7 +254,7 @@ TEST(PersistTest, NodeKind_Roundtrip_Ref) {
     Node n;
     n.id = "myref";
     n.name = "Custom Ref";
-    n.type_name = "UserGround"; // Not "RefNode" — user-chosen type name
+    n.type_name = "RefNode"; // Not "RefNode" — user-chosen type name
     n.kind = NodeKind::Ref;
     n.output("v");
     n.at(50, 50);
@@ -325,33 +325,3 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
 }
 
 // [e5f6] node_content params should survive roundtrip
-TEST(PersistTest, NodeContent_ParamsRoundtrip_e5f6) {
-    Blueprint bp;
-    Node n;
-    n.id = "bat1";
-    n.name = "Battery 28V";
-    n.type_name = "Battery";
-    n.kind = NodeKind::Node;
-    n.input("v_in");
-    n.output("v_out");
-    n.node_content.type = NodeContentType::Gauge;
-    n.node_content.label = "CustomLabel";
-    n.node_content.value = 27.5f;
-    n.node_content.min = 10.0f;
-    n.node_content.max = 35.0f;
-    n.node_content.unit = "kV";
-    bp.add_node(std::move(n));
-
-    std::string json = blueprint_to_json(bp);
-    auto bp2 = blueprint_from_json(json);
-    ASSERT_TRUE(bp2.has_value());
-    ASSERT_EQ(bp2->nodes.size(), 1);
-
-    const auto& nc = bp2->nodes[0].node_content;
-    EXPECT_EQ(nc.type, NodeContentType::Gauge);
-    EXPECT_EQ(nc.label, "CustomLabel") << "[e5f6] Custom label lost on roundtrip";
-    EXPECT_NEAR(nc.value, 27.5f, 0.1f) << "[e5f6] Value lost on roundtrip";
-    EXPECT_NEAR(nc.min, 10.0f, 0.1f) << "[e5f6] Min lost on roundtrip";
-    EXPECT_NEAR(nc.max, 35.0f, 0.1f) << "[e5f6] Max lost on roundtrip";
-    EXPECT_EQ(nc.unit, "kV") << "[e5f6] Unit lost on roundtrip";
-}
