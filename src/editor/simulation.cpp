@@ -44,7 +44,7 @@ void SimulationController::build(const Blueprint& bp) {
         }
     }
 
-    running = false;
+    // Preserve running state across rebuilds (don't reset running flag)
     time = 0.0f;
     step_count = 0;
 }

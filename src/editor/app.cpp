@@ -173,6 +173,9 @@ void EditorApp::on_key_down(Key key) {
             blueprint.wires.end());
 
         interaction.clear_selection();
+
+        // Rebuild simulation after removing nodes
+        rebuild_simulation();
     } else if (key == Key::R) {
         // R - роутинг выделенного провода
         if (interaction.selected_wire.has_value()) {
@@ -429,10 +432,13 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
 
     // Add node to blueprint
     blueprint.add_node(node);
-    
+
     // Clear visual cache to force rebuild
     visual_cache.clear();
-    
+
+    // Rebuild simulation to include new component
+    rebuild_simulation();
+
     printf("Added component: %s (id=%s) at (%.1f, %.1f) with %zu inputs, %zu outputs\n",
            classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
            node.inputs.size(), node.outputs.size());

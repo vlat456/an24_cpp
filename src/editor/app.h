@@ -70,10 +70,21 @@ struct EditorApp {
         visual_cache.clear();
     }
 
+    /// Перестроить симуляцию (при изменении схемы)
+    void rebuild_simulation() {
+        simulation.build(blueprint);
+        if (simulation_running) {
+            simulation.start();
+        }
+    }
+
     /// Запустить симуляцию
     void start_simulation() {
         if (!simulation_running) {
-            simulation.build(blueprint);
+            // Если симуляция еще не построена, строим её
+            if (!simulation.build_result.has_value()) {
+                simulation.build(blueprint);
+            }
             simulation.start();
             simulation_running = true;
         }
