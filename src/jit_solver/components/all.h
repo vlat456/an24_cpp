@@ -80,16 +80,17 @@ public:
 
 /// HoldButton - hold-to-operate button with press/release detection
 /// Control Protocol: 0.0V=Idle, 1.0V=Pressed, 2.0V=Released
+/// State output: 1.0V = pressed, 0.0V = released/idle
 class HoldButton : public Component {
 public:
     uint32_t control_idx = 0;   // Control input (commands from UI)
-    uint32_t pressed_idx = 0;   // Output: 1.0V when button pressed
-    uint32_t released_idx = 0;  // Output: 1.0V when button released
+    uint32_t state_idx = 0;      // State output: 1.0V=pressed, 0.0V=released
     float last_control = 0.0f;   // Previous control value (edge detection)
+    bool is_pressed = false;     // Current button state (latched)
 
     HoldButton() = default;
-    HoldButton(uint32_t control, uint32_t pressed, uint32_t released)
-        : control_idx(control), pressed_idx(pressed), released_idx(released), last_control(0.0f) {}
+    HoldButton(uint32_t control, uint32_t state)
+        : control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
     void post_step(SimulationState& state, float dt) override;

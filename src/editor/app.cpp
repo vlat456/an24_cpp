@@ -327,11 +327,11 @@ void EditorApp::update_node_content_from_simulation() {
             float state_voltage = simulation.get_port_value(node.id, "state");
             node.node_content.state = (state_voltage > 0.5f);
         }
-        // Update HoldButton state from pressed port
+        // Update HoldButton state from state port (1.0V = pressed, 0.0V = released/idle)
         else if (node.type_name == "HoldButton") {
-            float pressed = simulation.get_port_value(node.id, "pressed");
+            float state_voltage = simulation.get_port_value(node.id, "state");
             // state=true = PRESSED, state=false = RELEASED/idle
-            node.node_content.state = (pressed > 0.5f);
+            node.node_content.state = (state_voltage > 0.5f);
         }
         // Relay has no UI - automatic device controlled by external signals
     }

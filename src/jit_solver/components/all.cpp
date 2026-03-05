@@ -103,25 +103,27 @@ void HoldButton::post_step(SimulationState& state, float /*dt*/) {
     // 1.0V → 2.0V = Released (onRelease)
     // 2.0V → 0.0V = Reset to idle
 
-    float pressed_out = 0.0f;
-    float released_out = 0.0f;
-
     if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
         // Transition to Pressed state
-        pressed_out = 1.0f;
+        is_pressed = true;
         spdlog::info("[HoldButton] PRESSED (onClick)");
     } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
         // Transition to Released state
-        released_out = 1.0f;
+        is_pressed = false;
         spdlog::info("[HoldButton] RELEASED (onRelease)");
+    } else if (std::abs(current - 0.0f) < 0.1f) {
+        // Reset to idle
+        if (is_pressed) {
+            spdlog::info("[HoldButton] RESET to idle (was PRESSED)");
+        }
+        is_pressed = false;
     }
 
     // Store for next step
     last_control = current;
 
-    // Set outputs
-    state.across[pressed_idx] = pressed_out;
-    state.across[released_idx] = released_out;
+    // Output state: 1.0V = pressed, 0.0V = released/idle
+    state.across[state_idx] = is_pressed ? 1.0f : 0.0f;
 }
 
 void Resistor::solve_electrical(SimulationState& state) {
