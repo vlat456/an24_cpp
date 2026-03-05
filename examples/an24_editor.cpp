@@ -306,33 +306,50 @@ int main(int argc, char** argv) {
             // Get or create visual node from cache
             auto* visual = app.visual_cache.getOrCreate(node);
 
+            // Update visual node position from current node position (for drag)
+            visual->setPosition(node.pos);
+            visual->setSize(node.size);
+
             // Calculate screen position of node
             Pt screen_min = app.viewport.world_to_screen(visual->getPosition(), canvas_min_pt);
-            Pt screen_max = app.viewport.world_to_screen(
-                Pt(visual->getPosition().x + visual->getSize().x,
-                   visual->getPosition().y + visual->getSize().y), canvas_min_pt);
+            Pt node_size = visual->getSize();
 
-            // Calculate safe content area (avoiding port labels)
-            float zoom = app.viewport.zoom;
-            float header_h = 20.0f * zoom;
-            float margin = 8.0f * zoom;
-
-            // Input port labels extend to the right from left edge
-            // Output port labels extend to the left from right edge
-            float content_min_x = screen_min.x + margin;
-            float content_max_x = screen_max.x - margin;
-
-            // If node has content, render ImGui widget
+            // If node has content, use NodeLayout to calculate positions
             NodeContentType ctype = visual->getContentType();
             if (ctype != NodeContentType::None) {
-                // Set cursor to content area (in screen coordinates)
-                float content_y = screen_min.y + header_h + margin;
-                ImGui::SetCursorScreenPos(ImVec2(content_min_x, content_y));
+                // Create layout and add widgets
+                NodeLayout layout;
+                float zoom = app.viewport.zoom;
 
-                // Calculate available width (avoid overlapping port labels)
-                float available_width = content_max_x - content_min_x;
+                // Add port labels for input ports
+                for (const auto& port : node.inputs) {
+                    layout.AddWidget(NodeLayout::WidgetType::PortLabelLeft, port.name, 0, false);
+                }
+                // Add port labels for output ports
+                for (const auto& port : node.outputs) {
+                    layout.AddWidget(NodeLayout::WidgetType::PortLabelRight, port.name, 0, false);
+                }
+                // Add content widget (freespace = true, takes remaining space)
+                layout.AddWidget(NodeLayout::WidgetType::Content, "", 20.0f * zoom, true);
+
+                // Set label width calculator using IDrawList
+                layout.setLabelWidthFunc([&imgui_dl](const std::string& text, float font_size) {
+                    return imgui_dl.calc_text_size(text.c_str(), font_size).x;
+                }, 9.0f * zoom);
+
+                // Calculate layout
+                layout.Calculate(node_size);
+
+                // Get content area in screen coordinates
+                Pt content_pos_local = layout.getPosition(NodeLayout::WidgetType::Content);
+                Pt content_size_local = layout.getSize(NodeLayout::WidgetType::Content);
+
+                float content_x = screen_min.x + content_pos_local.x;
+                float content_y = screen_min.y + content_pos_local.y;
+                float available_width = content_size_local.x;
 
                 if (available_width > 20.0f) {
+                    ImGui::SetCursorScreenPos(ImVec2(content_x, content_y));
 
                     // Get reference to node content for modification
                     NodeContent& content = node.node_content;
@@ -340,7 +357,6 @@ int main(int argc, char** argv) {
                     switch (content.type) {
                         case NodeContentType::Switch: {
                             ImGui::SetNextItemWidth(available_width);
-                            // Use unique ID based on node id
                             std::string checkbox_id = "##" + node.id;
                             ImGui::Checkbox(checkbox_id.c_str(), &content.state);
                             break;

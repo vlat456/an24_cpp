@@ -15,6 +15,118 @@ constexpr float BUS_SIZE = 40.0f;
 constexpr float BUS_PORT_OFFSET = 12.0f;
 constexpr float GRID_STEP = 16.0f;  // Grid unit for snapping
 constexpr float CONTENT_MARGIN = 8.0f;  // Margin around content area
+constexpr float PORT_LABEL_SPACE = 25.0f;  // Space for port labels
+constexpr float TYPE_NAME_HEIGHT = 12.0f;
+
+float default_label_width(const std::string& label, float font_size) {
+    return label.empty() ? 0 : label.length() * font_size * 0.6f;
+}
+
+}  // anonymous namespace
+
+// ============================================================================
+// NodeLayout - Column-based layout for node internals
+// ============================================================================
+
+void NodeLayout::AddWidget(WidgetType type, const std::string& label, float height, bool freespace) {
+    Widget w;
+    w.type = type;
+    w.label = label;
+    w.height = height;
+    w.freespace = freespace;
+    widgets_.push_back(w);
+}
+
+void NodeLayout::setLabelWidthFunc(LabelWidthFunc func, float font_size) {
+    label_width_func_ = func;
+    label_font_size_ = font_size;
+}
+
+void NodeLayout::Calculate(Pt node_size) {
+    positions_.clear();
+    sizes_.clear();
+
+    float w = node_size.x;
+    float h = node_size.y;
+
+    // Calculate dynamic label widths for port labels
+    float left_label_space = PORT_RADIUS + 10;  // minimum: port + gap
+    float right_label_space = PORT_RADIUS + 10;
+
+    for (const auto& widget : widgets_) {
+        if (widget.type == WidgetType::PortLabelLeft && !widget.label.empty()) {
+            float label_w = label_width_func_ ? label_width_func_(widget.label, label_font_size_) : default_label_width(widget.label, label_font_size_);
+            left_label_space = PORT_RADIUS + 5 + label_w + 5;  // port + gap + label + margin
+        }
+        if (widget.type == WidgetType::PortLabelRight && !widget.label.empty()) {
+            float label_w = label_width_func_ ? label_width_func_(widget.label, label_font_size_) : default_label_width(widget.label, label_font_size_);
+            right_label_space = PORT_RADIUS + 5 + label_w + 5;
+        }
+    }
+
+    // Header at top
+    positions_[WidgetType::Header] = Pt(5, 2);
+    sizes_[WidgetType::Header] = Pt(w - 10, HEADER_HEIGHT);
+
+    // Port circles on edges - vertically centered in content area
+    float content_area_top = HEADER_HEIGHT + MARGIN;
+    float content_area_bottom = h - TYPE_NAME_HEIGHT - MARGIN;
+    float port_y = content_area_top + (content_area_bottom - content_area_top) / 2;
+
+    positions_[WidgetType::PortLeft] = Pt(0, port_y - PORT_RADIUS);
+    sizes_[WidgetType::PortLeft] = Pt(PORT_RADIUS * 2, PORT_RADIUS * 2);
+
+    positions_[WidgetType::PortRight] = Pt(w - PORT_RADIUS * 2, port_y - PORT_RADIUS);
+    sizes_[WidgetType::PortRight] = Pt(PORT_RADIUS * 2, PORT_RADIUS * 2);
+
+    // Port labels next to ports (dynamic width)
+    positions_[WidgetType::PortLabelLeft] = Pt(PORT_RADIUS + 5, port_y - 5);
+    sizes_[WidgetType::PortLabelLeft] = Pt(left_label_space - PORT_RADIUS - 5, 10);
+
+    positions_[WidgetType::PortLabelRight] = Pt(w - right_label_space, port_y - 5);
+    sizes_[WidgetType::PortLabelRight] = Pt(right_label_space - PORT_RADIUS - 5, 10);
+
+    // Find content widget
+    const Widget* content_widget = nullptr;
+    for (const auto& widget : widgets_) {
+        if (widget.type == WidgetType::Content) {
+            content_widget = &widget;
+            break;
+        }
+    }
+
+    // Content in center (between header and type name, avoiding port labels)
+    float content_top = content_area_top;
+    float content_bottom = content_area_bottom;
+    float content_left = left_label_space + MARGIN;
+    float content_right = w - right_label_space - MARGIN;
+
+    if (content_widget && content_widget->freespace) {
+        // Content takes all available space
+        positions_[WidgetType::Content] = Pt(content_left, content_top);
+        sizes_[WidgetType::Content] = Pt(content_right - content_left, content_bottom - content_top);
+    } else {
+        // Content centered in available space
+        float content_height = content_widget ? content_widget->height : 20.0f;
+        float centered_y = content_top + (content_bottom - content_top - content_height) / 2;
+        positions_[WidgetType::Content] = Pt(content_left, centered_y);
+        sizes_[WidgetType::Content] = Pt(content_right - content_left, content_height);
+    }
+
+    // Type name at bottom center
+    positions_[WidgetType::TypeName] = Pt(w / 2 - 20, h - TYPE_NAME_HEIGHT - 2);
+    sizes_[WidgetType::TypeName] = Pt(40, TYPE_NAME_HEIGHT);
+}
+
+Pt NodeLayout::getPosition(WidgetType type) const {
+    auto it = positions_.find(type);
+    return it != positions_.end() ? it->second : Pt(0, 0);
+}
+
+Pt NodeLayout::getSize(WidgetType type) const {
+    auto it = sizes_.find(type);
+    return it != sizes_.end() ? it->second : Pt(0, 0);
+}
 
 // Snap to grid helper
 inline Pt snap_to_grid(Pt pos) {
@@ -40,8 +152,6 @@ constexpr uint32_t COLOR_BUS_BORDER = 0xFF8080A0;
 constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;
 constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;
 constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;
-
-} // anonymous namespace
 
 // ============================================================================
 // BaseVisualNode

@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <memory>
 #include <optional>
+#include <functional>
 
 // Forward declaration (IDrawList is defined in render.h)
 struct IDrawList;
@@ -16,6 +17,62 @@ struct IDrawList;
 // Forward declaration for ImGui (will be implemented in example)
 // Using void* to avoid coupling with imgui.h in header
 using ImGuiWindow = void;
+
+// ============================================================================
+// NodeLayout - Column-based layout for node internals
+// ============================================================================
+
+class NodeLayout {
+public:
+    // Widget types that can be placed in the node
+    enum class WidgetType {
+        Header,         // Node name at top
+        PortLeft,      // Input port circle (left edge)
+        PortLabelLeft, // Input port label (right of port)
+        Content,        // Interactive content (checkbox, slider, etc.)
+        PortLabelRight,// Output port label (left of port)
+        PortRight,     // Output port circle (right edge)
+        TypeName       // Type name at bottom
+    };
+
+    struct Widget {
+        WidgetType type;
+        std::string label;     // For labels
+        float height = 0;      // Widget height
+        bool freespace = false; // If true, takes remaining space
+    };
+
+    // Add a widget to the layout
+    void AddWidget(WidgetType type, const std::string& label = "", float height = 0, bool freespace = false);
+
+    // Set label width calculator (for dynamic port label sizing)
+    using LabelWidthFunc = std::function<float(const std::string&, float)>;
+    void setLabelWidthFunc(LabelWidthFunc func, float font_size = 9.0f);
+
+    // Calculate positions given node bounding box
+    void Calculate(Pt node_size);
+
+    // Get screen position for a widget (in local node coordinates)
+    Pt getPosition(WidgetType type) const;
+
+    // Get size of a widget
+    Pt getSize(WidgetType type) const;
+
+private:
+    std::vector<Widget> widgets_;
+    std::unordered_map<WidgetType, Pt> positions_;
+    std::unordered_map<WidgetType, Pt> sizes_;
+
+    // Label width calculator function
+    LabelWidthFunc label_width_func_ = nullptr;
+    float label_font_size_ = 9.0f;
+
+    static constexpr float HEADER_HEIGHT = 20.0f;
+    static constexpr float PORT_RADIUS = 6.0f;
+    static constexpr float PORT_LABEL_SPACE = 25.0f;
+    static constexpr float MARGIN = 8.0f;
+    static constexpr float TYPE_NAME_HEIGHT = 12.0f;
+};
 
 // ============================================================================
 // BaseVisualNode - Abstract base class for all visual node types
