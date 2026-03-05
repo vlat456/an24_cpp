@@ -10,5 +10,6 @@
   "default_params": {},
   "default_domains": ["Electrical"],
   "default_priority": "high",
-  "default_critical": false
+  "default_critical": false,
+  "default_content_type": "Switch"
 }

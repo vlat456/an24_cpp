@@ -46,6 +46,7 @@ struct ComponentDefinition {
     std::optional<std::vector<Domain>> default_domains;    // Default domains
     std::string default_priority = "med";     // Default priority
     bool default_critical = false;            // Default critical flag
+    std::string default_content_type = "None"; // Default UI content type (None, Gauge, Switch, Text)
 };
 
 /// Component registry - holds all component definitions loaded from components/

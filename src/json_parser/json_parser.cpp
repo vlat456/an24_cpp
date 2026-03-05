@@ -471,6 +471,11 @@ static ComponentDefinition parse_component_definition(const json& j) {
         def.default_critical = j["default_critical"].get<bool>();
     }
 
+    // Parse default content type
+    if (j.contains("default_content_type")) {
+        def.default_content_type = j["default_content_type"].get<std::string>();
+    }
+
     return def;
 }
 

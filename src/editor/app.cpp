@@ -324,6 +324,37 @@ void EditorApp::update_node_content_from_simulation() {
     }
 }
 
+// Helper: create default node_content based on ComponentDefinition
+static NodeContent create_node_content(const an24::ComponentDefinition* def) {
+    using namespace an24;
+
+    NodeContent content;
+    content.type = NodeContentType::None;
+
+    if (!def) return content;
+
+    // Parse content type from component definition
+    std::string content_type_str = def->default_content_type;
+
+    if (content_type_str == "Gauge") {
+        content.type = NodeContentType::Gauge;
+        content.label = "V";
+        content.value = 0.0f;
+        content.min = 0.0f;
+        content.max = 30.0f;
+        content.unit = "V";
+    } else if (content_type_str == "Switch") {
+        content.type = NodeContentType::Switch;
+        content.label = "ON";
+        content.state = false;
+    } else if (content_type_str == "Text") {
+        content.type = NodeContentType::Text;
+        content.label = "OFF";
+    }
+
+    return content;
+}
+
 void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     using namespace an24;
     
@@ -380,24 +411,10 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
             node.outputs.emplace_back(port_name.c_str(), PortSide::Output);
         }
     }
-    
-    // [c3d4] Auto-generate node_content based on component type
-    if (classname == "Battery" || classname == "Generator" || classname == "GS24") {
-        node.node_content.type = NodeContentType::Gauge;
-        node.node_content.label = "V";
-        node.node_content.value = 0.0f;
-        node.node_content.min = 0.0f;
-        node.node_content.max = 30.0f;
-        node.node_content.unit = "V";
-    } else if (classname == "Switch" || classname == "DMR400" || classname == "Relay") {
-        node.node_content.type = NodeContentType::Switch;
-        node.node_content.label = "ON";
-        node.node_content.state = false;
-    } else if (classname == "IndicatorLight") {
-        node.node_content.type = NodeContentType::Text;
-        node.node_content.label = "OFF";
-    }
-    
+
+    // Create node_content from component definition (no more hardcoded component lists!)
+    node.node_content = create_node_content(def);
+
     // Add node to blueprint
     blueprint.add_node(node);
     

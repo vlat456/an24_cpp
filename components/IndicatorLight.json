@@ -12,5 +12,6 @@
   },
   "default_domains": ["Electrical"],
   "default_priority": "med",
-  "default_critical": false
+  "default_critical": false,
+  "default_content_type": "Text"
 }
