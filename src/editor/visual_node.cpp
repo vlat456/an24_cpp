@@ -211,8 +211,16 @@ const NodeContent& StandardVisualNode::getNodeContent() const {
 Bounds StandardVisualNode::getContentBounds() const {
     for (size_t i = 0; i < layout_.childCount(); i++) {
         auto* w = layout_.child(i);
-        if (dynamic_cast<const ContentWidget*>(w)) {
-            return w->getBounds();
+        if (auto* cw = dynamic_cast<const ContentWidget*>(w)) {
+            // Get content area from the widget (excludes margins)
+            Bounds content_area = cw->getContentArea();
+            // Adjust for widget position
+            return Bounds{
+                w->x() + content_area.x,
+                w->y() + content_area.y,
+                content_area.w,
+                content_area.h
+            };
         }
     }
     return {};

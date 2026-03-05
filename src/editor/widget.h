@@ -176,6 +176,16 @@ public:
     Pt getPreferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, Pt origin, float zoom) const override;
 
+    // Get the actual content area bounds (excluding margins)
+    Bounds getContentArea() const {
+        return {
+            left_margin_,
+            0,
+            std::max(0.0f, width_ - left_margin_ - right_margin_),
+            height_
+        };
+    }
+
 private:
     std::string label_;
     float value_;

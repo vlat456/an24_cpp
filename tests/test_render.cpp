@@ -521,3 +521,71 @@ TEST(RenderTest, DynamicUpdate_Relay_StateUpdatesFromVoltages) {
     relay.node_content.state = connected;
     EXPECT_FALSE(relay.node_content.state);
 }
+
+// ─── Content bounds regression tests ───
+
+TEST(RenderTest, ContentBounds_ExcludesPortLabels) {
+    // Create a node with input and output ports
+    Node node;
+    node.id = "test";
+    node.name = "Test";
+    node.type_name = "Battery";
+    node.input("v_in");
+    node.output("v_out");
+
+    // Add content
+    NodeContent content;
+    content.type = NodeContentType::Gauge;
+    content.value = 24.0f;
+    content.min = 0.0f;
+    content.max = 30.0f;
+    node.node_content = content;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+
+    // Get content bounds
+    Bounds cb = visual->getContentBounds();
+
+    // Content bounds should be positive (content exists)
+    EXPECT_GT(cb.w, 0.0f) << "Content width should be positive";
+    EXPECT_GT(cb.h, 0.0f) << "Content height should be positive";
+
+    // Content should NOT start at x=0 (should skip input port labels)
+    EXPECT_GT(cb.x, 0.0f) << "Content should be offset from left edge (input port labels)";
+
+    // Content width should be less than node width (should exclude both margins)
+    EXPECT_LT(cb.w, node.size.x) << "Content width should be less than node width (margins on both sides)";
+}
+
+TEST(RenderTest, ContentBounds_OutputPortLabelOnRight) {
+    // Create a node with long output port name
+    Node node;
+    node.id = "test";
+    node.name = "Test";
+    node.type_name = "Battery";
+    node.input("v_in");
+    node.output("v_out_long_name");
+
+    // Add content
+    NodeContent content;
+    content.type = NodeContentType::Gauge;
+    content.value = 24.0f;
+    node.node_content = content;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+
+    // Get content bounds
+    Bounds cb = visual->getContentBounds();
+
+    // Content should not extend to the right edge
+    float content_right_edge = cb.x + cb.w;
+    EXPECT_LT(content_right_edge, node.size.x)
+        << "Content should stop before right edge (output port label on right)";
+
+    // Content width should be significantly less than node width
+    float margin_ratio = cb.w / node.size.x;
+    EXPECT_LT(margin_ratio, 0.8f)
+        << "Content should take up less than 80% of node width (port labels on both sides)";
+}
