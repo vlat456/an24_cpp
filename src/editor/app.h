@@ -8,6 +8,7 @@
 #include "simulation.h"
 #include "json_parser/json_parser.h"
 #include <optional>
+#include <unordered_set>
 
 /// Кнопки мыши
 enum class MouseButton {
@@ -54,6 +55,9 @@ struct EditorApp {
     /// Manual signal overrides (for button clicks, etc.)
     /// Maps "node_id.port_name" -> voltage value (temporary, cleared after use)
     std::unordered_map<std::string, float> signal_overrides;
+
+    /// HoldButtons currently being held (mouse is down on them)
+    std::unordered_set<std::string> held_buttons;
 
     EditorApp() {
         // Load component registry at startup

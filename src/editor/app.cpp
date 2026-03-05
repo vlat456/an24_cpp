@@ -464,15 +464,16 @@ void EditorApp::trigger_switch(const std::string& node_id) {
 }
 
 void EditorApp::hold_button_press(const std::string& node_id) {
-    // Control Protocol: 1.0V = Pressed
-    std::string control_port = node_id + ".control";
-    signal_overrides[control_port] = 1.0f;
-
+    // Add to held buttons set - control=1.0V will be sent every frame
+    held_buttons.insert(node_id);
     printf("HoldButton press: %s.control = 1.0 (PRESS)\n", node_id.c_str());
 }
 
 void EditorApp::hold_button_release(const std::string& node_id) {
-    // Control Protocol: 2.0V = Released
+    // Remove from held buttons set
+    held_buttons.erase(node_id);
+
+    // Send 2.0V release signal this frame
     std::string control_port = node_id + ".control";
     signal_overrides[control_port] = 2.0f;
 
@@ -481,6 +482,12 @@ void EditorApp::hold_button_release(const std::string& node_id) {
 
 void EditorApp::update_simulation_step() {
     if (!simulation_running) return;
+
+    // Send control=1.0V for all currently held HoldButtons
+    for (const auto& node_id : held_buttons) {
+        std::string control_port = node_id + ".control";
+        signal_overrides[control_port] = 1.0f;
+    }
 
     // Apply signal overrides (button clicks, etc.)
     simulation.apply_overrides(signal_overrides);
