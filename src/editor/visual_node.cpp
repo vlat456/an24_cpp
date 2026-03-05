@@ -360,14 +360,12 @@ std::vector<std::string> BusVisualNode::getPortNames() const {
 
 Pt BusVisualNode::getPortPosition(const std::string& port_name,
                                   const char* wire_id) const {
-    for (size_t i = 0; i < ports_.size(); i++) {
-        if (ports_[i].name == port_name) {
-            return calculatePortPosition(i);
-        }
-    }
-
+    // [e7b4c2d5] When wire_id is provided and port_name is "v", resolve by wire_id FIRST.
+    // Previously the "v" port was found at index 0 before the wire_id fallback was reached,
+    // causing all wire endpoints to snap to the main "v" port position.
     if (port_name == "v" && wire_id != nullptr) {
-        size_t port_index = 0;
+        // Wire alias ports start at index 1 (index 0 is the main "v" port).
+        size_t port_index = 1;
         for (const auto& w : wires_) {
             bool connects = (w.start.node_id == node_id_ || w.end.node_id == node_id_);
             if (!connects) continue;
@@ -378,17 +376,30 @@ Pt BusVisualNode::getPortPosition(const std::string& port_name,
         }
     }
 
+    for (size_t i = 0; i < ports_.size(); i++) {
+        if (ports_[i].name == port_name) {
+            return calculatePortPosition(i);
+        }
+    }
+
     return Pt(position_.x + size_.x / 2, position_.y + size_.y / 2);
 }
 
 void BusVisualNode::connectWire(const Wire& wire) {
     if (wire.start.node_id == node_id_ || wire.end.node_id == node_id_) {
-        // Simply redistribute all ports (including the new wire)
+        // [b8d2e4f1] Add wire to wires_ before redistributing;
+        // otherwise distributePortsInRow uses stale wire list.
+        wires_.push_back(wire);
         distributePortsInRow(wires_);
     }
 }
 
 void BusVisualNode::disconnectWire(const Wire& wire) {
+    // [b8d2e4f1] Also remove wire from wires_ to keep it in sync
+    wires_.erase(
+        std::remove_if(wires_.begin(), wires_.end(),
+            [&](const Wire& w) { return w.id == wire.id; }),
+        wires_.end());
     std::string port_name = wire.id;
     ports_.erase(
         std::remove_if(ports_.begin(), ports_.end(),
@@ -440,8 +451,17 @@ RefVisualNode::RefVisualNode(const Node& node)
     : BaseVisualNode(node)
     , name_(node.name)
 {
+    // [c5a9b7d2] Use actual port name from node definition instead of hardcoded "ref".
+    // RefNode.json defines port "v" — hit test resolves port_name from visual port,
+    // so using "ref" caused wire creation to use wrong port name.
+    std::string port_name = "v";  // default fallback
+    if (!node.outputs.empty()) {
+        port_name = node.outputs[0].name;
+    } else if (!node.inputs.empty()) {
+        port_name = node.inputs[0].name;
+    }
     Port p;
-    p.name = "ref";
+    p.name = port_name;
     p.world_position = Pt(position_.x + size_.x / 2, position_.y);
     ports_.push_back(p);
 }

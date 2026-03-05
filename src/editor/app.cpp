@@ -249,6 +249,9 @@ void EditorApp::on_key_down(Key key) {
 
         interaction.clear_selection();
 
+        // [g2c5f9a1] Clear visual cache so Bus nodes drop stale wire ports.
+        visual_cache.clear();
+
         // Rebuild simulation after removing nodes
         rebuild_simulation();
     } else if (key == Key::R) {

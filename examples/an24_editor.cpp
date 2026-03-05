@@ -364,6 +364,9 @@ int main(int argc, char** argv) {
             // Update visual node position from current node position (for drag)
             visual->setPosition(node.pos);
             visual->setSize(node.size);
+            // [a3f7c1e0] Sync node.size back from visual for Bus/Ref nodes
+            // whose setSize is a no-op (they calculate size internally from ports).
+            node.size = visual->getSize();
 
             // Calculate screen position of node
             Pt screen_min = app.viewport.world_to_screen(visual->getPosition(), canvas_min_pt);

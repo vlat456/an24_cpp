@@ -326,12 +326,15 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
                 float dx = hover_world_pos->x - port->world_position.x;
                 float dy = hover_world_pos->y - port->world_position.y;
                 if (dx * dx + dy * dy <= PORT_RADIUS * PORT_RADIUS) {
-                    float val = simulation->get_port_value(n.id, port->name);
+                    // [f6a8d3e7] Use logical port name for simulation lookup.
+                    // Bus visual alias ports have name=wire_id, target_port="v".
+                    std::string logical_port = port->target_port.empty() ? port->name : port->target_port;
+                    float val = simulation->get_port_value(n.id, logical_port);
                     char buf[64];
                     std::snprintf(buf, sizeof(buf), "%.3f", val);
                     out_tooltip->active = true;
                     out_tooltip->screen_pos = vp.world_to_screen(port->world_position, canvas_min);
-                    out_tooltip->label = n.id + "." + port->name;
+                    out_tooltip->label = n.id + "." + logical_port;
                     out_tooltip->text = buf;
                     return;
                 }
