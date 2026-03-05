@@ -51,6 +51,10 @@ struct EditorApp {
     bool show_context_menu = false;
     Pt context_menu_pos;
 
+    /// Manual signal overrides (for button clicks, etc.)
+    /// Maps "node_id.port_name" -> voltage value (temporary, cleared after use)
+    std::unordered_map<std::string, float> signal_overrides;
+
     EditorApp() {
         // Load component registry at startup
         component_registry = load_component_registry();
@@ -91,6 +95,9 @@ struct EditorApp {
     /// Обновить node_content на основе значений симуляции
     void update_node_content_from_simulation();
 
+    /// Обновить симуляцию (apply overrides, step, clear overrides)
+    void update_simulation_step();
+
     /// Обработка mouse down
     void on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection = false);
 
@@ -111,4 +118,7 @@ struct EditorApp {
 
     /// Добавить компонент на схему
     void add_component(const std::string& classname, Pt world_pos);
+
+    /// Переключить Switch (подать импульс на control порт)
+    void trigger_switch(const std::string& node_id);
 };

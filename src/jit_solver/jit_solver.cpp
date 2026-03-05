@@ -61,9 +61,9 @@ std::unique_ptr<Component> create_component(
     }
     else if (device.classname == "Relay") {
         bool is_closed = device.params.count("closed") ?
-            (device.params.at("closed") != "false") : true;
+            (device.params.at("closed") == "true") : false;  // Default: open
         return std::make_unique<Relay>(
-            get_port("v_in"), get_port("v_out"), is_closed);
+            get_port("v_in"), get_port("v_out"), get_port("control"), is_closed);
     }
     else if (device.classname == "Resistor") {
         return std::make_unique<Resistor>(

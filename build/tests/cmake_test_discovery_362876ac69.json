@@ -76,22 +76,22 @@
         {
           "name": "BusTypeNotRefNode",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 605
+          "line": 607
         },
         {
           "name": "ClosedRelayNoConductance",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 660
+          "line": 662
         },
         {
           "name": "DualBatteryWithRelayStable",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 710
+          "line": 712
         },
         {
           "name": "GeneratorAndBatteryOnSameBus",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 779
+          "line": 781
         }
       ]
     },
@@ -127,17 +127,17 @@
         {
           "name": "ParallelBatteriesShareLoad",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 499
+          "line": 501
         },
         {
           "name": "MultipleLightsWithBrightness",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 528
+          "line": 530
         },
         {
           "name": "SORConvergence",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 571
+          "line": 573
         }
       ]
     }

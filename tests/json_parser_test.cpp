@@ -131,7 +131,8 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
                 "domain": "Electrical",
                 "ports": {
                     "v_in": "i",
-                    "v_out": "o"
+                    "v_out": "o",
+                    "control": "i"
                 },
                 "params": {
                     "closed": "true"
@@ -155,13 +156,16 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     ASSERT_TRUE(dev.explicit_domains.has_value());
     EXPECT_EQ((*dev.explicit_domains)[0], Domain::Electrical);
 
-    EXPECT_EQ(dev.ports.size(), 2);
+    EXPECT_EQ(dev.ports.size(), 3);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
     EXPECT_EQ(it_in->second.direction, PortDirection::In);
     auto it_out = dev.ports.find("v_out");
     ASSERT_NE(it_out, dev.ports.end());
     EXPECT_EQ(it_out->second.direction, PortDirection::Out);
+    auto it_control = dev.ports.find("control");
+    ASSERT_NE(it_control, dev.ports.end());
+    EXPECT_EQ(it_control->second.direction, PortDirection::In);
 
     auto it_param = dev.params.find("closed");
     ASSERT_NE(it_param, dev.params.end());

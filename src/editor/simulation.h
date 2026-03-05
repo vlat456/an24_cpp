@@ -51,4 +51,8 @@ struct SimulationController {
 
     /// Check if a wire is energized (its signal voltage is nonzero)
     bool wire_is_energized(const std::string& port_name, float threshold = 0.5f) const;
+
+    /// Apply signal overrides (for button clicks, etc.)
+    /// Maps "node_id.port_name" -> voltage value
+    void apply_overrides(const std::unordered_map<std::string, float>& overrides);
 };

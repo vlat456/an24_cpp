@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
         }
 
         // Обновление симуляции каждый кадр
-        app.update_simulation();
+        app.update_simulation_step();
 
         // Обновление node_content на основе значений симуляции
         app.update_node_content_from_simulation();
@@ -365,9 +365,14 @@ int main(int argc, char** argv) {
 
                     switch (content.type) {
                         case NodeContentType::Switch: {
-                            ImGui::SetNextItemWidth(available_width);
-                            std::string checkbox_id = "##" + node.id;
-                            ImGui::Checkbox(checkbox_id.c_str(), &content.state);
+                            // Button with current state label (ON/OFF)
+                            std::string label = content.state ? "ON" : "OFF";
+                            std::string button_id = label + "##" + node.id;
+
+                            if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
+                                // Trigger switch toggle
+                                app.trigger_switch(node.id);
+                            }
                             break;
                         }
                         case NodeContentType::Value: {

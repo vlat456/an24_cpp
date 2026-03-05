@@ -86,3 +86,17 @@ bool SimulationController::wire_is_energized(const std::string& port_name, float
     float v = get_wire_voltage(port_name);
     return std::abs(v) > threshold;
 }
+
+void SimulationController::apply_overrides(const std::unordered_map<std::string, float>& overrides) {
+    if (!build_result.has_value()) return;
+    
+    for (const auto& [port_ref, value] : overrides) {
+        auto it = build_result->port_to_signal.find(port_ref);
+        if (it != build_result->port_to_signal.end()) {
+            uint32_t signal_idx = it->second;
+            if (signal_idx < state.across.size()) {
+                state.across[signal_idx] = value;
+            }
+        }
+    }
+}

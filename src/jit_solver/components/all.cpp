@@ -51,6 +51,19 @@ void Relay::solve_electrical(SimulationState& state) {
 }
 
 void Relay::post_step(SimulationState& state, float /*dt*/) {
+    // Check for rising edge on control (trigger to toggle)
+    float control_voltage = state.across[control_idx];
+    bool control_active = (control_voltage > trigger_threshold);
+    bool was_active = (last_control_voltage > trigger_threshold);
+
+    // Toggle on rising edge (0 -> 1 transition)
+    if (control_active && !was_active) {
+        closed = !closed;  // Toggle state
+    }
+
+    // Store current control voltage for next step
+    last_control_voltage = control_voltage;
+
     if (!closed) return;  // open relay: no connection
 
     // Closed relay = wire: just copy voltage from in to out.

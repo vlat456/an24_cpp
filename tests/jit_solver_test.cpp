@@ -473,15 +473,17 @@ TEST(IntegrationTest, OpenRelayBlocksCurrent) {
     // Open relay = no current, so load voltage should be ~0V
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto control_src = make_device("ctrl_src", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, battery, relay, load};
+    std::vector<DeviceInstance> devices = {gnd, battery, relay, control_src, load};
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "relay.v_in"},
         {"relay.v_out", "load.v_in"},
         {"load.v_out", "gnd.v"},
         {"battery.v_in", "gnd.v"},
+        {"ctrl_src.v", "relay.control"},  // Control = 0V (relay stays open)
     };
 
     auto result = build_systems_dev(devices, connections);

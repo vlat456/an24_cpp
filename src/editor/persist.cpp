@@ -56,6 +56,10 @@ std::string blueprint_to_json(const Blueprint& bp) {
             params["min"] = std::to_string(n.node_content.min);
             params["max"] = std::to_string(n.node_content.max);
             if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
+            // Switch state (for Relay, DMR400, etc.)
+            if (n.node_content.type == NodeContentType::Switch) {
+                params["closed"] = n.node_content.state ? "true" : "false";
+            }
         }
         // Ref nodes always get value=0.0 (ground reference)
         if (n.kind == NodeKind::Ref && !params.contains("value")) {
@@ -211,6 +215,11 @@ static Node device_to_node(const json& d, int index) {
         }
         if (params.contains("unit"))
             n.node_content.unit = params["unit"].get<std::string>();
+        // Switch state (for Relay, DMR400, etc.)
+        if (params.contains("closed")) {
+            std::string closed_str = params["closed"].get<std::string>();
+            n.node_content.state = (closed_str == "true");
+        }
     }
 
     return n;

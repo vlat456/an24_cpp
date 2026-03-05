@@ -1,10 +1,10 @@
 {
-  "tests": 8,
+  "tests": 10,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "JsonParserTest",
-      "tests": 8,
+      "tests": 10,
       "testsuite": [
         {
           "name": "ParseEmptyContext",
@@ -39,12 +39,22 @@
         {
           "name": "ParseConnectionFormats",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 171
+          "line": 175
         },
         {
           "name": "SerializePreservesData",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 197
+          "line": 201
+        },
+        {
+          "name": "InOutPortDirection_Roundtrip_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 222
+        },
+        {
+          "name": "InOutEnumExists_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 247
         }
       ]
     }

@@ -46,11 +46,14 @@ class Relay : public Component {
 public:
     uint32_t v_in_idx = 0;
     uint32_t v_out_idx = 0;
-    bool closed = true;
+    uint32_t control_idx = 0;  // Control trigger (rising edge toggles state)
+    bool closed = false;        // Initial state (default: open)
+    float trigger_threshold = 0.5f;  // Voltage threshold to detect trigger
+    float last_control_voltage = 0.0f; // Previous control voltage (for edge detection)
 
     Relay() = default;
-    Relay(uint32_t v_in, uint32_t v_out, bool is_closed = true)
-        : v_in_idx(v_in), v_out_idx(v_out), closed(is_closed) {}
+    Relay(uint32_t v_in, uint32_t v_out, uint32_t control, bool is_closed = false, float threshold = 0.5f)
+        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), closed(is_closed), trigger_threshold(threshold) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Relay"; }
     void solve_electrical(SimulationState& state) override;

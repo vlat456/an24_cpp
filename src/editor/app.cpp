@@ -319,8 +319,15 @@ void EditorApp::update_node_content_from_simulation() {
             bool connected = v_gen > v_bus + 2.0f;
             node.node_content.state = connected;
         }
-        // Update Switch state (if it's a user-controlled switch, state comes from node_content)
-        // For now, switches remain user-controlled via UI
+        // Update Relay/Switch state from control port
+        // Note: For trigger switches, this shows control voltage > threshold,
+        // not actual relay state (which toggles on rising edge)
+        else if (node.type_name == "Relay") {
+            float control_voltage = simulation.get_port_value(node.id, "control");
+            // Update label to show trigger active (not relay state)
+            // The actual toggle happens in Relay::post_step on rising edge
+            node.node_content.state = (control_voltage > 0.5f);
+        }
     }
 }
 
@@ -346,7 +353,13 @@ static NodeContent create_node_content(const an24::ComponentDefinition* def) {
     } else if (content_type_str == "Switch") {
         content.type = NodeContentType::Switch;
         content.label = "ON";
-        content.state = false;
+        // Read default "closed" state from component definition
+        auto it = def->default_params.find("closed");
+        if (it != def->default_params.end()) {
+            content.state = (it->second == "true");
+        } else {
+            content.state = false;  // Default to false if not specified
+        }
     } else if (content_type_str == "Text") {
         content.type = NodeContentType::Text;
         content.label = "OFF";
@@ -424,4 +437,25 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     printf("Added component: %s (id=%s) at (%.1f, %.1f) with %zu inputs, %zu outputs\n",
            classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
            node.inputs.size(), node.outputs.size());
+}
+
+void EditorApp::trigger_switch(const std::string& node_id) {
+    // Set temporary override on control port to trigger toggle
+    std::string control_port = node_id + ".control";
+    signal_overrides[control_port] = 1.0f;  // Trigger impulse
+    
+    printf("Trigger switch: %s.control = 1.0f (toggle)\n", node_id.c_str());
+}
+
+void EditorApp::update_simulation_step() {
+    if (!simulation_running) return;
+
+    // Apply signal overrides (button clicks, etc.)
+    simulation.apply_overrides(signal_overrides);
+
+    // Run simulation step
+    simulation.step(simulation.dt);
+
+    // Clear overrides after applying (impulse = one step only)
+    signal_overrides.clear();
 }
