@@ -466,7 +466,6 @@ void EditorApp::trigger_switch(const std::string& node_id) {
 void EditorApp::hold_button_press(const std::string& node_id) {
     // Add to held buttons set - control=1.0V will be sent every frame
     held_buttons.insert(node_id);
-    printf("HoldButton press: %s.control = 1.0 (PRESS)\n", node_id.c_str());
 }
 
 void EditorApp::hold_button_release(const std::string& node_id) {
@@ -476,8 +475,6 @@ void EditorApp::hold_button_release(const std::string& node_id) {
     // Send 2.0V release signal this frame
     std::string control_port = node_id + ".control";
     signal_overrides[control_port] = 2.0f;
-
-    printf("HoldButton release: %s.control = 2.0 (RELEASE)\n", node_id.c_str());
 }
 
 void EditorApp::update_simulation_step() {

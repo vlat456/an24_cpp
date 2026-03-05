@@ -366,21 +366,53 @@ int main(int argc, char** argv) {
                     switch (content.type) {
                         case NodeContentType::Switch: {
                             if (node.type_name == "HoldButton") {
-                                // Hold-to-operate button with press/release detection
+                                // HoldButton: simple rect with manual mouse handling
                                 std::string label = content.state ? "PRESSED" : "RELEASED";
-                                std::string button_id = label + "##" + node.id;
 
-                                if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
-                                    // ImGui::Button returns true every frame while held
-                                    // So we only trigger on the activation frame
-                                    if (ImGui::IsItemActivated()) {
-                                        app.hold_button_press(node.id);
-                                    }
+                                // Manual button tracking per-node
+                                static std::unordered_map<std::string, bool> button_pressed;
+                                bool& is_button_pressed = button_pressed[node.id];
+
+                                // Draw colored rect
+                                ImVec2 cursor = ImGui::GetCursorScreenPos();
+                                ImVec2 size(available_width, ImGui::GetFrameHeight());
+                                ImU32 color = content.state ?
+                                    IM_COL32(100, 200, 100, 255) :  // Green when pressed
+                                    IM_COL32(200, 100, 100, 255);   // Red when released
+
+                                ImGui::GetWindowDrawList()->AddRectFilled(
+                                    cursor,
+                                    ImVec2(cursor.x + size.x, cursor.y + size.y),
+                                    color,
+                                    4.0f  // Rounding
+                                );
+
+                                // Draw text centered
+                                ImVec2 text_size = ImGui::CalcTextSize(label.c_str());
+                                ImVec2 text_pos(
+                                    cursor.x + (size.x - text_size.x) * 0.5f,
+                                    cursor.y + (size.y - text_size.y) * 0.5f
+                                );
+                                ImGui::GetWindowDrawList()->AddText(text_pos, IM_COL32(255, 255, 255, 255), label.c_str());
+
+                                // Check mouse position
+                                ImVec2 mouse_pos = ImGui::GetMousePos();
+                                bool is_hovered = (mouse_pos.x >= cursor.x && mouse_pos.x <= cursor.x + size.x &&
+                                                   mouse_pos.y >= cursor.y && mouse_pos.y <= cursor.y + size.y);
+
+                                // Manual click handling
+                                if (is_hovered && ImGui::IsMouseClicked(0)) {
+                                    is_button_pressed = true;
+                                    app.hold_button_press(node.id);
                                 }
-                                // Detect when button is released (mouse up while active)
-                                if (ImGui::IsItemActive() && ImGui::IsMouseReleased(0)) {
+
+                                if (is_button_pressed && ImGui::IsMouseReleased(0)) {
+                                    is_button_pressed = false;
                                     app.hold_button_release(node.id);
                                 }
+
+                                // Advance cursor (InvisibleButton would do this automatically)
+                                ImGui::Dummy(size);
                             } else {
                                 // Regular toggle switch
                                 std::string label = content.state ? "ON" : "OFF";

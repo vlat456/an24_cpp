@@ -106,11 +106,9 @@ void HoldButton::post_step(SimulationState& state, float /*dt*/) {
     if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
         // Rising edge: transition to Pressed state
         is_pressed = true;
-        spdlog::info("[HoldButton] PRESSED (onClick)");
     } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
         // Rising edge: transition to Released state
         is_pressed = false;
-        spdlog::info("[HoldButton] RELEASED (onRelease)");
     }
     // Note: when current = 0.0V, just maintain current state (no reset)
 
