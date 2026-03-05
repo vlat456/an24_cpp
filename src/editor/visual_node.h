@@ -1,5 +1,6 @@
 #pragma once
 
+#include "interfaces.h"
 #include "data/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
@@ -15,19 +16,28 @@ struct IDrawList;
 
 // ============================================================================
 // BaseVisualNode - Abstract base class for all visual node types
+// Implements: IDrawable, ISelectable, IDraggable, IPersistable
 // ============================================================================
 
-class BaseVisualNode {
+class BaseVisualNode : public IDrawable, public ISelectable,
+                       public IDraggable, public IPersistable {
 public:
     virtual ~BaseVisualNode() = default;
 
-    Pt getPosition() const { return position_; }
-    void setPosition(Pt pos) { position_ = pos; }
+    // --- IDraggable ---
+    Pt getPosition() const override { return position_; }
+    void setPosition(Pt pos) override { position_ = pos; }
+    Pt getSize() const override { return size_; }
+    void setSize(Pt size) override { size_ = size; }
 
-    Pt getSize() const { return size_; }
-    void setSize(Pt size) { size_ = size; }
+    // --- IPersistable ---
+    const std::string& getId() const override { return node_id_; }
 
-    const std::string& getId() const { return node_id_; }
+    // --- ISelectable ---
+    bool containsPoint(Pt world_pos) const override {
+        return world_pos.x >= position_.x && world_pos.x <= position_.x + size_.x &&
+               world_pos.y >= position_.y && world_pos.y <= position_.y + size_.y;
+    }
 
     struct Port {
         std::string name;
@@ -49,9 +59,15 @@ public:
     virtual void disconnectWire(const Wire& wire) = 0;
     virtual void recalculatePorts() = 0;
 
-    // Rendering
-    virtual void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
-                       bool is_selected) const = 0;
+    // Content access (overrides in StandardVisualNode)
+    virtual NodeContentType getContentType() const { return NodeContentType::None; }
+    virtual const NodeContent& getNodeContent() const {
+        static NodeContent empty;
+        return empty;
+    }
+    virtual Bounds getContentBounds() const { return {}; }
+
+    // --- IDrawable --- render() is pure virtual from IDrawable
 
 protected:
     BaseVisualNode(const Node& node);
@@ -85,6 +101,11 @@ public:
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
 
+    // Content access
+    NodeContentType getContentType() const override;
+    const NodeContent& getNodeContent() const override;
+    Bounds getContentBounds() const override;
+
     // Access to layout for testing
     const ColumnLayout& getLayout() const { return layout_; }
 
@@ -96,7 +117,7 @@ private:
     NodeContent node_content_;
 
     ColumnLayout layout_;
-    std::vector<PortRowWidget*> port_rows_;  // non-owning pointers into layout
+    std::vector<PortRowWidget*> port_rows_;
 
     void buildLayout();
 };

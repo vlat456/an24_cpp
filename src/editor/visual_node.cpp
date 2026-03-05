@@ -200,6 +200,24 @@ void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min
     layout_.render(dl, screen_min, vp.zoom);
 }
 
+NodeContentType StandardVisualNode::getContentType() const {
+    return node_content_.type;
+}
+
+const NodeContent& StandardVisualNode::getNodeContent() const {
+    return node_content_;
+}
+
+Bounds StandardVisualNode::getContentBounds() const {
+    for (size_t i = 0; i < layout_.childCount(); i++) {
+        auto* w = layout_.child(i);
+        if (dynamic_cast<const ContentWidget*>(w)) {
+            return w->getBounds();
+        }
+    }
+    return {};
+}
+
 // ============================================================================
 // BusVisualNode
 // ============================================================================

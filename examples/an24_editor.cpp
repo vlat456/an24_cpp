@@ -312,41 +312,15 @@ int main(int argc, char** argv) {
 
             // Calculate screen position of node
             Pt screen_min = app.viewport.world_to_screen(visual->getPosition(), canvas_min_pt);
-            Pt node_size = visual->getSize();
+            float zoom = app.viewport.zoom;
 
-            // If node has content, use NodeLayout to calculate positions
+            // If node has content, use the visual node's layout to get content bounds
             NodeContentType ctype = visual->getContentType();
             if (ctype != NodeContentType::None) {
-                // Create layout and add widgets
-                NodeLayout layout;
-                float zoom = app.viewport.zoom;
-
-                // Add port labels for input ports
-                for (const auto& port : node.inputs) {
-                    layout.AddWidget(NodeLayout::WidgetType::PortLabelLeft, port.name, 0, false);
-                }
-                // Add port labels for output ports
-                for (const auto& port : node.outputs) {
-                    layout.AddWidget(NodeLayout::WidgetType::PortLabelRight, port.name, 0, false);
-                }
-                // Add content widget (freespace = true, takes remaining space)
-                layout.AddWidget(NodeLayout::WidgetType::Content, "", 20.0f * zoom, true);
-
-                // Set label width calculator using IDrawList
-                layout.setLabelWidthFunc([&imgui_dl](const std::string& text, float font_size) {
-                    return imgui_dl.calc_text_size(text.c_str(), font_size).x;
-                }, 9.0f * zoom);
-
-                // Calculate layout
-                layout.Calculate(node_size);
-
-                // Get content area in screen coordinates
-                Pt content_pos_local = layout.getPosition(NodeLayout::WidgetType::Content);
-                Pt content_size_local = layout.getSize(NodeLayout::WidgetType::Content);
-
-                float content_x = screen_min.x + content_pos_local.x;
-                float content_y = screen_min.y + content_pos_local.y;
-                float available_width = content_size_local.x;
+                Bounds cb = visual->getContentBounds();
+                float content_x = screen_min.x + cb.x * zoom;
+                float content_y = screen_min.y + cb.y * zoom;
+                float available_width = cb.w * zoom;
 
                 if (available_width > 20.0f) {
                     ImGui::SetCursorScreenPos(ImVec2(content_x, content_y));
