@@ -263,13 +263,6 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
         viewport.pan.x -= world_delta.x;
         viewport.pan.y -= world_delta.y;
     } else if (interaction.dragging == Dragging::Node) {
-    } else if (interaction.dragging == Dragging::RoutingPoint) {
-    } else if (interaction.marquee_selecting) {
-    } else if (interaction.dragging == Dragging::CreatingWire ||
-               interaction.dragging == Dragging::ReconnectingWire) {
-        // Wire creation/reconnection - update last_mouse_pos
-        last_mouse_pos = last_mouse_pos + world_delta;
-    } else if (interaction.dragging == Dragging::Node) {
         // Accumulate unsnapped delta, then snap
         interaction.update_drag_anchor(world_delta);
         Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, blueprint.grid_step);
@@ -299,6 +292,10 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     } else if (interaction.marquee_selecting) {
         // Обновляем конец marquee
         interaction.marquee_end = interaction.marquee_end + world_delta;
+    } else if (interaction.dragging == Dragging::CreatingWire ||
+               interaction.dragging == Dragging::ReconnectingWire) {
+        // Wire creation/reconnection - update last_mouse_pos
+        last_mouse_pos = last_mouse_pos + world_delta;
     }
 }
 
