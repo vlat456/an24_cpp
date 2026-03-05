@@ -637,9 +637,10 @@ TEST(IDraggableTest, GetSetSize) {
     EXPECT_GE(size.x, 120.0f);
     EXPECT_GE(size.y, 80.0f);
 
-    draggable->setSize(Pt(200, 150));
-    EXPECT_FLOAT_EQ(draggable->getSize().x, 200.0f);
-    EXPECT_FLOAT_EQ(draggable->getSize().y, 150.0f);
+    // [t4u5v6w7] setSize now snaps to grid (16px), use grid-aligned values
+    draggable->setSize(Pt(192, 160));
+    EXPECT_FLOAT_EQ(draggable->getSize().x, 192.0f);
+    EXPECT_FLOAT_EQ(draggable->getSize().y, 160.0f);
 }
 
 TEST(IDraggableTest, DragUpdatesSelectionBounds) {
@@ -798,4 +799,72 @@ TEST(InterfaceCastTest, FactoryCreatedNodeSupportsInterfaces) {
     EXPECT_NE(dynamic_cast<ISelectable*>(visual.get()), nullptr);
     EXPECT_NE(dynamic_cast<IDraggable*>(visual.get()), nullptr);
     EXPECT_NE(dynamic_cast<IPersistable*>(visual.get()), nullptr);
+}
+
+// ============================================================================
+// [t4u5v6w7] Regression: setSize snaps to grid so bottom-right is grid-aligned
+// ============================================================================
+
+TEST(VisualNodeTest, SetSize_SnapsToGrid) {
+    Node n;
+    n.id = "n1"; n.name = "N"; n.type_name = "T";
+    n.at(0, 0).size_wh(120, 80);
+    n.input("a"); n.output("b");
+
+    StandardVisualNode visual(n);
+
+    // Set non-grid-aligned size → should ceil-snap to next grid (16px) boundary
+    visual.setSize(Pt(130.0f, 90.0f));
+    Pt s = visual.getSize();
+    // 130 → ceil(130/16)*16 = 144
+    EXPECT_FLOAT_EQ(s.x, 144.0f);
+    // 90  → ceil(90/16)*16  = 96
+    EXPECT_FLOAT_EQ(s.y, 96.0f);
+
+    // Already grid-aligned size stays unchanged
+    visual.setSize(Pt(128.0f, 96.0f));
+    s = visual.getSize();
+    EXPECT_FLOAT_EQ(s.x, 128.0f);
+    EXPECT_FLOAT_EQ(s.y, 96.0f);
+}
+
+TEST(VisualNodeTest, SetSize_BusIgnoresExternal) {
+    Node n;
+    n.id = "bus1"; n.name = "bus"; n.kind = NodeKind::Bus;
+    n.at(0, 0).size_wh(80, 32);
+    n.input("v"); n.output("v");
+
+    BusVisualNode visual(n, BusOrientation::Horizontal);
+    Pt original = visual.getSize();
+
+    // Attempt to override size — Bus computes its own
+    visual.setSize(Pt(999.0f, 999.0f));
+    Pt after = visual.getSize();
+    EXPECT_FLOAT_EQ(after.x, original.x);
+    EXPECT_FLOAT_EQ(after.y, original.y);
+}
+
+// ============================================================================
+// [x8y9z0a1] Regression: getContentBounds returns symmetric (centred) area
+// ============================================================================
+
+TEST(VisualNodeTest, ContentBounds_SymmetricMargins) {
+    Node n;
+    n.id = "n1"; n.name = "Switch1"; n.type_name = "Switch";
+    n.at(0, 0).size_wh(128, 96);
+    n.input("control");   // 7 chars - wider label
+    n.output("state");     // 5 chars - narrower label
+    n.node_content.type = NodeContentType::Switch;
+    n.node_content.label = "ON";
+
+    StandardVisualNode visual(n);
+    Bounds cb = visual.getContentBounds();
+
+    // Content area must be centred: left margin == right margin
+    float left_margin  = cb.x;
+    float right_margin = visual.getSize().x - (cb.x + cb.w);
+
+    EXPECT_NEAR(left_margin, right_margin, 0.01f)
+        << "Content area should be horizontally centred within the node";
+    EXPECT_GT(cb.w, 0.0f);
 }

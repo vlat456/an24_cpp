@@ -21,6 +21,9 @@ struct Blueprint {
     float zoom;
     float grid_step;
 
+    /// [f6g7h8i9] Monotonic counter for generating unique wire IDs
+    int next_wire_id = 0;
+
     Blueprint()
         : pan(Pt::zero())
         , zoom(1.0f)

@@ -83,8 +83,12 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             }
         } else if (hit.type == HitType::RoutingPoint) {
             // Выделяем routing point и начинаем drag
-            Pt rp_pos = blueprint.wires[hit.wire_index].routing_points[hit.routing_point_index];
-            interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index, rp_pos);
+            // [e5f6g7h8] Bounds-check indices before indexing
+            if (hit.wire_index < blueprint.wires.size() &&
+                hit.routing_point_index < blueprint.wires[hit.wire_index].routing_points.size()) {
+                Pt rp_pos = blueprint.wires[hit.wire_index].routing_points[hit.routing_point_index];
+                interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index, rp_pos);
+            }
         } else if (hit.type == HitType::Wire) {
             // Выделяем провод
             interaction.selected_wire = hit.wire_index;
@@ -193,8 +197,10 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                                    port_hit.port_name.c_str(),
                                    port_hit.port_side);
 
+                    // [f6g7h8i9] Use monotonic counter to avoid ID collision
+                    // when wires are deleted and re-created.
                     Wire w = Wire::make(
-                        ("wire_" + std::to_string(blueprint.wires.size())).c_str(),
+                        ("wire_" + std::to_string(blueprint.next_wire_id++)).c_str(),
                         start_end,
                         end_end
                     );

@@ -605,6 +605,15 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
             auto_layout(bp);
         }
 
+        // [f6g7h8i9] Initialize next_wire_id to be higher than any existing wire_N IDs
+        bp.next_wire_id = static_cast<int>(bp.wires.size());
+        for (const auto& w : bp.wires) {
+            if (w.id.compare(0, 5, "wire_") == 0) {
+                int num = std::atoi(w.id.c_str() + 5);
+                if (num >= bp.next_wire_id) bp.next_wire_id = num + 1;
+            }
+        }
+
         return bp;
     } catch (const std::exception& e) {
         (void)e;

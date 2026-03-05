@@ -285,9 +285,11 @@ int main(int argc, char** argv) {
             if (ImGui::BeginMenu("View")) {
                 if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
                     app.viewport.zoom *= 1.1f;
+                    app.viewport.clamp_zoom(); // [d4e5f6g7]
                 }
                 if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
                     app.viewport.zoom /= 1.1f;
+                    app.viewport.clamp_zoom(); // [d4e5f6g7]
                 }
                 if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
                     app.viewport.zoom = 1.0f;
@@ -472,10 +474,14 @@ int main(int argc, char** argv) {
                             break;
                         }
                         case NodeContentType::Gauge: {
-                            ImGui::SetNextItemWidth(available_width);
-                            float progress = (content.value - content.min) / (content.max - content.min);
+                            // [b2c3d4e5] ProgressBar ignores SetNextItemWidth —
+                            // pass explicit size to prevent bar extending to window edge.
+                            // [c3d4e5f6] Guard against division by zero when min == max.
+                            float range = content.max - content.min;
+                            float progress = (range > 1e-6f)
+                                ? (content.value - content.min) / range : 0.0f;
                             progress = std::max(0.0f, std::min(1.0f, progress));
-                            ImGui::ProgressBar(progress);
+                            ImGui::ProgressBar(progress, ImVec2(available_width, 0));
                             break;
                         }
                         case NodeContentType::Text: {

@@ -51,6 +51,11 @@ BaseVisualNode::BaseVisualNode(const Node& node)
     , ports_()
 {}
 
+// [t4u5v6w7] Snap size to grid so bottom-right corner stays grid-aligned.
+void BaseVisualNode::setSize(Pt size) {
+    size_ = snap_size_to_grid(size);
+}
+
 // ============================================================================
 // StandardVisualNode
 // ============================================================================
@@ -239,10 +244,18 @@ Bounds StandardVisualNode::getContentBounds() const {
 
     // Use port row bounds if available, otherwise use widget's own content area
     if (found_any_port_row && max_right_edge > max_left_edge) {
+        // [x8y9z0a1] Use symmetric margins so the content area is horizontally
+        // centred within the node body, preventing visual misalignment when left
+        // and right port labels differ in length.
+        float left_margin  = max_left_edge;
+        float right_margin = content_widget->width() - max_right_edge;
+        float symmetric_margin = std::max(left_margin, right_margin);
+        float content_w = content_widget->width() - 2.0f * symmetric_margin;
+
         Bounds result = {
-            content_widget->x() + max_left_edge,
+            content_widget->x() + symmetric_margin,
             content_widget->y(),
-            std::max(0.0f, max_right_edge - max_left_edge),
+            std::max(0.0f, content_w),
             content_height
         };
         return result;

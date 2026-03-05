@@ -419,3 +419,50 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     EXPECT_EQ(r2.type, HitType::None);
 }
 
+// ============================================================================
+// [p1q2r3s4] Regression: wire click on Bus-connected wires
+// Wire hit-test must pass wire_id to get_port_position so Bus alias ports
+// resolve correctly. Previously nullptr caused all endpoints to collapse
+// to the main "v" port → missed clicks.
+// ============================================================================
+
+TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
+    Blueprint bp;
+
+    // Bus node with logical port "v"
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    bp.add_node(std::move(bus));
+
+    // Two standard nodes on left and right
+    Node n1; n1.id = "a"; n1.name = "A"; n1.at(0, 0); n1.size_wh(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.name = "B"; n2.at(0, 200); n2.size_wh(120, 80);
+    n2.output("o");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+
+    // Two wires from different nodes to the same Bus "v" port
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    Wire w2 = Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v"));
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+
+    VisualNodeCache cache;
+    Viewport vp;
+
+    // Build visuals so Bus has two alias ports
+    for (auto& n : bp.nodes)
+        cache.getOrCreate(n, bp.wires);
+
+    // Click near the midpoint of wire w2
+    Pt start2 = editor_math::get_port_position(bp.nodes[2], "o", bp.wires, "w2", &cache);
+    Pt end2   = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", &cache);
+    Pt mid2((start2.x + end2.x) / 2.0f, (start2.y + end2.y) / 2.0f);
+
+    HitResult r = hit_test(bp, cache, mid2, vp);
+    EXPECT_EQ(r.type, HitType::Wire);
+    EXPECT_EQ(r.wire_index, 1u);  // w2 is the second wire
+}
+

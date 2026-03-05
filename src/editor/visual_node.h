@@ -31,7 +31,8 @@ public:
     Pt getPosition() const override { return position_; }
     void setPosition(Pt pos) override { position_ = pos; }
     Pt getSize() const override { return size_; }
-    void setSize(Pt size) override { size_ = size; }
+    // [t4u5v6w7] Snap size to grid so bottom-right corner stays grid-aligned
+    void setSize(Pt size) override;
 
     // --- IPersistable ---
     const std::string& getId() const override { return node_id_; }

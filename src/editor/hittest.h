@@ -34,10 +34,10 @@ struct HitResult {
 
 /// Определить что находится в указанной точке (мировые координаты)
 /// [h1a2b3c4] Overload accepting VisualNodeCache to avoid fresh visual creation.
-HitResult hit_test(const Blueprint& bp, const VisualNodeCache& cache, Pt world_pos, const Viewport& vp);
+HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp);
 
 /// Legacy overload without cache (creates fresh visuals – slow path)
 HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp);
 
 /// Hit test для портов (включая кэш визуальных узлов)
-HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt world_pos);
+HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos);

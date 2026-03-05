@@ -3,14 +3,14 @@
 #include "visual_node.h"
 
 // [h1a2b3c4] Primary overload: use VisualNodeCache for consistent hit testing
-HitResult hit_test(const Blueprint& bp, const VisualNodeCache& cache, Pt world_pos, const Viewport& vp) {
+HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp) {
     HitResult result;
     (void)vp;
 
     // Сначала проверяем узлы через cache
     for (size_t i = 0; i < bp.nodes.size(); i++) {
         const auto& n = bp.nodes[i];
-        auto* visual = const_cast<VisualNodeCache&>(cache).getOrCreate(n, bp.wires);
+        auto* visual = cache.getOrCreate(n, bp.wires);
         if (visual->containsPoint(world_pos)) {
             result.type = HitType::Node;
             result.node_index = i;
@@ -51,10 +51,13 @@ HitResult hit_test(const Blueprint& bp, const VisualNodeCache& cache, Pt world_p
 
         if (!start_node || !end_node) continue;
 
+        // [p1q2r3s4] Pass wire ID so Bus alias ports resolve to correct positions
+        // (matching render.cpp which also passes w.id). Without wire_id, Bus nodes
+        // return the main "v" port position for all wires → hit-test misses.
         Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires,
-                                                       nullptr, const_cast<VisualNodeCache*>(&cache));
+                                                       w.id.c_str(), &cache);
         Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires,
-                                                     nullptr, const_cast<VisualNodeCache*>(&cache));
+                                                     w.id.c_str(), &cache);
 
         Pt prev = start_pos;
         for (const auto& rp : w.routing_points) {
@@ -118,8 +121,9 @@ HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
         }
         if (!start_node || !end_node) continue;
 
-        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires);
-        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires);
+        // [p1q2r3s4] Pass wire ID for correct Bus alias port resolution
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires, w.id.c_str());
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires, w.id.c_str());
 
         Pt prev = start_pos;
         for (const auto& rp : w.routing_points) {
@@ -150,7 +154,7 @@ namespace {
     constexpr float PORT_HIT_RADIUS = 10.0f;  // Радиус зоны клика порта
 }
 
-HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt world_pos) {
+HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos) {
     HitResult result;
 
     // Проверяем порты всех узлов
@@ -158,7 +162,7 @@ HitResult hit_test_ports(const Blueprint& bp, const VisualNodeCache& cache, Pt w
         const auto& node = bp.nodes[node_idx];
         // Always call getOrCreate with wires to ensure BusVisualNode has dynamic ports
         // This is important because Bus nodes create visual ports based on wire connections
-        auto* visual = const_cast<VisualNodeCache&>(cache).getOrCreate(node, bp.wires);
+        auto* visual = cache.getOrCreate(node, bp.wires);
         if (!visual) continue;
 
         // Проверяем все порты
