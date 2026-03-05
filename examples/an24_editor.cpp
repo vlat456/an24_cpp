@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
         float menu_height = ImGui::GetFrameHeight();
         ImGui::SetNextWindowPos(ImVec2(0, menu_height));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_height));
-        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
+        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
         auto canvas_min = ImGui::GetWindowContentRegionMin();
         auto canvas_max = ImGui::GetWindowContentRegionMax();
@@ -561,7 +561,7 @@ int main(int argc, char** argv) {
             }
 
             // Mouse drag / panning
-            if (ImGui::IsMouseDragging(2)) { // Middle button = panning
+            if (ImGui::IsMouseDragging(2) && app.interaction.panning) { // Middle button = panning
                 ImVec2 delta = ImGui::GetMouseDragDelta(2);
                 Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
                 app.on_mouse_drag(world_delta, canvas_min_pt);

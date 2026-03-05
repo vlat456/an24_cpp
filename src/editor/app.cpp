@@ -255,13 +255,20 @@ void EditorApp::on_mouse_up(MouseButton btn) {
 void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     (void)canvas_min;
 
-    // Update last mouse position for wire creation
-    last_mouse_pos = last_mouse_pos + world_delta;
-
     if (interaction.panning) {
+        // Update last mouse position during panning
+        last_mouse_pos = last_mouse_pos + world_delta;
+
         // Панорамирование - обратный delta
         viewport.pan.x -= world_delta.x;
         viewport.pan.y -= world_delta.y;
+    } else if (interaction.dragging == Dragging::Node) {
+    } else if (interaction.dragging == Dragging::RoutingPoint) {
+    } else if (interaction.marquee_selecting) {
+    } else if (interaction.dragging == Dragging::CreatingWire ||
+               interaction.dragging == Dragging::ReconnectingWire) {
+        // Wire creation/reconnection - update last_mouse_pos
+        last_mouse_pos = last_mouse_pos + world_delta;
     } else if (interaction.dragging == Dragging::Node) {
         // Accumulate unsnapped delta, then snap
         interaction.update_drag_anchor(world_delta);
@@ -272,10 +279,8 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
                 Pt offset = (i < interaction.drag_node_offsets.size())
                     ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
                 Pt new_pos = snapped + offset;
-                // [h1a2b3c4] Use cache instead of VisualNodeFactory::create
                 auto* visual = visual_cache.getOrCreate(blueprint.nodes[idx], blueprint.wires);
                 visual->setPosition(new_pos);
-                // Also update raw Node for persistence
                 blueprint.nodes[idx].pos = new_pos;
             }
         }
@@ -294,9 +299,6 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     } else if (interaction.marquee_selecting) {
         // Обновляем конец marquee
         interaction.marquee_end = interaction.marquee_end + world_delta;
-    } else if (interaction.dragging == Dragging::CreatingWire ||
-               interaction.dragging == Dragging::ReconnectingWire) {
-        // Wire creation/reconnection - just update last_mouse_pos (already done above)
     }
 }
 
