@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
         float menu_height = ImGui::GetFrameHeight();
         ImGui::SetNextWindowPos(ImVec2(0, menu_height));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_height));
-        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
 
         auto canvas_min = ImGui::GetWindowContentRegionMin();
         auto canvas_max = ImGui::GetWindowContentRegionMax();
