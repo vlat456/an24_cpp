@@ -91,7 +91,7 @@
         {
           "name": "GeneratorAndBatteryOnSameBus",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 789
+          "line": 788
         }
       ]
     },
@@ -148,17 +148,17 @@
         {
           "name": "OpenSwitchBlocksCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 833
+          "line": 832
         },
         {
           "name": "ClosedSwitchConducts",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 860
+          "line": 859
         },
         {
           "name": "ToggleOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 887
+          "line": 886
         }
       ]
     }

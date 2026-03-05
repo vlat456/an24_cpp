@@ -445,7 +445,7 @@ TEST(IntegrationTest, BatteryRelayChain) {
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
     auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto relay = make_device("relay", "Relay", {{}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
     std::vector<DeviceInstance> devices = {gnd, battery, control, relay, load};
@@ -619,9 +619,9 @@ TEST(RegressionTest, BusTypeNotRefNode) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus1 = make_device("bus1", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus1 = make_device("bus1", "Bus", {{}},
         {{"v", PortDirection::Out}});
-    auto bus2 = make_device("bus2", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus2 = make_device("bus2", "Bus", {{}},
         {{"v", PortDirection::Out}});
     auto bat1 = make_device("bat1", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -630,7 +630,7 @@ TEST(RegressionTest, BusTypeNotRefNode) {
         {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
     auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto relay = make_device("relay", "Relay", {{}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
 
     std::vector<DeviceInstance> devices = {gnd, bus1, bus2, bat1, bat2, control, relay};
     std::vector<std::pair<std::string, std::string>> connections = {
@@ -674,7 +674,7 @@ TEST(RegressionTest, ClosedRelayNoConductance) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus = make_device("bus", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus = make_device("bus", "Bus", {{}},
         {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -727,9 +727,9 @@ TEST(RegressionTest, DualBatteryWithRelayStable) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus1 = make_device("bus1", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus1 = make_device("bus1", "Bus", {{}},
         {{"v", PortDirection::Out}});
-    auto bus2 = make_device("bus2", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus2 = make_device("bus2", "Bus", {{}},
         {{"v", PortDirection::Out}});
     auto bat1 = make_device("bat1", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -738,13 +738,11 @@ TEST(RegressionTest, DualBatteryWithRelayStable) {
         {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
     auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto relay = make_device("relay", "Relay", {{}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto load1 = make_device("load1", "Resistor",
         {{"conductance", "0.035"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto load2 = make_device("load2", "Resistor",
-        {{"conductance", "0.035"}},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out"}});
+    auto load2 = make_device("load2", "Resistor", {{"conductance", "0.035"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
     std::vector<DeviceInstance> devices = {
         gnd, bus1, bus2, bat1, bat2, control, relay, load1, load2
@@ -794,7 +792,7 @@ TEST(RegressionTest, GeneratorAndBatteryOnSameBus) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus = make_device("bus", "Bus", std::unordered_map<std::string, std::string>{},
+    auto bus = make_device("bus", "Bus", {{}},
         {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
