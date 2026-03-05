@@ -259,13 +259,17 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
         Port p;
         p.name = port_name;
 
-        if (port.direction == an24::PortDirection::Out || port.direction == an24::PortDirection::InOut) {
+        if (port.direction == an24::PortDirection::Out) {
             p.side = PortSide::Output;
             n.outputs.push_back(p);
-        }
-        if (port.direction == an24::PortDirection::In || port.direction == an24::PortDirection::InOut) {
+        } else if (port.direction == an24::PortDirection::In) {
             p.side = PortSide::Input;
             n.inputs.push_back(p);
+        } else if (port.direction == an24::PortDirection::InOut) {
+            // InOut ports go to both inputs and outputs with InOut side
+            p.side = PortSide::InOut;
+            n.inputs.push_back(p);
+            n.outputs.push_back(p);
         }
     }
 

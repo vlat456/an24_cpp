@@ -92,10 +92,13 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                 // Check compatibility:
                 // 1. Can't connect a port to itself
                 // 2. Input should connect to output (or output to input)
+                // 3. InOut ports can connect to anything
                 bool same_port = (port_hit.port_node_id == start_node &&
                                   port_hit.port_name == start_port);
                 bool compatible = !same_port &&
-                                  (port_hit.port_side != start_side);
+                                  (port_hit.port_side != start_side ||
+                                   port_hit.port_side == PortSide::InOut ||
+                                   start_side == PortSide::InOut);
 
                 if (compatible) {
                     // Create the wire
@@ -495,8 +498,12 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     for (const auto& [port_name, port_def] : def->default_ports) {
         if (port_def.direction == PortDirection::In) {
             node.inputs.emplace_back(port_name.c_str(), PortSide::Input);
-        } else {
+        } else if (port_def.direction == PortDirection::Out) {
             node.outputs.emplace_back(port_name.c_str(), PortSide::Output);
+        } else if (port_def.direction == PortDirection::InOut) {
+            // InOut ports go to both inputs and outputs
+            node.inputs.emplace_back(port_name.c_str(), PortSide::InOut);
+            node.outputs.emplace_back(port_name.c_str(), PortSide::InOut);
         }
     }
 
