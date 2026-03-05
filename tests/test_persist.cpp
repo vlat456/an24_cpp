@@ -128,37 +128,11 @@ TEST(PersistTest, UnifiedFormat_WithEditorMetadata) {
     EXPECT_EQ(bp->wires[0].routing_points[0].x, 150.0f);
 }
 
-/// Test backward compatibility: old editor format still works
-TEST(PersistTest, BackwardCompat_OldEditorFormat) {
+/// Test invalid format returns nullopt
+TEST(PersistTest, FromJson_MissingDevices_ReturnsNullopt) {
     const char* json = R"({
-        "nodes": [
-            {"id": "batt", "name": "Battery", "type_name": "Battery", "kind": "Node",
-             "pos": {"x": 100, "y": 200}, "size": {"x": 120, "y": 80},
-             "inputs": [{"name": "v_in", "side": "input"}],
-             "outputs": [{"name": "v_out", "side": "output"}]}
-        ],
-        "wires": [
-            {"id": "w1", "start": {"node_id": "batt", "port_name": "v_out"}, "end": {"node_id": "load", "port_name": "v_in"},
-             "routing_points": [{"x": 200, "y": 200}]}
-        ],
-        "pan": {"x": 50, "y": 75},
-        "zoom": 1.5,
-        "grid_step": 24
+        "connections": []
     })";
-
     auto bp = blueprint_from_json(json);
-    ASSERT_TRUE(bp.has_value());
-
-    // Check nodes loaded
-    EXPECT_EQ(bp->nodes.size(), 1);
-    EXPECT_EQ(bp->nodes[0].id, "batt");
-    EXPECT_EQ(bp->nodes[0].pos.x, 100.0f);
-
-    // Check wires loaded
-    EXPECT_EQ(bp->wires.size(), 1);
-    EXPECT_EQ(bp->wires[0].start.node_id, "batt");
-
-    // Check viewport
-    EXPECT_EQ(bp->pan.x, 50.0f);
-    EXPECT_EQ(bp->zoom, 1.5f);
+    EXPECT_FALSE(bp.has_value());
 }
