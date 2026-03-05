@@ -100,6 +100,7 @@ struct EditorApp {
     /// Остановить симуляцию
     void stop_simulation() {
         simulation.stop();
+        simulation.reset();  // Reset state to 0
         simulation_running = false;
     }
 

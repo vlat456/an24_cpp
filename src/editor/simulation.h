@@ -43,6 +43,9 @@ struct SimulationController {
     /// Stop simulation
     void stop() { running = false; }
 
+    /// Reset simulation to initial state
+    void reset();
+
     /// Get voltage at a port (e.g., "battery.v_out")
     float get_wire_voltage(const std::string& port_name) const;
 

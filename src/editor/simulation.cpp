@@ -100,3 +100,29 @@ void SimulationController::apply_overrides(const std::unordered_map<std::string,
         }
     }
 }
+
+void SimulationController::reset() {
+    // Stop simulation
+    running = false;
+
+    // Reset time
+    time = 0.0f;
+    step_count = 0;
+
+    // Reset all signals to 0
+    if (!build_result.has_value()) return;
+
+    // Re-allocate state (clears all arrays to 0)
+    state = SimulationState();
+
+    // Re-allocate signals (same as in build)
+    for (uint32_t i = 0; i < build_result->signal_count; ++i) {
+        bool is_fixed = std::binary_search(
+            build_result->fixed_signals.begin(),
+            build_result->fixed_signals.end(), i);
+        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+    }
+
+    // Note: Unlike build(), we do NOT initialize RefNodes here
+    // All signals stay at 0 - this is the expected behavior for Stop
+}

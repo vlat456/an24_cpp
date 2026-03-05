@@ -115,6 +115,35 @@ TEST(SimulationTest, RunningFlag) {
     EXPECT_FALSE(sim.running);
 }
 
+TEST(SimulationTest, ResetClearsState) {
+    Blueprint bp = create_simple_circuit();
+    SimulationController sim;
+
+    sim.build(bp);
+
+    // Run simulation to get some non-zero values
+    for (int i = 0; i < 50; i++) sim.step(0.016f);
+
+    // Check that simulation has progressed
+    EXPECT_GT(sim.time, 0.0f);
+    EXPECT_GT(sim.step_count, 0u);
+
+    // Get voltage at battery port (should be non-zero after running)
+    float v_running = sim.get_port_value("battery_1", "v_out");
+
+    // Reset simulation
+    sim.reset();
+
+    // Check that state is cleared
+    EXPECT_FALSE(sim.running);
+    EXPECT_EQ(sim.time, 0.0f);
+    EXPECT_EQ(sim.step_count, 0u);
+
+    // All voltages should be 0 after reset
+    float v_reset = sim.get_port_value("battery_1", "v_out");
+    EXPECT_FLOAT_EQ(v_reset, 0.0f);
+}
+
 // ─── State reset on rebuild ───
 
 TEST(SimulationTest, RebuildResetsState) {
