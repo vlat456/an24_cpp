@@ -371,7 +371,11 @@ int main(int argc, char** argv) {
                                 std::string button_id = label + "##" + node.id;
 
                                 if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
-                                    app.hold_button_press(node.id);
+                                    // ImGui::Button returns true every frame while held
+                                    // So we only trigger on the activation frame
+                                    if (ImGui::IsItemActivated()) {
+                                        app.hold_button_press(node.id);
+                                    }
                                 }
                                 // Detect when button is released (mouse up while active)
                                 if (ImGui::IsItemActive() && ImGui::IsMouseReleased(0)) {
