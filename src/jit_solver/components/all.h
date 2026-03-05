@@ -148,6 +148,7 @@ public:
     float rpm_cutoff = 0.45f;      // RPM cutoff to switch to generator (45%)
 
     // Generator mode parameters
+    float v_nominal = 28.5f;       // nominal voltage (for reference, not used in calculations)
     float r_norton = 0.08f;        // Norton equivalent resistance (~0.08 Ohm)
     float target_rpm = 15000.0f;   // target RPM at 100%
     float current_rpm = 0.0f;      // current RPM
@@ -156,7 +157,7 @@ public:
 
     GS24() = default;
     GS24(uint32_t v_in, uint32_t v_out, float v_nom, float int_r)
-        : v_in_idx(v_in), v_out_idx(v_out), r_internal(int_r) {}
+        : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), r_internal(int_r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
     void solve_electrical(SimulationState& state) override;

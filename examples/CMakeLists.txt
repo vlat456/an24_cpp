@@ -50,6 +50,14 @@ add_executable(vsu_aot_test
 target_include_directories(vsu_aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 target_link_libraries(vsu_aot_test PRIVATE jit_solver spdlog::spdlog)
 
+# AOT compiled GS24 test
+add_executable(gs24_aot_test
+    ${CMAKE_SOURCE_DIR}/generated/test_gs24_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_gs24_test.cpp
+)
+target_include_directories(gs24_aot_test PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(gs24_aot_test PRIVATE jit_solver spdlog::spdlog)
+
 # AOT benchmark
 add_executable(bench_vsu_aot
     ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp

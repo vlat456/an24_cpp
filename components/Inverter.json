@@ -1,0 +1,15 @@
+{
+  "classname": "Inverter",
+  "description": "DC to AC inverter with efficiency and frequency output",
+  "default_ports": {
+    "dc_in": { "direction": "In" },
+    "ac_out": { "direction": "Out" }
+  },
+  "default_params": {
+    "efficiency": "0.95",
+    "frequency": "400.0"
+  },
+  "default_domains": ["Electrical"],
+  "default_priority": "med",
+  "default_critical": false
+}

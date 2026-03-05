@@ -1,6 +1,8 @@
 #include "json_parser.h"
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include <filesystem>
+#include <fstream>
 
 using json = nlohmann::json;
 
@@ -53,7 +55,9 @@ static DeviceInstance parse_device(const json& j) {
     if (j.contains("name")) dev.name = j["name"].get<std::string>();
     if (j.contains("template")) dev.template_name = j["template"].get<std::string>();
     else if (j.contains("template_name")) dev.template_name = j["template_name"].get<std::string>();
-    if (j.contains("internal")) dev.internal = j["internal"].get<std::string>();
+    if (j.contains("classname")) dev.classname = j["classname"].get<std::string>();
+    else throw std::runtime_error("Device missing required 'classname' field");
+
     if (j.contains("priority")) dev.priority = j["priority"].get<std::string>();
     if (j.contains("bucket") && !j["bucket"].is_null()) {
         dev.bucket = j["bucket"].get<size_t>();
@@ -207,6 +211,10 @@ ParserContext parse_json(const std::string& json_text) {
     auto j = json::parse(json_text);
     ParserContext ctx;
 
+    // Load component registry
+    ctx.registry = load_component_registry();
+    spdlog::info("[json_parser] Loaded {} component definitions", ctx.registry.components.size());
+
     // Parse templates
     if (j.contains("templates")) {
         for (auto& [name, tpl_j] : j["templates"].items()) {
@@ -217,14 +225,48 @@ ParserContext parse_json(const std::string& json_text) {
     }
 
     // Parse devices (also accepts "top_level_devices")
+    std::vector<DeviceInstance> raw_devices;
     if (j.contains("devices")) {
         for (const auto& dev_j : j["devices"]) {
-            ctx.devices.push_back(parse_device(dev_j));
+            raw_devices.push_back(parse_device(dev_j));
         }
     } else if (j.contains("top_level_devices")) {
         for (const auto& dev_j : j["top_level_devices"]) {
-            ctx.devices.push_back(parse_device(dev_j));
+            raw_devices.push_back(parse_device(dev_j));
         }
+    }
+
+    // Merge with component definitions and validate
+    for (const auto& raw_dev : raw_devices) {
+        // Check if component exists in registry
+        if (!ctx.registry.has(raw_dev.classname)) {
+            spdlog::error("[json_parser] Unknown component classname '{}' in device '{}'",
+                         raw_dev.classname, raw_dev.name);
+            throw std::runtime_error("Unknown component classname: " + raw_dev.classname);
+        }
+
+        // Get component definition
+        const auto* def = ctx.registry.get(raw_dev.classname);
+        if (!def) {
+            spdlog::error("[json_parser] Component definition not found for '{}' in device '{}'",
+                         raw_dev.classname, raw_dev.name);
+            throw std::runtime_error("Component definition not found: " + raw_dev.classname);
+        }
+
+        // Merge instance with definition
+        DeviceInstance merged = merge_device_instance(raw_dev, *def);
+
+        // Validate merged instance
+        auto error = ctx.registry.validate_instance(merged);
+        if (error.has_value()) {
+            spdlog::error("[json_parser] Validation failed for device '{}': {}",
+                         merged.name, error.value());
+            throw std::runtime_error("Device validation failed: " + error.value());
+        }
+
+        ctx.devices.push_back(merged);
+        spdlog::debug("[json_parser] Merged device '{}' of type '{}' with component definition",
+                     merged.name, merged.classname);
     }
 
     // Parse connections
@@ -251,7 +293,7 @@ static json device_to_json(const DeviceInstance& dev) {
     json j;
     if (!dev.name.empty()) j["name"] = dev.name;
     if (!dev.template_name.empty()) j["template"] = dev.template_name;
-    if (!dev.internal.empty()) j["internal"] = dev.internal;
+    if (!dev.classname.empty()) j["classname"] = dev.classname;
     if (dev.priority != "med") j["priority"] = dev.priority;
     if (dev.bucket.has_value()) j["bucket"] = dev.bucket.value();
     if (dev.critical) j["critical"] = true;
@@ -377,6 +419,202 @@ std::string serialize_json(const ParserContext& ctx) {
     }
 
     return j.dump(2);  // Pretty print with 2-space indent
+}
+
+// Helper: parse ComponentDefinition from JSON
+static ComponentDefinition parse_component_definition(const json& j) {
+    ComponentDefinition def;
+
+    if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
+    else throw std::runtime_error("Component definition missing 'classname' field");
+
+    if (j.contains("description")) def.description = j["description"].get<std::string>();
+
+    // Parse default ports
+    if (j.contains("default_ports")) {
+        for (auto& [port_name, port_val] : j["default_ports"].items()) {
+            def.default_ports[port_name] = parse_port(port_val);
+        }
+    }
+
+    // Parse default params
+    if (j.contains("default_params")) {
+        for (auto& [key, val] : j["default_params"].items()) {
+            def.default_params[key] = val.get<std::string>();
+        }
+    }
+
+    // Parse default domains
+    if (j.contains("default_domains") && j["default_domains"].is_array()) {
+        std::vector<Domain> domains;
+        for (const auto& d : j["default_domains"]) {
+            domains.push_back(parse_domain(d.get<std::string>()));
+        }
+        if (!domains.empty()) {
+            def.default_domains = domains;
+        }
+    }
+
+    // Parse default priority
+    if (j.contains("default_priority")) {
+        def.default_priority = j["default_priority"].get<std::string>();
+    }
+
+    // Parse default critical
+    if (j.contains("default_critical")) {
+        def.default_critical = j["default_critical"].get<bool>();
+    }
+
+    return def;
+}
+
+// Load component registry from components/ directory
+ComponentRegistry load_component_registry(const std::string& components_dir) {
+    ComponentRegistry registry;
+
+    std::filesystem::path components_path(components_dir);
+
+    // If relative path doesn't exist, try relative to source directory
+    if (!std::filesystem::exists(components_path) && components_path.is_relative()) {
+        // Try common locations relative to current working directory
+        std::vector<std::filesystem::path> try_paths = {
+            components_path,  // As provided
+            "../" / components_path,  // Parent directory
+            "../../" / components_path,  // Two levels up
+            "../../../" / components_path,  // Three levels up (for build/tests)
+        };
+
+        for (const auto& path : try_paths) {
+            if (std::filesystem::exists(path)) {
+                components_path = path;
+                break;
+            }
+        }
+    }
+
+    // Check if directory exists
+    if (!std::filesystem::exists(components_path)) {
+        spdlog::warn("[json_parser] Components directory '{}' does not exist, using empty registry", components_dir);
+        return registry;
+    }
+
+    // Scan for *.json files
+    size_t loaded_count = 0;
+    for (const auto& entry : std::filesystem::directory_iterator(components_path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            try {
+                // Read and parse JSON file
+                std::ifstream file(entry.path());
+                json j;
+                file >> j;
+
+                // Parse component definition
+                ComponentDefinition def = parse_component_definition(j);
+
+                // Check for duplicate classnames
+                if (registry.has(def.classname)) {
+                    spdlog::error("[json_parser] Duplicate classname '{}' in '{}', skipping",
+                                  def.classname, entry.path().string());
+                    continue;
+                }
+
+                // Add to registry
+                registry.components[def.classname] = def;
+                loaded_count++;
+
+                spdlog::debug("[json_parser] Loaded component definition: '{}' from {}",
+                             def.classname, entry.path().filename().string());
+            }
+            catch (const std::exception& e) {
+                spdlog::error("[json_parser] Failed to parse component definition '{}': {}",
+                             entry.path().string(), e.what());
+            }
+        }
+    }
+
+    spdlog::info("[json_parser] Loaded {} component definitions from '{}'",
+                 loaded_count, components_dir);
+
+    return registry;
+}
+
+// Merge device instance with component definition defaults
+DeviceInstance merge_device_instance(
+    const DeviceInstance& instance,
+    const ComponentDefinition& definition
+) {
+    DeviceInstance merged = instance;
+
+    // Merge ports: instance overrides, defaults fill gaps
+    if (merged.ports.empty()) {
+        merged.ports = definition.default_ports;
+    } else {
+        for (const auto& [port_name, port] : definition.default_ports) {
+            if (!merged.ports.count(port_name)) {
+                merged.ports[port_name] = port;
+            }
+        }
+    }
+
+    // Merge params: instance overrides, defaults fill gaps
+    for (const auto& [param_name, param_value] : definition.default_params) {
+        if (!merged.params.count(param_name)) {
+            merged.params[param_name] = param_value;
+        }
+    }
+
+    // Merge domains: instance overrides default
+    if (!merged.explicit_domains.has_value() && definition.default_domains.has_value()) {
+        merged.explicit_domains = definition.default_domains;
+    }
+
+    // Merge priority: instance overrides default (only if instance has default priority)
+    if (merged.priority == "med" && definition.default_priority != "med") {
+        merged.priority = definition.default_priority;
+    }
+
+    // Merge critical: instance overrides default
+    if (!merged.critical && definition.default_critical) {
+        merged.critical = true;
+    }
+
+    return merged;
+}
+
+// Validate instance against component definition
+std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInstance& instance) const {
+    // Check classname exists
+    if (!has(instance.classname)) {
+        return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
+    }
+
+    const auto* def = get(instance.classname);
+    if (!def) {
+        return "Component definition not found for '" + instance.classname + "'";
+    }
+
+    // Validate instance ports are known in definition
+    for (const auto& [port_name, port] : instance.ports) {
+        if (!def->default_ports.count(port_name)) {
+            return "Unknown port '" + port_name + "' in device '" + instance.name +
+                   "' of type '" + instance.classname + "'. Valid ports: " +
+                   [&]() {
+                       std::string valid_ports;
+                       for (const auto& [name, _] : def->default_ports) {
+                           if (!valid_ports.empty()) valid_ports += ", ";
+                           valid_ports += name;
+                       }
+                       return valid_ports;
+                   }();
+        }
+    }
+
+    // Validate domains are specified
+    if (!instance.explicit_domains.has_value() && !def->default_domains.has_value()) {
+        return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
+    }
+
+    return std::nullopt;  // Validation passed
 }
 
 } // namespace an24

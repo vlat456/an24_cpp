@@ -1,0 +1,18 @@
+{
+  "classname": "GS24",
+  "description": "GS24 Starter-Generator with dual-mode operation (motor and generator)",
+  "default_ports": {
+    "v_in": { "direction": "In" },
+    "v_out": { "direction": "Out" },
+    "k_mod": { "direction": "In" }
+  },
+  "default_params": {
+    "v_nominal": "28.5",
+    "r_internal": "0.025",
+    "target_rpm": "16000.0",
+    "r_norton": "0.08"
+  },
+  "default_domains": ["Electrical", "Mechanical"],
+  "default_priority": "high",
+  "default_critical": false
+}

@@ -1,0 +1,15 @@
+{
+  "classname": "SolenoidValve",
+  "description": "Electrically controlled hydraulic valve",
+  "default_ports": {
+    "ctrl": { "direction": "In" },
+    "flow_in": { "direction": "In" },
+    "flow_out": { "direction": "Out" }
+  },
+  "default_params": {
+    "normally_closed": "true"
+  },
+  "default_domains": ["Electrical", "Hydraulic"],
+  "default_priority": "med",
+  "default_critical": false
+}

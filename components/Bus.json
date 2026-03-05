@@ -1,0 +1,11 @@
+{
+  "classname": "Bus",
+  "description": "Electrical bus - connects all ports to the same signal node. Used as wire junction/collector for distributing power to multiple loads.",
+  "default_ports": {
+    "v": { "direction": "Out" }
+  },
+  "default_params": {},
+  "default_domains": ["Electrical"],
+  "default_priority": "high",
+  "default_critical": true
+}

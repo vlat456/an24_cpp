@@ -1,0 +1,16 @@
+{
+  "classname": "IndicatorLight",
+  "description": "Aircraft indicator light with brightness output",
+  "default_ports": {
+    "v_in": { "direction": "In" },
+    "v_out": { "direction": "Out" },
+    "brightness": { "direction": "Out" }
+  },
+  "default_params": {
+    "max_brightness": "100.0",
+    "color": "white"
+  },
+  "default_domains": ["Electrical"],
+  "default_priority": "med",
+  "default_critical": false
+}

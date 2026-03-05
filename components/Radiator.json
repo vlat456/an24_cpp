@@ -1,0 +1,14 @@
+{
+  "classname": "Radiator",
+  "description": "Heat exchanger/radiator for cooling",
+  "default_ports": {
+    "heat_in": { "direction": "In" },
+    "heat_out": { "direction": "Out" }
+  },
+  "default_params": {
+    "cooling_capacity": "1000.0"
+  },
+  "default_domains": ["Thermal"],
+  "default_priority": "med",
+  "default_critical": false
+}

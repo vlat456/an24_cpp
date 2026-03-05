@@ -1,0 +1,13 @@
+{
+  "classname": "Load",
+  "description": "Generic electrical load with conductance",
+  "default_ports": {
+    "input": { "direction": "In" }
+  },
+  "default_params": {
+    "conductance": "0.1"
+  },
+  "default_domains": ["Electrical"],
+  "default_priority": "med",
+  "default_critical": false
+}

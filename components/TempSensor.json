@@ -1,0 +1,14 @@
+{
+  "classname": "TempSensor",
+  "description": "Temperature sensor with sensitivity",
+  "default_ports": {
+    "temp_in": { "direction": "In" },
+    "temp_out": { "direction": "Out" }
+  },
+  "default_params": {
+    "sensitivity": "1.0"
+  },
+  "default_domains": ["Thermal"],
+  "default_priority": "med",
+  "default_critical": false
+}
