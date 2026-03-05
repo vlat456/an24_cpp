@@ -4,7 +4,8 @@
   "default_ports": {
     "v_in": { "direction": "In" },
     "v_out": { "direction": "Out" },
-    "control": { "direction": "In" }
+    "control": { "direction": "In" },
+    "state": { "direction": "Out" }
   },
   "default_params": {
     "closed": "false"

@@ -51,18 +51,21 @@ void Switch::solve_electrical(SimulationState& state) {
 }
 
 void Switch::post_step(SimulationState& state, float /*dt*/) {
-    // Check for rising edge on control (trigger to toggle)
-    float control_voltage = state.across[control_idx];
-    bool control_active = (control_voltage > trigger_threshold);
-    bool was_active = (last_control_voltage > trigger_threshold);
+    // Level Toggle pattern: detect any change on control port
+    float current_control = state.across[control_idx];
 
-    // Toggle on rising edge (0 -> 1 transition)
-    if (control_active && !was_active) {
+    // Detect edge: any significant change triggers toggle
+    if (std::abs(current_control - last_control) > 0.1f) {
         closed = !closed;  // Toggle state
+        spdlog::info("[Switch] Control changed {:.2f}→{:.2f}, toggled to closed={}",
+            last_control, current_control, closed);
     }
 
-    // Store current control voltage for next step
-    last_control_voltage = control_voltage;
+    // Store for next step
+    last_control = current_control;
+
+    // Output state: 1.0V = closed, 0.0V = open
+    state.across[state_idx] = closed ? 1.0f : 0.0f;
 
     if (!closed) return;  // open switch: no connection
 

@@ -834,7 +834,7 @@ TEST(SwitchTest, OpenSwitchBlocksCurrent) {
     // Open switch = no current
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
     auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
@@ -861,7 +861,7 @@ TEST(SwitchTest, ClosedSwitchConducts) {
     // Closed switch = conducts like wire
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "true"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
     auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
@@ -888,7 +888,7 @@ TEST(SwitchTest, ToggleOnControlEdge) {
     // Control edge toggles switch state
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
     auto control_src = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 

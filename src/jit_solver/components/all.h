@@ -46,14 +46,14 @@ class Switch : public Component {
 public:
     uint32_t v_in_idx = 0;
     uint32_t v_out_idx = 0;
-    uint32_t control_idx = 0;  // Control trigger (rising edge toggles state)
+    uint32_t control_idx = 0;  // Control trigger (any change toggles state)
+    uint32_t state_idx = 0;    // State output (1.0V = closed, 0.0V = open)
     bool closed = false;        // Initial state (default: open)
-    float trigger_threshold = 0.5f;  // Voltage threshold to detect trigger
-    float last_control_voltage = 0.0f; // Previous control voltage (for edge detection)
+    float last_control = 0.0f;  // Previous control voltage (edge detection)
 
     Switch() = default;
-    Switch(uint32_t v_in, uint32_t v_out, uint32_t control, bool is_closed = false, float threshold = 0.5f)
-        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), closed(is_closed), trigger_threshold(threshold) {}
+    Switch(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state, bool is_closed = false)
+        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), closed(is_closed), last_control(0.0f) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Switch"; }
     void solve_electrical(SimulationState& state) override;

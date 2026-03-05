@@ -63,7 +63,7 @@ std::unique_ptr<Component> create_component(
         bool is_closed = device.params.count("closed") ?
             (device.params.at("closed") == "true") : false;  // Default: open
         return std::make_unique<Switch>(
-            get_port("v_in"), get_port("v_out"), get_port("control"), is_closed);
+            get_port("v_in"), get_port("v_out"), get_port("control"), get_port("state"), is_closed);
     }
     else if (device.classname == "Relay") {
         bool is_closed = device.params.count("closed") ?

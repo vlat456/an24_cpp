@@ -322,12 +322,10 @@ void EditorApp::update_node_content_from_simulation() {
             bool connected = v_gen > v_bus + 2.0f;
             node.node_content.state = connected;
         }
-        // Update Switch toggle state from control port
+        // Update Switch toggle state from state port (1.0V = closed, 0.0V = open)
         else if (node.type_name == "Switch") {
-            float control_voltage = simulation.get_port_value(node.id, "control");
-            // Update label to show control active (not switch state)
-            // The actual toggle happens in Switch::post_step on rising edge
-            node.node_content.state = (control_voltage > 0.5f);
+            float state_voltage = simulation.get_port_value(node.id, "state");
+            node.node_content.state = (state_voltage > 0.5f);
         }
         // Relay has no UI - automatic device controlled by external signals
     }
@@ -445,11 +443,14 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
 }
 
 void EditorApp::trigger_switch(const std::string& node_id) {
-    // Set temporary override on control port to trigger toggle
+    // Toggle control value: 0.0 → 1.0 → 0.0 → 1.0 (Level Toggle pattern)
+    float current = simulation.get_port_value(node_id, "control");
+    float next = (current < 0.5f) ? 1.0f : 0.0f;
+
     std::string control_port = node_id + ".control";
-    signal_overrides[control_port] = 1.0f;  // Trigger impulse
-    
-    printf("Trigger switch: %s.control = 1.0f (toggle)\n", node_id.c_str());
+    signal_overrides[control_port] = next;
+
+    printf("Trigger switch: %s.control = %.1f (was %.1f)\n", node_id.c_str(), next, current);
 }
 
 void EditorApp::update_simulation_step() {
@@ -461,6 +462,6 @@ void EditorApp::update_simulation_step() {
     // Run simulation step
     simulation.step(simulation.dt);
 
-    // Clear overrides after applying (impulse = one step only)
+    // Clear overrides map (signals stay as set by components)
     signal_overrides.clear();
 }

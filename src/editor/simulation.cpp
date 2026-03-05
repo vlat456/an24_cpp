@@ -89,7 +89,7 @@ bool SimulationController::wire_is_energized(const std::string& port_name, float
 
 void SimulationController::apply_overrides(const std::unordered_map<std::string, float>& overrides) {
     if (!build_result.has_value()) return;
-    
+
     for (const auto& [port_ref, value] : overrides) {
         auto it = build_result->port_to_signal.find(port_ref);
         if (it != build_result->port_to_signal.end()) {
