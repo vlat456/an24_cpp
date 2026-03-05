@@ -219,10 +219,22 @@ int main(int argc, char** argv) {
             if (ImGui::IsKeyPressed(ImGuiKey_R)) {
                 app.on_key_down(Key::R);
             }
+            if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+                app.on_key_down(Key::Space);
+            }
         }
+
+        // Обновление симуляции каждый кадр
+        app.update_simulation();
 
         // Меню
         if (ImGui::BeginMainMenuBar()) {
+            // Simulation indicator
+            if (app.simulation_running) {
+                ImGui::SameLine();
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "▶ SIM");
+            }
+
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("New", "Ctrl+N")) {
                     app.new_circuit();
@@ -297,9 +309,10 @@ int main(int argc, char** argv) {
         // Сетка
         render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
 
-        // Blueprint
+        // Blueprint - с симуляцией для подсветки проводов
         render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
-                         &app.interaction.selected_nodes, app.interaction.selected_wire);
+                         &app.interaction.selected_nodes, app.interaction.selected_wire,
+                         &app.simulation);
 
         // Render node content (ImGui widgets) - after DrawList rendering
         for (auto& node : app.blueprint.nodes) {

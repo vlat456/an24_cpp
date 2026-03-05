@@ -2,6 +2,7 @@
 #include "trigonometry.h"
 #include "router/crossings.h"
 #include "visual_node.h"
+#include "simulation.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
@@ -67,7 +68,11 @@ NodeColors get_node_colors(const char* type_name) {
 } // namespace
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
-                      const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire) {
+                      const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
+                      const SimulationController* simulation) {
+
+    // Wire has current color - yellow
+    constexpr uint32_t COLOR_WIRE_CURRENT = 0xFF44AAFF; // yellow AA (FF,, 44)
 
     // Build polylines for all wires first (for crossing detection)
     std::vector<std::vector<Pt>> all_polylines;
@@ -117,6 +122,17 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         // Цвет провода: выделенный - золотой, невыделенный - серый
         bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
         uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
+
+        // Подсветка проводов с током (симуляция запущена)
+        if (simulation && simulation->running && !w.start.node_id.empty()) {
+            std::string start_port = w.start.node_id + "." + w.start.port_name;
+            std::string end_port = w.end.node_id + "." + w.end.port_name;
+            float v_start = simulation->get_wire_voltage(start_port);
+            float v_end = simulation->get_wire_voltage(end_port);
+            if (std::abs(v_start - v_end) > 0.1f) {
+                wire_color = COLOR_WIRE_CURRENT; // желтый - есть ток
+            }
+        }
 
         const auto& crossings = all_crossings[wire_idx];
 

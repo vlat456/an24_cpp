@@ -26,9 +26,11 @@ struct IDrawList {
 /// Рендерит Blueprint (узлы и провода) в IDrawList
 /// @param selected_nodes - опционально, индексы выделенных узлов для подсветки
 /// @param selected_wire - опционально, индекс выделенного провода для подсветки
+/// @param simulation - опционально, симуляция для подсветки проводов с током (желтый)
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes = nullptr,
-                      std::optional<size_t> selected_wire = std::nullopt);
+                      std::optional<size_t> selected_wire = std::nullopt,
+                      const struct SimulationController* simulation = nullptr);
 
 /// Рендерит сетку
 void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max);

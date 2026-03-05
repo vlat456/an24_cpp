@@ -897,6 +897,30 @@ __/src/editor/render.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/render.cpp.s
 .PHONY : __/src/editor/render.cpp.s
 
+__/src/editor/simulation.o: __/src/editor/simulation.cpp.o
+.PHONY : __/src/editor/simulation.o
+
+# target to build an object file
+__/src/editor/simulation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/simulation.cpp.o
+.PHONY : __/src/editor/simulation.cpp.o
+
+__/src/editor/simulation.i: __/src/editor/simulation.cpp.i
+.PHONY : __/src/editor/simulation.i
+
+# target to preprocess a source file
+__/src/editor/simulation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/simulation.cpp.i
+.PHONY : __/src/editor/simulation.cpp.i
+
+__/src/editor/simulation.s: __/src/editor/simulation.cpp.s
+.PHONY : __/src/editor/simulation.s
+
+# target to generate assembly for a file
+__/src/editor/simulation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/simulation.cpp.s
+.PHONY : __/src/editor/simulation.cpp.s
+
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
 
@@ -1252,6 +1276,9 @@ help:
 	@echo "... __/src/editor/render.o"
 	@echo "... __/src/editor/render.i"
 	@echo "... __/src/editor/render.s"
+	@echo "... __/src/editor/simulation.o"
+	@echo "... __/src/editor/simulation.i"
+	@echo "... __/src/editor/simulation.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"

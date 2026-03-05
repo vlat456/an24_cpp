@@ -5,6 +5,7 @@
 #include "interact/interaction.h"
 #include "hittest.h"
 #include "visual_node.h"
+#include "simulation.h"
 
 /// Кнопки мыши
 enum class MouseButton {
@@ -20,6 +21,7 @@ enum class Key {
     S,       // Ctrl+S = save
     Z,       // Ctrl+Z = undo
     R,       // R = reroute selected wire
+    Space,   // Space = toggle simulation
 };
 
 /// Главное приложение редактора
@@ -36,6 +38,10 @@ struct EditorApp {
     /// Visual node cache for rendering content (ImGui widgets)
     VisualNodeCache visual_cache;
 
+    /// JIT Simulation
+    SimulationController simulation;
+    bool simulation_running = false;
+
     EditorApp() = default;
 
     /// Создать новую схему
@@ -43,6 +49,30 @@ struct EditorApp {
         blueprint = Blueprint();
         viewport = Viewport();
         interaction = Interaction();
+        simulation = SimulationController();
+        simulation_running = false;
+    }
+
+    /// Запустить симуляцию
+    void start_simulation() {
+        if (!simulation_running) {
+            simulation.build(blueprint);
+            simulation.start();
+            simulation_running = true;
+        }
+    }
+
+    /// Остановить симуляцию
+    void stop_simulation() {
+        simulation.stop();
+        simulation_running = false;
+    }
+
+    /// Обновить симуляцию на один шаг
+    void update_simulation() {
+        if (simulation_running) {
+            simulation.step(simulation.dt);
+        }
     }
 
     /// Обработка mouse down

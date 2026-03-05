@@ -132,6 +132,13 @@ void EditorApp::on_key_down(Key key) {
     if (key == Key::Escape) {
         // Сброс выделения
         interaction.clear_selection();
+    } else if (key == Key::Space) {
+        // Toggle simulation
+        if (simulation_running) {
+            stop_simulation();
+        } else {
+            start_simulation();
+        }
     } else if (key == Key::Delete) {
         // Удаление всех выделенных узлов (с конца чтобы не сбить индексы)
         std::sort(interaction.selected_nodes.begin(), interaction.selected_nodes.end(), std::greater<size_t>());

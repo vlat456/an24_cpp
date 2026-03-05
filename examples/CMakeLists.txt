@@ -93,6 +93,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
@@ -117,4 +118,6 @@ target_link_libraries(an24_editor PRIVATE
     "-framework UniformTypeIdentifiers"
     spdlog::spdlog
     ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
+    jit_solver
+    json_parser
 )
