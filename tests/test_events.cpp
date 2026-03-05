@@ -380,3 +380,159 @@ TEST(WireCreationTest, MouseUpOnEmptySpace_CancelsWireCreation) {
     EXPECT_EQ(app.interaction.dragging, Dragging::None);
     EXPECT_FALSE(app.interaction.has_wire_start());
 }
+
+// ============================================================================
+// Wire Reconnection Tests [m6i8j0k2]
+// ============================================================================
+
+// Click-drag on a port with an existing wire should enter ReconnectingWire state
+TEST(WireReconnectionTest, ClickOnOccupiedPort_StartsReconnection) {
+    EditorApp app;
+
+    // Add battery and load, connect them
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("HighPowerLoad", Pt(300, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 2);
+
+    const auto& batt = app.blueprint.nodes[0];
+    const auto& load = app.blueprint.nodes[1];
+
+    // Create a wire manually between battery output and load input
+    Wire w = Wire::make("w1",
+        WireEnd(batt.id.c_str(), batt.outputs[0].name.c_str(), PortSide::Output),
+        WireEnd(load.id.c_str(), load.inputs[0].name.c_str(), PortSide::Input));
+    app.blueprint.add_wire(std::move(w));
+    app.visual_cache.onWireAdded(app.blueprint.wires.back(), app.blueprint.nodes);
+
+    // Get the position of the battery output port (occupied)
+    auto* batt_visual = app.visual_cache.getOrCreate(batt);
+    Pt port_pos = batt_visual->getPortPosition(batt.outputs[0].name);
+
+    // Click on the occupied port
+    app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+
+    // Should start reconnection, not wire creation
+    EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+}
+
+// Release reconnecting wire on valid port reconnects the wire
+TEST(WireReconnectionTest, ReleaseOnValidPort_ReconnectsWire) {
+    EditorApp app;
+
+    // battery → load1, then reconnect to load2
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("HighPowerLoad", Pt(300, 100));
+    app.add_component("HighPowerLoad", Pt(500, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 3);
+
+    const auto& batt = app.blueprint.nodes[0];
+    const auto& load1 = app.blueprint.nodes[1];
+    const auto& load2 = app.blueprint.nodes[2];
+
+    Wire w = Wire::make("w1",
+        WireEnd(batt.id.c_str(), batt.outputs[0].name.c_str(), PortSide::Output),
+        WireEnd(load1.id.c_str(), load1.inputs[0].name.c_str(), PortSide::Input));
+    app.blueprint.add_wire(std::move(w));
+    app.visual_cache.onWireAdded(app.blueprint.wires.back(), app.blueprint.nodes);
+
+    // Get port positions
+    auto* load1_visual = app.visual_cache.getOrCreate(load1);
+    Pt load1_port = load1_visual->getPortPosition(load1.inputs[0].name);
+
+    // Start reconnection from load1's input port (end of wire)
+    app.on_mouse_down(load1_port, MouseButton::Left, Pt(0.0f, 0.0f));
+    ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+
+    // Drag to load2's input port
+    auto* load2_visual = app.visual_cache.getOrCreate(load2);
+    Pt load2_port = load2_visual->getPortPosition(load2.inputs[0].name);
+    Pt delta = load2_port - load1_port;
+    app.on_mouse_drag(delta, Pt(0.0f, 0.0f));
+
+    // Release on load2
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should still exist, but now connected to load2
+    ASSERT_EQ(app.blueprint.wires.size(), 1);
+    EXPECT_EQ(app.blueprint.wires[0].end.node_id, load2.id);
+    EXPECT_EQ(app.interaction.dragging, Dragging::None);
+}
+
+// Release reconnecting wire on empty space deletes the wire
+TEST(WireReconnectionTest, ReleaseOnEmpty_DeletesWire) {
+    EditorApp app;
+
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("HighPowerLoad", Pt(300, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 2);
+
+    const auto& batt = app.blueprint.nodes[0];
+    const auto& load = app.blueprint.nodes[1];
+
+    Wire w = Wire::make("w1",
+        WireEnd(batt.id.c_str(), batt.outputs[0].name.c_str(), PortSide::Output),
+        WireEnd(load.id.c_str(), load.inputs[0].name.c_str(), PortSide::Input));
+    app.blueprint.add_wire(std::move(w));
+    app.visual_cache.onWireAdded(app.blueprint.wires.back(), app.blueprint.nodes);
+
+    // Start reconnection
+    auto* load_visual = app.visual_cache.getOrCreate(load);
+    Pt port_pos = load_visual->getPortPosition(load.inputs[0].name);
+    app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+    ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+
+    // Drag to empty space
+    app.on_mouse_drag(Pt(999.0f, 999.0f), Pt(0.0f, 0.0f));
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should be deleted
+    EXPECT_EQ(app.blueprint.wires.size(), 0);
+    EXPECT_EQ(app.interaction.dragging, Dragging::None);
+}
+
+// Click on a port with NO existing wire should still create a new wire
+TEST(WireReconnectionTest, ClickOnFreePort_StartsCreatingWire) {
+    EditorApp app;
+
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+
+    const auto& batt = app.blueprint.nodes[0];
+
+    // Get the position of the output port (no wire attached)
+    auto* visual = app.visual_cache.getOrCreate(batt);
+    Pt port_pos = visual->getPortPosition(batt.outputs[0].name);
+
+    app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
+
+    // Should start wire creation (not reconnection)
+    EXPECT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+}
+
+// ============================================================================
+// Routing Point Insertion Fix [j3f5a7b9]
+// ============================================================================
+
+// Routing point should be inserted into the correct segment, not seeded with
+// phantom direct-line distance that could pick the wrong segment.
+TEST(RoutingPointInsertionTest, InsertsIntoCorrectSegment) {
+    EditorApp app;
+    app.blueprint.grid_step = 8.0f;
+
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80); n1.output("o");
+    Node n2; n2.id = "b"; n2.pos = Pt(400, 0); n2.size = Pt(120, 80); n2.input("i");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    // L-shaped routing: down then right
+    w.add_routing_point(Pt(120.0f, 200.0f));
+    w.add_routing_point(Pt(400.0f, 200.0f));
+    app.blueprint.add_wire(std::move(w));
+
+    // Double-click near the horizontal segment (y≈200)
+    app.on_double_click(Pt(260.0f, 201.0f));
+
+    // Should now have 3 routing points (one inserted)
+    EXPECT_EQ(app.blueprint.wires[0].routing_points.size(), 3);
+}

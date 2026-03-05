@@ -8,10 +8,11 @@
 
 /// Состояние перетаскивания
 enum class Dragging {
-    None,           ///< Ничего не перетаскивается
-    Node,           ///< Перетаскивается узел
-    RoutingPoint,   ///< Перетаскивается точка изгиба провода
-    CreatingWire    ///< Создаётся новый провод
+    None,              ///< Ничего не перетаскивается
+    Node,              ///< Перетаскивается узел
+    RoutingPoint,      ///< Перетаскивается точка изгиба провода
+    CreatingWire,      ///< Создаётся новый провод
+    ReconnectingWire   ///< Переподключение конца существующего провода [m6i8j0k2]
 };
 
 /// Interaction state - состояние взаимодействия с канвой
@@ -138,6 +139,38 @@ public:
         wire_start_port.clear();
         wire_start_side = PortSide::Input;
         wire_start_pos = Pt::zero();
+        dragging = Dragging::None;
+    }
+
+    // ================================================================
+    // Wire reconnection state [m6i8j0k2]
+    // ================================================================
+private:
+    size_t reconnect_wire_index_ = 0;   ///< Index of wire being reconnected
+    bool reconnect_is_start_ = false;   ///< true = detaching start end, false = detaching end end
+    Pt reconnect_anchor_pos_;           ///< Fixed end of the wire (the end NOT being moved)
+    PortSide reconnect_fixed_side_;     ///< Port side of the fixed end
+
+public:
+    /// Start reconnecting a wire by detaching one end
+    void start_wire_reconnect(size_t wire_index, bool detach_start, Pt anchor_pos, PortSide fixed_side) {
+        dragging = Dragging::ReconnectingWire;
+        reconnect_wire_index_ = wire_index;
+        reconnect_is_start_ = detach_start;
+        reconnect_anchor_pos_ = anchor_pos;
+        reconnect_fixed_side_ = fixed_side;
+    }
+
+    size_t get_reconnect_wire_index() const { return reconnect_wire_index_; }
+    bool get_reconnect_is_start() const { return reconnect_is_start_; }
+    Pt get_reconnect_anchor_pos() const { return reconnect_anchor_pos_; }
+    PortSide get_reconnect_fixed_side() const { return reconnect_fixed_side_; }
+
+    void clear_wire_reconnect() {
+        reconnect_wire_index_ = 0;
+        reconnect_is_start_ = false;
+        reconnect_anchor_pos_ = Pt::zero();
+        reconnect_fixed_side_ = PortSide::Input;
         dragging = Dragging::None;
     }
 };

@@ -326,12 +326,13 @@ int main(int argc, char** argv) {
             has_hover = true;
         }
 
-        // Blueprint - с симуляцией для подсветки проводов
+        // Blueprint - с симуляцией для подсветки проводов [h1a2b3c4] - pass cache
         TooltipInfo tooltip;
         render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
                          &app.interaction.selected_nodes, app.interaction.selected_wire,
                          &app.simulation,
-                         has_hover ? &hover_world_pos : nullptr, &tooltip);
+                         has_hover ? &hover_world_pos : nullptr, &tooltip,
+                         &app.visual_cache);
 
         // Render tooltip if active
         render_tooltip(&imgui_dl, tooltip);
@@ -350,6 +351,24 @@ int main(int argc, char** argv) {
             uint32_t wire_color = IM_COL32(255, 255, 100, 200); // Yellow
             imgui_dl.dl->AddLine(
                 ImVec2(start_screen.x, start_screen.y),
+                ImVec2(end_screen.x, end_screen.y),
+                wire_color,
+                2.0f
+            );
+        }
+
+        // [m6i8j0k2] Render temporary wire during reconnection
+        if (app.interaction.dragging == Dragging::ReconnectingWire) {
+            Pt anchor_pos = app.interaction.get_reconnect_anchor_pos();
+            ImVec2 mouse_pos = ImGui::GetMousePos();
+            Pt end_world = app.viewport.screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
+
+            Pt anchor_screen = app.viewport.world_to_screen(anchor_pos, canvas_min_pt);
+            Pt end_screen = app.viewport.world_to_screen(end_world, canvas_min_pt);
+
+            uint32_t wire_color = IM_COL32(255, 150, 50, 200); // Orange
+            imgui_dl.dl->AddLine(
+                ImVec2(anchor_screen.x, anchor_screen.y),
                 ImVec2(end_screen.x, end_screen.y),
                 wire_color,
                 2.0f
@@ -392,9 +411,9 @@ int main(int argc, char** argv) {
                                 // HoldButton: simple rect with manual mouse handling
                                 std::string label = content.state ? "PRESSED" : "RELEASED";
 
-                                // Manual button tracking per-node
-                                static std::unordered_map<std::string, bool> button_pressed;
-                                bool& is_button_pressed = button_pressed[node.id];
+                                // [n7j9k1l3] Use app.held_buttons instead of static map
+                                // (static map leaked state across node deletions).
+                                bool is_button_pressed = app.held_buttons.count(node.id) > 0;
 
                                 // Draw colored rect
                                 ImVec2 cursor = ImGui::GetCursorScreenPos();
@@ -425,12 +444,10 @@ int main(int argc, char** argv) {
 
                                 // Manual click handling
                                 if (is_hovered && ImGui::IsMouseClicked(0)) {
-                                    is_button_pressed = true;
                                     app.hold_button_press(node.id);
                                 }
 
                                 if (is_button_pressed && ImGui::IsMouseReleased(0)) {
-                                    is_button_pressed = false;
                                     app.hold_button_release(node.id);
                                 }
 
@@ -487,8 +504,11 @@ int main(int argc, char** argv) {
         if (ImGui::IsWindowHovered()) {
             // Zoom через колесико
             if (io.MouseWheel != 0.0f) {
+                // [k4g6h8i0] Pass raw screen position — zoom_at calls screen_to_world
+                // which already subtracts canvas_min. Previously we subtracted canvas_min
+                // here AND zoom_at subtracted it again → zoom drifted away from cursor.
                 ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse_screen(mouse_pos.x - canvas_min_pt.x, mouse_pos.y - canvas_min_pt.y);
+                Pt mouse_screen(mouse_pos.x, mouse_pos.y);
                 app.on_scroll(io.MouseWheel * 10.0f, mouse_screen, canvas_min_pt);
             }
 
@@ -496,7 +516,17 @@ int main(int argc, char** argv) {
             bool alt_down = io.KeyAlt; // Alt = marquee
             bool ctrl_down = io.KeyCtrl || io.KeySuper; // Ctrl/Cmd = add to selection
 
-            if (ImGui::IsMouseClicked(0)) { // Left
+            // [o8k0l2m4] Check double-click BEFORE single-click so we don't fire both.
+            bool was_double_click = false;
+            if (ImGui::IsMouseDoubleClicked(0)) { // Left double click
+                ImVec2 mouse_pos = ImGui::GetMousePos();
+                Pt mouse(mouse_pos.x, mouse_pos.y);
+                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                app.on_double_click(world);
+                was_double_click = true;
+            }
+
+            if (!was_double_click && ImGui::IsMouseClicked(0)) { // Left
                 ImVec2 mouse_pos = ImGui::GetMousePos();
                 Pt mouse(mouse_pos.x, mouse_pos.y);
                 Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
@@ -522,14 +552,6 @@ int main(int argc, char** argv) {
                 Pt mouse(mouse_pos.x, mouse_pos.y);
                 Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
                 app.on_mouse_down(world, MouseButton::Middle, canvas_min_pt);
-            }
-
-            // Double click - добавить/удалить routing point
-            if (ImGui::IsMouseDoubleClicked(0)) { // Left double click
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
-                app.on_double_click(world);
             }
 
             // Mouse drag / panning

@@ -7,6 +7,7 @@
 #include "debug.h"
 #include "data/wire.h"
 #include <algorithm>
+#include <limits>
 
 void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
     (void)canvas_min;
@@ -16,7 +17,36 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
         // Сначала проверяем порты для создания проводов
         HitResult port_hit = hit_test_ports(blueprint, visual_cache, world_pos);
         if (port_hit.type == HitType::Port) {
-            // Начинаем создание провода из порта
+            // [m6i8j0k2] Check if port already has a wire connected — if so, start
+            // wire reconnection (detach that end and let user drag to a new port).
+            for (size_t wi = 0; wi < blueprint.wires.size(); wi++) {
+                const auto& w = blueprint.wires[wi];
+                bool match_start = (w.start.node_id == port_hit.port_node_id &&
+                                    w.start.port_name == port_hit.port_name);
+                bool match_end = (w.end.node_id == port_hit.port_node_id &&
+                                  w.end.port_name == port_hit.port_name);
+                if (match_start || match_end) {
+                    // Detach the matching end — the "anchor" is the OTHER end
+                    bool detach_start = match_start;
+                    const WireEnd& fixed = detach_start ? w.end : w.start;
+
+                    // Find anchor position from the fixed end's port
+                    const Node* fixed_node = nullptr;
+                    for (const auto& n : blueprint.nodes) {
+                        if (n.id == fixed.node_id) { fixed_node = &n; break; }
+                    }
+                    Pt anchor_pos = fixed_node
+                        ? editor_math::get_port_position(*fixed_node, fixed.port_name.c_str(),
+                                                          blueprint.wires, nullptr, &visual_cache)
+                        : Pt::zero();
+
+                    interaction.start_wire_reconnect(wi, detach_start, anchor_pos, fixed.side);
+                    DEBUG_LOG("Started wire reconnection: wire={} detach_start={}", w.id, detach_start);
+                    return;
+                }
+            }
+
+            // No existing wire on this port — start creating a new wire
             interaction.start_wire_creation(
                 port_hit.port_node_id,
                 port_hit.port_name,
@@ -27,8 +57,8 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             return;
         }
 
-        // Hit test - что под курсром?
-        HitResult hit = hit_test(blueprint, world_pos, viewport);
+        // Hit test - что под курсром? [h1a2b3c4] use cache
+        HitResult hit = hit_test(blueprint, visual_cache, world_pos, viewport);
         DEBUG_LOG("Hit test at ({:.1f}, {:.1f}): type={}", world_pos.x, world_pos.y, (int)hit.type);
 
         if (hit.type == HitType::Node) {
@@ -39,15 +69,15 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             // Выделяем узел и начинаем drag
             interaction.add_node_selection(hit.node_index);
             // drag_anchor = позиция первого выделенного узла (unsnapped accumulator)
-            // Use IDraggable interface to get position
-            auto primary_visual = VisualNodeFactory::create(blueprint.nodes[hit.node_index], blueprint.wires);
+            // [h1a2b3c4] Use cache instead of VisualNodeFactory::create
+            auto* primary_visual = visual_cache.getOrCreate(blueprint.nodes[hit.node_index], blueprint.wires);
             Pt primary_pos = primary_visual->getPosition();
             interaction.start_drag_node(primary_pos);
             // Сохраняем смещения относительно anchor для каждого выделенного узла
             interaction.drag_node_offsets.clear();
             for (size_t idx : interaction.selected_nodes) {
                 if (idx < blueprint.nodes.size()) {
-                    auto visual = VisualNodeFactory::create(blueprint.nodes[idx], blueprint.wires);
+                    auto* visual = visual_cache.getOrCreate(blueprint.nodes[idx], blueprint.wires);
                     interaction.drag_node_offsets.push_back(visual->getPosition() - primary_pos);
                 }
             }
@@ -66,7 +96,7 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
         }
     } else if (btn == MouseButton::Right) {
         // Right click - show context menu
-        HitResult hit = hit_test(blueprint, world_pos, viewport);
+        HitResult hit = hit_test(blueprint, visual_cache, world_pos, viewport);
         if (hit.type == HitType::None) {
             // Click on empty space - show add component menu
             show_context_menu = true;
@@ -78,6 +108,62 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
 
 void EditorApp::on_mouse_up(MouseButton btn) {
     if (btn == MouseButton::Left) {
+        // [m6i8j0k2] Handle wire reconnection
+        if (interaction.dragging == Dragging::ReconnectingWire) {
+            size_t wire_idx = interaction.get_reconnect_wire_index();
+            bool detach_start = interaction.get_reconnect_is_start();
+            PortSide fixed_side = interaction.get_reconnect_fixed_side();
+
+            HitResult port_hit = hit_test_ports(blueprint, visual_cache, last_mouse_pos);
+
+            bool reconnected = false;
+            if (port_hit.type == HitType::Port && wire_idx < blueprint.wires.size()) {
+                auto& wire = blueprint.wires[wire_idx];
+                // The fixed end determines compatibility
+                const WireEnd& fixed = detach_start ? wire.end : wire.start;
+
+                bool same_port = (port_hit.port_node_id == fixed.node_id &&
+                                  port_hit.port_name == fixed.port_name);
+                bool compatible = !same_port &&
+                                  (port_hit.port_side != fixed_side ||
+                                   port_hit.port_side == PortSide::InOut ||
+                                   fixed_side == PortSide::InOut);
+                (void)fixed; // used above for same_port check
+
+                if (compatible) {
+                    // Update the detached end to point to the new port
+                    WireEnd new_end(port_hit.port_node_id.c_str(),
+                                   port_hit.port_name.c_str(),
+                                   port_hit.port_side);
+                    if (detach_start) {
+                        wire.start = new_end;
+                    } else {
+                        wire.end = new_end;
+                    }
+                    // Clear routing points since topology changed
+                    wire.routing_points.clear();
+                    // Invalidate cache and rebuild
+                    visual_cache.clear();
+                    rebuild_simulation();
+                    reconnected = true;
+                    DEBUG_LOG("Reconnected wire {} to {}.{}", wire.id,
+                             port_hit.port_node_id, port_hit.port_name);
+                }
+            }
+
+            if (!reconnected && wire_idx < blueprint.wires.size()) {
+                // Released on invalid target — delete the wire
+                const auto& wire = blueprint.wires[wire_idx];
+                visual_cache.onWireDeleted(wire, blueprint.nodes);
+                blueprint.wires.erase(blueprint.wires.begin() + wire_idx);
+                rebuild_simulation();
+                DEBUG_LOG("Deleted wire during reconnection (no valid target)");
+            }
+
+            interaction.clear_wire_reconnect();
+            return;
+        }
+
         // Handle wire creation
         if (interaction.dragging == Dragging::CreatingWire) {
             // Check if we're over a compatible port
@@ -140,7 +226,7 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             float max_y = std::max(interaction.marquee_start.y, interaction.marquee_end.y);
 
             for (size_t i = 0; i < blueprint.nodes.size(); i++) {
-                auto visual = VisualNodeFactory::create(blueprint.nodes[i], blueprint.wires);
+                auto* visual = visual_cache.getOrCreate(blueprint.nodes[i], blueprint.wires);
                 Pt pos = visual->getPosition();
                 Pt size = visual->getSize();
                 // Check if node center is in marquee
@@ -180,8 +266,8 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
                 Pt offset = (i < interaction.drag_node_offsets.size())
                     ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
                 Pt new_pos = snapped + offset;
-                // Use IDraggable interface to set position
-                auto visual = VisualNodeFactory::create(blueprint.nodes[idx], blueprint.wires);
+                // [h1a2b3c4] Use cache instead of VisualNodeFactory::create
+                auto* visual = visual_cache.getOrCreate(blueprint.nodes[idx], blueprint.wires);
                 visual->setPosition(new_pos);
                 // Also update raw Node for persistence
                 blueprint.nodes[idx].pos = new_pos;
@@ -202,9 +288,9 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     } else if (interaction.marquee_selecting) {
         // Обновляем конец marquee
         interaction.marquee_end = interaction.marquee_end + world_delta;
-    } else if (interaction.dragging == Dragging::CreatingWire) {
-        // Wire creation - just update last_mouse_pos (already done above)
-        // No additional logic needed
+    } else if (interaction.dragging == Dragging::CreatingWire ||
+               interaction.dragging == Dragging::ReconnectingWire) {
+        // Wire creation/reconnection - just update last_mouse_pos (already done above)
     }
 }
 
@@ -335,7 +421,7 @@ void EditorApp::on_double_click(Pt world_pos) {
     }
 
     // 2. Потом проверяем hit на wire - добавить новую точку
-    HitResult hit = hit_test(blueprint, world_pos, viewport);
+    HitResult hit = hit_test(blueprint, visual_cache, world_pos, viewport);
     DEBUG_LOG("Double click: hit type={}", (int)hit.type);
     if (hit.type == HitType::Wire) {
         DEBUG_LOG("Double click: add routing point to wire {}", hit.wire_index);
@@ -354,9 +440,10 @@ void EditorApp::on_double_click(Pt world_pos) {
             Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires);
             Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires);
 
-            // Ищем ближайший сегмент для вставки
+            // [j3f5a7b9] Seed min_dist with infinity, not the phantom direct-line distance
+            // which ignores routing points entirely.
             size_t insert_idx = 0;
-            float min_dist = editor_math::distance_to_segment(world_pos, start_pos, end_pos);
+            float min_dist = std::numeric_limits<float>::max();
 
             // Проверяем сегменты: start -> rp[0] -> ... -> rp[n] -> end
             Pt prev = start_pos;

@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 #include "editor/hittest.h"
+#include "editor/trigonometry.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/viewport.h"
 #include "editor/visual_node.h"
+#include <cmath>
 
 /// TDD Step 6: Hit testing
 
@@ -351,5 +353,69 @@ TEST(RegressionBusPort, GetPortPositionWireIdCorrectIndex) {
 
     // They must be at different positions (off-by-one bug made them the same)
     EXPECT_NE(v_pos.x, wire_pos.x);
+}
+
+// ============================================================================
+// [h1a2b3c4] Cached hit_test overload must give same results as uncached
+// ============================================================================
+
+TEST(CachedHitTest, CachedHitTestMatchesUncached) {
+    Blueprint bp;
+    Node n;
+    n.id = "n1";
+    n.at(100.0f, 50.0f);
+    n.size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n));
+
+    Viewport vp;
+    VisualNodeCache cache;
+
+    // Point inside node
+    HitResult r1 = hit_test(bp, Pt(150.0f, 90.0f), vp);
+    HitResult r2 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp);
+    EXPECT_EQ(r1.type, HitType::Node);
+    EXPECT_EQ(r2.type, HitType::Node);
+    EXPECT_EQ(r1.node_index, r2.node_index);
+
+    // Point outside
+    HitResult r3 = hit_test(bp, Pt(500.0f, 500.0f), vp);
+    HitResult r4 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp);
+    EXPECT_EQ(r3.type, HitType::None);
+    EXPECT_EQ(r4.type, HitType::None);
+}
+
+// [i2d4e6f8] Wire hit tolerance should be uniform (5.0f)
+TEST(WireHitTolerance, UniformToleranceForAllSegments) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.at(0, 0); n1.size_wh(120, 80); n1.output("o");
+    Node n2; n2.id = "b"; n2.at(400, 0); n2.size_wh(120, 80); n2.input("i");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    w.add_routing_point(Pt(200.0f, 100.0f));
+    bp.add_wire(std::move(w));
+
+    Viewport vp;
+
+    // 4.5 world units from the first segment (start→routing_point) should hit
+    // This confirms tolerance is 5.0f, not 20.0f
+    Pt start_pos = editor_math::get_port_position(bp.nodes[0], "o", bp.wires);
+    // Midpoint of first segment + 4.5 units perpendicular
+    Pt mid((start_pos.x + 200.0f) / 2.0f, (start_pos.y + 100.0f) / 2.0f);
+    float seg_dx = 200.0f - start_pos.x;
+    float seg_dy = 100.0f - start_pos.y;
+    float seg_len = std::sqrt(seg_dx * seg_dx + seg_dy * seg_dy);
+    Pt perp(-seg_dy / seg_len * 4.5f, seg_dx / seg_len * 4.5f);
+    Pt test_pt(mid.x + perp.x, mid.y + perp.y);
+
+    HitResult r = hit_test(bp, test_pt, vp);
+    EXPECT_EQ(r.type, HitType::Wire);
+
+    // 6.0 units away should NOT hit
+    Pt perp_far(-seg_dy / seg_len * 6.0f, seg_dx / seg_len * 6.0f);
+    Pt test_pt_far(mid.x + perp_far.x, mid.y + perp_far.y);
+    HitResult r2 = hit_test(bp, test_pt_far, vp);
+    EXPECT_EQ(r2.type, HitType::None);
 }
 

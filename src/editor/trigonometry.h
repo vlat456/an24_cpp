@@ -10,13 +10,25 @@
 
 namespace editor_math {
 
-// Точная позиция порта - использует VisualNodeFactory
+// [h1a2b3c4] Overload using VisualNodeCache – avoids creating a fresh visual
+// on every call. Falls back to factory if cache is nullptr.
+inline Pt get_port_position(const Node& node, const char* port_name,
+                            const std::vector<Wire>& wires,
+                            const char* wire_id,
+                            VisualNodeCache* cache) {
+    if (cache) {
+        auto* visual = cache->getOrCreate(node, wires);
+        return visual->getPortPosition(port_name, wire_id);
+    }
+    auto visual = VisualNodeFactory::create(node, wires);
+    return visual->getPortPosition(port_name, wire_id);
+}
+
+// Legacy overload without cache (creates fresh visual each call – slow path)
 inline Pt get_port_position(const Node& node, const char* port_name,
                             const std::vector<Wire>& wires = {},
                             const char* wire_id = nullptr) {
-    // Use VisualNodeFactory to get port position
-    auto visual = VisualNodeFactory::create(node, wires);
-    return visual->getPortPosition(port_name, wire_id);
+    return get_port_position(node, port_name, wires, wire_id, nullptr);
 }
 
 // Расстояние между точками

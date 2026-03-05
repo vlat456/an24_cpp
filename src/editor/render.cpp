@@ -71,7 +71,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
                       const SimulationController* simulation,
                       const Pt* hover_world_pos,
-                      TooltipInfo* out_tooltip) {
+                      TooltipInfo* out_tooltip,
+                      VisualNodeCache* cache) {
 
     // Wire has current color - yellow
     constexpr uint32_t COLOR_WIRE_CURRENT = 0xFF44AAFF; // yellow AA (FF,, 44)
@@ -95,8 +96,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             continue;
         }
 
-        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires, w.id.c_str());
-        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires, w.id.c_str());
+        Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires, w.id.c_str(), cache);
+        Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires, w.id.c_str(), cache);
 
         std::vector<Pt> poly;
         poly.push_back(start_pos);
@@ -296,7 +297,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         }
     }
 
-    // Рендерим узлы - используем VisualNodeFactory
+    // Рендерим узлы - используем VisualNodeCache [h1a2b3c4]
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
         // Check if node is selected
@@ -307,19 +308,31 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             }
         }
 
-        // Create visual node using factory (pass wires for Bus dynamic ports)
-        auto visual = VisualNodeFactory::create(n, bp.wires);
-        visual->render(dl, vp, canvas_min, is_selected);
+        // Use cache when available to avoid re-creating visuals every frame
+        if (cache) {
+            auto* visual = cache->getOrCreate(n, bp.wires);
+            visual->render(dl, vp, canvas_min, is_selected);
+        } else {
+            auto visual = VisualNodeFactory::create(n, bp.wires);
+            visual->render(dl, vp, canvas_min, is_selected);
+        }
 
         node_idx++;
     }
 
-    // --- Tooltip detection ---
+    // --- Tooltip detection [h1a2b3c4] ---
     if (hover_world_pos && out_tooltip && simulation && simulation->running) {
         constexpr float PORT_RADIUS = 8.0f;
         // Check ports
         for (const auto& n : bp.nodes) {
-            auto vis = VisualNodeFactory::create(n, bp.wires);
+            BaseVisualNode* vis;
+            std::unique_ptr<BaseVisualNode> vis_owned;
+            if (cache) {
+                vis = cache->getOrCreate(n, bp.wires);
+            } else {
+                vis_owned = VisualNodeFactory::create(n, bp.wires);
+                vis = vis_owned.get();
+            }
             for (size_t pi = 0; pi < vis->getPortCount(); pi++) {
                 auto* port = vis->getPort(pi);
                 if (!port) continue;
