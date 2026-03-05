@@ -67,7 +67,7 @@ std::unique_ptr<Component> create_component(
     }
     else if (device.classname == "HoldButton") {
         return std::make_unique<HoldButton>(
-            get_port("control"), get_port("state"));
+            get_port("v_in"), get_port("v_out"), get_port("control"), get_port("state"));
     }
     else if (device.classname == "Relay") {
         bool is_closed = device.params.count("closed") ?

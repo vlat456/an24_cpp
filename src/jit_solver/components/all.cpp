@@ -117,6 +117,14 @@ void HoldButton::post_step(SimulationState& state, float /*dt*/) {
 
     // Output state: 1.0V = pressed, 0.0V = released/idle
     state.across[state_idx] = is_pressed ? 1.0f : 0.0f;
+
+    // When pressed, pass through voltage from v_in to v_out (like Switch)
+    if (is_pressed) {
+        state.across[v_out_idx] = state.across[v_in_idx];
+    } else {
+        // When released, v_out floats (no conductance)
+        // Leave v_out as-is (will be pulled by other components)
+    }
 }
 
 void Resistor::solve_electrical(SimulationState& state) {

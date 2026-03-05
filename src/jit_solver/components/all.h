@@ -83,14 +83,16 @@ public:
 /// State output: 1.0V = pressed, 0.0V = released/idle
 class HoldButton : public Component {
 public:
+    uint32_t v_in_idx = 0;      // Voltage input (passed through when pressed)
+    uint32_t v_out_idx = 0;     // Voltage output
     uint32_t control_idx = 0;   // Control input (commands from UI)
     uint32_t state_idx = 0;      // State output: 1.0V=pressed, 0.0V=released
     float last_control = 0.0f;   // Previous control value (edge detection)
     bool is_pressed = false;     // Current button state (latched)
 
     HoldButton() = default;
-    HoldButton(uint32_t control, uint32_t state)
-        : control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
+    HoldButton(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state)
+        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
     void post_step(SimulationState& state, float dt) override;
