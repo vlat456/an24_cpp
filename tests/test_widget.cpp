@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "editor/interfaces.h"
 #include "editor/widget.h"
 #include "editor/visual_node.h"
 #include "editor/render.h"
@@ -490,4 +491,311 @@ TEST(BoundsTest, ContainsOutside) {
     EXPECT_FALSE(b.contains(50, 15));   // above bounds
     EXPECT_FALSE(b.contains(111, 40));  // right of bounds
     EXPECT_FALSE(b.contains(50, 71));   // below bounds
+}
+
+// ============================================================================
+// IDrawable interface tests
+// ============================================================================
+
+TEST(IDrawableTest, StandardNodeIsDrawable) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(0, 0).size_wh(120, 80);
+
+    StandardVisualNode visual(n);
+    IDrawable* drawable = &visual;
+
+    MockDrawList dl;
+    Viewport vp;
+    drawable->render(&dl, vp, Pt(0, 0), false);
+    EXPECT_TRUE(dl.had_rect());
+}
+
+TEST(IDrawableTest, BusNodeIsDrawable) {
+    Node n;
+    n.id = "bus1";
+    n.name = "Bus";
+    n.type_name = "bus";
+    n.kind = NodeKind::Bus;
+    n.at(0, 0).size_wh(64, 32);
+
+    BusVisualNode visual(n);
+    IDrawable* drawable = &visual;
+
+    MockDrawList dl;
+    Viewport vp;
+    drawable->render(&dl, vp, Pt(0, 0), false);
+    EXPECT_TRUE(dl.had_rect());
+}
+
+TEST(IDrawableTest, RefNodeIsDrawable) {
+    Node n;
+    n.id = "ref1";
+    n.name = "GND";
+    n.type_name = "refnode";
+    n.kind = NodeKind::Ref;
+    n.at(0, 0).size_wh(48, 32);
+
+    RefVisualNode visual(n);
+    IDrawable* drawable = &visual;
+
+    MockDrawList dl;
+    Viewport vp;
+    drawable->render(&dl, vp, Pt(0, 0), false);
+    EXPECT_TRUE(dl.had_rect());
+}
+
+// ============================================================================
+// ISelectable interface tests
+// ============================================================================
+
+TEST(ISelectableTest, ContainsPointInside) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(96, 192).size_wh(128, 80);
+
+    StandardVisualNode visual(n);
+    ISelectable* selectable = &visual;
+
+    // Point inside the node
+    EXPECT_TRUE(selectable->containsPoint(Pt(150, 230)));
+    // Top-left corner (grid-aligned position)
+    EXPECT_TRUE(selectable->containsPoint(Pt(96, 192)));
+    // Bottom-right corner
+    EXPECT_TRUE(selectable->containsPoint(Pt(224, 272)));
+}
+
+TEST(ISelectableTest, ContainsPointOutside) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(96, 192).size_wh(128, 80);
+
+    StandardVisualNode visual(n);
+    ISelectable* selectable = &visual;
+
+    // Point outside
+    EXPECT_FALSE(selectable->containsPoint(Pt(50, 192)));  // left
+    EXPECT_FALSE(selectable->containsPoint(Pt(96, 100)));  // above
+    EXPECT_FALSE(selectable->containsPoint(Pt(300, 200))); // right
+    EXPECT_FALSE(selectable->containsPoint(Pt(100, 400))); // below
+}
+
+TEST(ISelectableTest, BusNodeSelectable) {
+    Node n;
+    n.id = "bus1";
+    n.name = "Bus";
+    n.kind = NodeKind::Bus;
+    n.at(0, 0).size_wh(64, 32);
+
+    BusVisualNode visual(n);
+    ISelectable* selectable = &visual;
+
+    EXPECT_TRUE(selectable->containsPoint(Pt(32, 16)));
+    EXPECT_FALSE(selectable->containsPoint(Pt(100, 100)));
+}
+
+// ============================================================================
+// IDraggable interface tests
+// ============================================================================
+
+TEST(IDraggableTest, GetSetPosition) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(96, 192).size_wh(128, 80);
+
+    StandardVisualNode visual(n);
+    IDraggable* draggable = &visual;
+
+    Pt pos = draggable->getPosition();
+    EXPECT_FLOAT_EQ(pos.x, 96.0f);
+    EXPECT_FLOAT_EQ(pos.y, 192.0f);
+
+    draggable->setPosition(Pt(200, 300));
+    EXPECT_FLOAT_EQ(draggable->getPosition().x, 200.0f);
+    EXPECT_FLOAT_EQ(draggable->getPosition().y, 300.0f);
+}
+
+TEST(IDraggableTest, GetSetSize) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(0, 0).size_wh(120, 80);
+
+    StandardVisualNode visual(n);
+    IDraggable* draggable = &visual;
+
+    Pt size = draggable->getSize();
+    EXPECT_GE(size.x, 120.0f);
+    EXPECT_GE(size.y, 80.0f);
+
+    draggable->setSize(Pt(200, 150));
+    EXPECT_FLOAT_EQ(draggable->getSize().x, 200.0f);
+    EXPECT_FLOAT_EQ(draggable->getSize().y, 150.0f);
+}
+
+TEST(IDraggableTest, DragUpdatesSelectionBounds) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(96, 192).size_wh(128, 80);
+
+    StandardVisualNode visual(n);
+    IDraggable* draggable = &visual;
+    ISelectable* selectable = &visual;
+
+    // Move node
+    draggable->setPosition(Pt(500, 500));
+    // Old position should no longer contain point
+    EXPECT_FALSE(selectable->containsPoint(Pt(100, 200)));
+    // New position should contain point
+    EXPECT_TRUE(selectable->containsPoint(Pt(550, 530)));
+}
+
+// ============================================================================
+// IPersistable interface tests
+// ============================================================================
+
+TEST(IPersistableTest, NodeHasStableId) {
+    Node n;
+    n.id = "battery_42";
+    n.name = "Battery";
+    n.type_name = "battery";
+    n.at(0, 0).size_wh(120, 80);
+
+    StandardVisualNode visual(n);
+    IPersistable* persistable = &visual;
+
+    EXPECT_EQ(persistable->getId(), "battery_42");
+}
+
+TEST(IPersistableTest, BusNodeHasId) {
+    Node n;
+    n.id = "bus_7";
+    n.name = "Bus";
+    n.kind = NodeKind::Bus;
+    n.at(0, 0).size_wh(64, 32);
+
+    BusVisualNode visual(n);
+    IPersistable* persistable = &visual;
+
+    EXPECT_EQ(persistable->getId(), "bus_7");
+}
+
+TEST(IPersistableTest, RefNodeHasId) {
+    Node n;
+    n.id = "gnd_1";
+    n.name = "GND";
+    n.kind = NodeKind::Ref;
+    n.at(0, 0).size_wh(48, 32);
+
+    RefVisualNode visual(n);
+    IPersistable* persistable = &visual;
+
+    EXPECT_EQ(persistable->getId(), "gnd_1");
+}
+
+// ============================================================================
+// Content access tests
+// ============================================================================
+
+TEST(ContentAccessTest, StandardNodeWithContent) {
+    Node n;
+    n.id = "sw1";
+    n.name = "Switch";
+    n.type_name = "switch";
+    n.at(0, 0).size_wh(120, 80);
+    n.input("ctrl");
+    n.output("state");
+    NodeContent nc;
+    nc.type = NodeContentType::Switch;
+    nc.label = "ON/OFF";
+    n.with_content(nc);
+
+    StandardVisualNode visual(n);
+    BaseVisualNode* base = &visual;
+
+    EXPECT_EQ(base->getContentType(), NodeContentType::Switch);
+    EXPECT_EQ(base->getNodeContent().label, "ON/OFF");
+
+    Bounds cb = base->getContentBounds();
+    EXPECT_GT(cb.w, 0.0f);
+    EXPECT_GT(cb.h, 0.0f);
+}
+
+TEST(ContentAccessTest, NodeWithoutContentReturnsNone) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(0, 0).size_wh(120, 80);
+
+    StandardVisualNode visual(n);
+    BaseVisualNode* base = &visual;
+
+    EXPECT_EQ(base->getContentType(), NodeContentType::None);
+}
+
+TEST(ContentAccessTest, BusNodeContentDefaultsToNone) {
+    Node n;
+    n.id = "bus1";
+    n.name = "Bus";
+    n.kind = NodeKind::Bus;
+    n.at(0, 0).size_wh(64, 32);
+
+    BusVisualNode visual(n);
+    BaseVisualNode* base = &visual;
+
+    EXPECT_EQ(base->getContentType(), NodeContentType::None);
+}
+
+// ============================================================================
+// Multiple interface cast tests (ISP compliance)
+// ============================================================================
+
+TEST(InterfaceCastTest, NodeSupportsAllInterfaces) {
+    Node n;
+    n.id = "n1";
+    n.name = "Test";
+    n.type_name = "test";
+    n.at(0, 0).size_wh(120, 80);
+
+    StandardVisualNode visual(n);
+
+    // All four interfaces accessible
+    IDrawable* drawable = dynamic_cast<IDrawable*>(&visual);
+    ISelectable* selectable = dynamic_cast<ISelectable*>(&visual);
+    IDraggable* draggable = dynamic_cast<IDraggable*>(&visual);
+    IPersistable* persistable = dynamic_cast<IPersistable*>(&visual);
+
+    EXPECT_NE(drawable, nullptr);
+    EXPECT_NE(selectable, nullptr);
+    EXPECT_NE(draggable, nullptr);
+    EXPECT_NE(persistable, nullptr);
+}
+
+TEST(InterfaceCastTest, FactoryCreatedNodeSupportsInterfaces) {
+    Node n;
+    n.id = "n1";
+    n.name = "Pump";
+    n.type_name = "pump";
+    n.at(0, 0).size_wh(120, 80);
+    n.input("v_in");
+    n.output("v_out");
+
+    auto visual = VisualNodeFactory::create(n);
+
+    EXPECT_NE(dynamic_cast<IDrawable*>(visual.get()), nullptr);
+    EXPECT_NE(dynamic_cast<ISelectable*>(visual.get()), nullptr);
+    EXPECT_NE(dynamic_cast<IDraggable*>(visual.get()), nullptr);
+    EXPECT_NE(dynamic_cast<IPersistable*>(visual.get()), nullptr);
 }
