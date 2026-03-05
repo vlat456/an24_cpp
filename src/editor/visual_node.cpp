@@ -14,6 +14,7 @@ constexpr float PORT_RADIUS = 6.0f;
 constexpr float BUS_SIZE = 40.0f;
 constexpr float BUS_PORT_OFFSET = 12.0f;
 constexpr float GRID_STEP = 16.0f;  // Grid unit for snapping
+constexpr float CONTENT_MARGIN = 8.0f;  // Margin around content area
 
 // Snap to grid helper
 inline Pt snap_to_grid(Pt pos) {
@@ -63,6 +64,7 @@ StandardVisualNode::StandardVisualNode(const Node& node)
     , outputs_()
     , name_(node.name)
     , type_name_(node.type_name)
+    , node_content_(node.node_content)
 {
     // Copy inputs from node
     for (size_t i = 0; i < node.inputs.size(); i++) {
@@ -223,6 +225,67 @@ void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min
         Pt label_pos(screen_pos.x - r - 3 * vp.zoom - text_size.x, screen_pos.y - 5 * vp.zoom);
         dl->add_text(label_pos, outputs_[i].name.c_str(), COLOR_TEXT_DIM, font_size);
     }
+}
+
+Pt StandardVisualNode::calculateContentArea(const Viewport& vp, Pt canvas_min,
+                                           float screen_content_min_x,
+                                           float screen_content_max_x) const {
+    // Content area is between header and type name, but also needs to avoid port labels
+    Pt screen_min = vp.world_to_screen(position_, canvas_min);
+    Pt screen_max = vp.world_to_screen(
+        Pt(position_.x + size_.x, position_.y + size_.y), canvas_min);
+
+    float header_height = HEADER_HEIGHT * vp.zoom;
+    float margin = CONTENT_MARGIN * vp.zoom;
+
+    // Top: below header
+    float content_top = screen_min.y + header_height + margin;
+
+    // Bottom: above type name area (leave space at bottom)
+    float content_bottom = screen_max.y - margin;
+
+    // Left: respect incoming screen_content_min_x (for avoiding input port labels)
+    float content_left = screen_content_min_x;
+
+    // Right: respect incoming screen_content_max_x (for avoiding output port labels)
+    float content_right = screen_content_max_x;
+
+    // Ensure valid dimensions
+    float width = content_right - content_left;
+    float height = content_bottom - content_top;
+
+    if (width < 10.0f || height < 10.0f) {
+        return Pt(0, 0);  // No space for content
+    }
+
+    return Pt(width, height);
+}
+
+Pt StandardVisualNode::renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                                    float screen_content_min_x, float screen_content_max_x) const {
+    // Calculate available content area
+    Pt content_size = calculateContentArea(vp, canvas_min, screen_content_min_x, screen_content_max_x);
+
+    if (content_size.x <= 0 || content_size.y <= 0) {
+        return Pt(0, 0);  // No content area available
+    }
+
+    Pt screen_min = vp.world_to_screen(position_, canvas_min);
+    float header_height = HEADER_HEIGHT * vp.zoom;
+    float margin = CONTENT_MARGIN * vp.zoom;
+
+    // Calculate content top-left position
+    float content_x = screen_content_min_x;
+    float content_y = screen_min.y + header_height + margin;
+
+    // Cast to void* is a placeholder - actual ImGui calls will be in the example
+    (void)imgui;
+
+    // For now, return the content area size
+    // Actual ImGui widgets will be implemented in an24_editor.cpp
+    // This is a stub that returns the safe area
+
+    return content_size;
 }
 
 // ============================================================================
@@ -440,6 +503,13 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     }
 }
 
+Pt BusVisualNode::renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                               float screen_content_min_x, float screen_content_max_x) const {
+    // Bus nodes don't have interactive content
+    (void)imgui; (void)vp; (void)canvas_min; (void)screen_content_min_x; (void)screen_content_max_x;
+    return Pt(0, 0);
+}
+
 // ============================================================================
 // RefVisualNode
 // ============================================================================
@@ -520,6 +590,13 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt world_port_pos = Pt(position_.x + size_.x / 2, position_.y - PORT_RADIUS);
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, COLOR_PORT_OUTPUT, 8);
+}
+
+Pt RefVisualNode::renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                               float screen_content_min_x, float screen_content_max_x) const {
+    // Ref nodes don't have interactive content
+    (void)imgui; (void)vp; (void)canvas_min; (void)screen_content_min_x; (void)screen_content_max_x;
+    return Pt(0, 0);
 }
 
 // ============================================================================

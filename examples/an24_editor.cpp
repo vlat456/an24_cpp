@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
     EditorApp app;
 
     // Загружаем файл по умолчанию
-    const char* default_file = "/Users/vladimir/an24_cpp/src/aircraft/vsu_dmr_test.json";
+    const char* default_file = "/Users/vladimir/an24_cpp/blueprint.json";
     auto bp = load_blueprint_from_file(default_file);
     if (bp.has_value()) {
         app.blueprint = std::move(*bp);
@@ -300,6 +300,75 @@ int main(int argc, char** argv) {
         // Blueprint
         render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
                          &app.interaction.selected_nodes, app.interaction.selected_wire);
+
+        // Render node content (ImGui widgets) - after DrawList rendering
+        for (auto& node : app.blueprint.nodes) {
+            // Get or create visual node from cache
+            auto* visual = app.visual_cache.getOrCreate(node);
+
+            // Calculate screen position of node
+            Pt screen_min = app.viewport.world_to_screen(visual->getPosition(), canvas_min_pt);
+            Pt screen_max = app.viewport.world_to_screen(
+                Pt(visual->getPosition().x + visual->getSize().x,
+                   visual->getPosition().y + visual->getSize().y), canvas_min_pt);
+
+            // Calculate safe content area (avoiding port labels)
+            float zoom = app.viewport.zoom;
+            float header_h = 20.0f * zoom;
+            float margin = 8.0f * zoom;
+
+            // Input port labels extend to the right from left edge
+            // Output port labels extend to the left from right edge
+            float content_min_x = screen_min.x + margin;
+            float content_max_x = screen_max.x - margin;
+
+            // If node has content, render ImGui widget
+            NodeContentType ctype = visual->getContentType();
+            if (ctype != NodeContentType::None) {
+                // Set cursor to content area (in screen coordinates)
+                float content_y = screen_min.y + header_h + margin;
+                ImGui::SetCursorScreenPos(ImVec2(content_min_x, content_y));
+
+                // Calculate available width (avoid overlapping port labels)
+                float available_width = content_max_x - content_min_x;
+
+                if (available_width > 20.0f) {
+
+                    // Get reference to node content for modification
+                    NodeContent& content = node.node_content;
+
+                    switch (content.type) {
+                        case NodeContentType::Switch: {
+                            ImGui::SetNextItemWidth(available_width);
+                            // Use unique ID based on node id
+                            std::string checkbox_id = "##" + node.id;
+                            ImGui::Checkbox(checkbox_id.c_str(), &content.state);
+                            break;
+                        }
+                        case NodeContentType::Value: {
+                            ImGui::SetNextItemWidth(available_width);
+                            std::string slider_id = "##" + node.id;
+                            ImGui::SliderFloat(slider_id.c_str(), &content.value,
+                                              content.min, content.max, "%.2f");
+                            break;
+                        }
+                        case NodeContentType::Gauge: {
+                            ImGui::SetNextItemWidth(available_width);
+                            float progress = (content.value - content.min) / (content.max - content.min);
+                            progress = std::max(0.0f, std::min(1.0f, progress));
+                            ImGui::ProgressBar(progress);
+                            break;
+                        }
+                        case NodeContentType::Text: {
+                            ImGui::Text("%s", content.label.c_str());
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
 
         // Marquee selection rectangle
         if (app.interaction.marquee_selecting) {

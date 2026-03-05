@@ -13,6 +13,10 @@
 // Forward declaration (IDrawList is defined in render.h)
 struct IDrawList;
 
+// Forward declaration for ImGui (will be implemented in example)
+// Using void* to avoid coupling with imgui.h in header
+using ImGuiWindow = void;
+
 // ============================================================================
 // BaseVisualNode - Abstract base class for all visual node types
 // ============================================================================
@@ -50,9 +54,17 @@ public:
     virtual void disconnectWire(const Wire& wire) = 0;
     virtual void recalculatePorts() = 0;
 
-    // Rendering
+    // Rendering - DrawList (background, borders, ports, labels)
     virtual void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                        bool is_selected) const = 0;
+
+    // Rendering - ImGui widgets for content (interactive elements)
+    // Returns the world-space area available for content
+    virtual Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                            float screen_content_min_x, float screen_content_max_x) const = 0;
+
+    // Get content type for this node
+    virtual NodeContentType getContentType() const { return NodeContentType::None; }
 
 protected:
     BaseVisualNode(const Node& node);
@@ -85,15 +97,26 @@ public:
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
 
+    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                  float screen_content_min_x, float screen_content_max_x) const override;
+
+    NodeContentType getContentType() const override { return node_content_.type; }
+
 private:
     static constexpr float HEADER_HEIGHT = 20.0f;
+    static constexpr float CONTENT_MARGIN = 8.0f;  // Margin around content
 
     std::vector<Port> inputs_;
     std::vector<Port> outputs_;
     std::string name_;
     std::string type_name_;
+    NodeContent node_content_;
 
     Pt calculatePortPosition(size_t index, PortSide side) const;
+
+    // Calculate safe content area that doesn't overlap with port labels
+    Pt calculateContentArea(const Viewport& vp, Pt canvas_min,
+                           float screen_content_min_x, float screen_content_max_x) const;
 };
 
 // ============================================================================
@@ -124,6 +147,9 @@ public:
 
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
+
+    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                  float screen_content_min_x, float screen_content_max_x) const override;
 
 private:
     BusOrientation orientation_;
@@ -156,6 +182,9 @@ public:
 
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
+
+    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
+                  float screen_content_min_x, float screen_content_max_x) const override;
 
 private:
     std::string name_;

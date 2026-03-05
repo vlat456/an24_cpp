@@ -4,6 +4,7 @@
 #include "viewport/viewport.h"
 #include "interact/interaction.h"
 #include "hittest.h"
+#include "visual_node.h"
 
 /// Кнопки мыши
 enum class MouseButton {
@@ -31,6 +32,9 @@ struct EditorApp {
 
     /// Interaction state
     Interaction interaction;
+
+    /// Visual node cache for rendering content (ImGui widgets)
+    VisualNodeCache visual_cache;
 
     EditorApp() = default;
 
