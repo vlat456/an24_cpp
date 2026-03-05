@@ -130,6 +130,12 @@ struct EditorApp {
     /// Добавить компонент на схему
     void add_component(const std::string& classname, Pt world_pos);
 
-    /// Переключить Switch (подать импульс на control порт)
+    /// Переключить Switch (toggle button)
     void trigger_switch(const std::string& node_id);
+
+    /// HoldButton: нажать кнопку (control = 1.0V)
+    void hold_button_press(const std::string& node_id);
+
+    /// HoldButton: отпустить кнопку (control = 2.0V, затем 0.0V)
+    void hold_button_release(const std::string& node_id);
 };

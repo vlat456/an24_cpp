@@ -327,6 +327,12 @@ void EditorApp::update_node_content_from_simulation() {
             float state_voltage = simulation.get_port_value(node.id, "state");
             node.node_content.state = (state_voltage > 0.5f);
         }
+        // Update HoldButton state from pressed port
+        else if (node.type_name == "HoldButton") {
+            float pressed = simulation.get_port_value(node.id, "pressed");
+            // state=true = PRESSED, state=false = RELEASED/idle
+            node.node_content.state = (pressed > 0.5f);
+        }
         // Relay has no UI - automatic device controlled by external signals
     }
 }
@@ -360,6 +366,10 @@ static NodeContent create_node_content(const an24::ComponentDefinition* def) {
         } else {
             content.state = false;  // Default to false if not specified
         }
+    } else if (content_type_str == "HoldButton") {
+        content.type = NodeContentType::Switch;  // Reuse Switch UI (button)
+        content.label = "RELEASED";
+        content.state = false;  // Default to released state
     } else if (content_type_str == "Text") {
         content.type = NodeContentType::Text;
         content.label = "OFF";
@@ -451,6 +461,22 @@ void EditorApp::trigger_switch(const std::string& node_id) {
     signal_overrides[control_port] = next;
 
     printf("Trigger switch: %s.control = %.1f (was %.1f)\n", node_id.c_str(), next, current);
+}
+
+void EditorApp::hold_button_press(const std::string& node_id) {
+    // Control Protocol: 1.0V = Pressed
+    std::string control_port = node_id + ".control";
+    signal_overrides[control_port] = 1.0f;
+
+    printf("HoldButton press: %s.control = 1.0 (PRESS)\n", node_id.c_str());
+}
+
+void EditorApp::hold_button_release(const std::string& node_id) {
+    // Control Protocol: 2.0V = Released
+    std::string control_port = node_id + ".control";
+    signal_overrides[control_port] = 2.0f;
+
+    printf("HoldButton release: %s.control = 2.0 (RELEASE)\n", node_id.c_str());
 }
 
 void EditorApp::update_simulation_step() {

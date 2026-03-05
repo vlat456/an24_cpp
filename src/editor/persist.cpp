@@ -187,6 +187,10 @@ static Node device_to_node(const json& d, int index) {
         n.node_content.type = NodeContentType::Switch;
         n.node_content.label = "ON";
         n.node_content.state = false;
+    } else if (n.type_name == "HoldButton") {
+        n.node_content.type = NodeContentType::Switch;
+        n.node_content.label = "RELEASED";
+        n.node_content.state = false;
     } else if (n.type_name == "IndicatorLight") {
         n.node_content.type = NodeContentType::Text;
         n.node_content.label = "OFF";

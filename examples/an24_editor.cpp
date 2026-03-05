@@ -365,13 +365,26 @@ int main(int argc, char** argv) {
 
                     switch (content.type) {
                         case NodeContentType::Switch: {
-                            // Button with current state label (ON/OFF)
-                            std::string label = content.state ? "ON" : "OFF";
-                            std::string button_id = label + "##" + node.id;
+                            if (node.type_name == "HoldButton") {
+                                // Hold-to-operate button with press/release detection
+                                std::string label = content.state ? "PRESSED" : "RELEASED";
+                                std::string button_id = label + "##" + node.id;
 
-                            if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
-                                // Trigger switch toggle
-                                app.trigger_switch(node.id);
+                                if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
+                                    app.hold_button_press(node.id);
+                                }
+                                // Detect when button is released (mouse up while active)
+                                if (ImGui::IsItemActive() && ImGui::IsMouseReleased(0)) {
+                                    app.hold_button_release(node.id);
+                                }
+                            } else {
+                                // Regular toggle switch
+                                std::string label = content.state ? "ON" : "OFF";
+                                std::string button_id = label + "##" + node.id;
+
+                                if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
+                                    app.trigger_switch(node.id);
+                                }
                             }
                             break;
                         }
