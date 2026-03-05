@@ -70,6 +70,8 @@ gtest_discover_tests(editor_interaction_tests)
 add_executable(editor_render_tests
     test_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
@@ -86,6 +88,8 @@ gtest_discover_tests(editor_render_tests)
 add_executable(editor_hittest_tests
     test_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_include_directories(editor_hittest_tests PRIVATE
@@ -101,6 +105,8 @@ gtest_discover_tests(editor_hittest_tests)
 add_executable(editor_event_tests
     test_events.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
@@ -155,6 +161,9 @@ gtest_discover_tests(editor_routing_tests)
 # A* Router tests
 add_executable(editor_router_tests
     test_router.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
 )
 target_include_directories(editor_router_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -164,3 +173,20 @@ target_link_libraries(editor_router_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_router_tests)
+
+# Widget & Layout tests
+add_executable(editor_widget_tests
+    test_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+)
+target_compile_definitions(editor_widget_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_widget_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(editor_widget_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_widget_tests)

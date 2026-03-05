@@ -3,76 +3,15 @@
 #include "data/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
+#include "widget.h"
 #include "viewport/viewport.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include <optional>
-#include <functional>
 
 // Forward declaration (IDrawList is defined in render.h)
 struct IDrawList;
-
-// Forward declaration for ImGui (will be implemented in example)
-// Using void* to avoid coupling with imgui.h in header
-using ImGuiWindow = void;
-
-// ============================================================================
-// NodeLayout - Column-based layout for node internals
-// ============================================================================
-
-class NodeLayout {
-public:
-    // Widget types that can be placed in the node
-    enum class WidgetType {
-        Header,         // Node name at top
-        PortLeft,      // Input port circle (left edge)
-        PortLabelLeft, // Input port label (right of port)
-        Content,        // Interactive content (checkbox, slider, etc.)
-        PortLabelRight,// Output port label (left of port)
-        PortRight,     // Output port circle (right edge)
-        TypeName       // Type name at bottom
-    };
-
-    struct Widget {
-        WidgetType type;
-        std::string label;     // For labels
-        float height = 0;      // Widget height
-        bool freespace = false; // If true, takes remaining space
-    };
-
-    // Add a widget to the layout
-    void AddWidget(WidgetType type, const std::string& label = "", float height = 0, bool freespace = false);
-
-    // Set label width calculator (for dynamic port label sizing)
-    using LabelWidthFunc = std::function<float(const std::string&, float)>;
-    void setLabelWidthFunc(LabelWidthFunc func, float font_size = 9.0f);
-
-    // Calculate positions given node bounding box
-    void Calculate(Pt node_size);
-
-    // Get screen position for a widget (in local node coordinates)
-    Pt getPosition(WidgetType type) const;
-
-    // Get size of a widget
-    Pt getSize(WidgetType type) const;
-
-private:
-    std::vector<Widget> widgets_;
-    std::unordered_map<WidgetType, Pt> positions_;
-    std::unordered_map<WidgetType, Pt> sizes_;
-
-    // Label width calculator function
-    LabelWidthFunc label_width_func_ = nullptr;
-    float label_font_size_ = 9.0f;
-
-    static constexpr float HEADER_HEIGHT = 20.0f;
-    static constexpr float PORT_RADIUS = 6.0f;
-    static constexpr float PORT_LABEL_SPACE = 25.0f;
-    static constexpr float MARGIN = 8.0f;
-    static constexpr float TYPE_NAME_HEIGHT = 12.0f;
-};
 
 // ============================================================================
 // BaseVisualNode - Abstract base class for all visual node types
@@ -82,19 +21,17 @@ class BaseVisualNode {
 public:
     virtual ~BaseVisualNode() = default;
 
-    // Properties
     Pt getPosition() const { return position_; }
     void setPosition(Pt pos) { position_ = pos; }
 
     Pt getSize() const { return size_; }
-    void setSize(Pt size) { size_ = size; }  // Size should already be snapped
+    void setSize(Pt size) { size_ = size; }
 
     const std::string& getId() const { return node_id_; }
 
-    // Port struct - no input/output distinction for Bus
     struct Port {
-        std::string name;              // port identifier (wire_id for Bus)
-        Pt world_position;             // cached world position
+        std::string name;
+        Pt world_position;
     };
 
     // Port access
@@ -103,25 +40,18 @@ public:
     virtual size_t getPortCount() const = 0;
     virtual std::vector<std::string> getPortNames() const = 0;
 
-    // Port position lookup
-    virtual Pt getPortPosition(const std::string& port_name, const char* wire_id = nullptr) const = 0;
+    // Port position in world coordinates
+    virtual Pt getPortPosition(const std::string& port_name,
+                               const char* wire_id = nullptr) const = 0;
 
-    // Wire connection management
+    // Wire connection management (for dynamic bus ports)
     virtual void connectWire(const Wire& wire) = 0;
     virtual void disconnectWire(const Wire& wire) = 0;
     virtual void recalculatePorts() = 0;
 
-    // Rendering - DrawList (background, borders, ports, labels)
+    // Rendering
     virtual void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                        bool is_selected) const = 0;
-
-    // Rendering - ImGui widgets for content (interactive elements)
-    // Returns the world-space area available for content
-    virtual Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
-                            float screen_content_min_x, float screen_content_max_x) const = 0;
-
-    // Get content type for this node
-    virtual NodeContentType getContentType() const { return NodeContentType::None; }
 
 protected:
     BaseVisualNode(const Node& node);
@@ -133,7 +63,7 @@ protected:
 };
 
 // ============================================================================
-// StandardVisualNode - Regular nodes with ports on left/right sides
+// StandardVisualNode - Regular nodes with ColumnLayout-based rendering
 // ============================================================================
 
 class StandardVisualNode : public BaseVisualNode {
@@ -142,10 +72,11 @@ public:
 
     const Port* getPort(const std::string& name) const override;
     const Port* getPort(size_t index) const override;
-    size_t getPortCount() const override { return ports_.size(); }
+    size_t getPortCount() const override;
     std::vector<std::string> getPortNames() const override;
 
-    Pt getPortPosition(const std::string& port_name, const char* wire_id = nullptr) const override;
+    Pt getPortPosition(const std::string& port_name,
+                       const char* wire_id = nullptr) const override;
 
     void connectWire(const Wire& wire) override;
     void disconnectWire(const Wire& wire) override;
@@ -154,36 +85,29 @@ public:
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
 
-    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
-                  float screen_content_min_x, float screen_content_max_x) const override;
-
-    NodeContentType getContentType() const override { return node_content_.type; }
+    // Access to layout for testing
+    const ColumnLayout& getLayout() const { return layout_; }
 
 private:
-    static constexpr float HEADER_HEIGHT = 20.0f;
-    static constexpr float CONTENT_MARGIN = 8.0f;  // Margin around content
-
     std::vector<Port> inputs_;
     std::vector<Port> outputs_;
     std::string name_;
     std::string type_name_;
     NodeContent node_content_;
 
-    Pt calculatePortPosition(size_t index, PortSide side) const;
+    ColumnLayout layout_;
+    std::vector<PortRowWidget*> port_rows_;  // non-owning pointers into layout
 
-    // Calculate safe content area that doesn't overlap with port labels
-    Pt calculateContentArea(const Viewport& vp, Pt canvas_min,
-                           float screen_content_min_x, float screen_content_max_x) const;
+    void buildLayout();
 };
 
 // ============================================================================
-// BusVisualNode - Bus with single row of ports (visual addresses)
+// BusVisualNode - Bus with dynamic ports
 // ============================================================================
 
-// Bus visual orientation
 enum class BusOrientation {
-    Horizontal,  // ports on right side
-    Vertical    // ports on bottom side
+    Horizontal,
+    Vertical
 };
 
 class BusVisualNode : public BaseVisualNode {
@@ -196,7 +120,8 @@ public:
     size_t getPortCount() const override { return ports_.size(); }
     std::vector<std::string> getPortNames() const override;
 
-    Pt getPortPosition(const std::string& port_name, const char* wire_id = nullptr) const override;
+    Pt getPortPosition(const std::string& port_name,
+                       const char* wire_id = nullptr) const override;
 
     void connectWire(const Wire& wire) override;
     void disconnectWire(const Wire& wire) override;
@@ -205,13 +130,10 @@ public:
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
 
-    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
-                  float screen_content_min_x, float screen_content_max_x) const override;
-
 private:
     BusOrientation orientation_;
     std::string name_;
-    std::vector<Wire> wires_;  // Store wires for port lookup
+    std::vector<Wire> wires_;
 
     void distributePortsInRow(const std::vector<Wire>& wires = {});
     Pt calculatePortPosition(size_t index) const;
@@ -231,7 +153,8 @@ public:
     size_t getPortCount() const override { return ports_.size(); }
     std::vector<std::string> getPortNames() const override;
 
-    Pt getPortPosition(const std::string& port_name, const char* wire_id = nullptr) const override;
+    Pt getPortPosition(const std::string& port_name,
+                       const char* wire_id = nullptr) const override;
 
     void connectWire(const Wire& wire) override;
     void disconnectWire(const Wire& wire) override;
@@ -239,9 +162,6 @@ public:
 
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
-
-    Pt renderContent(ImGuiWindow* imgui, const Viewport& vp, Pt canvas_min,
-                  float screen_content_min_x, float screen_content_max_x) const override;
 
 private:
     std::string name_;
@@ -268,28 +188,20 @@ public:
 };
 
 // ============================================================================
-// VisualNodeCache - Cache for visual nodes, handles wire changes
+// VisualNodeCache
 // ============================================================================
 
 class VisualNodeCache {
 public:
     VisualNodeCache() = default;
 
-    // Get or create visual node for a Node
     BaseVisualNode* getOrCreate(const Node& node);
-
-    // Get visual node by ID
     BaseVisualNode* get(const std::string& node_id);
-
-    // Clear cache
     void clear() { cache_.clear(); }
 
-    // Wire events - call to update visual nodes
     void onWireAdded(const Wire& wire, const std::vector<Node>& all_nodes);
     void onWireDeleted(const Wire& wire, const std::vector<Node>& all_nodes);
 
 private:
     std::unordered_map<std::string, std::unique_ptr<BaseVisualNode>> cache_;
-
-    Node* findNode(const std::string& node_id, std::vector<Node>& nodes);
 };
