@@ -189,8 +189,8 @@ Connections between ports are resolved using Union-Find algorithm:
   "devices": [
     {
       "name": "battery",
-      "internal": "Battery",
-      "ports": { "v_in": "out", "v_out": "out" },
+      "classname": "Battery",
+      "ports": { "v_in": "In", "v_out": "Out" },
       "params": { "v_nominal": "28.0", "internal_r": "0.01" },
       "domain": "Electrical"
     }

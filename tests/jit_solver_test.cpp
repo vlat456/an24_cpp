@@ -11,13 +11,13 @@ using namespace an24;
 // =============================================================================
 static DeviceInstance make_device(
     const std::string& name,
-    const std::string& internal,
+    const std::string& classname,
     std::unordered_map<std::string, std::string> params = {},
     std::unordered_map<std::string, PortDirection> ports = {}
 ) {
     DeviceInstance dev;
     dev.name = name;
-    dev.internal = internal;
+    dev.classname = classname;
     dev.params = std::move(params);
     for (const auto& [port_name, dir] : ports) {
         dev.ports[port_name] = Port{dir};
@@ -45,7 +45,7 @@ static SimulationState run_sor(
 
     // Set fixed signal values from RefNode devices
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) value = std::stof(it_val->second);
@@ -153,7 +153,7 @@ TEST(SimulationStateTest, PrecomputeInvConductance) {
 TEST(BuildSystemsTest, BasicBuildSingleDevice) {
     DeviceInstance battery;
     battery.name = "bat_main_1";
-    battery.internal = "Battery";
+    battery.classname = "Battery";
     battery.params["v_nominal"] = "28.0";
     battery.ports["v_in"] = Port{PortDirection::In};
     battery.ports["v_out"] = Port{PortDirection::Out};
@@ -607,7 +607,7 @@ TEST(RegressionTest, BusTypeNotRefNode) {
     // This caused them to be marked as fixed signals, creating conflicts when
     // connected through a closed relay.
     //
-    // FIX: Buses should use internal="Bus" type - simple connectors without
+    // FIX: Buses should use classname="Bus" type - simple connectors without
     // fixed voltage. Only ground (gnd) should be RefNode with value=0.0.
 
     auto gnd = make_device("gnd", "RefNode",

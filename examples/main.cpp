@@ -12,42 +12,40 @@ int main() {
     // Create DC bus reference at 28V
     an24::DeviceInstance dc_bus;
     dc_bus.name = "dc_bus_1";
-    dc_bus.internal = "RefNode";
+    dc_bus.classname = "RefNode";
     dc_bus.params["value"] = "28.0";
-    dc_bus.ports["v_in"] = "input";
-    dc_bus.ports["v_out"] = "output";
+    dc_bus.ports["v"] = an24::Port{an24::PortDirection::Out};
 
     // Create ground reference at 0V
     an24::DeviceInstance gnd;
     gnd.name = "gnd";
-    gnd.internal = "RefNode";
+    gnd.classname = "RefNode";
     gnd.params["value"] = "0.0";
-    gnd.ports["v_in"] = "input";
-    gnd.ports["v_out"] = "output";
+    gnd.ports["v"] = an24::Port{an24::PortDirection::Out};
 
     // Create battery
     an24::DeviceInstance battery;
     battery.name = "bat_main_1";
-    battery.internal = "Battery";
+    battery.classname = "Battery";
     battery.params["v_nominal"] = "28.0";
     battery.params["internal_r"] = "0.01";
-    battery.ports["v_in"] = "input";
-    battery.ports["v_out"] = "output";
+    battery.ports["v_in"] = an24::Port{an24::PortDirection::In};
+    battery.ports["v_out"] = an24::Port{an24::PortDirection::Out};
 
     // Create a load
     an24::DeviceInstance load;
     load.name = "load_1";
-    load.internal = "Resistor";
+    load.classname = "Resistor";
     load.params["conductance"] = "0.1";
-    load.ports["v_in"] = "input";
-    load.ports["v_out"] = "output";
+    load.ports["v_in"] = an24::Port{an24::PortDirection::In};
+    load.ports["v_out"] = an24::Port{an24::PortDirection::Out};
 
     std::vector<an24::DeviceInstance> devices = {dc_bus, gnd, battery, load};
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"bat_main_1.v_out", "dc_bus_1.v_in"},
-        {"dc_bus_1.v_out", "load_1.v_in"},
-        {"load_1.v_out", "gnd.v_in"},
+        {"bat_main_1.v_out", "dc_bus_1.v"},
+        {"dc_bus_1.v", "load_1.v_in"},
+        {"load_1.v_out", "gnd.v"},
     };
 
     auto result = an24::build_systems_dev(devices, connections);
@@ -97,7 +95,7 @@ int main() {
     // Find fixed signals
     std::set<uint32_t> fixed_set;
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it = dev.params.find("value");
             if (it != dev.params.end()) {
@@ -122,7 +120,7 @@ int main() {
 
     // Set fixed voltages
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it = dev.params.find("value");
             if (it != dev.params.end()) {

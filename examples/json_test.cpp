@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     // Print devices
     std::cout << "\n=== Devices ===\n";
     for (const auto& dev : ctx.devices) {
-        std::cout << "  " << dev.name << ": " << dev.internal;
+        std::cout << "  " << dev.name << ": " << dev.classname;
         if (!dev.params.empty()) {
             std::cout << " (";
             bool first = true;
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
     // Initialize voltages from RefNodes as starting point
     std::cout << "\n=== Fixed Signals ===\n";
     for (const auto& dev : ctx.devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {

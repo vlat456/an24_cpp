@@ -167,7 +167,7 @@ Phi(RPM):
 ```json
 {
   "devices": [
-    { "name": "vsu_1", "internal": "RU19A",
+    { "name": "vsu_1", "classname": "RU19A",
       "ports": {
         "v_bus": { "direction": "Out" },
         "k_mod": { "direction": "In" },
@@ -177,7 +177,7 @@ Phi(RPM):
       },
       "params": { "target_rpm": "16000.0" }
     },
-    { "name": "rug_vsu", "internal": "RUG82",
+    { "name": "rug_vsu", "classname": "RUG82",
       "ports": {
         "v_gen": { "direction": "In" },
         "k_mod": { "direction": "Out" }

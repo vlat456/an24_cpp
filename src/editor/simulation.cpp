@@ -31,7 +31,7 @@ void SimulationController::build(const Blueprint& bp) {
 
     // Initialize fixed signals from RefNodes
     for (const auto& dev : ctx.devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {

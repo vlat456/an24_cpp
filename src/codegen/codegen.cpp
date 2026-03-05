@@ -149,7 +149,7 @@ std::string CodeGen::generate_header(
     oss << "constexpr uint32_t FIXED_SIGNALS[] = {";
     bool first = true;
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             std::string port_key = dev.name + ".v_out";
             if (port_to_signal.count(port_key)) {
                 if (!first) oss << ", ";
@@ -185,7 +185,7 @@ std::string CodeGen::generate_header(
 
     // Device fields - direct access, no pointers
     for (const auto& dev : devices) {
-        oss << "    " << dev.internal << " " << dev.name << ";\n";
+        oss << "    " << dev.classname << " " << dev.name << ";\n";
     }
     oss << "\n";
 
@@ -256,9 +256,9 @@ std::string CodeGen::generate_source(
 
             // Map port name to C++ field name
             std::string field_name = port_name + "_idx";
-            if (dev.internal == "Bus") field_name = "bus_idx";
-            else if (dev.internal == "RefNode") field_name = "node_idx";
-            else if (dev.internal == "IndicatorLight" && port_name == "brightness") field_name = "brightness_idx";
+            if (dev.classname == "Bus") field_name = "bus_idx";
+            else if (dev.classname == "RefNode") field_name = "node_idx";
+            else if (dev.classname == "IndicatorLight" && port_name == "brightness") field_name = "brightness_idx";
 
             oss << "    " << dev.name << "." << field_name << " = " << sig << ";\n";
         }
@@ -280,7 +280,7 @@ std::string CodeGen::generate_source(
     // Pre-load
     oss << "void Systems::pre_load() {\n";
     for (const auto& dev : devices) {
-        if (dev.internal == "Battery") {
+        if (dev.classname == "Battery") {
             if (dev.params.count("internal_r")) {
                 oss << "    " << dev.name << ".inv_internal_r = 1.0f / " << dev.name << ".internal_r;\n";
             }

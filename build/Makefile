@@ -406,6 +406,19 @@ vsu_aot_test/fast:
 .PHONY : vsu_aot_test/fast
 
 #=============================================================================
+# Target rules for targets named gs24_aot_test
+
+# Build rule for target.
+gs24_aot_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gs24_aot_test
+.PHONY : gs24_aot_test
+
+# fast build rule for target.
+gs24_aot_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/build
+.PHONY : gs24_aot_test/fast
+
+#=============================================================================
 # Target rules for targets named bench_vsu_aot
 
 # Build rule for target.
@@ -688,6 +701,7 @@ help:
 	@echo "... editor_widget_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
+	@echo "... gs24_aot_test"
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... hello_world"

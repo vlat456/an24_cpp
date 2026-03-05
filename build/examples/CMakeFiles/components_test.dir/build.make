@@ -96,7 +96,7 @@ components_test_EXTERNAL_OBJECTS =
 examples/components_test: examples/CMakeFiles/components_test.dir/components_test.cpp.o
 examples/components_test: examples/CMakeFiles/components_test.dir/build.make
 examples/components_test: src/jit_solver/libjit_solver.a
-examples/components_test: _deps/spdlog-build/libspdlogd.a
+examples/components_test: _deps/spdlog-build/libspdlog.a
 examples/components_test: examples/CMakeFiles/components_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable components_test"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/components_test.dir/link.txt --verbose=$(VERBOSE)

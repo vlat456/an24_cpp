@@ -93,6 +93,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test_generated.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/aot_test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/vsu_aot_test.dir
+/Users/vladimir/an24_cpp/build/examples/CMakeFiles/gs24_aot_test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_dmr_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test_vsu_dmr_aot.dir

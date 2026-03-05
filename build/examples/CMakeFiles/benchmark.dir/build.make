@@ -97,7 +97,7 @@ examples/benchmark: examples/CMakeFiles/benchmark.dir/benchmark.cpp.o
 examples/benchmark: examples/CMakeFiles/benchmark.dir/build.make
 examples/benchmark: src/json_parser/libjson_parser.a
 examples/benchmark: src/jit_solver/libjit_solver.a
-examples/benchmark: _deps/spdlog-build/libspdlogd.a
+examples/benchmark: _deps/spdlog-build/libspdlog.a
 examples/benchmark: examples/CMakeFiles/benchmark.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable benchmark"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/benchmark.dir/link.txt --verbose=$(VERBOSE)

@@ -2,6 +2,7 @@
 #include "render.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 // ============================================================================
 // Constants
@@ -209,21 +210,59 @@ const NodeContent& StandardVisualNode::getNodeContent() const {
 }
 
 Bounds StandardVisualNode::getContentBounds() const {
+    // Find the ContentWidget and calculate proper content bounds from port rows
+    const ContentWidget* content_widget = nullptr;
+    float max_left_edge = 0.0f;
+    float max_right_edge = 0.0f;
+    float content_height = 0.0f;
+    bool found_any_port_row = false;
+
+    // First find the content widget and collect all port row bounds
     for (size_t i = 0; i < layout_.childCount(); i++) {
         auto* w = layout_.child(i);
         if (auto* cw = dynamic_cast<const ContentWidget*>(w)) {
-            // Get content area from the widget (excludes margins)
-            Bounds content_area = cw->getContentArea();
-            // Adjust for widget position
-            return Bounds{
-                w->x() + content_area.x,
-                w->y() + content_area.y,
-                content_area.w,
-                content_area.h
-            };
+            content_widget = cw;
+            content_height = cw->height();
+        }
+        if (auto* pr = dynamic_cast<const PortRowWidget*>(w)) {
+            found_any_port_row = true;
+            Bounds pb = pr->contentBounds();
+            printf("  PortRow content_bounds: x=%.2f, w=%.2f\n", pb.x, pb.w);
+            if (pb.x > max_left_edge) max_left_edge = pb.x;
+            if (pb.x + pb.w > max_right_edge) max_right_edge = pb.x + pb.w;
         }
     }
-    return {};
+
+    if (!content_widget) {
+        printf("  No ContentWidget found\n");
+        return {};
+    }
+
+    printf("  ContentWidget: x=%.2f, w=%.2f, h=%.2f\n", content_widget->x(), content_widget->width(), content_height);
+    printf("  Computed bounds: left_edge=%.2f, right_edge=%.2f\n", max_left_edge, max_right_edge);
+
+    // Use port row bounds if available, otherwise use widget's own content area
+    if (found_any_port_row && max_right_edge > max_left_edge) {
+        Bounds result = {
+            content_widget->x() + max_left_edge,
+            content_widget->y(),
+            std::max(0.0f, max_right_edge - max_left_edge),
+            content_height
+        };
+        printf("  Result (from port rows): x=%.2f, w=%.2f, h=%.2f\n", result.x, result.w, result.h);
+        return result;
+    }
+
+    // Fallback: use widget's getContentArea() method
+    Bounds content_area = content_widget->getContentArea();
+    Bounds result = {
+        content_widget->x() + content_area.x,
+        content_widget->y() + content_area.y,
+        content_area.w,
+        content_area.h
+    };
+    printf("  Result (fallback): x=%.2f, w=%.2f, h=%.2f\n", result.x, result.w, result.h);
+    return result;
 }
 
 // ============================================================================

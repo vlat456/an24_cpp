@@ -36,12 +36,12 @@ When `blueprint_from_json()` loads a JSON file **without** an `editor` block, it
   "devices": [
     {
       "name": "gnd",
-      "internal": "RefNode",
+      "classname": "RefNode",
       "ports": { "v": { "direction": "Out" } }
     },
     {
       "name": "bat1",
-      "internal": "Battery",
+      "classname": "Battery",
       "ports": {
         "v_in": { "direction": "In" },
         "v_out": { "direction": "Out" }

@@ -28,7 +28,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
         json device = json::object();
         device["name"] = n.id;
         device["template_name"] = "";
-        device["internal"] = n.type_name;
+        device["classname"] = n.type_name;
         // Store NodeKind explicitly so it roundtrips correctly
         switch (n.kind) {
             case NodeKind::Bus: device["kind"] = "Bus"; break;
@@ -123,7 +123,7 @@ static Node device_to_node(const json& d, int index) {
     Node n;
     n.id = d.value("name", "");
     n.name = d.value("name", "");
-    n.type_name = d.value("internal", "");
+    n.type_name = d.value("classname", "");
 
     // Определяем вид узла: сначала по явному kind, потом по type_name (backward compat)
     if (d.contains("kind")) {

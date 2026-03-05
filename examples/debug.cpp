@@ -11,9 +11,23 @@ int main() {
 
     // Test: Battery -> Load -> Ground (no relay, just wire)
     // Expected: bus voltage should be close to 28V (battery nominal)
-    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
-    DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance gnd;
+    gnd.name = "gnd";
+    gnd.classname = "RefNode";
+    gnd.params = {{"value", "0.0"}};
+    gnd.ports = {{"v", {PortDirection::Out}}};
+
+    DeviceInstance battery;
+    battery.name = "battery";
+    battery.classname = "Battery";
+    battery.params = {{"v_nominal", "28.0"}, {"internal_r", "0.1"}};
+    battery.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
+
+    DeviceInstance load;
+    load.name = "load";
+    load.classname = "Resistor";
+    load.params = {{"conductance", "0.1"}};
+    load.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
 
     std::vector<DeviceInstance> devices = {gnd, battery, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -46,7 +60,7 @@ int main() {
 
     // Set fixed signal values
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {

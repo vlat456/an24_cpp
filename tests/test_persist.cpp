@@ -86,8 +86,8 @@ TEST(PersistTest, UnifiedFormat_WithEditorMetadata) {
     // Simulator format with editor section
     const char* json = R"({
         "devices": [
-            {"name": "batt", "internal": "Battery", "ports": {"v_in": {"direction": "In"}, "v_out": {"direction": "Out"}}},
-            {"name": "load", "internal": "Resistor", "ports": {"v_in": {"direction": "In"}}}
+            {"name": "batt", "classname": "Battery", "ports": {"v_in": {"direction": "In"}, "v_out": {"direction": "Out"}}},
+            {"name": "load", "classname": "Resistor", "ports": {"v_in": {"direction": "In"}}}
         ],
         "connections": [
             {"from": "batt.v_out", "to": "load.v_in"}
@@ -155,16 +155,16 @@ TEST(PersistTest, AutoLayout_NoEditorBlock) {
     // Minimal JSON with devices + connections, no "editor" block
     const char* json = R"({
         "devices": [
-            { "name": "gnd", "internal": "RefNode",
+            { "name": "gnd", "classname": "RefNode",
               "ports": { "v": { "direction": "Out" } },
               "explicit_domains": ["Electrical"] },
-            { "name": "bat1", "internal": "Battery",
+            { "name": "bat1", "classname": "Battery",
               "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" } },
               "explicit_domains": ["Electrical"] },
-            { "name": "bus1", "internal": "Bus",
+            { "name": "bus1", "classname": "Bus",
               "ports": { "v": { "direction": "InOut" } },
               "explicit_domains": ["Electrical"] },
-            { "name": "load1", "internal": "Load",
+            { "name": "load1", "classname": "Load",
               "ports": { "input": { "direction": "In" } },
               "explicit_domains": ["Electrical"] }
         ],
@@ -293,9 +293,9 @@ TEST(PersistTest, NodeKind_BackwardCompat_NoKindField) {
     // Old JSON without "kind" field — should fall back to type_name matching
     const char* json = R"({
         "devices": [
-            {"name": "b", "internal": "Bus", "ports": {"v": {"direction": "Out"}}},
-            {"name": "r", "internal": "RefNode", "ports": {"v": {"direction": "Out"}}},
-            {"name": "batt", "internal": "Battery", "ports": {"v_in": {"direction": "In"}}}
+            {"name": "b", "classname": "Bus", "ports": {"v": {"direction": "Out"}}},
+            {"name": "r", "classname": "RefNode", "ports": {"v": {"direction": "Out"}}},
+            {"name": "batt", "classname": "Battery", "ports": {"v_in": {"direction": "In"}}}
         ],
         "connections": []
     })";

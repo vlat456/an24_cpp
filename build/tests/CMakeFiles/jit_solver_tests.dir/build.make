@@ -97,7 +97,7 @@ tests/jit_solver_tests: tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cp
 tests/jit_solver_tests: tests/CMakeFiles/jit_solver_tests.dir/build.make
 tests/jit_solver_tests: src/jit_solver/libjit_solver.a
 tests/jit_solver_tests: lib/libgtest_main.a
-tests/jit_solver_tests: _deps/spdlog-build/libspdlogd.a
+tests/jit_solver_tests: _deps/spdlog-build/libspdlog.a
 tests/jit_solver_tests: lib/libgtest.a
 tests/jit_solver_tests: tests/CMakeFiles/jit_solver_tests.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable jit_solver_tests"

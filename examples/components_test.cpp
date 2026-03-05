@@ -37,7 +37,7 @@ static SimState build_state(
     // Find fixed signals (RefNode v_out)
     std::set<uint32_t> fixed;
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) value = std::stof(it_val->second);
@@ -60,7 +60,7 @@ static SimState build_state(
 
     // Set fixed voltages
     for (const auto& dev : devices) {
-        if (dev.internal == "RefNode") {
+        if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) value = std::stof(it_val->second);
@@ -114,9 +114,23 @@ static void test_battery_load() {
     // Simple circuit: battery -> load -> ground
     // Battery internal R = 0.1 ohm, load R = 10 ohm
     // Expected voltage at load = 28 * 10 / (0.1 + 10) = 27.7V
-    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
-    DeviceInstance battery{"battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance gnd;
+    gnd.name = "gnd";
+    gnd.classname = "RefNode";
+    gnd.params = {{"value", "0.0"}};
+    gnd.ports = {{"v", {PortDirection::Out}}};
+
+    DeviceInstance battery;
+    battery.name = "battery";
+    battery.classname = "Battery";
+    battery.params = {{"v_nominal", "28.0"}, {"internal_r", "0.1"}};
+    battery.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
+
+    DeviceInstance load;
+    load.name = "load";
+    load.classname = "Resistor";
+    load.params = {{"conductance", "0.1"}};
+    load.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
 
     std::vector<DeviceInstance> devices = {gnd, battery, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -143,9 +157,23 @@ static void test_generator() {
     std::cout << "\n=== TEST: Generator + Load ===\n";
 
     // Simple circuit: generator -> load -> ground
-    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
-    DeviceInstance gen{"generator", "Generator", {{"v_nominal", "28.5"}, {"internal_r", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};
+    DeviceInstance gnd;
+    gnd.name = "gnd";
+    gnd.classname = "RefNode";
+    gnd.params = {{"value", "0.0"}};
+    gnd.ports = {{"v", {PortDirection::Out}}};
+
+    DeviceInstance gen;
+    gen.name = "generator";
+    gen.classname = "Generator";
+    gen.params = {{"v_nominal", "28.5"}, {"internal_r", "0.1"}};
+    gen.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
+
+    DeviceInstance load;
+    load.name = "load";
+    load.classname = "Resistor";
+    load.params = {{"conductance", "0.1"}};
+    load.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
 
     std::vector<DeviceInstance> devices = {gnd, gen, load};
     std::vector<std::pair<std::string, std::string>> conn = {
@@ -171,14 +199,33 @@ static void test_transformer() {
     std::cout << "\n=== TEST: Transformer ===\n";
 
     // Transformer: 100V primary -> 50V secondary (2:1 step down)
-    DeviceInstance gnd{"gnd", "RefNode", {{"value", "0.0"}}, {{"v", "g"}}};
-    DeviceInstance source{"source", "RefNode", {{"value", "100.0"}}, {{"v_in", "i"}, {"v_out", "o"}}};
-    DeviceInstance xfmr{"xfmr", "Transformer", {{"ratio", "0.5"}}, {{"primary", "p"}, {"secondary", "s"}}};  // 2:1 step down
-    DeviceInstance load{"load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", "i"}, {"v_out", "o"}}};  // 10 ohm load
+    DeviceInstance gnd;
+    gnd.name = "gnd";
+    gnd.classname = "RefNode";
+    gnd.params = {{"value", "0.0"}};
+    gnd.ports = {{"v", {PortDirection::Out}}};
+
+    DeviceInstance source;
+    source.name = "source";
+    source.classname = "RefNode";
+    source.params = {{"value", "100.0"}};
+    source.ports = {{"v", {PortDirection::Out}}};
+
+    DeviceInstance xfmr;
+    xfmr.name = "xfmr";
+    xfmr.classname = "Transformer";
+    xfmr.params = {{"ratio", "0.5"}};
+    xfmr.ports = {{"primary", {PortDirection::In}}, {"secondary", {PortDirection::Out}}};
+
+    DeviceInstance load;
+    load.name = "load";
+    load.classname = "Resistor";
+    load.params = {{"conductance", "0.1"}};
+    load.ports = {{"v_in", {PortDirection::In}}, {"v_out", {PortDirection::Out}}};
 
     std::vector<DeviceInstance> devices = {gnd, source, xfmr, load};
     std::vector<std::pair<std::string, std::string>> conn = {
-        {"source.v_out", "xfmr.primary"},  // source to primary
+        {"source.v", "xfmr.primary"},  // source to primary
         {"xfmr.secondary", "load.v_in"},   // secondary to load
         {"load.v_out", "gnd.v"},        // load to ground
     };

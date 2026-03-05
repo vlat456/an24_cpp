@@ -1,24 +1,11 @@
 {
   "templates": {},
   "devices": [
-    { "name": "gnd", "template_name": "", "internal": "RefNode", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
-      "ports": { "v": { "direction": "Out" } },
-      "params": { "value": "0.0" },
-      "explicit_domains": ["Electrical"] },
-    { "name": "source", "template_name": "", "internal": "RefNode", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
-      "ports": { "v": { "direction": "Out" } },
-      "params": { "value": "100.0" },
-      "explicit_domains": ["Electrical"] },
-    { "name": "lerp_1", "template_name": "", "internal": "LerpNode", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
-      "ports": { "input": { "direction": "In" }, "output": { "direction": "Out" } },
-      "params": { "factor": "0.05" },
-      "explicit_domains": ["Electrical"] },
-    { "name": "load", "template_name": "", "internal": "Resistor", "priority": "med", "bucket": null, "critical": false, "is_composite": false,
-      "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" } },
-      "params": { "conductance": "1.0" },
-      "explicit_domains": ["Electrical"] }
+    { "name": "gnd", "classname": "RefNode", "params": { "value": "0.0" } },
+    { "name": "source", "classname": "RefNode", "params": { "value": "100.0" } },
+    { "name": "lerp_1", "classname": "LerpNode", "params": { "factor": "0.05" } },
+    { "name": "load", "classname": "Resistor", "params": { "conductance": "1.0" } }
   ],
-
   "connections": [
     { "from": "gnd.v", "to": "source.v" },
     { "from": "source.v", "to": "lerp_1.input" },

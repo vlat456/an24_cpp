@@ -97,7 +97,7 @@ examples/json_test: examples/CMakeFiles/json_test.dir/json_test.cpp.o
 examples/json_test: examples/CMakeFiles/json_test.dir/build.make
 examples/json_test: src/json_parser/libjson_parser.a
 examples/json_test: src/jit_solver/libjit_solver.a
-examples/json_test: _deps/spdlog-build/libspdlogd.a
+examples/json_test: _deps/spdlog-build/libspdlog.a
 examples/json_test: examples/CMakeFiles/json_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable json_test"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/json_test.dir/link.txt --verbose=$(VERBOSE)

@@ -312,6 +312,20 @@ vsu_aot_test/fast:
 .PHONY : vsu_aot_test/fast
 
 # Convenience name for target.
+examples/CMakeFiles/gs24_aot_test.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/gs24_aot_test.dir/rule
+.PHONY : examples/CMakeFiles/gs24_aot_test.dir/rule
+
+# Convenience name for target.
+gs24_aot_test: examples/CMakeFiles/gs24_aot_test.dir/rule
+.PHONY : gs24_aot_test
+
+# fast build rule for target.
+gs24_aot_test/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/build
+.PHONY : gs24_aot_test/fast
+
+# Convenience name for target.
 examples/CMakeFiles/bench_vsu_aot.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/bench_vsu_aot.dir/rule
 .PHONY : examples/CMakeFiles/bench_vsu_aot.dir/rule
@@ -624,6 +638,30 @@ __/generated/generated_an24_composite_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/aot_test.dir/build.make examples/CMakeFiles/aot_test.dir/__/generated/generated_an24_composite_test.cpp.s
 .PHONY : __/generated/generated_an24_composite_test.cpp.s
 
+__/generated/generated_gs24_test.o: __/generated/generated_gs24_test.cpp.o
+.PHONY : __/generated/generated_gs24_test.o
+
+# target to build an object file
+__/generated/generated_gs24_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/generated_gs24_test.cpp.o
+.PHONY : __/generated/generated_gs24_test.cpp.o
+
+__/generated/generated_gs24_test.i: __/generated/generated_gs24_test.cpp.i
+.PHONY : __/generated/generated_gs24_test.i
+
+# target to preprocess a source file
+__/generated/generated_gs24_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/generated_gs24_test.cpp.i
+.PHONY : __/generated/generated_gs24_test.cpp.i
+
+__/generated/generated_gs24_test.s: __/generated/generated_gs24_test.cpp.s
+.PHONY : __/generated/generated_gs24_test.s
+
+# target to generate assembly for a file
+__/generated/generated_gs24_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/generated_gs24_test.cpp.s
+.PHONY : __/generated/generated_gs24_test.cpp.s
+
 __/generated/generated_vsu_dmr_test.o: __/generated/generated_vsu_dmr_test.cpp.o
 .PHONY : __/generated/generated_vsu_dmr_test.o
 
@@ -728,6 +766,30 @@ __/generated/test_generated.s: __/generated/test_generated.cpp.s
 __/generated/test_generated.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/test_generated.dir/build.make examples/CMakeFiles/test_generated.dir/__/generated/test_generated.cpp.s
 .PHONY : __/generated/test_generated.cpp.s
+
+__/generated/test_gs24_aot.o: __/generated/test_gs24_aot.cpp.o
+.PHONY : __/generated/test_gs24_aot.o
+
+# target to build an object file
+__/generated/test_gs24_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/test_gs24_aot.cpp.o
+.PHONY : __/generated/test_gs24_aot.cpp.o
+
+__/generated/test_gs24_aot.i: __/generated/test_gs24_aot.cpp.i
+.PHONY : __/generated/test_gs24_aot.i
+
+# target to preprocess a source file
+__/generated/test_gs24_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/test_gs24_aot.cpp.i
+.PHONY : __/generated/test_gs24_aot.cpp.i
+
+__/generated/test_gs24_aot.s: __/generated/test_gs24_aot.cpp.s
+.PHONY : __/generated/test_gs24_aot.s
+
+# target to generate assembly for a file
+__/generated/test_gs24_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/__/generated/test_gs24_aot.cpp.s
+.PHONY : __/generated/test_gs24_aot.cpp.s
 
 __/generated/test_vsu_aot.o: __/generated/test_vsu_aot.cpp.o
 .PHONY : __/generated/test_vsu_aot.o
@@ -1207,6 +1269,7 @@ help:
 	@echo "... codegen_test"
 	@echo "... components_test"
 	@echo "... debug_test"
+	@echo "... gs24_aot_test"
 	@echo "... hello_world"
 	@echo "... json_test"
 	@echo "... profile_vsu_dmr_aot"
@@ -1243,6 +1306,9 @@ help:
 	@echo "... __/generated/generated_an24_composite_test.o"
 	@echo "... __/generated/generated_an24_composite_test.i"
 	@echo "... __/generated/generated_an24_composite_test.s"
+	@echo "... __/generated/generated_gs24_test.o"
+	@echo "... __/generated/generated_gs24_test.i"
+	@echo "... __/generated/generated_gs24_test.s"
 	@echo "... __/generated/generated_vsu_dmr_test.o"
 	@echo "... __/generated/generated_vsu_dmr_test.i"
 	@echo "... __/generated/generated_vsu_dmr_test.s"
@@ -1255,6 +1321,9 @@ help:
 	@echo "... __/generated/test_generated.o"
 	@echo "... __/generated/test_generated.i"
 	@echo "... __/generated/test_generated.s"
+	@echo "... __/generated/test_gs24_aot.o"
+	@echo "... __/generated/test_gs24_aot.i"
+	@echo "... __/generated/test_gs24_aot.s"
 	@echo "... __/generated/test_vsu_aot.o"
 	@echo "... __/generated/test_vsu_aot.i"
 	@echo "... __/generated/test_vsu_aot.s"

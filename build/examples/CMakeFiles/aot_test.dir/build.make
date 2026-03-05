@@ -112,7 +112,7 @@ examples/aot_test: examples/CMakeFiles/aot_test.dir/__/generated/aot_test.cpp.o
 examples/aot_test: examples/CMakeFiles/aot_test.dir/__/generated/generated_an24_composite_test.cpp.o
 examples/aot_test: examples/CMakeFiles/aot_test.dir/build.make
 examples/aot_test: src/jit_solver/libjit_solver.a
-examples/aot_test: _deps/spdlog-build/libspdlogd.a
+examples/aot_test: _deps/spdlog-build/libspdlog.a
 examples/aot_test: examples/CMakeFiles/aot_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable aot_test"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/aot_test.dir/link.txt --verbose=$(VERBOSE)

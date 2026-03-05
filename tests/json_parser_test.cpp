@@ -20,21 +20,21 @@ TEST(JsonParserTest, ParseErrorOnInvalidJson) {
 TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     ParserContext ctx;
 
-    // Bus as a device
-    DeviceInstance bus;
-    bus.name = "bus1";
-    bus.internal = "Bus";
-    bus.priority = "med";
-    bus.critical = true;
-    bus.ports["v_in"] = Port{PortDirection::In};
-    bus.ports["v_out"] = Port{PortDirection::Out};
-    bus.explicit_domains = {Domain::Electrical};
-    ctx.devices.push_back(bus);
+    // RefNode as a device (has only 'v' port)
+    DeviceInstance gnd;
+    gnd.name = "gnd1";
+    gnd.classname = "RefNode";
+    gnd.priority = "med";
+    gnd.critical = false;
+    gnd.ports["v"] = Port{PortDirection::Out};
+    gnd.params["value"] = "0.0";
+    gnd.explicit_domains = {Domain::Electrical};
+    ctx.devices.push_back(gnd);
 
     // Battery
     DeviceInstance bat;
     bat.name = "bat";
-    bat.internal = "Battery";
+    bat.classname = "Battery";
     bat.priority = "high";
     bat.ports["v_out"] = Port{PortDirection::Out};
     bat.params["v_nominal"] = "28.0";
@@ -42,7 +42,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     ctx.devices.push_back(bat);
 
     // Explicit connection
-    ctx.connections.push_back({"bat.v_out", "bus1.v_in"});
+    ctx.connections.push_back({"bat.v_out", "gnd1.v"});
 
     // Serialize and parse back
     std::string json = serialize_json(ctx);
@@ -51,7 +51,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     EXPECT_EQ(ctx2.devices.size(), 2);
     EXPECT_EQ(ctx2.connections.size(), 1);
     EXPECT_EQ(ctx2.connections[0].from, "bat.v_out");
-    EXPECT_EQ(ctx2.connections[0].to, "bus1.v_in");
+    EXPECT_EQ(ctx2.connections[0].to, "gnd1.v");
 }
 
 TEST(JsonParserTest, RoundTripWithTemplates) {
@@ -63,7 +63,7 @@ TEST(JsonParserTest, RoundTripWithTemplates) {
 
     DeviceInstance bat;
     bat.name = "bat";
-    bat.internal = "Battery";
+    bat.classname = "Battery";
     bat.explicit_domains = {Domain::Electrical};
     tpl.devices.push_back(bat);
 
@@ -99,7 +99,7 @@ TEST(JsonParserTest, ParseMultipleDomains) {
         "devices": [
             {
                 "name": "pump",
-                "internal": "ElectricPump",
+                "classname": "ElectricPump",
                 "domain": "Electrical,Hydraulic",
                 "params": {"max_pressure": "1000.0"}
             }
@@ -123,7 +123,7 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
             {
                 "name": "test_device",
                 "template": "my_template",
-                "internal": "Relay",
+                "classname": "Relay",
                 "priority": "high",
                 "bucket": 2,
                 "critical": true,
@@ -147,7 +147,7 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
 
     EXPECT_EQ(dev.name, "test_device");
     EXPECT_EQ(dev.template_name, "my_template");
-    EXPECT_EQ(dev.internal, "Relay");
+    EXPECT_EQ(dev.classname, "Relay");
     EXPECT_EQ(dev.priority, "high");
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
@@ -199,7 +199,7 @@ TEST(JsonParserTest, SerializePreservesData) {
 
     DeviceInstance dev;
     dev.name = "test";
-    dev.internal = "Battery";
+    dev.classname = "Battery";
     dev.params["v_nominal"] = "28.0";
     dev.explicit_domains = {Domain::Electrical, Domain::Thermal};
     ctx.devices.push_back(dev);

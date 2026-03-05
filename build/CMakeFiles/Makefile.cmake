@@ -151,6 +151,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "examples/CMakeFiles/test_generated.dir/DependInfo.cmake"
   "examples/CMakeFiles/aot_test.dir/DependInfo.cmake"
   "examples/CMakeFiles/vsu_aot_test.dir/DependInfo.cmake"
+  "examples/CMakeFiles/gs24_aot_test.dir/DependInfo.cmake"
   "examples/CMakeFiles/bench_vsu_aot.dir/DependInfo.cmake"
   "examples/CMakeFiles/bench_vsu_dmr_aot.dir/DependInfo.cmake"
   "examples/CMakeFiles/test_vsu_dmr_aot.dir/DependInfo.cmake"
