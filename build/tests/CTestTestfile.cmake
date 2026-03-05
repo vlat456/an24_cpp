@@ -16,3 +16,4 @@ include("/Users/vladimir/an24_cpp/build/tests/editor_gl_setup_tests[1]_include.c
 include("/Users/vladimir/an24_cpp/build/tests/json_parser_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_routing_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_router_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/editor_widget_tests[1]_include.cmake")

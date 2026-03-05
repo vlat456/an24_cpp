@@ -945,6 +945,30 @@ __/src/editor/visual_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual_node.cpp.s
 .PHONY : __/src/editor/visual_node.cpp.s
 
+__/src/editor/widget.o: __/src/editor/widget.cpp.o
+.PHONY : __/src/editor/widget.o
+
+# target to build an object file
+__/src/editor/widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/widget.cpp.o
+.PHONY : __/src/editor/widget.cpp.o
+
+__/src/editor/widget.i: __/src/editor/widget.cpp.i
+.PHONY : __/src/editor/widget.i
+
+# target to preprocess a source file
+__/src/editor/widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/widget.cpp.i
+.PHONY : __/src/editor/widget.cpp.i
+
+__/src/editor/widget.s: __/src/editor/widget.cpp.s
+.PHONY : __/src/editor/widget.s
+
+# target to generate assembly for a file
+__/src/editor/widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/widget.cpp.s
+.PHONY : __/src/editor/widget.cpp.s
+
 __/src/editor/wires/hittest.o: __/src/editor/wires/hittest.cpp.o
 .PHONY : __/src/editor/wires/hittest.o
 
@@ -1234,6 +1258,9 @@ help:
 	@echo "... __/src/editor/visual_node.o"
 	@echo "... __/src/editor/visual_node.i"
 	@echo "... __/src/editor/visual_node.s"
+	@echo "... __/src/editor/widget.o"
+	@echo "... __/src/editor/widget.i"
+	@echo "... __/src/editor/widget.s"
 	@echo "... __/src/editor/wires/hittest.o"
 	@echo "... __/src/editor/wires/hittest.i"
 	@echo "... __/src/editor/wires/hittest.s"
