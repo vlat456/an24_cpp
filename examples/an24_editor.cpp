@@ -336,6 +336,26 @@ int main(int argc, char** argv) {
         // Render tooltip if active
         render_tooltip(&imgui_dl, tooltip);
 
+        // Render temporary wire during creation
+        if (app.interaction.dragging == Dragging::CreatingWire && app.interaction.has_wire_start()) {
+            Pt start_pos = app.interaction.get_wire_start_pos();
+            ImVec2 mouse_pos = ImGui::GetMousePos();
+            Pt end_world = app.viewport.screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
+
+            // Convert to screen coordinates
+            Pt start_screen = app.viewport.world_to_screen(start_pos, canvas_min_pt);
+            Pt end_screen = app.viewport.world_to_screen(end_world, canvas_min_pt);
+
+            // Draw temporary wire (dashed line)
+            uint32_t wire_color = IM_COL32(255, 255, 100, 200); // Yellow
+            imgui_dl.dl->AddLine(
+                ImVec2(start_screen.x, start_screen.y),
+                ImVec2(end_screen.x, end_screen.y),
+                wire_color,
+                2.0f
+            );
+        }
+
         // Render node content (ImGui widgets) - after DrawList rendering
         for (auto& node : app.blueprint.nodes) {
             // Get or create visual node from cache
@@ -516,17 +536,21 @@ int main(int argc, char** argv) {
                 app.on_mouse_drag(world_delta, canvas_min_pt);
                 ImGui::ResetMouseDragDelta(2);
             }
-            if (ImGui::IsMouseDragging(0)) { // Left button = node drag or marquee
+            if (ImGui::IsMouseDragging(0)) { // Left button = node drag, marquee, or wire creation
                 ImVec2 delta = ImGui::GetMouseDragDelta(0);
                 Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
 
-                if (app.interaction.marquee_selecting) {
+                if (app.interaction.dragging == Dragging::CreatingWire) {
+                    // Wire creation drag
+                    app.on_mouse_drag(world_delta, canvas_min_pt);
+                } else if (app.interaction.marquee_selecting) {
                     // Marquee selection drag
                     ImVec2 mouse_pos = ImGui::GetMousePos();
                     Pt mouse(mouse_pos.x, mouse_pos.y);
                     Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
                     app.interaction.marquee_end = world;
                 } else {
+                    // Normal node/routing point drag
                     app.on_mouse_drag(world_delta, canvas_min_pt);
                 }
                 ImGui::ResetMouseDragDelta(0);
