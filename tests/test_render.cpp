@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "editor/render.h"
 #include "editor/simulation.h"
-#include "editor/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
@@ -225,4 +224,46 @@ TEST(RenderTest, RenderTooltip_InactiveDoesNothing) {
 
     render_tooltip(&dl, tooltip);
     EXPECT_TRUE(dl.texts_.empty()) << "Inactive tooltip should draw nothing";
+}
+
+// ─── Wire tooltip regression tests ───
+
+TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
+    Blueprint bp = create_render_circuit();
+
+    SimulationController sim;
+    sim.build(bp);
+    sim.start();
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    // Hover over wire position (middle of wire from battery to resistor)
+    // Battery is at (80, 80) size (120, 80), output port is on right edge at (208, 112)
+    // Resistor is at (320, 80), input port is on left edge at (320, 112)
+    Pt hover_pos(260, 120); // middle of horizontal wire
+    TooltipInfo tooltip;
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+                     nullptr, std::nullopt, &sim, &hover_pos, &tooltip);
+
+    // Tooltip should be active for wire
+    EXPECT_TRUE(tooltip.active) << "Tooltip should be active when hovering over wire";
+    EXPECT_FALSE(tooltip.text.empty()) << "Tooltip should have voltage value";
+    EXPECT_FALSE(tooltip.label.empty()) << "Tooltip should have wire label";
+    EXPECT_TRUE(tooltip.label.find("bat.v_out") != std::string::npos)
+        << "Tooltip label should contain source port name";
+}
+
+TEST(RenderTest, Tooltip_WireHover_NoSimulation_NoTooltip) {
+    Blueprint bp = create_render_circuit();
+
+    Pt hover_pos(260, 120);
+    TooltipInfo tooltip;
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+                     nullptr, std::nullopt, nullptr, &hover_pos, &tooltip);
+
+    // Without simulation, no tooltip
+    EXPECT_FALSE(tooltip.active) << "Tooltip should not be active without simulation";
 }

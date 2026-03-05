@@ -309,10 +309,25 @@ int main(int argc, char** argv) {
         // Сетка
         render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
 
+        // Get mouse position for tooltip detection
+        Pt hover_world_pos;
+        bool has_hover = false;
+        if (ImGui::IsWindowHovered()) {
+            ImVec2 mouse_pos = ImGui::GetMousePos();
+            Pt mouse(mouse_pos.x, mouse_pos.y);
+            hover_world_pos = app.viewport.screen_to_world(mouse, canvas_min_pt);
+            has_hover = true;
+        }
+
         // Blueprint - с симуляцией для подсветки проводов
+        TooltipInfo tooltip;
         render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
                          &app.interaction.selected_nodes, app.interaction.selected_wire,
-                         &app.simulation);
+                         &app.simulation,
+                         has_hover ? &hover_world_pos : nullptr, &tooltip);
+
+        // Render tooltip if active
+        render_tooltip(&imgui_dl, tooltip);
 
         // Render node content (ImGui widgets) - after DrawList rendering
         for (auto& node : app.blueprint.nodes) {

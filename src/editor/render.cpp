@@ -325,7 +325,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
                 if (!port) continue;
                 float dx = hover_world_pos->x - port->world_position.x;
                 float dy = hover_world_pos->y - port->world_position.y;
-                if (dx * dx + dy * dy < PORT_RADIUS * PORT_RADIUS) {
+                if (dx * dx + dy * dy <= PORT_RADIUS * PORT_RADIUS) {
                     float val = simulation->get_port_value(n.id, port->name);
                     char buf[64];
                     std::snprintf(buf, sizeof(buf), "%.3f", val);
@@ -349,7 +349,9 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
                 Pt proj(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y));
                 float dx = hover_world_pos->x - proj.x;
                 float dy = hover_world_pos->y - proj.y;
-                if (dx * dx + dy * dy < PORT_RADIUS * PORT_RADIUS) {
+                float dist_sq = dx * dx + dy * dy;
+
+                if (dist_sq <= PORT_RADIUS * PORT_RADIUS) {
                     const auto& w = bp.wires[wi];
                     std::string port = w.start.node_id + "." + w.start.port_name;
                     float val = simulation->get_wire_voltage(port);
