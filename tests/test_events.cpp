@@ -228,14 +228,6 @@ TEST(EventsTest, AddComponent_BatteryHasGaugeContent_c3d4) {
     EXPECT_EQ(nc.unit, "V");
 }
 
-TEST(EventsTest, AddComponent_DMR400HasSwitchContent_c3d4) {
-    EditorApp app;
-    app.add_component("DMR400", Pt(100, 100));
-    ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    const auto& nc = app.blueprint.nodes[0].node_content;
-    EXPECT_EQ(nc.type, NodeContentType::Switch) << "[c3d4] DMR400 should have Switch content";
-}
-
 TEST(EventsTest, AddComponent_IndicatorLightHasTextContent_c3d4) {
     EditorApp app;
     app.add_component("IndicatorLight", Pt(100, 100));

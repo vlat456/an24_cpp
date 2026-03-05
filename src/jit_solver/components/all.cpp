@@ -41,16 +41,16 @@ void Battery::pre_load() {
     }
 }
 
-void Relay::solve_electrical(SimulationState& state) {
-    if (!closed) return;  // open relay: no connection
+void Switch::solve_electrical(SimulationState& state) {
+    if (!closed) return;  // open switch: no connection
 
-    // Closed relay is handled in post_step() by directly copying voltage.
+    // Closed switch is handled in post_step() by directly copying voltage.
     // Do NOT add conductance here - it conflicts with post_step and causes
-    // SOR instability. The relay is a perfect conductor (wire).
+    // SOR instability. The switch is a perfect conductor (wire).
     (void)state;  // suppress unused warning
 }
 
-void Relay::post_step(SimulationState& state, float /*dt*/) {
+void Switch::post_step(SimulationState& state, float /*dt*/) {
     // Check for rising edge on control (trigger to toggle)
     float control_voltage = state.across[control_idx];
     bool control_active = (control_voltage > trigger_threshold);
@@ -63,6 +63,27 @@ void Relay::post_step(SimulationState& state, float /*dt*/) {
 
     // Store current control voltage for next step
     last_control_voltage = control_voltage;
+
+    if (!closed) return;  // open switch: no connection
+
+    // Closed switch = wire: just copy voltage from in to out.
+    // Skips SOR convergence entirely — no conductance needed.
+    state.across[v_out_idx] = state.across[v_in_idx];
+}
+
+void Relay::solve_electrical(SimulationState& state) {
+    if (!closed) return;  // open relay: no connection
+
+    // Closed relay is handled in post_step() by directly copying voltage.
+    // Do NOT add conductance here - it conflicts with post_step and causes
+    // SOR instability. The relay is a perfect conductor (wire).
+    (void)state;  // suppress unused warning
+}
+
+void Relay::post_step(SimulationState& state, float /*dt*/) {
+    // Relay is held closed while control voltage > threshold
+    float control_voltage = state.across[control_idx];
+    closed = (control_voltage > hold_threshold);
 
     if (!closed) return;  // open relay: no connection
 

@@ -1,6 +1,6 @@
 {
-  "classname": "Relay",
-  "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
+  "classname": "Switch",
+  "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
   "default_ports": {
     "v_in": { "direction": "In" },
     "v_out": { "direction": "Out" },
@@ -11,5 +11,6 @@
   },
   "default_domains": ["Electrical"],
   "default_priority": "med",
-  "default_critical": false
+  "default_critical": false,
+  "default_content_type": "Switch"
 }

@@ -310,7 +310,7 @@ void EditorApp::update_node_content_from_simulation() {
             float brightness = simulation.get_port_value(node.id, "brightness");
             node.node_content.label = (brightness > 0.1f) ? "ON" : "OFF";
         }
-        // Update DMR400 relay state
+        // Update DMR400 state
         else if (node.type_name == "DMR400") {
             float v_gen = simulation.get_port_value(node.id, "v_gen");
             float v_bus = simulation.get_port_value(node.id, "v_bus");
@@ -319,15 +319,14 @@ void EditorApp::update_node_content_from_simulation() {
             bool connected = v_gen > v_bus + 2.0f;
             node.node_content.state = connected;
         }
-        // Update Relay/Switch state from control port
-        // Note: For trigger switches, this shows control voltage > threshold,
-        // not actual relay state (which toggles on rising edge)
-        else if (node.type_name == "Relay") {
+        // Update Switch toggle state from control port
+        else if (node.type_name == "Switch") {
             float control_voltage = simulation.get_port_value(node.id, "control");
-            // Update label to show trigger active (not relay state)
-            // The actual toggle happens in Relay::post_step on rising edge
+            // Update label to show control active (not switch state)
+            // The actual toggle happens in Switch::post_step on rising edge
             node.node_content.state = (control_voltage > 0.5f);
         }
+        // Relay has no UI - automatic device controlled by external signals
     }
 }
 

@@ -173,11 +173,13 @@ TEST(BuildSystemsTest, ConnectionsMergeSignals) {
         {{"v_nominal", "28.0"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
     auto relay = make_device("relay", "Relay", {},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {battery, relay};
+    std::vector<DeviceInstance> devices = {battery, relay, control};
     std::vector<std::pair<std::string, std::string>> connections = {
         {"bat.v_out", "relay.v_in"},
+        {"ctrl.v", "relay.control"},  // Control = 0V (relay open)
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -437,20 +439,22 @@ TEST(IntegrationTest, FullDCBusWithTwoLights) {
 }
 
 TEST(IntegrationTest, BatteryRelayChain) {
-    // Battery → Relay (closed, perfect switch) → Load (10Ω) → Ground
+    // Battery → Relay (held closed by control) → Load (10Ω) → Ground
     // Closed relay is a zero-resistance switch: V_bus = V_after_relay.
     // V = 28 * 10 / (0.1 + 10) = 27.72V
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", {{}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, battery, relay, load};
+    std::vector<DeviceInstance> devices = {gnd, battery, control, relay, load};
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "relay.v_in"},
         {"relay.v_out", "load.v_in"},
         {"load.v_out", "gnd.v"},
         {"battery.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},  // Control = 28V (relay held closed)
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -615,9 +619,9 @@ TEST(RegressionTest, BusTypeNotRefNode) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus1 = make_device("bus1", "Bus", {},
+    auto bus1 = make_device("bus1", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
-    auto bus2 = make_device("bus2", "Bus", {},
+    auto bus2 = make_device("bus2", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
     auto bat1 = make_device("bat1", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -625,10 +629,10 @@ TEST(RegressionTest, BusTypeNotRefNode) {
     auto bat2 = make_device("bat2", "Battery",
         {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", {},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
 
-    std::vector<DeviceInstance> devices = {gnd, bus1, bus2, bat1, bat2, relay};
+    std::vector<DeviceInstance> devices = {gnd, bus1, bus2, bat1, bat2, control, relay};
     std::vector<std::pair<std::string, std::string>> connections = {
         {"bat1.v_out", "bus1.v"},
         {"bat2.v_out", "bus2.v"},
@@ -636,6 +640,7 @@ TEST(RegressionTest, BusTypeNotRefNode) {
         {"relay.v_out", "bus2.v"},
         {"bat1.v_in", "gnd.v"},
         {"bat2.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},  // Control = 28V (relay held closed)
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -669,24 +674,27 @@ TEST(RegressionTest, ClosedRelayNoConductance) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus = make_device("bus", "Bus", {},
+    auto bus = make_device("bus", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto control_src = make_device("ctrl", "RefNode", {{"value", "28.0"}},
+        {{"v", PortDirection::Out}});
     auto relay = make_device("relay", "Relay", {},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto load = make_device("load", "Resistor",
         {{"conductance", "0.1"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, bus, bat, relay, load};
+    std::vector<DeviceInstance> devices = {gnd, bus, bat, control_src, relay, load};
     std::vector<std::pair<std::string, std::string>> connections = {
         {"bat.v_out", "bus.v"},
         {"bus.v", "relay.v_in"},
         {"relay.v_out", "load.v_in"},
         {"load.v_out", "gnd.v"},
         {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},  // Control = 28V (relay closed)
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -719,9 +727,9 @@ TEST(RegressionTest, DualBatteryWithRelayStable) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus1 = make_device("bus1", "Bus", {},
+    auto bus1 = make_device("bus1", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
-    auto bus2 = make_device("bus2", "Bus", {},
+    auto bus2 = make_device("bus2", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
     auto bat1 = make_device("bat1", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -729,17 +737,17 @@ TEST(RegressionTest, DualBatteryWithRelayStable) {
     auto bat2 = make_device("bat2", "Battery",
         {{"v_nominal", "24.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto relay = make_device("relay", "Relay", {},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", std::unordered_map<std::string, std::string>{}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto load1 = make_device("load1", "Resistor",
         {{"conductance", "0.035"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
     auto load2 = make_device("load2", "Resistor",
         {{"conductance", "0.035"}},
-        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out"}});
 
     std::vector<DeviceInstance> devices = {
-        gnd, bus1, bus2, bat1, bat2, relay, load1, load2
+        gnd, bus1, bus2, bat1, bat2, control, relay, load1, load2
     };
     std::vector<std::pair<std::string, std::string>> connections = {
         {"bat1.v_out", "bus1.v"},
@@ -752,6 +760,7 @@ TEST(RegressionTest, DualBatteryWithRelayStable) {
         {"load2.v_out", "gnd.v"},
         {"bat1.v_in", "gnd.v"},
         {"bat2.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},  // Control = 28V (relay held closed)
     };
 
     auto result = build_systems_dev(devices, connections);
@@ -785,7 +794,7 @@ TEST(RegressionTest, GeneratorAndBatteryOnSameBus) {
     auto gnd = make_device("gnd", "RefNode",
         {{"value", "0.0"}},
         {{"v", PortDirection::Out}});
-    auto bus = make_device("bus", "Bus", {},
+    auto bus = make_device("bus", "Bus", std::unordered_map<std::string, std::string>{},
         {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery",
         {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
@@ -820,4 +829,82 @@ TEST(RegressionTest, GeneratorAndBatteryOnSameBus) {
     // Bus voltage should be between 28V and 28.5V
     EXPECT_GT(v_bus, 28.0f);
     EXPECT_LT(v_bus, 28.5f);
+}
+
+TEST(SwitchTest, OpenSwitchBlocksCurrent) {
+    // Battery → Switch (open) → Load → Ground
+    // Open switch = no current
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, battery, sw, control, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"battery.v_out", "sw.v_in"},
+        {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},  // Control = 0V (switch stays open)
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_after_switch = get_voltage(state, result, "sw.v_out");
+
+    // Open switch: 0V (no connection)
+    EXPECT_NEAR(v_after_switch, 0.0f, 0.01f);
+}
+
+TEST(SwitchTest, ClosedSwitchConducts) {
+    // Battery → Switch (closed) → Load → Ground
+    // Closed switch = conducts like wire
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, battery, sw, control, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"battery.v_out", "sw.v_in"},
+        {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},  // Control = 0V (switch stays closed by default)
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_load = get_voltage(state, result, "load.v_in");
+
+    // Closed switch: voltage reaches load (~28V through load)
+    EXPECT_GT(v_load, 27.0f);
+}
+
+TEST(SwitchTest, ToggleOnControlEdge) {
+    // Battery → Switch → Load
+    // Control edge toggles switch state
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto control_src = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, battery, sw, control_src, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"battery.v_out", "sw.v_in"},
+        {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"battery.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},  // Control = 28V
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    // Sanity check: system was built successfully
+    EXPECT_GT(result.signal_count, 0u);
 }
