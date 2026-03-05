@@ -11,6 +11,9 @@
 #include <unordered_map>
 #include <memory>
 
+// Forward declaration
+struct EditorApp;
+
 // Forward declaration (IDrawList is defined in render.h)
 struct IDrawList;
 

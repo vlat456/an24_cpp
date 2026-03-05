@@ -411,7 +411,7 @@ int main(int argc, char** argv) {
                                     app.hold_button_release(node.id);
                                 }
 
-                                // Advance cursor (InvisibleButton would do this automatically)
+                                // Advance cursor
                                 ImGui::Dummy(size);
                             } else {
                                 // Regular toggle switch
