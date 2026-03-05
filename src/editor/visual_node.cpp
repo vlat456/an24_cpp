@@ -227,7 +227,6 @@ Bounds StandardVisualNode::getContentBounds() const {
         if (auto* pr = dynamic_cast<const PortRowWidget*>(w)) {
             found_any_port_row = true;
             Bounds pb = pr->contentBounds();
-            printf("  PortRow content_bounds: x=%.2f, w=%.2f\n", pb.x, pb.w);
             if (pb.x > max_left_edge) max_left_edge = pb.x;
             if (pb.x + pb.w > max_right_edge) max_right_edge = pb.x + pb.w;
         }
