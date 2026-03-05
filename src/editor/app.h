@@ -101,6 +101,7 @@ struct EditorApp {
     void stop_simulation() {
         simulation.stop();
         simulation.reset();  // Reset state to 0
+        reset_node_content();  // Reset visual content to defaults
         simulation_running = false;
     }
 
@@ -113,6 +114,9 @@ struct EditorApp {
 
     /// Обновить node_content на основе значений симуляции
     void update_node_content_from_simulation();
+
+    /// Сбросить node_content в дефолтные значения (при stop)
+    void reset_node_content();
 
     /// Обновить симуляцию (apply overrides, step, clear overrides)
     void update_simulation_step();

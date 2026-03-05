@@ -508,6 +508,43 @@ void EditorApp::update_node_content_from_simulation() {
     }
 }
 
+// Reset node_content to default values (used when simulation stops)
+void EditorApp::reset_node_content() {
+    using namespace an24;
+
+    for (auto& node : blueprint.nodes) {
+        const auto* def = component_registry.get(node.type_name);
+        if (!def) continue;
+
+        // Reset Battery gauge to 0
+        if (node.type_name == "Battery") {
+            node.node_content.value = 0.0f;
+        }
+        // Reset IndicatorLight to OFF
+        else if (node.type_name == "IndicatorLight") {
+            node.node_content.label = "OFF";
+        }
+        // Reset DMR400 to disconnected state
+        else if (node.type_name == "DMR400") {
+            node.node_content.state = false;
+        }
+        // Reset Switch to default closed state
+        else if (node.type_name == "Switch") {
+            auto it = def->default_params.find("closed");
+            if (it != def->default_params.end()) {
+                node.node_content.state = (it->second == "true");
+            } else {
+                node.node_content.state = false;
+            }
+        }
+        // Reset HoldButton to RELEASED
+        else if (node.type_name == "HoldButton") {
+            node.node_content.label = "RELEASED";
+            node.node_content.state = false;
+        }
+    }
+}
+
 // Helper: create default node_content based on ComponentDefinition
 static NodeContent create_node_content(const an24::ComponentDefinition* def) {
     using namespace an24;
