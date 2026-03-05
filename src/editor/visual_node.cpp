@@ -282,11 +282,22 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
         }
     }
 
+    // Always have at least 1 port (the main "v" port) for hit testing
+    if (port_count == 0) {
+        port_count = 1;
+    }
+
     size_ = calculateBusSize(port_count);
 
+    // Create ports
     for (size_t idx = 0; idx < port_count; idx++) {
         Port p;
-        p.name = "inout_" + std::to_string(idx);
+        // First port is the main "v" port, others are wire attachment points
+        if (idx == 0) {
+            p.name = "v";
+        } else {
+            p.name = "inout_" + std::to_string(idx - 1);
+        }
         p.world_position = calculatePortPosition(idx);
         ports_.push_back(p);
     }
