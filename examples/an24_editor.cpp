@@ -229,6 +229,9 @@ int main(int argc, char** argv) {
         // Обновление симуляции каждый кадр
         app.update_simulation();
 
+        // Обновление node_content на основе значений симуляции
+        app.update_node_content_from_simulation();
+
         // Меню
         if (ImGui::BeginMainMenuBar()) {
             // Simulation indicator

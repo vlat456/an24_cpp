@@ -76,6 +76,9 @@ struct EditorApp {
         }
     }
 
+    /// Обновить node_content на основе значений симуляции
+    void update_node_content_from_simulation();
+
     /// Обработка mouse down
     void on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection = false);
 

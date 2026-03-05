@@ -286,3 +286,31 @@ void EditorApp::on_double_click(Pt world_pos) {
         }
     }
 }
+
+void EditorApp::update_node_content_from_simulation() {
+    if (!simulation_running) return;
+
+    for (auto& node : blueprint.nodes) {
+        // Update Battery gauge voltage
+        if (node.type_name == "Battery") {
+            float voltage = simulation.get_port_value(node.id, "v_out");
+            node.node_content.value = voltage;
+        }
+        // Update IndicatorLight text based on brightness
+        else if (node.type_name == "IndicatorLight") {
+            float brightness = simulation.get_port_value(node.id, "brightness");
+            node.node_content.label = (brightness > 0.1f) ? "ON" : "OFF";
+        }
+        // Update DMR400 relay state
+        else if (node.type_name == "DMR400") {
+            float v_gen = simulation.get_port_value(node.id, "v_gen");
+            float v_bus = simulation.get_port_value(node.id, "v_bus");
+            // Relay is closed (ON) when generator voltage is higher than bus
+            // This is simplified - actual logic has hysteresis
+            bool connected = v_gen > v_bus + 2.0f;
+            node.node_content.state = connected;
+        }
+        // Update Switch state (if it's a user-controlled switch, state comes from node_content)
+        // For now, switches remain user-controlled via UI
+    }
+}
