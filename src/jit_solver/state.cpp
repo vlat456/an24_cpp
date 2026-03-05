@@ -35,9 +35,8 @@ void SimulationState::clear_through() {
 
 void SimulationState::precompute_inv_conductance() {
     for (size_t i = 0; i < conductance.size(); ++i) {
-        if (i >= dynamic_signals_count) {
-            // Fixed signals (beyond dynamic count) - infinite conductance
-            inv_conductance[i] = 1.0f;
+        if (signal_types[i].is_fixed) {
+            inv_conductance[i] = 0.0f;  // fixed signals: SOR won't update
         } else if (conductance[i] > 1e-9f) {
             inv_conductance[i] = 1.0f / conductance[i];
         } else {
@@ -47,19 +46,18 @@ void SimulationState::precompute_inv_conductance() {
 }
 
 void SimulationState::solve_signals_balance(float sor_omega) {
-    uint32_t count = dynamic_signals_count;
-    for (uint32_t i = 0; i < count; ++i) {
-        across[i] += through[i] * inv_conductance[i] * sor_omega;
+    for (size_t i = 0; i < across.size(); ++i) {
+        if (!signal_types[i].is_fixed && inv_conductance[i] > 0.0f) {
+            across[i] += through[i] * inv_conductance[i] * sor_omega;
+        }
     }
 }
 
 void SimulationState::solve_signals_balance_fast(float inv_omega) {
-    uint32_t count = dynamic_signals_count;
-
-    // BRANCHLESS: iterate only over dynamic signals [0..count)
-    // Fixed signals are at [count..size) - we never touch them!
-    for (uint32_t i = 0; i < count; ++i) {
-        across[i] += through[i] * inv_conductance[i] * inv_omega;
+    for (size_t i = 0; i < across.size(); ++i) {
+        if (!signal_types[i].is_fixed && inv_conductance[i] > 0.0f) {
+            across[i] += through[i] * inv_conductance[i] * inv_omega;
+        }
     }
 }
 

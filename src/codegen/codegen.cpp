@@ -393,11 +393,13 @@ std::string CodeGen::generate_source(
     oss << "    float* __restrict acc = st->across.data();\n";
     oss << "    const float* __restrict thr = st->through.data();\n";
     oss << "    const float* __restrict inv_g = st->inv_conductance.data();\n";
-    oss << "    const uint32_t count = st->dynamic_signals_count;\n";
+    oss << "    const auto& types = st->signal_types;\n";
+    oss << "    const uint32_t count = static_cast<uint32_t>(st->across.size());\n";
     oss << "\n";
-    oss << "    // BRANCHLESS: iterate only over [0..count), fixed signals are at [count..end)\n";
     oss << "    for (uint32_t i = 0; i < count; ++i) {\n";
-    oss << "        acc[i] += thr[i] * inv_g[i] * inv_omega;\n";
+    oss << "        if (!types[i].is_fixed && inv_g[i] > 0.0f) {\n";
+    oss << "            acc[i] += thr[i] * inv_g[i] * inv_omega;\n";
+    oss << "        }\n";
     oss << "    }\n";
     oss << "}\n\n";
 

@@ -28,8 +28,8 @@ static std::string domain_to_string(Domain d) {
 
 // Helper: convert string to PortDirection
 static PortDirection parse_port_direction(const std::string& s) {
-    if (s == "in" || s == "input" || s == "i") return PortDirection::In;
-    if (s == "out" || s == "output" || s == "o") return PortDirection::Out;
+    if (s == "in" || s == "input" || s == "i" || s == "In") return PortDirection::In;
+    if (s == "out" || s == "output" || s == "o" || s == "Out" || s == "InOut") return PortDirection::Out;
     return PortDirection::Out;  // default
 }
 
@@ -52,6 +52,7 @@ static DeviceInstance parse_device(const json& j) {
 
     if (j.contains("name")) dev.name = j["name"].get<std::string>();
     if (j.contains("template")) dev.template_name = j["template"].get<std::string>();
+    else if (j.contains("template_name")) dev.template_name = j["template_name"].get<std::string>();
     if (j.contains("internal")) dev.internal = j["internal"].get<std::string>();
     if (j.contains("priority")) dev.priority = j["priority"].get<std::string>();
     if (j.contains("bucket") && !j["bucket"].is_null()) {
@@ -75,7 +76,15 @@ static DeviceInstance parse_device(const json& j) {
     }
 
     // Domains
-    if (j.contains("domain")) {
+    if (j.contains("explicit_domains") && j["explicit_domains"].is_array()) {
+        std::vector<Domain> domains;
+        for (const auto& d : j["explicit_domains"]) {
+            domains.push_back(parse_domain(d.get<std::string>()));
+        }
+        if (!domains.empty()) {
+            dev.explicit_domains = domains;
+        }
+    } else if (j.contains("domain")) {
         std::vector<Domain> domains;
         if (j["domain"].is_string()) {
             // Single domain: "Electrical" or comma-separated: "Electrical,Hydraulic"

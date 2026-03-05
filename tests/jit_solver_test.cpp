@@ -141,7 +141,7 @@ TEST(SimulationStateTest, PrecomputeInvConductance) {
 
     state.precompute_inv_conductance();
 
-    EXPECT_FLOAT_EQ(state.inv_conductance[0], 1.0f);    // fixed: always 1
+    EXPECT_FLOAT_EQ(state.inv_conductance[0], 0.0f);    // fixed: inv_g = 0 (SOR skips)
     EXPECT_FLOAT_EQ(state.inv_conductance[1], 0.25f);   // 1/4
     EXPECT_FLOAT_EQ(state.inv_conductance[2], 0.0f);    // open circuit
 }

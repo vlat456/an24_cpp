@@ -78,8 +78,8 @@ struct SimulationState {
 // ==============================================================================
 
 /// Stamp a two-port conductance between two nodes (most common pattern)
-/// i = (v1 - v2) * g
-/// Adds g to both conductances, adds +/- i to through
+/// Residual convention: through[i] > 0 means voltage at i should increase
+/// Branch current INTO idx1 = (V2 - V1) * g  (positive when V2 > V1)
 inline void stamp_two_port(
     float* __restrict conductance,
     float* __restrict through,
@@ -88,7 +88,7 @@ inline void stamp_two_port(
     uint32_t idx2,
     float g
 ) {
-    float i = (across[idx1] - across[idx2]) * g;
+    float i = (across[idx2] - across[idx1]) * g;
     conductance[idx1] += g;
     conductance[idx2] += g;
     through[idx1] += i;
@@ -96,7 +96,7 @@ inline void stamp_two_port(
 }
 
 /// Stamp a one-port to ground (for loads, sensors)
-/// Adds g to conductance, adds i = v * g to through
+/// Current flows from node to ground: residual = -V*g (drains voltage)
 inline void stamp_one_port_ground(
     float* __restrict conductance,
     float* __restrict through,
@@ -106,7 +106,7 @@ inline void stamp_one_port_ground(
 ) {
     float i = across[idx] * g;
     conductance[idx] += g;
-    through[idx] += i;
+    through[idx] -= i;
 }
 
 /// Stamp a current source (Norton: current source + parallel conductance)

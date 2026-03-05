@@ -784,13 +784,13 @@ AOT_INLINE void Systems::balance_electrical(void* state, float inv_omega) {
     float* __restrict acc = st->across.data();
     const float* __restrict thr = st->through.data();
     const float* __restrict inv_g = st->inv_conductance.data();
-    const uint32_t count = st->dynamic_signals_count;
     const auto& types = st->signal_types;
+    const uint32_t count = static_cast<uint32_t>(st->across.size());
 
-    // Fast: V += I * G * inv_omega (no divisions!)
     for (uint32_t i = 0; i < count; ++i) {
-        if (types[i].is_fixed) continue;
-        acc[i] += thr[i] * inv_g[i] * inv_omega;
+        if (!types[i].is_fixed && inv_g[i] > 0.0f) {
+            acc[i] += thr[i] * inv_g[i] * inv_omega;
+        }
     }
 }
 

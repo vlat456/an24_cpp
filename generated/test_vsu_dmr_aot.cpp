@@ -35,7 +35,7 @@ int main() {
         state.precompute_inv_conductance();
 
         for (size_t i = 0; i < state.across.size(); ++i) {
-            if (i < state.dynamic_signals_count && state.inv_conductance[i] > 0.0f) {
+            if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
                 state.across[i] += state.through[i] * state.inv_conductance[i] * omega;
             }
         }

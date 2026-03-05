@@ -80,14 +80,8 @@ void Load::solve_electrical(SimulationState& state) {
     spdlog::debug("[Load] node={} v={:.2f} g={:.2f} i={:.2f}",
         node_idx, v, conductance, i);
 
-    // Было:
-    // state.through[node_idx] -= i;
-    // state.conductance[node_idx] += conductance;
-    // Стало - используем helper:
     stamp_one_port_ground(state.conductance.data(), state.through.data(), state.across.data(),
                           node_idx, conductance);
-    // Корректируем направление тока (из node в ground)
-    state.through[node_idx] -= 2.0f * i;  // компенсация
 }
 
 void RefNode::solve_electrical(SimulationState& state) {
