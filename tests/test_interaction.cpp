@@ -74,3 +74,43 @@ TEST(InteractionTest, SetPanning) {
     i.set_panning(false);
     EXPECT_FALSE(i.panning);
 }
+
+// ============================================================================
+// Wire Creation State (TDD for drag-drop wire creation)
+// ============================================================================
+
+TEST(WireCreationTest, StartWireCreation_SetsDraggingState) {
+    Interaction i;
+    i.start_wire_creation("batt1", "v_out", PortSide::Output, Pt(100.0f, 50.0f));
+
+    EXPECT_EQ(i.dragging, Dragging::CreatingWire);
+    EXPECT_TRUE(i.has_wire_start());
+}
+
+TEST(WireCreationTest, StartWireCreation_TracksPortInfo) {
+    Interaction i;
+    i.start_wire_creation("batt1", "v_out", PortSide::Output, Pt(100.0f, 50.0f));
+
+    EXPECT_EQ(i.get_wire_start_pos().x, 100.0f);
+    EXPECT_EQ(i.get_wire_start_pos().y, 50.0f);
+}
+
+TEST(WireCreationTest, ClearWireCreation_ResetsState) {
+    Interaction i;
+    i.start_wire_creation("batt1", "v_out", PortSide::Output, Pt(100.0f, 50.0f));
+    ASSERT_TRUE(i.has_wire_start());
+
+    i.clear_wire_creation();
+
+    EXPECT_FALSE(i.has_wire_start());
+    EXPECT_EQ(i.dragging, Dragging::None);
+}
+
+TEST(WireCreationTest, MultipleWireCreations_OverridesPrevious) {
+    Interaction i;
+    i.start_wire_creation("batt1", "v_out", PortSide::Output, Pt(100.0f, 50.0f));
+    i.start_wire_creation("load1", "v_in", PortSide::Input, Pt(200.0f, 100.0f));
+
+    EXPECT_EQ(i.get_wire_start_pos().x, 200.0f);
+    EXPECT_EQ(i.get_wire_start_pos().y, 100.0f);
+}

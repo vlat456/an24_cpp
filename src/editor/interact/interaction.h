@@ -135,5 +135,6 @@ public:
         wire_start_port.clear();
         wire_start_side = PortSide::Input;
         wire_start_pos = Pt::zero();
+        dragging = Dragging::None;
     }
 };
