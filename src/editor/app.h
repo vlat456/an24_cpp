@@ -108,4 +108,7 @@ struct EditorApp {
 
     /// Обработка double click - добавить/удалить routing point
     void on_double_click(Pt world_pos);
+
+    /// Добавить компонент на схему
+    void add_component(const std::string& classname, Pt world_pos);
 };

@@ -323,3 +323,69 @@ void EditorApp::update_node_content_from_simulation() {
         // For now, switches remain user-controlled via UI
     }
 }
+
+void EditorApp::add_component(const std::string& classname, Pt world_pos) {
+    using namespace an24;
+    
+    // Check if component exists in registry
+    if (!component_registry.has(classname)) {
+        printf("Error: Unknown component classname '%s'\n", classname.c_str());
+        return;
+    }
+    
+    const auto* def = component_registry.get(classname);
+    if (!def) {
+        printf("Error: Component definition not found for '%s'\n", classname.c_str());
+        return;
+    }
+    
+    // Generate unique ID
+    int counter = 1;
+    std::string base_id = classname;
+    // Convert to lowercase for ID (e.g., "Battery" -> "battery")
+    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
+    
+    std::string unique_id;
+    do {
+        unique_id = base_id + "_" + std::to_string(counter++);
+    } while (blueprint.find_node(unique_id.c_str()) != nullptr);
+    
+    // Snap position to grid
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
+    
+    // Create node
+    Node node;
+    node.id = unique_id;
+    node.name = unique_id;  // Use ID as display name for now
+    node.type_name = classname;
+    node.pos = snapped_pos;
+    node.size = Pt(120.0f, 80.0f);  // Default size
+    
+    // Set NodeKind based on classname
+    if (classname == "Bus") {
+        node.kind = NodeKind::Bus;
+    } else if (classname == "RefNode") {
+        node.kind = NodeKind::Ref;
+    } else {
+        node.kind = NodeKind::Node;
+    }
+    
+    // Add ports from component definition
+    for (const auto& [port_name, port_def] : def->default_ports) {
+        if (port_def.direction == PortDirection::In) {
+            node.inputs.emplace_back(port_name.c_str(), PortSide::Input);
+        } else {
+            node.outputs.emplace_back(port_name.c_str(), PortSide::Output);
+        }
+    }
+    
+    // Add node to blueprint
+    blueprint.add_node(node);
+    
+    // Clear visual cache to force rebuild
+    visual_cache.clear();
+    
+    printf("Added component: %s (id=%s) at (%.1f, %.1f) with %zu inputs, %zu outputs\n",
+           classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
+           node.inputs.size(), node.outputs.size());
+}
