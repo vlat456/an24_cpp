@@ -14,12 +14,20 @@ std::string blueprint_to_json(const Blueprint& bp) {
     // Unified format: devices + connections (simulator format)
     // + editor section for visual debugging metadata
 
-    // devices (simulator format)
+    // templates (empty for now)
+    j["templates"] = json::object();
+
+    // devices (simulator format) - full format for AOT/JIT compatibility
     json devices = json::array();
     for (const auto& n : bp.nodes) {
         json device = json::object();
         device["name"] = n.id;
+        device["template_name"] = "";
         device["internal"] = n.type_name;
+        device["priority"] = "med";
+        device["bucket"] = nullptr;
+        device["critical"] = false;
+        device["is_composite"] = false;
         // ports
         json ports = json::object();
         for (const auto& p : n.inputs) {
@@ -30,15 +38,19 @@ std::string blueprint_to_json(const Blueprint& bp) {
         }
         device["ports"] = ports;
         // params from content
+        json params = json::object();
         if (n.node_content.type != NodeContentType::None) {
-            json params = json::object();
             if (!n.node_content.label.empty()) params["label"] = n.node_content.label;
             params["value"] = std::to_string(n.node_content.value);
             params["min"] = std::to_string(n.node_content.min);
             params["max"] = std::to_string(n.node_content.max);
             if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
+        }
+        if (!params.empty()) {
             device["params"] = params;
         }
+        // default domain
+        device["explicit_domains"] = {"Electrical"};
         devices.push_back(device);
     }
     j["devices"] = devices;

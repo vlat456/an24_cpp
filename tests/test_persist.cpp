@@ -136,3 +136,15 @@ TEST(PersistTest, FromJson_MissingDevices_ReturnsNullopt) {
     auto bp = blueprint_from_json(json);
     EXPECT_FALSE(bp.has_value());
 }
+
+/// Test loading vsu_test.json (simulator format)
+TEST(PersistTest, LoadSimulatorFormat_VsuTest) {
+    auto bp = load_blueprint_from_file("/Users/vladimir/an24_cpp/src/aircraft/vsu_test.json");
+    ASSERT_TRUE(bp.has_value());
+    EXPECT_EQ(bp->nodes.size(), 6);
+    EXPECT_EQ(bp->wires.size(), 8);
+    // Check specific devices
+    auto* gnd = bp->find_node("gnd");
+    ASSERT_NE(gnd, nullptr);
+    EXPECT_EQ(gnd->type_name, "RefNode");
+}
