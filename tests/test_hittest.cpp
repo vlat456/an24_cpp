@@ -90,8 +90,8 @@ TEST(PortHitTest, NodeWithPorts_ClickNearPort_ReturnsPort) {
     VisualNodeCache cache;
     Viewport vp;
 
-    // Проверка что порты созданы (нужно знать позицию портов)
-    auto* visual = cache.get("batt1");
+    // Создаём визуальный узел
+    auto* visual = cache.getOrCreate(bp.nodes[0]);
     ASSERT_NE(visual, nullptr);
 
     // Получаем позицию входного порта
