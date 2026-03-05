@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "editor/simulation.h"
+#include "jit_solver/simulator.h"
 #include "editor/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
@@ -273,4 +274,96 @@ TEST(SimulationTest, DMR_5000Step_ViaEditorPipeline) {
     // Battery wire should be energized, ground should not
     EXPECT_TRUE(sim.wire_is_energized("bat_main_1.v_out", 0.5f));
     EXPECT_FALSE(sim.wire_is_energized("gnd.v", 0.5f));
+}
+
+// ============================================================================
+// Simulator API - TDD failing tests first (RED phase)
+// ============================================================================
+
+// [simulator-001] Simulator should start empty (no components built)
+TEST(SimulatorTest, StartsEmpty) {
+    an24::Simulator<an24::JIT_Solver> sim;
+    EXPECT_FALSE(sim.is_running());
+    EXPECT_FALSE(sim.is_built());
+}
+
+// [simulator-002] start() should build components from blueprint
+TEST(SimulatorTest, StartBuildsComponents) {
+    Blueprint bp = create_simple_circuit();
+    an24::Simulator<an24::JIT_Solver> sim;
+
+    sim.start(bp);
+
+    EXPECT_TRUE(sim.is_running());
+    EXPECT_TRUE(sim.is_built());
+}
+
+// [simulator-003] stop() should destroy components
+TEST(SimulatorTest, StopDestroysComponents) {
+    Blueprint bp = create_simple_circuit();
+    an24::Simulator<an24::JIT_Solver> sim;
+
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_built());
+
+    sim.stop();
+    EXPECT_FALSE(sim.is_running());
+    EXPECT_FALSE(sim.is_built());  // Components destroyed
+}
+
+// [simulator-004] Multiple start/stop cycles should work
+TEST(SimulatorTest, MultipleStartStopCycles) {
+    Blueprint bp = create_simple_circuit();
+    an24::Simulator<an24::JIT_Solver> sim;
+
+    // First cycle
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_built());
+    sim.stop();
+    EXPECT_FALSE(sim.is_built());
+
+    // Second cycle
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_built());
+    sim.stop();
+    EXPECT_FALSE(sim.is_built());
+
+    // Third cycle
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_built());
+}
+
+// [simulator-005] After stop, get_voltage returns 0 (no component state)
+TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
+    Blueprint bp = create_simple_circuit();
+    an24::Simulator<an24::JIT_Solver> sim;
+
+    sim.start(bp);
+
+    // Run simulation to get non-zero voltage
+    for (int i = 0; i < 50; i++) sim.step(0.016f);
+    float v_running = sim.get_port_value("bat", "v_out");
+    EXPECT_GT(v_running, 0.0f);
+
+    // Stop simulation
+    sim.stop();
+
+    // Voltage should be 0 (components destroyed)
+    float v_stopped = sim.get_port_value("bat", "v_out");
+    EXPECT_FLOAT_EQ(v_stopped, 0.0f);
+}
+
+// [simulator-006] step() should do nothing if not running
+TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
+    Blueprint bp = create_simple_circuit();
+    an24::Simulator<an24::JIT_Solver> sim;
+
+    // Don't start simulation
+    EXPECT_FALSE(sim.is_running());
+
+    // Step should be safe (no crash, no effect)
+    sim.step(0.016f);
+
+    // Time should not advance
+    EXPECT_EQ(sim.get_time(), 0.0f);
 }

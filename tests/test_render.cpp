@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "editor/render.h"
-#include "editor/simulation.h"
+#include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
@@ -135,9 +135,8 @@ TEST(RenderTest, WireHighlighting_EnergizedWiresAreYellow) {
     Blueprint bp = create_render_circuit();
 
     // Build and run simulation
-    SimulationController sim;
-    sim.build(bp);
-    sim.start();
+    an24::Simulator<an24::JIT_Solver> sim;
+    sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
     // Verify simulation produced voltage
@@ -172,9 +171,8 @@ TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
 TEST(RenderTest, Tooltip_PortHover_ShowsValue) {
     Blueprint bp = create_render_circuit();
 
-    SimulationController sim;
-    sim.build(bp);
-    sim.start();
+    an24::Simulator<an24::JIT_Solver> sim;
+    sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
     // Hover over a port position (battery v_out)
@@ -235,9 +233,8 @@ TEST(RenderTest, RenderTooltip_InactiveDoesNothing) {
 TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
     Blueprint bp = create_render_circuit();
 
-    SimulationController sim;
-    sim.build(bp);
-    sim.start();
+    an24::Simulator<an24::JIT_Solver> sim;
+    sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
     // Hover over wire position (middle of wire from battery to resistor)

@@ -702,7 +702,8 @@ void EditorApp::update_simulation_step() {
     simulation.apply_overrides(signal_overrides);
 
     // Run simulation step
-    simulation.step(simulation.dt);
+    constexpr float dt = 0.016f;  // 60 Hz
+    simulation.step(dt);
 
     // Clear overrides map (signals stay as set by components)
     signal_overrides.clear();

@@ -128,10 +128,24 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jit_solver.dir/state.cpp.s"
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/jit_solver/state.cpp -o CMakeFiles/jit_solver.dir/state.cpp.s
 
+src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/flags.make
+src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp
+src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o -MF CMakeFiles/jit_solver.dir/simulator.cpp.o.d -o CMakeFiles/jit_solver.dir/simulator.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp
+
+src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/jit_solver.dir/simulator.cpp.i"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp > CMakeFiles/jit_solver.dir/simulator.cpp.i
+
+src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/jit_solver.dir/simulator.cpp.s"
+	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp -o CMakeFiles/jit_solver.dir/simulator.cpp.s
+
 src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/flags.make
 src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp
 src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: src/jit_solver/CMakeFiles/jit_solver.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o"
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o -MF CMakeFiles/jit_solver.dir/components/all.cpp.o.d -o CMakeFiles/jit_solver.dir/components/all.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp
 
 src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.i: cmake_force
@@ -148,6 +162,7 @@ jit_solver_OBJECTS = \
 "CMakeFiles/jit_solver.dir/component.cpp.o" \
 "CMakeFiles/jit_solver.dir/systems.cpp.o" \
 "CMakeFiles/jit_solver.dir/state.cpp.o" \
+"CMakeFiles/jit_solver.dir/simulator.cpp.o" \
 "CMakeFiles/jit_solver.dir/components/all.cpp.o"
 
 # External object files for target jit_solver
@@ -157,10 +172,11 @@ src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/jit_sol
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o
+src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/build.make
 src/jit_solver/libjit_solver.a: src/jit_solver/CMakeFiles/jit_solver.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX static library libjit_solver.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library libjit_solver.a"
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && $(CMAKE_COMMAND) -P CMakeFiles/jit_solver.dir/cmake_clean_target.cmake
 	cd /Users/vladimir/an24_cpp/build/src/jit_solver && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/jit_solver.dir/link.txt --verbose=$(VERBOSE)
 

@@ -3,6 +3,7 @@ add_library(jit_solver
     component.cpp
     systems.cpp
     state.cpp
+    simulator.cpp
     components/all.cpp
 )
 

@@ -97,6 +97,12 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/simulator.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/all.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o"

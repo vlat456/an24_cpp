@@ -2,7 +2,7 @@
 #include "trigonometry.h"
 #include "router/crossings.h"
 #include "visual_node.h"
-#include "simulation.h"
+#include "../jit_solver/simulator.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
@@ -69,7 +69,7 @@ NodeColors get_node_colors(const char* type_name) {
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
-                      const SimulationController* simulation,
+                      const an24::Simulator<an24::JIT_Solver>* simulation,
                       const Pt* hover_world_pos,
                       TooltipInfo* out_tooltip,
                       VisualNodeCache* cache) {
@@ -127,7 +127,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
 
         // Подсветка проводов с током (симуляция запущена)
-        if (simulation && simulation->running && !w.start.node_id.empty()) {
+        if (simulation && simulation->is_running() && !w.start.node_id.empty()) {
             std::string start_port = w.start.node_id + "." + w.start.port_name;
             if (simulation->wire_is_energized(start_port, 0.5f)) {
                 wire_color = COLOR_WIRE_CURRENT; // желтый - есть ток
@@ -321,7 +321,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
     }
 
     // --- Tooltip detection [h1a2b3c4] ---
-    if (hover_world_pos && out_tooltip && simulation && simulation->running) {
+    if (hover_world_pos && out_tooltip && simulation && simulation->is_running()) {
         constexpr float PORT_RADIUS = 8.0f;
         // Check ports
         for (const auto& n : bp.nodes) {

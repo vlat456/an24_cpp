@@ -3,6 +3,7 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "data/pt.h"
+#include "../jit_solver/simulator.h"
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -42,7 +43,7 @@ class VisualNodeCache;
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes = nullptr,
                       std::optional<size_t> selected_wire = std::nullopt,
-                      const struct SimulationController* simulation = nullptr,
+                      const class an24::Simulator<an24::JIT_Solver>* simulation = nullptr,
                       const Pt* hover_world_pos = nullptr,
                       TooltipInfo* out_tooltip = nullptr,
                       VisualNodeCache* cache = nullptr);

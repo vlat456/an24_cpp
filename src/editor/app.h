@@ -5,7 +5,7 @@
 #include "interact/interaction.h"
 #include "hittest.h"
 #include "visual_node.h"
-#include "simulation.h"
+#include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
 #include <unordered_set>
@@ -41,12 +41,12 @@ struct EditorApp {
     /// Visual node cache for rendering content (ImGui widgets)
     VisualNodeCache visual_cache;
 
-    /// JIT Simulation
-    SimulationController simulation;
+    /// JIT Simulation (manages component lifecycle)
+    an24::Simulator<an24::JIT_Solver> simulation;
     bool simulation_running = false;
 
     /// Component registry (loaded from components/*.json)
-    ComponentRegistry component_registry;
+    an24::ComponentRegistry component_registry;
 
     /// Context menu state
     bool show_context_menu = false;
@@ -64,7 +64,7 @@ struct EditorApp {
 
     EditorApp() {
         // Load component registry at startup
-        component_registry = load_component_registry();
+        component_registry = an24::load_component_registry();
     }
 
     /// Создать новую схему
@@ -72,35 +72,32 @@ struct EditorApp {
         blueprint = Blueprint();
         viewport = Viewport();
         interaction = Interaction();
-        simulation = SimulationController();
+        simulation = an24::Simulator<an24::JIT_Solver>();  // Reset simulator
         simulation_running = false;
         visual_cache.clear();
     }
 
     /// Перестроить симуляцию (при изменении схемы)
     void rebuild_simulation() {
-        simulation.build(blueprint);
         if (simulation_running) {
-            simulation.start();
+            // If running, restart to rebuild components
+            simulation.stop();
+            simulation.start(blueprint);
         }
+        // If not running, components will be built on next start()
     }
 
     /// Запустить симуляцию
     void start_simulation() {
         if (!simulation_running) {
-            // Если симуляция еще не построена, строим её
-            if (!simulation.build_result.has_value()) {
-                simulation.build(blueprint);
-            }
-            simulation.start();
+            simulation.start(blueprint);  // Creates components!
             simulation_running = true;
         }
     }
 
     /// Остановить симуляцию
     void stop_simulation() {
-        simulation.stop();
-        simulation.reset();  // Reset state to 0
+        simulation.stop();  // Destroys components!
         reset_node_content();  // Reset visual content to defaults
         simulation_running = false;
     }
@@ -108,7 +105,8 @@ struct EditorApp {
     /// Обновить симуляцию на один шаг
     void update_simulation() {
         if (simulation_running) {
-            simulation.step(simulation.dt);
+            constexpr float dt = 0.016f;  // 60 Hz
+            simulation.step(dt);
         }
     }
 

@@ -257,6 +257,30 @@ jit_solver.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.s
 .PHONY : jit_solver.cpp.s
 
+simulator.o: simulator.cpp.o
+.PHONY : simulator.o
+
+# target to build an object file
+simulator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o
+.PHONY : simulator.cpp.o
+
+simulator.i: simulator.cpp.i
+.PHONY : simulator.i
+
+# target to preprocess a source file
+simulator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.i
+.PHONY : simulator.cpp.i
+
+simulator.s: simulator.cpp.s
+.PHONY : simulator.s
+
+# target to generate assembly for a file
+simulator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.s
+.PHONY : simulator.cpp.s
+
 state.o: state.cpp.o
 .PHONY : state.o
 
@@ -328,6 +352,9 @@ help:
 	@echo "... jit_solver.o"
 	@echo "... jit_solver.i"
 	@echo "... jit_solver.s"
+	@echo "... simulator.o"
+	@echo "... simulator.i"
+	@echo "... simulator.s"
 	@echo "... state.o"
 	@echo "... state.i"
 	@echo "... state.s"
