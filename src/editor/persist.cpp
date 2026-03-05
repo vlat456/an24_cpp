@@ -11,75 +11,83 @@ using json = nlohmann::json;
 std::string blueprint_to_json(const Blueprint& bp) {
     json j = json::object();
 
-    // nodes
-    json nodes = json::array();
+    // Unified format: devices + connections (simulator format)
+    // plus optional "editor" section for visual metadata
+
+    // devices (simulator format)
+    json devices = json::array();
     for (const auto& n : bp.nodes) {
-        json node = json::object();
-        node["id"] = n.id;
-        node["name"] = n.name;
-        node["type_name"] = n.type_name;
-
-        // kind: "Node", "Bus", "Ref"
-        std::string kind_str = "Node";
-        if (n.kind == NodeKind::Bus) kind_str = "Bus";
-        else if (n.kind == NodeKind::Ref) kind_str = "Ref";
-        node["kind"] = kind_str;
-
-        node["pos"] = {{"x", n.pos.x}, {"y", n.pos.y}};
-        node["size"] = {{"x", n.size.x}, {"y", n.size.y}};
-
-        // inputs
-        json inputs = json::array();
+        json device = json::object();
+        device["name"] = n.id;
+        // internal type
+        device["internal"] = n.type_name;
+        // ports (simulator format: {port_name: {direction: "In"|"Out"}})
+        json ports = json::object();
         for (const auto& p : n.inputs) {
-            inputs.push_back({{"name", p.name}, {"side", p.side == PortSide::Input ? "input" : "output"}});
+            ports[p.name] = {{"direction", "In"}};
         }
-        node["inputs"] = inputs;
-
-        // outputs
-        json outputs = json::array();
         for (const auto& p : n.outputs) {
-            outputs.push_back({{"name", p.name}, {"side", p.side == PortSide::Input ? "input" : "output"}});
+            ports[p.name] = {{"direction", "Out"}};
         }
-        node["outputs"] = outputs;
-
-        // content
-        json content = json::object();
-        content["type"] = static_cast<int>(n.node_content.type);
-        content["label"] = n.node_content.label;
-        content["value"] = n.node_content.value;
-        content["min"] = n.node_content.min;
-        content["max"] = n.node_content.max;
-        content["unit"] = n.node_content.unit;
-        content["state"] = n.node_content.state;
-        node["content"] = content;
-
-        nodes.push_back(node);
+        device["ports"] = ports;
+        // params from content
+        if (n.node_content.type != NodeContentType::None) {
+            json params = json::object();
+            if (!n.node_content.label.empty()) params["label"] = n.node_content.label;
+            params["value"] = std::to_string(n.node_content.value);
+            params["min"] = std::to_string(n.node_content.min);
+            params["max"] = std::to_string(n.node_content.max);
+            if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
+            device["params"] = params;
+        }
+        devices.push_back(device);
     }
-    j["nodes"] = nodes;
+    j["devices"] = devices;
 
-    // wires
-    json wires = json::array();
+    // connections (simulator format)
+    json connections = json::array();
     for (const auto& w : bp.wires) {
-        json wire = json::object();
-        wire["id"] = w.id;
-        wire["start"] = {{"node_id", w.start.node_id}, {"port_name", w.start.port_name}};
-        wire["end"] = {{"node_id", w.end.node_id}, {"port_name", w.end.port_name}};
+        json conn = json::object();
+        conn["from"] = w.start.node_id + "." + w.start.port_name;
+        conn["to"] = w.end.node_id + "." + w.end.port_name;
+        connections.push_back(conn);
+    }
+    j["connections"] = connections;
 
-        // routing points
+    // editor section (visual metadata - optional for simulator)
+    json editor = json::object();
+    editor["viewport"] = {
+        {"pan", {{"x", bp.pan.x}, {"y", bp.pan.y}}},
+        {"zoom", bp.zoom},
+        {"grid_step", bp.grid_step}
+    };
+
+    // node visual states (position + size per device)
+    json node_states = json::object();
+    for (const auto& n : bp.nodes) {
+        node_states[n.id] = {
+            {"pos", {{"x", n.pos.x}, {"y", n.pos.y}}},
+            {"size", {{"x", n.size.x}, {"y", n.size.y}}}
+        };
+    }
+    editor["nodes"] = node_states;
+
+    // wire visual states (routing points)
+    json wire_states = json::array();
+    for (const auto& w : bp.wires) {
+        json wire_state = json::object();
+        wire_state["from"] = w.start.node_id + "." + w.start.port_name;
+        wire_state["to"] = w.end.node_id + "." + w.end.port_name;
         json rps = json::array();
         for (const auto& pt : w.routing_points) {
             rps.push_back({{"x", pt.x}, {"y", pt.y}});
         }
-        wire["routing_points"] = rps;
-
-        wires.push_back(wire);
+        wire_state["routing_points"] = rps;
+        wire_states.push_back(wire_state);
     }
-    j["wires"] = wires;
+    editor["wires"] = wire_states;
 
-    // viewport
-    j["pan"] = {{"x", bp.pan.x}, {"y", bp.pan.y}};
-    j["zoom"] = bp.zoom;
-    j["grid_step"] = bp.grid_step;
+    j["editor"] = editor;
 
     return j.dump(2);
 }
@@ -144,8 +152,11 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
         json j = json::parse(json_str);
         Blueprint bp;
 
-        // Проверяем формат: если есть "devices" - это формат симулятора
-        if (j.contains("devices") && j["devices"].is_array()) {
+        // Check for unified format: devices + connections
+        bool has_devices = j.contains("devices") && j["devices"].is_array();
+
+        // Проверяем формат: если есть "devices" - это формат симулятора или унифицированный
+        if (has_devices) {
             // Формат симулятора: devices + connections
             std::map<std::string, size_t> device_indices;
 
@@ -181,6 +192,68 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                             w.end.node_id = to_device;
                             w.end.port_name = to_port;
                             bp.wires.push_back(w);
+                        }
+                    }
+                }
+            }
+
+            // Apply editor metadata if present
+            if (j.contains("editor")) {
+                const auto& editor = j["editor"];
+
+                // viewport
+                if (editor.contains("viewport")) {
+                    const auto& vp = editor["viewport"];
+                    if (vp.contains("pan")) {
+                        bp.pan.x = vp["pan"].value("x", 0.0f);
+                        bp.pan.y = vp["pan"].value("y", 0.0f);
+                    }
+                    bp.zoom = vp.value("zoom", 1.0f);
+                    bp.grid_step = vp.value("grid_step", 16.0f);
+                }
+
+                // node visual states (position + size)
+                if (editor.contains("nodes") && editor["nodes"].is_object()) {
+                    for (auto& [node_id, node_state] : editor["nodes"].items()) {
+                        // Find node by id and update pos/size
+                        for (auto& n : bp.nodes) {
+                            if (n.id == node_id) {
+                                if (node_state.contains("pos")) {
+                                    n.pos.x = node_state["pos"].value("x", n.pos.x);
+                                    n.pos.y = node_state["pos"].value("y", n.pos.y);
+                                }
+                                if (node_state.contains("size")) {
+                                    n.size.x = node_state["size"].value("x", n.size.x);
+                                    n.size.y = node_state["size"].value("y", n.size.y);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // wire routing points
+                if (editor.contains("wires") && editor["wires"].is_array()) {
+                    for (const auto& ws : editor["wires"]) {
+                        std::string from = ws.value("from", "");
+                        std::string to = ws.value("to", "");
+
+                        // Find matching wire and update routing points
+                        for (auto& w : bp.wires) {
+                            std::string w_from = w.start.node_id + "." + w.start.port_name;
+                            std::string w_to = w.end.node_id + "." + w.end.port_name;
+                            if (w_from == from && w_to == to) {
+                                if (ws.contains("routing_points") && ws["routing_points"].is_array()) {
+                                    w.routing_points.clear();
+                                    for (const auto& pj : ws["routing_points"]) {
+                                        Pt pt;
+                                        pt.x = pj.value("x", 0.0f);
+                                        pt.y = pj.value("y", 0.0f);
+                                        w.routing_points.push_back(pt);
+                                    }
+                                }
+                                break;
+                            }
                         }
                     }
                 }
@@ -277,13 +350,27 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
             }
         }
 
-        // viewport
+        // viewport (also check editor section for unified format)
         if (j.contains("pan")) {
             bp.pan.x = j["pan"].value("x", 0.0f);
             bp.pan.y = j["pan"].value("y", 0.0f);
         }
         bp.zoom = j.value("zoom", 1.0f);
         bp.grid_step = j.value("grid_step", 16.0f);
+
+        // Also check for editor section (for unified format backward compat)
+        if (j.contains("editor")) {
+            const auto& editor = j["editor"];
+            if (editor.contains("viewport")) {
+                const auto& vp = editor["viewport"];
+                if (vp.contains("pan")) {
+                    bp.pan.x = vp["pan"].value("x", bp.pan.x);
+                    bp.pan.y = vp["pan"].value("y", bp.pan.y);
+                }
+                bp.zoom = vp.value("zoom", bp.zoom);
+                bp.grid_step = vp.value("grid_step", bp.grid_step);
+            }
+        }
 
         return bp;
     } catch (const std::exception& e) {
