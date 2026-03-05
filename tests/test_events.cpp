@@ -184,3 +184,82 @@ TEST(EventsTest, DragMultipleNodes_PreservesRelativePositions) {
 
     app.on_mouse_up(MouseButton::Left);
 }
+
+// ─── Regression tests for add_component ───
+
+// [a1b2] Bus/Ref nodes must get size 40x40, not 120x80
+TEST(EventsTest, AddComponent_BusSize_a1b2) {
+    EditorApp app;
+    app.add_component("Bus", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& n = app.blueprint.nodes[0];
+    EXPECT_EQ(n.kind, NodeKind::Bus);
+    EXPECT_FLOAT_EQ(n.size.x, 40.0f) << "[a1b2] Bus size.x should be 40";
+    EXPECT_FLOAT_EQ(n.size.y, 40.0f) << "[a1b2] Bus size.y should be 40";
+}
+
+TEST(EventsTest, AddComponent_RefNodeSize_a1b2) {
+    EditorApp app;
+    app.add_component("RefNode", Pt(200, 200));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& n = app.blueprint.nodes[0];
+    EXPECT_EQ(n.kind, NodeKind::Ref);
+    EXPECT_FLOAT_EQ(n.size.x, 40.0f) << "[a1b2] RefNode size.x should be 40";
+    EXPECT_FLOAT_EQ(n.size.y, 40.0f) << "[a1b2] RefNode size.y should be 40";
+}
+
+TEST(EventsTest, AddComponent_StandardNodeSize_a1b2) {
+    EditorApp app;
+    app.add_component("Battery", Pt(300, 300));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& n = app.blueprint.nodes[0];
+    EXPECT_EQ(n.kind, NodeKind::Node);
+    EXPECT_FLOAT_EQ(n.size.x, 120.0f);
+    EXPECT_FLOAT_EQ(n.size.y, 80.0f);
+}
+
+// [c3d4] Newly created components should have node_content
+TEST(EventsTest, AddComponent_BatteryHasGaugeContent_c3d4) {
+    EditorApp app;
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& nc = app.blueprint.nodes[0].node_content;
+    EXPECT_EQ(nc.type, NodeContentType::Gauge) << "[c3d4] Battery should have Gauge content";
+    EXPECT_EQ(nc.unit, "V");
+}
+
+TEST(EventsTest, AddComponent_DMR400HasSwitchContent_c3d4) {
+    EditorApp app;
+    app.add_component("DMR400", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& nc = app.blueprint.nodes[0].node_content;
+    EXPECT_EQ(nc.type, NodeContentType::Switch) << "[c3d4] DMR400 should have Switch content";
+}
+
+TEST(EventsTest, AddComponent_IndicatorLightHasTextContent_c3d4) {
+    EditorApp app;
+    app.add_component("IndicatorLight", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& nc = app.blueprint.nodes[0].node_content;
+    EXPECT_EQ(nc.type, NodeContentType::Text) << "[c3d4] IndicatorLight should have Text content";
+}
+
+// add_component: ports loaded from ComponentRegistry
+TEST(EventsTest, AddComponent_PortsLoadedFromRegistry) {
+    EditorApp app;
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    const auto& n = app.blueprint.nodes[0];
+    EXPECT_EQ(n.inputs.size(), 1);   // v_in
+    EXPECT_EQ(n.outputs.size(), 1);  // v_out
+    EXPECT_EQ(n.type_name, "Battery");
+}
+
+// add_component: unique ID generation
+TEST(EventsTest, AddComponent_UniqueIds) {
+    EditorApp app;
+    app.add_component("Battery", Pt(100, 100));
+    app.add_component("Battery", Pt(200, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 2);
+    EXPECT_NE(app.blueprint.nodes[0].id, app.blueprint.nodes[1].id);
+}

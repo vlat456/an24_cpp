@@ -192,6 +192,27 @@ static Node device_to_node(const json& d, int index) {
         n.node_content.state = false;
     }
 
+    // [e5f6] Restore node_content from saved params (override auto-generated defaults)
+    if (d.contains("params")) {
+        const auto& params = d["params"];
+        if (params.contains("label"))
+            n.node_content.label = params["label"].get<std::string>();
+        if (params.contains("value")) {
+            try { n.node_content.value = std::stof(params["value"].get<std::string>()); }
+            catch (...) {}
+        }
+        if (params.contains("min")) {
+            try { n.node_content.min = std::stof(params["min"].get<std::string>()); }
+            catch (...) {}
+        }
+        if (params.contains("max")) {
+            try { n.node_content.max = std::stof(params["max"].get<std::string>()); }
+            catch (...) {}
+        }
+        if (params.contains("unit"))
+            n.node_content.unit = params["unit"].get<std::string>();
+    }
+
     return n;
 }
 

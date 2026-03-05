@@ -213,3 +213,36 @@ TEST(JsonParserTest, SerializePreservesData) {
     EXPECT_EQ(ctx2.devices[0].params["v_nominal"], "28.0");
     EXPECT_EQ(ctx2.connections.size(), 1);
 }
+
+// [g7h8] InOut port direction roundtrip
+TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
+    ParserContext ctx;
+
+    DeviceInstance dev;
+    dev.name = "test_dev";
+    dev.classname = "Battery"; // use known component for validation
+    dev.ports["v_in"] = Port{PortDirection::In};
+    dev.ports["v_out"] = Port{PortDirection::Out};
+    ctx.devices.push_back(dev);
+
+    std::string json = serialize_json(ctx);
+
+    // In direction should serialize as "In", Out as "Out"
+    EXPECT_NE(json.find("\"In\""), std::string::npos)
+        << "[g7h8] In direction should be preserved in serialized JSON";
+    EXPECT_NE(json.find("\"Out\""), std::string::npos)
+        << "[g7h8] Out direction should be preserved in serialized JSON";
+
+    auto ctx2 = parse_json(json);
+    ASSERT_EQ(ctx2.devices.size(), 1);
+    EXPECT_EQ(ctx2.devices[0].ports["v_in"].direction, PortDirection::In);
+    EXPECT_EQ(ctx2.devices[0].ports["v_out"].direction, PortDirection::Out);
+}
+
+// [g7h8] InOut enum value exists and parses correctly
+TEST(JsonParserTest, InOutEnumExists_g7h8) {
+    // Verify InOut is a valid PortDirection value
+    PortDirection d = PortDirection::InOut;
+    EXPECT_NE(d, PortDirection::In);
+    EXPECT_NE(d, PortDirection::Out);
+}

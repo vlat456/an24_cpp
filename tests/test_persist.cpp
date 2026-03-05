@@ -323,3 +323,35 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
     EXPECT_NE(json.find("\"value\": \"0.0\""), std::string::npos)
         << "RefNode value should be set by kind, not type_name";
 }
+
+// [e5f6] node_content params should survive roundtrip
+TEST(PersistTest, NodeContent_ParamsRoundtrip_e5f6) {
+    Blueprint bp;
+    Node n;
+    n.id = "bat1";
+    n.name = "Battery 28V";
+    n.type_name = "Battery";
+    n.kind = NodeKind::Node;
+    n.input("v_in");
+    n.output("v_out");
+    n.node_content.type = NodeContentType::Gauge;
+    n.node_content.label = "CustomLabel";
+    n.node_content.value = 27.5f;
+    n.node_content.min = 10.0f;
+    n.node_content.max = 35.0f;
+    n.node_content.unit = "kV";
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+
+    const auto& nc = bp2->nodes[0].node_content;
+    EXPECT_EQ(nc.type, NodeContentType::Gauge);
+    EXPECT_EQ(nc.label, "CustomLabel") << "[e5f6] Custom label lost on roundtrip";
+    EXPECT_NEAR(nc.value, 27.5f, 0.1f) << "[e5f6] Value lost on roundtrip";
+    EXPECT_NEAR(nc.min, 10.0f, 0.1f) << "[e5f6] Min lost on roundtrip";
+    EXPECT_NEAR(nc.max, 35.0f, 0.1f) << "[e5f6] Max lost on roundtrip";
+    EXPECT_EQ(nc.unit, "kV") << "[e5f6] Unit lost on roundtrip";
+}

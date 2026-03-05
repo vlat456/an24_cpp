@@ -22,7 +22,8 @@ enum class Domain {
 /// Port direction
 enum class PortDirection {
     In,
-    Out
+    Out,
+    InOut  // [g7h8] bidirectional port
 };
 
 /// Single port definition

@@ -31,7 +31,8 @@ static std::string domain_to_string(Domain d) {
 // Helper: convert string to PortDirection
 static PortDirection parse_port_direction(const std::string& s) {
     if (s == "in" || s == "input" || s == "i" || s == "In") return PortDirection::In;
-    if (s == "out" || s == "output" || s == "o" || s == "Out" || s == "InOut") return PortDirection::Out;
+    if (s == "InOut" || s == "inout" || s == "io") return PortDirection::InOut;  // [g7h8]
+    if (s == "out" || s == "output" || s == "o" || s == "Out") return PortDirection::Out;
     return PortDirection::Out;  // default
 }
 
@@ -285,7 +286,12 @@ ParserContext parse_json(const std::string& json_text) {
 // Serialization helpers
 static json port_to_json(const Port& port) {
     json j;
-    j["direction"] = (port.direction == PortDirection::In) ? "in" : "out";
+    // [g7h8] serialize all three directions
+    switch (port.direction) {
+        case PortDirection::In:    j["direction"] = "In"; break;
+        case PortDirection::InOut: j["direction"] = "InOut"; break;
+        default:                   j["direction"] = "Out"; break;
+    }
     return j;
 }
 

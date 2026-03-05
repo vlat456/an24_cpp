@@ -359,15 +359,17 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     node.name = unique_id;  // Use ID as display name for now
     node.type_name = classname;
     node.pos = snapped_pos;
-    node.size = Pt(120.0f, 80.0f);  // Default size
     
-    // Set NodeKind based on classname
+    // [a1b2] Set NodeKind and size based on classname
     if (classname == "Bus") {
         node.kind = NodeKind::Bus;
+        node.size = Pt(40.0f, 40.0f);
     } else if (classname == "RefNode") {
         node.kind = NodeKind::Ref;
+        node.size = Pt(40.0f, 40.0f);
     } else {
         node.kind = NodeKind::Node;
+        node.size = Pt(120.0f, 80.0f);
     }
     
     // Add ports from component definition
@@ -377,6 +379,23 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
         } else {
             node.outputs.emplace_back(port_name.c_str(), PortSide::Output);
         }
+    }
+    
+    // [c3d4] Auto-generate node_content based on component type
+    if (classname == "Battery" || classname == "Generator" || classname == "GS24") {
+        node.node_content.type = NodeContentType::Gauge;
+        node.node_content.label = "V";
+        node.node_content.value = 0.0f;
+        node.node_content.min = 0.0f;
+        node.node_content.max = 30.0f;
+        node.node_content.unit = "V";
+    } else if (classname == "Switch" || classname == "DMR400" || classname == "Relay") {
+        node.node_content.type = NodeContentType::Switch;
+        node.node_content.label = "ON";
+        node.node_content.state = false;
+    } else if (classname == "IndicatorLight") {
+        node.node_content.type = NodeContentType::Text;
+        node.node_content.label = "OFF";
     }
     
     // Add node to blueprint
