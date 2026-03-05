@@ -1,17 +1,16 @@
 #include "hittest.h"
 #include "trigonometry.h"
+#include "visual_node.h"
 
 HitResult hit_test(const Blueprint& bp, Pt world_pos, const Viewport& vp) {
     HitResult result;
     (void)vp;
 
-    // Сначала проверяем узлы (они рисуются поверх проводов)
+    // Сначала проверяем узлы через ISelectable интерфейс
     for (size_t i = 0; i < bp.nodes.size(); i++) {
         const auto& n = bp.nodes[i];
-
-        // Проверяем попадание в rect узла
-        if (world_pos.x >= n.pos.x && world_pos.x <= n.pos.x + n.size.x &&
-            world_pos.y >= n.pos.y && world_pos.y <= n.pos.y + n.size.y) {
+        auto visual = VisualNodeFactory::create(n, bp.wires);
+        if (visual->containsPoint(world_pos)) {
             result.type = HitType::Node;
             result.node_index = i;
             return result;

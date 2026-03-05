@@ -3,6 +3,7 @@
 #include "wires/hittest.h"
 #include "trigonometry.h"
 #include "router/router.h"
+#include "visual_node.h"
 #include "debug.h"
 #include <algorithm>
 
@@ -22,13 +23,17 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             // Выделяем узел и начинаем drag
             interaction.add_node_selection(hit.node_index);
             // drag_anchor = позиция первого выделенного узла (unsnapped accumulator)
-            Pt primary_pos = blueprint.nodes[hit.node_index].pos;
+            // Use IDraggable interface to get position
+            auto primary_visual = VisualNodeFactory::create(blueprint.nodes[hit.node_index], blueprint.wires);
+            Pt primary_pos = primary_visual->getPosition();
             interaction.start_drag_node(primary_pos);
             // Сохраняем смещения относительно anchor для каждого выделенного узла
             interaction.drag_node_offsets.clear();
             for (size_t idx : interaction.selected_nodes) {
-                if (idx < blueprint.nodes.size())
-                    interaction.drag_node_offsets.push_back(blueprint.nodes[idx].pos - primary_pos);
+                if (idx < blueprint.nodes.size()) {
+                    auto visual = VisualNodeFactory::create(blueprint.nodes[idx], blueprint.wires);
+                    interaction.drag_node_offsets.push_back(visual->getPosition() - primary_pos);
+                }
             }
         } else if (hit.type == HitType::RoutingPoint) {
             // Выделяем routing point и начинаем drag
@@ -57,10 +62,12 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             float max_y = std::max(interaction.marquee_start.y, interaction.marquee_end.y);
 
             for (size_t i = 0; i < blueprint.nodes.size(); i++) {
-                const auto& n = blueprint.nodes[i];
+                auto visual = VisualNodeFactory::create(blueprint.nodes[i], blueprint.wires);
+                Pt pos = visual->getPosition();
+                Pt size = visual->getSize();
                 // Check if node center is in marquee
-                float cx = n.pos.x + n.size.x / 2;
-                float cy = n.pos.y + n.size.y / 2;
+                float cx = pos.x + size.x / 2;
+                float cy = pos.y + size.y / 2;
                 if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y) {
                     interaction.add_node_selection(i);
                 }
@@ -91,7 +98,12 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
             if (idx < blueprint.nodes.size()) {
                 Pt offset = (i < interaction.drag_node_offsets.size())
                     ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
-                blueprint.nodes[idx].pos = snapped + offset;
+                Pt new_pos = snapped + offset;
+                // Use IDraggable interface to set position
+                auto visual = VisualNodeFactory::create(blueprint.nodes[idx], blueprint.wires);
+                visual->setPosition(new_pos);
+                // Also update raw Node for persistence
+                blueprint.nodes[idx].pos = new_pos;
             }
         }
     } else if (interaction.dragging == Dragging::RoutingPoint) {
