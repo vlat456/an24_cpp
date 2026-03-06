@@ -94,13 +94,73 @@ TEST(PortMacroTest, GetPortNamesReturnsCorrectData) {
     EXPECT_EQ(battery_ports.size(), Battery_PORT_COUNT);
 }
 
-// Test PORTS macro doesn't exist yet (should fail compilation)
-// This test is commented out until we implement the macro
-// TEST(PortMacroTest, PORTS_MacroCompiles) {
-//     // This will fail to compile until PORTS macro is defined
-//     struct TestComp {
-//         PORTS(TestComp, v_bus, v_start)
-//     };
-//     TestComp c;
-//     EXPECT_EQ(c.v_bus_idx, 0);
-// }
+// ============================================================================
+// Stage 4: Migrate RU19A to use PORTS macro
+// ============================================================================
+
+// Test that RU19A can be redefined using PORTS macro
+// This simulates what the real RU19A class will look like after migration
+struct RU19AMigrated {
+    // Using PORTS macro instead of manual field declarations
+    PORTS(RU19A, v_bus, v_start, k_mod, v_gen_mon, rpm_out, t4_out)
+
+    // Other fields (from original RU19A)
+    int state = 0;  // APUState, simplified for testing
+    float timer = 0.0f;
+    float target_rpm = 16000.0f;
+    float current_rpm = 0.0f;
+};
+
+TEST(PortMacroTest, RU19AMigrated_HasAllPortFields) {
+    RU19AMigrated comp;
+
+    // Check that all port fields exist and are zero-initialized
+    EXPECT_EQ(comp.v_bus_idx, 0);
+    EXPECT_EQ(comp.v_start_idx, 0);
+    EXPECT_EQ(comp.k_mod_idx, 0);
+    EXPECT_EQ(comp.v_gen_mon_idx, 0);
+    EXPECT_EQ(comp.rpm_out_idx, 0);
+    EXPECT_EQ(comp.t4_out_idx, 0);
+}
+
+TEST(PortMacroTest, RU19AMigrated_FieldTypesAreCorrect) {
+    RU19AMigrated comp;
+
+    // All port fields should be uint32_t
+    EXPECT_TRUE((std::is_same<decltype(comp.v_bus_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.v_start_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.k_mod_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.v_gen_mon_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.rpm_out_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.t4_out_idx), uint32_t>::value));
+}
+
+TEST(PortMacroTest, RU19AMigrated_PortCountMatchesRegistry) {
+    // The migrated component should have 6 ports (from registry)
+    EXPECT_EQ(RU19A_PORT_COUNT, 6);
+
+    // And our migrated component should match
+    RU19AMigrated comp;
+    EXPECT_EQ(comp.v_bus_idx, 0);  // Just verify field exists
+}
+
+// Test that DMR400 can also be migrated
+struct DMR400Migrated {
+    PORTS(DMR400, v_gen, v_bus, v_out, lamp)
+
+    bool is_closed = false;
+    float connect_threshold = 2.0f;
+};
+
+TEST(PortMacroTest, DMR400Migrated_HasAllPortFields) {
+    DMR400Migrated comp;
+
+    EXPECT_EQ(comp.v_gen_idx, 0);
+    EXPECT_EQ(comp.v_bus_idx, 0);
+    EXPECT_EQ(comp.v_out_idx, 0);
+    EXPECT_EQ(comp.lamp_idx, 0);
+}
+
+TEST(PortMacroTest, DMR400Migrated_PortCountMatchesRegistry) {
+    EXPECT_EQ(DMR400_PORT_COUNT, 4);
+}
