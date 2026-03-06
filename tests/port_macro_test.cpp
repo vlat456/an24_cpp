@@ -164,3 +164,23 @@ TEST(PortMacroTest, DMR400Migrated_HasAllPortFields) {
 TEST(PortMacroTest, DMR400Migrated_PortCountMatchesRegistry) {
     EXPECT_EQ(DMR400_PORT_COUNT, 4);
 }
+
+// Test PORTS macro with many ports (up to 32)
+struct ComponentWith32Ports {
+    PORTS(ComponentWith32,
+           p1, p2, p3, p4, p5, p6, p7, p8,
+           p9, p10, p11, p12, p13, p14, p15, p16,
+           p17, p18, p19, p20, p21, p22, p23, p24,
+           p25, p26, p27, p28, p29, p30, p31, p32)
+};
+
+TEST(PortMacroTest, PORTS_Supports32Ports) {
+    ComponentWith32Ports comp;
+
+    // Verify first and last few ports exist
+    EXPECT_EQ(comp.p1_idx, 0);
+    EXPECT_EQ(comp.p2_idx, 0);
+    EXPECT_EQ(comp.p30_idx, 0);
+    EXPECT_EQ(comp.p31_idx, 0);
+    EXPECT_EQ(comp.p32_idx, 0);
+}
