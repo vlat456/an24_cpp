@@ -1,5 +1,6 @@
 #include "blueprint.h"
 #include "port.h"
+#include <set>
 
 /// Check if two port types are compatible for connection
 static bool are_ports_compatible(an24::PortType from_type, an24::PortType to_type) {
@@ -58,7 +59,35 @@ bool Blueprint::add_wire_validated(Wire wire) {
         return false;
     }
 
-    // Types are compatible - add the wire
+    // Check one-to-one connections (except for Bus/RefNode)
+    bool start_allows_multiple = (start_node->type_name == "Bus" ||
+                                   start_node->type_name == "RefNode");
+    bool end_allows_multiple = (end_node->type_name == "Bus" ||
+                                 end_node->type_name == "RefNode");
+
+    // Check if start port is already occupied
+    if (!start_allows_multiple) {
+        for (const auto& w : wires) {
+            if (w.start.node_id == wire.start.node_id &&
+                w.start.port_name == wire.start.port_name) {
+                // Port already occupied
+                return false;
+            }
+        }
+    }
+
+    // Check if end port is already occupied
+    if (!end_allows_multiple) {
+        for (const auto& w : wires) {
+            if (w.end.node_id == wire.end.node_id &&
+                w.end.port_name == wire.end.port_name) {
+                // Port already occupied
+                return false;
+            }
+        }
+    }
+
+    // All checks passed - add the wire
     wires.push_back(std::move(wire));
     return true;
 }

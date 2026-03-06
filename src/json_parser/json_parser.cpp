@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <fstream>
+#include <set>
 
 using json = nlohmann::json;
 
@@ -260,6 +261,48 @@ ParserContext parse_json(const std::string& json_text) {
     if (j.contains("connections")) {
         for (const auto& conn_j : j["connections"]) {
             ctx.connections.push_back(parse_connection(conn_j));
+        }
+    }
+
+    // Validate one-to-one connections (except for Bus/RefNode)
+    // Track which ports are already connected
+    std::set<std::string> occupied_ports;
+    for (const auto& conn : ctx.connections) {
+        // Parse connection strings
+        size_t from_dot = conn.from.find('.');
+        size_t to_dot = conn.to.find('.');
+        if (from_dot == std::string::npos || to_dot == std::string::npos) {
+            throw std::runtime_error("Invalid connection format: " + conn.from + " -> " + conn.to);
+        }
+
+        std::string from_device = conn.from.substr(0, from_dot);
+        std::string from_port = conn.from.substr(from_dot + 1);
+        std::string to_device = conn.to.substr(0, to_dot);
+        std::string to_port = conn.to.substr(to_dot + 1);
+
+        // Check if devices allow multiple connections (Bus, RefNode)
+        auto* from_dev = ctx.find_device(from_device);
+        auto* to_dev = ctx.find_device(to_device);
+
+        bool from_allows_multiple = (from_dev &&
+            (from_dev->classname == "Bus" || from_dev->classname == "RefNode"));
+        bool to_allows_multiple = (to_dev &&
+            (to_dev->classname == "Bus" || to_dev->classname == "RefNode"));
+
+        // Check if ports are already occupied
+        if (!from_allows_multiple && occupied_ports.count(conn.from)) {
+            throw std::runtime_error("Port '" + conn.from + "' already has a wire connected (one-to-one connections only)");
+        }
+        if (!to_allows_multiple && occupied_ports.count(conn.to)) {
+            throw std::runtime_error("Port '" + conn.to + "' already has a wire connected (one-to-one connections only)");
+        }
+
+        // Mark ports as occupied
+        if (!from_allows_multiple) {
+            occupied_ports.insert(conn.from);
+        }
+        if (!to_allows_multiple) {
+            occupied_ports.insert(conn.to);
         }
     }
 
