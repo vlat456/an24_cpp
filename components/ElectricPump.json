@@ -2,13 +2,22 @@
   "classname": "ElectricPump",
   "description": "Electric motor driving hydraulic pump",
   "default_ports": {
-    "v_in": { "direction": "In" },
-    "p_out": { "direction": "Out" }
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "p_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
   },
   "default_params": {
     "max_pressure": "1000.0"
   },
-  "default_domains": ["Electrical", "Hydraulic"],
+  "default_domains": [
+    "Electrical",
+    "Hydraulic"
+  ],
   "default_priority": "med",
   "default_critical": false
 }

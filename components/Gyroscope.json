@@ -2,12 +2,17 @@
   "classname": "Gyroscope",
   "description": "Gyroscope sensor (power-only load)",
   "default_ports": {
-    "input": { "direction": "In" }
+    "input": {
+      "direction": "In",
+      "type": "I"
+    }
   },
   "default_params": {
     "conductance": "0.035"
   },
-  "default_domains": ["Electrical"],
+  "default_domains": [
+    "Electrical"
+  ],
   "default_priority": "med",
   "default_critical": false
 }

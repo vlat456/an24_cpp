@@ -2,8 +2,8 @@
   "classname": "Battery",
   "description": "Battery voltage source with internal resistance (r_internal) and capacity (Ah). Models discharge curve and voltage drop under load.",
   "default_ports": {
-    "v_in": { "direction": "In" },
-    "v_out": { "direction": "Out" }
+    "v_in": { "direction": "In", "type": "V" },
+    "v_out": { "direction": "Out", "type": "V" }
   },
   "default_params": {
     "v_nominal": "28.0",

@@ -2,13 +2,21 @@
   "classname": "Transformer",
   "description": "AC transformer with voltage ratio",
   "default_ports": {
-    "primary": { "direction": "In" },
-    "secondary": { "direction": "Out" }
+    "primary": {
+      "direction": "In",
+      "type": "I"
+    },
+    "secondary": {
+      "direction": "Out",
+      "type": "Bool"
+    }
   },
   "default_params": {
     "ratio": "1.0"
   },
-  "default_domains": ["Electrical"],
+  "default_domains": [
+    "Electrical"
+  ],
   "default_priority": "med",
   "default_critical": false
 }

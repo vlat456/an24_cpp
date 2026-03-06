@@ -28,7 +28,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     gnd.critical = false;
     gnd.ports["v"] = Port{PortDirection::Out};
     gnd.params["value"] = "0.0";
-    gnd.explicit_domains = {Domain::Electrical};
+    gnd.domains = {Domain::Electrical};
     ctx.devices.push_back(gnd);
 
     // Battery
@@ -38,7 +38,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     bat.priority = "high";
     bat.ports["v_out"] = Port{PortDirection::Out};
     bat.params["v_nominal"] = "28.0";
-    bat.explicit_domains = {Domain::Electrical};
+    bat.domains = {Domain::Electrical};
     ctx.devices.push_back(bat);
 
     // Explicit connection
@@ -64,7 +64,7 @@ TEST(JsonParserTest, RoundTripWithTemplates) {
     DeviceInstance bat;
     bat.name = "bat";
     bat.classname = "Battery";
-    bat.explicit_domains = {Domain::Electrical};
+    bat.domains = {Domain::Electrical};
     tpl.devices.push_back(bat);
 
     SubsystemCall sub;
@@ -74,7 +74,7 @@ TEST(JsonParserTest, RoundTripWithTemplates) {
     tpl.subsystems.push_back(sub);
 
     tpl.exposed_ports["pwr"] = "internal_bus";
-    tpl.explicit_domains = {Domain::Electrical};
+    tpl.domains = {Domain::Electrical};
 
     ctx.templates["TestSys"] = tpl;
 
@@ -110,10 +110,9 @@ TEST(JsonParserTest, ParseMultipleDomains) {
     auto ctx = parse_json(json);
     ASSERT_EQ(ctx.devices.size(), 1);
     const auto& dev = ctx.devices[0];
-    ASSERT_TRUE(dev.explicit_domains.has_value());
-    EXPECT_EQ(dev.explicit_domains->size(), 2);
-    EXPECT_EQ((*dev.explicit_domains)[0], Domain::Electrical);
-    EXPECT_EQ((*dev.explicit_domains)[1], Domain::Hydraulic);
+    EXPECT_EQ(dev.domains.size(), 2);
+    EXPECT_EQ(dev.domains[0], Domain::Electrical);
+    EXPECT_EQ(dev.domains[1], Domain::Hydraulic);
 }
 
 TEST(JsonParserTest, ParseDevicesWithAllFields) {
@@ -153,8 +152,8 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
     EXPECT_TRUE(dev.is_composite);
-    ASSERT_TRUE(dev.explicit_domains.has_value());
-    EXPECT_EQ((*dev.explicit_domains)[0], Domain::Electrical);
+    EXPECT_EQ(dev.domains.size(), 1);
+    EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
     EXPECT_EQ(dev.ports.size(), 3);
     auto it_in = dev.ports.find("v_in");
@@ -205,7 +204,7 @@ TEST(JsonParserTest, SerializePreservesData) {
     dev.name = "test";
     dev.classname = "Battery";
     dev.params["v_nominal"] = "28.0";
-    dev.explicit_domains = {Domain::Electrical, Domain::Thermal};
+    dev.domains = {Domain::Electrical, Domain::Thermal};
     ctx.devices.push_back(dev);
 
     ctx.connections.push_back({"a.b", "c.d"});
@@ -249,4 +248,178 @@ TEST(JsonParserTest, InOutEnumExists_g7h8) {
     PortDirection d = PortDirection::InOut;
     EXPECT_NE(d, PortDirection::In);
     EXPECT_NE(d, PortDirection::Out);
+}
+
+// ============================================================================
+// Port Type Tests - FAILING TESTS FIRST (TDD)
+// ============================================================================
+
+TEST(JsonParserTest, ParsePortType_FromJson) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [{
+            "name": "batt",
+            "classname": "Battery",
+            "ports": {
+                "v_out": {"direction": "Out", "type": "V"}
+            }
+        }],
+        "connections": []
+    })";
+
+    auto ctx = parse_json(json);
+    ASSERT_EQ(ctx.devices.size(), 1);
+    EXPECT_EQ(ctx.devices[0].ports["v_out"].type, PortType::V);
+}
+
+TEST(JsonParserTest, ParsePortType_RPM_FromJson) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [{
+            "name": "apu",
+            "classname": "RU19A",
+            "ports": {
+                "rpm_out": {"direction": "Out", "type": "RPM"}
+            }
+        }],
+        "connections": []
+    })";
+
+    auto ctx = parse_json(json);
+    ASSERT_EQ(ctx.devices.size(), 1);
+    EXPECT_EQ(ctx.devices[0].ports["rpm_out"].type, PortType::RPM);
+}
+
+TEST(JsonParserTest, ValidateConnection_MismatchedTypes_ShouldFail) {
+    // TODO: This test should FAIL initially because type validation is not implemented yet
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {
+                "name": "batt",
+                "classname": "Battery",
+                "ports": {
+                    "v_out": {"direction": "Out", "type": "V"}
+                }
+            },
+            {
+                "name": "apu",
+                "classname": "RU19A",
+                "ports": {
+                    "rpm_out": {"direction": "Out", "type": "RPM"}
+                }
+            }
+        ],
+        "connections": [
+            {"from": "batt.v_out", "to": "apu.rpm_out"}
+        ]
+    })";
+
+    // Should throw because V cannot connect to RPM
+    EXPECT_THROW(parse_json(json), std::runtime_error);
+}
+
+TEST(JsonParserTest, ValidateConnection_MatchingTypes_ShouldPass) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {
+                "name": "batt1",
+                "classname": "Battery",
+                "ports": {
+                    "v_out": {"direction": "Out", "type": "V"}
+                }
+            },
+            {
+                "name": "batt2",
+                "classname": "Battery",
+                "ports": {
+                    "v_in": {"direction": "In", "type": "V"}
+                }
+            }
+        ],
+        "connections": [
+            {"from": "batt1.v_out", "to": "batt2.v_in"}
+        ]
+    })";
+
+    // Should NOT throw - V can connect to V
+    auto ctx = parse_json(json);
+    EXPECT_EQ(ctx.connections.size(), 1);
+}
+
+TEST(JsonParserTest, ValidateConnection_BoolToV_ShouldFail) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {
+                "name": "button",
+                "classname": "HoldButton",
+                "ports": {
+                    "v_out": {"direction": "Out", "type": "Bool"}
+                }
+            },
+            {
+                "name": "batt",
+                "classname": "Battery",
+                "ports": {
+                    "v_in": {"direction": "In", "type": "V"}
+                }
+            }
+        ],
+        "connections": [
+            {"from": "button.v_out", "to": "batt.v_in"}
+        ]
+    })";
+
+    // Should throw because Bool cannot connect to V
+    EXPECT_THROW(parse_json(json), std::runtime_error);
+}
+
+TEST(JsonParserTest, ValidateConnection_AnyType_ShouldPass) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {
+                "name": "batt1",
+                "classname": "Battery",
+                "ports": {
+                    "v_out": {"direction": "Out", "type": "Any"}
+                }
+            },
+            {
+                "name": "batt2",
+                "classname": "Battery",
+                "ports": {
+                    "v_in": {"direction": "In", "type": "V"}
+                }
+            }
+        ],
+        "connections": [
+            {"from": "batt1.v_out", "to": "batt2.v_in"}
+        ]
+    })";
+
+    // Should NOT throw - Any can connect to anything
+    auto ctx = parse_json(json);
+    EXPECT_EQ(ctx.connections.size(), 1);
+}
+
+TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
+    ParserContext ctx;
+
+    // Use RU19A which has RPM ports
+    DeviceInstance dev;
+    dev.name = "test";
+    dev.classname = "RU19A";
+    dev.domains = {Domain::Electrical, Domain::Mechanical, Domain::Thermal};
+    dev.ports["v_bus"] = Port{PortDirection::Out, PortType::V};
+    dev.ports["rpm_out"] = Port{PortDirection::Out, PortType::RPM};
+    ctx.devices.push_back(dev);
+
+    std::string json = serialize_json(ctx);
+    auto ctx2 = parse_json(json);
+
+    EXPECT_EQ(ctx2.devices[0].ports["v_bus"].type, PortType::V);
+    EXPECT_EQ(ctx2.devices[0].ports["rpm_out"].type, PortType::RPM);
 }

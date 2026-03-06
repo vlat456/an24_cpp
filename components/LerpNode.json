@@ -2,13 +2,21 @@
   "classname": "LerpNode",
   "description": "Linear interpolation node (first-order filter) for sensor simulation",
   "default_ports": {
-    "input": { "direction": "In" },
-    "output": { "direction": "Out" }
+    "input": {
+      "direction": "In",
+      "type": "I"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
   },
   "default_params": {
     "factor": "0.05"
   },
-  "default_domains": ["Electrical"],
+  "default_domains": [
+    "Electrical"
+  ],
   "default_priority": "med",
   "default_critical": false
 }

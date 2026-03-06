@@ -19,6 +19,18 @@ enum class Domain {
     Thermal      // 1 Hz - very slow temperature changes
 };
 
+/// Port type for validation and AOT optimization
+enum class PortType {
+    V,            // Voltage (electrical potential)
+    I,            // Current (electrical flow)
+    Bool,         // Boolean (logic level, on/off)
+    RPM,          // Rotational speed (revolutions per minute)
+    Temperature,  // Temperature (degrees Celsius)
+    Pressure,     // Pressure (Pascal, bar, etc.)
+    Position,     // Position/Displacement (mechanical position)
+    Any,          // Wildcard - can connect to any type (for adapters)
+};
+
 /// Port direction
 enum class PortDirection {
     In,
@@ -29,6 +41,7 @@ enum class PortDirection {
 /// Single port definition
 struct Port {
     PortDirection direction = PortDirection::Out;
+    PortType type = PortType::Any;  // Port type for validation
 };
 
 /// Connection between two ports: "device.port" -> "device.port"

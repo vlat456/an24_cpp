@@ -1,0 +1,150 @@
+# Task: Fix All Failing Tests - Add Type Field to Port Initialization
+
+## Problem
+After adding PortType field to Port struct, many tests are failing because they create Port objects without specifying the type field:
+
+```cpp
+port.ports["v_out"] = Port{PortDirection::Out};  // MISSING type field!
+```
+
+All Port initializations need to include type:
+```cpp
+port.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+```
+
+## PortType Reference
+
+Types available (use name from enum, not integer value):
+- **PortType::V** - Voltage ports (v, v_in, v_out, v_bus, v_gnd, etc.)
+- **PortType::I** - Current ports (i, i_in, i_out, input, etc.)
+- **PortType::Bool** - Boolean/logic ports (state, closed, open, control, lamp, cmd, enable, etc.)
+- **PortType::RPM** - Rotational speed (rpm, rpm_out, rpm_in, speed, etc.)
+- **PortType::Temperature** - Temperature (t, t4, temp, temp_in, temp_out, heat_in, heat_out, etc.)
+- **PortType::Pressure** - Pressure (p, pressure, p_out, etc.)
+- **PortType::Position** - Position (pos, position)
+- **PortType::Any** - Wildcard (any port type)
+
+## Type Inference Rules
+
+Infer type from port name:
+
+1. **Voltage (V)**: contains 'v' (v, v_in, v_out, v_bus, v_start, v_gnd, v_gen, v_ref, k_mod, etc.)
+
+2. **Current (I)**: contains 'i' (i, i_in, i_out, input, primary)
+
+3. **Bool**: contains boolean keywords:
+   - state, closed, open, control, lamp, cmd, enable, on, off
+
+4. **RPM**: contains 'rpm' or 'speed'
+
+5. **Temperature**: contains 't' or 'temp' (except when part of other words):
+   - t, t4, temp, temp_in, temp_out, heat_in, heat_out
+
+6. **Pressure**: contains 'p' or 'pressure'
+
+7. **Position**: contains 'pos' or 'position'
+
+8. **Any**: default fallback
+
+## Files to Modify
+
+Search for all occurrences of:
+```cpp
+Port{PortDirection::...}
+```
+
+And replace with:
+```cpp
+Port{PortDirection::..., PortType::...}
+```
+
+## Key Files to Update
+
+**Test files:**
+- tests/test_persist.cpp
+- tests/test_simulation.cpp
+- tests/test_interaction.cpp
+- tests/jit_solver_test.cpp
+- tests/factory_validation_test.cpp
+- tests/test_events.cpp
+
+**Example files:**
+- examples/debug.cpp
+- examples/main.cpp
+- examples/components_test.cpp
+- examples/json_test.cpp
+
+**Any other files** that create Port objects directly.
+
+## Implementation Steps
+
+1. Search for pattern `Port{PortDirection::`
+2. For each match:
+   - Extract port direction
+   - Look at variable name/port name to infer type
+   - Add appropriate PortType::XXX as second parameter
+3. Replace all occurrences
+
+## Examples
+
+### Example 1: Battery voltage
+```cpp
+// BEFORE:
+dev.ports["v_out"] = Port{PortDirection::Out};
+
+// AFTER:
+dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+```
+
+### Example 2: Boolean control
+```cpp
+// BEFORE:
+dev.ports["closed"] = Port{PortDirection::Out};
+
+// AFTER:
+dev.ports["closed"] = Port{PortDirection::Out, PortType::Bool};
+```
+
+### Example 3: RPM output
+```cpp
+// BEFORE:
+dev.ports["rpm_out"] = Port{PortDirection::Out, PortType::RPM};
+```
+
+### Example 4: Temperature
+```cpp
+// BEFORE:
+Port{PortDirection::Out}
+
+// AFTER (if variable name is 'temp_out'):
+Port{PortDirection::Out, PortType::Temperature}
+```
+
+## Important Notes
+
+- ALWAYS use enum name: `PortType::V`, NOT integer values
+- When in doubt, use `PortType::Any` as safe default
+- Variable names around the Port creation often contain hints about type
+- Look for patterns like: `v_out` → V, `rpm_out` → RPM, `temp` → Temperature
+- Don't modify component definitions (components/*.json) - they are already correct
+- Only modify TEST and EXAMPLE code that creates Port objects
+
+## Verification
+
+After conversion, run:
+```bash
+cd build
+cmake ..
+make -j$(sysctl -n hw.ncpu)
+ctest --output-on-failure -j$(sysctl -n hw.ncpu)
+```
+
+Expected result: All tests should pass (332/332).
+
+## Command to run
+
+```bash
+grep -r "Port{PortDirection::" --include="*.cpp" --include="*.h" | grep -v "PortType::" | wc -l
+```
+
+This should show 0 after conversion (all Port initializations have type).

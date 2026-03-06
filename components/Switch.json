@@ -2,15 +2,29 @@
   "classname": "Switch",
   "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
   "default_ports": {
-    "v_in": { "direction": "In" },
-    "v_out": { "direction": "Out" },
-    "control": { "direction": "In" },
-    "state": { "direction": "Out" }
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    },
+    "control": {
+      "direction": "In",
+      "type": "Temperature"
+    },
+    "state": {
+      "direction": "Out",
+      "type": "Bool"
+    }
   },
   "default_params": {
     "closed": "false"
   },
-  "default_domains": ["Electrical"],
+  "default_domains": [
+    "Electrical"
+  ],
   "default_priority": "med",
   "default_critical": false,
   "default_content_type": "Switch"

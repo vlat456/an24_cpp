@@ -2,12 +2,17 @@
   "classname": "RefNode",
   "description": "Reference node with fixed voltage (used for ground or voltage sources). Provides a constant voltage reference point in the circuit.",
   "default_ports": {
-    "v": { "direction": "Out" }
+    "v": {
+      "direction": "Out",
+      "type": "V"
+    }
   },
   "default_params": {
     "value": "0.0"
   },
-  "default_domains": ["Electrical"],
+  "default_domains": [
+    "Electrical"
+  ],
   "default_priority": "med",
   "default_critical": false
 }

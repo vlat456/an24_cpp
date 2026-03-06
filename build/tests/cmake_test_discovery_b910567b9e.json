@@ -1,10 +1,10 @@
 {
-  "tests": 10,
+  "tests": 17,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "JsonParserTest",
-      "tests": 10,
+      "tests": 17,
       "testsuite": [
         {
           "name": "ParseEmptyContext",
@@ -34,27 +34,62 @@
         {
           "name": "ParseDevicesWithAllFields",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 119
+          "line": 118
         },
         {
           "name": "ParseConnectionFormats",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 175
+          "line": 174
         },
         {
           "name": "SerializePreservesData",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 201
+          "line": 200
         },
         {
           "name": "InOutPortDirection_Roundtrip_g7h8",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 222
+          "line": 221
         },
         {
           "name": "InOutEnumExists_g7h8",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 247
+          "line": 246
+        },
+        {
+          "name": "ParsePortType_FromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 257
+        },
+        {
+          "name": "ParsePortType_RPM_FromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 275
+        },
+        {
+          "name": "ValidateConnection_MismatchedTypes_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 293
+        },
+        {
+          "name": "ValidateConnection_MatchingTypes_ShouldPass",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 322
+        },
+        {
+          "name": "ValidateConnection_BoolToV_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 351
+        },
+        {
+          "name": "ValidateConnection_AnyType_ShouldPass",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 379
+        },
+        {
+          "name": "PortTypeSerialization_RoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 408
         }
       ]
     }
