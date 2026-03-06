@@ -129,21 +129,41 @@ TEST(SimulationStateTest, ClearThrough) {
 }
 
 TEST(SimulationStateTest, PrecomputeInvConductance) {
+    // ====================================================================
+    // Тест паразитной проводимости (защита от floating nodes)
+    // ====================================================================
     SimulationState state;
 
     state.allocate_signal(0.0f, {Domain::Electrical, true});   // fixed
     state.allocate_signal(0.0f, {Domain::Electrical, false});  // normal
-    state.allocate_signal(0.0f, {Domain::Electrical, false});  // open circuit
+    state.allocate_signal(0.0f, {Domain::Electrical, false});  // open circuit (БЫЛО БЫ 0.0f)
 
     state.conductance[0] = 100.0f;
     state.conductance[1] = 4.0f;
-    state.conductance[2] = 0.0f;
+    state.conductance[2] = 0.0f;  // ПРОВОДКА ОТКЛЮЧЕНА (floating node)
 
     state.precompute_inv_conductance();
 
-    EXPECT_FLOAT_EQ(state.inv_conductance[0], 0.0f);    // fixed: inv_g = 0 (SOR skips)
+    // ====================================================================
+    // Проверяем результаты с учётом паразитной проводимости (1e-7 = 10 МОм)
+    // ====================================================================
+
+    EXPECT_FLOAT_EQ(state.inv_conductance[0], 0.0f);    // fixed: inv_g = 0 (SOR не обновляет)
+
+    // Normal node: 1/(4 + 1e-7) ≈ 0.25 (паразитная G не влияет)
     EXPECT_FLOAT_EQ(state.inv_conductance[1], 0.25f);   // 1/4
-    EXPECT_FLOAT_EQ(state.inv_conductance[2], 0.0f);    // open circuit
+
+    // ====================================================================
+    // Open circuit: БЫЛО БЫ 0.0f, СТАЛО 10,000,000
+    // ====================================================================
+    // Раньше: inv_conductance = 1/0 = 0.0f → деление на ноль!
+    // Теперь:  inv_conductance = 1/(0 + 1e-7) = 10,000,000
+    //
+    // Эффект: узел без соединений будет иметь "слабую связь" с землёй
+    // через паразитную проводимость. Напряжение будет стремиться к 0V.
+    // Это предотвращает краш решателя при переключении реле!
+    // ====================================================================
+    EXPECT_FLOAT_EQ(state.inv_conductance[2], 10000000.0f);  // 1/(0 + 1e-7) = 10M
 }
 
 // =============================================================================
