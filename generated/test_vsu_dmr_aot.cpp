@@ -31,7 +31,7 @@ int main() {
     // Run 5000 steps - AOT uses 1 iteration (smart convergence)
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
-        sys.solve_step(&state, step);
+        sys.solve_step(&state, step, dt);
         state.precompute_inv_conductance();
 
         for (size_t i = 0; i < state.across.size(); ++i) {

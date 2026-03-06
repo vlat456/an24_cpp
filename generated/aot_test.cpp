@@ -36,9 +36,10 @@ int main(int argc, char** argv) {
 
     std::cout << "\n=== Running Simulation (AOT) ===\n";
     float omega = 1.5f;
+    const float dt = 1.0f / 60.0f;
     for (int step = 0; step < 100; ++step) {
         state.clear_through();
-        sys.solve_step(&state, step);
+        sys.solve_step(&state, step, dt);
         state.precompute_inv_conductance();
 
         // SOR update

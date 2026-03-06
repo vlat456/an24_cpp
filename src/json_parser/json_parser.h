@@ -92,7 +92,7 @@ struct DeviceInstance {
     bool is_composite = false;
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
-    std::optional<std::vector<Domain>> explicit_domains;
+    std::vector<Domain> domains;  // From component definition only, NOT user-configurable
 
     // Default constructor
     DeviceInstance() = default;
@@ -124,14 +124,14 @@ struct DeviceInstance {
         }
     }
 
-    /// Get domains for this device (throws if not specified)
+    /// Get domains for this device
     std::vector<Domain> get_domains() const {
-        if (explicit_domains.has_value()) {
-            return explicit_domains.value();
+        if (domains.empty()) {
+            throw std::runtime_error(
+                "Device '" + name + "' (" + classname + ") has no domains. "
+                "Component definition should have default_domains.");
         }
-        throw std::runtime_error(
-            "Device '" + name + "' (" + classname + ") has no explicit domain declaration. "
-            "Add domain='Electrical' or similar.");
+        return domains;
     }
 };
 
@@ -148,7 +148,7 @@ struct SystemTemplate {
     std::vector<DeviceInstance> devices;
     std::vector<SubsystemCall> subsystems;
     std::unordered_map<std::string, std::string> exposed_ports;  // external -> internal
-    std::optional<std::vector<Domain>> explicit_domains;
+    std::vector<Domain> domains;  // From component definition
 };
 
 /// Compilation context - holds all parsed data

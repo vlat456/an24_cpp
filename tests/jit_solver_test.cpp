@@ -61,7 +61,7 @@ static SimulationState run_sor(
     // SOR iteration
     for (int step = 0; step < steps; ++step) {
         state.clear_through();
-        result.systems.solve_step(state, step);
+        result.systems.solve_step(state, step, 1.0f / 60.0f);
         state.precompute_inv_conductance();
 
         for (size_t i = 0; i < state.across.size(); ++i) {
@@ -962,7 +962,7 @@ TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
     state.across[it_ctrl->second] = 28.0f;  // trigger toggle
     for (int i = 0; i < 50; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1003,7 +1003,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
     state.across[ctrl_idx] = 28.0f;  // high control → relay closed
     for (int i = 0; i < 100; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1019,7 +1019,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
     for (int i = 0; i < 50; ++i) {
         state.clear_through();
         state.across[ctrl_idx] = 0.0f;  // low control → relay open
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1065,7 +1065,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     state.signal_types[ctrl_idx].is_fixed = false;
     for (int i = 0; i < 100; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1081,7 +1081,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     state.across[ctrl_idx] = 2.0f;
     for (int i = 0; i < 50; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1195,7 +1195,7 @@ TEST(RegressionTest, BatterySagThroughPressedHoldButton) {
     state.across[ctrl_idx] = 1.0f;
     for (int i = 0; i < 200; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i);
+        result.systems.solve_step(state, i, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)

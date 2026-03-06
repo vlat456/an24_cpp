@@ -1,0 +1,12 @@
+{
+  "classname": "Voltmeter",
+  "description": "Analog voltmeter gauge for measuring voltage",
+  "default_ports": {
+    "v_in": { "direction": "In" }
+  },
+  "default_params": {},
+  "default_domains": ["Electrical"],
+  "default_priority": "low",
+  "default_critical": false,
+  "default_content_type": "Gauge"
+}

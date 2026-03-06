@@ -162,6 +162,9 @@ std::unique_ptr<Component> create_component(
     else if (device.classname == "Gyroscope") {
         return std::make_unique<Gyroscope>(get_port("input"));
     }
+    else if (device.classname == "Voltmeter") {
+        return std::make_unique<Voltmeter>(get_port("v_in"));
+    }
     else if (device.classname == "AGK47") {
         return std::make_unique<AGK47>(get_port("input"));
     }
@@ -333,8 +336,13 @@ BuildResult build_systems_dev(
         if (!comp) continue;
         comp_names.push_back(dev.name);
 
-        // Add to electrical domain (all current components are electrical)
-        result.systems.add_electrical(std::move(comp));
+        // Log domains for RU19A
+        if (dev.classname == "RU19A") {
+            spdlog::info("[jit] RU19A domains: {} domains", dev.domains.size());
+        }
+
+        // Add to all domains (from component definition)
+        result.systems.add_component(std::move(comp), dev.domains);
     }
 
     result.systems.pre_load();

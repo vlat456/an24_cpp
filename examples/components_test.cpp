@@ -82,7 +82,7 @@ static void run_simulation(SimState& sim, Systems& systems, int steps = 100) {
 
     for (int step = 0; step < steps; ++step) {
         sim.state.clear_through();
-        systems.solve_step(sim.state, step);
+        systems.solve_step(sim.state, step, 1.0f / 60.0f);
         sim.state.precompute_inv_conductance();
 
         for (size_t i = 0; i < sim.state.across.size(); ++i) {

@@ -80,42 +80,8 @@ static DeviceInstance parse_device(const json& j) {
         }
     }
 
-    // Domains
-    if (j.contains("explicit_domains") && j["explicit_domains"].is_array()) {
-        std::vector<Domain> domains;
-        for (const auto& d : j["explicit_domains"]) {
-            domains.push_back(parse_domain(d.get<std::string>()));
-        }
-        if (!domains.empty()) {
-            dev.explicit_domains = domains;
-        }
-    } else if (j.contains("domain")) {
-        std::vector<Domain> domains;
-        if (j["domain"].is_string()) {
-            // Single domain: "Electrical" or comma-separated: "Electrical,Hydraulic"
-            std::string s = j["domain"].get<std::string>();
-            size_t start = 0;
-            while (start < s.size()) {
-                size_t comma = s.find(',', start);
-                std::string part = s.substr(start, comma - start);
-                // Trim whitespace
-                while (!part.empty() && (part[0] == ' ' || part[0] == '\t')) part.erase(part.begin());
-                while (!part.empty() && (part.back() == ' ' || part.back() == '\t')) part.pop_back();
-                if (!part.empty()) {
-                    domains.push_back(parse_domain(part));
-                }
-                if (comma == std::string::npos) break;
-                start = comma + 1;
-            }
-        } else if (j["domain"].is_array()) {
-            for (const auto& d : j["domain"]) {
-                domains.push_back(parse_domain(d.get<std::string>()));
-            }
-        }
-        if (!domains.empty()) {
-            dev.explicit_domains = domains;
-        }
-    }
+    // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
+    // in component definitions (components/*.json). Users cannot override domains.
 
     return dev;
 }
@@ -179,29 +145,8 @@ static SystemTemplate parse_template(const json& j) {
         }
     }
 
-    if (j.contains("domain")) {
-        // Parse domain similar to DeviceInstance
-        std::vector<Domain> domains;
-        json::const_reference dom = j["domain"];
-        if (dom.is_string()) {
-            std::string s = dom.get<std::string>();
-            size_t start = 0;
-            while (start < s.size()) {
-                size_t comma = s.find(',', start);
-                std::string part = s.substr(start, comma - start);
-                while (!part.empty() && (part[0] == ' ' || part[0] == '\t')) part.erase(part.begin());
-                while (!part.empty() && (part.back() == ' ' || part.back() == '\t')) part.pop_back();
-                if (!part.empty()) domains.push_back(parse_domain(part));
-                if (comma == std::string::npos) break;
-                start = comma + 1;
-            }
-        } else if (dom.is_array()) {
-            for (const auto& d : dom) {
-                domains.push_back(parse_domain(d.get<std::string>()));
-            }
-        }
-        if (!domains.empty()) tpl.explicit_domains = domains;
-    }
+    // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
+    // in component definitions (components/*.json).
 
     return tpl;
 }
@@ -321,14 +266,8 @@ static json device_to_json(const DeviceInstance& dev) {
         j["params"] = params;
     }
 
-    if (dev.explicit_domains.has_value()) {
-        std::string domains_str;
-        for (size_t i = 0; i < dev.explicit_domains->size(); ++i) {
-            if (i > 0) domains_str += ",";
-            domains_str += domain_to_string((*dev.explicit_domains)[i]);
-        }
-        j["domain"] = domains_str;
-    }
+    // NOTE: Domains are NOT serialized to JSON - they are defined exclusively
+    // in component definitions (components/*.json).
 
     return j;
 }
@@ -382,14 +321,7 @@ static json template_to_json(const SystemTemplate& tpl) {
         j["exposed_ports"] = exposed;
     }
 
-    if (tpl.explicit_domains.has_value()) {
-        std::string domains_str;
-        for (size_t i = 0; i < tpl.explicit_domains->size(); ++i) {
-            if (i > 0) domains_str += ",";
-            domains_str += domain_to_string((*tpl.explicit_domains)[i]);
-        }
-        j["domain"] = domains_str;
-    }
+    // NOTE: Domains are NOT serialized to JSON
 
     return j;
 }
@@ -574,9 +506,11 @@ DeviceInstance merge_device_instance(
         }
     }
 
-    // Merge domains: instance overrides default
-    if (!merged.explicit_domains.has_value() && definition.default_domains.has_value()) {
-        merged.explicit_domains = definition.default_domains;
+    // Copy domains from component definition (NOT user-configurable)
+    if (definition.default_domains.has_value()) {
+        merged.domains = *definition.default_domains;
+    } else {
+        merged.domains = {Domain::Electrical};  // Default fallback
     }
 
     // Merge priority: instance overrides default (only if instance has default priority)
@@ -621,7 +555,7 @@ std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInst
     }
 
     // Validate domains are specified
-    if (!instance.explicit_domains.has_value() && !def->default_domains.has_value()) {
+    if (instance.domains.empty()) {
         return "No domains specified for device '" + instance.name + "' of type '" + instance.classname + "'";
     }
 

@@ -29,7 +29,7 @@ int main() {
 
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
-        sys.solve_step(&state, step);
+        sys.solve_step(&state, step, dt);
 
         if (step % 500 == 0 || step == 4999) {
             std::cout << "Step " << step

@@ -44,849 +44,849 @@ void Systems::pre_load() {
     bat_main_2.inv_internal_r = 1.0f / bat_main_2.internal_r;
 }
 
-void Systems::solve_step(void* state, uint32_t step) {
+void Systems::solve_step(void* state, uint32_t step, float dt) {
     switch (step % 60) {
-        case 0: step_0(state); break;
-        case 1: step_1(state); break;
-        case 2: step_2(state); break;
-        case 3: step_3(state); break;
-        case 4: step_4(state); break;
-        case 5: step_5(state); break;
-        case 6: step_6(state); break;
-        case 7: step_7(state); break;
-        case 8: step_8(state); break;
-        case 9: step_9(state); break;
-        case 10: step_10(state); break;
-        case 11: step_11(state); break;
-        case 12: step_12(state); break;
-        case 13: step_13(state); break;
-        case 14: step_14(state); break;
-        case 15: step_15(state); break;
-        case 16: step_16(state); break;
-        case 17: step_17(state); break;
-        case 18: step_18(state); break;
-        case 19: step_19(state); break;
-        case 20: step_20(state); break;
-        case 21: step_21(state); break;
-        case 22: step_22(state); break;
-        case 23: step_23(state); break;
-        case 24: step_24(state); break;
-        case 25: step_25(state); break;
-        case 26: step_26(state); break;
-        case 27: step_27(state); break;
-        case 28: step_28(state); break;
-        case 29: step_29(state); break;
-        case 30: step_30(state); break;
-        case 31: step_31(state); break;
-        case 32: step_32(state); break;
-        case 33: step_33(state); break;
-        case 34: step_34(state); break;
-        case 35: step_35(state); break;
-        case 36: step_36(state); break;
-        case 37: step_37(state); break;
-        case 38: step_38(state); break;
-        case 39: step_39(state); break;
-        case 40: step_40(state); break;
-        case 41: step_41(state); break;
-        case 42: step_42(state); break;
-        case 43: step_43(state); break;
-        case 44: step_44(state); break;
-        case 45: step_45(state); break;
-        case 46: step_46(state); break;
-        case 47: step_47(state); break;
-        case 48: step_48(state); break;
-        case 49: step_49(state); break;
-        case 50: step_50(state); break;
-        case 51: step_51(state); break;
-        case 52: step_52(state); break;
-        case 53: step_53(state); break;
-        case 54: step_54(state); break;
-        case 55: step_55(state); break;
-        case 56: step_56(state); break;
-        case 57: step_57(state); break;
-        case 58: step_58(state); break;
-        case 59: step_59(state); break;
+        case 0: step_0(state, dt); break;
+        case 1: step_1(state, dt); break;
+        case 2: step_2(state, dt); break;
+        case 3: step_3(state, dt); break;
+        case 4: step_4(state, dt); break;
+        case 5: step_5(state, dt); break;
+        case 6: step_6(state, dt); break;
+        case 7: step_7(state, dt); break;
+        case 8: step_8(state, dt); break;
+        case 9: step_9(state, dt); break;
+        case 10: step_10(state, dt); break;
+        case 11: step_11(state, dt); break;
+        case 12: step_12(state, dt); break;
+        case 13: step_13(state, dt); break;
+        case 14: step_14(state, dt); break;
+        case 15: step_15(state, dt); break;
+        case 16: step_16(state, dt); break;
+        case 17: step_17(state, dt); break;
+        case 18: step_18(state, dt); break;
+        case 19: step_19(state, dt); break;
+        case 20: step_20(state, dt); break;
+        case 21: step_21(state, dt); break;
+        case 22: step_22(state, dt); break;
+        case 23: step_23(state, dt); break;
+        case 24: step_24(state, dt); break;
+        case 25: step_25(state, dt); break;
+        case 26: step_26(state, dt); break;
+        case 27: step_27(state, dt); break;
+        case 28: step_28(state, dt); break;
+        case 29: step_29(state, dt); break;
+        case 30: step_30(state, dt); break;
+        case 31: step_31(state, dt); break;
+        case 32: step_32(state, dt); break;
+        case 33: step_33(state, dt); break;
+        case 34: step_34(state, dt); break;
+        case 35: step_35(state, dt); break;
+        case 36: step_36(state, dt); break;
+        case 37: step_37(state, dt); break;
+        case 38: step_38(state, dt); break;
+        case 39: step_39(state, dt); break;
+        case 40: step_40(state, dt); break;
+        case 41: step_41(state, dt); break;
+        case 42: step_42(state, dt); break;
+        case 43: step_43(state, dt); break;
+        case 44: step_44(state, dt); break;
+        case 45: step_45(state, dt); break;
+        case 46: step_46(state, dt); break;
+        case 47: step_47(state, dt); break;
+        case 48: step_48(state, dt); break;
+        case 49: step_49(state, dt); break;
+        case 50: step_50(state, dt); break;
+        case 51: step_51(state, dt); break;
+        case 52: step_52(state, dt); break;
+        case 53: step_53(state, dt); break;
+        case 54: step_54(state, dt); break;
+        case 55: step_55(state, dt); break;
+        case 56: step_56(state, dt); break;
+        case 57: step_57(state, dt); break;
+        case 58: step_58(state, dt); break;
+        case 59: step_59(state, dt); break;
     }
 }
 
-AOT_INLINE void Systems::step_0(void* state) {
+AOT_INLINE void Systems::step_0(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_1(void* state) {
+AOT_INLINE void Systems::step_1(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_2(void* state) {
+AOT_INLINE void Systems::step_2(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_3(void* state) {
+AOT_INLINE void Systems::step_3(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_4(void* state) {
+AOT_INLINE void Systems::step_4(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_5(void* state) {
+AOT_INLINE void Systems::step_5(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_6(void* state) {
+AOT_INLINE void Systems::step_6(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_7(void* state) {
+AOT_INLINE void Systems::step_7(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_8(void* state) {
+AOT_INLINE void Systems::step_8(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_9(void* state) {
+AOT_INLINE void Systems::step_9(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_10(void* state) {
+AOT_INLINE void Systems::step_10(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_11(void* state) {
+AOT_INLINE void Systems::step_11(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_12(void* state) {
+AOT_INLINE void Systems::step_12(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_13(void* state) {
+AOT_INLINE void Systems::step_13(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_14(void* state) {
+AOT_INLINE void Systems::step_14(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_15(void* state) {
+AOT_INLINE void Systems::step_15(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_16(void* state) {
+AOT_INLINE void Systems::step_16(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_17(void* state) {
+AOT_INLINE void Systems::step_17(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_18(void* state) {
+AOT_INLINE void Systems::step_18(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_19(void* state) {
+AOT_INLINE void Systems::step_19(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_20(void* state) {
+AOT_INLINE void Systems::step_20(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_21(void* state) {
+AOT_INLINE void Systems::step_21(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_22(void* state) {
+AOT_INLINE void Systems::step_22(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_23(void* state) {
+AOT_INLINE void Systems::step_23(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_24(void* state) {
+AOT_INLINE void Systems::step_24(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_25(void* state) {
+AOT_INLINE void Systems::step_25(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_26(void* state) {
+AOT_INLINE void Systems::step_26(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_27(void* state) {
+AOT_INLINE void Systems::step_27(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_28(void* state) {
+AOT_INLINE void Systems::step_28(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_29(void* state) {
+AOT_INLINE void Systems::step_29(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_30(void* state) {
+AOT_INLINE void Systems::step_30(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_31(void* state) {
+AOT_INLINE void Systems::step_31(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_32(void* state) {
+AOT_INLINE void Systems::step_32(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_33(void* state) {
+AOT_INLINE void Systems::step_33(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_34(void* state) {
+AOT_INLINE void Systems::step_34(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_35(void* state) {
+AOT_INLINE void Systems::step_35(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_36(void* state) {
+AOT_INLINE void Systems::step_36(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_37(void* state) {
+AOT_INLINE void Systems::step_37(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_38(void* state) {
+AOT_INLINE void Systems::step_38(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_39(void* state) {
+AOT_INLINE void Systems::step_39(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_40(void* state) {
+AOT_INLINE void Systems::step_40(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_41(void* state) {
+AOT_INLINE void Systems::step_41(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_42(void* state) {
+AOT_INLINE void Systems::step_42(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_43(void* state) {
+AOT_INLINE void Systems::step_43(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_44(void* state) {
+AOT_INLINE void Systems::step_44(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_45(void* state) {
+AOT_INLINE void Systems::step_45(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_46(void* state) {
+AOT_INLINE void Systems::step_46(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_47(void* state) {
+AOT_INLINE void Systems::step_47(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_48(void* state) {
+AOT_INLINE void Systems::step_48(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_49(void* state) {
+AOT_INLINE void Systems::step_49(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_50(void* state) {
+AOT_INLINE void Systems::step_50(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_51(void* state) {
+AOT_INLINE void Systems::step_51(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_52(void* state) {
+AOT_INLINE void Systems::step_52(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_53(void* state) {
+AOT_INLINE void Systems::step_53(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_54(void* state) {
+AOT_INLINE void Systems::step_54(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_55(void* state) {
+AOT_INLINE void Systems::step_55(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_56(void* state) {
+AOT_INLINE void Systems::step_56(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_57(void* state) {
+AOT_INLINE void Systems::step_57(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_58(void* state) {
+AOT_INLINE void Systems::step_58(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
-AOT_INLINE void Systems::step_59(void* state) {
+AOT_INLINE void Systems::step_59(void* state, float dt) {
     auto* st = static_cast<SimulationState*>(state);
-    dc_bus_1.solve_electrical(*st);
-    dc_bus_2.solve_electrical(*st);
-    gnd.solve_electrical(*st);
-    bat_main_1.solve_electrical(*st);
-    bat_main_2.solve_electrical(*st);
-    relay_bus_tie.solve_electrical(*st);
-    generator_1.solve_electrical(*st);
-    gyro_1.solve_electrical(*st);
-    agk_47_1.solve_electrical(*st);
+    dc_bus_1.solve_electrical(*st, dt);
+    dc_bus_2.solve_electrical(*st, dt);
+    gnd.solve_electrical(*st, dt);
+    bat_main_1.solve_electrical(*st, dt);
+    bat_main_2.solve_electrical(*st, dt);
+    relay_bus_tie.solve_electrical(*st, dt);
+    generator_1.solve_electrical(*st, dt);
+    gyro_1.solve_electrical(*st, dt);
+    agk_47_1.solve_electrical(*st, dt);
 }
 
 void Systems::post_step(void* state, float dt) {

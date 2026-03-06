@@ -19,17 +19,17 @@ public:
     /// Component type name (for debugging)
     [[nodiscard]] virtual std::string_view type_name() const = 0;
 
-    /// Solve electrical domain (60 Hz)
-    virtual void solve_electrical(SimulationState& state) {}
+    /// Solve electrical domain (every step, dt = frame delta)
+    virtual void solve_electrical(SimulationState& state, float dt) {}
 
-    /// Solve hydraulic domain (5 Hz)
-    virtual void solve_hydraulic(SimulationState& state) {}
+    /// Solve hydraulic domain (every 12th step, dt = 12 * frame delta)
+    virtual void solve_hydraulic(SimulationState& state, float dt) {}
 
-    /// Solve mechanical domain (20 Hz)
-    virtual void solve_mechanical(SimulationState& state) {}
+    /// Solve mechanical domain (every 3rd step, dt = 3 * frame delta)
+    virtual void solve_mechanical(SimulationState& state, float dt) {}
 
-    /// Solve thermal domain (1 Hz)
-    virtual void solve_thermal(SimulationState& state) {}
+    /// Solve thermal domain (every 60th step, dt = 60 * frame delta)
+    virtual void solve_thermal(SimulationState& state, float dt) {}
 
     /// Post-step update (once per frame, after SOR iteration)
     virtual void post_step(SimulationState& state, float dt) {}

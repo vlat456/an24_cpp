@@ -114,7 +114,7 @@ void Simulator<SolverTag>::step(float dt) {
     if (!running_ || !build_result_.has_value()) return;
 
     state_.clear_through();
-    build_result_->systems.solve_step(state_, step_count_);
+    build_result_->systems.solve_step(state_, step_count_, dt);
     state_.precompute_inv_conductance();
 
     // SOR update

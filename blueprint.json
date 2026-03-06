@@ -13,10 +13,6 @@
       "to": "main_bus.v"
     },
     {
-      "from": "bat_main_1.v_out",
-      "to": "vsu_1.v_start"
-    },
-    {
       "from": "main_bus.v",
       "to": "dmr_vsu.v_in"
     },
@@ -39,6 +35,34 @@
     {
       "from": "dmr_vsu.lamp",
       "to": "light_1.v_in"
+    },
+    {
+      "from": "lerpnode_1.output",
+      "to": "voltmeter_1.v_in"
+    },
+    {
+      "from": "lerpnode_1.input",
+      "to": "main_bus.v"
+    },
+    {
+      "from": "lerpnode_2.output",
+      "to": "voltmeter_2.v_in"
+    },
+    {
+      "from": "lerpnode_2.input",
+      "to": "vsu_1.t4_out"
+    },
+    {
+      "from": "vsu_1.rpm_out",
+      "to": "voltmeter_3.v_in"
+    },
+    {
+      "from": "vsu_1.v_start",
+      "to": "holdbutton_1.v_out"
+    },
+    {
+      "from": "holdbutton_1.v_in",
+      "to": "bat_main_1.v_out"
     }
   ],
   "devices": [
@@ -46,9 +70,6 @@
       "bucket": null,
       "classname": "RefNode",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Ref",
       "name": "gnd",
@@ -67,19 +88,9 @@
       "bucket": null,
       "classname": "Battery",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Node",
       "name": "bat_main_1",
-      "params": {
-        "label": "V",
-        "max": "30.000000",
-        "min": "0.000000",
-        "unit": "V",
-        "value": "0.000000"
-      },
       "ports": {
         "v_in": {
           "direction": "In"
@@ -95,9 +106,6 @@
       "bucket": null,
       "classname": "Bus",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Bus",
       "name": "main_bus",
@@ -113,9 +121,6 @@
       "bucket": null,
       "classname": "RU19A",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Node",
       "name": "vsu_1",
@@ -143,9 +148,6 @@
       "bucket": null,
       "classname": "RUG82",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Node",
       "name": "rug_vsu",
@@ -164,9 +166,6 @@
       "bucket": null,
       "classname": "DMR400",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Node",
       "name": "dmr_vsu",
@@ -174,14 +173,14 @@
         "lamp": {
           "direction": "Out"
         },
-        "v_out": {
-          "direction": "Out"
+        "v_gen_ref": {
+          "direction": "In"
         },
         "v_in": {
           "direction": "In"
         },
-        "v_gen_ref": {
-          "direction": "In"
+        "v_out": {
+          "direction": "Out"
         }
       },
       "priority": "med",
@@ -191,9 +190,6 @@
       "bucket": null,
       "classname": "IndicatorLight",
       "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
       "is_composite": false,
       "kind": "Node",
       "name": "light_1",
@@ -205,6 +201,157 @@
       },
       "ports": {
         "brightness": {
+          "direction": "Out"
+        },
+        "v_in": {
+          "direction": "In"
+        },
+        "v_out": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Voltmeter",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "voltmeter_1",
+      "params": {
+        "label": "V",
+        "max": "30.000000",
+        "min": "0.000000",
+        "unit": "V",
+        "value": "0.000000"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "LerpNode",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "lerpnode_1",
+      "ports": {
+        "input": {
+          "direction": "In"
+        },
+        "output": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Transformer",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "transformer_1",
+      "ports": {
+        "primary": {
+          "direction": "In"
+        },
+        "secondary": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Voltmeter",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "voltmeter_2",
+      "params": {
+        "label": "V",
+        "max": "30.000000",
+        "min": "0.000000",
+        "unit": "V",
+        "value": "0.000000"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "LerpNode",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "lerpnode_2",
+      "ports": {
+        "input": {
+          "direction": "In"
+        },
+        "output": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Voltmeter",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "voltmeter_3",
+      "params": {
+        "label": "V",
+        "max": "30.000000",
+        "min": "0.000000",
+        "unit": "V",
+        "value": "0.000000"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "HoldButton",
+      "critical": false,
+      "is_composite": false,
+      "kind": "Node",
+      "name": "holdbutton_1",
+      "params": {
+        "closed": "false",
+        "label": "RELEASED",
+        "max": "1.000000",
+        "min": "0.000000",
+        "value": "0.000000"
+      },
+      "ports": {
+        "control": {
+          "direction": "In"
+        },
+        "state": {
           "direction": "Out"
         },
         "v_in": {
@@ -250,6 +397,36 @@
           "y": 48.0
         }
       },
+      "holdbutton_1": {
+        "pos": {
+          "x": 256.0,
+          "y": 272.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "lerpnode_1": {
+        "pos": {
+          "x": 896.0,
+          "y": 304.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "lerpnode_2": {
+        "pos": {
+          "x": 848.0,
+          "y": 80.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
       "light_1": {
         "pos": {
           "x": 560.0,
@@ -266,7 +443,7 @@
           "y": 80.0
         },
         "size": {
-          "x": 96.0,
+          "x": 112.0,
           "y": 32.0
         }
       },
@@ -274,6 +451,46 @@
         "pos": {
           "x": 560.0,
           "y": 240.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "transformer_1": {
+        "pos": {
+          "x": 992.0,
+          "y": 592.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "voltmeter_1": {
+        "pos": {
+          "x": 1120.0,
+          "y": 304.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 128.0
+        }
+      },
+      "voltmeter_2": {
+        "pos": {
+          "x": 1136.0,
+          "y": 80.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "voltmeter_3": {
+        "pos": {
+          "x": 912.0,
+          "y": 176.0
         },
         "size": {
           "x": 128.0,
@@ -294,8 +511,8 @@
     "viewport": {
       "grid_step": 16.0,
       "pan": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 14.0,
+        "y": 42.0
       },
       "zoom": 1.0
     },
@@ -356,36 +573,6 @@
         "from": "bat_main_1.v_out",
         "routing_points": [],
         "to": "main_bus.v"
-      },
-      {
-        "from": "bat_main_1.v_out",
-        "routing_points": [
-          {
-            "x": 224.0,
-            "y": 128.0
-          },
-          {
-            "x": 288.0,
-            "y": 128.0
-          },
-          {
-            "x": 288.0,
-            "y": 144.0
-          },
-          {
-            "x": 528.0,
-            "y": 144.0
-          },
-          {
-            "x": 528.0,
-            "y": 96.0
-          },
-          {
-            "x": 544.0,
-            "y": 96.0
-          }
-        ],
-        "to": "vsu_1.v_start"
       },
       {
         "from": "main_bus.v",
@@ -491,6 +678,41 @@
         "from": "dmr_vsu.lamp",
         "routing_points": [],
         "to": "light_1.v_in"
+      },
+      {
+        "from": "lerpnode_1.output",
+        "routing_points": [],
+        "to": "voltmeter_1.v_in"
+      },
+      {
+        "from": "lerpnode_1.input",
+        "routing_points": [],
+        "to": "main_bus.v"
+      },
+      {
+        "from": "lerpnode_2.output",
+        "routing_points": [],
+        "to": "voltmeter_2.v_in"
+      },
+      {
+        "from": "lerpnode_2.input",
+        "routing_points": [],
+        "to": "vsu_1.t4_out"
+      },
+      {
+        "from": "vsu_1.rpm_out",
+        "routing_points": [],
+        "to": "voltmeter_3.v_in"
+      },
+      {
+        "from": "vsu_1.v_start",
+        "routing_points": [],
+        "to": "holdbutton_1.v_out"
+      },
+      {
+        "from": "holdbutton_1.v_in",
+        "routing_points": [],
+        "to": "bat_main_1.v_out"
       }
     ]
   },

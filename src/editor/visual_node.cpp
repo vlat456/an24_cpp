@@ -118,18 +118,29 @@ void StandardVisualNode::buildLayout() {
 
     // Content area (flexible, takes remaining space)
     if (node_content_.type != NodeContentType::None) {
-        float left_margin = PORT_RADIUS + 3.0f;
-        float right_margin = PORT_RADIUS + 3.0f;
-        for (const auto& p : inputs_) {
-            float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
-            left_margin = std::max(left_margin, lw);
+        if (node_content_.type == NodeContentType::Gauge) {
+            // Use VoltmeterWidget for gauge content
+            layout_.addWidget(std::make_unique<VoltmeterWidget>(
+                node_content_.value,
+                node_content_.min,
+                node_content_.max,
+                node_content_.unit
+            ));
+        } else {
+            // Use ContentWidget for other content types (Value, Text, Switch)
+            float left_margin = PORT_RADIUS + 3.0f;
+            float right_margin = PORT_RADIUS + 3.0f;
+            for (const auto& p : inputs_) {
+                float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
+                left_margin = std::max(left_margin, lw);
+            }
+            for (const auto& p : outputs_) {
+                float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
+                right_margin = std::max(right_margin, lw);
+            }
+            layout_.addWidget(std::make_unique<ContentWidget>(
+                node_content_.label, node_content_.value, left_margin, right_margin));
         }
-        for (const auto& p : outputs_) {
-            float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
-            right_margin = std::max(right_margin, lw);
-        }
-        layout_.addWidget(std::make_unique<ContentWidget>(
-            node_content_.label, node_content_.value, left_margin, right_margin));
     }
 
     // Type name at bottom
@@ -202,6 +213,17 @@ void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min
     // Border
     uint32_t border_color = is_selected ? COLOR_SELECTED : COLOR_BUS_BORDER;
     dl->add_rect(screen_min, screen_max, border_color, 1.0f);
+
+    // Update VoltmeterWidget value before rendering
+    if (node_content_.type == NodeContentType::Gauge) {
+        for (size_t i = 0; i < layout_.childCount(); i++) {
+            auto* w = layout_.child(i);
+            if (auto* vw = dynamic_cast<VoltmeterWidget*>(w)) {
+                vw->setValue(node_content_.value);
+                break;
+            }
+        }
+    }
 
     // Render all widgets (header, port rows, content, type name)
     layout_.render(dl, screen_min, vp.zoom);
@@ -538,6 +560,8 @@ BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector
         cache_[node.id] = std::move(visual);
         return ptr;
     }
+    // Sync node_content from blueprint (simulation may have updated it)
+    it->second->updateNodeContent(node.node_content);
     return it->second.get();
 }
 

@@ -6,7 +6,7 @@
     "output": { "direction": "Out" }
   },
   "default_params": {
-    "factor": "1.0"
+    "factor": "0.05"
   },
   "default_domains": ["Electrical"],
   "default_priority": "med",

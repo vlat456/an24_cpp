@@ -538,9 +538,9 @@ void EditorApp::update_node_content_from_simulation() {
     if (!simulation_running) return;
 
     for (auto& node : blueprint.nodes) {
-        // Update Battery gauge voltage
-        if (node.type_name == "Battery") {
-            float voltage = simulation.get_port_value(node.id, "v_out");
+        // Update Voltmeter gauge voltage
+        if (node.type_name == "Voltmeter") {
+            float voltage = simulation.get_port_value(node.id, "v_in");
             node.node_content.value = voltage;
         }
         // Update IndicatorLight text based on brightness
@@ -580,13 +580,13 @@ void EditorApp::reset_node_content() {
         const auto* def = component_registry.get(node.type_name);
         if (!def) continue;
 
-        // Reset Battery gauge to 0
-        if (node.type_name == "Battery") {
-            node.node_content.value = 0.0f;
-        }
         // Reset IndicatorLight to OFF
-        else if (node.type_name == "IndicatorLight") {
+        if (node.type_name == "IndicatorLight") {
             node.node_content.label = "OFF";
+        }
+        // Reset Voltmeter gauge to 0
+        else if (node.type_name == "Voltmeter") {
+            node.node_content.value = 0.0f;
         }
         // Reset DMR400 to disconnected state
         else if (node.type_name == "DMR400") {

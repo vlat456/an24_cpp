@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
     std::cout << "=== Warmup (" << warmup_steps << " steps) ===\n";
     for (uint32_t step = 0; step < warmup_steps; ++step) {
         state.clear_through();
-        result.systems.solve_step(state, step);
+        result.systems.solve_step(state, step, dt);
         state.precompute_inv_conductance();
         state.solve_signals_balance(omega);
         result.systems.post_step(state, dt);
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 
         for (uint32_t step = 0; step < bench_steps; ++step) {
             state.clear_through();
-            result.systems.solve_step(state, step);
+            result.systems.solve_step(state, step, dt);
             state.precompute_inv_conductance();
             state.solve_signals_balance(omega);
             result.systems.post_step(state, dt);
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
 
         for (uint32_t step = 0; step < bench_steps; ++step) {
             state.clear_through();
-            result.systems.solve_step(state, step);
+            result.systems.solve_step(state, step, dt);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
         for (uint32_t step = 0; step < bench_steps; ++step) {
             for (uint32_t i = 0; i < iter; ++i) {
                 state.clear_through();
-                result.systems.solve_step(state, step);
+                result.systems.solve_step(state, step, dt);
                 state.precompute_inv_conductance();
                 state.solve_signals_balance(omega);
             }

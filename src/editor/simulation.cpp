@@ -53,7 +53,7 @@ void SimulationController::step(float dt) {
     if (!build_result.has_value()) return;
 
     state.clear_through();
-    build_result->systems.solve_step(state, step_count);
+    build_result->systems.solve_step(state, step_count, dt);
     state.precompute_inv_conductance();
 
     // SOR update

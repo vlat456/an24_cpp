@@ -195,3 +195,43 @@ private:
     static constexpr uint32_t COLOR_TEXT = 0xFFFFFFFF;
     static constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
 };
+
+// ============================================================================
+// VoltmeterWidget - Visual steam gauge (analog voltmeter)
+// ============================================================================
+
+class VoltmeterWidget : public Widget {
+public:
+    VoltmeterWidget(float value = 0.0f, float min_val = 0.0f, float max_val = 30.0f,
+                   const std::string& unit = "V");
+
+    void setValue(float value) { value_ = value; }
+    float getValue() const { return value_; }
+
+    Pt getPreferredSize(IDrawList* dl) const override;
+    void render(IDrawList* dl, Pt origin, float zoom) const override;
+
+    static constexpr float GAUGE_RADIUS = 40.0f;
+    static constexpr float NEEDLE_LENGTH = 32.0f;
+
+private:
+    mutable float value_;  // mutable to allow updates in const render()
+    float min_val_;
+    float max_val_;
+    std::string unit_;
+
+    // Gauge angles in degrees (standard math: 0° = right, CCW positive).
+    // Rendered with Y-flip (cy - sin) so CW on screen = negative sweep.
+    // Start at bottom-left (210°), sweep CW 240° to bottom-right (330°).
+    static constexpr float START_ANGLE = 210.0f;
+    static constexpr float SWEEP_ANGLE = -240.0f;  // negative = CW on screen
+
+    static constexpr uint32_t COLOR_GAUGE_BG = 0xFF2A2A2A;
+    static constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF4A4A4A;
+    static constexpr uint32_t COLOR_NEEDLE = 0xFFFF4444;
+    static constexpr uint32_t COLOR_TICK_MAJOR = 0xFFFFFFFF;
+    static constexpr uint32_t COLOR_TICK_MINOR = 0xFF888888;
+    static constexpr uint32_t COLOR_TEXT = 0xFFCCCCCC;
+    static constexpr float VALUE_FONT_SIZE = 14.0f;
+    static constexpr float UNIT_FONT_SIZE = 10.0f;
+};

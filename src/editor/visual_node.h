@@ -72,6 +72,9 @@ public:
     }
     virtual Bounds getContentBounds() const { return {}; }
 
+    // Update node content from blueprint (called each frame for cached nodes)
+    virtual void updateNodeContent(const NodeContent&) {}
+
     // --- IDrawable --- render() is pure virtual from IDrawable
 
 protected:
@@ -110,6 +113,7 @@ public:
     NodeContentType getContentType() const override;
     const NodeContent& getNodeContent() const override;
     Bounds getContentBounds() const override;
+    void updateNodeContent(const NodeContent& content) override { node_content_ = content; }
 
     // Access to layout for testing
     const ColumnLayout& getLayout() const { return layout_; }

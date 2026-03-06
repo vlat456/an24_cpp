@@ -50,7 +50,7 @@ int main() {
         uint32_t iters = 0;
         for (iters = 0; iters < max_iter; ++iters) {
             state.clear_through();
-            sys.solve_step(&state, step);
+            sys.solve_step(&state, step, dt);
             state.precompute_inv_conductance();
 
             // Direct solver loop

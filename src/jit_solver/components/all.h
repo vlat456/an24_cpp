@@ -36,7 +36,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Battery"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void pre_load() override;
 };
 
@@ -58,7 +58,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), closed(is_closed), last_control(0.0f) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Switch"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -78,7 +78,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), closed(is_closed), hold_threshold(threshold) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Relay"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -100,7 +100,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -114,7 +114,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), conductance(g) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Resistor"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// Load - single port resistive load to ground
@@ -127,7 +127,7 @@ public:
         : input_idx(input), conductance(g) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Load"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// RefNode - fixed voltage reference (ground, bus)
@@ -142,7 +142,7 @@ public:
         : v_idx(v), value(val) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RefNode"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// Bus - electrical bus/rail, connects all ports together
@@ -154,7 +154,7 @@ public:
     explicit Bus(uint32_t idx) : v_idx(idx) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Bus"; }
-    void solve_electrical(SimulationState& state) override {
+    void solve_electrical(SimulationState& state, float /*dt*/) override {
         // Bus is just a wire - no component behavior
     }
 };
@@ -171,7 +171,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), internal_r(int_r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Generator"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// GS24 - Starter-Generator (ГС-24) with full state machine
@@ -202,7 +202,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), v_nominal(v_nom), r_internal(int_r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -216,7 +216,7 @@ public:
         : primary_idx(primary), secondary_idx(secondary), ratio(r) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Transformer"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// Inverter - DC to AC inverter
@@ -230,7 +230,7 @@ public:
         : dc_in_idx(dc_in), ac_out_idx(ac_out), efficiency(eff), frequency(freq) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Inverter"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// LerpNode - linear interpolation (voltage display filter)
@@ -244,7 +244,7 @@ public:
         : input_idx(input), output_idx(output), factor(f) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "LerpNode"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -260,7 +260,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), brightness_idx(brightness), max_brightness(max_bright), color(std::move(c)) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "IndicatorLight"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// HighPowerLoad - high power electrical load
@@ -273,12 +273,28 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), power_draw(power) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HighPowerLoad"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 // =============================================================================
 // Sensors (Electrical input, no output)
 // =============================================================================
+
+/// Voltmeter - analog voltage gauge (visual measurement only)
+class Voltmeter : public Component {
+public:
+    PORTS(Voltmeter, v_in)
+
+    Voltmeter() = default;
+    explicit Voltmeter(uint32_t v_in) : v_in_idx(v_in) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "Voltmeter"; }
+    void solve_electrical(SimulationState& state, float /*dt*/) override {
+        // Voltmeter is purely visual - doesn't affect the circuit
+        // It just reads the voltage for display purposes
+        // No conductance, no current draw
+    }
+};
 
 /// Gyroscope - power-only sensor
 class Gyroscope : public Component {
@@ -290,7 +306,7 @@ public:
     explicit Gyroscope(uint32_t input) : input_idx(input) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Gyroscope"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// AGK47 - attitude gyro
@@ -303,7 +319,7 @@ public:
     explicit AGK47(uint32_t input) : input_idx(input) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "AGK47"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 // =============================================================================
@@ -320,8 +336,8 @@ public:
         : v_in_idx(v_in), p_out_idx(p_out), max_pressure(max_p) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "ElectricPump"; }
-    void solve_electrical(SimulationState& state) override;
-    void solve_hydraulic(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
+    void solve_hydraulic(SimulationState& state, float dt) override;
 };
 
 /// SolenoidValve - electrically controlled hydraulic valve
@@ -334,7 +350,7 @@ public:
         : ctrl_idx(ctrl), flow_in_idx(flow_in), flow_out_idx(flow_out), normally_closed(nc) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "SolenoidValve"; }
-    void solve_hydraulic(SimulationState& state) override;
+    void solve_hydraulic(SimulationState& state, float dt) override;
 };
 
 // =============================================================================
@@ -355,7 +371,7 @@ public:
     }
 
     [[nodiscard]] std::string_view type_name() const override { return "InertiaNode"; }
-    void solve_mechanical(SimulationState& state) override;
+    void solve_mechanical(SimulationState& state, float dt) override;
     void pre_load() override;
 };
 
@@ -373,7 +389,7 @@ public:
         : temp_in_idx(temp_in), temp_out_idx(temp_out), sensitivity(sens) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "TempSensor"; }
-    void solve_thermal(SimulationState& state) override;
+    void solve_thermal(SimulationState& state, float dt) override;
 };
 
 /// ElectricHeater - electrical heater
@@ -387,8 +403,8 @@ public:
         : power_idx(power), heat_out_idx(heat_out), max_power(max_p), efficiency(eff) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "ElectricHeater"; }
-    void solve_electrical(SimulationState& state) override;
-    void solve_thermal(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
+    void solve_thermal(SimulationState& state, float dt) override;
 };
 
 /// RUG-82 - Coal column voltage regulator (Угольный регулятор напряжения)
@@ -406,7 +422,7 @@ public:
         : v_gen_idx(v_gen), k_mod_idx(k_mod) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RUG82"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
 };
 
 /// DMR-400 - Differential Minimum Relay (Дифференциально-минимальное реле)
@@ -425,7 +441,7 @@ public:
         : v_gen_ref_idx(v_gen_ref), v_in_idx(v_in), v_out_idx(v_out), lamp_idx(lamp) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
-    void solve_electrical(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -445,6 +461,10 @@ public:
     float target_rpm = 16000.0f; // max RPM
     float current_rpm = 0.0f;     // current RPM
 
+    // Turbine inertia parameters
+    float spinup_inertia = 1.0f;    // How fast RPM increases (spool up) - 100% per second at 20Hz
+    float spindown_inertia = 0.02f;  // How fast RPM decreases (coast down)
+
     // Start sequence parameters
     float crank_time = 2.0f;     // time before ignition (sec)
     float ignition_time = 3.0f;  // ignition duration (sec)
@@ -456,14 +476,6 @@ public:
     float t4_target = 400.0f;      // target T4 at idle
     float t4_max = 750.0f;         // max safe T4 (emergency cutoff)
     float ambient_temp = 20.0f;     // ambient temperature
-
-    // Thermal model parameters
-    float heating_rate = 120.0f;    // heating at ignition (deg/sec)
-    float base_cooling = 110.0f;    // cooling at 60% RPM
-    float thermal_stress_factor = 0.5f;  // stress when RPM < 40%
-
-    // Thermal solver call counter
-    int thermal_counter = 0;
 
     // Control
     bool auto_start = true;      // auto-start when battery connected
@@ -477,8 +489,9 @@ public:
         : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
-    void solve_electrical(SimulationState& state) override;
-    void solve_thermal(SimulationState& state) override;
+    void solve_electrical(SimulationState& state, float dt) override;
+    void solve_mechanical(SimulationState& state, float dt) override;
+    void solve_thermal(SimulationState& state, float dt) override;
     void post_step(SimulationState& state, float dt) override;
 };
 
@@ -492,7 +505,7 @@ public:
         : heat_in_idx(heat_in), heat_out_idx(heat_out), cooling_capacity(capacity) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Radiator"; }
-    void solve_thermal(SimulationState& state) override;
+    void solve_thermal(SimulationState& state, float dt) override;
 };
 
 } // namespace an24

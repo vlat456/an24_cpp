@@ -205,11 +205,11 @@ std::string CodeGen::generate_header(
     oss << "    void pre_load();\n\n";
 
     oss << "    /// Main solve step with jump table dispatch (ECS-like)\n";
-    oss << "    void solve_step(void* state, uint32_t step);\n\n";
+    oss << "    void solve_step(void* state, uint32_t step, float dt);\n\n";
 
     // Generate 60 step methods
     for (int step = 0; step < 60; ++step) {
-        oss << "    AOT_INLINE void step_" << step << "(void* state);\n";
+        oss << "    AOT_INLINE void step_" << step << "(void* state, float dt);\n";
     }
     oss << "\n";
 
@@ -291,10 +291,10 @@ std::string CodeGen::generate_source(
     oss << "}\n\n";
 
     // Jump table dispatch
-    oss << "void Systems::solve_step(void* state, uint32_t step) {\n";
+    oss << "void Systems::solve_step(void* state, uint32_t step, float dt) {\n";
     oss << "    switch (step % 60) {\n";
     for (int i = 0; i < 60; ++i) {
-        oss << "        case " << i << ": step_" << i << "(state); break;\n";
+        oss << "        case " << i << ": step_" << i << "(state, dt); break;\n";
     }
     oss << "    }\n";
     oss << "}\n\n";
@@ -335,14 +335,14 @@ std::string CodeGen::generate_source(
 
     // Generate each step method
     for (int step = 0; step < 60; ++step) {
-        oss << "AOT_INLINE void Systems::step_" << step << "(void* state) {\n";
+        oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
 
         // Electrical (every step)
         auto elec_it = step_devices.find({step, "electrical"});
         if (elec_it != step_devices.end()) {
             for (const auto& dev_name : elec_it->second) {
-                oss << "    " << dev_name << ".solve_electrical(*st);\n";
+                oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
             }
         }
 
@@ -351,7 +351,7 @@ std::string CodeGen::generate_source(
             auto mech_it = step_devices.find({step, "mechanical"});
             if (mech_it != step_devices.end()) {
                 for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << dev_name << ".solve_mechanical(*st);\n";
+                    oss << "    " << dev_name << ".solve_mechanical(*st, dt * 3.0f);\n";
                 }
             }
         }
@@ -361,7 +361,7 @@ std::string CodeGen::generate_source(
             auto hyd_it = step_devices.find({step, "hydraulic"});
             if (hyd_it != step_devices.end()) {
                 for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << dev_name << ".solve_hydraulic(*st);\n";
+                    oss << "    " << dev_name << ".solve_hydraulic(*st, dt * 12.0f);\n";
                 }
             }
         }
@@ -371,7 +371,7 @@ std::string CodeGen::generate_source(
             auto therm_it = step_devices.find({step, "thermal"});
             if (therm_it != step_devices.end()) {
                 for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << dev_name << ".solve_thermal(*st);\n";
+                    oss << "    " << dev_name << ".solve_thermal(*st, dt * 60.0f);\n";
                 }
             }
         }

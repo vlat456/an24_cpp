@@ -222,10 +222,10 @@ TEST(EventsTest, AddComponent_StandardNodeSize_a1b2) {
 // [c3d4] Newly created components should have node_content
 TEST(EventsTest, AddComponent_BatteryHasGaugeContent_c3d4) {
     EditorApp app;
-    app.add_component("Battery", Pt(100, 100));
+    app.add_component("Voltmeter", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& nc = app.blueprint.nodes[0].node_content;
-    EXPECT_EQ(nc.type, NodeContentType::Gauge) << "[c3d4] Battery should have Gauge content";
+    EXPECT_EQ(nc.type, NodeContentType::Gauge) << "[c3d4] Voltmeter should have Gauge content";
     EXPECT_EQ(nc.unit, "V");
 }
 

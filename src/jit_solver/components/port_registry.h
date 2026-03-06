@@ -39,7 +39,8 @@ enum class ComponentType {
     SolenoidValve,
     Switch,
     TempSensor,
-    Transformer
+    Transformer,
+    Voltmeter
 };
 
 // Port count for each component
@@ -69,6 +70,7 @@ constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
+constexpr size_t Voltmeter_PORT_COUNT = 1;
 
 // Port names for each component (in field declaration order)
 constexpr const char* AGK47_PORTS[] = {
@@ -183,6 +185,9 @@ constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
 };
+constexpr const char* Voltmeter_PORTS[] = {
+    "v_in"
+};
 
 // Get port names for a component type
 inline std::vector<std::string> get_component_ports(const std::string& classname) {
@@ -213,6 +218,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
         {"Transformer", {"primary", "secondary"}},
+        {"Voltmeter", {"v_in"}},
     };
 
     auto it = registry.find(classname);

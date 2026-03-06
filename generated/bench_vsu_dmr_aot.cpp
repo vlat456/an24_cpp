@@ -47,7 +47,7 @@ int main() {
         uint32_t iters = 0;
         for (iters = 0; iters < 20; ++iters) {
             state.clear_through();
-            sys.solve_step(&state, step);
+            sys.solve_step(&state, step, dt);
             state.precompute_inv_conductance();
 
             // FAST MATH: use inv_omega instead of omega (no division in hot path!)

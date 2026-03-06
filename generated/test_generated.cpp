@@ -28,9 +28,10 @@ int main() {
     std::cout << "\n";
 
     // Run simulation
+    const float dt = 1.0f / 60.0f;
     for (int step = 0; step < 10; ++step) {
         state.clear_through();
-        sys.solve_step(&state, step);
+        sys.solve_step(&state, step, dt);
         state.precompute_inv_conductance();
 
         // SOR update

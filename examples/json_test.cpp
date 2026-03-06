@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
     const float dt = 0.016f;   // 60 Hz time step
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
-        result.systems.solve_step(state, step);
+        result.systems.solve_step(state, step, dt);
 
         // Show values every 500 cycles
         if (step % 500 == 0 || step == 4999) {

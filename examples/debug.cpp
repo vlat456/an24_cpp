@@ -85,7 +85,7 @@ int main() {
     // Step 1: solve
     std::cout << "\n=== Step 1: After solve ===\n";
     state.clear_through();
-    result.systems.solve_step(state, 0);
+    result.systems.solve_step(state, 0, 1.0f / 60.0f);
 
     std::cout << "through: ";
     for (size_t i = 0; i < state.through.size(); ++i) {
@@ -114,7 +114,7 @@ int main() {
             }
         }
         state.clear_through();
-        result.systems.solve_step(state, iter + 1);
+        result.systems.solve_step(state, iter + 1, 1.0f / 60.0f);
     }
 
     std::cout << "\n=== After SOR ===\n";

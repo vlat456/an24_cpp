@@ -149,7 +149,7 @@ int main() {
 
     for (int step = 0; step < STEPS; ++step) {
         state.clear_through();
-        result.systems.solve_step(state, step);
+        result.systems.solve_step(state, step, 1.0f / 60.0f);
         state.precompute_inv_conductance();
 
         for (size_t i = 0; i < state.across.size(); ++i) {

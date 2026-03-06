@@ -69,8 +69,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
         if (!params.empty()) {
             device["params"] = params;
         }
-        // default domain
-        device["explicit_domains"] = {"Electrical"};
+        // NOTE: Domains are NOT saved to JSON - they are defined in component definitions
         devices.push_back(device);
     }
     j["devices"] = devices;
@@ -177,9 +176,9 @@ static Node device_to_node(const json& d, int index) {
     }
 
     // Auto-generate node_content based on device type
-    if (n.type_name == "Battery") {
+    if (n.type_name == "Voltmeter") {
         n.node_content.type = NodeContentType::Gauge;
-        n.node_content.label = "V";
+        n.node_content.label = "";
         n.node_content.value = 0.0f;
         n.node_content.min = 0.0f;
         n.node_content.max = 30.0f;

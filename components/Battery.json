@@ -15,6 +15,5 @@
   },
   "default_domains": ["Electrical"],
   "default_priority": "high",
-  "default_critical": true,
-  "default_content_type": "Gauge"
+  "default_critical": true
 }
