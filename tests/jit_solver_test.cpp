@@ -834,7 +834,7 @@ TEST(SwitchTest, OpenSwitchBlocksCurrent) {
     // Open switch = no current
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
@@ -861,7 +861,7 @@ TEST(SwitchTest, ClosedSwitchConducts) {
     // Closed switch = conducts like wire
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "true"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto control = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
@@ -888,7 +888,7 @@ TEST(SwitchTest, ToggleOnControlEdge) {
     // Control edge toggles switch state
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto battery = make_device("battery", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
-    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "false"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
     auto control_src = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
     auto load = make_device("load", "Resistor", {{"conductance", "0.1"}}, {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
@@ -907,137 +907,169 @@ TEST(SwitchTest, ToggleOnControlEdge) {
     EXPECT_GT(result.signal_count, 0u);
 }
 
-// ============================================================================
-// HoldButton tests (Control Protocol: 0=Idle, 1=Pressed, 2=Released)
-// ============================================================================
+// =============================================================================
+// Regression: Switch/Relay/HoldButton must drop v_out to 0 when open
+// =============================================================================
 
-TEST(HoldButtonTest, InitialState_Idle) {
-    // HoldButton starts in idle state (all outputs 0.0V)
+TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
+    // BUG: Switch turned off visually but v_out kept old voltage.
+    // FIX: post_step forces v_out = 0 when open.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
-    auto btn = make_device("btn", "HoldButton", {{}},
-        {{"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out},
+         {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, btn};
-    std::vector<std::pair<std::string, std::string>> connections = {};
+    std::vector<DeviceInstance> devices = {gnd, bat, sw, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "sw.v_in"}, {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},
+    };
 
+    // Phase 1: switch closed — voltage should reach load
     auto result = build_systems_dev(devices, connections);
-    auto state = run_sor(result, devices, 10);
+    auto state = run_sor(result, devices, 200);
+    float v_closed = get_voltage(state, result, "sw.v_out");
+    EXPECT_GT(v_closed, 27.0f) << "Closed switch should pass voltage";
 
-    // Initial state: output should be 0.0V (released/idle)
-    float state_voltage = get_voltage(state, result, "btn.state");
+    // Phase 2: toggle switch open (change control signal)
+    auto it_ctrl = result.port_to_signal.find("ctrl.v");
+    state.across[it_ctrl->second] = 28.0f;  // trigger toggle
+    for (int i = 0; i < 50; ++i) {
+        state.clear_through();
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
 
-    EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "Initial state should be 0.0V (released)";
+    float v_open = get_voltage(state, result, "sw.v_out");
+    EXPECT_NEAR(v_open, 0.0f, 0.01f) << "Open switch must drop v_out to 0";
 }
 
-TEST(HoldButtonTest, OnClick_PressedOutput) {
-    // Control Protocol: setting control=1.0V triggers onClick
+TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
+    // BUG: Relay opened but v_out kept old voltage.
+    // FIX: post_step forces v_out = 0 when open.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
-    auto btn = make_device("btn", "HoldButton", {{}},
-        {{"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    // Use Bus for control so we can change its value freely
+    auto ctrl_bus = make_device("ctrl", "Bus", {{}}, {{"v", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {{}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, btn};
-    std::vector<std::pair<std::string, std::string>> connections = {};
+    std::vector<DeviceInstance> devices = {gnd, bat, ctrl_bus, relay, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "relay.v_in"}, {"relay.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},
+    };
 
     auto result = build_systems_dev(devices, connections);
-    auto state = run_sor(result, devices, 10);
+    auto ctrl_idx = result.port_to_signal["ctrl.v"];
 
-    // Set control to 1.0V (Pressed command)
-    auto ctrl_it = result.port_to_signal.find("btn.control");
-    ASSERT_NE(ctrl_it, result.port_to_signal.end());
-    state.across[ctrl_it->second] = 1.0f;
+    // Phase 1: relay closed (control = 28V) — voltage passes
+    auto state = run_sor(result, devices, 50);
+    state.across[ctrl_idx] = 28.0f;  // high control → relay closed
+    for (int i = 0; i < 100; ++i) {
+        state.clear_through();
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        state.across[ctrl_idx] = 28.0f;  // maintain control
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
+    float v_closed = get_voltage(state, result, "relay.v_out");
+    EXPECT_GT(v_closed, 27.0f) << "Closed relay should pass voltage";
 
-    // Run one step
-    result.systems.post_step(state, 0.016f);
+    // Phase 2: drop control to 0 → relay opens
+    for (int i = 0; i < 50; ++i) {
+        state.clear_through();
+        state.across[ctrl_idx] = 0.0f;  // low control → relay open
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        state.across[ctrl_idx] = 0.0f;  // maintain control
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
 
-    // Check state output immediately after press
-    float state_voltage = get_voltage(state, result, "btn.state");
-
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should be 1.0V immediately after onClick";
-
-    // Run more steps - state should persist (latched)
-    result.systems.post_step(state, 0.016f);
-    result.systems.post_step(state, 0.016f);
-    result.systems.post_step(state, 0.016f);
-
-    state_voltage = get_voltage(state, result, "btn.state");
-
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should stay 1.0V while held (latched)";
+    float v_open = get_voltage(state, result, "relay.v_out");
+    EXPECT_NEAR(v_open, 0.0f, 0.01f) << "Open relay must drop v_out to 0";
 }
 
-TEST(HoldButtonTest, OnRelease_ReleasedOutput) {
-    // Control Protocol: setting control=2.0V triggers onRelease
+TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
+    // BUG: HoldButton released but v_out kept old voltage.
+    // FIX: post_step forces v_out = 0 when released.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto btn = make_device("btn", "HoldButton", {{}},
-        {{"control", PortDirection::In}, {"state", PortDirection::Out}});
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out},
+         {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "0.1"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
 
-    std::vector<DeviceInstance> devices = {gnd, btn};
-    std::vector<std::pair<std::string, std::string>> connections = {};
+    std::vector<DeviceInstance> devices = {gnd, bat, ctrl, btn, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "btn.v_in"}, {"btn.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "btn.control"},
+    };
 
     auto result = build_systems_dev(devices, connections);
-    auto state = run_sor(result, devices, 10);
 
-    // First set control to 1.0V (Pressed)
-    auto ctrl_it = result.port_to_signal.find("btn.control");
-    ASSERT_NE(ctrl_it, result.port_to_signal.end());
-    state.across[ctrl_it->second] = 1.0f;
-    result.systems.post_step(state, 0.016f);
+    // Phase 1: press button (control → 1.0V)
+    auto it_ctrl = result.port_to_signal.find("ctrl.v");
+    auto ctrl_idx = it_ctrl->second;
 
-    // Verify button is pressed
-    float state_voltage = get_voltage(state, result, "btn.state");
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should be 1.0V when pressed";
+    auto state = run_sor(result, devices, 50);  // initial settle
+    // Send press command
+    state.across[ctrl_idx] = 1.0f;
+    state.signal_types[ctrl_idx].is_fixed = false;
+    for (int i = 0; i < 100; ++i) {
+        state.clear_through();
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
 
-    // Then set control to 2.0V (Released)
-    state.across[ctrl_it->second] = 2.0f;
-    result.systems.post_step(state, 0.016f);
+    float v_pressed = get_voltage(state, result, "btn.v_out");
+    EXPECT_GT(v_pressed, 27.0f) << "Pressed button should pass voltage";
 
-    // Check state output immediately after release
-    state_voltage = get_voltage(state, result, "btn.state");
+    // Phase 2: release button (control → 2.0V)
+    state.across[ctrl_idx] = 2.0f;
+    for (int i = 0; i < 50; ++i) {
+        state.clear_through();
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
 
-    EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "State should be 0.0V immediately after onRelease";
-
-    // State should persist at 0.0V in following steps
-    result.systems.post_step(state, 0.016f);
-    result.systems.post_step(state, 0.016f);
-
-    state_voltage = get_voltage(state, result, "btn.state");
-
-    EXPECT_FLOAT_EQ(state_voltage, 0.0f) << "State should stay 0.0V after release";
-}
-
-TEST(HoldButtonTest, ZeroVolts_PreservesState) {
-    // Control Protocol: setting control=0.0V preserves current state (sticky)
-    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
-    auto btn = make_device("btn", "HoldButton", {{}},
-        {{"control", PortDirection::In}, {"state", PortDirection::Out}});
-
-    std::vector<DeviceInstance> devices = {gnd, btn};
-    std::vector<std::pair<std::string, std::string>> connections = {};
-
-    auto result = build_systems_dev(devices, connections);
-    auto state = run_sor(result, devices, 10);
-
-    // Set control to 1.0V (Pressed)
-    auto ctrl_it = result.port_to_signal.find("btn.control");
-    ASSERT_NE(ctrl_it, result.port_to_signal.end());
-    state.across[ctrl_it->second] = 1.0f;
-    result.systems.post_step(state, 0.016f);
-
-    // Verify pressed state
-    float state_voltage = get_voltage(state, result, "btn.state");
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should be 1.0V when pressed";
-
-    // Set control to 0.0V (idle/no signal)
-    state.across[ctrl_it->second] = 0.0f;
-    result.systems.post_step(state, 0.016f);
-
-    // State should NOT reset - it's sticky!
-    state_voltage = get_voltage(state, result, "btn.state");
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should stay 1.0V when control=0.0V (sticky)";
-
-    // State should persist in following steps
-    result.systems.post_step(state, 0.016f);
-    result.systems.post_step(state, 0.016f);
-
-    state_voltage = get_voltage(state, result, "btn.state");
-    EXPECT_FLOAT_EQ(state_voltage, 1.0f) << "State should persist at 1.0V";
+    float v_released = get_voltage(state, result, "btn.v_out");
+    EXPECT_NEAR(v_released, 0.0f, 0.01f) << "Released button must drop v_out to 0";
 }

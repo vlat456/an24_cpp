@@ -42,6 +42,7 @@ public:
 };
 
 /// Switch - manual toggle switch (triggered by control signal)
+/// Voltage pass-through: closed = v_out=v_in, open = v_out=0 (forced in post_step).
 class Switch : public Component {
 public:
     uint32_t v_in_idx = 0;
@@ -60,7 +61,8 @@ public:
     void post_step(SimulationState& state, float dt) override;
 };
 
-/// Relay - on/off switch (uses post_step to merge voltages when closed)
+/// Relay - on/off switch controlled by voltage threshold.
+/// Voltage pass-through: closed = v_out=v_in, open = v_out=0 (forced in post_step).
 class Relay : public Component {
 public:
     uint32_t v_in_idx = 0;
@@ -78,7 +80,8 @@ public:
     void post_step(SimulationState& state, float dt) override;
 };
 
-/// HoldButton - hold-to-operate button with press/release detection
+/// HoldButton - hold-to-operate button with press/release detection.
+/// Voltage pass-through: pressed = v_out=v_in, released = v_out=0 (forced in post_step).
 /// Control Protocol: 0.0V=Idle, 1.0V=Pressed, 2.0V=Released
 /// State output: 1.0V = pressed, 0.0V = released/idle
 class HoldButton : public Component {
@@ -95,6 +98,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
+    void solve_electrical(SimulationState& state) override;
     void post_step(SimulationState& state, float dt) override;
 };
 

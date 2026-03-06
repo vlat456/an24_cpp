@@ -41,13 +41,8 @@ void Battery::pre_load() {
     }
 }
 
-void Switch::solve_electrical(SimulationState& state) {
-    if (!closed) return;  // open switch: no connection
-
-    // Closed switch is handled in post_step() by directly copying voltage.
-    // Do NOT add conductance here - it conflicts with post_step and causes
-    // SOR instability. The switch is a perfect conductor (wire).
-    (void)state;  // suppress unused warning
+void Switch::solve_electrical(SimulationState& /*state*/) {
+    // No stamping — voltage is forced in post_step()
 }
 
 void Switch::post_step(SimulationState& state, float /*dt*/) {
@@ -64,23 +59,15 @@ void Switch::post_step(SimulationState& state, float /*dt*/) {
     // Store for next step
     last_control = current_control;
 
+    // Force voltage: closed = pass through, open = 0
+    state.across[v_out_idx] = closed ? state.across[v_in_idx] : 0.0f;
+
     // Output state: 1.0V = closed, 0.0V = open
     state.across[state_idx] = closed ? 1.0f : 0.0f;
-
-    if (!closed) return;  // open switch: no connection
-
-    // Closed switch = wire: just copy voltage from in to out.
-    // Skips SOR convergence entirely — no conductance needed.
-    state.across[v_out_idx] = state.across[v_in_idx];
 }
 
-void Relay::solve_electrical(SimulationState& state) {
-    if (!closed) return;  // open relay: no connection
-
-    // Closed relay is handled in post_step() by directly copying voltage.
-    // Do NOT add conductance here - it conflicts with post_step and causes
-    // SOR instability. The relay is a perfect conductor (wire).
-    (void)state;  // suppress unused warning
+void Relay::solve_electrical(SimulationState& /*state*/) {
+    // No stamping — voltage is forced in post_step()
 }
 
 void Relay::post_step(SimulationState& state, float /*dt*/) {
@@ -88,11 +75,12 @@ void Relay::post_step(SimulationState& state, float /*dt*/) {
     float control_voltage = state.across[control_idx];
     closed = (control_voltage > hold_threshold);
 
-    if (!closed) return;  // open relay: no connection
+    // Force voltage: closed = pass through, open = 0
+    state.across[v_out_idx] = closed ? state.across[v_in_idx] : 0.0f;
+}
 
-    // Closed relay = wire: just copy voltage from in to out.
-    // Skips SOR convergence entirely — no conductance needed.
-    state.across[v_out_idx] = state.across[v_in_idx];
+void HoldButton::solve_electrical(SimulationState& /*state*/) {
+    // No stamping — voltage is forced in post_step()
 }
 
 void HoldButton::post_step(SimulationState& state, float /*dt*/) {
@@ -110,21 +98,15 @@ void HoldButton::post_step(SimulationState& state, float /*dt*/) {
         // Rising edge: transition to Released state
         is_pressed = false;
     }
-    // Note: when current = 0.0V, just maintain current state (no reset)
 
     // Store for next step
     last_control = current;
 
+    // Force voltage: pressed = pass through, released = 0
+    state.across[v_out_idx] = is_pressed ? state.across[v_in_idx] : 0.0f;
+
     // Output state: 1.0V = pressed, 0.0V = released/idle
     state.across[state_idx] = is_pressed ? 1.0f : 0.0f;
-
-    // When pressed, pass through voltage from v_in to v_out (like Switch)
-    if (is_pressed) {
-        state.across[v_out_idx] = state.across[v_in_idx];
-    } else {
-        // When released, v_out floats (no conductance)
-        // Leave v_out as-is (will be pulled by other components)
-    }
 }
 
 void Resistor::solve_electrical(SimulationState& state) {
