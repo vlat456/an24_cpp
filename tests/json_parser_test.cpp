@@ -527,3 +527,86 @@ TEST(JsonParserTest, Regression_LerpNodeAnyType_CanConnectToAnything) {
     auto ctx = parse_json(json);
     EXPECT_EQ(ctx.connections.size(), 1);
 }
+
+// ============================================================================
+// One-to-One Connection Tests - FAILING TESTS FIRST (TDD)
+// ============================================================================
+
+TEST(JsonParserTest, OneToOne_MultipleWiresToSamePort_ShouldFail) {
+    // Multiple wires connecting to the same port should be rejected
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "bat1", "classname": "Battery"},
+            {"name": "bat2", "classname": "Battery"},
+            {"name": "load", "classname": "IndicatorLight"}
+        ],
+        "connections": [
+            {"from": "bat1.v_out", "to": "load.v_in"},
+            {"from": "bat2.v_out", "to": "load.v_in"}
+        ]
+    })";
+
+    // Should throw - load.v_in already has a wire from bat1.v_out
+    EXPECT_THROW(parse_json(json), std::runtime_error);
+}
+
+TEST(JsonParserTest, OneToOne_MultipleWiresFromSamePort_ShouldFail) {
+    // Multiple wires from the same output port should be rejected
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "bat", "classname": "Battery"},
+            {"name": "load1", "classname": "IndicatorLight"},
+            {"name": "load2", "classname": "IndicatorLight"}
+        ],
+        "connections": [
+            {"from": "bat.v_out", "to": "load1.v_in"},
+            {"from": "bat.v_out", "to": "load2.v_in"}
+        ]
+    })";
+
+    // Should throw - bat.v_out already has a wire to load1.v_in
+    EXPECT_THROW(parse_json(json), std::runtime_error);
+}
+
+TEST(JsonParserTest, OneToOne_BusAliasPorts_CanHaveMultipleWires) {
+    // Bus nodes can have multiple wires to their alias ports
+    // (they all connect to the same underlying "v" port)
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "bus", "classname": "Bus"},
+            {"name": "bat1", "classname": "Battery"},
+            {"name": "bat2", "classname": "Battery"}
+        ],
+        "connections": [
+            {"from": "bat1.v_out", "to": "bus.v"},
+            {"from": "bat2.v_out", "to": "bus.v"}
+        ]
+    })";
+
+    // Should NOT throw - Bus ports allow multiple connections
+    auto ctx = parse_json(json);
+    EXPECT_EQ(ctx.connections.size(), 2);
+}
+
+TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
+    // RefNode is like Bus - can have multiple wires to its port
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "gnd", "classname": "RefNode"},
+            {"name": "bat1", "classname": "Battery"},
+            {"name": "bat2", "classname": "Battery"}
+        ],
+        "connections": [
+            {"from": "bat1.v_out", "to": "gnd.v"},
+            {"from": "bat2.v_out", "to": "gnd.v"}
+        ]
+    })";
+
+    // Should NOT throw - RefNode ports allow multiple connections
+    auto ctx = parse_json(json);
+    EXPECT_EQ(ctx.connections.size(), 2);
+}

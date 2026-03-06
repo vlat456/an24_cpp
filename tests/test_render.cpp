@@ -911,3 +911,110 @@ TEST(RenderTest, WireCreation_AnyType_CanConnectToAny) {
     EXPECT_EQ(bp.wires.size(), wire_count_before + 1)
         << "Any type should connect to any port type";
 }
+
+// ============================================================================
+// One-to-One Connection Tests - FAILING TESTS FIRST (TDD)
+// ============================================================================
+
+TEST(RenderTest, OneToOne_WireToOccupiedPort_ShouldFail) {
+    // Should not be able to connect a second wire to an already-occupied port
+    Blueprint bp;
+
+    Node bat1;
+    bat1.id = "bat1";
+    bat1.output("v_out");
+    bat1.at(0, 0);
+    for (auto& p : bat1.outputs) p.type = an24::PortType::V;
+
+    Node bat2;
+    bat2.id = "bat2";
+    bat2.output("v_out");
+    bat2.at(200, 0);
+    for (auto& p : bat2.outputs) p.type = an24::PortType::V;
+
+    Node load;
+    load.id = "load";
+    load.input("v_in");
+    load.at(100, 100);
+    for (auto& p : load.inputs) p.type = an24::PortType::V;
+
+    bp.add_node(std::move(bat1));
+    bp.add_node(std::move(bat2));
+    bp.add_node(std::move(load));
+
+    // Add first wire to load.v_in
+    Wire w1;
+    w1.id = "w1";
+    w1.start.node_id = "bat1";
+    w1.start.port_name = "v_out";
+    w1.end.node_id = "load";
+    w1.end.port_name = "v_in";
+    bp.add_wire_validated(std::move(w1));
+
+    // Try to add second wire to the same port
+    Wire w2;
+    w2.id = "w2";
+    w2.start.node_id = "bat2";
+    w2.start.port_name = "v_out";
+    w2.end.node_id = "load";
+    w2.end.port_name = "v_in";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire_validated(std::move(w2));
+
+    // Second wire should be rejected - port already occupied
+    EXPECT_EQ(bp.wires.size(), wire_count_before)
+        << "Should not connect to already-occupied port";
+}
+
+TEST(RenderTest, OneToOne_BusPort_CanHaveMultipleWires) {
+    // Bus ports should allow multiple wires (virtual alias ports)
+    Blueprint bp;
+
+    Node bus;
+    bus.id = "bus";
+    bus.type_name = "Bus";
+    bus.kind = NodeKind::Bus;
+    bus.at(100, 100);
+    bus.size_wh(40, 40);
+    // Bus doesn't have explicit ports in editor nodes
+
+    Node bat1;
+    bat1.id = "bat1";
+    bat1.output("v_out");
+    bat1.at(0, 0);
+    for (auto& p : bat1.outputs) p.type = an24::PortType::V;
+
+    Node bat2;
+    bat2.id = "bat2";
+    bat2.output("v_out");
+    bat2.at(200, 0);
+    for (auto& p : bat2.outputs) p.type = an24::PortType::V;
+
+    bp.add_node(std::move(bus));
+    bp.add_node(std::move(bat1));
+    bp.add_node(std::move(bat2));
+
+    // Add two wires to the same bus port
+    Wire w1;
+    w1.id = "w1";
+    w1.start.node_id = "bat1";
+    w1.start.port_name = "v_out";
+    w1.end.node_id = "bus";
+    w1.end.port_name = "v";
+    bp.add_wire_validated(std::move(w1));
+
+    Wire w2;
+    w2.id = "w2";
+    w2.start.node_id = "bat2";
+    w2.start.port_name = "v_out";
+    w2.end.node_id = "bus";
+    w2.end.port_name = "v";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire_validated(std::move(w2));
+
+    // Second wire should be accepted - Bus ports allow multiple connections
+    EXPECT_EQ(bp.wires.size(), wire_count_before + 1)
+        << "Bus ports should allow multiple wires";
+}
