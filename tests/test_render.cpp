@@ -767,3 +767,147 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
     EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF))
         << "RPM ports should render as orange circles";
 }
+
+// ============================================================================
+// Port Type Compatibility Validation Tests - FAILING TESTS FIRST (TDD)
+// ============================================================================
+
+TEST(RenderTest, WireCreation_CompatibleTypes_CanConnect) {
+    // V port should connect to V port
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.output("v_out");
+    batt1.at(0, 0);
+    for (auto& p : batt1.outputs) p.type = an24::PortType::V;
+
+    Node batt2;
+    batt2.id = "batt2";
+    batt2.input("v_in");
+    batt2.at(200, 0);
+    for (auto& p : batt2.inputs) p.type = an24::PortType::V;
+
+    bp.add_node(std::move(batt1));
+    bp.add_node(std::move(batt2));
+
+    // Try to add wire between compatible ports (V to V)
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "batt1";
+    w.start.port_name = "v_out";
+    w.end.node_id = "batt2";
+    w.end.port_name = "v_in";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire(std::move(w));
+
+    // Wire should be added
+    EXPECT_EQ(bp.wires.size(), wire_count_before + 1)
+        << "Compatible port types (V to V) should allow connection";
+}
+
+TEST(RenderTest, WireCreation_IncompatibleTypes_ShouldNotConnect) {
+    // V port should NOT connect to RPM port
+    Blueprint bp;
+
+    Node batt;
+    batt.id = "batt";
+    batt.output("v_out");
+    batt.at(0, 0);
+    for (auto& p : batt.outputs) p.type = an24::PortType::V;
+
+    Node apu;
+    apu.id = "apu";
+    apu.input("rpm_in");
+    apu.at(200, 0);
+    for (auto& p : apu.inputs) p.type = an24::PortType::RPM;
+
+    bp.add_node(std::move(batt));
+    bp.add_node(std::move(apu));
+
+    // Try to add wire between incompatible ports (V to RPM)
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "batt";
+    w.start.port_name = "v_out";
+    w.end.node_id = "apu";
+    w.end.port_name = "rpm_in";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire_validated(std::move(w));  // This function doesn't exist yet
+
+    // Wire should NOT be added
+    EXPECT_EQ(bp.wires.size(), wire_count_before)
+        << "Incompatible port types (V to RPM) should reject connection";
+}
+
+TEST(RenderTest, WireCreation_BoolToV_ShouldNotConnect) {
+    // Boolean port should NOT connect to Voltage port
+    Blueprint bp;
+
+    Node button;
+    button.id = "button";
+    button.output("state");
+    button.at(0, 0);
+    for (auto& p : button.outputs) p.type = an24::PortType::Bool;
+
+    Node batt;
+    batt.id = "batt";
+    batt.input("v_in");
+    batt.at(200, 0);
+    for (auto& p : batt.inputs) p.type = an24::PortType::V;
+
+    bp.add_node(std::move(button));
+    bp.add_node(std::move(batt));
+
+    // Try to add wire between incompatible ports (Bool to V)
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "button";
+    w.start.port_name = "state";
+    w.end.node_id = "batt";
+    w.end.port_name = "v_in";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire_validated(std::move(w));  // This function doesn't exist yet
+
+    // Wire should NOT be added
+    EXPECT_EQ(bp.wires.size(), wire_count_before)
+        << "Incompatible port types (Bool to V) should reject connection";
+}
+
+TEST(RenderTest, WireCreation_AnyType_CanConnectToAny) {
+    // Any type should connect to anything
+    Blueprint bp;
+
+    Node adaptor;
+    adaptor.id = "adaptor";
+    adaptor.output("out");
+    adaptor.at(0, 0);
+    for (auto& p : adaptor.outputs) p.type = an24::PortType::Any;
+
+    Node apu;
+    apu.id = "apu";
+    apu.input("rpm_in");
+    apu.at(200, 0);
+    for (auto& p : apu.inputs) p.type = an24::PortType::RPM;
+
+    bp.add_node(std::move(adaptor));
+    bp.add_node(std::move(apu));
+
+    // Try to add wire (Any to RPM)
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "adaptor";
+    w.start.port_name = "out";
+    w.end.node_id = "apu";
+    w.end.port_name = "rpm_in";
+
+    size_t wire_count_before = bp.wires.size();
+    bp.add_wire_validated(std::move(w));  // This function doesn't exist yet
+
+    // Wire should be added (Any can connect to anything)
+    EXPECT_EQ(bp.wires.size(), wire_count_before + 1)
+        << "Any type should connect to any port type";
+}

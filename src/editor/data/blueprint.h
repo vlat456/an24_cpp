@@ -3,6 +3,7 @@
 #include "node.h"
 #include "wire.h"
 #include "pt.h"
+#include "../../json_parser/json_parser.h"
 #include <vector>
 
 /// Blueprint - схема соединений (все домены: электрика, гидравлика, механика)
@@ -43,6 +44,10 @@ struct Blueprint {
         wires.push_back(std::move(wire));
         return idx;
     }
+
+    /// Добавить провод с проверкой совместимости типов портов
+    /// Возвращает true если провод добавлен, false если типы несовместимы
+    bool add_wire_validated(Wire wire);
 
     /// Найти узел по ID
     Node* find_node(const char* id) {

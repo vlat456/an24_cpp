@@ -269,17 +269,23 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                         start_end,
                         end_end
                     );
-                    blueprint.add_wire(std::move(w));
 
-                    // Update visual cache to create new visual ports for Bus nodes
-                    // Use the wire that was just added (it's now at the end of the list)
-                    if (!blueprint.wires.empty()) {
-                        visual_cache.onWireAdded(blueprint.wires.back(), blueprint.nodes);
+                    // Validate port types before adding wire
+                    if (blueprint.add_wire_validated(std::move(w))) {
+                        // Update visual cache to create new visual ports for Bus nodes
+                        // Use the wire that was just added (it's now at the end of the list)
+                        if (!blueprint.wires.empty()) {
+                            visual_cache.onWireAdded(blueprint.wires.back(), blueprint.nodes);
+                        }
+
+                        rebuild_simulation();  // Update simulation with new wire
+                        DEBUG_LOG("Created wire from {}.{} to {}.{}",
+                                 start_node, start_port, port_hit.port_node_id, port_hit.port_name);
+                    } else {
+                        // Wire validation failed - incompatible port types
+                        DEBUG_LOG("Rejected wire from {}.{} to {}.{} - incompatible port types",
+                                 start_node, start_port, port_hit.port_node_id, port_hit.port_name);
                     }
-
-                    rebuild_simulation();  // Update simulation with new wire
-                    DEBUG_LOG("Created wire from {}.{} to {}.{}",
-                             start_node, start_port, port_hit.port_node_id, port_hit.port_name);
                 }
             }
 

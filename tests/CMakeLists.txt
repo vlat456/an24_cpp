@@ -107,6 +107,7 @@ gtest_discover_tests(editor_interaction_tests)
 add_executable(editor_render_tests
     test_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
