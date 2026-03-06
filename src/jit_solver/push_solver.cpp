@@ -40,6 +40,9 @@ bool PushSolver::build(
         } else if (dev.classname == "Wire") {
             port_to_signal[dev.name + ".v_in"] = signal_count++;
             port_to_signal[dev.name + ".v_out"] = signal_count++;
+        } else if (dev.classname == "LerpNode") {
+            port_to_signal[dev.name + ".input"] = signal_count++;
+            port_to_signal[dev.name + ".output"] = signal_count++;
         } else if (dev.classname == "Switch" || dev.classname == "HoldButton") {
             port_to_signal[dev.name + ".v_in"] = signal_count++;
             port_to_signal[dev.name + ".v_out"] = signal_count++;
@@ -90,6 +93,15 @@ bool PushSolver::build(
             comp = std::make_unique<PushResistor>(v_in, v_out, r);
         } else if (dev.classname == "Wire") {
             comp = std::make_unique<PushWire>(v_in, v_out);
+        } else if (dev.classname == "LerpNode") {
+            uint32_t input = port_to_signal[dev.name + ".input"];
+            uint32_t output = port_to_signal[dev.name + ".output"];
+            float factor = 0.1f;
+            auto it = dev.params.find("factor");
+            if (it != dev.params.end()) {
+                factor = std::stof(it->second);
+            }
+            comp = std::make_unique<PushLerpNode>(input, output, factor);
         }
 
         if (comp) {
@@ -170,6 +182,8 @@ void PushSolver::step(PushState& state, float dt) {
             res->push_voltage(state);
         } else if (auto* wire = dynamic_cast<PushWire*>(comp.get())) {
             wire->push_voltage(state);
+        } else if (auto* lerp = dynamic_cast<PushLerpNode*>(comp.get())) {
+            lerp->push_voltage(state);
         }
     }
 }

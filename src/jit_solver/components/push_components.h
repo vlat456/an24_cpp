@@ -337,4 +337,33 @@ public:
     }
 };
 
+/// Push-based LerpNode - linear interpolation (first-order filter)
+class PushLerpNode : public Component {
+public:
+    std::string name;
+    uint32_t input_idx = 0;
+    uint32_t output_idx = 0;
+
+    float factor = 0.1f;  // Interpolation factor (0.0 to 1.0)
+    float last_output = 0.0f;  // Previous output value (for smoothing)
+
+    PushLerpNode() = default;
+    PushLerpNode(uint32_t input, uint32_t output, float f = 0.1f)
+        : input_idx(input), output_idx(output), factor(f) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "LerpNode"; }
+
+    /// Linear interpolation: output = output + (input - output) * factor
+    /// This creates a first-order low-pass filter for sensor smoothing
+    void push_voltage(PushState& state) {
+        float input = state.signals[input_idx].voltage;
+
+        // output += (input - output) * factor
+        float delta = (input - last_output) * factor;
+        last_output += delta;
+
+        state.signals[output_idx].voltage = last_output;
+    }
+};
+
 } // namespace an24

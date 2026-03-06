@@ -1,0 +1,12 @@
+{
+  "templates": {},
+  "devices": [
+    { "name": "gnd", "classname": "RefNode", "params": { "value": "0.0" } },
+    { "name": "bat1", "classname": "Battery", "params": { "v_nominal": "28.0", "internal_r": "0.01" } },
+    { "name": "lerp", "classname": "LerpNode", "params": { "factor": "0.5" } }
+  ],
+  "connections": [
+    { "from": "bat1.v_out", "to": "lerp.input" },
+    { "from": "gnd.v", "to": "bat1.v_in" }
+  ]
+}

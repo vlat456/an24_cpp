@@ -296,3 +296,30 @@ TEST_F(PushSolverTest, GeneratorNotConnected_NoVoltage) {
     // Generator with no load should output 0V
     EXPECT_FLOAT_EQ(state.get_voltage("gen1.v_out"), 0.0f);
 }
+
+TEST_F(PushSolverTest, LerpNodeSmoothsInput) {
+    // LerpNode should smooth input values
+    // factor = 0.5 means output approaches input halfway each step
+
+    PushSolver solver;
+    PushState state;
+
+    DeviceInstance bat;
+    bat.name = "bat1";
+    bat.classname = "Battery";
+
+    DeviceInstance lerp;
+    lerp.name = "lerp1";
+    lerp.classname = "LerpNode";
+    lerp.params["factor"] = "0.5";
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat1.v_out", "lerp1.input"}
+    };
+
+    ASSERT_TRUE(solver.build({bat, lerp}, connections));
+    solver.step(state, 0.016f);
+
+    // First step: output should be at 50% of input (0 + 28 * 0.5 = 14)
+    EXPECT_NEAR(state.get_voltage("lerp1.output"), 14.0f, 0.1f);
+}
