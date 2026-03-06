@@ -1,7 +1,7 @@
 src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/component.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__config \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__config_site \
@@ -392,7 +392,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_wctrans_t.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../../json_parser/json_parser.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/vector \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__bit_reference \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__split_buffer \
@@ -405,8 +405,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/optional \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/../../json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/common.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/tweakme.h \

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "component.h"
+#include "../component.h"
 #include <cstdint>
 #include <string>
 
@@ -462,15 +462,9 @@ public:
 /// Combines: GS24 starter-generator + start sequence automation
 class RU19A : public Component {
 public:
-    // Electrical ports
-    uint32_t v_start_idx = 0;    // starter power input (direct from battery, bypasses DMR)
-    uint32_t v_bus_idx = 0;       // bus voltage output (goes through DMR)
-    uint32_t k_mod_idx = 0;       // excitation modulation to GS24
-    uint32_t v_gen_mon_idx = 0;   // generator voltage monitoring (unused, for compatibility)
-
-    // Status output ports
-    uint32_t rpm_out_idx = 0;      // RPM output signal
-    uint32_t t4_out_idx = 0;       // T4 temperature output signal
+    // Electrical ports (auto-generated from components/RU19A.json)
+    // Port order must match registry: k_mod, rpm_out, t4_out, v_bus, v_gen_mon, v_start
+    PORTS(RU19A, k_mod, rpm_out, t4_out, v_bus, v_gen_mon, v_start)
 
     // State machine
     APUState state = APUState::OFF;
