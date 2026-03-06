@@ -166,7 +166,7 @@ TEST(FactoryValidationTest, PortOrder_MatchesRegistry) {
     // Check a few critical components
     std::vector<ComponentPortOrder> checks = {
         {"RU19A", {"v_start", "v_bus", "k_mod", "v_gen_mon", "rpm_out", "t4_out"}},
-        {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
+        {"DMR400", {"v_gen_ref", "v_in", "v_out", "lamp"}},  // constructor parameter order
         {"GS24", {"v_in", "v_out", "k_mod"}},
         {"Battery", {"v_in", "v_out"}}
     };
