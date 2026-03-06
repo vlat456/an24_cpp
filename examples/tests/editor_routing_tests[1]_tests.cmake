@@ -1,0 +1,5 @@
+add_test([=[RoutingTest.HitRoutingPoint]=]  /Users/vladimir/an24_cpp/examples/tests/editor_routing_tests [==[--gtest_filter=RoutingTest.HitRoutingPoint]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[RoutingTest.HitRoutingPoint]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_routing.cpp:10 WORKING_DIRECTORY /Users/vladimir/an24_cpp/examples/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[RoutingTest.MissRoutingPoint]=]  /Users/vladimir/an24_cpp/examples/tests/editor_routing_tests [==[--gtest_filter=RoutingTest.MissRoutingPoint]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[RoutingTest.MissRoutingPoint]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_routing.cpp:46 WORKING_DIRECTORY /Users/vladimir/an24_cpp/examples/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  editor_routing_tests_TESTS RoutingTest.HitRoutingPoint RoutingTest.MissRoutingPoint)

@@ -406,19 +406,6 @@ vsu_aot_test/fast:
 .PHONY : vsu_aot_test/fast
 
 #=============================================================================
-# Target rules for targets named gs24_aot_test
-
-# Build rule for target.
-gs24_aot_test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gs24_aot_test
-.PHONY : gs24_aot_test
-
-# fast build rule for target.
-gs24_aot_test/fast:
-	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/gs24_aot_test.dir/build.make examples/CMakeFiles/gs24_aot_test.dir/build
-.PHONY : gs24_aot_test/fast
-
-#=============================================================================
 # Target rules for targets named bench_vsu_aot
 
 # Build rule for target.
@@ -458,19 +445,6 @@ test_vsu_dmr_aot/fast:
 .PHONY : test_vsu_dmr_aot/fast
 
 #=============================================================================
-# Target rules for targets named profile_vsu_dmr_aot
-
-# Build rule for target.
-profile_vsu_dmr_aot: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 profile_vsu_dmr_aot
-.PHONY : profile_vsu_dmr_aot
-
-# fast build rule for target.
-profile_vsu_dmr_aot/fast:
-	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/profile_vsu_dmr_aot.dir/build.make examples/CMakeFiles/profile_vsu_dmr_aot.dir/build
-.PHONY : profile_vsu_dmr_aot/fast
-
-#=============================================================================
 # Target rules for targets named an24_editor
 
 # Build rule for target.
@@ -495,6 +469,19 @@ jit_solver_tests: cmake_check_build_system
 jit_solver_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/build
 .PHONY : jit_solver_tests/fast
+
+#=============================================================================
+# Target rules for targets named port_registry_tests
+
+# Build rule for target.
+port_registry_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 port_registry_tests
+.PHONY : port_registry_tests
+
+# fast build rule for target.
+port_registry_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_registry_tests.dir/build.make tests/CMakeFiles/port_registry_tests.dir/build
+.PHONY : port_registry_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_data_tests
@@ -701,7 +688,6 @@ help:
 	@echo "... editor_widget_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
-	@echo "... gs24_aot_test"
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... hello_world"
@@ -711,7 +697,7 @@ help:
 	@echo "... json_parser_tests"
 	@echo "... json_test"
 	@echo "... nfd"
-	@echo "... profile_vsu_dmr_aot"
+	@echo "... port_registry_tests"
 	@echo "... spdlog"
 	@echo "... test_generated"
 	@echo "... test_vsu_dmr_aot"

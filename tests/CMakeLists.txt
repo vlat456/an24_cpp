@@ -9,6 +9,24 @@ target_link_libraries(jit_solver_tests PRIVATE
 include(GoogleTest)
 gtest_discover_tests(jit_solver_tests)
 
+# Port registry tests (TDD for codegen)
+add_executable(port_registry_tests
+    port_registry_test.cpp
+)
+target_include_directories(port_registry_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_compile_definitions(port_registry_tests PRIVATE
+    TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
+)
+target_link_libraries(port_registry_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(port_registry_tests)
+
 # Editor data tests (TDD Step 1)
 add_executable(editor_data_tests
     test_data.cpp

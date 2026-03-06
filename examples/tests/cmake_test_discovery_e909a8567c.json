@@ -1,0 +1,222 @@
+{
+  "tests": 42,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "RouterTest",
+      "tests": 42,
+      "testsuite": [
+        {
+          "name": "GridConversion",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 15
+        },
+        {
+          "name": "GridConversionNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 29
+        },
+        {
+          "name": "GridConversionZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 36
+        },
+        {
+          "name": "GridPtEquality",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 43
+        },
+        {
+          "name": "GridPtHashNoncollision",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 51
+        },
+        {
+          "name": "EmptySpaceStraightLine",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 66
+        },
+        {
+          "name": "AStarFindsPathAroundObstacle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 86
+        },
+        {
+          "name": "AStarNoPath",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 107
+        },
+        {
+          "name": "AStarSameStartAndGoal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 122
+        },
+        {
+          "name": "TurnPenaltyPrefersStraight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 133
+        },
+        {
+          "name": "RoutingGridBasics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 155
+        },
+        {
+          "name": "RoutingGridWireCrossingCost",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 167
+        },
+        {
+          "name": "RoutingGridFlagsOr",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 184
+        },
+        {
+          "name": "MakeObstaclesPadding",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 199
+        },
+        {
+          "name": "MakeRoutingGridWithWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 220
+        },
+        {
+          "name": "EmptySpacePath",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 245
+        },
+        {
+          "name": "AvoidsObstacle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 276
+        },
+        {
+          "name": "PathHasMinimalTurns",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 310
+        },
+        {
+          "name": "PathAroundNodeUsesPadding",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 336
+        },
+        {
+          "name": "SimplifyPathStraight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 370
+        },
+        {
+          "name": "SimplifyPathLShape",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 381
+        },
+        {
+          "name": "SimplifyPathZigzag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 393
+        },
+        {
+          "name": "SimplifyPathTwoPoints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 404
+        },
+        {
+          "name": "SimplifyPathSinglePoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 410
+        },
+        {
+          "name": "SegmentCrossesPerpendicularWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 420
+        },
+        {
+          "name": "SegmentCrossesParallel",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 429
+        },
+        {
+          "name": "SegmentCrossesCollinear",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 436
+        },
+        {
+          "name": "SegmentCrossesNoIntersection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 443
+        },
+        {
+          "name": "SegmentCrossesEndpointTouch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 450
+        },
+        {
+          "name": "SegmentDirectionHorizontal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 457
+        },
+        {
+          "name": "SegmentDirectionVertical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 461
+        },
+        {
+          "name": "FindWireCrossingsDetectsIntersection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 465
+        },
+        {
+          "name": "FindWireCrossingsLowerIndexSkipped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 480
+        },
+        {
+          "name": "FindWireCrossingsNoCross",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 491
+        },
+        {
+          "name": "LShapeBasic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 506
+        },
+        {
+          "name": "LShapeSameY",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 519
+        },
+        {
+          "name": "LShapeSamePoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 530
+        },
+        {
+          "name": "PortDepartureInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 543
+        },
+        {
+          "name": "PortDepartureOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 556
+        },
+        {
+          "name": "PortDepartureRef",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 569
+        },
+        {
+          "name": "PortDepartureBus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 582
+        },
+        {
+          "name": "RouteWithPortDeparture",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_router.cpp",
+          "line": 595
+        }
+      ]
+    }
+  ]
+}

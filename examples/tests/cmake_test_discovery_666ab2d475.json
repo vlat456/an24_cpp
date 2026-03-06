@@ -1,0 +1,153 @@
+{
+  "tests": 21,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "HitTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "EmptyBlueprint_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 12
+        },
+        {
+          "name": "Node_Inside_ReturnsNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 19
+        },
+        {
+          "name": "Node_Outside_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 34
+        },
+        {
+          "name": "MultipleNodes_ReturnsClosest",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 48
+        },
+        {
+          "name": "WireClick_BusTwoWires_CachedOverload",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 429
+        },
+        {
+          "name": "PortHit_BusAlias_ReturnsCorrectWireId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 473
+        },
+        {
+          "name": "PortHit_BusMainV_EmptyWireId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 508
+        }
+      ]
+    },
+    {
+      "name": "PortHitTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "EmptyBlueprint_NoPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 74
+        },
+        {
+          "name": "NodeWithPorts_ClickNearPort_ReturnsPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 83
+        },
+        {
+          "name": "ClickFarFromPorts_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 109
+        }
+      ]
+    },
+    {
+      "name": "PortAliasTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "BusWithWire_ShouldCreateMultipleVisualPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 129
+        },
+        {
+          "name": "HitTestOnWirePort_ShouldReturnTargetPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 153
+        }
+      ]
+    },
+    {
+      "name": "RegressionBusPort",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SetSizeDoesNotCorruptPortPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 196
+        },
+        {
+          "name": "CachedAndFreshVisualsAgreeOnPortPosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 224
+        },
+        {
+          "name": "HitTestFindsPortAfterSetSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 251
+        },
+        {
+          "name": "ConnectWireUpdatesWiresList",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 317
+        },
+        {
+          "name": "GetPortPositionWireIdCorrectIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 337
+        }
+      ]
+    },
+    {
+      "name": "RegressionRefPort",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "RefNodeUsesActualPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 279
+        },
+        {
+          "name": "HitTestReturnsCorrectPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 296
+        }
+      ]
+    },
+    {
+      "name": "CachedHitTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "CachedHitTestMatchesUncached",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 362
+        }
+      ]
+    },
+    {
+      "name": "WireHitTolerance",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "UniformToleranceForAllSegments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 388
+        }
+      ]
+    }
+  ]
+}

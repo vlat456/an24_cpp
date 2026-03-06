@@ -1,0 +1,83 @@
+{
+  "tests": 13,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "InteractionTest",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "DefaultIsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 8
+        },
+        {
+          "name": "SelectNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 16
+        },
+        {
+          "name": "SelectWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 23
+        },
+        {
+          "name": "ClearSelection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 30
+        },
+        {
+          "name": "StartDragNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 39
+        },
+        {
+          "name": "StartDragRoutingPoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 47
+        },
+        {
+          "name": "UpdateDragAnchor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 55
+        },
+        {
+          "name": "EndDrag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 63
+        },
+        {
+          "name": "SetPanning",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 70
+        }
+      ]
+    },
+    {
+      "name": "WireCreationTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "StartWireCreation_SetsDraggingState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 82
+        },
+        {
+          "name": "StartWireCreation_TracksPortInfo",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 90
+        },
+        {
+          "name": "ClearWireCreation_ResetsState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 98
+        },
+        {
+          "name": "MultipleWireCreations_OverridesPrevious",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_interaction.cpp",
+          "line": 109
+        }
+      ]
+    }
+  ]
+}

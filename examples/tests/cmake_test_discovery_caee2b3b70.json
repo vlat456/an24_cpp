@@ -1,0 +1,73 @@
+{
+  "tests": 11,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PtTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "DefaultIsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 11
+        },
+        {
+          "name": "Constructor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 17
+        },
+        {
+          "name": "ZeroStatic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 23
+        },
+        {
+          "name": "Addition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 29
+        },
+        {
+          "name": "Subtraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 37
+        },
+        {
+          "name": "Multiplication",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 45
+        },
+        {
+          "name": "Equality",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 52
+        }
+      ]
+    },
+    {
+      "name": "BlueprintTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "DefaultIsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 64
+        },
+        {
+          "name": "AddNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 72
+        },
+        {
+          "name": "AddWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 84
+        },
+        {
+          "name": "FindNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_data.cpp",
+          "line": 108
+        }
+      ]
+    }
+  ]
+}

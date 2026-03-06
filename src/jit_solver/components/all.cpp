@@ -538,19 +538,19 @@ void DMR400::solve_electrical(SimulationState& st) {
     float g_closed = 100.0f;  // ~0.01 Ohm when closed
 
     // Add conductance to both nodes (creates connection in the matrix)
-    st.conductance[v_gen_in_idx] += g_closed;
+    st.conductance[v_gen_idx] += g_closed;
     st.conductance[v_out_idx] += g_closed;
 
     // Also add current injection to balance the voltages
     // This helps the solver converge faster
-    float v_avg = (st.across[v_gen_in_idx] + st.across[v_out_idx]) * 0.5f;
-    st.through[v_gen_in_idx] += (v_avg - st.across[v_gen_in_idx]) * g_closed;
+    float v_avg = (st.across[v_gen_idx] + st.across[v_out_idx]) * 0.5f;
+    st.through[v_gen_idx] += (v_avg - st.across[v_gen_idx]) * g_closed;
     st.through[v_out_idx] += (v_avg - st.across[v_out_idx]) * g_closed;
 }
 
 void DMR400::post_step(SimulationState& st, float dt) {
-    float v_gen = st.across[v_gen_in_idx];
-    float v_bus = st.across[v_bus_mon_idx];
+    float v_gen = st.across[v_gen_idx];
+    float v_bus = st.across[v_bus_idx];
 
     // Update reconnect delay
     if (reconnect_delay > 0.0f) {
@@ -587,7 +587,7 @@ void DMR400::post_step(SimulationState& st, float dt) {
 
 void RU19A::solve_electrical(SimulationState& st) {
     float v_start = st.across[v_start_idx];
-    float v_bus = st.across[v_out_idx];
+    float v_bus = st.across[v_bus_idx];
 
     if (this->state == APUState::OFF) {
         // No output - waiting for start
@@ -642,8 +642,8 @@ void RU19A::solve_electrical(SimulationState& st) {
             rpm_percent * 100, phi, i_no);
 
         // Inject current to bus
-        st.through[v_out_idx] += i_no;
-        st.conductance[v_out_idx] += g_norton;
+        st.through[v_bus_idx] += i_no;
+        st.conductance[v_bus_idx] += g_norton;
     }
 }
 
@@ -699,7 +699,7 @@ void RU19A::solve_thermal(SimulationState& st) {
 
 void RU19A::post_step(SimulationState& st, float dt) {
     float v_start = st.across[v_start_idx];
-    float v_bus = st.across[v_out_idx];
+    float v_bus = st.across[v_bus_idx];
     timer += dt;
 
     // Call thermal solver at 1 Hz (every 60 frames)

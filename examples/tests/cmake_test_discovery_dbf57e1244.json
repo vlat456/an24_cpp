@@ -1,0 +1,82 @@
+{
+  "tests": 14,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PersistTest",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "ToJson_EmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 10
+        },
+        {
+          "name": "ToJson_FromJson_Roundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 19
+        },
+        {
+          "name": "FromJson_Invalid_ReturnsNullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 64
+        },
+        {
+          "name": "ToJson_IncludesViewport",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 69
+        },
+        {
+          "name": "UnifiedFormat_WithEditorMetadata",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 85
+        },
+        {
+          "name": "FromJson_MissingDevices_ReturnsNullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 133
+        },
+        {
+          "name": "LoadSimulatorFormat_VsuTest",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 142
+        },
+        {
+          "name": "AutoLayout_NoEditorBlock",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 154
+        },
+        {
+          "name": "AutoLayout_CompositeTestFile",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 209
+        },
+        {
+          "name": "NodeKind_Roundtrip_Bus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 232
+        },
+        {
+          "name": "NodeKind_Roundtrip_Ref",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 252
+        },
+        {
+          "name": "NodeKind_Roundtrip_Node",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 272
+        },
+        {
+          "name": "NodeKind_BackwardCompat_NoKindField",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 292
+        },
+        {
+          "name": "RefNode_ValueByKind_NotTypeName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 310
+        }
+      ]
+    }
+  ]
+}

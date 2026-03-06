@@ -1,0 +1,62 @@
+{
+  "tests": 10,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "JsonParserTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "ParseEmptyContext",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 7
+        },
+        {
+          "name": "ParseErrorOnInvalidJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 16
+        },
+        {
+          "name": "ParseAndSerializeRoundTrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 20
+        },
+        {
+          "name": "RoundTripWithTemplates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 57
+        },
+        {
+          "name": "ParseMultipleDomains",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 96
+        },
+        {
+          "name": "ParseDevicesWithAllFields",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 119
+        },
+        {
+          "name": "ParseConnectionFormats",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 175
+        },
+        {
+          "name": "SerializePreservesData",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 201
+        },
+        {
+          "name": "InOutPortDirection_Roundtrip_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 222
+        },
+        {
+          "name": "InOutEnumExists_g7h8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 247
+        }
+      ]
+    }
+  ]
+}

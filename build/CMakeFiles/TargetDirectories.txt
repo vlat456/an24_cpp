@@ -93,11 +93,9 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test_generated.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/aot_test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/vsu_aot_test.dir
-/Users/vladimir/an24_cpp/build/examples/CMakeFiles/gs24_aot_test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_dmr_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test_vsu_dmr_aot.dir
-/Users/vladimir/an24_cpp/build/examples/CMakeFiles/profile_vsu_dmr_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_editor.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/edit_cache.dir
@@ -107,6 +105,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/local.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/strip.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/jit_solver_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_persist_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_viewport_tests.dir

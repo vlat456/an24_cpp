@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "RoutingTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "HitRoutingPoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_routing.cpp",
+          "line": 10
+        },
+        {
+          "name": "MissRoutingPoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_routing.cpp",
+          "line": 46
+        }
+      ]
+    }
+  ]
+}

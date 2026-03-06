@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/examples/tests/editor_hittest_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/examples/tests/editor_hittest_tests[1]_tests.cmake")
+else()
+  add_test(editor_hittest_tests_NOT_BUILT editor_hittest_tests_NOT_BUILT)
+endif()

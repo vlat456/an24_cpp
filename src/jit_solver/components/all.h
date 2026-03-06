@@ -438,8 +438,8 @@ public:
 /// Connects generator to DC bus when ready, disconnects on reverse current
 class DMR400 : public Component {
 public:
-    uint32_t v_gen_in_idx = 0;     // input: generator voltage
-    uint32_t v_bus_mon_idx = 0;    // input: bus voltage monitoring (battery side)
+    uint32_t v_gen_idx = 0;        // input: generator voltage
+    uint32_t v_bus_idx = 0;        // input: bus voltage monitoring (battery side)
     uint32_t v_out_idx = 0;        // output: connected to bus
     uint32_t lamp_idx = 0;         // output: warning lamp (1 = ON when disconnected)
 
@@ -450,8 +450,8 @@ public:
     float reconnect_delay = 0.0f;      // delay before reconnecting
 
     DMR400() = default;
-    DMR400(uint32_t v_gen_in, uint32_t v_bus_mon, uint32_t v_out, uint32_t lamp)
-        : v_gen_in_idx(v_gen_in), v_bus_mon_idx(v_bus_mon), v_out_idx(v_out), lamp_idx(lamp) {}
+    DMR400(uint32_t v_gen, uint32_t v_bus, uint32_t v_out, uint32_t lamp)
+        : v_gen_idx(v_gen), v_bus_idx(v_bus), v_out_idx(v_out), lamp_idx(lamp) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
     void solve_electrical(SimulationState& state) override;
@@ -464,8 +464,9 @@ class RU19A : public Component {
 public:
     // Electrical ports
     uint32_t v_start_idx = 0;    // starter power input (direct from battery, bypasses DMR)
-    uint32_t v_out_idx = 0;       // bus voltage output (goes through DMR)
+    uint32_t v_bus_idx = 0;       // bus voltage output (goes through DMR)
     uint32_t k_mod_idx = 0;       // excitation modulation to GS24
+    uint32_t v_gen_mon_idx = 0;   // generator voltage monitoring (unused, for compatibility)
 
     // Status output ports
     uint32_t rpm_out_idx = 0;      // RPM output signal
@@ -507,8 +508,8 @@ public:
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
     RU19A() = default;
-    RU19A(uint32_t v_start, uint32_t v_out, uint32_t k_mod, uint32_t rpm_out, uint32_t t4_out)
-        : v_start_idx(v_start), v_out_idx(v_out), k_mod_idx(k_mod), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
+    RU19A(uint32_t v_start, uint32_t v_bus, uint32_t k_mod, uint32_t v_gen_mon, uint32_t rpm_out, uint32_t t4_out)
+        : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), v_gen_mon_idx(v_gen_mon), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
     void solve_electrical(SimulationState& state) override;

@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/examples/tests/editor_gl_setup_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/examples/tests/editor_gl_setup_tests[1]_tests.cmake")
+else()
+  add_test(editor_gl_setup_tests_NOT_BUILT editor_gl_setup_tests_NOT_BUILT)
+endif()

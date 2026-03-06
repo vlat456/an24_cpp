@@ -1,0 +1,72 @@
+{
+  "tests": 12,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "GLSetupTest",
+      "tests": 12,
+      "testsuite": [
+        {
+          "name": "MacOS_GLVersion_Is_3_2_Plus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 16
+        },
+        {
+          "name": "MacOS_CoreProfile_Required",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 24
+        },
+        {
+          "name": "MacOS_ForwardCompat_Required",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 29
+        },
+        {
+          "name": "MacOS_GLSL_Version_Is_150_Plus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 34
+        },
+        {
+          "name": "MacOS_GLSL_NotLegacy",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 42
+        },
+        {
+          "name": "GLSLVersion_StartsWithVersion",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 55
+        },
+        {
+          "name": "GLSLVersion_HasNumericVersion",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 61
+        },
+        {
+          "name": "CoreProfile_GLMajor_AtLeast_3",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 71
+        },
+        {
+          "name": "DepthSize_Is_24",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 78
+        },
+        {
+          "name": "StencilSize_Is_8",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 82
+        },
+        {
+          "name": "DoubleBuffer_Enabled",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 86
+        },
+        {
+          "name": "GLSL_Version_Matches_GL_Version",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_gl_setup.cpp",
+          "line": 90
+        }
+      ]
+    }
+  ]
+}
