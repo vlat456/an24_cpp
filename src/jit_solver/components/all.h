@@ -42,7 +42,9 @@ public:
 };
 
 /// Switch - manual toggle switch (triggered by control signal)
-/// Voltage pass-through: closed = v_out=v_in, open = v_out=0 (forced in post_step).
+/// Switch - manual toggle switch (triggered by control signal)
+/// Mirrors downstream conductance onto v_in so battery sees the load.
+/// post_step forces v_out=v_in when closed, v_out=0 when open.
 class Switch : public Component {
 public:
     uint32_t v_in_idx = 0;
@@ -51,6 +53,9 @@ public:
     uint32_t state_idx = 0;    // State output (1.0V = closed, 0.0V = open)
     bool closed = false;        // Initial state (default: open)
     float last_control = 0.0f;  // Previous control voltage (edge detection)
+    float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
+    float downstream_I = 0.0f;  // Cached downstream Norton current (from prev step)
+    float v_out_old = 0.0f;     // V_out at start of step (before SOR)
 
     Switch() = default;
     Switch(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state, bool is_closed = false)
@@ -62,7 +67,7 @@ public:
 };
 
 /// Relay - on/off switch controlled by voltage threshold.
-/// Voltage pass-through: closed = v_out=v_in, open = v_out=0 (forced in post_step).
+/// Mirrors downstream conductance onto v_in so battery sees the load.
 class Relay : public Component {
 public:
     uint32_t v_in_idx = 0;
@@ -70,6 +75,9 @@ public:
     uint32_t control_idx = 0;  // Control signal (closed while control > threshold)
     bool closed = false;        // Current state
     float hold_threshold = 0.5f;  // Voltage threshold to hold closed
+    float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
+    float downstream_I = 0.0f;  // Cached downstream Norton current (from prev step)
+    float v_out_old = 0.0f;     // V_out at start of step (before SOR)
 
     Relay() = default;
     Relay(uint32_t v_in, uint32_t v_out, uint32_t control, bool is_closed = false, float threshold = 0.5f)
@@ -81,7 +89,7 @@ public:
 };
 
 /// HoldButton - hold-to-operate button with press/release detection.
-/// Voltage pass-through: pressed = v_out=v_in, released = v_out=0 (forced in post_step).
+/// Mirrors downstream conductance onto v_in so battery sees the load.
 /// Control Protocol: 0.0V=Idle, 1.0V=Pressed, 2.0V=Released
 /// State output: 1.0V = pressed, 0.0V = released/idle
 class HoldButton : public Component {
@@ -92,6 +100,9 @@ public:
     uint32_t state_idx = 0;      // State output: 1.0V=pressed, 0.0V=released
     float last_control = 0.0f;   // Previous control value (edge detection)
     bool is_pressed = false;     // Current button state (latched)
+    float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
+    float downstream_I = 0.0f;  // Cached downstream Norton current (from prev step)
+    float v_out_old = 0.0f;     // V_out at start of step (before SOR)
 
     HoldButton() = default;
     HoldButton(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state)
@@ -427,8 +438,8 @@ public:
 /// Connects generator to DC bus when ready, disconnects on reverse current
 class DMR400 : public Component {
 public:
-    uint32_t v_gen_idx = 0;        // input: generator voltage
-    uint32_t v_bus_idx = 0;        // input: bus voltage (battery side)
+    uint32_t v_gen_in_idx = 0;     // input: generator voltage
+    uint32_t v_bus_mon_idx = 0;    // input: bus voltage monitoring (battery side)
     uint32_t v_out_idx = 0;        // output: connected to bus
     uint32_t lamp_idx = 0;         // output: warning lamp (1 = ON when disconnected)
 
@@ -439,8 +450,8 @@ public:
     float reconnect_delay = 0.0f;      // delay before reconnecting
 
     DMR400() = default;
-    DMR400(uint32_t v_gen, uint32_t v_bus, uint32_t v_out, uint32_t lamp)
-        : v_gen_idx(v_gen), v_bus_idx(v_bus), v_out_idx(v_out), lamp_idx(lamp) {}
+    DMR400(uint32_t v_gen_in, uint32_t v_bus_mon, uint32_t v_out, uint32_t lamp)
+        : v_gen_in_idx(v_gen_in), v_bus_mon_idx(v_bus_mon), v_out_idx(v_out), lamp_idx(lamp) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
     void solve_electrical(SimulationState& state) override;
@@ -453,9 +464,8 @@ class RU19A : public Component {
 public:
     // Electrical ports
     uint32_t v_start_idx = 0;    // starter power input (direct from battery, bypasses DMR)
-    uint32_t v_bus_idx = 0;       // bus voltage output (goes through DMR)
+    uint32_t v_out_idx = 0;       // bus voltage output (goes through DMR)
     uint32_t k_mod_idx = 0;       // excitation modulation to GS24
-    uint32_t v_gen_mon_idx = 0;  // generator voltage monitoring (from bus)
 
     // Status output ports
     uint32_t rpm_out_idx = 0;      // RPM output signal
@@ -497,8 +507,8 @@ public:
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
     RU19A() = default;
-    RU19A(uint32_t v_start, uint32_t v_bus, uint32_t k_mod, uint32_t v_gen_mon, uint32_t rpm_out)
-        : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), v_gen_mon_idx(v_gen_mon), rpm_out_idx(rpm_out) {}
+    RU19A(uint32_t v_start, uint32_t v_out, uint32_t k_mod, uint32_t rpm_out, uint32_t t4_out)
+        : v_start_idx(v_start), v_out_idx(v_out), k_mod_idx(k_mod), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
     void solve_electrical(SimulationState& state) override;

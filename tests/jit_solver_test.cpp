@@ -1073,3 +1073,197 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     float v_released = get_voltage(state, result, "btn.v_out");
     EXPECT_NEAR(v_released, 0.0f, 0.01f) << "Released button must drop v_out to 0";
 }
+
+// =============================================================================
+// Regression: downstream Norton mirroring — battery sees load through switch
+// =============================================================================
+
+TEST(RegressionTest, BatterySagThroughClosedSwitch) {
+    // BUG: post_step voltage forcing (v_out=v_in) made battery invisible to
+    // downstream loads. Battery always read 28V, no sag during 400-700A loads.
+    // FIX: downstream conductance mirroring — switch captures downstream
+    // Norton equivalent and stamps it on v_in.
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out},
+         {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    // Heavy load: g=40 (R=0.025Ω), simulates starter motor ~800A
+    auto load = make_device("load", "Resistor", {{"conductance", "40.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, sw, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "sw.v_in"}, {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_in = get_voltage(state, result, "sw.v_in");
+    float v_out = get_voltage(state, result, "sw.v_out");
+
+    // Expected: V = V_nom * g_bat / (g_bat + g_load) = 28 * 100 / 140 = 20V
+    EXPECT_NEAR(v_in, 20.0f, 0.5f) << "Battery must sag under heavy load through switch";
+    EXPECT_NEAR(v_out, v_in, 0.1f) << "Closed switch: v_out must equal v_in";
+    EXPECT_LT(v_in, 28.0f) << "Voltage must be less than nominal under load";
+
+    // Must not be NaN/Inf
+    EXPECT_FALSE(std::isnan(v_in));
+    EXPECT_FALSE(std::isinf(v_in));
+}
+
+TEST(RegressionTest, BatterySagThroughClosedRelay) {
+    // Same as above but with Relay instead of Switch
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto relay = make_device("relay", "Relay", {{}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "40.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, relay, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "relay.v_in"}, {"relay.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "relay.control"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_in = get_voltage(state, result, "relay.v_in");
+    float v_out = get_voltage(state, result, "relay.v_out");
+
+    EXPECT_NEAR(v_in, 20.0f, 0.5f) << "Battery must sag under heavy load through relay";
+    EXPECT_NEAR(v_out, v_in, 0.1f) << "Closed relay: v_out must equal v_in";
+    EXPECT_LT(v_in, 28.0f);
+    EXPECT_FALSE(std::isnan(v_in));
+    EXPECT_FALSE(std::isinf(v_in));
+}
+
+TEST(RegressionTest, BatterySagThroughPressedHoldButton) {
+    // Same as above but with HoldButton
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto btn = make_device("btn", "HoldButton", {{}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out},
+         {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "40.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, btn, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "btn.v_in"}, {"btn.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "btn.control"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    // Phase 1: press button (control → 1.0V)
+    auto state = run_sor(result, devices, 50);
+    uint32_t ctrl_idx = result.port_to_signal.at("ctrl.v");
+    state.across[ctrl_idx] = 1.0f;
+    for (int i = 0; i < 200; ++i) {
+        state.clear_through();
+        result.systems.solve_step(state, i);
+        state.precompute_inv_conductance();
+        for (size_t j = 0; j < state.across.size(); ++j) {
+            if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
+                state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
+        }
+        result.systems.post_step(state, 1.0f / 60.0f);
+    }
+
+    float v_in = get_voltage(state, result, "btn.v_in");
+    float v_out = get_voltage(state, result, "btn.v_out");
+
+    EXPECT_NEAR(v_in, 20.0f, 0.5f) << "Battery must sag under heavy load through button";
+    EXPECT_NEAR(v_out, v_in, 0.1f) << "Pressed button: v_out must equal v_in";
+    EXPECT_LT(v_in, 28.0f);
+    EXPECT_FALSE(std::isnan(v_in));
+    EXPECT_FALSE(std::isinf(v_in));
+}
+
+TEST(RegressionTest, CascadedRelaysSagCorrectly) {
+    // Battery → Relay1 → Relay2 → Load → Ground
+    // Tests that mirroring works through cascaded switches
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto r1 = make_device("r1", "Relay", {{}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto r2 = make_device("r2", "Relay", {{}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}, {"control", PortDirection::In}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "28.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "10.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, r1, r2, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "r1.v_in"}, {"r1.v_out", "r2.v_in"},
+        {"r2.v_out", "load.v_in"}, {"load.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "r1.control"}, {"ctrl.v", "r2.control"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 500);
+
+    float v_bat = get_voltage(state, result, "r1.v_in");
+    float v_mid = get_voltage(state, result, "r2.v_in");
+    float v_load = get_voltage(state, result, "load.v_in");
+
+    // Expected: V = 28 * 100 / 110 ≈ 25.45V
+    EXPECT_GT(v_load, 23.0f) << "Load should see voltage through cascaded relays";
+    EXPECT_LT(v_bat, 28.0f) << "Battery must sag under load";
+    EXPECT_FALSE(std::isnan(v_bat));
+    EXPECT_FALSE(std::isnan(v_load));
+
+    // All relays closed → voltages should be approximately equal
+    EXPECT_NEAR(v_bat, v_mid, 1.0f);
+    EXPECT_NEAR(v_mid, v_load, 1.0f);
+}
+
+TEST(RegressionTest, NortonMirroringDoesNotDiverge) {
+    // Stress test: high-conductance load through switch with many SOR iterations.
+    // Previously, incorrect downstream_I capture caused exponential divergence.
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto sw = make_device("sw", "Switch", {{"closed", "true"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out},
+         {"control", PortDirection::In}, {"state", PortDirection::Out}});
+    auto ctrl = make_device("ctrl", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto load = make_device("load", "Resistor", {{"conductance", "100.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, sw, ctrl, load};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "sw.v_in"}, {"sw.v_out", "load.v_in"},
+        {"load.v_out", "gnd.v"}, {"bat.v_in", "gnd.v"},
+        {"ctrl.v", "sw.control"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 1000);  // Many iterations
+
+    float v = get_voltage(state, result, "sw.v_out");
+
+    // Must converge, not diverge to +/-inf or NaN
+    EXPECT_FALSE(std::isnan(v)) << "Norton mirroring must not produce NaN";
+    EXPECT_FALSE(std::isinf(v)) << "Norton mirroring must not diverge to Inf";
+    EXPECT_GT(v, 0.0f);
+    EXPECT_LT(v, 28.0f);
+    // Expected: V = 28 * 100 / 200 = 14V
+    EXPECT_NEAR(v, 14.0f, 0.5f);
+}

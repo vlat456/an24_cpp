@@ -32,7 +32,7 @@ static uint32_t get_signal_idx(
     if (it != port_to_signal.end()) {
         return it->second;
     }
-    return signal_count;  // sentinel for unconnected
+    return signal_count - 1;  // sentinel (last allocated signal, safe to read/write)
 }
 
 std::unique_ptr<Component> create_component(
@@ -110,14 +110,13 @@ std::unique_ptr<Component> create_component(
     }
     else if (device.classname == "RU19A") {
         auto apu = std::make_unique<RU19A>(
-            get_port("v_start"), get_port("v_bus"), get_port("k_mod"),
-            get_port("v_gen_mon"), get_port("rpm_out"));
-        apu->t4_out_idx = get_port("t4_out");
+            get_port("v_start"), get_port("v_out"), get_port("k_mod"),
+            get_port("rpm_out"), get_port("t4_out"));
         return apu;
     }
     else if (device.classname == "DMR400") {
         auto dmr = std::make_unique<DMR400>(
-            get_port("v_gen"), get_port("v_bus"),
+            get_port("v_gen_in"), get_port("v_bus_mon"),
             get_port("v_out"), get_port("lamp"));
         // Will be linked to RU19A after all components created
         return dmr;

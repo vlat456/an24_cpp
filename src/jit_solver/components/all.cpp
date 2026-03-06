@@ -41,71 +41,92 @@ void Battery::pre_load() {
     }
 }
 
-void Switch::solve_electrical(SimulationState& /*state*/) {
-    // No stamping — voltage is forced in post_step()
+void Switch::solve_electrical(SimulationState& state) {
+    // Mirror downstream conductance onto v_in so upstream (battery) sees the load
+    if (closed && downstream_g > 0.0f) {
+        state.conductance[v_in_idx] += downstream_g;
+        state.through[v_in_idx] -= state.across[v_in_idx] * downstream_g;
+    }
 }
 
 void Switch::post_step(SimulationState& state, float /*dt*/) {
-    // Level Toggle pattern: detect any change on control port
     float current_control = state.across[control_idx];
 
-    // Detect edge: any significant change triggers toggle
     if (std::abs(current_control - last_control) > 0.1f) {
-        closed = !closed;  // Toggle state
+        closed = !closed;
         spdlog::info("[Switch] Control changed {:.2f}→{:.2f}, toggled to closed={}",
             last_control, current_control, closed);
     }
-
-    // Store for next step
     last_control = current_control;
 
-    // Force voltage: closed = pass through, open = 0
-    state.across[v_out_idx] = closed ? state.across[v_in_idx] : 0.0f;
+    if (closed) {
+        // Capture downstream conductance for next step
+        downstream_g = state.conductance[v_out_idx];
+        // Force voltage pass-through
+        state.across[v_out_idx] = state.across[v_in_idx];
+    } else {
+        downstream_g = 0.0f;
+        state.across[v_out_idx] = 0.0f;
+    }
 
-    // Output state: 1.0V = closed, 0.0V = open
     state.across[state_idx] = closed ? 1.0f : 0.0f;
 }
 
-void Relay::solve_electrical(SimulationState& /*state*/) {
-    // No stamping — voltage is forced in post_step()
+void Relay::solve_electrical(SimulationState& state) {
+    v_out_old = state.across[v_out_idx];  // save before SOR
+    // Mirror downstream Norton equivalent onto v_in so upstream sees the load
+    if (closed && downstream_g > 0.0f) {
+        state.conductance[v_in_idx] += downstream_g;
+        state.through[v_in_idx] += downstream_I - state.across[v_in_idx] * downstream_g;
+    }
 }
 
 void Relay::post_step(SimulationState& state, float /*dt*/) {
-    // Relay is held closed while control voltage > threshold
     float control_voltage = state.across[control_idx];
     closed = (control_voltage > hold_threshold);
 
-    // Force voltage: closed = pass through, open = 0
-    state.across[v_out_idx] = closed ? state.across[v_in_idx] : 0.0f;
+    if (closed) {
+        downstream_g = state.conductance[v_out_idx];
+        // Use v_out_old (pre-SOR) for correct Norton current
+        downstream_I = state.through[v_out_idx] + v_out_old * state.conductance[v_out_idx];
+        state.across[v_out_idx] = state.across[v_in_idx];
+    } else {
+        downstream_g = 0.0f;
+        downstream_I = 0.0f;
+        state.across[v_out_idx] = 0.0f;
+    }
 }
 
-void HoldButton::solve_electrical(SimulationState& /*state*/) {
-    // No stamping — voltage is forced in post_step()
+void HoldButton::solve_electrical(SimulationState& state) {
+    v_out_old = state.across[v_out_idx];  // save before SOR
+    // Mirror downstream Norton equivalent onto v_in so upstream (battery) sees the load
+    if (is_pressed && downstream_g > 0.0f) {
+        state.conductance[v_in_idx] += downstream_g;
+        state.through[v_in_idx] += downstream_I - state.across[v_in_idx] * downstream_g;
+    }
 }
 
 void HoldButton::post_step(SimulationState& state, float /*dt*/) {
     float current = state.across[control_idx];
 
-    // Edge detection only - explicit press/release commands
-    // 0.0V → 1.0V = Pressed (onClick)
-    // 1.0V → 2.0V = Released (onRelease)
-    // No automatic reset on 0.0V - state persists until explicit command
-
     if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
-        // Rising edge: transition to Pressed state
         is_pressed = true;
     } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
-        // Rising edge: transition to Released state
         is_pressed = false;
     }
-
-    // Store for next step
     last_control = current;
 
-    // Force voltage: pressed = pass through, released = 0
-    state.across[v_out_idx] = is_pressed ? state.across[v_in_idx] : 0.0f;
+    if (is_pressed) {
+        downstream_g = state.conductance[v_out_idx];
+        // Use v_out_old (pre-SOR) for correct Norton current
+        downstream_I = state.through[v_out_idx] + v_out_old * state.conductance[v_out_idx];
+        state.across[v_out_idx] = state.across[v_in_idx];
+    } else {
+        downstream_g = 0.0f;
+        downstream_I = 0.0f;
+        state.across[v_out_idx] = 0.0f;
+    }
 
-    // Output state: 1.0V = pressed, 0.0V = released/idle
     state.across[state_idx] = is_pressed ? 1.0f : 0.0f;
 }
 
@@ -517,19 +538,19 @@ void DMR400::solve_electrical(SimulationState& st) {
     float g_closed = 100.0f;  // ~0.01 Ohm when closed
 
     // Add conductance to both nodes (creates connection in the matrix)
-    st.conductance[v_gen_idx] += g_closed;
+    st.conductance[v_gen_in_idx] += g_closed;
     st.conductance[v_out_idx] += g_closed;
 
     // Also add current injection to balance the voltages
     // This helps the solver converge faster
-    float v_avg = (st.across[v_gen_idx] + st.across[v_out_idx]) * 0.5f;
-    st.through[v_gen_idx] += (v_avg - st.across[v_gen_idx]) * g_closed;
+    float v_avg = (st.across[v_gen_in_idx] + st.across[v_out_idx]) * 0.5f;
+    st.through[v_gen_in_idx] += (v_avg - st.across[v_gen_in_idx]) * g_closed;
     st.through[v_out_idx] += (v_avg - st.across[v_out_idx]) * g_closed;
 }
 
 void DMR400::post_step(SimulationState& st, float dt) {
-    float v_gen = st.across[v_gen_idx];
-    float v_bus = st.across[v_bus_idx];
+    float v_gen = st.across[v_gen_in_idx];
+    float v_bus = st.across[v_bus_mon_idx];
 
     // Update reconnect delay
     if (reconnect_delay > 0.0f) {
@@ -566,7 +587,7 @@ void DMR400::post_step(SimulationState& st, float dt) {
 
 void RU19A::solve_electrical(SimulationState& st) {
     float v_start = st.across[v_start_idx];
-    float v_bus = st.across[v_bus_idx];
+    float v_bus = st.across[v_out_idx];
 
     if (this->state == APUState::OFF) {
         // No output - waiting for start
@@ -621,8 +642,8 @@ void RU19A::solve_electrical(SimulationState& st) {
             rpm_percent * 100, phi, i_no);
 
         // Inject current to bus
-        st.through[v_bus_idx] += i_no;
-        st.conductance[v_bus_idx] += g_norton;
+        st.through[v_out_idx] += i_no;
+        st.conductance[v_out_idx] += g_norton;
     }
 }
 
@@ -678,7 +699,7 @@ void RU19A::solve_thermal(SimulationState& st) {
 
 void RU19A::post_step(SimulationState& st, float dt) {
     float v_start = st.across[v_start_idx];
-    float v_bus = st.across[v_bus_idx];
+    float v_bus = st.across[v_out_idx];
     timer += dt;
 
     // Call thermal solver at 1 Hz (every 60 frames)
