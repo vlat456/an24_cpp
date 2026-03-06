@@ -3,12 +3,16 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "data/pt.h"
-#include "../jit_solver/simulator.h"
 #include <cstdint>
 #include <cstring>
 #include <string>
 #include <vector>
 #include <optional>
+
+namespace an24 {
+class PushSolver;
+class PushState;
+}
 
 /// Абстрактный DrawList - для рендеринга
 ///imgui совместимый интерфейс
@@ -43,7 +47,8 @@ class VisualNodeCache;
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes = nullptr,
                       std::optional<size_t> selected_wire = std::nullopt,
-                      const class an24::Simulator<an24::JIT_Solver>* simulation = nullptr,
+                      const class an24::PushSolver* solver = nullptr,
+                      const an24::PushState* state = nullptr,
                       const Pt* hover_world_pos = nullptr,
                       TooltipInfo* out_tooltip = nullptr,
                       VisualNodeCache* cache = nullptr);
@@ -52,7 +57,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
 void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip);
 
 /// Рендерит сетку
-void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max);
+void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max, float grid_step);
 
 // =============================================================================
 // Утилиты для тестов

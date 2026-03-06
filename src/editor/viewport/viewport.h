@@ -2,13 +2,12 @@
 
 #include "data/pt.h"
 
-/// Viewport - состояние канвы (pan, zoom, grid)
+/// Viewport - состояние канвы (pan, zoom)
 ///
 /// Отвечает за координатные преобразования между экранными и мировыми координатами.
 struct Viewport {
     Pt pan;           ///< Мировые координаты начала экрана
     float zoom;       ///< Уровень zoom (1.0 = 100%)
-    float grid_step;  ///< Шаг сетки
 
     Viewport();
 
@@ -23,12 +22,6 @@ struct Viewport {
 
     /// Zoom к точке на экране
     void zoom_at(float delta, Pt screen_pos, Pt canvas_min);
-
-    /// Увеличить шаг сетки
-    void grid_step_up();
-
-    /// Уменьшить шаг сетки
-    void grid_step_down();
 
     /// Ограничить zoom в допустимый диапазон
     void clamp_zoom();

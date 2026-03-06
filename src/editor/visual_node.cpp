@@ -172,16 +172,16 @@ Pt StandardVisualNode::getPortPosition(const std::string& port_name,
     for (const auto* row : port_rows_) {
         if (row->leftPortName() == port_name) {
             Pt local = row->leftPortCenter();
-            return Pt(position_.x + local.x, position_.y + local.y);
+            return snap_to_grid(Pt(position_.x + local.x, position_.y + local.y));
         }
         if (row->rightPortName() == port_name) {
             Pt local = row->rightPortCenter();
-            return Pt(position_.x + local.x, position_.y + local.y);
+            return snap_to_grid(Pt(position_.x + local.x, position_.y + local.y));
         }
     }
 
-    // Fallback: center of node
-    return Pt(position_.x + size_.x / 2, position_.y + size_.y / 2);
+    // Fallback: center of node (snapped)
+    return snap_to_grid(Pt(position_.x + size_.x / 2, position_.y + size_.y / 2));
 }
 
 void StandardVisualNode::connectWire(const Wire&) {}

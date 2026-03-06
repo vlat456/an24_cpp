@@ -27,6 +27,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), closed(is_closed) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Switch"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::StateMachine; }
 
     /// Push voltage: if closed, V_out ≈ V_in; if open, V_out = 0
     void push_voltage(PushState& state, float dt) {
@@ -76,6 +77,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::StateMachine; }
 
     /// Push voltage: if pressed, V_out ≈ V_in
     void push_voltage(PushState& state, float dt) {
@@ -123,6 +125,7 @@ public:
     }
 
     [[nodiscard]] std::string_view type_name() const override { return "Battery"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::VoltageSource; }
 
     /// Push voltage: V_out = V_nominal - I * R_internal
     /// Current I depends on downstream load resistance
@@ -183,6 +186,7 @@ public:
     }
 
     [[nodiscard]] std::string_view type_name() const override { return "IndicatorLight"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::PropagatesResistance; }
 
     /// Set resistance at input (load resistance)
     void propagate_resistance(PushState& state) {
@@ -222,6 +226,7 @@ public:
     }
 
     [[nodiscard]] std::string_view type_name() const override { return "Resistor"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::PropagatesResistance; }
 
     /// Propagate resistance upstream (for series circuit computation)
     void propagate_resistance(PushState& state) {
@@ -268,6 +273,7 @@ public:
         : v_out_idx(v_out), rpm_idx(rpm) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Generator"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::VoltageSource; }
 
     /// Push voltage: produces voltage only when RPM > threshold and load connected
     void push_voltage(PushState& state, float dt) {
@@ -300,6 +306,7 @@ public:
         : v_idx(v), value(val) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RefNode"; }
+    ComponentFlags flags() const override { return ComponentFlags::VoltageSource; }
 
     /// Push voltage: outputs fixed reference voltage
     void push_voltage(PushState& state, float dt) {
@@ -321,6 +328,7 @@ public:
         : v_in_idx(v_in), v_out_idx(v_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Wire"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::PropagatesResistance; }
 
     /// Propagate resistance upstream
     void propagate_resistance(PushState& state) {
@@ -351,6 +359,7 @@ public:
         : input_idx(input), output_idx(output), factor(f) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "LerpNode"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::None; }
 
     /// Linear interpolation: output = output + (input - output) * factor
     /// This creates a first-order low-pass filter for sensor smoothing
@@ -401,6 +410,9 @@ public:
         : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), rpm_out_idx(rpm_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
+    [[nodiscard]] ComponentFlags flags() const override {
+        return ComponentFlags::StateMachine | ComponentFlags::VoltageSource;
+    }
 
     /// Управление напряжением: двойной режим работы
     void push_voltage(PushState& state, float dt) {
@@ -526,6 +538,7 @@ public:
         : v_gen_idx(v_gen), k_mod_idx(k_mod) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RUG82"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::None; }
 
     /// Управление напряжением: выдает k_mod на основе ошибки напряжения
     void push_voltage(PushState& state, float dt) {
@@ -569,6 +582,7 @@ public:
         : v_gen_in_idx(v_gen_in), v_out_idx(v_out), v_bus_mon_idx(v_bus_mon), lamp_idx(lamp) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
+    [[nodiscard]] ComponentFlags flags() const override { return ComponentFlags::None; }
 
     /// Управление напряжением: подключение генератора к шине + лампа
     void push_voltage(PushState& state, float dt) {
@@ -655,6 +669,9 @@ public:
           rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
+    [[nodiscard]] ComponentFlags flags() const override {
+        return ComponentFlags::StateMachine | ComponentFlags::VoltageSource;
+    }
 
     /// Управление напряжением: двойной режим (стартер/потребитель vs генератор/источник)
     void push_voltage(PushState& state, float dt) {

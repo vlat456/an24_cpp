@@ -15,10 +15,10 @@
     { "from": "bat_main_1.v_out", "to": "main_bus.v" },
     { "from": "bat_main_1.v_out", "to": "vsu_1.v_start" },
     { "from": "main_bus.v", "to": "light_1.v_in" },
-    { "from": "main_bus.v", "to": "dmr_vsu.v_bus" },
-    { "from": "vsu_1.v_bus", "to": "dmr_vsu.v_gen" },
+    { "from": "main_bus.v", "to": "dmr_vsu.v_bus_mon" },
+    { "from": "vsu_1.v_out", "to": "dmr_vsu.v_gen_in" },
     { "from": "dmr_vsu.v_out", "to": "main_bus.v" },
-    { "from": "vsu_1.v_bus", "to": "rug_vsu.v_gen" },
+    { "from": "vsu_1.v_out", "to": "rug_vsu.v_gen" },
     { "from": "rug_vsu.k_mod", "to": "vsu_1.k_mod" }
   ]
 }

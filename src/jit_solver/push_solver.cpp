@@ -4,24 +4,6 @@
 
 namespace an24 {
 
-/// Helper: try to call push_voltage on component if it matches type
-template<typename CompType>
-void try_push_voltage(Component* comp, PushState& state, float dt) {
-    if (auto* typed = dynamic_cast<CompType*>(comp)) {
-        typed->push_voltage(state, dt);
-    }
-}
-
-/// Helper: try to call update_state on component if it matches type
-template<typename CompType>
-void try_update_state(Component* comp, PushState& state, float dt) {
-    if (auto* typed = dynamic_cast<CompType*>(comp)) {
-        if constexpr (requires { typed->update_state(state, dt); }) {
-            typed->update_state(state, dt);
-        }
-    }
-}
-
 bool PushSolver::build(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
@@ -160,35 +142,26 @@ void PushSolver::step(PushState& state, float dt) {
             state.set_resistance(conn.first, r_to);
         }
 
-        // Then components propagate resistance
+        // Then components propagate resistance (Resistor, IndicatorLight, Wire)
         for (auto& comp : systems.electrical) {
-            if (auto* res = dynamic_cast<PushResistor*>(comp.get())) {
-                res->propagate_resistance(state);
-            } else if (auto* light = dynamic_cast<PushIndicatorLight*>(comp.get())) {
-                light->propagate_resistance(state);
-            } else if (auto* wire = dynamic_cast<PushWire*>(comp.get())) {
-                wire->propagate_resistance(state);
+            if ((comp->flags() & ComponentFlags::PropagatesResistance) != ComponentFlags::None) {
+                comp->propagate_resistance(state);
             }
         }
     }
 
-    // Phase 1: Sources produce voltage (Battery, RefNode, Generator)
+    // Phase 1: Sources produce voltage (Battery, RefNode, Generator, RU19A, GS24)
     for (auto& comp : systems.electrical) {
-        if (auto* bat = dynamic_cast<PushBattery*>(comp.get())) {
-            bat->push_voltage(state, dt);
-        } else if (auto* ref = dynamic_cast<PushRefNode*>(comp.get())) {
-            ref->push_voltage(state, dt);
-        } else if (auto* gen = dynamic_cast<PushGenerator*>(comp.get())) {
-            gen->push_voltage(state, dt);
+        if ((comp->flags() & ComponentFlags::VoltageSource) != ComponentFlags::None) {
+            comp->push_voltage(state, dt);
         }
     }
 
-    // Phase 2: Update switch states
+    // Phase 2: Update switch states and state machines (Switch, HoldButton, GS24, RU19A)
     for (auto& comp : systems.electrical) {
-        try_update_state<PushSwitch>(comp.get(), state, dt);
-        try_update_state<PushHoldButton>(comp.get(), state, dt);
-        try_update_state<PushGS24>(comp.get(), state, dt);
-        try_update_state<PushRU19A>(comp.get(), state, dt);
+        if ((comp->flags() & ComponentFlags::StateMachine) != ComponentFlags::None) {
+            comp->update_state(state, dt);
+        }
     }
 
     // Phase 3: Propagate voltages through connections
@@ -199,19 +172,7 @@ void PushSolver::step(PushState& state, float dt) {
 
     // Phase 4: Components propagate voltage (all push components)
     for (auto& comp : systems.electrical) {
-        try_push_voltage<PushBattery>(comp.get(), state, dt);
-        try_push_voltage<PushRefNode>(comp.get(), state, dt);
-        try_push_voltage<PushGenerator>(comp.get(), state, dt);
-        try_push_voltage<PushSwitch>(comp.get(), state, dt);
-        try_push_voltage<PushHoldButton>(comp.get(), state, dt);
-        try_push_voltage<PushIndicatorLight>(comp.get(), state, dt);
-        try_push_voltage<PushResistor>(comp.get(), state, dt);
-        try_push_voltage<PushWire>(comp.get(), state, dt);
-        try_push_voltage<PushLerpNode>(comp.get(), state, dt);
-        try_push_voltage<PushGS24>(comp.get(), state, dt);
-        try_push_voltage<PushRUG82>(comp.get(), state, dt);
-        try_push_voltage<PushDMR400>(comp.get(), state, dt);
-        try_push_voltage<PushRU19A>(comp.get(), state, dt);
+        comp->push_voltage(state, dt);
     }
 }
 

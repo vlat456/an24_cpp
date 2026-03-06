@@ -43,10 +43,14 @@ std::string blueprint_to_json(const Blueprint& bp) {
         // ports
         json ports = json::object();
         for (const auto& p : n.inputs) {
-            ports[p.name] = {{"direction", "In"}};
+            std::string dir = (p.side == PortSide::InOut) ? "InOut" : "In";
+            ports[p.name] = {{"direction", dir}};
         }
         for (const auto& p : n.outputs) {
-            ports[p.name] = {{"direction", "Out"}};
+            // Skip if already in inputs (InOut ports are in both lists)
+            if (ports.contains(p.name)) continue;
+            std::string dir = (p.side == PortSide::InOut) ? "InOut" : "Out";
+            ports[p.name] = {{"direction", dir}};
         }
         device["ports"] = ports;
         // params from content
@@ -57,10 +61,8 @@ std::string blueprint_to_json(const Blueprint& bp) {
             params["min"] = std::to_string(n.node_content.min);
             params["max"] = std::to_string(n.node_content.max);
             if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
-            // Switch state (for Relay, DMR400, etc.)
-            if (n.node_content.type == NodeContentType::Switch) {
-                params["closed"] = n.node_content.state ? "true" : "false";
-            }
+            // NOTE: Do NOT save runtime state (closed, pressed) to JSON
+            // This ensures clean state on each load
         }
         // Ref nodes always get value=0.0 (ground reference)
         if (n.kind == NodeKind::Ref && !params.contains("value")) {
@@ -76,11 +78,26 @@ std::string blueprint_to_json(const Blueprint& bp) {
     j["devices"] = devices;
 
     // connections (simulator format)
+    // Normalize direction: from = Output, to = Input (unless both InOut)
     json connections = json::array();
     for (const auto& w : bp.wires) {
         json conn = json::object();
-        conn["from"] = w.start.node_id + "." + w.start.port_name;
-        conn["to"] = w.end.node_id + "." + w.end.port_name;
+
+        // Normalize wire direction: from should be Output, to should be Input
+        if (w.start.side == PortSide::Output && w.end.side == PortSide::Input) {
+            // Correct direction: Output -> Input
+            conn["from"] = w.start.node_id + "." + w.start.port_name;
+            conn["to"] = w.end.node_id + "." + w.end.port_name;
+        } else if (w.start.side == PortSide::Input && w.end.side == PortSide::Output) {
+            // Wrong direction: Input -> Output, swap it
+            conn["from"] = w.end.node_id + "." + w.end.port_name;
+            conn["to"] = w.start.node_id + "." + w.start.port_name;
+        } else {
+            // InOut ports or same side - preserve wire order
+            conn["from"] = w.start.node_id + "." + w.start.port_name;
+            conn["to"] = w.end.node_id + "." + w.end.port_name;
+        }
+
         connections.push_back(conn);
     }
     j["connections"] = connections;

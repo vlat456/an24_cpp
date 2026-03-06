@@ -2,7 +2,7 @@
 #include "trigonometry.h"
 #include "router/crossings.h"
 #include "visual_node.h"
-#include "../jit_solver/simulator.h"
+#include "../jit_solver/push_solver.h"
 #include <algorithm>
 #include <unordered_map>
 #include <cstring>
@@ -69,7 +69,8 @@ NodeColors get_node_colors(const char* type_name) {
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
-                      const an24::Simulator<an24::JIT_Solver>* simulation,
+                      const an24::PushSolver* solver,
+                      const an24::PushState* state,
                       const Pt* hover_world_pos,
                       TooltipInfo* out_tooltip,
                       VisualNodeCache* cache) {
@@ -126,13 +127,13 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
         uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
 
-        // Подсветка проводов с током (симуляция запущена)
-        if (simulation && simulation->is_running() && !w.start.node_id.empty()) {
-            std::string start_port = w.start.node_id + "." + w.start.port_name;
-            if (simulation->wire_is_energized(start_port, 0.5f)) {
-                wire_color = COLOR_WIRE_CURRENT; // желтый - есть ток
-            }
-        }
+        // Подсветка проводов с током (симуляция запущена) - TODO: reimplement for PushSolver
+        // if (state && !w.start.node_id.empty()) {
+        //     std::string start_port = w.start.node_id + "." + w.start.port_name;
+        //     if (wire_is_energized(state, start_port, 0.5f)) {
+        //         wire_color = COLOR_WIRE_CURRENT; // желтый - есть ток
+        //     }
+        // }
 
         const auto& crossings = all_crossings[wire_idx];
 
@@ -320,8 +321,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         node_idx++;
     }
 
-    // --- Tooltip detection [h1a2b3c4] ---
-    if (hover_world_pos && out_tooltip && simulation && simulation->is_running()) {
+    // --- Tooltip detection [h1a2b3c4] --- TODO: reimplement for PushSolver
+    if (false && hover_world_pos && out_tooltip && state) {
         constexpr float PORT_RADIUS = 8.0f;
         // Check ports
         for (const auto& n : bp.nodes) {
@@ -408,8 +409,8 @@ void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip) {
                  tooltip.text.c_str(), VALUE_COLOR, FONT_SIZE);
 }
 
-void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max) {
-    float step = vp.grid_step;
+void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max, float grid_step) {
+    float step = grid_step;
 
     // Определяем границы в мировых координатах
     Pt tl = vp.screen_to_world(canvas_min, canvas_min);

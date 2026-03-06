@@ -1,6 +1,6 @@
 #pragma once
 
-#include "jit_solver.h"
+#include "push_solver.h"
 #include "state.h"
 #include "systems.h"
 #include "../editor/data/blueprint.h"
@@ -9,8 +9,8 @@
 
 namespace an24 {
 
-/// Empty tag type for JIT solver specialization
-struct JIT_Solver {};
+/// Empty tag type for Push solver specialization
+struct Push_Solver {};
 
 /// Simulator - manages component lifecycle and simulation state
 /// Template parameter allows future AOT specialization: Simulator<AOT_Solver>
