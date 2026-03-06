@@ -24,8 +24,7 @@ enum class APUState { OFF, CRANKING, IGNITION, RUNNING, STOPPING };
 class Battery : public Component {
 public:
     std::string name;
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
+    PORTS(Battery, v_in, v_out)
     float capacity = 1000.0f;
     float charge = 1000.0f;
     float internal_r = 0.01f;
@@ -47,10 +46,7 @@ public:
 /// post_step forces v_out=v_in when closed, v_out=0 when open.
 class Switch : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
-    uint32_t control_idx = 0;  // Control trigger (any change toggles state)
-    uint32_t state_idx = 0;    // State output (1.0V = closed, 0.0V = open)
+    PORTS(Switch, control, state, v_in, v_out)
     bool closed = false;        // Initial state (default: open)
     float last_control = 0.0f;  // Previous control voltage (edge detection)
     float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
@@ -70,9 +66,7 @@ public:
 /// Mirrors downstream conductance onto v_in so battery sees the load.
 class Relay : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
-    uint32_t control_idx = 0;  // Control signal (closed while control > threshold)
+    PORTS(Relay, control, v_in, v_out)
     bool closed = false;        // Current state
     float hold_threshold = 0.5f;  // Voltage threshold to hold closed
     float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
@@ -94,10 +88,7 @@ public:
 /// State output: 1.0V = pressed, 0.0V = released/idle
 class HoldButton : public Component {
 public:
-    uint32_t v_in_idx = 0;      // Voltage input (passed through when pressed)
-    uint32_t v_out_idx = 0;     // Voltage output
-    uint32_t control_idx = 0;   // Control input (commands from UI)
-    uint32_t state_idx = 0;      // State output: 1.0V=pressed, 0.0V=released
+    PORTS(HoldButton, control, state, v_in, v_out)
     float last_control = 0.0f;   // Previous control value (edge detection)
     bool is_pressed = false;     // Current button state (latched)
     float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
@@ -116,8 +107,7 @@ public:
 /// Resistor - pure conductance element (resistive load)
 class Resistor : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
+    PORTS(Resistor, v_in, v_out)
     float conductance = 0.1f;
 
     Resistor(uint32_t v_in, uint32_t v_out, float g = 0.1f)
@@ -130,26 +120,26 @@ public:
 /// Load - single port resistive load to ground
 class Load : public Component {
 public:
-    uint32_t node_idx = 0;
+    PORTS(Load, input)
     float conductance = 0.1f;  // draws I = V * g
 
-    Load(uint32_t node, float g = 0.1f)
-        : node_idx(node), conductance(g) {}
+    Load(uint32_t input, float g = 0.1f)
+        : input_idx(input), conductance(g) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Load"; }
     void solve_electrical(SimulationState& state) override;
 };
 
 /// RefNode - fixed voltage reference (ground, bus)
-/// Uses single "node" port - connects to the network as a fixed voltage
+/// Uses single "v" port - connects to the network as a fixed voltage
 class RefNode : public Component {
 public:
-    uint32_t node_idx = 0;  // single port for the reference node
+    PORTS(RefNode, v)
     float value = 0.0f;
 
     RefNode() = default;
-    RefNode(uint32_t node, float val)
-        : node_idx(node), value(val) {}
+    RefNode(uint32_t v, float val)
+        : v_idx(v), value(val) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RefNode"; }
     void solve_electrical(SimulationState& state) override;
@@ -158,10 +148,10 @@ public:
 /// Bus - electrical bus/rail, connects all ports together
 class Bus : public Component {
 public:
-    uint32_t bus_idx = 0;
+    PORTS(Bus, v)
 
     Bus() = default;
-    explicit Bus(uint32_t idx) : bus_idx(idx) {}
+    explicit Bus(uint32_t idx) : v_idx(idx) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "Bus"; }
     void solve_electrical(SimulationState& state) override {
@@ -172,8 +162,7 @@ public:
 /// Generator - voltage source like battery
 class Generator : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
+    PORTS(Generator, v_in, v_out)
     float internal_r = 0.005f;
     float v_nominal = 28.5f;
 
@@ -188,10 +177,7 @@ public:
 /// GS24 - Starter-Generator (ГС-24) with full state machine
 class GS24 : public Component {
 public:
-    uint32_t v_in_idx = 0;        // ground input
-    uint32_t v_out_idx = 0;        // bus output (generator mode)
-    uint32_t k_mod_idx = 0;        // excitation modulation from RUG82 (0...1)
-
+    PORTS(GS24, k_mod, v_in, v_out)
     // Mode state machine
     GS24Mode mode = GS24Mode::STARTER;
     float start_time = 0.0f;       // time since start
@@ -223,8 +209,7 @@ public:
 /// Transformer - AC transformer with voltage ratio
 class Transformer : public Component {
 public:
-    uint32_t primary_idx = 0;
-    uint32_t secondary_idx = 0;
+    PORTS(Transformer, primary, secondary)
     float ratio = 1.0f;  // primary / secondary
 
     Transformer(uint32_t primary, uint32_t secondary, float r)
@@ -237,8 +222,7 @@ public:
 /// Inverter - DC to AC inverter
 class Inverter : public Component {
 public:
-    uint32_t dc_in_idx = 0;
-    uint32_t ac_out_idx = 0;
+    PORTS(Inverter, ac_out, dc_in)
     float efficiency = 0.95f;
     float frequency = 400.0f;
 
@@ -252,8 +236,7 @@ public:
 /// LerpNode - linear interpolation (voltage display filter)
 class LerpNode : public Component {
 public:
-    uint32_t input_idx = 0;
-    uint32_t output_idx = 0;
+    PORTS(LerpNode, input, output)
     float factor = 1.0f;  // filter coefficient (0.1 = slow, 1.0 = instant)
 
     LerpNode() = default;
@@ -268,9 +251,7 @@ public:
 /// IndicatorLight - aircraft indicator light (two power terminals + brightness output)
 class IndicatorLight : public Component {
 public:
-    uint32_t v_in_idx = 0;        // power input (bus side)
-    uint32_t v_out_idx = 0;       // power return (ground side)
-    uint32_t brightness_idx = 0;  // brightness output signal
+    PORTS(IndicatorLight, brightness, v_in, v_out)
     float max_brightness = 100.0f;
     std::string color = "white";
 
@@ -285,8 +266,7 @@ public:
 /// HighPowerLoad - high power electrical load
 class HighPowerLoad : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t v_out_idx = 0;
+    PORTS(HighPowerLoad, v_in, v_out)
     float power_draw = 500.0f;
 
     HighPowerLoad(uint32_t v_in, uint32_t v_out, float power)
@@ -303,7 +283,8 @@ public:
 /// Gyroscope - power-only sensor
 class Gyroscope : public Component {
 public:
-    uint32_t input_idx = 0;
+    PORTS(Gyroscope, input)
+    float conductance = 0.001f;
 
     Gyroscope() = default;
     explicit Gyroscope(uint32_t input) : input_idx(input) {}
@@ -315,7 +296,8 @@ public:
 /// AGK47 - attitude gyro
 class AGK47 : public Component {
 public:
-    uint32_t input_idx = 0;
+    PORTS(AGK47, input)
+    float conductance = 0.001f;
 
     AGK47() = default;
     explicit AGK47(uint32_t input) : input_idx(input) {}
@@ -331,8 +313,7 @@ public:
 /// ElectricPump - electric motor driving hydraulic pump
 class ElectricPump : public Component {
 public:
-    uint32_t v_in_idx = 0;
-    uint32_t p_out_idx = 0;
+    PORTS(ElectricPump, p_out, v_in)
     float max_pressure = 1000.0f;
 
     ElectricPump(uint32_t v_in, uint32_t p_out, float max_p)
@@ -346,9 +327,7 @@ public:
 /// SolenoidValve - electrically controlled hydraulic valve
 class SolenoidValve : public Component {
 public:
-    uint32_t ctrl_idx = 0;
-    uint32_t flow_in_idx = 0;
-    uint32_t flow_out_idx = 0;
+    PORTS(SolenoidValve, ctrl, flow_in, flow_out)
     bool normally_closed = true;
 
     SolenoidValve(uint32_t ctrl, uint32_t flow_in, uint32_t flow_out, bool nc)
@@ -365,8 +344,7 @@ public:
 /// InertiaNode - mechanical inertia (first-order lag)
 class InertiaNode : public Component {
 public:
-    uint32_t input_idx = 0;
-    uint32_t output_idx = 0;
+    PORTS(InertiaNode, input, output)
     float mass = 1.0f;
     float inv_mass = 1.0f;
     float damping = 0.5f;
@@ -388,8 +366,7 @@ public:
 /// TempSensor - temperature sensor
 class TempSensor : public Component {
 public:
-    uint32_t temp_in_idx = 0;
-    uint32_t temp_out_idx = 0;
+    PORTS(TempSensor, temp_in, temp_out)
     float sensitivity = 1.0f;
 
     TempSensor(uint32_t temp_in, uint32_t temp_out, float sens)
@@ -402,8 +379,7 @@ public:
 /// ElectricHeater - electrical heater
 class ElectricHeater : public Component {
 public:
-    uint32_t power_idx = 0;
-    uint32_t heat_out_idx = 0;
+    PORTS(ElectricHeater, heat_out, power)
     float max_power = 1000.0f;
     float efficiency = 0.9f;
 
@@ -420,8 +396,7 @@ public:
 /// Input: v_gen (bus voltage), Output: k_mod (0...1 excitation modulation)
 class RUG82 : public Component {
 public:
-    uint32_t v_gen_idx = 0;   // input: generator voltage (U_bus)
-    uint32_t k_mod_idx = 0;   // output: excitation modulation (0...1)
+    PORTS(RUG82, k_mod, v_gen)
     float v_target = 28.5f;   // target voltage (28.5V)
     float k_mod = 0.5f;       // current modulation factor (0...1)
     float kp = 2.0f;          // proportional gain
@@ -438,11 +413,7 @@ public:
 /// Connects generator to DC bus when ready, disconnects on reverse current
 class DMR400 : public Component {
 public:
-    uint32_t v_gen_idx = 0;        // input: generator voltage
-    uint32_t v_bus_idx = 0;        // input: bus voltage monitoring (battery side)
-    uint32_t v_out_idx = 0;        // output: connected to bus
-    uint32_t lamp_idx = 0;         // output: warning lamp (1 = ON when disconnected)
-
+    PORTS(DMR400, lamp, v_bus, v_gen, v_out)
     bool is_closed = false;          // contactor state (default open)
     float connect_threshold = 2.0f;     // V_gen > V_bus + 2.0V to connect (hysteresis)
     float disconnect_threshold = 10.0f; // V_bus > V_gen + 10V to disconnect (reverse current)
@@ -514,8 +485,7 @@ public:
 /// Radiator - heat exchanger
 class Radiator : public Component {
 public:
-    uint32_t heat_in_idx = 0;
-    uint32_t heat_out_idx = 0;
+    PORTS(Radiator, heat_in, heat_out)
     float cooling_capacity = 1000.0f;
 
     Radiator(uint32_t heat_in, uint32_t heat_out, float capacity)

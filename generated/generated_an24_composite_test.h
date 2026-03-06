@@ -31,12 +31,13 @@ namespace an24 {
 
 constexpr uint32_t SIG_AGK_47_1_INPUT = 1;
 constexpr uint32_t SIG_GENERATOR_1_V_IN = 0;
+constexpr uint32_t SIG_GND_V = 0;
+constexpr uint32_t SIG_DC_BUS_2_V = 2;
+constexpr uint32_t SIG_RELAY_BUS_TIE_CONTROL = 3;
 constexpr uint32_t SIG_BAT_MAIN_2_V_IN = 0;
 constexpr uint32_t SIG_GENERATOR_1_V_OUT = 1;
 constexpr uint32_t SIG_BAT_MAIN_2_V_OUT = 2;
 constexpr uint32_t SIG_BAT_MAIN_1_V_OUT = 1;
-constexpr uint32_t SIG_GND_V = 0;
-constexpr uint32_t SIG_DC_BUS_2_V = 2;
 constexpr uint32_t SIG_BAT_MAIN_1_V_IN = 0;
 constexpr uint32_t SIG_RELAY_BUS_TIE_V_OUT = 2;
 constexpr uint32_t SIG_GYRO_1_INPUT = 2;
@@ -47,7 +48,7 @@ constexpr uint32_t SIG_DC_BUS_1_V = 1;
 constexpr uint32_t FIXED_SIGNALS[] = {0};
 
 /// Total number of unique signals (for memory allocation)
-constexpr uint32_t SIGNAL_COUNT = 4;
+constexpr uint32_t SIGNAL_COUNT = 5;
 
 /// Number of devices in this system
 constexpr uint32_t DEVICE_COUNT = 9;

@@ -9,7 +9,7 @@ Systems::Systems()
     static float buf[SIGNAL_COUNT];
     convergence_buffer = buf;
 
-    gnd.node_idx = 0;
+    gnd.v_idx = 0;
     gnd.value = 0;
     bat_main_1.v_in_idx = 0;
     bat_main_1.v_out_idx = 1;
@@ -17,7 +17,7 @@ Systems::Systems()
     bat_main_1.v_nominal = 28;
     bat_main_1.capacity = 1000;
     bat_main_1.internal_r = 0.01;
-    main_bus.bus_idx = 1;
+    main_bus.v_idx = 1;
     vsu_1.v_bus_idx = 2;
     vsu_1.t4_out_idx = 3;
     vsu_1.v_start_idx = 1;

@@ -146,22 +146,22 @@ void Resistor::solve_electrical(SimulationState& state) {
 
 void Load::solve_electrical(SimulationState& state) {
     // Single port load to ground: I = V * g
-    float v = state.across[node_idx];
+    float v = state.across[input_idx];
     float i = v * conductance;  // current flowing to ground
 
     spdlog::debug("[Load] node={} v={:.2f} g={:.2f} i={:.2f}",
-        node_idx, v, conductance, i);
+        input_idx, v, conductance, i);
 
     stamp_one_port_ground(state.conductance.data(), state.through.data(), state.across.data(),
-                          node_idx, conductance);
+                          input_idx, conductance);
 }
 
 void RefNode::solve_electrical(SimulationState& state) {
     // Fixed voltage reference
     // Add high conductance to make it a strong node
     float g = 1.0e6f;
-    state.conductance[node_idx] += g;
-    state.through[node_idx] += value * g;
+    state.conductance[v_idx] += g;
+    state.through[v_idx] += value * g;
 }
 
 void Generator::solve_electrical(SimulationState& state) {
@@ -397,17 +397,15 @@ void HighPowerLoad::solve_electrical(SimulationState& state) {
 void Gyroscope::solve_electrical(SimulationState& state) {
     // Power-only sensor, no output
     float v_input = state.across[input_idx];
-    float g = 0.001f;  // small load
-    state.conductance[input_idx] += g;
-    state.through[input_idx] -= v_input * g;
+    state.conductance[input_idx] += conductance;
+    state.through[input_idx] -= v_input * conductance;
 }
 
 void AGK47::solve_electrical(SimulationState& state) {
     // Similar to gyroscope
     float v_input = state.across[input_idx];
-    float g = 0.001f;
-    state.conductance[input_idx] += g;
-    state.through[input_idx] -= v_input * g;
+    state.conductance[input_idx] += conductance;
+    state.through[input_idx] -= v_input * conductance;
 }
 
 // =============================================================================

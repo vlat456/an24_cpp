@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "jit_solver/components/port_registry.h"
-#include "jit_solver/components/component.h"
+#include "jit_solver/component.h"
 #include <type_traits>
 
 using namespace an24;

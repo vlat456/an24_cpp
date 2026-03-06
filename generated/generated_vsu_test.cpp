@@ -9,7 +9,7 @@ Systems::Systems()
     static float buf[SIGNAL_COUNT];
     convergence_buffer = buf;
 
-    gnd.node_idx = 0;
+    gnd.v_idx = 0;
     gnd.value = 0;
     bat_main_1.v_in_idx = 0;
     bat_main_1.v_out_idx = 1;

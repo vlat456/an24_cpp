@@ -261,9 +261,6 @@ std::string CodeGen::generate_source(
 
             // Map port name to C++ field name
             std::string field_name = port_name + "_idx";
-            if (dev.classname == "Bus") field_name = "bus_idx";
-            else if (dev.classname == "RefNode") field_name = "node_idx";
-            else if (dev.classname == "IndicatorLight" && port_name == "brightness") field_name = "brightness_idx";
 
             oss << "    " << dev.name << "." << field_name << " = " << sig << ";\n";
         }

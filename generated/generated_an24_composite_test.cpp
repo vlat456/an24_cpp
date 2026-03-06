@@ -9,9 +9,9 @@ Systems::Systems()
     static float buf[SIGNAL_COUNT];
     convergence_buffer = buf;
 
-    dc_bus_1.bus_idx = 1;
-    dc_bus_2.bus_idx = 2;
-    gnd.node_idx = 0;
+    dc_bus_1.v_idx = 1;
+    dc_bus_2.v_idx = 2;
+    gnd.v_idx = 0;
     gnd.value = 0;
     bat_main_1.v_out_idx = 1;
     bat_main_1.v_in_idx = 0;
@@ -26,13 +26,17 @@ Systems::Systems()
     bat_main_2.internal_r = 0.01;
     bat_main_2.charge = 80;
     relay_bus_tie.v_out_idx = 2;
+    relay_bus_tie.control_idx = 3;
     relay_bus_tie.v_in_idx = 1;
+    relay_bus_tie.closed = false;
     generator_1.v_out_idx = 1;
     generator_1.v_in_idx = 0;
     generator_1.v_nominal = 28.5;
     generator_1.internal_r = 0.005;
     gyro_1.input_idx = 2;
+    gyro_1.conductance = 0.035;
     agk_47_1.input_idx = 1;
+    agk_47_1.conductance = 0.035;
 }
 
 void Systems::pre_load() {
