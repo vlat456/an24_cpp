@@ -1,5 +1,5 @@
 {
-  "tests": 30,
+  "tests": 29,
   "name": "AllTests",
   "testsuites": [
     {
@@ -51,7 +51,7 @@
     },
     {
       "name": "RegressionTest",
-      "tests": 8,
+      "tests": 11,
       "testsuite": [
         {
           "name": "BusAndGroundSignalsSeparate",
@@ -92,6 +92,21 @@
           "name": "GeneratorAndBatteryOnSameBus",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
           "line": 788
+        },
+        {
+          "name": "OpenSwitchDropsVoltageToZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 914
+        },
+        {
+          "name": "OpenRelayDropsVoltageToZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 958
+        },
+        {
+          "name": "ReleasedHoldButtonDropsVoltageToZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1016
         }
       ]
     },
@@ -159,32 +174,6 @@
           "name": "ToggleOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
           "line": 886
-        }
-      ]
-    },
-    {
-      "name": "HoldButtonTest",
-      "tests": 4,
-      "testsuite": [
-        {
-          "name": "InitialState_Idle",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 914
-        },
-        {
-          "name": "OnClick_PressedOutput",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 932
-        },
-        {
-          "name": "OnRelease_ReleasedOutput",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 967
-        },
-        {
-          "name": "ZeroVolts_PreservesState",
-          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1007
         }
       ]
     }

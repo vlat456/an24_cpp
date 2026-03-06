@@ -1,0 +1,353 @@
+{
+  "connections": [
+    {
+      "from": "battery_1.v_out",
+      "to": "bus_3.v"
+    },
+    {
+      "from": "switch_1.v_out",
+      "to": "load_1.input"
+    },
+    {
+      "from": "bus_2.v",
+      "to": "refnode_1.v"
+    },
+    {
+      "from": "battery_1.v_in",
+      "to": "bus_2.v"
+    },
+    {
+      "from": "holdbutton_1.v_out",
+      "to": "load_1.input"
+    },
+    {
+      "from": "bus_3.v",
+      "to": "switch_1.v_in"
+    },
+    {
+      "from": "bus_3.v",
+      "to": "holdbutton_1.v_in"
+    }
+  ],
+  "devices": [
+    {
+      "bucket": null,
+      "classname": "Battery",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Node",
+      "name": "battery_1",
+      "params": {
+        "label": "V",
+        "max": "30.000000",
+        "min": "0.000000",
+        "unit": "V",
+        "value": "0.000000"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In"
+        },
+        "v_out": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Load",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Node",
+      "name": "load_1",
+      "ports": {
+        "input": {
+          "direction": "In"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Switch",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Node",
+      "name": "switch_1",
+      "params": {
+        "closed": "false",
+        "label": "ON",
+        "max": "1.000000",
+        "min": "0.000000",
+        "value": "0.000000"
+      },
+      "ports": {
+        "control": {
+          "direction": "In"
+        },
+        "state": {
+          "direction": "Out"
+        },
+        "v_in": {
+          "direction": "In"
+        },
+        "v_out": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "RefNode",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Ref",
+      "name": "refnode_1",
+      "params": {
+        "value": "0.0"
+      },
+      "ports": {
+        "v": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_2",
+      "ports": {
+        "v": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "HoldButton",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Node",
+      "name": "holdbutton_1",
+      "params": {
+        "closed": "false",
+        "label": "RELEASED",
+        "max": "1.000000",
+        "min": "0.000000",
+        "value": "0.000000"
+      },
+      "ports": {
+        "control": {
+          "direction": "In"
+        },
+        "state": {
+          "direction": "Out"
+        },
+        "v_in": {
+          "direction": "In"
+        },
+        "v_out": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_3",
+      "ports": {
+        "v": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    }
+  ],
+  "editor": {
+    "nodes": {
+      "battery_1": {
+        "pos": {
+          "x": 384.0,
+          "y": 272.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "bus_1": {
+        "pos": {
+          "x": 640.0,
+          "y": 416.0
+        },
+        "size": {
+          "x": 48.0,
+          "y": 32.0
+        }
+      },
+      "bus_2": {
+        "pos": {
+          "x": 448.0,
+          "y": 480.0
+        },
+        "size": {
+          "x": 80.0,
+          "y": 32.0
+        }
+      },
+      "bus_3": {
+        "pos": {
+          "x": 512.0,
+          "y": 224.0
+        },
+        "size": {
+          "x": 96.0,
+          "y": 32.0
+        }
+      },
+      "holdbutton_1": {
+        "pos": {
+          "x": 736.0,
+          "y": 416.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "load_1": {
+        "pos": {
+          "x": 928.0,
+          "y": 224.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      },
+      "refnode_1": {
+        "pos": {
+          "x": 464.0,
+          "y": 656.0
+        },
+        "size": {
+          "x": 48.0,
+          "y": 48.0
+        }
+      },
+      "switch_1": {
+        "pos": {
+          "x": 640.0,
+          "y": 224.0
+        },
+        "size": {
+          "x": 128.0,
+          "y": 80.0
+        }
+      }
+    },
+    "viewport": {
+      "grid_step": 32.0,
+      "pan": {
+        "x": 135.664794921875,
+        "y": 171.14793395996094
+      },
+      "zoom": 1.1092605590820313
+    },
+    "wires": [
+      {
+        "from": "battery_1.v_out",
+        "routing_points": [],
+        "to": "bus_3.v"
+      },
+      {
+        "from": "switch_1.v_out",
+        "routing_points": [],
+        "to": "load_1.input"
+      },
+      {
+        "from": "bus_2.v",
+        "routing_points": [],
+        "to": "refnode_1.v"
+      },
+      {
+        "from": "battery_1.v_in",
+        "routing_points": [],
+        "to": "bus_2.v"
+      },
+      {
+        "from": "holdbutton_1.v_out",
+        "routing_points": [],
+        "to": "load_1.input"
+      },
+      {
+        "from": "bus_3.v",
+        "routing_points": [],
+        "to": "switch_1.v_in"
+      },
+      {
+        "from": "bus_3.v",
+        "routing_points": [],
+        "to": "holdbutton_1.v_in"
+      }
+    ]
+  },
+  "templates": {}
+}
