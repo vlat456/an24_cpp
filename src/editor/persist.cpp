@@ -257,6 +257,7 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
     for (const auto& [port_name, port] : dev.ports) {
         Port p;
         p.name = port_name;
+        p.type = port.type;  // Copy port type for visualization and validation
 
         if (port.direction == an24::PortDirection::Out) {
             p.side = PortSide::Output;
