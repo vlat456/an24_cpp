@@ -1,8 +1,32 @@
 #include <gtest/gtest.h>
 #include "jit_solver/components/port_registry.h"
+#include "jit_solver/components/component.h"
 #include <type_traits>
 
 using namespace an24;
+
+// Test component using PORTS macro
+struct TestComponentWithPorts {
+    PORTS(TestComponent, v_bus, v_start, k_mod)
+};
+
+// Test PORTS macro functionality
+TEST(PortMacroTest, ComponentHasCorrectFieldTypes) {
+    TestComponentWithPorts comp;
+
+    // Check that fields are uint32_t
+    EXPECT_TRUE((std::is_same<decltype(comp.v_bus_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.v_start_idx), uint32_t>::value));
+    EXPECT_TRUE((std::is_same<decltype(comp.k_mod_idx), uint32_t>::value));
+}
+
+TEST(PortMacroTest, ComponentFieldsAreZeroInitialized) {
+    TestComponentWithPorts comp;
+
+    EXPECT_EQ(comp.v_bus_idx, 0);
+    EXPECT_EQ(comp.v_start_idx, 0);
+    EXPECT_EQ(comp.k_mod_idx, 0);
+}
 
 // Test with real component (RU19A)
 TEST(PortMacroTest, RU19A_PortCountIsSix) {
