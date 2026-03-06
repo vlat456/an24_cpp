@@ -14,6 +14,10 @@ add_executable(json_test json_test.cpp)
 target_include_directories(json_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(json_test PRIVATE json_parser jit_solver spdlog::spdlog)
 
+add_executable(push_test push_test.cpp)
+target_include_directories(push_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(push_test PRIVATE json_parser jit_solver spdlog::spdlog)
+
 add_executable(benchmark benchmark.cpp)
 target_include_directories(benchmark PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark PRIVATE json_parser jit_solver spdlog::spdlog)

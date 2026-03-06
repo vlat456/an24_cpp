@@ -1,0 +1,13 @@
+{
+  "templates": {},
+  "devices": [
+    { "name": "gnd", "classname": "RefNode", "params": { "value": "0.0" } },
+    { "name": "bat1", "classname": "Battery", "params": { "v_nominal": "28.0", "internal_r": "0.01" } },
+    { "name": "light1", "classname": "IndicatorLight", "params": { "r_on": "100.0", "v_threshold": "1.0" } }
+  ],
+  "connections": [
+    { "from": "bat1.v_out", "to": "light1.v_in" },
+    { "from": "light1.v_out", "to": "gnd.v" },
+    { "from": "gnd.v", "to": "bat1.v_in" }
+  ]
+}

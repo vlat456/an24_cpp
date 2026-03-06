@@ -1,0 +1,15 @@
+{
+  "templates": {},
+  "devices": [
+    { "name": "gnd", "classname": "RefNode", "params": { "value": "0.0" } },
+    { "name": "bat1", "classname": "Battery", "params": { "v_nominal": "28.0", "internal_r": "0.01" } },
+    { "name": "lamp1", "classname": "Resistor", "params": { "resistance": "100.0" } },
+    { "name": "lamp2", "classname": "Resistor", "params": { "resistance": "100.0" } }
+  ],
+  "connections": [
+    { "from": "bat1.v_out", "to": "lamp1.v_in" },
+    { "from": "lamp1.v_out", "to": "lamp2.v_in" },
+    { "from": "lamp2.v_out", "to": "gnd.v" },
+    { "from": "gnd.v", "to": "bat1.v_in" }
+  ]
+}
