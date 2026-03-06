@@ -784,6 +784,30 @@ __/src/editor/app.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app.cpp.s
 .PHONY : __/src/editor/app.cpp.s
 
+__/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
+.PHONY : __/src/editor/data/blueprint.o
+
+# target to build an object file
+__/src/editor/data/blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.o
+.PHONY : __/src/editor/data/blueprint.cpp.o
+
+__/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
+.PHONY : __/src/editor/data/blueprint.i
+
+# target to preprocess a source file
+__/src/editor/data/blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.i
+.PHONY : __/src/editor/data/blueprint.cpp.i
+
+__/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
+.PHONY : __/src/editor/data/blueprint.s
+
+# target to generate assembly for a file
+__/src/editor/data/blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
+.PHONY : __/src/editor/data/blueprint.cpp.s
+
 __/src/editor/hittest.o: __/src/editor/hittest.cpp.o
 .PHONY : __/src/editor/hittest.o
 
@@ -1222,6 +1246,9 @@ help:
 	@echo "... __/src/editor/app.o"
 	@echo "... __/src/editor/app.i"
 	@echo "... __/src/editor/app.s"
+	@echo "... __/src/editor/data/blueprint.o"
+	@echo "... __/src/editor/data/blueprint.i"
+	@echo "... __/src/editor/data/blueprint.s"
 	@echo "... __/src/editor/hittest.o"
 	@echo "... __/src/editor/hittest.i"
 	@echo "... __/src/editor/hittest.s"

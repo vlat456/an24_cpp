@@ -1,10 +1,10 @@
 {
-  "tests": 17,
+  "tests": 20,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "JsonParserTest",
-      "tests": 17,
+      "tests": 20,
       "testsuite": [
         {
           "name": "ParseEmptyContext",
@@ -74,22 +74,37 @@
         {
           "name": "ValidateConnection_MatchingTypes_ShouldPass",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 322
+          "line": 327
         },
         {
           "name": "ValidateConnection_BoolToV_ShouldFail",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 351
+          "line": 356
         },
         {
           "name": "ValidateConnection_AnyType_ShouldPass",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 379
+          "line": 389
         },
         {
           "name": "PortTypeSerialization_RoundTrip",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
-          "line": 408
+          "line": 418
+        },
+        {
+          "name": "Regression_PortTypeMerge_ComponentDefinitionTypesCopied",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 441
+        },
+        {
+          "name": "Regression_PortTypeMerge_InlinePortWithoutType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 474
+        },
+        {
+          "name": "Regression_LerpNodeAnyType_CanConnectToAnything",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 504
         }
       ]
     }
