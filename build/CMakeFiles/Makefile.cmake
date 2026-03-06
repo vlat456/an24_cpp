@@ -157,6 +157,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "examples/CMakeFiles/an24_editor.dir/DependInfo.cmake"
   "tests/CMakeFiles/jit_solver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_registry_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/port_macro_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_data_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_persist_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_viewport_tests.dir/DependInfo.cmake"

@@ -27,6 +27,25 @@ target_link_libraries(port_registry_tests PRIVATE
 )
 gtest_discover_tests(port_registry_tests)
 
+# Port macro tests (TDD for PORTS macro)
+add_executable(port_macro_tests
+    port_macro_test.cpp
+)
+target_include_directories(port_macro_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_compile_definitions(port_macro_tests PRIVATE
+    TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
+)
+target_link_libraries(port_macro_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(port_macro_tests)
+
 # Editor data tests (TDD Step 1)
 add_executable(editor_data_tests
     test_data.cpp

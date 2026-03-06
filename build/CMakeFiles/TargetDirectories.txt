@@ -106,6 +106,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/strip.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/jit_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_persist_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_viewport_tests.dir

@@ -200,6 +200,20 @@ port_registry_tests/fast:
 .PHONY : port_registry_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/port_macro_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_macro_tests.dir/rule
+.PHONY : tests/CMakeFiles/port_macro_tests.dir/rule
+
+# Convenience name for target.
+port_macro_tests: tests/CMakeFiles/port_macro_tests.dir/rule
+.PHONY : port_macro_tests
+
+# fast build rule for target.
+port_macro_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/build
+.PHONY : port_macro_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/editor_data_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_data_tests.dir/rule
 .PHONY : tests/CMakeFiles/editor_data_tests.dir/rule
@@ -708,6 +722,30 @@ json_parser_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.s
 .PHONY : json_parser_test.cpp.s
 
+port_macro_test.o: port_macro_test.cpp.o
+.PHONY : port_macro_test.o
+
+# target to build an object file
+port_macro_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.o
+.PHONY : port_macro_test.cpp.o
+
+port_macro_test.i: port_macro_test.cpp.i
+.PHONY : port_macro_test.i
+
+# target to preprocess a source file
+port_macro_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.i
+.PHONY : port_macro_test.cpp.i
+
+port_macro_test.s: port_macro_test.cpp.s
+.PHONY : port_macro_test.s
+
+# target to generate assembly for a file
+port_macro_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.s
+.PHONY : port_macro_test.cpp.s
+
 port_registry_test.o: port_registry_test.cpp.o
 .PHONY : port_registry_test.o
 
@@ -1047,6 +1085,7 @@ help:
 	@echo "... editor_widget_tests"
 	@echo "... jit_solver_tests"
 	@echo "... json_parser_tests"
+	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
 	@echo "... __/src/editor/app.o"
 	@echo "... __/src/editor/app.i"
@@ -1081,6 +1120,9 @@ help:
 	@echo "... json_parser_test.o"
 	@echo "... json_parser_test.i"
 	@echo "... json_parser_test.s"
+	@echo "... port_macro_test.o"
+	@echo "... port_macro_test.i"
+	@echo "... port_macro_test.s"
 	@echo "... port_registry_test.o"
 	@echo "... port_registry_test.i"
 	@echo "... port_registry_test.s"

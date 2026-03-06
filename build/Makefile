@@ -484,6 +484,19 @@ port_registry_tests/fast:
 .PHONY : port_registry_tests/fast
 
 #=============================================================================
+# Target rules for targets named port_macro_tests
+
+# Build rule for target.
+port_macro_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 port_macro_tests
+.PHONY : port_macro_tests
+
+# fast build rule for target.
+port_macro_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/build
+.PHONY : port_macro_tests/fast
+
+#=============================================================================
 # Target rules for targets named editor_data_tests
 
 # Build rule for target.
@@ -697,6 +710,7 @@ help:
 	@echo "... json_parser_tests"
 	@echo "... json_test"
 	@echo "... nfd"
+	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
 	@echo "... spdlog"
 	@echo "... test_generated"
