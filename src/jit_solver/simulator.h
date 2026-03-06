@@ -59,6 +59,12 @@ public:
     /// Apply signal overrides (for button clicks, etc.)
     void apply_overrides(const std::unordered_map<std::string, float>& overrides);
 
+    /// Get boolean output from a component (e.g., "comparator.o")
+    bool get_boolean_output(const std::string& port_name) const;
+
+    /// Get boolean output by node_id and port_name
+    bool get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const;
+
 private:
     /// Build result from JIT solver (owns Component pointers!)
     std::optional<BuildResult> build_result_;

@@ -89,6 +89,11 @@ std::unique_ptr<Component> create_component(
         // Just use first port's signal index
         return std::make_unique<Bus>(get_port("v"));
     }
+    else if (device.classname == "Splitter") {
+        // Splitter connects all ports to the same signal (like Bus)
+        // Just use real port's signal index (virtual aliases merged via union-find)
+        return std::make_unique<Splitter>(get_port("i"));
+    }
     else if (device.classname == "Generator") {
         return std::make_unique<Generator>(
             get_port("v_in"), get_port("v_out"),
@@ -196,6 +201,13 @@ std::unique_ptr<Component> create_component(
         return std::make_unique<Radiator>(
             get_port("heat_in"), get_port("heat_out"), get_f("cooling_capacity", 1000.0f));
     }
+    else if (device.classname == "Comparator") {
+        auto comp = std::make_unique<Comparator>(
+            get_port("Va"), get_port("Vb"), get_port("o"));
+        comp->Von = get_f("Von", 5.0f);    // Get Von parameter from JSON
+        comp->Voff = get_f("Voff", 2.0f);  // Get Voff parameter from JSON
+        return comp;
+    }
 
     spdlog::warn("Unknown device type: {}", device.classname);
     return nullptr;
@@ -261,6 +273,24 @@ BuildResult build_systems_dev(
         auto it_to = port_to_idx.find(to);
         if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
             uf.unite(it_from->second, it_to->second);
+        }
+    }
+
+    // Union alias ports within same device (e.g., Splitter o1/o2 -> i)
+    for (const auto& dev : devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.alias.has_value() && !port.alias->empty()) {
+                // This port is an alias - union it with its target
+                std::string full_port = dev.name + "." + port_name;
+                std::string full_alias = dev.name + "." + *port.alias;
+
+                auto it_port = port_to_idx.find(full_port);
+                auto it_alias = port_to_idx.find(full_alias);
+                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                    uf.unite(it_port->second, it_alias->second);
+                    spdlog::debug("[jit] alias: {} -> {}", full_port, full_alias);
+                }
+            }
         }
     }
 

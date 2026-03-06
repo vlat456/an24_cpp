@@ -14,5 +14,6 @@
     "Electrical"
   ],
   "default_priority": "med",
-  "default_critical": false
+  "default_critical": false,
+  "default_size": {"x": 2, "y": 2}
 }

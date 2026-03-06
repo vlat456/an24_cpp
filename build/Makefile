@@ -678,6 +678,19 @@ factory_validation_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
 .PHONY : factory_validation_tests/fast
 
+#=============================================================================
+# Target rules for targets named logical_solver_tests
+
+# Build rule for target.
+logical_solver_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 logical_solver_tests
+.PHONY : logical_solver_tests
+
+# fast build rule for target.
+logical_solver_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/build
+.PHONY : logical_solver_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -723,6 +736,7 @@ help:
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... json_test"
+	@echo "... logical_solver_tests"
 	@echo "... nfd"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"

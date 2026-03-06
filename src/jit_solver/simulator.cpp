@@ -166,6 +166,19 @@ void Simulator<SolverTag>::apply_overrides(const std::unordered_map<std::string,
     }
 }
 
+template<typename SolverTag>
+bool Simulator<SolverTag>::get_boolean_output(const std::string& port_name) const {
+    // Read from voltage signal, treat > 0.5V as true
+    float value = get_wire_voltage(port_name);
+    return value > 0.5f;
+}
+
+template<typename SolverTag>
+bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const {
+    std::string port_key = node_id + "." + port_name;
+    return get_boolean_output(port_key);
+}
+
 // Explicit template instantiation for JIT_Solver
 template class Simulator<JIT_Solver>;
 

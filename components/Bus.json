@@ -13,5 +13,6 @@
     "Electrical"
   ],
   "default_priority": "high",
-  "default_critical": true
+  "default_critical": true,
+  "default_size": {"x": 2, "y": 2}
 }

@@ -12,6 +12,7 @@ namespace an24 {
 // Helper: convert string to Domain
 static Domain parse_domain(const std::string& s) {
     if (s == "Electrical") return Domain::Electrical;
+    if (s == "Logical") return Domain::Logical;
     if (s == "Hydraulic") return Domain::Hydraulic;
     if (s == "Mechanical") return Domain::Mechanical;
     if (s == "Thermal") return Domain::Thermal;
@@ -22,6 +23,7 @@ static Domain parse_domain(const std::string& s) {
 static std::string domain_to_string(Domain d) {
     switch (d) {
         case Domain::Electrical: return "Electrical";
+        case Domain::Logical: return "Logical";
         case Domain::Hydraulic: return "Hydraulic";
         case Domain::Mechanical: return "Mechanical";
         case Domain::Thermal: return "Thermal";
@@ -86,6 +88,9 @@ static Port parse_port(const json& j) {
         }
         if (j.contains("type")) {
             port.type = parse_port_type(j["type"].get<std::string>());
+        }
+        if (j.contains("alias")) {
+            port.alias = j["alias"].get<std::string>();
         }
     }
     return port;
@@ -500,6 +505,16 @@ static ComponentDefinition parse_component_definition(const json& j) {
         def.default_content_type = j["default_content_type"].get<std::string>();
     }
 
+    // Parse default size {x, y} in grid units
+    if (j.contains("default_size") && j["default_size"].is_object()) {
+        auto size_obj = j["default_size"];
+        if (size_obj.contains("x") && size_obj.contains("y")) {
+            float x = size_obj["x"].get<float>();
+            float y = size_obj["y"].get<float>();
+            def.default_size = {x, y};
+        }
+    }
+
     return def;
 }
 
@@ -588,9 +603,10 @@ DeviceInstance merge_device_instance(
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
-                // Port exists in instance - always copy type from definition
+                // Port exists in instance - always copy type and alias from definition
                 // This ensures port types from component definitions are always used
                 merged.ports[port_name].type = port.type;
+                merged.ports[port_name].alias = port.alias;
             }
         }
     }

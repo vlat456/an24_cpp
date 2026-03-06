@@ -224,6 +224,13 @@ int main(int argc, char** argv) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 app.on_key_down(Key::Space);
             }
+            // [ and ] keys for grid size adjustment
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+                app.on_key_down(Key::LeftBracket);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+                app.on_key_down(Key::RightBracket);
+            }
         }
 
         // Обновление симуляции каждый кадр

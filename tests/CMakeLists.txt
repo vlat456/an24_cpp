@@ -63,7 +63,12 @@ gtest_discover_tests(editor_data_tests)
 add_executable(editor_persist_tests
     test_persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
 )
+target_compile_definitions(editor_persist_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_persist_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
@@ -72,6 +77,7 @@ target_include_directories(editor_persist_tests PRIVATE
 )
 target_link_libraries(editor_persist_tests PRIVATE
     json_parser
+    jit_solver
     GTest::gtest_main
 )
 gtest_discover_tests(editor_persist_tests)
@@ -272,3 +278,22 @@ target_link_libraries(factory_validation_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(factory_validation_tests)
+
+# Logical solver tests (TDD - Comparator component)
+add_executable(logical_solver_tests
+    test_logical_solver.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(logical_solver_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(logical_solver_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(logical_solver_tests)

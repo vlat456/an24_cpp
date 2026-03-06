@@ -1,6 +1,7 @@
 #include "persist.h"
 #include "router/router.h"
 #include "json_parser/json_parser.h"
+#include "data/node.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -134,24 +135,21 @@ static Node device_to_node(const json& d, int index) {
         std::string kind_str = d["kind"].get<std::string>();
         if (kind_str == "Bus") {
             n.kind = NodeKind::Bus;
-            n.size = Pt(40, 40);
         } else if (kind_str == "Ref") {
             n.kind = NodeKind::Ref;
-            n.size = Pt(40, 40);
         } else {
             n.kind = NodeKind::Node;
-            n.size = Pt(120, 80);
         }
     } else if (n.type_name == "Bus") {
         n.kind = NodeKind::Bus;
-        n.size = Pt(40, 40);
     } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
         n.kind = NodeKind::Ref;
-        n.size = Pt(40, 40);
     } else {
         n.kind = NodeKind::Node;
-        n.size = Pt(120, 80);
     }
+
+    // Get size (single source of truth - no registry available here, use defaults)
+    n.size = get_default_node_size(n.type_name, nullptr);
 
     // Позиция - сетка
     int col = index % 4;
@@ -230,23 +228,24 @@ static Node device_to_node(const json& d, int index) {
 }
 
 // Конвертировать DeviceInstance (с портами из ComponentRegistry) в Node
-static Node device_instance_to_node(const an24::DeviceInstance& dev, int index = 0) {
+static Node device_instance_to_node(const an24::DeviceInstance& dev, int index = 0,
+                                    const an24::ComponentRegistry* registry = nullptr) {
     Node n;
     n.id = dev.name;
     n.name = dev.name;
     n.type_name = dev.classname;
 
-    // Определяем вид узла по type_name
+    // Determine node kind
     if (n.type_name == "Bus") {
         n.kind = NodeKind::Bus;
-        n.size = Pt(40, 40);
     } else if (n.type_name == "RefNode") {
         n.kind = NodeKind::Ref;
-        n.size = Pt(40, 40);
     } else {
         n.kind = NodeKind::Node;
-        n.size = Pt(120, 80);
     }
+
+    // Get size from component definition (single source of truth)
+    n.size = get_default_node_size(dev.classname, registry);
 
     // Позиция - сетка (для загрузки из файлов без позиции)
     int col = index % 4;
@@ -485,21 +484,20 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
         int idx = 0;
         size_t dev_idx = 0;
         for (const auto& dev : ctx.devices) {
-            Node n = device_instance_to_node(dev, idx);
+            Node n = device_instance_to_node(dev, idx, &ctx.registry);
 
             // Restore kind from JSON if explicitly set (overrides type_name-based detection)
             if (j["devices"][dev_idx].contains("kind")) {
                 std::string kind_str = j["devices"][dev_idx]["kind"].get<std::string>();
                 if (kind_str == "Bus") {
                     n.kind = NodeKind::Bus;
-                    n.size = Pt(40, 40);
                 } else if (kind_str == "Ref") {
                     n.kind = NodeKind::Ref;
-                    n.size = Pt(40, 40);
                 } else if (kind_str == "Node") {
                     n.kind = NodeKind::Node;
-                    n.size = Pt(120, 80);
                 }
+                // Re-calculate size based on kind (single source of truth)
+                n.size = get_default_node_size(n.type_name, &ctx.registry);
             }
 
             // Create node_content from ComponentDefinition

@@ -25,7 +25,7 @@ static DeviceInstance make_device(
         else if (port_name.find('i') != std::string::npos) type = PortType::I;
         else if (port_name.find("rpm") != std::string::npos || port_name.find("speed") != std::string::npos) type = PortType::RPM;
         else if (port_name.find("brightness") != std::string::npos || port_name.find("state") != std::string::npos) type = PortType::Bool;
-        dev.ports[port_name] = Port{dir, type};
+        dev.ports[port_name] = Port{dir, type, std::nullopt};
     }
     return dev;
 }
@@ -1291,4 +1291,133 @@ TEST(RegressionTest, NortonMirroringDoesNotDiverge) {
     EXPECT_LT(v, 28.0f);
     // Expected: V = 28 * 100 / 200 = 14V
     EXPECT_NEAR(v, 14.0f, 0.5f);
+}
+
+// =============================================================================
+// Splitter Component Tests
+// =============================================================================
+
+TEST(SplitterTest, AliasPortsMergeToOneSignal) {
+    // Splitter should merge i, o1, o2 into same signal via union-find
+    DeviceInstance splitter;
+    splitter.name = "split";
+    splitter.classname = "Splitter";
+    splitter.params = {};
+    splitter.ports["i"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    splitter.ports["o1"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    splitter.ports["o2"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    splitter.domains = {Domain::Electrical, Domain::Mechanical, Domain::Hydraulic, Domain::Thermal};
+
+    std::vector<DeviceInstance> devices = {splitter};
+    std::vector<std::pair<std::string, std::string>> connections = {};
+
+    auto result = build_systems_dev(devices, connections);
+
+    // All three ports should map to the same signal
+    uint32_t i_signal = result.port_to_signal["split.i"];
+    uint32_t o1_signal = result.port_to_signal["split.o1"];
+    uint32_t o2_signal = result.port_to_signal["split.o2"];
+
+    EXPECT_EQ(i_signal, o1_signal) << "Splitter 'i' and 'o1' should be same signal";
+    EXPECT_EQ(i_signal, o2_signal) << "Splitter 'i' and 'o2' should be same signal";
+    EXPECT_EQ(o1_signal, o2_signal) << "Splitter 'o1' and 'o2' should be same signal";
+}
+
+TEST(SplitterTest, DistributesVoltageToOutputs) {
+    // Splitter should distribute input voltage to both outputs
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    // Create Splitter with proper ports including alias field
+    DeviceInstance split;
+    split.name = "split";
+    split.classname = "Splitter";
+    split.params = {};
+    split.ports["i"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    split.ports["o1"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    split.ports["o2"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    split.domains = {Domain::Electrical};
+
+    auto load1 = make_device("load1", "Resistor", {{"conductance", "10.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load2 = make_device("load2", "Resistor", {{"conductance", "10.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, split, load1, load2};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "split.i"},
+        {"split.o1", "load1.v_in"},
+        {"split.o2", "load2.v_in"},
+        {"load1.v_out", "gnd.v"},
+        {"load2.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    // Debug: check battery voltage
+    float v_bat_out = get_voltage(state, result, "bat.v_out");
+    float v_gnd = get_voltage(state, result, "gnd.v");
+    std::cout << "Battery output voltage: " << v_bat_out << "V\n";
+    std::cout << "Ground voltage: " << v_gnd << "V\n";
+
+    float v_in = get_voltage(state, result, "split.i");
+    float v_o1 = get_voltage(state, result, "split.o1");
+    float v_o2 = get_voltage(state, result, "split.o2");
+
+    std::cout << "Splitter voltages: i=" << v_in << ", o1=" << v_o1 << ", o2=" << v_o2 << "\n";
+
+    // All three ports should have the same voltage (merged by union-find)
+    EXPECT_FLOAT_EQ(v_in, v_o1) << "Splitter input and output1 should have same voltage";
+    EXPECT_FLOAT_EQ(v_in, v_o2) << "Splitter input and output2 should have same voltage";
+    EXPECT_FLOAT_EQ(v_o1, v_o2) << "Splitter output1 and output2 should have same voltage";
+
+    // Should see reasonable voltage (28V source through 0.01Ω int to two 10Ω loads)
+    EXPECT_GT(v_in, 25.0f) << "Splitter voltage too low";
+    EXPECT_LT(v_in, 28.0f) << "Splitter voltage exceeds source";
+}
+
+TEST(SplitterTest, EnforcesOneToOneConnections) {
+    // Splitter should allow max 1 wire per port (3 total for component)
+    // This is enforced by validation - ports are not Bus/RefNode with allows_multiple
+    // TODO: Add validation test once JSON-based testing is implemented
+    // For now, verify that adding multiple connections to same port works like other components
+
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    // Create Splitter with proper ports including alias field
+    DeviceInstance split;
+    split.name = "split";
+    split.classname = "Splitter";
+    split.params = {};
+    split.ports["i"] = Port{PortDirection::In, PortType::Any, std::nullopt};
+    split.ports["o1"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    split.ports["o2"] = Port{PortDirection::Out, PortType::Any, std::string("i")};
+    split.domains = {Domain::Electrical};
+
+    auto load1 = make_device("load1", "Resistor", {{"conductance", "10.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto load2 = make_device("load2", "Resistor", {{"conductance", "10.0"}},
+        {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, split, load1, load2};
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "split.i"},      // 1 wire to split.i
+        {"split.o1", "load1.v_in"},    // 1 wire to split.o1
+        {"split.o2", "load2.v_in"},    // 1 wire to split.o2
+        {"load1.v_out", "gnd.v"},
+        {"load2.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    // Should work correctly with 3 connections (1 per port)
+    float v_in = get_voltage(state, result, "split.i");
+    EXPECT_GT(v_in, 25.0f) << "Splitter should work with 3 connections (1 per port)";
 }

@@ -147,9 +147,7 @@ public:
     BusVisualNode(const Node& node, BusOrientation orientation = BusOrientation::Horizontal,
                   const std::vector<Wire>& wires = {});
 
-    // [a3f7c1e0] Override setSize: Bus calculates its own size from port count;
-    // external override would corrupt port positions (bottom vs right-side layout).
-    void setSize(Pt) override { size_ = calculateBusSize(ports_.size()); }
+    // Use base class setSize() - size comes from component definition default_size
 
     const Port* getPort(const std::string& name) const override;
     const Port* getPort(size_t index) const override;
@@ -184,8 +182,7 @@ class RefVisualNode : public BaseVisualNode {
 public:
     RefVisualNode(const Node& node);
 
-    // [a3f7c1e0] Override setSize: Ref node has fixed size, external override ignored.
-    void setSize(Pt) override { /* Ref size is fixed */ }
+    // Use base class setSize() - size comes from component definition default_size
 
     const Port* getPort(const std::string& name) const override;
     const Port* getPort(size_t index) const override;

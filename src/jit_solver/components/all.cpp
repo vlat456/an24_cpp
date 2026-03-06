@@ -852,4 +852,32 @@ void Radiator::solve_thermal(SimulationState& state, float /*dt*/) {
     state.through[heat_out_idx] -= delta * g;
 }
 
+// =============================================================================
+// Logical Components
+// =============================================================================
+
+void Comparator::pre_load() {
+    // Parameters are set by factory from JSON default_params
+}
+
+void Comparator::solve_logical(SimulationState& state, float /*dt*/) {
+    // Read input voltages
+    float Va = state.across[Va_idx];
+    float Vb = state.across[Vb_idx];
+
+    // Calculate difference
+    float diff = Va - Vb;
+
+    // Branchless hysteresis logic:
+    // set = (diff >= Von)    - forced turn-on condition (inclusive)
+    // keep = (diff > Voff)    - hold condition in hysteresis band
+    // output = set || (output && keep)
+    bool set = (diff >= Von);
+    bool keep = (diff > Voff);
+    output_state = set || (output_state && keep);
+
+    // Write boolean output as voltage (1.0V = true, 0.0V = false)
+    state.across[o_idx] = output_state ? 1.0f : 0.0f;
+}
+
 } // namespace an24

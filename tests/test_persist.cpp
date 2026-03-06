@@ -3,6 +3,8 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "editor/visual_node.h"
+#include "json_parser/json_parser.h"
 #include <set>
 
 /// TDD Step 2: Persist - сначала тесты
@@ -324,4 +326,276 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
         << "RefNode value should be set by kind, not type_name";
 }
 
+// =============================================================================
+// Tests for get_default_node_size() - single source of truth for node sizing
+// =============================================================================
+
+TEST(PersistTest, GetDefaultNodeSize_Bus_Returns40x40) {
+    // Bus has default_size {2, 2} in JSON = 40x40 pixels
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    Pt size = get_default_node_size("Bus", &registry);
+    EXPECT_FLOAT_EQ(size.x, 40.0f);
+    EXPECT_FLOAT_EQ(size.y, 40.0f);
+}
+
+TEST(PersistTest, GetDefaultNodeSize_RefNode_Returns40x40) {
+    // RefNode has default_size {2, 2} in JSON = 40x40 pixels
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    Pt size = get_default_node_size("RefNode", &registry);
+    EXPECT_FLOAT_EQ(size.x, 40.0f);
+    EXPECT_FLOAT_EQ(size.y, 40.0f);
+}
+
+TEST(PersistTest, GetDefaultNodeSize_Ref_Alias_Returns40x40) {
+    // Ref (alias for RefNode) - uses same size through registry
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    Pt size = get_default_node_size("RefNode", &registry);
+    EXPECT_FLOAT_EQ(size.x, 40.0f);
+    EXPECT_FLOAT_EQ(size.y, 40.0f);
+}
+
+TEST(PersistTest, GetDefaultNodeSize_UnknownComponent_Returns120x80) {
+    // Unknown components without registry should return default 120x80
+    Pt size = get_default_node_size("UnknownComponent", nullptr);
+    EXPECT_FLOAT_EQ(size.x, 120.0f);
+    EXPECT_FLOAT_EQ(size.y, 80.0f);
+}
+
+TEST(PersistTest, GetDefaultNodeSize_WithRegistry) {
+    // Test that default_size from component registry is used correctly
+    using namespace an24;
+
+    ComponentRegistry registry;
+
+    // Create a mock component definition with default_size
+    ComponentDefinition def;
+    def.classname = "TestComponent";
+    def.default_size = {2, 3};  // 2x3 grid units = 40x60 pixels
+
+    registry.components["TestComponent"] = def;
+
+    Pt size = get_default_node_size("TestComponent", &registry);
+    EXPECT_FLOAT_EQ(size.x, 40.0f);  // 2 * 20
+    EXPECT_FLOAT_EQ(size.y, 60.0f);  // 3 * 20
+}
+
+TEST(PersistTest, GetDefaultNodeSize_Splitter_Returns60x60) {
+    // Splitter has default_size {3, 3} in its JSON definition
+    // 3x3 grid units = 60x60 pixels
+    using namespace an24;
+
+    // Load real component registry
+    ComponentRegistry registry = load_component_registry("components/");
+
+    const auto* split_def = registry.get("Splitter");
+    ASSERT_NE(split_def, nullptr) << "Splitter component should exist in registry";
+    ASSERT_TRUE(split_def->default_size.has_value()) << "Splitter should have default_size defined";
+    EXPECT_EQ(split_def->default_size->first, 3);
+    EXPECT_EQ(split_def->default_size->second, 3);
+
+    Pt size = get_default_node_size("Splitter", &registry);
+    EXPECT_FLOAT_EQ(size.x, 60.0f) << "Splitter width should be 3 grid units (60px)";
+    EXPECT_FLOAT_EQ(size.y, 60.0f) << "Splitter height should be 3 grid units (60px)";
+}
+
+TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
+    // Test that grid unit conversion is correct: 1 unit = 20 pixels
+    using namespace an24;
+
+    ComponentRegistry registry;
+
+    ComponentDefinition def;
+    def.classname = "TestComponent";
+    def.default_size = {1, 1};  // 1x1 grid unit
+
+    registry.components["TestComponent"] = def;
+
+    Pt size = get_default_node_size("TestComponent", &registry);
+    EXPECT_FLOAT_EQ(size.x, 20.0f) << "1 grid unit should be 20 pixels";
+    EXPECT_FLOAT_EQ(size.y, 20.0f) << "1 grid unit should be 20 pixels";
+}
+
+
 // [e5f6] node_content params should survive roundtrip
+
+// =============================================================================
+// Tests for BusVisualNode dynamic resizing
+// =============================================================================
+
+TEST(PersistTest, BusVisualNode_InitialSizeFromComponentDefinition) {
+    // Bus has default_size {2, 2} in JSON = 40x40 pixels
+    // Visual grid snapping (16px) snaps 40px up to 48px (3 * 16)
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    Node n;
+    n.id = "bus1";
+    n.name = "Test Bus";
+    n.type_name = "Bus";
+    n.kind = NodeKind::Bus;
+    n.at(100, 100);
+    n.size = get_default_node_size("Bus", &registry);
+    n.output("v");
+
+    std::vector<Wire> wires;
+    BusVisualNode bus(n, BusOrientation::Horizontal, wires);
+
+    EXPECT_EQ(bus.getSize().x, 48.0f) << "Bus width should be 48px (40px snapped to 16px visual grid)";
+    EXPECT_EQ(bus.getSize().y, 48.0f) << "Bus height should be 48px (40px snapped to 16px visual grid)";
+}
+
+TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
+    // Bus should resize when a wire is connected (port count increases)
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    // Create bus node
+    Node bus_node;
+    bus_node.id = "bus1";
+    bus_node.name = "Test Bus";
+    bus_node.type_name = "Bus";
+    bus_node.kind = NodeKind::Bus;
+    bus_node.at(100, 100);
+    bus_node.size = get_default_node_size("Bus", &registry);
+    bus_node.output("v");
+
+    // Create another node to connect to
+    Node other_node;
+    other_node.id = "other";
+    other_node.name = "Other";
+    other_node.type_name = "Battery";
+    other_node.kind = NodeKind::Node;
+    other_node.at(200, 100);
+    other_node.output("v_out");
+
+    std::vector<Wire> wires;
+    BusVisualNode bus(bus_node, BusOrientation::Horizontal, wires);
+
+    // Initial size (1 port: "v")
+    float initial_width = bus.getSize().x;
+    EXPECT_GT(initial_width, 0.0f);
+
+    // Add a wire - this should create an alias port and increase size
+    Wire w;
+    w.id = "wire1";
+    w.start.node_id = "other";
+    w.start.port_name = "v_out";
+    w.end.node_id = "bus1";
+    w.end.port_name = "v";
+
+    bus.connectWire(w);
+
+    // Bus should now have 2 ports (alias + "v")
+    EXPECT_EQ(bus.getPortCount(), 2);
+    // Width should increase (more ports need more space)
+    EXPECT_GT(bus.getSize().x, initial_width) << "Bus width should increase after adding wire";
+}
+
+TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
+    // Bus should resize when a wire is disconnected (port count decreases)
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    // Create bus node
+    Node bus_node;
+    bus_node.id = "bus1";
+    bus_node.name = "Test Bus";
+    bus_node.type_name = "Bus";
+    bus_node.kind = NodeKind::Bus;
+    bus_node.at(100, 100);
+    bus_node.size = get_default_node_size("Bus", &registry);
+    bus_node.output("v");
+
+    // Create other nodes
+    Node other1, other2;
+    other1.id = "other1";
+    other1.name = "Other1";
+    other1.type_name = "Battery";
+    other1.kind = NodeKind::Node;
+    other1.at(200, 100);
+    other1.output("v_out");
+
+    other2.id = "other2";
+    other2.name = "Other2";
+    other2.type_name = "Battery";
+    other2.kind = NodeKind::Node;
+    other2.at(300, 100);
+    other2.output("v_out");
+
+    // Start with 2 wires
+    std::vector<Wire> wires;
+    Wire w1;
+    w1.id = "wire1";
+    w1.start.node_id = "other1";
+    w1.start.port_name = "v_out";
+    w1.end.node_id = "bus1";
+    w1.end.port_name = "v";
+
+    Wire w2;
+    w2.id = "wire2";
+    w2.start.node_id = "other2";
+    w2.start.port_name = "v_out";
+    w2.end.node_id = "bus1";
+    w2.end.port_name = "v";
+
+    wires.push_back(w1);
+    wires.push_back(w2);
+
+    BusVisualNode bus(bus_node, BusOrientation::Horizontal, wires);
+
+    // Should have 3 ports (2 aliases + "v")
+    EXPECT_EQ(bus.getPortCount(), 3);
+    float width_with_2_wires = bus.getSize().x;
+
+    // Remove one wire
+    bus.disconnectWire(w1);
+
+    // Should now have 2 ports (1 alias + "v")
+    EXPECT_EQ(bus.getPortCount(), 2);
+    // Width should decrease
+    EXPECT_LT(bus.getSize().x, width_with_2_wires) << "Bus width should decrease after removing wire";
+}
+
+TEST(PersistTest, BusVisualNode_SizeIsGridSnapped) {
+    // Bus size should always be a multiple of GRID_STEP (16px)
+    using namespace an24;
+    ComponentRegistry registry = load_component_registry("components/");
+
+    Node n;
+    n.id = "bus1";
+    n.name = "Test Bus";
+    n.type_name = "Bus";
+    n.kind = NodeKind::Bus;
+    n.at(100, 100);
+    n.size = get_default_node_size("Bus", &registry);
+    n.output("v");
+
+    std::vector<Wire> wires;
+    BusVisualNode bus(n, BusOrientation::Horizontal, wires);
+
+    constexpr float GRID_STEP = 16.0f;
+
+    // Initial size should be grid-snapped
+    EXPECT_NEAR(fmod(bus.getSize().x, GRID_STEP), 0.0f, 0.01f) << "Width should be multiple of grid step";
+    EXPECT_NEAR(fmod(bus.getSize().y, GRID_STEP), 0.0f, 0.01f) << "Height should be multiple of grid step";
+
+    // After adding wire, size should still be grid-snapped
+    Wire w;
+    w.id = "wire1";
+    w.start.node_id = "other";
+    w.start.port_name = "v_out";
+    w.end.node_id = "bus1";
+    w.end.port_name = "v";
+
+    bus.connectWire(w);
+
+    EXPECT_NEAR(fmod(bus.getSize().x, GRID_STEP), 0.0f, 0.01f) << "Width should remain grid-snapped";
+    EXPECT_NEAR(fmod(bus.getSize().y, GRID_STEP), 0.0f, 0.01f) << "Height should remain grid-snapped";
+}
+

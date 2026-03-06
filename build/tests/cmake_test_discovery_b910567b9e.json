@@ -1,10 +1,10 @@
 {
-  "tests": 20,
+  "tests": 24,
   "name": "AllTests",
   "testsuites": [
     {
       "name": "JsonParserTest",
-      "tests": 20,
+      "tests": 24,
       "testsuite": [
         {
           "name": "ParseEmptyContext",
@@ -105,6 +105,26 @@
           "name": "Regression_LerpNodeAnyType_CanConnectToAnything",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
           "line": 504
+        },
+        {
+          "name": "OneToOne_MultipleWiresToSamePort_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 535
+        },
+        {
+          "name": "OneToOne_MultipleWiresFromSamePort_ShouldFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 554
+        },
+        {
+          "name": "OneToOne_BusAliasPorts_CanHaveMultipleWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 573
+        },
+        {
+          "name": "OneToOne_RefNode_CanHaveMultipleWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/json_parser_test.cpp",
+          "line": 594
         }
       ]
     }

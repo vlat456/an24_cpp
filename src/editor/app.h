@@ -25,6 +25,8 @@ enum class Key {
     Z,       // Ctrl+Z = undo
     R,       // R = reroute selected wire
     Space,   // Space = toggle simulation
+    LeftBracket,   // [ = decrease grid size
+    RightBracket,  // ] = increase grid size
 };
 
 /// Главное приложение редактора

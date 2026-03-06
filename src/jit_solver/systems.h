@@ -16,6 +16,9 @@ public:
     /// Electrical components (60 Hz) - pointers to all_components
     std::vector<Component*> electrical;
 
+    /// Logical components (60 Hz) - boolean logic operations
+    std::vector<Component*> logical;
+
     /// Hydraulic components (5 Hz) - 12 buckets of pointers
     std::array<std::vector<Component*>, 12> hydraulic;
 

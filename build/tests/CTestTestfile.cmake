@@ -21,3 +21,4 @@ include("/Users/vladimir/an24_cpp/build/tests/editor_router_tests[1]_include.cma
 include("/Users/vladimir/an24_cpp/build/tests/editor_widget_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_simulation_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/factory_validation_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/logical_solver_tests[1]_include.cmake")

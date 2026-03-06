@@ -15,6 +15,9 @@ void Systems::add_component(std::unique_ptr<Component> comp, const std::vector<D
             case Domain::Electrical:
                 electrical.push_back(raw_ptr);
                 break;
+            case Domain::Logical:
+                logical.push_back(raw_ptr);
+                break;
             case Domain::Hydraulic:
                 // Add to first bucket (could be smarter later)
                 hydraulic[0].push_back(raw_ptr);
@@ -69,6 +72,11 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
         comp->solve_electrical(state, dt);
     }
 
+    // Logical: every step (runs every frame like electrical)
+    for (auto& comp : logical) {
+        comp->solve_logical(state, dt);
+    }
+
     // Mechanical: every 3rd step - use accumulated time, then reset
     if (step % 3 == 0) {
         size_t bucket = (step / 3) % 3;
@@ -102,6 +110,9 @@ void Systems::post_step(SimulationState& state, float dt) {
     for (auto& comp : electrical) {
         comp->post_step(state, dt);
     }
+    for (auto& comp : logical) {
+        comp->post_step(state, dt);
+    }
     for (auto& bucket : hydraulic) {
         for (auto& comp : bucket) {
             comp->post_step(state, dt);
@@ -121,6 +132,9 @@ void Systems::post_step(SimulationState& state, float dt) {
 
 void Systems::pre_load() {
     for (auto& comp : electrical) {
+        comp->pre_load();
+    }
+    for (auto& comp : logical) {
         comp->pre_load();
     }
     for (auto& bucket : hydraulic) {

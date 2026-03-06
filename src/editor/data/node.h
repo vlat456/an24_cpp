@@ -89,3 +89,33 @@ struct Node {
         return *this;
     }
 };
+
+// =============================================================================
+// Node size utility (single source of truth)
+// =============================================================================
+
+namespace an24 {
+struct ComponentDefinition;
+struct ComponentRegistry;
+}  // namespace an24
+
+/// Get default node size from component definition (single source of truth)
+/// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
+/// @param registry Component registry to look up default_size from JSON definitions
+/// @return Default size in pixels
+inline Pt get_default_node_size(const std::string& type_name, const an24::ComponentRegistry* registry) {
+    constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
+
+    // Try to get default_size from component definition
+    if (registry) {
+        const auto* def = registry->get(type_name);
+        if (def && def->default_size.has_value()) {
+            return Pt(def->default_size->first * GRID_UNIT,
+                     def->default_size->second * GRID_UNIT);
+        }
+    }
+
+    // Default fallback for regular nodes (components without default_size in JSON)
+    return Pt(120, 80);
+}
+

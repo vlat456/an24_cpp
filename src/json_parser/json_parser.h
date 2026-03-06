@@ -16,7 +16,8 @@ enum class Domain {
     Electrical,  // 60 Hz - fast electrical dynamics
     Hydraulic,   // 5 Hz - slow fluid dynamics
     Mechanical,  // 20 Hz - medium mechanical systems
-    Thermal      // 1 Hz - very slow temperature changes
+    Thermal,     // 1 Hz - very slow temperature changes
+    Logical      // 60 Hz - boolean logic operations (runs every frame)
 };
 
 /// Port type for validation and AOT optimization
@@ -42,6 +43,7 @@ enum class PortDirection {
 struct Port {
     PortDirection direction = PortDirection::Out;
     PortType type = PortType::Any;  // Port type for validation
+    std::optional<std::string> alias;  // If set, this port is an alias to another port (e.g., "out1" -> "in")
 };
 
 /// Connection between two ports: "device.port" -> "device.port"
@@ -60,6 +62,7 @@ struct ComponentDefinition {
     std::string default_priority = "med";     // Default priority
     bool default_critical = false;            // Default critical flag
     std::string default_content_type = "None"; // Default UI content type (None, Gauge, Switch, Text)
+    std::optional<std::pair<float, float>> default_size;  // Default size in grid units {width, height}
 };
 
 /// Component registry - holds all component definitions loaded from components/
@@ -123,7 +126,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{direction, type};
+            ports[port_name] = Port{direction, type, std::nullopt};
         }
     }
 
@@ -141,7 +144,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{dir, type};
+            ports[port_name] = Port{dir, type, std::nullopt};
         }
     }
 

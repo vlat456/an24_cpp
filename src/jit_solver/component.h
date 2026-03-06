@@ -31,6 +31,9 @@ public:
     /// Solve thermal domain (every 60th step, dt = 60 * frame delta)
     virtual void solve_thermal(SimulationState& state, float dt) {}
 
+    /// Solve logical domain (every step, dt = frame delta)
+    virtual void solve_logical(SimulationState& state, float dt) {}
+
     /// Post-step update (once per frame, after SOR iteration)
     virtual void post_step(SimulationState& state, float dt) {}
 

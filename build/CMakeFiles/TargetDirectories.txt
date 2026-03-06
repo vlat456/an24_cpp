@@ -121,6 +121,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/factory_validation_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

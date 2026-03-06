@@ -6,6 +6,7 @@
 #include "visual_node.h"
 #include "debug.h"
 #include "data/wire.h"
+#include "data/node.h"
 #include <algorithm>
 #include <limits>
 
@@ -477,6 +478,16 @@ void EditorApp::on_key_down(Key key) {
                 }
             }
         }
+    } else if (key == Key::RightBracket) {
+        // ] = increase grid size
+        viewport.grid_step_up();
+        blueprint.grid_step = viewport.grid_step;  // Sync with blueprint
+        DEBUG_LOG("Grid step increased to {}", viewport.grid_step);
+    } else if (key == Key::LeftBracket) {
+        // [ = decrease grid size
+        viewport.grid_step_down();
+        blueprint.grid_step = viewport.grid_step;  // Sync with blueprint
+        DEBUG_LOG("Grid step decreased to {}", viewport.grid_step);
     }
 }
 
@@ -691,18 +702,18 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     node.name = unique_id;  // Use ID as display name for now
     node.type_name = classname;
     node.pos = snapped_pos;
-    
-    // [a1b2] Set NodeKind and size based on classname
+
+    // Set NodeKind based on classname
     if (classname == "Bus") {
         node.kind = NodeKind::Bus;
-        node.size = Pt(40.0f, 40.0f);
     } else if (classname == "RefNode") {
         node.kind = NodeKind::Ref;
-        node.size = Pt(40.0f, 40.0f);
     } else {
         node.kind = NodeKind::Node;
-        node.size = Pt(120.0f, 80.0f);
     }
+
+    // Get size from component definition (single source of truth)
+    node.size = get_default_node_size(classname, &component_registry);
     
     // Add ports from component definition
     for (const auto& [port_name, port_def] : def->default_ports) {

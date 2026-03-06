@@ -1,5 +1,5 @@
 {
-  "tests": 34,
+  "tests": 37,
   "name": "AllTests",
   "testsuites": [
     {
@@ -199,6 +199,27 @@
           "name": "ToggleOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
           "line": 911
+        }
+      ]
+    },
+    {
+      "name": "SplitterTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AliasPortsMergeToOneSignal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1300
+        },
+        {
+          "name": "DistributesVoltageToOutputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1326
+        },
+        {
+          "name": "EnforcesOneToOneConnections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1382
         }
       ]
     }

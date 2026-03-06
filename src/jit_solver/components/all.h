@@ -248,6 +248,23 @@ public:
     void post_step(SimulationState& state, float dt) override;
 };
 
+/// Splitter - 1-to-2 signal splitter (works with any type/domain)
+class Splitter : public Component {
+public:
+    PORTS(Splitter, i)
+
+    Splitter() = default;
+    explicit Splitter(uint32_t idx) : i_idx(idx) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "Splitter"; }
+
+    // Splitter is just a wire junction - union-find merges all alias ports to 'i'
+    void solve_electrical(SimulationState& state, float /*dt*/) override {}
+    void solve_mechanical(SimulationState& state, float /*dt*/) override {}
+    void solve_hydraulic(SimulationState& state, float /*dt*/) override {}
+    void solve_thermal(SimulationState& state, float /*dt*/) override {}
+};
+
 /// IndicatorLight - aircraft indicator light (two power terminals + brightness output)
 class IndicatorLight : public Component {
 public:
@@ -506,6 +523,31 @@ public:
 
     [[nodiscard]] std::string_view type_name() const override { return "Radiator"; }
     void solve_thermal(SimulationState& state, float dt) override;
+};
+
+// =============================================================================
+// Logical Components
+// =============================================================================
+
+/// Comparator - voltage comparator with hysteresis
+/// Inputs: Va (signal A), Vb (signal B)
+/// Parameters: Von (turn-on threshold), Voff (turn-off threshold)
+/// Output: o (boolean) - TRUE when (Va - Vb) > Von, FALSE when (Va - Vb) < Voff
+/// Maintains state when in hysteresis band (between Voff and Von)
+class Comparator : public Component {
+public:
+    PORTS(Comparator, Va, Vb, o)
+    bool output_state = false;  // Current boolean output state
+    float Von = 5.0f;          // Turn-on threshold (parameter)
+    float Voff = 2.0f;         // Turn-off threshold (parameter)
+
+    Comparator() = default;
+    Comparator(uint32_t Va, uint32_t Vb, uint32_t o)
+        : Va_idx(Va), Vb_idx(Vb), o_idx(o) {}
+
+    [[nodiscard]] std::string_view type_name() const override { return "Comparator"; }
+    void solve_logical(SimulationState& state, float dt) override;
+    void pre_load() override;
 };
 
 } // namespace an24

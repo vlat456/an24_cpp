@@ -338,7 +338,11 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     v_port.world_position = calculatePortPosition(ports_.size());
     ports_.push_back(v_port);
 
-    size_ = calculateBusSize(ports_.size());
+    // Only resize if we have wires (i.e., more than just the base "v" port)
+    // This preserves the initial size from component definition when bus is empty
+    if (wires.size() > 0) {
+        size_ = calculateBusSize(ports_.size());
+    }
 
     // Recalculate all port positions
     for (size_t i = 0; i < ports_.size(); i++) {
@@ -425,6 +429,8 @@ void BusVisualNode::connectWire(const Wire& wire) {
         // otherwise distributePortsInRow uses stale wire list.
         wires_.push_back(wire);
         distributePortsInRow(wires_);
+        // Resize bus to fit new port count
+        size_ = calculateBusSize(ports_.size());
     }
 }
 
@@ -439,7 +445,9 @@ void BusVisualNode::disconnectWire(const Wire& wire) {
         std::remove_if(ports_.begin(), ports_.end(),
             [&](const Port& p) { return p.name == port_name; }),
         ports_.end());
+    // Resize bus to fit new port count
     size_ = calculateBusSize(ports_.size());
+    // Recalculate port positions after resize
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i].world_position = calculatePortPosition(i);
     }
@@ -586,10 +594,14 @@ void VisualNodeCache::onWireAdded(const Wire& wire, const std::vector<Node>& all
     (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
         if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
-            // For Bus nodes, remove from cache to force recreation with updated wire list
-            // This is necessary because BusVisualNode creates dynamic ports based on ALL wires
+            // For Bus nodes, use connectWire to trigger dynamic resize
+            // Previously we erased the cache, but that caused the node to recreate
+            // with its original size from the Node object, losing visual state
             if (node.kind == NodeKind::Bus) {
-                cache_.erase(node.id);
+                auto* visual = get(node.id);
+                if (visual) {
+                    visual->connectWire(wire);
+                }
             } else {
                 // For other nodes, use connectWire method
                 auto* visual = get(node.id);
@@ -605,9 +617,14 @@ void VisualNodeCache::onWireDeleted(const Wire& wire, const std::vector<Node>& a
     (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
         if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
-            // For Bus nodes, remove from cache to force recreation with updated wire list
+            // For Bus nodes, use disconnectWire to trigger dynamic resize
+            // Previously we erased the cache, but that caused the node to recreate
+            // with its original size from the Node object, losing visual state
             if (node.kind == NodeKind::Bus) {
-                cache_.erase(node.id);
+                auto* visual = get(node.id);
+                if (visual) {
+                    visual->disconnectWire(wire);
+                }
             } else {
                 // For other nodes, use disconnectWire method
                 auto* visual = get(node.id);
