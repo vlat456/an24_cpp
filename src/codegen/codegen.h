@@ -34,6 +34,9 @@ public:
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count
     );
+
+    /// Generate port registry header from components/*.json
+    static void generate_port_registry(const std::string& components_dir, const std::string& output_path);
 };
 
 } // namespace an24

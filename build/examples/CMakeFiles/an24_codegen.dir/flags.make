@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src
+CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include
 
 CXX_FLAGSarm64 = -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64
 

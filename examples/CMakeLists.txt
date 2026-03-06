@@ -21,7 +21,10 @@ target_link_libraries(benchmark PRIVATE json_parser jit_solver spdlog::spdlog)
 add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
 )
-target_include_directories(an24_codegen PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(an24_codegen PUBLIC
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
 
 add_executable(codegen_test codegen_test.cpp)
 target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)

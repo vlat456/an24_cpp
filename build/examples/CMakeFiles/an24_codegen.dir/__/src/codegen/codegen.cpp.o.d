@@ -467,4 +467,55 @@ examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/sstream \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/iostream \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/map \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__tree
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__tree \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/json.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/adl_serializer.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/abi_macros.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/conversions/from_json.hpp \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/array \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/forward_list \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/valarray \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/exceptions.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/value_t.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_scope.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/detected.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/void_t.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/string_escape.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/position_t.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/cpp_future.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/type_traits.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/call_std/begin.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/call_std/end.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/json_fwd.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/string_concat.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/std_fs.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/conversions/to_json.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/byte_container_with_subtype.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/hash.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/binary_reader.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/input_adapters.hpp \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/numeric \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/json_sax.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/lexer.hpp \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/clocale \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/meta/is_sax.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/input/parser.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/iter_impl.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/json_custom_base_class.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/json_pointer.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/json_ref.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/output/binary_writer.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/output/output_adapters.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/output/serializer.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/ordered_map.hpp \
+  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
