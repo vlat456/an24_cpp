@@ -121,11 +121,20 @@ std::unique_ptr<Component> create_component(
         // Will be linked to RU19A after all components created
         return dmr;
     }
-    else if (device.classname == "Gyroscope" || device.classname == "AGK47") {
-        // Single-port load to ground
+    else if (device.classname == "Gyroscope") {
+        auto gyro = std::make_unique<Gyroscope>(get_port("input"));
+        gyro->conductance = get_f("conductance", 0.001f);
+        return gyro;
+    }
+    else if (device.classname == "AGK47") {
+        auto agk = std::make_unique<AGK47>(get_port("input"));
+        agk->conductance = get_f("conductance", 0.001f);
+        return agk;
+    }
+    else if (device.classname == "Load") {
         return std::make_unique<Load>(
             get_port("input"),
-            get_f("conductance", 0.035f));  // ~28V/1A = 28 ohm
+            get_f("conductance", 0.1f));
     }
     else if (device.classname == "Transformer") {
         return std::make_unique<Transformer>(
