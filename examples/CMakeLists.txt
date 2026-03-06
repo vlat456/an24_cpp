@@ -103,6 +103,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
