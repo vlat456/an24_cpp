@@ -182,6 +182,12 @@ HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_p
                 result.port_name = port->target_port.empty() ? port->name : port->target_port;
                 result.port_position = port_pos;
 
+                // [g1h2i3j4] For Bus alias ports, store the wire ID so the caller
+                // can identify which specific wire is connected to this port.
+                if (!port->target_port.empty()) {
+                    result.port_wire_id = port->name;  // alias name IS the wire ID
+                }
+
                 // Determine port side by checking if it's in inputs or outputs
                 // For aliased ports, check the target port instead
                 std::string port_to_check = port->target_port.empty() ? port->name : port->target_port;

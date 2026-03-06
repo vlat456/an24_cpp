@@ -21,26 +21,62 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             // wire reconnection (detach that end and let user drag to a new port).
             for (size_t wi = 0; wi < blueprint.wires.size(); wi++) {
                 const auto& w = blueprint.wires[wi];
-                bool match_start = (w.start.node_id == port_hit.port_node_id &&
-                                    w.start.port_name == port_hit.port_name);
-                bool match_end = (w.end.node_id == port_hit.port_node_id &&
-                                  w.end.port_name == port_hit.port_name);
+
+                // [g1h2i3j4] For Bus alias ports, match by wire ID (port_wire_id)
+                // instead of port_name, because all Bus wires share port_name "v".
+                bool match_start = false;
+                bool match_end = false;
+                if (!port_hit.port_wire_id.empty()) {
+                    // Bus alias port — match by wire ID
+                    match_start = (w.id == port_hit.port_wire_id &&
+                                   w.start.node_id == port_hit.port_node_id);
+                    match_end   = (w.id == port_hit.port_wire_id &&
+                                   w.end.node_id == port_hit.port_node_id);
+                } else {
+                    match_start = (w.start.node_id == port_hit.port_node_id &&
+                                   w.start.port_name == port_hit.port_name);
+                    match_end = (w.end.node_id == port_hit.port_node_id &&
+                                 w.end.port_name == port_hit.port_name);
+                }
                 if (match_start || match_end) {
                     // Detach the matching end — the "anchor" is the OTHER end
                     bool detach_start = match_start;
-                    const WireEnd& fixed = detach_start ? w.end : w.start;
 
-                    // Find anchor position from the fixed end's port
-                    const Node* fixed_node = nullptr;
-                    for (const auto& n : blueprint.nodes) {
-                        if (n.id == fixed.node_id) { fixed_node = &n; break; }
+                    // [h2i3j4k5] Anchor = nearest routing point to the detached end,
+                    // not the far port. This way the reconnect line continues from the
+                    // last visible routing point instead of drawing a straight line
+                    // across the whole wire.
+                    Pt anchor_pos;
+                    PortSide fixed_side;
+                    if (detach_start) {
+                        fixed_side = w.end.side;
+                        if (!w.routing_points.empty()) {
+                            anchor_pos = w.routing_points.front();
+                        } else {
+                            const Node* end_node = nullptr;
+                            for (const auto& n : blueprint.nodes)
+                                if (n.id == w.end.node_id) { end_node = &n; break; }
+                            anchor_pos = end_node
+                                ? editor_math::get_port_position(*end_node, w.end.port_name.c_str(),
+                                                                  blueprint.wires, w.id.c_str(), &visual_cache)
+                                : Pt::zero();
+                        }
+                    } else {
+                        fixed_side = w.start.side;
+                        if (!w.routing_points.empty()) {
+                            anchor_pos = w.routing_points.back();
+                        } else {
+                            const Node* start_node = nullptr;
+                            for (const auto& n : blueprint.nodes)
+                                if (n.id == w.start.node_id) { start_node = &n; break; }
+                            anchor_pos = start_node
+                                ? editor_math::get_port_position(*start_node, w.start.port_name.c_str(),
+                                                                  blueprint.wires, w.id.c_str(), &visual_cache)
+                                : Pt::zero();
+                        }
                     }
-                    Pt anchor_pos = fixed_node
-                        ? editor_math::get_port_position(*fixed_node, fixed.port_name.c_str(),
-                                                          blueprint.wires, nullptr, &visual_cache)
-                        : Pt::zero();
 
-                    interaction.start_wire_reconnect(wi, detach_start, anchor_pos, fixed.side);
+                    interaction.start_wire_reconnect(wi, detach_start, anchor_pos, fixed_side);
                     DEBUG_LOG("Started wire reconnection: wire={} detach_start={}", w.id, detach_start);
                     return;
                 }

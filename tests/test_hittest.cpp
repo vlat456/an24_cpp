@@ -466,3 +466,65 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
     EXPECT_EQ(r.wire_index, 1u);  // w2 is the second wire
 }
 
+// ============================================================================
+// [g1h2i3j4] Regression: hit_test_ports returns wire_id for Bus alias ports
+// ============================================================================
+
+TEST(HitTest, PortHit_BusAlias_ReturnsCorrectWireId) {
+    Blueprint bp;
+
+    // Bus node with two wires connected
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    bp.add_node(std::move(bus));
+
+    Node n1; n1.id = "a"; n1.name = "A"; n1.at(0, 0); n1.size_wh(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.name = "B"; n2.at(0, 200); n2.size_wh(120, 80);
+    n2.output("o");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    Wire w2 = Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v"));
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+
+    VisualNodeCache cache;
+    for (auto& n : bp.nodes)
+        cache.getOrCreate(n, bp.wires);
+
+    // Get position of w2's alias port on the bus
+    Pt w2_port_pos = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", &cache);
+
+    HitResult r = hit_test_ports(bp, cache, w2_port_pos);
+    EXPECT_EQ(r.type, HitType::Port);
+    EXPECT_EQ(r.port_node_id, "bus1");
+    EXPECT_EQ(r.port_name, "v");        // logical port name
+    EXPECT_EQ(r.port_wire_id, "w2");    // alias wire ID
+}
+
+TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
+    Blueprint bp;
+
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    bp.add_node(std::move(bus));
+
+    VisualNodeCache cache;
+    cache.getOrCreate(bp.nodes[0], bp.wires);
+
+    // Main "v" port (no alias) — wire_id should be empty
+    auto* visual = cache.get("bus1");
+    ASSERT_NE(visual, nullptr);
+    // "v" is the only port (no wires), at index 0
+    Pt v_pos = visual->getPortPosition("v");
+
+    HitResult r = hit_test_ports(bp, cache, v_pos);
+    EXPECT_EQ(r.type, HitType::Port);
+    EXPECT_EQ(r.port_name, "v");
+    EXPECT_TRUE(r.port_wire_id.empty());  // main "v" port, not an alias
+}
+

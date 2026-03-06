@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "editor/app.h"
 #include "editor/data/node.h"
+#include "editor/trigonometry.h"
 
 /// TDD Step 7: Event handling
 
@@ -535,4 +536,112 @@ TEST(RoutingPointInsertionTest, InsertsIntoCorrectSegment) {
 
     // Should now have 3 routing points (one inserted)
     EXPECT_EQ(app.blueprint.wires[0].routing_points.size(), 3);
+}
+
+// ============================================================================
+// [g1h2i3j4] Regression: Bus disconnect selects correct wire by alias port
+// ============================================================================
+
+TEST(BusDisconnectTest, DisconnectsCorrectWireByAlias) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    // Bus node
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    app.blueprint.add_node(std::move(bus));
+
+    // Two source nodes
+    Node n1; n1.id = "a"; n1.name = "A"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.name = "B"; n2.pos = Pt(0, 200); n2.size = Pt(120, 80);
+    n2.output("o");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    // Two wires to the bus
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    Wire w2 = Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v"));
+    app.blueprint.add_wire(std::move(w1));
+    app.blueprint.add_wire(std::move(w2));
+
+    // Ensure cache is built
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Click on w2's alias port on the bus
+    Pt w2_pos = editor_math::get_port_position(
+        app.blueprint.nodes[0], "v", app.blueprint.wires, "w2", &app.visual_cache);
+    app.on_mouse_down(w2_pos, MouseButton::Left, Pt(0, 0));
+
+    // Should start reconnecting wire w2 (index 1), NOT w1 (index 0)
+    EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+    EXPECT_EQ(app.interaction.get_reconnect_wire_index(), 1u);
+}
+
+// ============================================================================
+// [h2i3j4k5] Regression: reconnect anchor uses nearest routing point
+// ============================================================================
+
+TEST(ReconnectAnchorTest, AnchorIsLastRoutingPoint) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.pos = Pt(400, 0); n2.size = Pt(120, 80);
+    n2.input("i");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    w.add_routing_point(Pt(200, 100));
+    w.add_routing_point(Pt(300, 100));
+    app.blueprint.add_wire(std::move(w));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Click on end port of node "b" (input "i")
+    auto* bv = app.visual_cache.get("b");
+    Pt end_port_pos = bv->getPortPosition("i");
+    app.on_mouse_down(end_port_pos, MouseButton::Left, Pt(0, 0));
+
+    EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+    // Anchor should be the LAST routing point (300,100), not the start port
+    Pt anchor = app.interaction.get_reconnect_anchor_pos();
+    EXPECT_FLOAT_EQ(anchor.x, 300.0f);
+    EXPECT_FLOAT_EQ(anchor.y, 100.0f);
+}
+
+TEST(ReconnectAnchorTest, AnchorIsFirstRoutingPoint_WhenDetachStart) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.pos = Pt(400, 0); n2.size = Pt(120, 80);
+    n2.input("i");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    w.add_routing_point(Pt(200, 100));
+    w.add_routing_point(Pt(300, 100));
+    app.blueprint.add_wire(std::move(w));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Click on start port of node "a" (output "o")
+    auto* av = app.visual_cache.get("a");
+    Pt start_port_pos = av->getPortPosition("o");
+    app.on_mouse_down(start_port_pos, MouseButton::Left, Pt(0, 0));
+
+    EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+    // Anchor should be the FIRST routing point (200,100), not the end port
+    Pt anchor = app.interaction.get_reconnect_anchor_pos();
+    EXPECT_FLOAT_EQ(anchor.x, 200.0f);
+    EXPECT_FLOAT_EQ(anchor.y, 100.0f);
 }

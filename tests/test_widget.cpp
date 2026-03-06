@@ -868,3 +868,53 @@ TEST(VisualNodeTest, ContentBounds_SymmetricMargins) {
         << "Content area should be horizontally centred within the node";
     EXPECT_GT(cb.w, 0.0f);
 }
+
+// ============================================================================
+// [i3j4k5l6] Regression: Bus alias ports come first, "v" port at end
+// ============================================================================
+
+TEST(VisualNodeTest, BusPortOrder_AliasFirst_VLast) {
+    Node bus;
+    bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+
+    // Two wires attached to the bus
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    Wire w2 = Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v"));
+    std::vector<Wire> wires = {w1, w2};
+
+    BusVisualNode visual(bus, BusOrientation::Horizontal, wires);
+
+    // Should have 3 ports: w1 alias, w2 alias, "v" at the end
+    EXPECT_EQ(visual.getPortCount(), 3u);
+
+    auto* p0 = visual.getPort(size_t(0));
+    auto* p1 = visual.getPort(size_t(1));
+    auto* p2 = visual.getPort(size_t(2));
+
+    ASSERT_NE(p0, nullptr);
+    ASSERT_NE(p1, nullptr);
+    ASSERT_NE(p2, nullptr);
+
+    // First two are alias ports (named after wire IDs)
+    EXPECT_EQ(p0->name, "w1");
+    EXPECT_EQ(p1->name, "w2");
+    // Last is the logical "v" port
+    EXPECT_EQ(p2->name, "v");
+}
+
+TEST(VisualNodeTest, BusPortOrder_NoWires_SingleVPort) {
+    Node bus;
+    bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+
+    BusVisualNode visual(bus, BusOrientation::Horizontal);
+
+    // No wires → just the "v" port
+    EXPECT_EQ(visual.getPortCount(), 1u);
+    auto* p0 = visual.getPort(size_t(0));
+    ASSERT_NE(p0, nullptr);
+    EXPECT_EQ(p0->name, "v");
+}

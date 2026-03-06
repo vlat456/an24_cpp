@@ -283,30 +283,16 @@ BusVisualNode::BusVisualNode(const Node& node, BusOrientation orientation,
     , name_(node.name)
     , wires_(wires)
 {
-    // Always create at least the main "v" port so Bus can be connected
-    Port v_port;
-    v_port.name = "v";
-    v_port.target_port = "";  // Empty means same as name (logical port)
-    v_port.world_position = calculatePortPosition(0);
-    ports_.push_back(v_port);
-    size_ = calculateBusSize(ports_.size());
-
-    // Then add ports for each connected wire
+    // Build ports via distributePortsInRow (alias ports first, then "v")
     distributePortsInRow(wires_);
 }
 
 void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     ports_.clear();
 
-    // Always create the main "v" port first (even if no wires)
-    Port v_port;
-    v_port.name = "v";
-    v_port.target_port = "";  // Empty means same as name (logical port)
-    v_port.world_position = calculatePortPosition(0);
-    ports_.push_back(v_port);
-
-    // Add ports for each connected wire (named after wire ID)
-    // These are visual aliases that target the logical port "v"
+    // [i3j4k5l6] Wire alias ports FIRST (indices 0..N-1) so they occupy the
+    // leading positions.  The logical "v" port goes at the end as a
+    // "connect new wire here" target — fixing the "first port always empty" bug.
     for (const auto& w : wires) {
         if (w.start.node_id == node_id_ || w.end.node_id == node_id_) {
             Port p;
@@ -316,6 +302,13 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
             ports_.push_back(p);
         }
     }
+
+    // Logical "v" port at the end (for new wire connections)
+    Port v_port;
+    v_port.name = "v";
+    v_port.target_port = "";  // Empty means same as name (logical port)
+    v_port.world_position = calculatePortPosition(ports_.size());
+    ports_.push_back(v_port);
 
     size_ = calculateBusSize(ports_.size());
 
@@ -376,9 +369,9 @@ Pt BusVisualNode::getPortPosition(const std::string& port_name,
     // [e7b4c2d5] When wire_id is provided and port_name is "v", resolve by wire_id FIRST.
     // Previously the "v" port was found at index 0 before the wire_id fallback was reached,
     // causing all wire endpoints to snap to the main "v" port position.
+    // [i3j4k5l6] Alias ports now start at index 0 (main "v" is at the end).
     if (port_name == "v" && wire_id != nullptr) {
-        // Wire alias ports start at index 1 (index 0 is the main "v" port).
-        size_t port_index = 1;
+        size_t port_index = 0;
         for (const auto& w : wires_) {
             bool connects = (w.start.node_id == node_id_ || w.end.node_id == node_id_);
             if (!connects) continue;

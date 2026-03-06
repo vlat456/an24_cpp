@@ -27,7 +27,8 @@ struct HitResult {
 
     // Данные для порта (заполняются когда type == Port)
     std::string port_node_id;       ///< ID узла с портом
-    std::string port_name;           ///< Имя порта
+    std::string port_name;           ///< Имя порта (logical, e.g. "v" for Bus)
+    std::string port_wire_id;       ///< [g1h2i3j4] Wire ID for Bus alias ports (empty for normal ports)
     Pt port_position;               ///< Позиция порта
     PortSide port_side;             ///< Сторона порта
 };
