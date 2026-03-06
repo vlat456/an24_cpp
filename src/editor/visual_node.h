@@ -6,6 +6,7 @@
 #include "data/wire.h"
 #include "widget.h"
 #include "viewport/viewport.h"
+#include "../json_parser/json_parser.h"
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -47,6 +48,7 @@ public:
         std::string name;           ///< Visual port name (e.g., wire ID for dynamic aliases)
         std::string target_port;    ///< Target logical port (empty if same as name)
         Pt world_position;
+        an24::PortType type = an24::PortType::Any;  ///< Port type for visualization
     };
 
     // Port access

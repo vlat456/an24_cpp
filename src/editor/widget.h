@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include "../json_parser/json_parser.h"
 
 struct IDrawList;
 
@@ -129,7 +130,9 @@ private:
 class PortRowWidget : public Widget {
 public:
     PortRowWidget(const std::string& left_port = "",
-                  const std::string& right_port = "");
+                  const std::string& right_port = "",
+                  an24::PortType left_type = an24::PortType::Any,
+                  an24::PortType right_type = an24::PortType::Any);
 
     Pt getPreferredSize(IDrawList* dl) const override;
     void layout(float available_width, float available_height) override;
@@ -153,6 +156,8 @@ public:
 private:
     std::string left_port_;
     std::string right_port_;
+    an24::PortType left_type_ = an24::PortType::Any;
+    an24::PortType right_type_ = an24::PortType::Any;
     float left_label_width_ = 0;
     float right_label_width_ = 0;
     Bounds content_bounds_ = {};

@@ -586,3 +586,184 @@ TEST(RenderTest, ContentBounds_OutputPortLabelOnRight) {
     EXPECT_LT(margin_ratio, 0.8f)
         << "Content should take up less than 80% of node width (port labels on both sides)";
 }
+
+// ============================================================================
+// Port Type Visualization Tests - FAILING TESTS FIRST (TDD)
+// ============================================================================
+
+TEST(RenderTest, PortTypeColor_V_IsRed) {
+    // This test will fail until get_port_color() is implemented
+    // Format: 0xAABBGGRR (A=alpha, B=blue, G=green, R=red)
+    // Red should be: 0xFF0000FF (alpha=FF, blue=00, green=00, red=FF)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::V);
+
+    EXPECT_EQ(color, 0xFF0000FF) << "Voltage ports should be red (0xFF0000FF)";
+}
+
+TEST(RenderTest, PortTypeColor_I_IsBlue) {
+    // Blue should be: 0xFFFF0000 (alpha=FF, blue=FF, green=00, red=00)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::I);
+
+    EXPECT_EQ(color, 0xFFFF0000) << "Current ports should be blue (0xFFFF0000)";
+}
+
+TEST(RenderTest, PortTypeColor_Bool_IsGreen) {
+    // Green should be: 0xFF00FF00 (alpha=FF, blue=00, green=FF, red=00)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::Bool);
+
+    EXPECT_EQ(color, 0xFF00FF00) << "Boolean ports should be green (0xFF00FF00)";
+}
+
+TEST(RenderTest, PortTypeColor_RPM_IsOrange) {
+    // Orange should be: 0xFF00A5FF (alpha=FF, blue=00, green=A5, red=FF)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::RPM);
+
+    EXPECT_EQ(color, 0xFF00A5FF) << "RPM ports should be orange (0xFF00A5FF)";
+}
+
+TEST(RenderTest, PortTypeColor_Temperature_IsYellow) {
+    // Yellow should be: 0xFF00FFFF (alpha=FF, blue=00, green=FF, red=FF)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::Temperature);
+
+    EXPECT_EQ(color, 0xFF00FFFF) << "Temperature ports should be yellow (0xFF00FFFF)";
+}
+
+TEST(RenderTest, PortTypeColor_Pressure_IsCyan) {
+    // Cyan should be: 0xFFFFFF00 (alpha=FF, blue=FF, green=FF, red=00)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::Pressure);
+
+    EXPECT_EQ(color, 0xFFFFFF00) << "Pressure ports should be cyan (0xFFFFFF00)";
+}
+
+TEST(RenderTest, PortTypeColor_Position_IsPurple) {
+    // Purple should be: 0xFF800080 (alpha=FF, blue=80, green=00, red=80)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::Position);
+
+    EXPECT_EQ(color, 0xFF800080) << "Position ports should be purple (0xFF800080)";
+}
+
+TEST(RenderTest, PortTypeColor_Any_IsGray) {
+    // Gray should be: 0xFF808080 (alpha=FF, blue=80, green=80, red=80)
+
+    using namespace an24;
+    uint32_t color = get_port_color(PortType::Any);
+
+    EXPECT_EQ(color, 0xFF808080) << "Any ports should be gray (0xFF808080)";
+}
+
+TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
+    // Create a battery node with voltage port
+    Blueprint bp;
+    Node batt;
+    batt.id = "bat";
+    batt.type_name = "Battery";
+    batt.input("v_in");
+    batt.output("v_out");
+    batt.at(100.0f, 100.0f);
+    batt.size_wh(120.0f, 80.0f);
+
+    // Set port types to V (voltage)
+    for (auto& port : batt.inputs) {
+        port.type = an24::PortType::V;
+    }
+    for (auto& port : batt.outputs) {
+        port.type = an24::PortType::V;
+    }
+
+    bp.add_node(std::move(batt));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    // Should have red circles for voltage ports
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF))
+        << "Voltage ports should render as red circles";
+}
+
+TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
+    // Create a relay node with boolean control port
+    Blueprint bp;
+    Node relay;
+    relay.id = "relay";
+    relay.type_name = "Relay";
+    relay.input("control");
+    relay.input("v_in");
+    relay.output("v_out");
+    relay.at(100.0f, 100.0f);
+    relay.size_wh(120.0f, 80.0f);
+
+    // Set port types
+    for (auto& port : relay.inputs) {
+        if (port.name == "control") {
+            port.type = an24::PortType::Bool;
+        } else {
+            port.type = an24::PortType::V;
+        }
+    }
+    for (auto& port : relay.outputs) {
+        port.type = an24::PortType::V;
+    }
+
+    bp.add_node(std::move(relay));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    // Should have green circles for boolean ports
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00))
+        << "Boolean ports should render as green circles";
+}
+
+TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
+    // Create an RU19A node with RPM port
+    Blueprint bp;
+    Node apu;
+    apu.id = "apu";
+    apu.type_name = "RU19A";
+    apu.input("v_start");
+    apu.output("v_bus");
+    apu.output("rpm_out");
+    apu.output("t4_out");
+    apu.at(100.0f, 100.0f);
+    apu.size_wh(120.0f, 80.0f);
+
+    // Set port types
+    for (auto& port : apu.inputs) {
+        port.type = an24::PortType::V;
+    }
+    for (auto& port : apu.outputs) {
+        if (port.name == "rpm_out") {
+            port.type = an24::PortType::RPM;
+        } else if (port.name == "t4_out") {
+            port.type = an24::PortType::Temperature;
+        } else {
+            port.type = an24::PortType::V;
+        }
+    }
+
+    bp.add_node(std::move(apu));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    // Should have orange circles for RPM ports
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF))
+        << "RPM ports should render as orange circles";
+}

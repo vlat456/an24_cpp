@@ -67,6 +67,31 @@ NodeColors get_node_colors(const char* type_name) {
 
 } // namespace
 
+/// Get port color based on port type for visualization
+/// Format: 0xAABBGGRR (A=alpha, B=blue, G=green, R=red)
+uint32_t get_port_color(an24::PortType type) {
+    switch (type) {
+        case an24::PortType::V:
+            return 0xFF0000FF;  // Red - Voltage
+        case an24::PortType::I:
+            return 0xFFFF0000;  // Blue - Current
+        case an24::PortType::Bool:
+            return 0xFF00FF00;  // Green - Boolean
+        case an24::PortType::RPM:
+            return 0xFF00A5FF;  // Orange - RPM
+        case an24::PortType::Temperature:
+            return 0xFF00FFFF;  // Yellow - Temperature
+        case an24::PortType::Pressure:
+            return 0xFFFFFF00;  // Cyan - Pressure
+        case an24::PortType::Position:
+            return 0xFF800080;  // Purple - Position
+        case an24::PortType::Any:
+            return 0xFF808080;  // Gray - Any/wildcard
+        default:
+            return 0xFF808080;  // Default gray
+    }
+}
+
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
                       const an24::Simulator<an24::JIT_Solver>* simulation,

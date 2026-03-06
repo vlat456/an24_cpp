@@ -139,8 +139,10 @@ void TypeNameWidget::render(IDrawList* dl, Pt origin, float zoom) const {
 // PortRowWidget
 // ============================================================================
 
-PortRowWidget::PortRowWidget(const std::string& left_port, const std::string& right_port)
+PortRowWidget::PortRowWidget(const std::string& left_port, const std::string& right_port,
+                             an24::PortType left_type, an24::PortType right_type)
     : left_port_(left_port), right_port_(right_port)
+    , left_type_(left_type), right_type_(right_type)
 {
     height_ = ROW_HEIGHT;
 }
@@ -188,7 +190,8 @@ void PortRowWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     // Left port: circle centered at left edge of node
     if (!left_port_.empty()) {
         Pt left_center(origin.x, center_y);
-        dl->add_circle_filled(left_center, r, COLOR_PORT_INPUT, 8);
+        uint32_t left_color = get_port_color(left_type_);
+        dl->add_circle_filled(left_center, r, left_color, 8);
 
         // Label right of circle
         Pt label_pos(origin.x + r + gap, center_y - font / 2);
@@ -198,7 +201,8 @@ void PortRowWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     // Right port: circle centered at right edge of node
     if (!right_port_.empty()) {
         Pt right_center(origin.x + w, center_y);
-        dl->add_circle_filled(right_center, r, COLOR_PORT_OUTPUT, 8);
+        uint32_t right_color = get_port_color(right_type_);
+        dl->add_circle_filled(right_center, r, right_color, 8);
 
         // Label left of circle (right-aligned text)
         Pt text_size = dl->calc_text_size(right_port_.c_str(), font);

@@ -72,11 +72,13 @@ StandardVisualNode::StandardVisualNode(const Node& node)
     for (const auto& p : node.inputs) {
         Port port;
         port.name = p.name;
+        port.type = p.type;
         inputs_.push_back(port);
     }
     for (const auto& p : node.outputs) {
         Port port;
         port.name = p.name;
+        port.type = p.type;
         outputs_.push_back(port);
     }
 
@@ -111,7 +113,9 @@ void StandardVisualNode::buildLayout() {
     for (size_t i = 0; i < max_ports; i++) {
         std::string left = (i < inputs_.size()) ? inputs_[i].name : "";
         std::string right = (i < outputs_.size()) ? outputs_[i].name : "";
-        auto row = std::make_unique<PortRowWidget>(left, right);
+        an24::PortType left_type = (i < inputs_.size()) ? inputs_[i].type : an24::PortType::Any;
+        an24::PortType right_type = (i < outputs_.size()) ? outputs_[i].type : an24::PortType::Any;
+        auto row = std::make_unique<PortRowWidget>(left, right, left_type, right_type);
         port_rows_.push_back(static_cast<PortRowWidget*>(
             layout_.addWidget(std::move(row))));
     }
@@ -320,6 +324,7 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
             Port p;
             p.name = w.id;              // Visual alias name (wire ID)
             p.target_port = "v";        // Targets logical port "v"
+            p.type = an24::PortType::V; // Bus ports are voltage type
             p.world_position = calculatePortPosition(ports_.size());
             ports_.push_back(p);
         }
@@ -329,6 +334,7 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     Port v_port;
     v_port.name = "v";
     v_port.target_port = "";  // Empty means same as name (logical port)
+    v_port.type = an24::PortType::V; // Bus ports are voltage type
     v_port.world_position = calculatePortPosition(ports_.size());
     ports_.push_back(v_port);
 
@@ -467,7 +473,8 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     for (size_t i = 0; i < ports_.size(); i++) {
         Pt world_pos = calculatePortPosition(i);
         Pt screen_pos = vp.world_to_screen(world_pos, canvas_min);
-        dl->add_circle_filled(screen_pos, port_radius, COLOR_PORT_INPUT, 8);
+        uint32_t port_color = get_port_color(ports_[i].type);
+        dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
     }
 }
 
@@ -483,13 +490,17 @@ RefVisualNode::RefVisualNode(const Node& node)
     // RefNode.json defines port "v" — hit test resolves port_name from visual port,
     // so using "ref" caused wire creation to use wrong port name.
     std::string port_name = "v";  // default fallback
+    an24::PortType port_type = an24::PortType::V;  // default fallback
     if (!node.outputs.empty()) {
         port_name = node.outputs[0].name;
+        port_type = node.outputs[0].type;
     } else if (!node.inputs.empty()) {
         port_name = node.inputs[0].name;
+        port_type = node.inputs[0].type;
     }
     Port p;
     p.name = port_name;
+    p.type = port_type;
     // [d5e6f7g8] Snap port position to grid so wires align to grid lines.
     p.world_position = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     ports_.push_back(p);
@@ -545,7 +556,8 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     // [d5e6f7g8] Use grid-snapped position so rendering matches getPortPosition.
     Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
-    dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, COLOR_PORT_OUTPUT, 8);
+    uint32_t port_color = get_port_color(ports_[0].type);
+    dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, port_color, 8);
 }
 
 // ============================================================================

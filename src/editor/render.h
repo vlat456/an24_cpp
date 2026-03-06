@@ -54,6 +54,11 @@ void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip);
 /// Рендерит сетку
 void render_grid(IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max);
 
+/// Get port color based on port type for visualization
+/// @param type Port type to get color for
+/// @return Color in ImGui format (0xAABBGGRR)
+uint32_t get_port_color(an24::PortType type);
+
 // =============================================================================
 // Утилиты для тестов
 // =============================================================================
@@ -75,6 +80,7 @@ public:
     };
     std::vector<TextEntry> texts_;
     std::vector<uint32_t> polyline_colors_;
+    std::vector<uint32_t> circle_colors_;
 
     void add_line(Pt a, Pt b, uint32_t color, float thickness = 1.0f) override {
         (void)a; (void)b; (void)color; (void)thickness;
@@ -90,9 +96,11 @@ public:
     void add_circle(Pt center, float radius, uint32_t color, int segments = 12) override {
         (void)center; (void)radius; (void)color; (void)segments;
         had_circle_ = true;
+        circle_colors_.push_back(color);
     }
     void add_circle_filled(Pt center, float radius, uint32_t color, int segments = 12) override {
         (void)center; (void)radius; (void)color; (void)segments;
+        circle_colors_.push_back(color);
     }
     void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) override {
         (void)font_size;
@@ -114,6 +122,13 @@ public:
 
     bool has_polyline_with_color(uint32_t color) const {
         for (auto c : polyline_colors_) {
+            if (c == color) return true;
+        }
+        return false;
+    }
+
+    bool has_circle_with_color(uint32_t color) const {
+        for (auto c : circle_colors_) {
             if (c == color) return true;
         }
         return false;
