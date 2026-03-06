@@ -16,7 +16,7 @@
     },
     "lamp": {
       "direction": "Out",
-      "type": "Bool"
+      "type": "V"
     }
   },
   "default_params": {},
