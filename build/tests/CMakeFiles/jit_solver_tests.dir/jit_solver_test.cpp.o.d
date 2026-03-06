@@ -503,7 +503,6 @@ tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include/gtest/gtest_pred_impl.h \
   /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include/gtest/gtest_prod.h \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/systems.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/unordered_map \
@@ -511,7 +510,9 @@ tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/math.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/systems.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/array \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h

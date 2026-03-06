@@ -665,6 +665,19 @@ editor_simulation_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
 .PHONY : editor_simulation_tests/fast
 
+#=============================================================================
+# Target rules for targets named factory_validation_tests
+
+# Build rule for target.
+factory_validation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 factory_validation_tests
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -699,6 +712,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
+	@echo "... factory_validation_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

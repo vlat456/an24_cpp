@@ -406,4 +406,5 @@ examples/CMakeFiles/test_generated.dir/__/generated/generated_an24_composite_tes
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__hash_table \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/optional \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h
+  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h

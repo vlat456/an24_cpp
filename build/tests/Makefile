@@ -395,6 +395,20 @@ editor_simulation_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
 .PHONY : editor_simulation_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/factory_validation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : tests/CMakeFiles/factory_validation_tests.dir/rule
+
+# Convenience name for target.
+factory_validation_tests: tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
+
 __/src/editor/app.o: __/src/editor/app.cpp.o
 .PHONY : __/src/editor/app.o
 
@@ -673,6 +687,30 @@ __/src/editor/wires/hittest.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/wires/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/__/src/editor/wires/hittest.cpp.s
 .PHONY : __/src/editor/wires/hittest.cpp.s
+
+factory_validation_test.o: factory_validation_test.cpp.o
+.PHONY : factory_validation_test.o
+
+# target to build an object file
+factory_validation_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.o
+.PHONY : factory_validation_test.cpp.o
+
+factory_validation_test.i: factory_validation_test.cpp.i
+.PHONY : factory_validation_test.i
+
+# target to preprocess a source file
+factory_validation_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.i
+.PHONY : factory_validation_test.cpp.i
+
+factory_validation_test.s: factory_validation_test.cpp.s
+.PHONY : factory_validation_test.s
+
+# target to generate assembly for a file
+factory_validation_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.s
+.PHONY : factory_validation_test.cpp.s
 
 jit_solver_test.o: jit_solver_test.cpp.o
 .PHONY : jit_solver_test.o
@@ -1083,6 +1121,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
+	@echo "... factory_validation_tests"
 	@echo "... jit_solver_tests"
 	@echo "... json_parser_tests"
 	@echo "... port_macro_tests"
@@ -1114,6 +1153,9 @@ help:
 	@echo "... __/src/editor/wires/hittest.o"
 	@echo "... __/src/editor/wires/hittest.i"
 	@echo "... __/src/editor/wires/hittest.s"
+	@echo "... factory_validation_test.o"
+	@echo "... factory_validation_test.i"
+	@echo "... factory_validation_test.s"
 	@echo "... jit_solver_test.o"
 	@echo "... jit_solver_test.i"
 	@echo "... jit_solver_test.s"
