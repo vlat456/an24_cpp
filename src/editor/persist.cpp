@@ -1,7 +1,6 @@
 #include "persist.h"
 #include "router/router.h"
 #include "json_parser/json_parser.h"
-#include "../debug.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -259,9 +258,6 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
         Port p;
         p.name = port_name;
         p.type = port.type;  // Copy port type for visualization and validation
-
-        printf("[persist] Device '%s' port '%s' type=%d direction=%d\n",
-               dev.classname.c_str(), port_name.c_str(), (int)port.type, (int)port.direction);
 
         if (port.direction == an24::PortDirection::Out) {
             p.side = PortSide::Output;
@@ -620,7 +616,7 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
 
         return bp;
     } catch (const std::exception& e) {
-        printf("[ERROR] blueprint_from_json failed: %s\n", e.what());
+        (void)e;
         return std::nullopt;
     }
 }
