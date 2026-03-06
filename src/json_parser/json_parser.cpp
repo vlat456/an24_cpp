@@ -579,6 +579,10 @@ DeviceInstance merge_device_instance(
         for (const auto& [port_name, port] : definition.default_ports) {
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
+            } else {
+                // Port exists in instance - always copy type from definition
+                // This ensures port types from component definitions are always used
+                merged.ports[port_name].type = port.type;
             }
         }
     }
