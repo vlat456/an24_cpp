@@ -153,6 +153,18 @@ target_link_libraries(json_parser_tests PRIVATE
 )
 gtest_discover_tests(json_parser_tests)
 
+# Push-based solver tests
+add_executable(push_solver_tests
+    test_push_solver.cpp
+)
+target_include_directories(push_solver_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(push_solver_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(push_solver_tests)
+
 # Editor routing tests (TDD - routing points)
 add_executable(editor_routing_tests
     test_routing.cpp
