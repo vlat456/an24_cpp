@@ -265,6 +265,7 @@ ParserContext parse_json(const std::string& json_text) {
     }
 
     // Validate one-to-one connections (except for Bus/RefNode)
+    // Log warnings but don't reject - allow existing blueprints to load
     // Track which ports are already connected
     std::set<std::string> occupied_ports;
     for (const auto& conn : ctx.connections) {
@@ -289,12 +290,14 @@ ParserContext parse_json(const std::string& json_text) {
         bool to_allows_multiple = (to_dev &&
             (to_dev->classname == "Bus" || to_dev->classname == "RefNode"));
 
-        // Check if ports are already occupied
+        // Check if ports are already occupied - log warning but don't throw
         if (!from_allows_multiple && occupied_ports.count(conn.from)) {
-            throw std::runtime_error("Port '" + conn.from + "' already has a wire connected (one-to-one connections only)");
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+                          conn.from);
         }
         if (!to_allows_multiple && occupied_ports.count(conn.to)) {
-            throw std::runtime_error("Port '" + conn.to + "' already has a wire connected (one-to-one connections only)");
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+                          conn.to);
         }
 
         // Mark ports as occupied
