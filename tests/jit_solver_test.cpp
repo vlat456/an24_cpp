@@ -20,7 +20,12 @@ static DeviceInstance make_device(
     dev.classname = classname;
     dev.params = std::move(params);
     for (const auto& [port_name, dir] : ports) {
-        dev.ports[port_name] = Port{dir};
+        PortType type = PortType::Any;
+        if (port_name.find('v') != std::string::npos) type = PortType::V;
+        else if (port_name.find('i') != std::string::npos) type = PortType::I;
+        else if (port_name.find("rpm") != std::string::npos || port_name.find("speed") != std::string::npos) type = PortType::RPM;
+        else if (port_name.find("brightness") != std::string::npos || port_name.find("state") != std::string::npos) type = PortType::Bool;
+        dev.ports[port_name] = Port{dir, type};
     }
     return dev;
 }
@@ -175,8 +180,8 @@ TEST(BuildSystemsTest, BasicBuildSingleDevice) {
     battery.name = "bat_main_1";
     battery.classname = "Battery";
     battery.params["v_nominal"] = "28.0";
-    battery.ports["v_in"] = Port{PortDirection::In};
-    battery.ports["v_out"] = Port{PortDirection::Out};
+    battery.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    battery.ports["v_out"] = Port{PortDirection::Out, PortType::V};
 
     std::vector<DeviceInstance> devices = {battery};
     std::vector<std::pair<std::string, std::string>> connections;

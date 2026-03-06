@@ -119,7 +119,11 @@ struct DeviceInstance {
     ) : name(name_), classname(classname_), params(std::move(params_)) {
         // Convert PortDirection to Port
         for (const auto& [port_name, direction] : ports_) {
-            ports[port_name] = Port{direction};
+            PortType type = PortType::Any;
+            if (port_name.find('v') != std::string::npos) type = PortType::V;
+            else if (port_name.find('i') != std::string::npos) type = PortType::I;
+            else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
+            ports[port_name] = Port{direction, type};
         }
     }
 
@@ -133,7 +137,11 @@ struct DeviceInstance {
         // Convert string port direction to Port
         for (const auto& [port_name, dir_str] : ports_) {
             PortDirection dir = (dir_str == "in" || dir_str == "i" || dir_str == "input") ? PortDirection::In : PortDirection::Out;
-            ports[port_name] = Port{dir};
+            PortType type = PortType::Any;
+            if (port_name.find('v') != std::string::npos) type = PortType::V;
+            else if (port_name.find('i') != std::string::npos) type = PortType::I;
+            else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
+            ports[port_name] = Port{dir, type};
         }
     }
 

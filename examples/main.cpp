@@ -14,14 +14,14 @@ int main() {
     dc_bus.name = "dc_bus_1";
     dc_bus.classname = "RefNode";
     dc_bus.params["value"] = "28.0";
-    dc_bus.ports["v"] = an24::Port{an24::PortDirection::Out};
+    dc_bus.ports["v"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
 
     // Create ground reference at 0V
     an24::DeviceInstance gnd;
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params["value"] = "0.0";
-    gnd.ports["v"] = an24::Port{an24::PortDirection::Out};
+    gnd.ports["v"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
 
     // Create battery
     an24::DeviceInstance battery;
@@ -29,16 +29,16 @@ int main() {
     battery.classname = "Battery";
     battery.params["v_nominal"] = "28.0";
     battery.params["internal_r"] = "0.01";
-    battery.ports["v_in"] = an24::Port{an24::PortDirection::In};
-    battery.ports["v_out"] = an24::Port{an24::PortDirection::Out};
+    battery.ports["v_in"] = an24::Port{an24::PortDirection::In, an24::PortType::V};
+    battery.ports["v_out"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
 
     // Create a load
     an24::DeviceInstance load;
     load.name = "load_1";
     load.classname = "Resistor";
     load.params["conductance"] = "0.1";
-    load.ports["v_in"] = an24::Port{an24::PortDirection::In};
-    load.ports["v_out"] = an24::Port{an24::PortDirection::Out};
+    load.ports["v_in"] = an24::Port{an24::PortDirection::In, an24::PortType::V};
+    load.ports["v_out"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
 
     std::vector<an24::DeviceInstance> devices = {dc_bus, gnd, battery, load};
 

@@ -26,7 +26,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     gnd.classname = "RefNode";
     gnd.priority = "med";
     gnd.critical = false;
-    gnd.ports["v"] = Port{PortDirection::Out};
+    gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
     gnd.params["value"] = "0.0";
     gnd.domains = {Domain::Electrical};
     ctx.devices.push_back(gnd);
@@ -36,7 +36,7 @@ TEST(JsonParserTest, ParseAndSerializeRoundTrip) {
     bat.name = "bat";
     bat.classname = "Battery";
     bat.priority = "high";
-    bat.ports["v_out"] = Port{PortDirection::Out};
+    bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
     bat.params["v_nominal"] = "28.0";
     bat.domains = {Domain::Electrical};
     ctx.devices.push_back(bat);
@@ -224,8 +224,8 @@ TEST(JsonParserTest, InOutPortDirection_Roundtrip_g7h8) {
     DeviceInstance dev;
     dev.name = "test_dev";
     dev.classname = "Battery"; // use known component for validation
-    dev.ports["v_in"] = Port{PortDirection::In};
-    dev.ports["v_out"] = Port{PortDirection::Out};
+    dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
     ctx.devices.push_back(dev);
 
     std::string json = serialize_json(ctx);
