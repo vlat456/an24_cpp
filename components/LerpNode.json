@@ -4,11 +4,11 @@
   "default_ports": {
     "input": {
       "direction": "In",
-      "type": "I"
+      "type": "Any"
     },
     "output": {
       "direction": "Out",
-      "type": "Temperature"
+      "type": "Any"
     }
   },
   "default_params": {
