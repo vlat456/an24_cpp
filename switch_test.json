@@ -1,35 +1,53 @@
 {
   "connections": [
     {
+      "from": "bus_1.v",
+      "to": "bus_2.v"
+    },
+    {
+      "from": "refnode_1.v",
+      "to": "bus_3.v"
+    },
+    {
+      "from": "bus_3.v",
+      "to": "battery_1.v_in"
+    },
+    {
       "from": "battery_1.v_out",
+      "to": "bus_1.v"
+    },
+    {
+      "from": "switch_1.v_in",
+      "to": "bus_2.v"
+    },
+    {
+      "from": "indicatorlight_1.v_out",
       "to": "bus_3.v"
     },
     {
       "from": "switch_1.v_out",
-      "to": "load_1.input"
-    },
-    {
-      "from": "bus_2.v",
-      "to": "refnode_1.v"
-    },
-    {
-      "from": "battery_1.v_in",
-      "to": "bus_2.v"
-    },
-    {
-      "from": "holdbutton_1.v_out",
-      "to": "load_1.input"
-    },
-    {
-      "from": "bus_3.v",
-      "to": "switch_1.v_in"
-    },
-    {
-      "from": "bus_3.v",
-      "to": "holdbutton_1.v_in"
+      "to": "indicatorlight_1.v_in"
     }
   ],
   "devices": [
+    {
+      "bucket": null,
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "InOut"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
     {
       "bucket": null,
       "classname": "Battery",
@@ -60,17 +78,86 @@
     },
     {
       "bucket": null,
-      "classname": "Load",
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_2",
+      "ports": {
+        "v": {
+          "direction": "InOut"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "RefNode",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Ref",
+      "name": "refnode_1",
+      "params": {
+        "value": "0.0"
+      },
+      "ports": {
+        "v": {
+          "direction": "Out"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "Bus",
+      "critical": false,
+      "explicit_domains": [
+        "Electrical"
+      ],
+      "is_composite": false,
+      "kind": "Bus",
+      "name": "bus_3",
+      "ports": {
+        "v": {
+          "direction": "InOut"
+        }
+      },
+      "priority": "med",
+      "template_name": ""
+    },
+    {
+      "bucket": null,
+      "classname": "IndicatorLight",
       "critical": false,
       "explicit_domains": [
         "Electrical"
       ],
       "is_composite": false,
       "kind": "Node",
-      "name": "load_1",
+      "name": "indicatorlight_1",
+      "params": {
+        "label": "OFF",
+        "max": "1.000000",
+        "min": "0.000000",
+        "value": "0.000000"
+      },
       "ports": {
-        "input": {
+        "brightness": {
+          "direction": "Out"
+        },
+        "v_in": {
           "direction": "In"
+        },
+        "v_out": {
+          "direction": "Out"
         }
       },
       "priority": "med",
@@ -109,123 +196,14 @@
       },
       "priority": "med",
       "template_name": ""
-    },
-    {
-      "bucket": null,
-      "classname": "Bus",
-      "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
-      "is_composite": false,
-      "kind": "Bus",
-      "name": "bus_1",
-      "ports": {
-        "v": {
-          "direction": "Out"
-        }
-      },
-      "priority": "med",
-      "template_name": ""
-    },
-    {
-      "bucket": null,
-      "classname": "RefNode",
-      "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
-      "is_composite": false,
-      "kind": "Ref",
-      "name": "refnode_1",
-      "params": {
-        "value": "0.0"
-      },
-      "ports": {
-        "v": {
-          "direction": "Out"
-        }
-      },
-      "priority": "med",
-      "template_name": ""
-    },
-    {
-      "bucket": null,
-      "classname": "Bus",
-      "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
-      "is_composite": false,
-      "kind": "Bus",
-      "name": "bus_2",
-      "ports": {
-        "v": {
-          "direction": "Out"
-        }
-      },
-      "priority": "med",
-      "template_name": ""
-    },
-    {
-      "bucket": null,
-      "classname": "HoldButton",
-      "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
-      "is_composite": false,
-      "kind": "Node",
-      "name": "holdbutton_1",
-      "params": {
-        "closed": "false",
-        "label": "RELEASED",
-        "max": "1.000000",
-        "min": "0.000000",
-        "value": "0.000000"
-      },
-      "ports": {
-        "control": {
-          "direction": "In"
-        },
-        "state": {
-          "direction": "Out"
-        },
-        "v_in": {
-          "direction": "In"
-        },
-        "v_out": {
-          "direction": "Out"
-        }
-      },
-      "priority": "med",
-      "template_name": ""
-    },
-    {
-      "bucket": null,
-      "classname": "Bus",
-      "critical": false,
-      "explicit_domains": [
-        "Electrical"
-      ],
-      "is_composite": false,
-      "kind": "Bus",
-      "name": "bus_3",
-      "ports": {
-        "v": {
-          "direction": "Out"
-        }
-      },
-      "priority": "med",
-      "template_name": ""
     }
   ],
   "editor": {
     "nodes": {
       "battery_1": {
         "pos": {
-          "x": 384.0,
-          "y": 272.0
+          "x": 640.0,
+          "y": 256.0
         },
         "size": {
           "x": 128.0,
@@ -234,18 +212,18 @@
       },
       "bus_1": {
         "pos": {
-          "x": 640.0,
-          "y": 416.0
+          "x": 704.0,
+          "y": 96.0
         },
         "size": {
-          "x": 48.0,
+          "x": 80.0,
           "y": 32.0
         }
       },
       "bus_2": {
         "pos": {
-          "x": 448.0,
-          "y": 480.0
+          "x": 864.0,
+          "y": 96.0
         },
         "size": {
           "x": 80.0,
@@ -254,28 +232,18 @@
       },
       "bus_3": {
         "pos": {
-          "x": 512.0,
-          "y": 224.0
+          "x": 576.0,
+          "y": 480.0
         },
         "size": {
           "x": 96.0,
           "y": 32.0
         }
       },
-      "holdbutton_1": {
+      "indicatorlight_1": {
         "pos": {
-          "x": 736.0,
-          "y": 416.0
-        },
-        "size": {
-          "x": 128.0,
-          "y": 80.0
-        }
-      },
-      "load_1": {
-        "pos": {
-          "x": 928.0,
-          "y": 224.0
+          "x": 1120.0,
+          "y": 96.0
         },
         "size": {
           "x": 128.0,
@@ -284,8 +252,8 @@
       },
       "refnode_1": {
         "pos": {
-          "x": 464.0,
-          "y": 656.0
+          "x": 576.0,
+          "y": 608.0
         },
         "size": {
           "x": 48.0,
@@ -294,8 +262,8 @@
       },
       "switch_1": {
         "pos": {
-          "x": 640.0,
-          "y": 224.0
+          "x": 896.0,
+          "y": 256.0
         },
         "size": {
           "x": 128.0,
@@ -306,46 +274,60 @@
     "viewport": {
       "grid_step": 32.0,
       "pan": {
-        "x": 135.664794921875,
-        "y": 171.14793395996094
+        "x": 0.0,
+        "y": 0.0
       },
-      "zoom": 1.1092605590820313
+      "zoom": 1.0
     },
     "wires": [
       {
+        "from": "bus_1.v",
+        "routing_points": [],
+        "to": "bus_2.v"
+      },
+      {
+        "from": "refnode_1.v",
+        "routing_points": [],
+        "to": "bus_3.v"
+      },
+      {
+        "from": "bus_3.v",
+        "routing_points": [
+          {
+            "x": 608.0,
+            "y": 288.0
+          }
+        ],
+        "to": "battery_1.v_in"
+      },
+      {
         "from": "battery_1.v_out",
         "routing_points": [],
+        "to": "bus_1.v"
+      },
+      {
+        "from": "switch_1.v_in",
+        "routing_points": [],
+        "to": "bus_2.v"
+      },
+      {
+        "from": "indicatorlight_1.v_out",
+        "routing_points": [
+          {
+            "x": 1216.0,
+            "y": 224.0
+          },
+          {
+            "x": 1216.0,
+            "y": 480.0
+          }
+        ],
         "to": "bus_3.v"
       },
       {
         "from": "switch_1.v_out",
         "routing_points": [],
-        "to": "load_1.input"
-      },
-      {
-        "from": "bus_2.v",
-        "routing_points": [],
-        "to": "refnode_1.v"
-      },
-      {
-        "from": "battery_1.v_in",
-        "routing_points": [],
-        "to": "bus_2.v"
-      },
-      {
-        "from": "holdbutton_1.v_out",
-        "routing_points": [],
-        "to": "load_1.input"
-      },
-      {
-        "from": "bus_3.v",
-        "routing_points": [],
-        "to": "switch_1.v_in"
-      },
-      {
-        "from": "bus_3.v",
-        "routing_points": [],
-        "to": "holdbutton_1.v_in"
+        "to": "indicatorlight_1.v_in"
       }
     ]
   },

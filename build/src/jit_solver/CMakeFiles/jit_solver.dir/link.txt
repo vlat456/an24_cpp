@@ -1,2 +1,2 @@
-/usr/bin/ar qc libjit_solver.a CMakeFiles/jit_solver.dir/jit_solver.cpp.o CMakeFiles/jit_solver.dir/component.cpp.o CMakeFiles/jit_solver.dir/systems.cpp.o CMakeFiles/jit_solver.dir/state.cpp.o CMakeFiles/jit_solver.dir/simulator.cpp.o CMakeFiles/jit_solver.dir/components/all.cpp.o
+/usr/bin/ar qc libjit_solver.a CMakeFiles/jit_solver.dir/component.cpp.o CMakeFiles/jit_solver.dir/systems.cpp.o CMakeFiles/jit_solver.dir/state.cpp.o CMakeFiles/jit_solver.dir/push_solver.cpp.o
 /usr/bin/ranlib libjit_solver.a

@@ -164,18 +164,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -348,7 +348,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -357,8 +357,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -397,7 +397,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -666,18 +666,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -850,7 +850,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -859,8 +859,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -899,7 +899,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -1098,18 +1098,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -1282,7 +1282,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -1291,8 +1291,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -1331,7 +1331,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -1393,13 +1393,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1430,13 +1427,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1467,13 +1461,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1504,13 +1495,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1541,13 +1529,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1578,13 +1563,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1615,13 +1597,10 @@
         "v_start": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "Out"
         },
         "k_mod": {
-          "direction": "In"
-        },
-        "v_gen_mon": {
           "direction": "In"
         },
         "rpm_out": {
@@ -1663,18 +1642,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -1847,7 +1826,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -1856,8 +1835,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -1896,7 +1875,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -2130,18 +2109,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -2314,7 +2293,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -2323,8 +2302,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -2363,7 +2342,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -2423,7 +2402,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2450,7 +2429,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2477,7 +2456,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2504,7 +2483,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2531,7 +2510,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2558,7 +2537,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2585,7 +2564,7 @@
         "v_gen": {
           "direction": "In"
         },
-        "v_bus": {
+        "v_out": {
           "direction": "In"
         },
         "v_out": {
@@ -2625,18 +2604,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -2809,7 +2788,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -2818,8 +2797,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -2858,7 +2837,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {
@@ -3120,18 +3099,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -3304,7 +3283,7 @@
       },
       {
         "from": "main_bus.v",
-        "to": "dmr_vsu.v_bus",
+        "to": "dmr_vsu.v_bus_mon",
         "routing_points": [
           {
             "x": 480.0,
@@ -3313,8 +3292,8 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
-        "to": "dmr_vsu.v_gen",
+        "from": "vsu_1.v_out",
+        "to": "dmr_vsu.v_gen_in",
         "routing_points": [
           {
             "x": 848.0,
@@ -3353,7 +3332,7 @@
         ]
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "to": "rug_vsu.v_gen",
         "routing_points": [
           {

@@ -1,5 +1,5 @@
 {
-  "tests": 29,
+  "tests": 34,
   "name": "AllTests",
   "testsuites": [
     {
@@ -51,7 +51,7 @@
     },
     {
       "name": "RegressionTest",
-      "tests": 11,
+      "tests": 16,
       "testsuite": [
         {
           "name": "BusAndGroundSignalsSeparate",
@@ -107,6 +107,31 @@
           "name": "ReleasedHoldButtonDropsVoltageToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
           "line": 1016
+        },
+        {
+          "name": "BatterySagThroughClosedSwitch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1081
+        },
+        {
+          "name": "BatterySagThroughClosedRelay",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1120
+        },
+        {
+          "name": "BatterySagThroughPressedHoldButton",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1151
+        },
+        {
+          "name": "CascadedRelaysSagCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1197
+        },
+        {
+          "name": "NortonMirroringDoesNotDiverge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
+          "line": 1237
         }
       ]
     },

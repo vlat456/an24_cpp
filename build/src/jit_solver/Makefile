@@ -209,77 +209,29 @@ component.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.s
 .PHONY : component.cpp.s
 
-components/all.o: components/all.cpp.o
-.PHONY : components/all.o
+push_solver.o: push_solver.cpp.o
+.PHONY : push_solver.o
 
 # target to build an object file
-components/all.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o
-.PHONY : components/all.cpp.o
+push_solver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/push_solver.cpp.o
+.PHONY : push_solver.cpp.o
 
-components/all.i: components/all.cpp.i
-.PHONY : components/all.i
-
-# target to preprocess a source file
-components/all.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.i
-.PHONY : components/all.cpp.i
-
-components/all.s: components/all.cpp.s
-.PHONY : components/all.s
-
-# target to generate assembly for a file
-components/all.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.s
-.PHONY : components/all.cpp.s
-
-jit_solver.o: jit_solver.cpp.o
-.PHONY : jit_solver.o
-
-# target to build an object file
-jit_solver.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o
-.PHONY : jit_solver.cpp.o
-
-jit_solver.i: jit_solver.cpp.i
-.PHONY : jit_solver.i
+push_solver.i: push_solver.cpp.i
+.PHONY : push_solver.i
 
 # target to preprocess a source file
-jit_solver.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.i
-.PHONY : jit_solver.cpp.i
+push_solver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/push_solver.cpp.i
+.PHONY : push_solver.cpp.i
 
-jit_solver.s: jit_solver.cpp.s
-.PHONY : jit_solver.s
-
-# target to generate assembly for a file
-jit_solver.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.s
-.PHONY : jit_solver.cpp.s
-
-simulator.o: simulator.cpp.o
-.PHONY : simulator.o
-
-# target to build an object file
-simulator.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o
-.PHONY : simulator.cpp.o
-
-simulator.i: simulator.cpp.i
-.PHONY : simulator.i
-
-# target to preprocess a source file
-simulator.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.i
-.PHONY : simulator.cpp.i
-
-simulator.s: simulator.cpp.s
-.PHONY : simulator.s
+push_solver.s: push_solver.cpp.s
+.PHONY : push_solver.s
 
 # target to generate assembly for a file
-simulator.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.s
-.PHONY : simulator.cpp.s
+push_solver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/push_solver.cpp.s
+.PHONY : push_solver.cpp.s
 
 state.o: state.cpp.o
 .PHONY : state.o
@@ -346,15 +298,9 @@ help:
 	@echo "... component.o"
 	@echo "... component.i"
 	@echo "... component.s"
-	@echo "... components/all.o"
-	@echo "... components/all.i"
-	@echo "... components/all.s"
-	@echo "... jit_solver.o"
-	@echo "... jit_solver.i"
-	@echo "... jit_solver.s"
-	@echo "... simulator.o"
-	@echo "... simulator.i"
-	@echo "... simulator.s"
+	@echo "... push_solver.o"
+	@echo "... push_solver.i"
+	@echo "... push_solver.s"
 	@echo "... state.o"
 	@echo "... state.i"
 	@echo "... state.s"

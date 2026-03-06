@@ -71,9 +71,8 @@ TEST(RenderTest, Wire_RendersLine) {
 TEST(RenderTest, Grid_DoesNotCrash) {
     MockDrawList dl;
     Viewport vp;
-    vp.grid_step = 16.0f;
     vp.zoom = 1.0f;
-    render_grid(&dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    render_grid(&dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), 16.0f);
 }
 
 // ─── Wire highlighting tests ───

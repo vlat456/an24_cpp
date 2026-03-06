@@ -84,7 +84,7 @@ int main() {
     std::cout << "Avg iters/step:  " << avg_iters << " (max " << max_iter << ")\n";
 
     std::cout << "\nResults:\n";
-    std::cout << "  bus=" << state.across[SIG_VSU_1_V_BUS] << "V\n";
+    std::cout << "  bus=" << state.across[SIG_VSU_1_V_OUT] << "V\n";
     std::cout << "  rpm=" << state.across[SIG_VSU_1_RPM_OUT] << "%\n";
     std::cout << "  k_mod=" << state.across[SIG_RUG_VSU_K_MOD] << "\n";
     std::cout << "  brightness=" << state.across[SIG_LIGHT_1_BRIGHTNESS] << "\n";

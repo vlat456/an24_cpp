@@ -33,7 +33,7 @@ int main() {
 
         if (step % 500 == 0 || step == 4999) {
             std::cout << "Step " << step
-                      << ": bus=" << state.across[SIG_VSU_1_V_BUS] << "V"
+                      << ": bus=" << state.across[SIG_VSU_1_V_OUT] << "V"
                       << ", rpm=" << state.across[SIG_VSU_1_RPM_OUT] << "%"
                       << ", k_mod=" << state.across[SIG_RUG_VSU_K_MOD]
                       << ", brightness=" << state.across[SIG_LIGHT_1_BRIGHTNESS]

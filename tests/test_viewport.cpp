@@ -9,7 +9,6 @@ TEST(ViewportTest, DefaultValues) {
     EXPECT_EQ(vp.pan.x, 0.0f);
     EXPECT_EQ(vp.pan.y, 0.0f);
     EXPECT_EQ(vp.zoom, 1.0f);
-    EXPECT_EQ(vp.grid_step, 32.0f);
 }
 
 TEST(ViewportTest, ScreenToWorld_Identity) {

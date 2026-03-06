@@ -328,6 +328,19 @@ json_test/fast:
 .PHONY : json_test/fast
 
 #=============================================================================
+# Target rules for targets named push_test
+
+# Build rule for target.
+push_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 push_test
+.PHONY : push_test
+
+# fast build rule for target.
+push_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/push_test.dir/build.make examples/CMakeFiles/push_test.dir/build
+.PHONY : push_test/fast
+
+#=============================================================================
 # Target rules for targets named benchmark
 
 # Build rule for target.
@@ -471,32 +484,6 @@ profile_vsu_dmr_aot/fast:
 .PHONY : profile_vsu_dmr_aot/fast
 
 #=============================================================================
-# Target rules for targets named an24_editor
-
-# Build rule for target.
-an24_editor: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 an24_editor
-.PHONY : an24_editor
-
-# fast build rule for target.
-an24_editor/fast:
-	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
-.PHONY : an24_editor/fast
-
-#=============================================================================
-# Target rules for targets named jit_solver_tests
-
-# Build rule for target.
-jit_solver_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 jit_solver_tests
-.PHONY : jit_solver_tests
-
-# fast build rule for target.
-jit_solver_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/build
-.PHONY : jit_solver_tests/fast
-
-#=============================================================================
 # Target rules for targets named editor_data_tests
 
 # Build rule for target.
@@ -547,19 +534,6 @@ editor_interaction_tests: cmake_check_build_system
 editor_interaction_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_interaction_tests.dir/build.make tests/CMakeFiles/editor_interaction_tests.dir/build
 .PHONY : editor_interaction_tests/fast
-
-#=============================================================================
-# Target rules for targets named editor_render_tests
-
-# Build rule for target.
-editor_render_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_render_tests
-.PHONY : editor_render_tests
-
-# fast build rule for target.
-editor_render_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/build
-.PHONY : editor_render_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_hittest_tests
@@ -614,6 +588,19 @@ json_parser_tests/fast:
 .PHONY : json_parser_tests/fast
 
 #=============================================================================
+# Target rules for targets named push_solver_tests
+
+# Build rule for target.
+push_solver_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 push_solver_tests
+.PHONY : push_solver_tests
+
+# fast build rule for target.
+push_solver_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_solver_tests.dir/build.make tests/CMakeFiles/push_solver_tests.dir/build
+.PHONY : push_solver_tests/fast
+
+#=============================================================================
 # Target rules for targets named editor_routing_tests
 
 # Build rule for target.
@@ -652,19 +639,6 @@ editor_widget_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/build
 .PHONY : editor_widget_tests/fast
 
-#=============================================================================
-# Target rules for targets named editor_simulation_tests
-
-# Build rule for target.
-editor_simulation_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_simulation_tests
-.PHONY : editor_simulation_tests
-
-# fast build rule for target.
-editor_simulation_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
-.PHONY : editor_simulation_tests/fast
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -679,7 +653,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... an24_codegen"
-	@echo "... an24_editor"
 	@echo "... aot_test"
 	@echo "... bench_vsu_aot"
 	@echo "... bench_vsu_dmr_aot"
@@ -693,10 +666,8 @@ help:
 	@echo "... editor_hittest_tests"
 	@echo "... editor_interaction_tests"
 	@echo "... editor_persist_tests"
-	@echo "... editor_render_tests"
 	@echo "... editor_router_tests"
 	@echo "... editor_routing_tests"
-	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
 	@echo "... gmock"
@@ -706,12 +677,13 @@ help:
 	@echo "... gtest_main"
 	@echo "... hello_world"
 	@echo "... jit_solver"
-	@echo "... jit_solver_tests"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... json_test"
 	@echo "... nfd"
 	@echo "... profile_vsu_dmr_aot"
+	@echo "... push_solver_tests"
+	@echo "... push_test"
 	@echo "... spdlog"
 	@echo "... test_generated"
 	@echo "... test_vsu_dmr_aot"

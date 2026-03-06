@@ -22,18 +22,18 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_bus_mon"
     },
     {
-      "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "from": "vsu_1.v_out",
+      "to": "dmr_vsu.v_gen_in"
     },
     {
       "from": "dmr_vsu.v_out",
       "to": "main_bus.v"
     },
     {
-      "from": "vsu_1.v_bus",
+      "from": "vsu_1.v_out",
       "to": "rug_vsu.v_gen"
     },
     {
@@ -370,10 +370,10 @@
       {
         "from": "main_bus.v",
         "routing_points": [],
-        "to": "dmr_vsu.v_bus"
+        "to": "dmr_vsu.v_bus_mon"
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "routing_points": [
           {
             "x": 704.0,
@@ -404,7 +404,7 @@
             "y": 640.0
           }
         ],
-        "to": "dmr_vsu.v_gen"
+        "to": "dmr_vsu.v_gen_in"
       },
       {
         "from": "dmr_vsu.v_out",
@@ -412,7 +412,7 @@
         "to": "main_bus.v"
       },
       {
-        "from": "vsu_1.v_bus",
+        "from": "vsu_1.v_out",
         "routing_points": [
           {
             "x": 704.0,

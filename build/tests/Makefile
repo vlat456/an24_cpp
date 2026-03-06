@@ -172,20 +172,6 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-tests/CMakeFiles/jit_solver_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/jit_solver_tests.dir/rule
-.PHONY : tests/CMakeFiles/jit_solver_tests.dir/rule
-
-# Convenience name for target.
-jit_solver_tests: tests/CMakeFiles/jit_solver_tests.dir/rule
-.PHONY : jit_solver_tests
-
-# fast build rule for target.
-jit_solver_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/build
-.PHONY : jit_solver_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/editor_data_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_data_tests.dir/rule
 .PHONY : tests/CMakeFiles/editor_data_tests.dir/rule
@@ -240,20 +226,6 @@ editor_interaction_tests: tests/CMakeFiles/editor_interaction_tests.dir/rule
 editor_interaction_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_interaction_tests.dir/build.make tests/CMakeFiles/editor_interaction_tests.dir/build
 .PHONY : editor_interaction_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/editor_render_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_render_tests.dir/rule
-.PHONY : tests/CMakeFiles/editor_render_tests.dir/rule
-
-# Convenience name for target.
-editor_render_tests: tests/CMakeFiles/editor_render_tests.dir/rule
-.PHONY : editor_render_tests
-
-# fast build rule for target.
-editor_render_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/build
-.PHONY : editor_render_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/editor_hittest_tests.dir/rule:
@@ -312,6 +284,20 @@ json_parser_tests/fast:
 .PHONY : json_parser_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/push_solver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/push_solver_tests.dir/rule
+.PHONY : tests/CMakeFiles/push_solver_tests.dir/rule
+
+# Convenience name for target.
+push_solver_tests: tests/CMakeFiles/push_solver_tests.dir/rule
+.PHONY : push_solver_tests
+
+# fast build rule for target.
+push_solver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_solver_tests.dir/build.make tests/CMakeFiles/push_solver_tests.dir/build
+.PHONY : push_solver_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/editor_routing_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_routing_tests.dir/rule
 .PHONY : tests/CMakeFiles/editor_routing_tests.dir/rule
@@ -353,44 +339,6 @@ editor_widget_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/build
 .PHONY : editor_widget_tests/fast
 
-# Convenience name for target.
-tests/CMakeFiles/editor_simulation_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_simulation_tests.dir/rule
-.PHONY : tests/CMakeFiles/editor_simulation_tests.dir/rule
-
-# Convenience name for target.
-editor_simulation_tests: tests/CMakeFiles/editor_simulation_tests.dir/rule
-.PHONY : editor_simulation_tests
-
-# fast build rule for target.
-editor_simulation_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
-.PHONY : editor_simulation_tests/fast
-
-__/src/editor/app.o: __/src/editor/app.cpp.o
-.PHONY : __/src/editor/app.o
-
-# target to build an object file
-__/src/editor/app.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/app.cpp.o
-.PHONY : __/src/editor/app.cpp.o
-
-__/src/editor/app.i: __/src/editor/app.cpp.i
-.PHONY : __/src/editor/app.i
-
-# target to preprocess a source file
-__/src/editor/app.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/app.cpp.i
-.PHONY : __/src/editor/app.cpp.i
-
-__/src/editor/app.s: __/src/editor/app.cpp.s
-.PHONY : __/src/editor/app.s
-
-# target to generate assembly for a file
-__/src/editor/app.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/app.cpp.s
-.PHONY : __/src/editor/app.cpp.s
-
 __/src/editor/hittest.o: __/src/editor/hittest.cpp.o
 .PHONY : __/src/editor/hittest.o
 
@@ -424,9 +372,7 @@ __/src/editor/persist.o: __/src/editor/persist.cpp.o
 # target to build an object file
 __/src/editor/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/persist.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.o
 .PHONY : __/src/editor/persist.cpp.o
 
 __/src/editor/persist.i: __/src/editor/persist.cpp.i
@@ -435,9 +381,7 @@ __/src/editor/persist.i: __/src/editor/persist.cpp.i
 # target to preprocess a source file
 __/src/editor/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/persist.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.i
 .PHONY : __/src/editor/persist.cpp.i
 
 __/src/editor/persist.s: __/src/editor/persist.cpp.s
@@ -446,64 +390,8 @@ __/src/editor/persist.s: __/src/editor/persist.cpp.s
 # target to generate assembly for a file
 __/src/editor/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/persist.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.s
 .PHONY : __/src/editor/persist.cpp.s
-
-__/src/editor/render.o: __/src/editor/render.cpp.o
-.PHONY : __/src/editor/render.o
-
-# target to build an object file
-__/src/editor/render.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/render.cpp.o
-.PHONY : __/src/editor/render.cpp.o
-
-__/src/editor/render.i: __/src/editor/render.cpp.i
-.PHONY : __/src/editor/render.i
-
-# target to preprocess a source file
-__/src/editor/render.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/render.cpp.i
-.PHONY : __/src/editor/render.cpp.i
-
-__/src/editor/render.s: __/src/editor/render.cpp.s
-.PHONY : __/src/editor/render.s
-
-# target to generate assembly for a file
-__/src/editor/render.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/render.cpp.s
-.PHONY : __/src/editor/render.cpp.s
-
-__/src/editor/simulation.o: __/src/editor/simulation.cpp.o
-.PHONY : __/src/editor/simulation.o
-
-# target to build an object file
-__/src/editor/simulation.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/simulation.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.o
-.PHONY : __/src/editor/simulation.cpp.o
-
-__/src/editor/simulation.i: __/src/editor/simulation.cpp.i
-.PHONY : __/src/editor/simulation.i
-
-# target to preprocess a source file
-__/src/editor/simulation.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/simulation.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.i
-.PHONY : __/src/editor/simulation.cpp.i
-
-__/src/editor/simulation.s: __/src/editor/simulation.cpp.s
-.PHONY : __/src/editor/simulation.s
-
-# target to generate assembly for a file
-__/src/editor/simulation.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/simulation.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.s
-.PHONY : __/src/editor/simulation.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -511,7 +399,6 @@ __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 # target to build an object file
 __/src/editor/viewport/viewport.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/__/src/editor/viewport/viewport.cpp.o
@@ -525,7 +412,6 @@ __/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
 # target to preprocess a source file
 __/src/editor/viewport/viewport.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/__/src/editor/viewport/viewport.cpp.i
@@ -539,7 +425,6 @@ __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
 # target to generate assembly for a file
 __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/__/src/editor/viewport/viewport.cpp.s
@@ -552,7 +437,6 @@ __/src/editor/visual_node.o: __/src/editor/visual_node.cpp.o
 
 # target to build an object file
 __/src/editor/visual_node.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual_node.cpp.o
@@ -564,7 +448,6 @@ __/src/editor/visual_node.i: __/src/editor/visual_node.cpp.i
 
 # target to preprocess a source file
 __/src/editor/visual_node.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual_node.cpp.i
@@ -576,7 +459,6 @@ __/src/editor/visual_node.s: __/src/editor/visual_node.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/visual_node.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual_node.cpp.s
@@ -588,7 +470,6 @@ __/src/editor/widget.o: __/src/editor/widget.cpp.o
 
 # target to build an object file
 __/src/editor/widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/widget.cpp.o
@@ -600,7 +481,6 @@ __/src/editor/widget.i: __/src/editor/widget.cpp.i
 
 # target to preprocess a source file
 __/src/editor/widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/widget.cpp.i
@@ -612,7 +492,6 @@ __/src/editor/widget.s: __/src/editor/widget.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/widget.cpp.s
@@ -645,30 +524,6 @@ __/src/editor/wires/hittest.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_event_tests.dir/build.make tests/CMakeFiles/editor_event_tests.dir/__/src/editor/wires/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/__/src/editor/wires/hittest.cpp.s
 .PHONY : __/src/editor/wires/hittest.cpp.s
-
-jit_solver_test.o: jit_solver_test.cpp.o
-.PHONY : jit_solver_test.o
-
-# target to build an object file
-jit_solver_test.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.o
-.PHONY : jit_solver_test.cpp.o
-
-jit_solver_test.i: jit_solver_test.cpp.i
-.PHONY : jit_solver_test.i
-
-# target to preprocess a source file
-jit_solver_test.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.i
-.PHONY : jit_solver_test.cpp.i
-
-jit_solver_test.s: jit_solver_test.cpp.s
-.PHONY : jit_solver_test.s
-
-# target to generate assembly for a file
-jit_solver_test.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_solver_tests.dir/build.make tests/CMakeFiles/jit_solver_tests.dir/jit_solver_test.cpp.s
-.PHONY : jit_solver_test.cpp.s
 
 json_parser_test.o: json_parser_test.cpp.o
 .PHONY : json_parser_test.o
@@ -838,29 +693,29 @@ test_persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/test_persist.cpp.s
 .PHONY : test_persist.cpp.s
 
-test_render.o: test_render.cpp.o
-.PHONY : test_render.o
+test_push_solver.o: test_push_solver.cpp.o
+.PHONY : test_push_solver.o
 
 # target to build an object file
-test_render.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/test_render.cpp.o
-.PHONY : test_render.cpp.o
+test_push_solver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_solver_tests.dir/build.make tests/CMakeFiles/push_solver_tests.dir/test_push_solver.cpp.o
+.PHONY : test_push_solver.cpp.o
 
-test_render.i: test_render.cpp.i
-.PHONY : test_render.i
+test_push_solver.i: test_push_solver.cpp.i
+.PHONY : test_push_solver.i
 
 # target to preprocess a source file
-test_render.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/test_render.cpp.i
-.PHONY : test_render.cpp.i
+test_push_solver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_solver_tests.dir/build.make tests/CMakeFiles/push_solver_tests.dir/test_push_solver.cpp.i
+.PHONY : test_push_solver.cpp.i
 
-test_render.s: test_render.cpp.s
-.PHONY : test_render.s
+test_push_solver.s: test_push_solver.cpp.s
+.PHONY : test_push_solver.s
 
 # target to generate assembly for a file
-test_render.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/test_render.cpp.s
-.PHONY : test_render.cpp.s
+test_push_solver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/push_solver_tests.dir/build.make tests/CMakeFiles/push_solver_tests.dir/test_push_solver.cpp.s
+.PHONY : test_push_solver.cpp.s
 
 test_router.o: test_router.cpp.o
 .PHONY : test_router.o
@@ -909,30 +764,6 @@ test_routing.s: test_routing.cpp.s
 test_routing.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_routing_tests.dir/build.make tests/CMakeFiles/editor_routing_tests.dir/test_routing.cpp.s
 .PHONY : test_routing.cpp.s
-
-test_simulation.o: test_simulation.cpp.o
-.PHONY : test_simulation.o
-
-# target to build an object file
-test_simulation.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.o
-.PHONY : test_simulation.cpp.o
-
-test_simulation.i: test_simulation.cpp.i
-.PHONY : test_simulation.i
-
-# target to preprocess a source file
-test_simulation.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.i
-.PHONY : test_simulation.cpp.i
-
-test_simulation.s: test_simulation.cpp.s
-.PHONY : test_simulation.s
-
-# target to generate assembly for a file
-test_simulation.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
-.PHONY : test_simulation.cpp.s
 
 test_viewport.o: test_viewport.cpp.o
 .PHONY : test_viewport.o
@@ -1001,29 +832,18 @@ help:
 	@echo "... editor_hittest_tests"
 	@echo "... editor_interaction_tests"
 	@echo "... editor_persist_tests"
-	@echo "... editor_render_tests"
 	@echo "... editor_router_tests"
 	@echo "... editor_routing_tests"
-	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
-	@echo "... jit_solver_tests"
 	@echo "... json_parser_tests"
-	@echo "... __/src/editor/app.o"
-	@echo "... __/src/editor/app.i"
-	@echo "... __/src/editor/app.s"
+	@echo "... push_solver_tests"
 	@echo "... __/src/editor/hittest.o"
 	@echo "... __/src/editor/hittest.i"
 	@echo "... __/src/editor/hittest.s"
 	@echo "... __/src/editor/persist.o"
 	@echo "... __/src/editor/persist.i"
 	@echo "... __/src/editor/persist.s"
-	@echo "... __/src/editor/render.o"
-	@echo "... __/src/editor/render.i"
-	@echo "... __/src/editor/render.s"
-	@echo "... __/src/editor/simulation.o"
-	@echo "... __/src/editor/simulation.i"
-	@echo "... __/src/editor/simulation.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -1036,9 +856,6 @@ help:
 	@echo "... __/src/editor/wires/hittest.o"
 	@echo "... __/src/editor/wires/hittest.i"
 	@echo "... __/src/editor/wires/hittest.s"
-	@echo "... jit_solver_test.o"
-	@echo "... jit_solver_test.i"
-	@echo "... jit_solver_test.s"
 	@echo "... json_parser_test.o"
 	@echo "... json_parser_test.i"
 	@echo "... json_parser_test.s"
@@ -1060,18 +877,15 @@ help:
 	@echo "... test_persist.o"
 	@echo "... test_persist.i"
 	@echo "... test_persist.s"
-	@echo "... test_render.o"
-	@echo "... test_render.i"
-	@echo "... test_render.s"
+	@echo "... test_push_solver.o"
+	@echo "... test_push_solver.i"
+	@echo "... test_push_solver.s"
 	@echo "... test_router.o"
 	@echo "... test_router.i"
 	@echo "... test_router.s"
 	@echo "... test_routing.o"
 	@echo "... test_routing.i"
 	@echo "... test_routing.s"
-	@echo "... test_simulation.o"
-	@echo "... test_simulation.i"
-	@echo "... test_simulation.s"
 	@echo "... test_viewport.o"
 	@echo "... test_viewport.i"
 	@echo "... test_viewport.s"

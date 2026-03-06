@@ -3,9 +3,8 @@
   "description": "RU19A-300 Auxiliary Power Unit (ВСУ) with 5-state startup sequence",
   "default_ports": {
     "v_start": { "direction": "In" },
-    "v_bus": { "direction": "Out" },
+    "v_out": { "direction": "Out" },
     "k_mod": { "direction": "In" },
-    "v_gen_mon": { "direction": "In" },
     "rpm_out": { "direction": "Out" },
     "t4_out": { "direction": "Out" }
   },

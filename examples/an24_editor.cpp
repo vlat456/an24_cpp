@@ -185,7 +185,6 @@ int main(int argc, char** argv) {
         app.blueprint = std::move(*bp);
         app.viewport.pan = app.blueprint.pan;
         app.viewport.zoom = app.blueprint.zoom;
-        app.viewport.grid_step = app.blueprint.grid_step;
         app.viewport.clamp_zoom();
         // Clear visual cache to rebuild nodes with correct node_content
         app.visual_cache.clear();
@@ -224,6 +223,12 @@ int main(int argc, char** argv) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 app.on_key_down(Key::Space);
             }
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+                app.on_key_down(Key::LeftBracket);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+                app.on_key_down(Key::RightBracket);
+            }
         }
 
         // Обновление симуляции каждый кадр
@@ -255,7 +260,6 @@ int main(int argc, char** argv) {
                             // Restore viewport from loaded blueprint
                             app.viewport.pan = app.blueprint.pan;
                             app.viewport.zoom = app.blueprint.zoom;
-                            app.viewport.grid_step = app.blueprint.grid_step;
                             app.viewport.clamp_zoom();
                             // Clear visual cache to rebuild nodes with correct node_content
                             app.visual_cache.clear();
@@ -267,7 +271,6 @@ int main(int argc, char** argv) {
                     // Sync viewport to blueprint before saving
                     app.blueprint.pan = app.viewport.pan;
                     app.blueprint.zoom = app.viewport.zoom;
-                    app.blueprint.grid_step = app.viewport.grid_step;
                     nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
@@ -316,7 +319,7 @@ int main(int argc, char** argv) {
         imgui_dl.dl = ImGui::GetWindowDrawList();
 
         // Сетка
-        render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
+        render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt, app.blueprint.grid_step);
 
         // Get mouse position for tooltip detection
         Pt hover_world_pos;
