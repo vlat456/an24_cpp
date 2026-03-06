@@ -35,17 +35,17 @@
         {
           "name": "BasicBuildSingleDevice",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 153
+          "line": 173
         },
         {
           "name": "ConnectionsMergeSignals",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 170
+          "line": 190
         },
         {
           "name": "RefNodeMarkedFixed",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 196
+          "line": 216
         }
       ]
     },
@@ -56,82 +56,82 @@
         {
           "name": "BusAndGroundSignalsSeparate",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 215
+          "line": 235
         },
         {
           "name": "DCBusVoltageNonZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 252
+          "line": 272
         },
         {
           "name": "ResistorVoltageDifference",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 287
+          "line": 307
         },
         {
           "name": "IndicatorLightTwoTerminals",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 330
+          "line": 350
         },
         {
           "name": "BusTypeNotRefNode",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 611
+          "line": 631
         },
         {
           "name": "ClosedRelayNoConductance",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 667
+          "line": 687
         },
         {
           "name": "DualBatteryWithRelayStable",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 720
+          "line": 740
         },
         {
           "name": "GeneratorAndBatteryOnSameBus",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 788
+          "line": 808
         },
         {
           "name": "OpenSwitchDropsVoltageToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 914
+          "line": 934
         },
         {
           "name": "OpenRelayDropsVoltageToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 958
+          "line": 978
         },
         {
           "name": "ReleasedHoldButtonDropsVoltageToZero",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1016
+          "line": 1036
         },
         {
           "name": "BatterySagThroughClosedSwitch",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1081
+          "line": 1101
         },
         {
           "name": "BatterySagThroughClosedRelay",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1120
+          "line": 1140
         },
         {
           "name": "BatterySagThroughPressedHoldButton",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1151
+          "line": 1171
         },
         {
           "name": "CascadedRelaysSagCorrectly",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1197
+          "line": 1217
         },
         {
           "name": "NortonMirroringDoesNotDiverge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 1237
+          "line": 1257
         }
       ]
     },
@@ -142,42 +142,42 @@
         {
           "name": "BatteryWithResistiveLoad",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 360
+          "line": 380
         },
         {
           "name": "GeneratorWithResistiveLoad",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 381
+          "line": 401
         },
         {
           "name": "FullDCBusWithTwoLights",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 402
+          "line": 422
         },
         {
           "name": "BatteryRelayChain",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 441
+          "line": 461
         },
         {
           "name": "OpenRelayBlocksCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 475
+          "line": 495
         },
         {
           "name": "ParallelBatteriesShareLoad",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 505
+          "line": 525
         },
         {
           "name": "MultipleLightsWithBrightness",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 534
+          "line": 554
         },
         {
           "name": "SORConvergence",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 577
+          "line": 597
         }
       ]
     },
@@ -188,17 +188,17 @@
         {
           "name": "OpenSwitchBlocksCurrent",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 832
+          "line": 852
         },
         {
           "name": "ClosedSwitchConducts",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 859
+          "line": 879
         },
         {
           "name": "ToggleOnControlEdge",
           "file": "\/Users\/vladimir\/an24_cpp\/tests\/jit_solver_test.cpp",
-          "line": 886
+          "line": 906
         }
       ]
     }
