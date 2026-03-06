@@ -132,9 +132,6 @@
         "v_bus": {
           "direction": "Out"
         },
-        "v_gen_mon": {
-          "direction": "In"
-        },
         "v_start": {
           "direction": "In"
         }

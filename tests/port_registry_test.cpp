@@ -16,7 +16,7 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
 
     // Expected ports from JSON registry
     std::vector<std::string> expected_ports = {
-        "v_start", "v_bus", "k_mod", "v_gen_mon", "rpm_out", "t4_out"
+        "v_start", "v_bus", "k_mod", "rpm_out", "t4_out"
     };
 
     // Get actual ports from registry

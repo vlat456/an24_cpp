@@ -111,7 +111,7 @@ std::unique_ptr<Component> create_component(
     else if (device.classname == "RU19A") {
         auto apu = std::make_unique<RU19A>(
             get_port("v_start"), get_port("v_bus"), get_port("k_mod"),
-            get_port("v_gen_mon"), get_port("rpm_out"), get_port("t4_out"));
+            get_port("rpm_out"), get_port("t4_out"));
         return apu;
     }
     else if (device.classname == "DMR400") {

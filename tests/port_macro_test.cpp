@@ -30,13 +30,13 @@ TEST(PortMacroTest, ComponentFieldsAreZeroInitialized) {
 
 // Test with real component (RU19A)
 TEST(PortMacroTest, RU19A_PortCountIsSix) {
-    EXPECT_EQ(RU19A_PORT_COUNT, 6);
+    EXPECT_EQ(RU19A_PORT_COUNT, 5);
 }
 
 TEST(PortMacroTest, RU19A_PortNamesAreCorrect) {
     std::vector<std::string> ports = get_component_ports("RU19A");
 
-    EXPECT_EQ(ports.size(), 6);
+    EXPECT_EQ(ports.size(), 5);
 
     // Check specific ports exist (order may vary)
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_bus") != ports.end());
@@ -44,7 +44,6 @@ TEST(PortMacroTest, RU19A_PortNamesAreCorrect) {
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "k_mod") != ports.end());
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "rpm_out") != ports.end());
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "t4_out") != ports.end());
-    EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_gen_mon") != ports.end());
 }
 
 // Test DMR400
@@ -67,7 +66,7 @@ TEST(PortMacroTest, DMR400_PortNamesAreCorrect) {
 TEST(PortMacroTest, CompileTimePortCountValidation) {
     // This should compile - we're using the constant from registry
     constexpr size_t ru19a_ports = RU19A_PORT_COUNT;
-    EXPECT_EQ(ru19a_ports, 6);
+    EXPECT_EQ(ru19a_ports, 5);
 
     constexpr size_t dmr400_ports = DMR400_PORT_COUNT;
     EXPECT_EQ(dmr400_ports, 4);
@@ -102,7 +101,7 @@ TEST(PortMacroTest, GetPortNamesReturnsCorrectData) {
 // This simulates what the real RU19A class will look like after migration
 struct RU19AMigrated {
     // Using PORTS macro instead of manual field declarations
-    PORTS(RU19A, v_bus, v_start, k_mod, v_gen_mon, rpm_out, t4_out)
+    PORTS(RU19A, k_mod, rpm_out, t4_out, v_bus, v_start)
 
     // Other fields (from original RU19A)
     int state = 0;  // APUState, simplified for testing
@@ -118,7 +117,6 @@ TEST(PortMacroTest, RU19AMigrated_HasAllPortFields) {
     EXPECT_EQ(comp.v_bus_idx, 0);
     EXPECT_EQ(comp.v_start_idx, 0);
     EXPECT_EQ(comp.k_mod_idx, 0);
-    EXPECT_EQ(comp.v_gen_mon_idx, 0);
     EXPECT_EQ(comp.rpm_out_idx, 0);
     EXPECT_EQ(comp.t4_out_idx, 0);
 }
@@ -130,14 +128,13 @@ TEST(PortMacroTest, RU19AMigrated_FieldTypesAreCorrect) {
     EXPECT_TRUE((std::is_same<decltype(comp.v_bus_idx), uint32_t>::value));
     EXPECT_TRUE((std::is_same<decltype(comp.v_start_idx), uint32_t>::value));
     EXPECT_TRUE((std::is_same<decltype(comp.k_mod_idx), uint32_t>::value));
-    EXPECT_TRUE((std::is_same<decltype(comp.v_gen_mon_idx), uint32_t>::value));
     EXPECT_TRUE((std::is_same<decltype(comp.rpm_out_idx), uint32_t>::value));
     EXPECT_TRUE((std::is_same<decltype(comp.t4_out_idx), uint32_t>::value));
 }
 
 TEST(PortMacroTest, RU19AMigrated_PortCountMatchesRegistry) {
-    // The migrated component should have 6 ports (from registry)
-    EXPECT_EQ(RU19A_PORT_COUNT, 6);
+    // The migrated component should have 5 ports (from registry)
+    EXPECT_EQ(RU19A_PORT_COUNT, 5);
 
     // And our migrated component should match
     RU19AMigrated comp;

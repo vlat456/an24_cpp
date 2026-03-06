@@ -5,7 +5,6 @@
     "v_start": { "direction": "In" },
     "v_bus": { "direction": "Out" },
     "k_mod": { "direction": "In" },
-    "v_gen_mon": { "direction": "In" },
     "rpm_out": { "direction": "Out" },
     "t4_out": { "direction": "Out" }
   },

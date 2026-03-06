@@ -434,8 +434,8 @@ public:
 class RU19A : public Component {
 public:
     // Electrical ports (auto-generated from components/RU19A.json)
-    // Port order must match registry: k_mod, rpm_out, t4_out, v_bus, v_gen_mon, v_start
-    PORTS(RU19A, k_mod, rpm_out, t4_out, v_bus, v_gen_mon, v_start)
+    // Port order must match registry: k_mod, rpm_out, t4_out, v_bus, v_start
+    PORTS(RU19A, k_mod, rpm_out, t4_out, v_bus, v_start)
 
     // State machine
     APUState state = APUState::OFF;
@@ -473,8 +473,8 @@ public:
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
     RU19A() = default;
-    RU19A(uint32_t v_start, uint32_t v_bus, uint32_t k_mod, uint32_t v_gen_mon, uint32_t rpm_out, uint32_t t4_out)
-        : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), v_gen_mon_idx(v_gen_mon), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
+    RU19A(uint32_t v_start, uint32_t v_bus, uint32_t k_mod, uint32_t rpm_out, uint32_t t4_out)
+        : v_start_idx(v_start), v_bus_idx(v_bus), k_mod_idx(k_mod), rpm_out_idx(rpm_out), t4_out_idx(t4_out) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "RU19A"; }
     void solve_electrical(SimulationState& state) override;

@@ -59,7 +59,7 @@ constexpr size_t InertiaNode_PORT_COUNT = 2;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
-constexpr size_t RU19A_PORT_COUNT = 6;
+constexpr size_t RU19A_PORT_COUNT = 5;
 constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
@@ -142,7 +142,6 @@ constexpr const char* RU19A_PORTS[] = {
     "rpm_out",
     "t4_out",
     "v_bus",
-    "v_gen_mon",
     "v_start"
 };
 constexpr const char* RUG82_PORTS[] = {
@@ -204,7 +203,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Inverter", {"ac_out", "dc_in"}},
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
-        {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_gen_mon", "v_start"}},
+        {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_start"}},
         {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},

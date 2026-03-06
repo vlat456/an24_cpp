@@ -29,28 +29,27 @@ namespace an24 {
 // SIGNAL INDICES (ECS-like: direct array access, no lookups)
 // ==============================================================================
 
-constexpr uint32_t SIG_LIGHT_1_BRIGHTNESS = 6;
-constexpr uint32_t SIG_T4_SENSOR_OUTPUT = 7;
-constexpr uint32_t SIG_LIGHT_1_V_OUT = 0;
-constexpr uint32_t SIG_RUG_VSU_K_MOD = 5;
 constexpr uint32_t SIG_LIGHT_1_V_IN = 1;
-constexpr uint32_t SIG_VSU_1_V_GEN_MON = 3;
-constexpr uint32_t SIG_VSU_1_RPM_OUT = 4;
-constexpr uint32_t SIG_VSU_1_K_MOD = 5;
-constexpr uint32_t SIG_VSU_1_V_START = 1;
-constexpr uint32_t SIG_VSU_1_T4_OUT = 2;
+constexpr uint32_t SIG_LIGHT_1_BRIGHTNESS = 5;
+constexpr uint32_t SIG_RUG_VSU_K_MOD = 4;
 constexpr uint32_t SIG_VSU_1_V_BUS = 1;
+constexpr uint32_t SIG_VSU_1_K_MOD = 4;
+constexpr uint32_t SIG_VSU_1_V_START = 1;
+constexpr uint32_t SIG_VSU_1_T4_OUT = 3;
+constexpr uint32_t SIG_VSU_1_RPM_OUT = 2;
 constexpr uint32_t SIG_RUG_VSU_V_GEN = 1;
-constexpr uint32_t SIG_T4_SENSOR_INPUT = 2;
+constexpr uint32_t SIG_T4_SENSOR_INPUT = 3;
 constexpr uint32_t SIG_BAT_MAIN_1_V_OUT = 1;
 constexpr uint32_t SIG_BAT_MAIN_1_V_IN = 0;
+constexpr uint32_t SIG_T4_SENSOR_OUTPUT = 6;
+constexpr uint32_t SIG_LIGHT_1_V_OUT = 0;
 constexpr uint32_t SIG_GND_V = 0;
 
 /// Fixed signal indices (RefNode bus voltages)
 constexpr uint32_t FIXED_SIGNALS[] = {0};
 
 /// Total number of unique signals (for memory allocation)
-constexpr uint32_t SIGNAL_COUNT = 9;
+constexpr uint32_t SIGNAL_COUNT = 8;
 
 /// Number of devices in this system
 constexpr uint32_t DEVICE_COUNT = 6;

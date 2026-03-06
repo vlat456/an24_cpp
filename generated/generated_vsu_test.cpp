@@ -17,23 +17,22 @@ Systems::Systems()
     bat_main_1.v_nominal = 28;
     bat_main_1.capacity = 1000;
     bat_main_1.internal_r = 0.01;
-    vsu_1.v_bus_idx = 1;
-    vsu_1.t4_out_idx = 2;
+    vsu_1.k_mod_idx = 4;
+    vsu_1.rpm_out_idx = 2;
+    vsu_1.t4_out_idx = 3;
     vsu_1.v_start_idx = 1;
-    vsu_1.k_mod_idx = 5;
-    vsu_1.v_gen_mon_idx = 3;
-    vsu_1.rpm_out_idx = 4;
+    vsu_1.v_bus_idx = 1;
     vsu_1.target_rpm = 16000;
-    rug_vsu.k_mod_idx = 5;
+    rug_vsu.k_mod_idx = 4;
     rug_vsu.v_gen_idx = 1;
     rug_vsu.v_target = 28.5;
     light_1.v_out_idx = 0;
-    light_1.brightness_idx = 6;
+    light_1.brightness_idx = 5;
     light_1.v_in_idx = 1;
     light_1.max_brightness = 100;
     light_1.color = std::string("white");
-    t4_sensor.input_idx = 2;
-    t4_sensor.output_idx = 7;
+    t4_sensor.input_idx = 3;
+    t4_sensor.output_idx = 6;
     t4_sensor.factor = 0.1;
 }
 

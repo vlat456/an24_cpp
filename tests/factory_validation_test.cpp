@@ -30,7 +30,7 @@ TEST(FactoryValidationTest, AllFactoryPortsMatchRegistry) {
         {"Generator", {"v_in", "v_out"}},
         {"GS24", {"v_in", "v_out", "k_mod"}},
         {"RUG82", {"v_gen", "k_mod"}},
-        {"RU19A", {"v_start", "v_bus", "k_mod", "v_gen_mon", "rpm_out", "t4_out"}},
+        {"RU19A", {"v_start", "v_bus", "k_mod", "rpm_out", "t4_out"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Gyroscope", {"input"}},
         {"AGK47", {"input"}},
@@ -103,7 +103,7 @@ TEST(FactoryValidationTest, PortRegistryConstants_AreCorrect) {
     EXPECT_EQ(Bus_PORT_COUNT, 1);
     EXPECT_EQ(GS24_PORT_COUNT, 3);
     EXPECT_EQ(RUG82_PORT_COUNT, 2);
-    EXPECT_EQ(RU19A_PORT_COUNT, 6);
+    EXPECT_EQ(RU19A_PORT_COUNT, 5);
     EXPECT_EQ(DMR400_PORT_COUNT, 4);
     EXPECT_EQ(Gyroscope_PORT_COUNT, 1);
     EXPECT_EQ(AGK47_PORT_COUNT, 1);
@@ -165,7 +165,7 @@ TEST(FactoryValidationTest, PortOrder_MatchesRegistry) {
 
     // Check a few critical components
     std::vector<ComponentPortOrder> checks = {
-        {"RU19A", {"v_start", "v_bus", "k_mod", "v_gen_mon", "rpm_out", "t4_out"}},
+        {"RU19A", {"v_start", "v_bus", "k_mod", "rpm_out", "t4_out"}},
         {"DMR400", {"v_gen_ref", "v_in", "v_out", "lamp"}},  // constructor parameter order
         {"GS24", {"v_in", "v_out", "k_mod"}},
         {"Battery", {"v_in", "v_out"}}
