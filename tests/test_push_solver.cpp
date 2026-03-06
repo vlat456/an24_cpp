@@ -4,6 +4,26 @@
 
 using namespace an24;
 
+/// Helper для создания DeviceInstance с портами
+inline DeviceInstance create_device(
+    const std::string& name,
+    const std::string& classname,
+    std::unordered_map<std::string, std::string> ports = {},
+    std::unordered_map<std::string, std::string> params = {}
+) {
+    DeviceInstance dev;
+    dev.name = name;
+    dev.classname = classname;
+    dev.params = params;
+    // Convert ports
+    for (const auto& [port_name, dir_str] : ports) {
+        PortDirection dir = (dir_str == "in" || dir_str == "i" || dir_str == "input")
+            ? PortDirection::In : PortDirection::Out;
+        dev.ports[port_name].direction = dir;
+    }
+    return dev;
+}
+
 /// Тест для push-based solver
 class PushSolverTest : public ::testing::Test {
 protected:
@@ -23,9 +43,8 @@ TEST_F(PushSolverTest, BatteryOutputsNominalVoltage) {
     PushState state;
 
     // Build battery component
-    DeviceInstance bat;
-    bat.name = "bat1";
-    bat.classname = "Battery";
+    auto bat = create_device("bat1", "Battery",
+        {{"v_in", "out"}, {"v_out", "in"}});
 
     ASSERT_TRUE(solver.build({bat}, {}));
 

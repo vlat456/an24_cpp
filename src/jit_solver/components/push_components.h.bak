@@ -1,8 +1,10 @@
 #pragma once
 
 #include "component.h"
+#include "../push_solver.h"  // Для ELECTRICAL_DT
 #include <cstdint>
 #include <string>
+#include <limits>
 
 namespace an24 {
 
@@ -29,7 +31,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "Switch"; }
 
     /// Push voltage: if closed, V_out ≈ V_in; if open, V_out = 0
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.get_voltage("v_in");
 
         if (closed) {
@@ -78,7 +80,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
 
     /// Push voltage: if pressed, V_out ≈ V_in
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.get_voltage("v_in");
 
         if (is_pressed) {
@@ -127,7 +129,7 @@ public:
     /// Push voltage: V_out = V_nominal - I * R_internal
     /// Current I depends on downstream load resistance
     /// Charging mode: if V_in > V_nominal, battery charges
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.signals[v_in_idx].voltage;
 
         // Check if charging (V_in > V_nominal) or discharging
@@ -191,7 +193,7 @@ public:
 
     /// Push voltage: V_out = V_in - I * R
     /// Brightness = V_in / V_threshold (clamped 0-1)
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.signals[v_in_idx].voltage;
 
         // I = V_in / R
@@ -233,7 +235,7 @@ public:
     }
 
     /// Push voltage: V_out = V_in - I * R where I = V_in / R_total
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.signals[v_in_idx].voltage;
 
         // Total resistance (this + downstream)
@@ -270,7 +272,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "Generator"; }
 
     /// Push voltage: produces voltage only when RPM > threshold and load connected
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float rpm = state.signals[rpm_idx].voltage;
         float r_load = state.signals[v_out_idx].resistance;
 
@@ -302,7 +304,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "RefNode"; }
 
     /// Push voltage: outputs fixed reference voltage
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         state.signals[v_idx].voltage = value;
     }
 };
@@ -329,7 +331,7 @@ public:
     }
 
     /// Push voltage: V_out ≈ V_in (negligible drop)
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float v_in = state.signals[v_in_idx].voltage;
         // Pass through with tiny voltage drop
         state.signals[v_out_idx].voltage = v_in * 0.9999f;  // 0.01% drop
@@ -354,7 +356,7 @@ public:
 
     /// Linear interpolation: output = output + (input - output) * factor
     /// This creates a first-order low-pass filter for sensor smoothing
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         float input = state.signals[input_idx].voltage;
 
         // output += (input - output) * factor
@@ -403,7 +405,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "GS24"; }
 
     /// Управление напряжением: двойной режим работы
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         if (mode == Mode::STARTER) {
             // === РЕЖИМ СТАРТЕРА ===
             // Потребляет питание от v_start (напрямую от батареи)
@@ -489,7 +491,7 @@ public:
             }
             break;
 
-        case Mode::GENERATOR: {
+        case Mode::GENERATOR:
             // Продолжаем разгон до оборотов холостого хода
             float idle_rpm = target_rpm * 0.6f;  // 60% = холостой ход
             if (current_rpm < idle_rpm) {
@@ -498,7 +500,6 @@ public:
                 if (current_rpm > idle_rpm) current_rpm = idle_rpm;
             }
             break;
-        }
 
         case Mode::OFF:
         default:
@@ -528,7 +529,7 @@ public:
     [[nodiscard]] std::string_view type_name() const override { return "RUG82"; }
 
     /// Управление напряжением: выдает k_mod на основе ошибки напряжения
-    void push_voltage(PushState& state, float dt) {
+    void push_voltage(PushState& state) {
         // Читаем напряжение генератора (напряжение шины)
         float v_gen = state.signals[v_gen_idx].voltage;
 

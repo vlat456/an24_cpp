@@ -4,24 +4,6 @@
 
 namespace an24 {
 
-/// Helper: try to call push_voltage on component if it matches type
-template<typename CompType>
-void try_push_voltage(Component* comp, PushState& state, float dt) {
-    if (auto* typed = dynamic_cast<CompType*>(comp)) {
-        typed->push_voltage(state, dt);
-    }
-}
-
-/// Helper: try to call update_state on component if it matches type
-template<typename CompType>
-void try_update_state(Component* comp, PushState& state, float dt) {
-    if (auto* typed = dynamic_cast<CompType*>(comp)) {
-        if constexpr (requires { typed->update_state(state, dt); }) {
-            typed->update_state(state, dt);
-        }
-    }
-}
-
 bool PushSolver::build(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
@@ -38,56 +20,71 @@ bool PushSolver::build(
     // Allocate signals for all ports
     uint32_t signal_count = 0;
     for (const auto& dev : devices) {
-        // Allocate signals for all ports defined in device
-        for (const auto& [port_name, port] : dev.ports) {
-            (void)port;  // Direction not needed for allocation
-            port_to_signal[dev.name + "." + port_name] = signal_count++;
+        // TODO: parse ports from device
+        // For now, just allocate signals based on component type
+        if (dev.classname == "Battery") {
+            port_to_signal[dev.name + ".v_in"] = signal_count++;
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+        } else if (dev.classname == "RefNode") {
+            port_to_signal[dev.name + ".v"] = signal_count++;
+        } else if (dev.classname == "Generator") {
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+            port_to_signal[dev.name + ".rpm"] = signal_count++;
+        } else if (dev.classname == "IndicatorLight") {
+            port_to_signal[dev.name + ".v_in"] = signal_count++;
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+            port_to_signal[dev.name + ".brightness"] = signal_count++;
+        } else if (dev.classname == "Resistor") {
+            port_to_signal[dev.name + ".v_in"] = signal_count++;
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+        } else if (dev.classname == "Wire") {
+            port_to_signal[dev.name + ".v_in"] = signal_count++;
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+        } else if (dev.classname == "LerpNode") {
+            port_to_signal[dev.name + ".input"] = signal_count++;
+            port_to_signal[dev.name + ".output"] = signal_count++;
+        } else if (dev.classname == "Switch" || dev.classname == "HoldButton") {
+            port_to_signal[dev.name + ".v_in"] = signal_count++;
+            port_to_signal[dev.name + ".v_out"] = signal_count++;
+            port_to_signal[dev.name + ".control"] = signal_count++;
+            port_to_signal[dev.name + ".state"] = signal_count++;
         }
     }
 
     // Create push-based components
     for (const auto& dev : devices) {
+        uint32_t v_in = port_to_signal[dev.name + ".v_in"];
+        uint32_t v_out = port_to_signal[dev.name + ".v_out"];
+        uint32_t control = port_to_signal[dev.name + ".control"];
+        uint32_t state = port_to_signal[dev.name + ".state"];
+
         std::unique_ptr<Component> comp;
 
         if (dev.classname == "Battery") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
             float v_nom = 28.0f;  // TODO: read from params
             float r_int = 0.01f;
             comp = std::make_unique<PushBattery>(v_in, v_out, v_nom, r_int);
         } else if (dev.classname == "RefNode") {
-            uint32_t v = port_to_signal[dev.name + ".v"];
             float val = 0.0f;
             auto it = dev.params.find("value");
             if (it != dev.params.end()) {
                 val = std::stof(it->second);
             }
+            uint32_t v = port_to_signal[dev.name + ".v"];
             comp = std::make_unique<PushRefNode>(v, val);
         } else if (dev.classname == "Generator") {
             uint32_t v_out = port_to_signal[dev.name + ".v_out"];
             uint32_t rpm = port_to_signal[dev.name + ".rpm"];
             comp = std::make_unique<PushGenerator>(v_out, rpm);
         } else if (dev.classname == "Switch") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
-            uint32_t control = port_to_signal[dev.name + ".control"];
-            uint32_t state = port_to_signal[dev.name + ".state"];
             bool is_closed = false;  // TODO: read from params
             comp = std::make_unique<PushSwitch>(v_in, v_out, control, state, is_closed);
         } else if (dev.classname == "HoldButton") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
-            uint32_t control = port_to_signal[dev.name + ".control"];
-            uint32_t state_port = port_to_signal[dev.name + ".state"];
-            comp = std::make_unique<PushHoldButton>(v_in, v_out, control, state_port);
+            comp = std::make_unique<PushHoldButton>(v_in, v_out, control, state);
         } else if (dev.classname == "IndicatorLight") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
             uint32_t brightness = port_to_signal[dev.name + ".brightness"];
             comp = std::make_unique<PushIndicatorLight>(v_in, v_out, brightness);
         } else if (dev.classname == "Resistor") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
             float r = 100.0f;
             auto it = dev.params.find("resistance");
             if (it != dev.params.end()) {
@@ -95,8 +92,6 @@ bool PushSolver::build(
             }
             comp = std::make_unique<PushResistor>(v_in, v_out, r);
         } else if (dev.classname == "Wire") {
-            uint32_t v_in = port_to_signal[dev.name + ".v_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
             comp = std::make_unique<PushWire>(v_in, v_out);
         } else if (dev.classname == "LerpNode") {
             uint32_t input = port_to_signal[dev.name + ".input"];
@@ -107,29 +102,6 @@ bool PushSolver::build(
                 factor = std::stof(it->second);
             }
             comp = std::make_unique<PushLerpNode>(input, output, factor);
-        } else if (dev.classname == "RU19A") {
-            uint32_t v_start = port_to_signal[dev.name + ".v_start"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
-            uint32_t k_mod = port_to_signal[dev.name + ".k_mod"];
-            uint32_t rpm_out = port_to_signal[dev.name + ".rpm_out"];
-            uint32_t t4_out = port_to_signal[dev.name + ".t4_out"];
-            comp = std::make_unique<PushRU19A>(v_start, v_out, k_mod, rpm_out, t4_out);
-        } else if (dev.classname == "RUG82") {
-            uint32_t v_gen = port_to_signal[dev.name + ".v_gen"];
-            uint32_t k_mod = port_to_signal[dev.name + ".k_mod"];
-            comp = std::make_unique<PushRUG82>(v_gen, k_mod);
-        } else if (dev.classname == "DMR400") {
-            uint32_t v_gen_in = port_to_signal[dev.name + ".v_gen_in"];
-            uint32_t v_out = port_to_signal[dev.name + ".v_out"];
-            uint32_t v_bus_mon = port_to_signal[dev.name + ".v_bus_mon"];
-            uint32_t lamp = port_to_signal[dev.name + ".lamp"];
-            comp = std::make_unique<PushDMR400>(v_gen_in, v_out, v_bus_mon, lamp);
-        } else if (dev.classname == "GS24") {
-            uint32_t v_start = port_to_signal[dev.name + ".v_start"];
-            uint32_t v_bus = port_to_signal[dev.name + ".v_bus"];
-            uint32_t k_mod = port_to_signal[dev.name + ".k_mod"];
-            uint32_t rpm_out = port_to_signal[dev.name + ".rpm_out"];
-            comp = std::make_unique<PushGS24>(v_start, v_bus, k_mod, rpm_out);
         }
 
         if (comp) {
@@ -175,20 +147,21 @@ void PushSolver::step(PushState& state, float dt) {
     // Phase 1: Sources produce voltage (Battery, RefNode, Generator)
     for (auto& comp : systems.electrical) {
         if (auto* bat = dynamic_cast<PushBattery*>(comp.get())) {
-            bat->push_voltage(state, dt);
+            bat->push_voltage(state);
         } else if (auto* ref = dynamic_cast<PushRefNode*>(comp.get())) {
-            ref->push_voltage(state, dt);
+            ref->push_voltage(state);
         } else if (auto* gen = dynamic_cast<PushGenerator*>(comp.get())) {
-            gen->push_voltage(state, dt);
+            gen->push_voltage(state);
         }
     }
 
     // Phase 2: Update switch states
     for (auto& comp : systems.electrical) {
-        try_update_state<PushSwitch>(comp.get(), state, dt);
-        try_update_state<PushHoldButton>(comp.get(), state, dt);
-        try_update_state<PushGS24>(comp.get(), state, dt);
-        try_update_state<PushRU19A>(comp.get(), state, dt);
+        if (auto* sw = dynamic_cast<PushSwitch*>(comp.get())) {
+            sw->update_state(state);
+        } else if (auto* btn = dynamic_cast<PushHoldButton*>(comp.get())) {
+            btn->update_state(state);
+        }
     }
 
     // Phase 3: Propagate voltages through connections
@@ -197,21 +170,21 @@ void PushSolver::step(PushState& state, float dt) {
         state.set_voltage(conn.second, v_from);
     }
 
-    // Phase 4: Components propagate voltage (all push components)
+    // Phase 4: Components propagate voltage (Switch, Light, Resistor, Wire)
     for (auto& comp : systems.electrical) {
-        try_push_voltage<PushBattery>(comp.get(), state, dt);
-        try_push_voltage<PushRefNode>(comp.get(), state, dt);
-        try_push_voltage<PushGenerator>(comp.get(), state, dt);
-        try_push_voltage<PushSwitch>(comp.get(), state, dt);
-        try_push_voltage<PushHoldButton>(comp.get(), state, dt);
-        try_push_voltage<PushIndicatorLight>(comp.get(), state, dt);
-        try_push_voltage<PushResistor>(comp.get(), state, dt);
-        try_push_voltage<PushWire>(comp.get(), state, dt);
-        try_push_voltage<PushLerpNode>(comp.get(), state, dt);
-        try_push_voltage<PushGS24>(comp.get(), state, dt);
-        try_push_voltage<PushRUG82>(comp.get(), state, dt);
-        try_push_voltage<PushDMR400>(comp.get(), state, dt);
-        try_push_voltage<PushRU19A>(comp.get(), state, dt);
+        if (auto* sw = dynamic_cast<PushSwitch*>(comp.get())) {
+            sw->push_voltage(state);
+        } else if (auto* btn = dynamic_cast<PushHoldButton*>(comp.get())) {
+            btn->push_voltage(state);
+        } else if (auto* light = dynamic_cast<PushIndicatorLight*>(comp.get())) {
+            light->push_voltage(state);
+        } else if (auto* res = dynamic_cast<PushResistor*>(comp.get())) {
+            res->push_voltage(state);
+        } else if (auto* wire = dynamic_cast<PushWire*>(comp.get())) {
+            wire->push_voltage(state);
+        } else if (auto* lerp = dynamic_cast<PushLerpNode*>(comp.get())) {
+            lerp->push_voltage(state);
+        }
     }
 }
 
