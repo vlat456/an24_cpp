@@ -116,7 +116,7 @@ std::unique_ptr<Component> create_component(
     }
     else if (device.classname == "DMR400") {
         auto dmr = std::make_unique<DMR400>(
-            get_port("v_gen"), get_port("v_bus"),
+            get_port("v_gen_ref"), get_port("v_in"),
             get_port("v_out"), get_port("lamp"));
         // Will be linked to RU19A after all components created
         return dmr;

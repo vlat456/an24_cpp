@@ -83,8 +83,8 @@ constexpr const char* Bus_PORTS[] = {
 };
 constexpr const char* DMR400_PORTS[] = {
     "lamp",
-    "v_bus",
-    "v_gen",
+    "v_gen_ref",
+    "v_in",
     "v_out"
 };
 constexpr const char* ElectricHeater_PORTS[] = {
@@ -191,7 +191,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"AGK47", {"input"}},
         {"Battery", {"v_in", "v_out"}},
         {"Bus", {"v"}},
-        {"DMR400", {"lamp", "v_bus", "v_gen", "v_out"}},
+        {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_out", "v_in"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},

@@ -18,11 +18,11 @@
     },
     {
       "from": "main_bus.v",
-      "to": "dmr_vsu.v_bus"
+      "to": "dmr_vsu.v_in"
     },
     {
       "from": "vsu_1.v_bus",
-      "to": "dmr_vsu.v_gen"
+      "to": "dmr_vsu.v_gen_ref"
     },
     {
       "from": "dmr_vsu.v_out",
@@ -177,14 +177,14 @@
         "lamp": {
           "direction": "Out"
         },
-        "v_bus": {
-          "direction": "In"
-        },
-        "v_gen": {
-          "direction": "In"
-        },
         "v_out": {
           "direction": "Out"
+        },
+        "v_in": {
+          "direction": "In"
+        },
+        "v_gen_ref": {
+          "direction": "In"
         }
       },
       "priority": "med",
@@ -393,7 +393,7 @@
       {
         "from": "main_bus.v",
         "routing_points": [],
-        "to": "dmr_vsu.v_bus"
+        "to": "dmr_vsu.v_in"
       },
       {
         "from": "vsu_1.v_bus",
@@ -423,7 +423,7 @@
             "y": 448.0
           }
         ],
-        "to": "dmr_vsu.v_gen"
+        "to": "dmr_vsu.v_gen_ref"
       },
       {
         "from": "dmr_vsu.v_out",

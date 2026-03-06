@@ -31,8 +31,7 @@ namespace an24 {
 
 constexpr uint32_t SIG_LIGHT_1_BRIGHTNESS = 8;
 constexpr uint32_t SIG_LIGHT_1_V_OUT = 0;
-constexpr uint32_t SIG_DMR_VSU_V_GEN = 2;
-constexpr uint32_t SIG_DMR_VSU_V_BUS = 1;
+constexpr uint32_t SIG_DMR_VSU_V_GEN_REF = 2;
 constexpr uint32_t SIG_RUG_VSU_V_GEN = 2;
 constexpr uint32_t SIG_DMR_VSU_LAMP = 7;
 constexpr uint32_t SIG_RUG_VSU_K_MOD = 6;
@@ -45,6 +44,7 @@ constexpr uint32_t SIG_VSU_1_V_BUS = 2;
 constexpr uint32_t SIG_VSU_1_RPM_OUT = 5;
 constexpr uint32_t SIG_DMR_VSU_V_OUT = 1;
 constexpr uint32_t SIG_MAIN_BUS_V = 1;
+constexpr uint32_t SIG_DMR_VSU_V_IN = 1;
 constexpr uint32_t SIG_BAT_MAIN_1_V_OUT = 1;
 constexpr uint32_t SIG_BAT_MAIN_1_V_IN = 0;
 constexpr uint32_t SIG_GND_V = 0;

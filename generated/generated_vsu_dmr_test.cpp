@@ -28,10 +28,10 @@ Systems::Systems()
     rug_vsu.k_mod_idx = 6;
     rug_vsu.v_gen_idx = 2;
     rug_vsu.v_target = 28.5;
-    dmr_vsu.v_bus_idx = 1;
+    dmr_vsu.v_gen_ref_idx = 2;
     dmr_vsu.lamp_idx = 7;
     dmr_vsu.v_out_idx = 1;
-    dmr_vsu.v_gen_idx = 2;
+    dmr_vsu.v_in_idx = 1;
     light_1.v_out_idx = 0;
     light_1.brightness_idx = 8;
     light_1.v_in_idx = 1;

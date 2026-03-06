@@ -40,7 +40,7 @@ TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
     registry_file >> registry;
 
     std::vector<std::string> expected_ports = {
-        "v_gen", "v_bus", "v_out", "lamp"
+        "v_gen_ref", "v_in", "v_out", "lamp"
     };
 
     std::vector<std::string> actual_ports;

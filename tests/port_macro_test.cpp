@@ -57,8 +57,8 @@ TEST(PortMacroTest, DMR400_PortNamesAreCorrect) {
 
     EXPECT_EQ(ports.size(), 4);
 
-    EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_gen") != ports.end());
-    EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_bus") != ports.end());
+    EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_gen_ref") != ports.end());
+    EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_in") != ports.end());
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "v_out") != ports.end());
     EXPECT_TRUE(std::find(ports.begin(), ports.end(), "lamp") != ports.end());
 }

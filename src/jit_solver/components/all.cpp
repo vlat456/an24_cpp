@@ -536,19 +536,19 @@ void DMR400::solve_electrical(SimulationState& st) {
     float g_closed = 100.0f;  // ~0.01 Ohm when closed
 
     // Add conductance to both nodes (creates connection in the matrix)
-    st.conductance[v_gen_idx] += g_closed;
+    st.conductance[v_gen_ref_idx] += g_closed;
     st.conductance[v_out_idx] += g_closed;
 
     // Also add current injection to balance the voltages
     // This helps the solver converge faster
-    float v_avg = (st.across[v_gen_idx] + st.across[v_out_idx]) * 0.5f;
-    st.through[v_gen_idx] += (v_avg - st.across[v_gen_idx]) * g_closed;
+    float v_avg = (st.across[v_gen_ref_idx] + st.across[v_out_idx]) * 0.5f;
+    st.through[v_gen_ref_idx] += (v_avg - st.across[v_gen_ref_idx]) * g_closed;
     st.through[v_out_idx] += (v_avg - st.across[v_out_idx]) * g_closed;
 }
 
 void DMR400::post_step(SimulationState& st, float dt) {
-    float v_gen = st.across[v_gen_idx];
-    float v_bus = st.across[v_bus_idx];
+    float v_gen = st.across[v_gen_ref_idx];
+    float v_bus = st.across[v_in_idx];
 
     // Update reconnect delay
     if (reconnect_delay > 0.0f) {

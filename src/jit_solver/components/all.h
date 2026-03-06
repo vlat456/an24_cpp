@@ -413,7 +413,7 @@ public:
 /// Connects generator to DC bus when ready, disconnects on reverse current
 class DMR400 : public Component {
 public:
-    PORTS(DMR400, lamp, v_bus, v_gen, v_out)
+    PORTS(DMR400, lamp, v_gen_ref, v_in, v_out)
     bool is_closed = false;          // contactor state (default open)
     float connect_threshold = 2.0f;     // V_gen > V_bus + 2.0V to connect (hysteresis)
     float disconnect_threshold = 10.0f; // V_bus > V_gen + 10V to disconnect (reverse current)
@@ -421,8 +421,8 @@ public:
     float reconnect_delay = 0.0f;      // delay before reconnecting
 
     DMR400() = default;
-    DMR400(uint32_t v_gen, uint32_t v_bus, uint32_t v_out, uint32_t lamp)
-        : v_gen_idx(v_gen), v_bus_idx(v_bus), v_out_idx(v_out), lamp_idx(lamp) {}
+    DMR400(uint32_t v_gen_ref, uint32_t v_in, uint32_t v_out, uint32_t lamp)
+        : v_gen_ref_idx(v_gen_ref), v_in_idx(v_in), v_out_idx(v_out), lamp_idx(lamp) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "DMR400"; }
     void solve_electrical(SimulationState& state) override;
