@@ -620,7 +620,7 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
 
         return bp;
     } catch (const std::exception& e) {
-        (void)e;
+        printf("[ERROR] blueprint_from_json failed: %s\n", e.what());
         return std::nullopt;
     }
 }
