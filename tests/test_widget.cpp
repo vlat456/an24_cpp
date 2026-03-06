@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cmath>
 #include "editor/interfaces.h"
 #include "editor/widget.h"
 #include "editor/visual_node.h"
@@ -917,4 +918,77 @@ TEST(VisualNodeTest, BusPortOrder_NoWires_SingleVPort) {
     auto* p0 = visual.getPort(size_t(0));
     ASSERT_NE(p0, nullptr);
     EXPECT_EQ(p0->name, "v");
+}
+
+// ============================================================================
+// [d5e6f7g8] Regression: RefNode port position is grid-aligned
+// ============================================================================
+
+TEST(RefNodeGridTest, PortPosition_IsGridAligned) {
+    constexpr float GRID = 16.0f;
+
+    // Test several positions — all should yield grid-snapped port
+    float positions[] = {0.0f, 16.0f, 32.0f, 48.0f, 64.0f, 128.0f};
+    for (float px : positions) {
+        Node n;
+        n.id = "ref1"; n.name = "GND"; n.kind = NodeKind::Ref;
+        n.at(px, px).size_wh(40, 40);
+        n.output("v");
+        RefVisualNode visual(n);
+
+        Pt port = visual.getPortPosition("v");
+        float rx = std::fmod(port.x, GRID);
+        float ry = std::fmod(port.y, GRID);
+        EXPECT_NEAR(rx, 0.0f, 0.01f)
+            << "Port X not grid-aligned at node pos " << px;
+        EXPECT_NEAR(ry, 0.0f, 0.01f)
+            << "Port Y not grid-aligned at node pos " << px;
+    }
+}
+
+TEST(StandardNodeGridTest, PortPositions_AreGridAligned) {
+    constexpr float GRID = 16.0f;
+
+    Node n;
+    n.id = "gen"; n.name = "Gen"; n.kind = NodeKind::Node;
+    n.at(64.0f, 64.0f).size_wh(120, 80);
+    n.input("a"); n.input("b");
+    n.output("c"); n.output("d");
+
+    StandardVisualNode visual(n);
+    for (const auto& pname : visual.getPortNames()) {
+        Pt port = visual.getPortPosition(pname);
+        float rx = std::fmod(port.x, GRID);
+        float ry = std::fmod(port.y, GRID);
+        EXPECT_NEAR(rx, 0.0f, 0.01f)
+            << "Port '" << pname << "' X not grid-aligned";
+        EXPECT_NEAR(ry, 0.0f, 0.01f)
+            << "Port '" << pname << "' Y not grid-aligned";
+    }
+}
+
+TEST(BusNodeGridTest, PortPositions_AreGridAligned) {
+    constexpr float GRID = 16.0f;
+
+    Node n;
+    n.id = "bus1"; n.name = "bus"; n.kind = NodeKind::Bus;
+    n.at(48.0f, 48.0f).size_wh(80, 32);
+    n.input("v"); n.output("v");
+
+    std::vector<Wire> wires;
+    wires.push_back(Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v")));
+    wires.push_back(Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v")));
+
+    BusVisualNode visual(n, BusOrientation::Horizontal, wires);
+    for (size_t i = 0; i < visual.getPortCount(); i++) {
+        auto* p = visual.getPort(i);
+        ASSERT_NE(p, nullptr);
+        Pt port = visual.getPortPosition(p->name);
+        float rx = std::fmod(port.x, GRID);
+        float ry = std::fmod(port.y, GRID);
+        EXPECT_NEAR(rx, 0.0f, 0.01f)
+            << "Bus port '" << p->name << "' X not grid-aligned";
+        EXPECT_NEAR(ry, 0.0f, 0.01f)
+            << "Bus port '" << p->name << "' Y not grid-aligned";
+    }
 }

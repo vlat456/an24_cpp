@@ -468,7 +468,8 @@ RefVisualNode::RefVisualNode(const Node& node)
     }
     Port p;
     p.name = port_name;
-    p.world_position = Pt(position_.x + size_.x / 2, position_.y);
+    // [d5e6f7g8] Snap port position to grid so wires align to grid lines.
+    p.world_position = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     ports_.push_back(p);
 }
 
@@ -490,7 +491,8 @@ std::vector<std::string> RefVisualNode::getPortNames() const {
 }
 
 Pt RefVisualNode::getPortPosition(const std::string&, const char*) const {
-    return Pt(position_.x + size_.x / 2, position_.y);
+    // [d5e6f7g8] Snap to grid so wire endpoints land on grid lines.
+    return snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
 }
 
 void RefVisualNode::connectWire(const Wire&) {}
@@ -498,7 +500,8 @@ void RefVisualNode::disconnectWire(const Wire&) {}
 
 void RefVisualNode::recalculatePorts() {
     if (!ports_.empty()) {
-        ports_[0].world_position = Pt(position_.x + size_.x / 2, position_.y);
+        // [d5e6f7g8] Keep port position grid-snapped after moves.
+        ports_[0].world_position = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     }
 }
 
@@ -517,7 +520,8 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 10.0f * vp.zoom);
 
-    Pt world_port_pos = Pt(position_.x + size_.x / 2, position_.y);
+    // [d5e6f7g8] Use grid-snapped position so rendering matches getPortPosition.
+    Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, COLOR_PORT_OUTPUT, 8);
 }

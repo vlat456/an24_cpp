@@ -645,3 +645,199 @@ TEST(ReconnectAnchorTest, AnchorIsFirstRoutingPoint_WhenDetachStart) {
     EXPECT_FLOAT_EQ(anchor.x, 200.0f);
     EXPECT_FLOAT_EQ(anchor.y, 100.0f);
 }
+
+// ============================================================================
+// [a1b2c3d4] Regression: disconnect then reconnect to same port keeps wire
+// ============================================================================
+
+TEST(ReconnectTest, DropOnSamePort_KeepsWireUnchanged) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.pos = Pt(400, 0); n2.size = Pt(120, 80);
+    n2.input("i");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    w.add_routing_point(Pt(200, 50));
+    w.add_routing_point(Pt(300, 50));
+    app.blueprint.add_wire(std::move(w));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Click on end port of node "b" (input "i") — starts reconnection
+    auto* bv = app.visual_cache.get("b");
+    Pt end_port_pos = bv->getPortPosition("i");
+    app.on_mouse_down(end_port_pos, MouseButton::Left, Pt(0, 0));
+    ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+
+    // Release on the SAME port — wire should be unchanged
+    app.last_mouse_pos = end_port_pos;
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should still exist with original routing points
+    ASSERT_EQ(app.blueprint.wires.size(), 1u);
+    EXPECT_EQ(app.blueprint.wires[0].id, "w1");
+    EXPECT_EQ(app.blueprint.wires[0].end.node_id, "b");
+    EXPECT_EQ(app.blueprint.wires[0].end.port_name, "i");
+    EXPECT_EQ(app.blueprint.wires[0].routing_points.size(), 2u);
+    EXPECT_FLOAT_EQ(app.blueprint.wires[0].routing_points[0].x, 200.0f);
+    EXPECT_FLOAT_EQ(app.blueprint.wires[0].routing_points[1].x, 300.0f);
+}
+
+TEST(ReconnectTest, DropOnSamePort_BusAlias_KeepsWireUnchanged) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    app.blueprint.add_node(std::move(bus));
+
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    app.blueprint.add_node(std::move(n1));
+
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    app.blueprint.add_wire(std::move(w));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Click on Bus alias port for wire "w1"
+    Pt w1_pos = editor_math::get_port_position(
+        app.blueprint.nodes[0], "v", app.blueprint.wires, "w1", &app.visual_cache);
+    app.on_mouse_down(w1_pos, MouseButton::Left, Pt(0, 0));
+    ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
+
+    // Drop back on the same alias port
+    app.last_mouse_pos = w1_pos;
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should still exist unchanged
+    ASSERT_EQ(app.blueprint.wires.size(), 1u);
+    EXPECT_EQ(app.blueprint.wires[0].id, "w1");
+    EXPECT_EQ(app.blueprint.wires[0].end.node_id, "bus1");
+}
+
+// ============================================================================
+// [k2l3m4n5] Regression: clicking unassigned Bus "v" port starts wire creation
+// ============================================================================
+
+TEST(BusNewPortTest, ClickUnassignedV_StartsWireCreation_NotReconnection) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    app.blueprint.add_node(std::move(bus));
+
+    // Two wires already connected to bus
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 0); n1.size = Pt(120, 80);
+    n1.output("o");
+    Node n2; n2.id = "b"; n2.pos = Pt(0, 200); n2.size = Pt(120, 80);
+    n2.output("o");
+    app.blueprint.add_node(std::move(n1));
+    app.blueprint.add_node(std::move(n2));
+
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    Wire w2 = Wire::make("w2", wire_output("b", "o"), wire_input("bus1", "v"));
+    app.blueprint.add_wire(std::move(w1));
+    app.blueprint.add_wire(std::move(w2));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Get position of the unassigned "v" port (last port on Bus)
+    auto* bus_visual = app.visual_cache.get("bus1");
+    ASSERT_NE(bus_visual, nullptr);
+    Pt v_pos = bus_visual->getPortPosition("v");  // main "v" (no wire_id)
+
+    app.on_mouse_down(v_pos, MouseButton::Left, Pt(0, 0));
+
+    // Should start wire CREATION, not reconnection
+    EXPECT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+}
+
+// ============================================================================
+// [k2l3m4n5] Regression: RefNode can connect to Bus (both directions)
+// ============================================================================
+
+TEST(RefBusConnectionTest, RefNode_ConnectsTo_Bus) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.kind = NodeKind::Ref;
+    ref.at(0, 0).size_wh(40, 40);
+    ref.output("v");
+    app.blueprint.add_node(std::move(ref));
+
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    app.blueprint.add_node(std::move(bus));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Start wire from RefNode port
+    auto* ref_visual = app.visual_cache.get("ref1");
+    Pt ref_port = ref_visual->getPortPosition("v");
+    app.on_mouse_down(ref_port, MouseButton::Left, Pt(0, 0));
+    ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
+
+    // Drop on Bus "v" port
+    auto* bus_visual = app.visual_cache.get("bus1");
+    Pt bus_port = bus_visual->getPortPosition("v");
+    app.last_mouse_pos = bus_port;
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should be created
+    EXPECT_EQ(app.blueprint.wires.size(), 1u);
+}
+
+TEST(RefBusConnectionTest, Bus_ConnectsTo_RefNode) {
+    EditorApp app;
+    app.blueprint.grid_step = 16.0f;
+
+    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.kind = NodeKind::Ref;
+    ref.at(0, 0).size_wh(40, 40);
+    ref.output("v");
+    app.blueprint.add_node(std::move(ref));
+
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.at(200, 100).size_wh(80, 32);
+    bus.input("v"); bus.output("v");
+    app.blueprint.add_node(std::move(bus));
+
+    // Add an existing wire to bus so bug (b) would have triggered
+    Node n1; n1.id = "a"; n1.pos = Pt(0, 200); n1.size = Pt(120, 80);
+    n1.output("o");
+    app.blueprint.add_node(std::move(n1));
+    Wire w1 = Wire::make("w1", wire_output("a", "o"), wire_input("bus1", "v"));
+    app.blueprint.add_wire(std::move(w1));
+
+    for (auto& n : app.blueprint.nodes)
+        app.visual_cache.getOrCreate(n, app.blueprint.wires);
+
+    // Start wire from Bus unassigned "v" port
+    auto* bus_visual = app.visual_cache.get("bus1");
+    Pt bus_port = bus_visual->getPortPosition("v");
+    app.on_mouse_down(bus_port, MouseButton::Left, Pt(0, 0));
+    ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire)
+        << "Should start wire creation from Bus 'v' port, not reconnection";
+
+    // Drop on RefNode port
+    auto* ref_visual = app.visual_cache.get("ref1");
+    Pt ref_port = ref_visual->getPortPosition("v");
+    app.last_mouse_pos = ref_port;
+    app.on_mouse_up(MouseButton::Left);
+
+    // Wire should be created (total 2: existing w1 + new one)
+    EXPECT_EQ(app.blueprint.wires.size(), 2u);
+}

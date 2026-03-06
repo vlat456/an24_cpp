@@ -17,6 +17,12 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
         // Сначала проверяем порты для создания проводов
         HitResult port_hit = hit_test_ports(blueprint, visual_cache, world_pos);
         if (port_hit.type == HitType::Port) {
+            // [k2l3m4n5] Determine if port belongs to a Bus node so we can
+            // skip the wire-matching loop for the unassigned "v" port.
+            NodeKind port_node_kind = NodeKind::Node;
+            for (const auto& n : blueprint.nodes)
+                if (n.id == port_hit.port_node_id) { port_node_kind = n.kind; break; }
+
             // [m6i8j0k2] Check if port already has a wire connected — if so, start
             // wire reconnection (detach that end and let user drag to a new port).
             for (size_t wi = 0; wi < blueprint.wires.size(); wi++) {
@@ -24,6 +30,8 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
 
                 // [g1h2i3j4] For Bus alias ports, match by wire ID (port_wire_id)
                 // instead of port_name, because all Bus wires share port_name "v".
+                // [k2l3m4n5] For Bus main "v" port (port_wire_id empty), skip match
+                // entirely — it's the "new connection" port, not an existing wire.
                 bool match_start = false;
                 bool match_end = false;
                 if (!port_hit.port_wire_id.empty()) {
@@ -32,12 +40,14 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
                                    w.start.node_id == port_hit.port_node_id);
                     match_end   = (w.id == port_hit.port_wire_id &&
                                    w.end.node_id == port_hit.port_node_id);
-                } else {
+                } else if (port_node_kind != NodeKind::Bus) {
+                    // Normal (non-Bus) port — match by port name
                     match_start = (w.start.node_id == port_hit.port_node_id &&
                                    w.start.port_name == port_hit.port_name);
                     match_end = (w.end.node_id == port_hit.port_node_id &&
                                  w.end.port_name == port_hit.port_name);
                 }
+                // else: Bus main "v" port — no match (start new wire)
                 if (match_start || match_end) {
                     // Detach the matching end — the "anchor" is the OTHER end
                     bool detach_start = match_start;
@@ -159,6 +169,25 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             bool reconnected = false;
             if (port_hit.type == HitType::Port && wire_idx < blueprint.wires.size()) {
                 auto& wire = blueprint.wires[wire_idx];
+
+                // [a1b2c3d4] Check if dropped back on the SAME port that was
+                // detached — if so, leave the wire completely unchanged.
+                const WireEnd& detached = detach_start ? wire.start : wire.end;
+                bool same_as_original;
+                if (!port_hit.port_wire_id.empty()) {
+                    // Bus alias port — compare wire ID
+                    same_as_original = (port_hit.port_node_id == detached.node_id &&
+                                        port_hit.port_wire_id == wire.id);
+                } else {
+                    same_as_original = (port_hit.port_node_id == detached.node_id &&
+                                        port_hit.port_name == detached.port_name);
+                }
+                if (same_as_original) {
+                    interaction.clear_wire_reconnect();
+                    DEBUG_LOG("Wire {} dropped back on original port — no change", wire.id);
+                    return;
+                }
+
                 // The fixed end determines compatibility
                 const WireEnd& fixed = detach_start ? wire.end : wire.start;
 
