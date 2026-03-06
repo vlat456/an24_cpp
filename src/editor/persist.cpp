@@ -260,8 +260,8 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
         p.name = port_name;
         p.type = port.type;  // Copy port type for visualization and validation
 
-        DEBUG_LOG("[persist] Port '{}' type={}, direction={}",
-                 port_name, (int)port.type, (int)port.direction);
+        printf("[persist] Device '%s' port '%s' type=%d direction=%d\n",
+               dev.classname.c_str(), port_name.c_str(), (int)port.type, (int)port.direction);
 
         if (port.direction == an24::PortDirection::Out) {
             p.side = PortSide::Output;
