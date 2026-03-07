@@ -561,6 +561,19 @@ provider_pattern_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/build
 .PHONY : provider_pattern_tests/fast
 
+#=============================================================================
+# Target rules for targets named editor_hierarchical_tests
+
+# Build rule for target.
+editor_hierarchical_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_hierarchical_tests
+.PHONY : editor_hierarchical_tests
+
+# fast build rule for target.
+editor_hierarchical_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/build
+.PHONY : editor_hierarchical_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -584,6 +597,7 @@ help:
 	@echo "... codegen_test"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
+	@echo "... editor_hierarchical_tests"
 	@echo "... editor_persist_tests"
 	@echo "... editor_render_tests"
 	@echo "... editor_router_tests"

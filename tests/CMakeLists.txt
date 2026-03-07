@@ -405,3 +405,24 @@ target_link_libraries(provider_pattern_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(provider_pattern_tests)
+
+# Editor hierarchical blueprint tests (TDD - collapsed node rendering, navigation, persistence)
+add_executable(editor_hierarchical_tests
+    test_editor_hierarchical.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(editor_hierarchical_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_hierarchical_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(editor_hierarchical_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_hierarchical_tests)
