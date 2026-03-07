@@ -154,6 +154,40 @@ public:
     void solve_electrical(an24::SimulationState& st, float dt);
 };
 
+/// BlueprintInput - input port marker for nested blueprints
+template <typename Provider = JitProvider>
+class BlueprintInput {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+
+    // Exposed port metadata (for parent blueprint)
+    std::string exposed_type_str = "V";      // For type validation
+    std::string exposed_direction_str = "In";  // For direction validation
+
+    BlueprintInput() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+};
+
+/// BlueprintOutput - output port marker for nested blueprints
+template <typename Provider = JitProvider>
+class BlueprintOutput {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+
+    // Exposed port metadata (for parent blueprint)
+    std::string exposed_type_str = "V";      // For type validation
+    std::string exposed_direction_str = "Out";  // For direction validation
+
+    BlueprintOutput() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+};
+
 /// Generator - voltage source like battery
 template <typename Provider = JitProvider>
 class Generator {

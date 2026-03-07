@@ -16,8 +16,8 @@ namespace an24 {
 enum class PortNames : uint32_t;
 } // namespace an24
 
-#include "components/provider.h"
-#include "components/all.h"
+#include "provider.h"
+#include "all.h"
 
 namespace an24 {
 
@@ -44,6 +44,7 @@ enum class PortNames : uint32_t {
     o2,
     output,
     p_out,
+    port,
     power,
     primary,
     rpm_out,
@@ -65,6 +66,7 @@ enum class PortNames : uint32_t {
 enum class ComponentType {
     AGK47,
     Battery,
+    BlueprintInput,
     Bus,
     Comparator,
     DMR400,
@@ -97,6 +99,7 @@ enum class ComponentType {
 // Port count for each component
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t Battery_PORT_COUNT = 2;
+constexpr size_t BlueprintInput_PORT_COUNT = 1;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
@@ -132,6 +135,9 @@ constexpr const char* AGK47_PORTS[] = {
 constexpr const char* Battery_PORTS[] = {
     "v_in",
     "v_out"
+};
+constexpr const char* BlueprintInput_PORTS[] = {
+    "port"
 };
 constexpr const char* Bus_PORTS[] = {
     "v"
@@ -257,6 +263,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
         {"AGK47", {"input"}},
         {"Battery", {"v_in", "v_out"}},
+        {"BlueprintInput", {"port"}},
         {"Bus", {"v"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
@@ -298,6 +305,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
 using ComponentVariant = std::variant<
     AGK47<JitProvider>,
     Battery<JitProvider>,
+    BlueprintInput<JitProvider>,
+    BlueprintOutput<JitProvider>,
     Bus<JitProvider>,
     Comparator<JitProvider>,
     DMR400<JitProvider>,

@@ -33,6 +33,7 @@ PortNames string_to_port_name(const std::string& port_name) {
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
         {"output", PortNames::output},
+        {"port", PortNames::port},
         {"p_out", PortNames::p_out},
         {"power", PortNames::power},
         {"primary", PortNames::primary},
@@ -89,6 +90,15 @@ auto get_bool = [](const DeviceInstance& dev, const std::string& key, bool defau
     auto it = dev.params.find(key);
     if (it != dev.params.end()) {
         return it->second == "true" || it->second == "1";
+    }
+    return default_val;
+};
+
+/// Helper to get string param with default
+auto get_string = [](const DeviceInstance& dev, const std::string& key, const std::string& default_val) -> std::string {
+    auto it = dev.params.find(key);
+    if (it != dev.params.end()) {
+        return it->second;
     }
     return default_val;
 };
@@ -282,6 +292,20 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "Bus") {
         Bus<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "BlueprintInput") {
+        BlueprintInput<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.exposed_type_str = get_string(dev, "exposed_type", "V");
+        comp.exposed_direction_str = get_string(dev, "exposed_direction", "In");
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "BlueprintOutput") {
+        BlueprintOutput<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.exposed_type_str = get_string(dev, "exposed_type", "V");
+        comp.exposed_direction_str = get_string(dev, "exposed_direction", "Out");
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "RefNode") {

@@ -339,6 +339,40 @@ target_link_libraries(logical_solver_tests PRIVATE
 )
 gtest_discover_tests(logical_solver_tests)
 
+# Blueprint ports tests (TDD - BlueprintInput/BlueprintOutput for hierarchical blueprints)
+add_executable(blueprint_ports_tests
+    test_blueprint_ports.cpp
+)
+target_include_directories(blueprint_ports_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(blueprint_ports_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(blueprint_ports_tests)
+
+# Blueprint integration tests (TDD - BlueprintInput/BlueprintOutput pass-through)
+add_executable(blueprint_integration_tests
+    test_blueprint_integration.cpp
+)
+target_include_directories(blueprint_integration_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(blueprint_integration_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(blueprint_integration_tests)
+
 # Provider pattern tests (AOT vs JIT unified components)
 add_executable(provider_pattern_tests
     provider_test.cpp

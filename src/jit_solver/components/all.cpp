@@ -173,6 +173,22 @@ void Bus<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 }
 
 // =============================================================================
+// BlueprintInput / BlueprintOutput
+// =============================================================================
+
+template <typename Provider>
+void BlueprintInput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // No-op - pass-through component (like Bus)
+    // Union-find will collapse port to connected signal
+}
+
+template <typename Provider>
+void BlueprintOutput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // No-op - pass-through component (like Bus)
+    // Union-find will collapse port to connected signal
+}
+
+// =============================================================================
 // Generator
 // =============================================================================
 

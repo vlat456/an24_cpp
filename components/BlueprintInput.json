@@ -1,0 +1,24 @@
+{
+  "classname": "BlueprintInput",
+  "description": "Input port marker for nested blueprints - exposes internal signal to parent blueprint as input port. Works as pass-through junction (union-find collapses port to connected signal).",
+  "default_ports": {
+    "port": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "default_params": {
+    "exposed_type": "V",
+    "exposed_direction": "In"
+  },
+  "default_domains": [
+    "Electrical",
+    "Logical",
+    "Mechanical",
+    "Hydraulic",
+    "Thermal"
+  ],
+  "default_priority": "high",
+  "default_critical": false,
+  "default_size": {"x": 1, "y": 1}
+}

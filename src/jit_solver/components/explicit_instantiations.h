@@ -37,6 +37,8 @@ template class RU19A<JitProvider>;
 template class Gyroscope<JitProvider>;
 template class AGK47<JitProvider>;
 template class Bus<JitProvider>;
+template class BlueprintInput<JitProvider>;
+template class BlueprintOutput<JitProvider>;
 template class RefNode<JitProvider>;
 
 } // namespace an24
