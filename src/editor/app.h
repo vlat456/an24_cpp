@@ -87,6 +87,7 @@ struct EditorApp {
         interaction = Interaction();
         simulation = an24::Simulator<an24::JIT_Solver>();  // Reset simulator
         simulation_running = false;
+        drill_stack_.clear();
         visual_cache.clear();
     }
 
@@ -174,10 +175,16 @@ struct EditorApp {
     /// Drill-out to parent view (show collapsed node)
     void drill_out();
 
-    /// Get current view level (empty = top-level, non-empty = group_id we're drilled into)
-    const std::string& get_current_view() const { return current_view_id; }
+    /// Get current drill depth name (empty = top-level, non-empty = deepest drilled group)
+    std::string get_current_view() const {
+        return drill_stack_.empty() ? std::string() : drill_stack_.back();
+    }
+
+    /// Get full drill navigation stack (for multi-level hierarchy)
+    const std::vector<std::string>& get_drill_stack() const { return drill_stack_; }
 
 private:
-    /// Current view level for drill-down navigation
-    std::string current_view_id;  // Empty = top-level view, non-empty = drilled into this group
+    /// Drill navigation stack: [] = top-level, ["A"] = inside A,
+    /// ["A", "A:sub"] = inside sub which is inside A
+    std::vector<std::string> drill_stack_;
 };

@@ -583,6 +583,8 @@ BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector
     }
     // Sync node_content from blueprint (simulation may have updated it)
     it->second->updateNodeContent(node.node_content);
+    // Sync visibility from data model (drill-in/out may have changed it)
+    it->second->setVisible(node.visible);
     return it->second.get();
 }
 

@@ -151,7 +151,6 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.priority, "high");
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
-    EXPECT_TRUE(dev.is_composite);
     EXPECT_EQ(dev.domains.size(), 1);
     EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
@@ -532,8 +531,9 @@ TEST(JsonParserTest, Regression_LerpNodeAnyType_CanConnectToAnything) {
 // One-to-One Connection Tests - FAILING TESTS FIRST (TDD)
 // ============================================================================
 
-TEST(JsonParserTest, OneToOne_MultipleWiresToSamePort_ShouldFail) {
-    // Multiple wires connecting to the same port should be rejected
+TEST(JsonParserTest, OneToOne_MultipleWiresToSamePort_IsValid) {
+    // With union-find architecture, multiple wires to same port is valid
+    // (signals merge — this is how parallel circuits work)
     std::string json = R"({
         "templates": {},
         "devices": [
@@ -547,12 +547,12 @@ TEST(JsonParserTest, OneToOne_MultipleWiresToSamePort_ShouldFail) {
         ]
     })";
 
-    // Should throw - load.v_in already has a wire from bat1.v_out
-    EXPECT_THROW(parse_json(json), std::runtime_error);
+    EXPECT_NO_THROW(parse_json(json));
 }
 
-TEST(JsonParserTest, OneToOne_MultipleWiresFromSamePort_ShouldFail) {
-    // Multiple wires from the same output port should be rejected
+TEST(JsonParserTest, OneToOne_MultipleWiresFromSamePort_IsValid) {
+    // With union-find architecture, multiple wires from same port is valid
+    // (output signal fans out to multiple consumers)
     std::string json = R"({
         "templates": {},
         "devices": [
@@ -566,8 +566,7 @@ TEST(JsonParserTest, OneToOne_MultipleWiresFromSamePort_ShouldFail) {
         ]
     })";
 
-    // Should throw - bat.v_out already has a wire to load1.v_in
-    EXPECT_THROW(parse_json(json), std::runtime_error);
+    EXPECT_NO_THROW(parse_json(json));
 }
 
 TEST(JsonParserTest, OneToOne_BusAliasPorts_CanHaveMultipleWires) {

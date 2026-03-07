@@ -205,7 +205,20 @@ float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const
     if (!build_result_.has_value()) return 0.0f;
 
     auto it = build_result_->port_to_signal.find(port_name);
-    if (it == build_result_->port_to_signal.end()) return 0.0f;
+    if (it == build_result_->port_to_signal.end()) {
+        // Blueprint port fallback: "node_id.port_name" → "node_id:port_name.ext"
+        // Collapsed Blueprint nodes are skipped in serialization; their ports are
+        // rewritten to internal BlueprintInput/Output ext alias ports.
+        auto dot = port_name.find('.');
+        if (dot != std::string::npos) {
+            std::string fallback = port_name.substr(0, dot) + ":" +
+                                   port_name.substr(dot + 1) + ".ext";
+            it = build_result_->port_to_signal.find(fallback);
+            if (it == build_result_->port_to_signal.end()) return 0.0f;
+        } else {
+            return 0.0f;
+        }
+    }
 
     if (it->second >= state_.across.size()) return 0.0f;
     return state_.across[it->second];

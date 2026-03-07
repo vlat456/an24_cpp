@@ -257,7 +257,11 @@ TEST(ExtractExposedPorts, SimpleBatteryBlueprint) {
         blueprint_path = "blueprints/simple_battery.json";
         file.open(blueprint_path);
     }
-    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist at ../blueprints/ or blueprints/";
+    if (!file.is_open()) {
+        blueprint_path = "../../blueprints/simple_battery.json";
+        file.open(blueprint_path);
+    }
+    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist at ../blueprints/, blueprints/, or ../../blueprints/";
 
     std::string content((std::istreambuf_iterator<char>(file)),
                         (std::istreambuf_iterator<char>()));

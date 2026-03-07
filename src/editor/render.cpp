@@ -121,6 +121,12 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             continue;
         }
 
+        // Skip wires where either endpoint node is hidden (blueprint collapsing)
+        if (!start_node->visible || !end_node->visible) {
+            all_polylines.push_back({});
+            continue;
+        }
+
         Pt start_pos = editor_math::get_port_position(*start_node, w.start.port_name.c_str(), bp.wires, w.id.c_str(), cache);
         Pt end_pos = editor_math::get_port_position(*end_node, w.end.port_name.c_str(), bp.wires, w.id.c_str(), cache);
 
@@ -359,6 +365,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         constexpr float PORT_RADIUS = 8.0f;
         // Check ports
         for (const auto& n : bp.nodes) {
+            // Skip hidden nodes (blueprint collapsing)
+            if (!n.visible) continue;
             BaseVisualNode* vis;
             std::unique_ptr<BaseVisualNode> vis_owned;
             if (cache) {

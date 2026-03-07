@@ -445,6 +445,19 @@ editor_render_tests/fast:
 .PHONY : editor_render_tests/fast
 
 #=============================================================================
+# Target rules for targets named editor_hittest_tests
+
+# Build rule for target.
+editor_hittest_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_hittest_tests
+.PHONY : editor_hittest_tests
+
+# fast build rule for target.
+editor_hittest_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/build
+.PHONY : editor_hittest_tests/fast
+
+#=============================================================================
 # Target rules for targets named json_parser_tests
 
 # Build rule for target.
@@ -611,6 +624,7 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_hierarchical_tests"
+	@echo "... editor_hittest_tests"
 	@echo "... editor_persist_tests"
 	@echo "... editor_render_tests"
 	@echo "... editor_router_tests"

@@ -159,21 +159,30 @@ target_link_libraries(editor_render_tests PRIVATE
 gtest_discover_tests(editor_render_tests)
 
 # Editor hit test tests (TDD Step 6)
-# add_executable(editor_hittest_tests
-#     test_hittest.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-# )
-# target_include_directories(editor_hittest_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-# )
-# target_link_libraries(editor_hittest_tests PRIVATE
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(editor_hittest_tests)
+add_executable(editor_hittest_tests
+    test_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+)
+target_compile_definitions(editor_hittest_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_hittest_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_hittest_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_hittest_tests)
 
 # Editor event tests (TDD Step 7) - Disabled for AOT-only refactor
 # add_executable(editor_event_tests

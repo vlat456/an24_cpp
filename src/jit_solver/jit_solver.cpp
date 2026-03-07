@@ -5,14 +5,15 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <vector>
 
 namespace an24 {
 
 namespace {
 
-/// Convert string port name to PortNames enum
-PortNames string_to_port_name(const std::string& port_name) {
+/// Convert string port name to PortNames enum (returns nullopt for unknown ports)
+std::optional<PortNames> string_to_port_name(const std::string& port_name) {
     static const std::unordered_map<std::string, PortNames> port_map = {
         {"Va", PortNames::Va},
         {"Vb", PortNames::Vb},
@@ -56,18 +57,22 @@ PortNames string_to_port_name(const std::string& port_name) {
     if (it != port_map.end()) {
         return it->second;
     }
-    throw std::runtime_error("Unknown port name: " + port_name);
+    return std::nullopt;
 }
 
-/// Setup port indices for a component from port_to_signal mapping
+/// Setup port indices for a component from port_to_signal mapping.
+/// Ports not in the PortNames enum are silently skipped — this allows
+/// user-defined blueprint ports (like alias ports) to work without codegen.
 template <typename T>
 void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult& result) {
     for (const auto& [port_name, port] : dev.ports) {
         std::string port_key = dev.name + "." + port_name;
         auto it = result.port_to_signal.find(port_key);
         if (it != result.port_to_signal.end()) {
-            PortNames port_enum = string_to_port_name(port_name);
-            comp.provider.set(port_enum, it->second);
+            auto port_enum = string_to_port_name(port_name);
+            if (port_enum) {
+                comp.provider.set(*port_enum, it->second);
+            }
         }
     }
 }

@@ -154,6 +154,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/editor_persist_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_viewport_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_render_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/editor_hittest_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/json_parser_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_router_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_widget_tests.dir/DependInfo.cmake"

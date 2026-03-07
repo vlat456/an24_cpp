@@ -5,6 +5,11 @@
     "port": {
       "direction": "Out",
       "type": "Any"
+    },
+    "ext": {
+      "direction": "In",
+      "alias": "port",
+      "type": "Any"
     }
   },
   "default_params": {
@@ -20,5 +25,5 @@
   ],
   "default_priority": "high",
   "default_critical": false,
-  "default_size": {"x": 1, "y": 1}
+  "default_size": { "x": 1, "y": 1 }
 }

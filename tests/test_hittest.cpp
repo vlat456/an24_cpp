@@ -528,3 +528,140 @@ TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
     EXPECT_TRUE(r.port_wire_id.empty());  // main "v" port, not an alias
 }
 
+// =============================================================================
+// Visibility Tests: Blueprint Collapsing
+// =============================================================================
+
+TEST(HitTestVisibility, HiddenNode_NotHittable) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "hidden1";
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    n.visible = false;  // Hidden (internal blueprint node)
+    bp.add_node(std::move(n));
+
+    Viewport vp;
+    // Click inside the hidden node's bounds
+    auto hit = hit_test(bp, Pt(150.0f, 80.0f), vp);
+    EXPECT_EQ(hit.type, HitType::None) << "Hidden node should not be hittable";
+}
+
+TEST(HitTestVisibility, HiddenNode_NotHittable_WithCache) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "hidden1";
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    n.visible = false;
+    bp.add_node(std::move(n));
+
+    VisualNodeCache cache;
+    Viewport vp;
+
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    EXPECT_EQ(hit.type, HitType::None) << "Hidden node should not be hittable (cache overload)";
+}
+
+TEST(HitTestVisibility, VisibleNode_StillHittable) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "vis1";
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    n.visible = true;
+    bp.add_node(std::move(n));
+
+    Viewport vp;
+    auto hit = hit_test(bp, Pt(150.0f, 80.0f), vp);
+    EXPECT_EQ(hit.type, HitType::Node) << "Visible node should be hittable";
+    EXPECT_EQ(hit.node_index, 0u);
+}
+
+TEST(HitTestVisibility, HiddenPort_NotHittable) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "hidden1";
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    n.visible = false;
+    n.input("v_in").output("v_out");
+    bp.add_node(std::move(n));
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
+    ASSERT_NE(visual, nullptr);
+
+    // Get port position even though node is hidden
+    Pt port_pos = visual->getPortPosition("v_in");
+
+    auto hit = hit_test_ports(bp, cache, port_pos);
+    EXPECT_EQ(hit.type, HitType::None) << "Port on hidden node should not be hittable";
+}
+
+TEST(HitTestVisibility, WireToHiddenNode_NotHittable) {
+    Blueprint bp;
+
+    Node n1;
+    n1.id = "n1";
+    n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n1.visible = true;
+    n1.output("out");
+    bp.add_node(std::move(n1));
+
+    Node n2;
+    n2.id = "n2";
+    n2.at(300.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n2.visible = false;
+    n2.input("in");
+    bp.add_node(std::move(n2));
+
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "n1";
+    w.start.port_name = "out";
+    w.end.node_id = "n2";
+    w.end.port_name = "in";
+    bp.add_wire(std::move(w));
+
+    Viewport vp;
+    // Click on the midpoint of where the wire would be
+    auto hit = hit_test(bp, Pt(200.0f, 25.0f), vp);
+    EXPECT_EQ(hit.type, HitType::None) << "Wire to hidden node should not be hittable";
+}
+
+TEST(HitTestVisibility, DrillInOut_CacheSyncsVisibility) {
+    Blueprint bp;
+
+    // Collapsed node - visible initially
+    Node collapsed;
+    collapsed.id = "lamp1";
+    collapsed.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    collapsed.visible = true;
+    collapsed.kind = NodeKind::Blueprint;
+    bp.add_node(std::move(collapsed));
+
+    // Internal node - hidden initially
+    Node internal;
+    internal.id = "lamp1:lamp";
+    internal.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    internal.visible = false;
+    bp.add_node(std::move(internal));
+
+    VisualNodeCache cache;
+    Viewport vp;
+
+    // Before drill-in: collapsed is hittable
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    EXPECT_EQ(hit.type, HitType::Node);
+
+    // Simulate drill_into: toggle visibility
+    bp.nodes[0].visible = false;
+    bp.nodes[1].visible = true;
+
+    // After drill-in: collapsed is NOT hittable, internal IS
+    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 1u) << "After drill-in, internal node should be hittable";
+}
+

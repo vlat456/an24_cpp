@@ -103,6 +103,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_persist_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_viewport_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_render_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_hittest_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/json_parser_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_router_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_widget_tests.dir

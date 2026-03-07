@@ -104,13 +104,35 @@ void SimulationController::step(float dt) {
 }
 
 float SimulationController::get_port_value(const std::string& device_id, const std::string& port_name) const {
+    return get_wire_voltage(device_id + "." + port_name);
+}
+
+void SimulationController::reset() {
+    build_result.reset();
+    state = SimulationState();
+    time = 0.0f;
+    step_count = 0;
+    running = false;
+}
+
+float SimulationController::get_wire_voltage(const std::string& port_name) const {
     if (!build_result.has_value()) return 0.0f;
-
-    std::string port_ref = device_id + "." + port_name;
-    auto it = build_result->port_to_signal.find(port_ref);
+    auto it = build_result->port_to_signal.find(port_name);
     if (it == build_result->port_to_signal.end()) {
-        return 0.0f;
+        // Blueprint port fallback: "node_id.port_name" → "node_id:port_name.ext"
+        auto dot = port_name.find('.');
+        if (dot != std::string::npos) {
+            std::string fallback = port_name.substr(0, dot) + ":" +
+                                   port_name.substr(dot + 1) + ".ext";
+            it = build_result->port_to_signal.find(fallback);
+            if (it == build_result->port_to_signal.end()) return 0.0f;
+        } else {
+            return 0.0f;
+        }
     }
-
     return state.across[it->second];
+}
+
+bool SimulationController::wire_is_energized(const std::string& port_name, float threshold) const {
+    return std::abs(get_wire_voltage(port_name)) > threshold;
 }

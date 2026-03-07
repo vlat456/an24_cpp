@@ -386,6 +386,9 @@ int main(int argc, char** argv) {
 
         // Render node content (ImGui widgets) - after DrawList rendering
         for (auto& node : app.blueprint.nodes) {
+            // Skip hidden nodes (blueprint collapsing) — no ImGui content for invisible nodes
+            if (!node.visible) continue;
+
             // Get or create visual node from cache (pass wires for Bus nodes)
             auto* visual = app.visual_cache.getOrCreate(node, app.blueprint.wires);
 

@@ -295,10 +295,11 @@ TEST(RenderTest, VisualNodeCache_NodeContent_SyncsAfterClear) {
     content.state = true;
     node.node_content = content;
 
-    // Get visual node again WITHOUT clearing cache - should still return cached version
+    // Get visual node again WITHOUT clearing cache
+    // Since getOrCreate now syncs content proactively, it will have updated content
     auto* visual2 = cache.getOrCreate(node);
-    EXPECT_EQ(visual2->getContentType(), NodeContentType::None)
-        << "Cached visual node should still have no content (stale cache)";
+    EXPECT_EQ(visual2->getContentType(), NodeContentType::Switch)
+        << "getOrCreate syncs content proactively, so cached node should have updated content";
 
     // Clear the cache
     cache.clear();
@@ -529,13 +530,16 @@ TEST(RenderTest, ContentBounds_ExcludesPortLabels) {
     node.type_name = "Battery";
     node.input("v_in");
     node.output("v_out");
+    node.at(100, 100);
+    node.size_wh(120, 80);
 
-    // Add content
+    // Add content (use Value type which creates ContentWidget with layout bounds)
     NodeContent content;
-    content.type = NodeContentType::Gauge;
+    content.type = NodeContentType::Value;
     content.value = 24.0f;
     content.min = 0.0f;
     content.max = 30.0f;
+    content.label = "Voltage";
     node.node_content = content;
 
     VisualNodeCache cache;
@@ -1017,4 +1021,141 @@ TEST(RenderTest, OneToOne_BusPort_CanHaveMultipleWires) {
     // Second wire should be accepted - Bus ports allow multiple connections
     EXPECT_EQ(bp.wires.size(), wire_count_before + 1)
         << "Bus ports should allow multiple wires";
+}
+
+// =============================================================================
+// Visibility Tests: Blueprint Collapsing
+// =============================================================================
+
+TEST(RenderVisibility, HiddenNode_NotRendered) {
+    Blueprint bp;
+
+    // Visible node
+    Node n1;
+    n1.id = "visible_node";
+    n1.name = "Visible";
+    n1.type_name = "Battery";
+    n1.visible = true;
+    n1.at(0.0f, 0.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n1));
+
+    // Hidden node (internal, from expanded blueprint)
+    Node n2;
+    n2.id = "hidden_node";
+    n2.name = "Hidden";
+    n2.type_name = "IndicatorLight";
+    n2.visible = false;
+    n2.at(200.0f, 0.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n2));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    // Should render at least the visible node rect
+    EXPECT_TRUE(dl.had_rect()) << "Visible node should render a rect";
+}
+
+TEST(RenderVisibility, WireToHiddenNode_NotRendered) {
+    Blueprint bp;
+
+    // Visible node
+    Node n1;
+    n1.id = "n1";
+    n1.name = "N1";
+    n1.visible = true;
+    n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n1.output("out");
+    bp.add_node(std::move(n1));
+
+    // Hidden node
+    Node n2;
+    n2.id = "n2";
+    n2.name = "N2";
+    n2.visible = false;
+    n2.at(200.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n2.input("in");
+    bp.add_node(std::move(n2));
+
+    // Wire from visible to hidden node
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "n1";
+    w.start.port_name = "out";
+    w.end.node_id = "n2";
+    w.end.port_name = "in";
+    bp.add_wire(std::move(w));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    // Wire should NOT be rendered — endpoint is hidden
+    EXPECT_FALSE(dl.had_polyline()) << "Wire to hidden node should not render";
+}
+
+TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
+    Blueprint bp;
+
+    Node n1;
+    n1.id = "n1";
+    n1.name = "N1";
+    n1.visible = true;
+    n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n1.output("out");
+    bp.add_node(std::move(n1));
+
+    Node n2;
+    n2.id = "n2";
+    n2.name = "N2";
+    n2.visible = true;
+    n2.at(200.0f, 0.0f).size_wh(100.0f, 50.0f);
+    n2.input("in");
+    bp.add_node(std::move(n2));
+
+    Wire w;
+    w.id = "w1";
+    w.start.node_id = "n1";
+    w.start.port_name = "out";
+    w.end.node_id = "n2";
+    w.end.port_name = "in";
+    bp.add_wire(std::move(w));
+
+    MockDrawList dl;
+    Viewport vp;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+
+    EXPECT_TRUE(dl.had_polyline()) << "Wire between visible nodes should render";
+}
+
+TEST(RenderVisibility, CacheSync_VisibilityUpdatesOnCacheHit) {
+    // Test that VisualNodeCache properly syncs visibility
+    Blueprint bp;
+
+    Node n;
+    n.id = "node1";
+    n.name = "Test";
+    n.type_name = "Battery";
+    n.visible = true;
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n));
+
+    VisualNodeCache cache;
+
+    // First call: creates visual node with visible=true
+    auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
+    ASSERT_NE(visual, nullptr);
+    EXPECT_TRUE(visual->isVisible()) << "Initial visibility should be true";
+
+    // Change visibility in data model (simulating drill_into)
+    bp.nodes[0].visible = false;
+
+    // Second call: should sync visibility from data model
+    visual = cache.getOrCreate(bp.nodes[0], bp.wires);
+    EXPECT_FALSE(visual->isVisible()) << "Cache should sync visibility from Node";
+
+    // Change back (simulating drill_out)
+    bp.nodes[0].visible = true;
+    visual = cache.getOrCreate(bp.nodes[0], bp.wires);
+    EXPECT_TRUE(visual->isVisible()) << "Cache should sync visibility back to true";
 }

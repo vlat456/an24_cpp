@@ -223,7 +223,12 @@ public:
                 return std::make_unique<RefVisualNode>(node);
             case NodeKind::Blueprint:
                 // Collapsed blueprint nodes render like standard nodes with exposed ports
-                return std::make_unique<StandardVisualNode>(node);
+                // but never have content (no gauges, switches, text labels)
+                {
+                    Node bp_node = node;
+                    bp_node.node_content = NodeContent{};
+                    return std::make_unique<StandardVisualNode>(bp_node);
+                }
             case NodeKind::Node:
             default:
                 return std::make_unique<StandardVisualNode>(node);

@@ -1573,6 +1573,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__string \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__thread/poll_with_backoff.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__threading_support \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__tuple \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__undef_macros \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/__decay_copy.h \
@@ -1625,6 +1626,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/set \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdint.h \
@@ -2683,6 +2685,8 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Users/vladimir/an24_cpp/src/editor/persist.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/integer_sequence.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/set:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/in_place.h:
 

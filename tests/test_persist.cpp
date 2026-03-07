@@ -310,20 +310,22 @@ TEST(PersistTest, NodeKind_BackwardCompat_NoKindField) {
 }
 
 TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
-    // A Ref node with a non-standard type_name should still get value=0.0
+    // classname (type_name) is the single source of truth for C++ binding.
+    // A node with type_name="RefNode" should get value=0.0 fallback
+    // regardless of its NodeKind (kind is for visual only).
     Blueprint bp;
     Node n;
     n.id = "gnd";
     n.name = "Ground";
-    n.type_name = "CustomGround"; // NOT "RefNode"
-    n.kind = NodeKind::Ref;
+    n.type_name = "RefNode";
+    n.kind = NodeKind::Node;  // kind doesn't matter — classname does
     n.output("v");
     bp.add_node(std::move(n));
 
     std::string json = blueprint_to_json(bp);
-    // value=0.0 should be set based on kind=Ref, not type_name
+    // value=0.0 should be set based on type_name="RefNode", not kind
     EXPECT_NE(json.find("\"value\": \"0.0\""), std::string::npos)
-        << "RefNode value should be set by kind, not type_name";
+        << "RefNode value should be set by classname (type_name), not kind";
 }
 
 // =============================================================================
