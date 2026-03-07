@@ -702,7 +702,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__config \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__config_site \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__debug \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_negate.h \
@@ -778,7 +777,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uses_allocator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h \
@@ -811,13 +809,11 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/condition_variable \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdint \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio \
@@ -837,7 +833,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
@@ -849,8 +844,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string_view \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/thread \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/tuple \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
@@ -881,22 +874,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
-  _deps/spdlog-src/include/spdlog/common.h \
-  _deps/spdlog-src/include/spdlog/details/backtracer.h \
-  _deps/spdlog-src/include/spdlog/details/circular_q.h \
-  _deps/spdlog-src/include/spdlog/details/log_msg.h \
-  _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h \
-  _deps/spdlog-src/include/spdlog/details/null_mutex.h \
-  _deps/spdlog-src/include/spdlog/details/periodic_worker.h \
-  _deps/spdlog-src/include/spdlog/details/registry.h \
-  _deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
-  _deps/spdlog-src/include/spdlog/fmt/bundled/core.h \
-  _deps/spdlog-src/include/spdlog/fmt/bundled/format.h \
-  _deps/spdlog-src/include/spdlog/fmt/fmt.h \
-  _deps/spdlog-src/include/spdlog/logger.h \
-  _deps/spdlog-src/include/spdlog/spdlog.h \
-  _deps/spdlog-src/include/spdlog/tweakme.h \
-  _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/generated/generated_vsu_test.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
@@ -910,22 +887,6 @@ examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o: /Us
 
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/explicit_instantiations.h:
-
-_deps/spdlog-src/include/spdlog/version.h:
-
-_deps/spdlog-src/include/spdlog/details/registry.h:
-
-_deps/spdlog-src/include/spdlog/details/periodic_worker.h:
-
-_deps/spdlog-src/include/spdlog/details/null_mutex.h:
-
-_deps/spdlog-src/include/spdlog/details/log_msg.h:
-
-_deps/spdlog-src/include/spdlog/details/circular_q.h:
-
-_deps/spdlog-src/include/spdlog/details/backtracer.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/thread:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
 
@@ -1079,8 +1040,6 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_view.h:
 
-_deps/spdlog-src/include/spdlog/common.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uid_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/access.h:
@@ -1208,8 +1167,6 @@ _deps/spdlog-src/include/spdlog/common.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__availability:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/upper_bound.h:
-
-_deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/unique_copy.h:
 
@@ -1341,8 +1298,6 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap.h:
 
-_deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_key_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/includes.h:
@@ -1371,8 +1326,6 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill_n.h:
 
-_deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator_traits.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h:
@@ -1394,8 +1347,6 @@ _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if_not.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_first_of.h:
-
-_deps/spdlog-src/include/spdlog/logger.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/binary_search.h:
 
@@ -1462,8 +1413,6 @@ _deps/spdlog-src/include/spdlog/logger.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_posix_availability.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_time.h:
-
-_deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istreambuf_iterator.h:
 
@@ -1539,8 +1488,6 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/resource.h:
 
-_deps/spdlog-src/include/spdlog/spdlog.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mach_port_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/compressed_pair.h:
@@ -1602,8 +1549,6 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_clr.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_errno_t.h:
-
-_deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/limits.h:
 
@@ -1667,8 +1612,6 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/signal.h:
 
-_deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/all_of.h:
@@ -1694,8 +1637,6 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/condition_variable:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_endian.h:
 

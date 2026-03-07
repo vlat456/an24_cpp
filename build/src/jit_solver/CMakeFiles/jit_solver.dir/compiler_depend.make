@@ -638,7 +638,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__config \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__config_site \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__debug \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_function.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/binary_negate.h \
@@ -714,7 +713,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/uses_allocator.h \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__nullptr \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h \
@@ -746,13 +744,11 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/condition_variable \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstddef \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdint \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio \
@@ -772,7 +768,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/include/c++/v1/limits.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/math.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
@@ -784,8 +779,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/string_view \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/thread \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/tuple \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
@@ -816,22 +809,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
-  _deps/spdlog-src/include/spdlog/common.h \
-  _deps/spdlog-src/include/spdlog/details/backtracer.h \
-  _deps/spdlog-src/include/spdlog/details/circular_q.h \
-  _deps/spdlog-src/include/spdlog/details/log_msg.h \
-  _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h \
-  _deps/spdlog-src/include/spdlog/details/null_mutex.h \
-  _deps/spdlog-src/include/spdlog/details/periodic_worker.h \
-  _deps/spdlog-src/include/spdlog/details/registry.h \
-  _deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
-  _deps/spdlog-src/include/spdlog/fmt/bundled/core.h \
-  _deps/spdlog-src/include/spdlog/fmt/bundled/format.h \
-  _deps/spdlog-src/include/spdlog/fmt/fmt.h \
-  _deps/spdlog-src/include/spdlog/logger.h \
-  _deps/spdlog-src/include/spdlog/spdlog.h \
-  _deps/spdlog-src/include/spdlog/tweakme.h \
-  _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
@@ -2575,20 +2552,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/map:
-
-/Users/vladimir/an24_cpp/src/editor/data/blueprint.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
-
-/Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/explicit_instantiations.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/all.h:
-
 _deps/spdlog-src/include/spdlog/version.h:
 
 _deps/spdlog-src/include/spdlog/details/registry.h:
@@ -2609,9 +2572,23 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/map:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno:
 
+/Users/vladimir/an24_cpp/src/editor/data/blueprint.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__errc:
+
+/Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/explicit_instantiations.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/all.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__mutex_base:
 
