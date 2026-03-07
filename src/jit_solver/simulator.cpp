@@ -179,7 +179,8 @@ void Simulator<SolverTag>::step(float dt) {
 
     // SOR update - no clamping, it creates bistable traps
     // Rely on omega_ for stability instead
-    for (size_t i = 0; i < state_.across.size(); ++i) {
+    const size_t signal_count = state_.across.size();
+    for (size_t i = 0; i < signal_count; ++i) {
         if (!state_.signal_types[i].is_fixed && state_.inv_conductance[i] > 0.0f) {
             state_.across[i] += state_.through[i] * state_.inv_conductance[i] * omega_;
         }
