@@ -280,7 +280,7 @@ std::string CodeGen::generate_header(
 
     // Balance methods - domain-specific for AOT optimization
     oss << "    /// Balance electrical domain (AOT-optimized, __restrict)\n";
-    oss << "    AOT_INLINE void balance_electrical(void* state, float omega);\n\n";
+    oss << "    AOT_INLINE void balance_electrical(void* state, float inv_omega);\n\n";
 
     oss << "    /// Convergence check (sparse sampling)\n";
     oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
@@ -479,6 +479,11 @@ std::string CodeGen::generate_source(
                 }
             }
         }
+
+        // SOR solver - MUST be after all components stamp their through/conductance
+        // omega = 1.3, inv_omega = 1/1.3 = 0.769
+        oss << "    st->precompute_inv_conductance();\n";
+        oss << "    balance_electrical(st, 0.769f);\n";
 
         oss << "}\n\n";
     }
