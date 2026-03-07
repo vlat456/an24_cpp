@@ -167,4 +167,17 @@ struct EditorApp {
 
     /// HoldButton: отпустить кнопку (control = 2.0V, затем 0.0V)
     void hold_button_release(const std::string& node_id);
+
+    /// Drill-down into a nested blueprint (show internal nodes)
+    void drill_into(const std::string& collapsed_group_id);
+
+    /// Drill-out to parent view (show collapsed node)
+    void drill_out();
+
+    /// Get current view level (empty = top-level, non-empty = group_id we're drilled into)
+    const std::string& get_current_view() const { return current_view_id; }
+
+private:
+    /// Current view level for drill-down navigation
+    std::string current_view_id;  // Empty = top-level view, non-empty = drilled into this group
 };

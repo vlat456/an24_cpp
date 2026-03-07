@@ -1010,6 +1010,90 @@ void EditorApp::hold_button_release(const std::string& node_id) {
     signal_overrides[control_port] = 2.0f;
 }
 
+void EditorApp::drill_into(const std::string& collapsed_group_id) {
+    // Find the CollapsedGroup for this ID
+    const CollapsedGroup* group = nullptr;
+    for (const auto& g : blueprint.collapsed_groups) {
+        if (g.id == collapsed_group_id) {
+            group = &g;
+            break;
+        }
+    }
+
+    if (!group) {
+        spdlog::error("[editor] Cannot drill into: collapsed group '{}' not found", collapsed_group_id);
+        return;
+    }
+
+    // Hide the collapsed Blueprint node
+    Node* collapsed_node = blueprint.find_node(group->id.c_str());
+    if (collapsed_node) {
+        collapsed_node->visible = false;
+    }
+
+    // Show all internal nodes
+    for (const auto& internal_id : group->internal_node_ids) {
+        Node* internal = blueprint.find_node(internal_id.c_str());
+        if (internal) {
+            internal->visible = true;
+        }
+    }
+
+    // Update current view
+    current_view_id = collapsed_group_id;
+
+    // Clear visual cache to force rebuild
+    visual_cache.clear();
+
+    spdlog::info("[editor] Drilled into blueprint '{}' (showing {} internal nodes)",
+                 group->id, group->internal_node_ids.size());
+}
+
+void EditorApp::drill_out() {
+    if (current_view_id.empty()) {
+        spdlog::warn("[editor] Already at top-level view, cannot drill out");
+        return;
+    }
+
+    // Find the CollapsedGroup for current view
+    const CollapsedGroup* group = nullptr;
+    for (const auto& g : blueprint.collapsed_groups) {
+        if (g.id == current_view_id) {
+            group = &g;
+            break;
+        }
+    }
+
+    if (!group) {
+        spdlog::error("[editor] Cannot drill out: collapsed group '{}' not found", current_view_id);
+        current_view_id.clear();
+        return;
+    }
+
+    // Show the collapsed Blueprint node
+    Node* collapsed_node = blueprint.find_node(group->id.c_str());
+    if (collapsed_node) {
+        collapsed_node->visible = true;
+    }
+
+    // Hide all internal nodes
+    for (const auto& internal_id : group->internal_node_ids) {
+        Node* internal = blueprint.find_node(internal_id.c_str());
+        if (internal) {
+            internal->visible = false;
+        }
+    }
+
+    // Return to top-level view
+    current_view_id.clear();
+
+    // Clear visual cache to force rebuild
+    visual_cache.clear();
+
+    spdlog::info("[editor] Drilled out to top-level view (showing collapsed blueprint '{}')",
+                 group->id);
+}
+
 void EditorApp::update_simulation_step() {
     if (!simulation_running) return;
 
