@@ -250,10 +250,14 @@ TEST(BlueprintLoading, Integration_NestedBlueprintRunsSimulation) {
 
 TEST(ExtractExposedPorts, SimpleBatteryBlueprint) {
     // Load the simple_battery blueprint
-    std::string blueprint_path = "blueprints/simple_battery.json";
+    std::string blueprint_path = "../blueprints/simple_battery.json";
 
     std::ifstream file(blueprint_path);
-    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist";
+    if (!file.is_open()) {
+        blueprint_path = "blueprints/simple_battery.json";
+        file.open(blueprint_path);
+    }
+    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist at ../blueprints/ or blueprints/";
 
     std::string content((std::istreambuf_iterator<char>(file)),
                         (std::istreambuf_iterator<char>()));
@@ -266,33 +270,42 @@ TEST(ExtractExposedPorts, SimpleBatteryBlueprint) {
     // Should have 2 exposed ports: vin (BlueprintInput), vout (BlueprintOutput)
     EXPECT_EQ(exposed.size(), 2);
 
-    // Check "vin" is exposed as Input
+    // Check "vin" - BlueprintInput with exposed_direction="In"
+    // This means: parent connects TO this port as Input (data flows INTO blueprint)
     EXPECT_TRUE(exposed.count("vin")) << "Should have 'vin' exposed port";
-    EXPECT_EQ(exposed["vin"].direction, PortDirection::Out) << "vin should be Output (from blueprint perspective)";
+    EXPECT_EQ(exposed["vin"].direction, PortDirection::In) << "vin should be Input (data flows into blueprint)";
     EXPECT_EQ(exposed["vin"].type, PortType::V) << "vin should be type V";
 
-    // Check "vout" is exposed as Output
+    // Check "vout" - BlueprintOutput with exposed_direction="Out"
+    // This means: parent connects TO this port as Output (data flows OUT OF blueprint)
     EXPECT_TRUE(exposed.count("vout")) << "Should have 'vout' exposed port";
-    EXPECT_EQ(exposed["vout"].direction, PortDirection::In) << "vout should be Input (from blueprint perspective)";
+    EXPECT_EQ(exposed["vout"].direction, PortDirection::Out) << "vout should be Output (data flows out of blueprint)";
     EXPECT_EQ(exposed["vout"].type, PortType::V) << "vout should be type V";
 }
 
 TEST(ExtractExposedPorts, MultipleBlueprints) {
     // Create blueprint with multiple inputs/outputs
     nlohmann::json bp;
-    bp["devices"] = {
+    bp["devices"] = nlohmann::json::array({
         {{"name", "in1"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "V"}, {"exposed_direction", "In"}}}},
         {{"name", "in2"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "I"}, {"exposed_direction", "In"}}}},
         {{"name", "out1"}, {"classname", "BlueprintOutput"}, {"params", {{"exposed_type", "Bool"}, {"exposed_direction", "Out"}}}},
         {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}}
-    };
-    bp["connections"] = {};
+    });
+    bp["connections"] = nlohmann::json::array();
 
     ParserContext ctx = parse_json(bp.dump());
     auto exposed = extract_exposed_ports(ctx);
 
     // Should have 3 exposed ports (in1, in2, out1), excluding gnd
     EXPECT_EQ(exposed.size(), 3);
+
+    // Verify BlueprintInput directions (data flows INTO blueprint)
+    EXPECT_EQ(exposed["in1"].direction, PortDirection::In);
+    EXPECT_EQ(exposed["in2"].direction, PortDirection::In);
+
+    // Verify BlueprintOutput direction (data flows OUT OF blueprint)
+    EXPECT_EQ(exposed["out1"].direction, PortDirection::Out);
 
     // Verify types
     EXPECT_EQ(exposed["in1"].type, PortType::V);
@@ -303,10 +316,10 @@ TEST(ExtractExposedPorts, MultipleBlueprints) {
 TEST(ExtractExposedPorts, EmptyBlueprint) {
     // Blueprint with no BlueprintInput/BlueprintOutput
     nlohmann::json bp;
-    bp["devices"] = {
+    bp["devices"] = nlohmann::json::array({
         {{"name", "bat"}, {"classname", "Battery"}, {"params", {{"v_nominal", "28.0"}}}}
-    };
-    bp["connections"] = {};
+    });
+    bp["connections"] = nlohmann::json::array();
 
     ParserContext ctx = parse_json(bp.dump());
     auto exposed = extract_exposed_ports(ctx);
@@ -316,24 +329,25 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 }
 
 TEST(ExtractExposedPorts, DefaultValues) {
-    // BlueprintInput/BlueprintOutput without explicit params should use defaults
+    // BlueprintInput/BlueprintOutput without explicit params use ComponentRegistry defaults
     nlohmann::json bp;
-    bp["devices"] = {
-        {"name", "in"}, {"classname", "BlueprintInput"},  // No params!
-        {"name", "out"}, {"classname", "BlueprintOutput"}  // No params!
-    };
-    bp["connections"] = {};
+    bp["devices"] = nlohmann::json::array({
+        {{"name", "in"}, {"classname", "BlueprintInput"}},  // No params - uses component defaults
+        {{"name", "out"}, {"classname", "BlueprintOutput"}}  // No params - uses component defaults
+    });
+    bp["connections"] = nlohmann::json::array();
 
     ParserContext ctx = parse_json(bp.dump());
     auto exposed = extract_exposed_ports(ctx);
 
     EXPECT_EQ(exposed.size(), 2);
 
-    // Default direction based on classname
-    EXPECT_EQ(exposed["in"].direction, PortDirection::Out);  // BlueprintInput exposes as Out
-    EXPECT_EQ(exposed["out"].direction, PortDirection::In);   // BlueprintOutput exposes as In
+    // Default from component definition: BlueprintInput has exposed_direction="In"
+    EXPECT_EQ(exposed["in"].direction, PortDirection::In);
+    // Default from component definition: BlueprintOutput has exposed_direction="Out"
+    EXPECT_EQ(exposed["out"].direction, PortDirection::Out);
 
-    // Default type is Any
-    EXPECT_EQ(exposed["in"].type, PortType::Any);
-    EXPECT_EQ(exposed["out"].type, PortType::Any);
+    // Default type from component definition (both have "V" as default)
+    EXPECT_EQ(exposed["in"].type, PortType::V);
+    EXPECT_EQ(exposed["out"].type, PortType::V);
 }
