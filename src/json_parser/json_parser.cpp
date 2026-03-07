@@ -112,20 +112,6 @@ static DeviceInstance parse_device(const json& j) {
     }
     if (j.contains("critical")) dev.critical = j["critical"].get<bool>();
 
-    // Parse kind field (for editor and special handling)
-    if (j.contains("kind")) {
-        std::string kind_str = j["kind"].get<std::string>();
-        if (kind_str == "Bus") {
-            dev.kind = DeviceKind::Bus;
-        } else if (kind_str == "Ref") {
-            dev.kind = DeviceKind::Ref;
-        } else if (kind_str == "Blueprint") {
-            dev.kind = DeviceKind::Blueprint;
-        } else {
-            dev.kind = DeviceKind::Node;
-        }
-    }
-
     // Ports
     if (j.contains("ports")) {
         for (auto& [port_name, port_val] : j["ports"].items()) {

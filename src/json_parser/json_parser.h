@@ -112,14 +112,6 @@ struct ComponentRegistry {
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
 };
 
-/// Device kind (for editor display and special handling)
-enum class DeviceKind {
-    Node,      // Regular component node
-    Bus,       // Bus node (visual distinction)
-    Ref,       // Reference node (fixed value)
-    Blueprint  // Collapsed blueprint (do not expand)
-};
-
 /// Device instance at any level (primitive or composite)
 struct DeviceInstance {
     std::string name;
@@ -131,7 +123,6 @@ struct DeviceInstance {
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;  // From component definition only, NOT user-configurable
-    DeviceKind kind = DeviceKind::Node;  // Device kind (Node, Bus, Ref, Blueprint)
 
     // Default constructor
     DeviceInstance() = default;
