@@ -838,139 +838,56 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
         return;
     }
 
-    // Load the blueprint and FLATTEN it (don't create a collapsed placeholder)
-    // We create a temporary root JSON with the blueprint as a device
-    nlohmann::json root;
-    root["devices"] = nlohmann::json::array({
-        {{"name", "instance"}, {"classname", blueprint_name}}
-    });
-    root["connections"] = nlohmann::json::array();
-
-    // Parse JSON - this will trigger blueprint loading fallback and flatten everything
-    std::string root_json = root.dump();
-    an24::ParserContext ctx;
-    try {
-        ctx = an24::parse_json(root_json);
-    } catch (const std::exception& e) {
-        spdlog::error("[editor] failed to parse blueprint {}: {}", blueprint_name, e.what());
-        return;
-    }
-
-    if (ctx.devices.empty()) {
-        spdlog::error("[editor] blueprint {} produced no devices", blueprint_name);
-        return;
-    }
-
-    // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
-
-    // Add all flattened devices to the blueprint
-    // The blueprint devices are already prefixed (e.g., "instance:vin", "instance:lamp")
-    // We want to rename them to use our unique prefix instead
+    // Generate unique ID
     int counter = 1;
     std::string base_id = blueprint_name;
     std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
 
-    std::string unique_prefix;
+    std::string unique_id;
     do {
-        unique_prefix = base_id + "_" + std::to_string(counter++);
-    } while (blueprint.find_node((unique_prefix + "_x").c_str()) != nullptr);
+        unique_id = base_id + "_" + std::to_string(counter++);
+    } while (blueprint.find_node(unique_id.c_str()) != nullptr);
 
-    // Calculate bounding box of all devices to center them at snapped_pos
-    Pt min_pos = Pt(FLT_MAX, FLT_MAX);
-    Pt max_pos = Pt(FLT_MIN, FLT_MIN);
+    // Snap position to grid
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
 
-    for (const auto& dev : ctx.devices) {
-        // The device names are prefixed with "instance:"
-        // We need to change that to our unique_prefix
-        // Device names are like: "instance:vin", "instance:lamp", "instance:vout"
-        std::string dev_name = dev.name;
+    // Create COLLAPSED node (single node, not flattened)
+    // The simulator will detect NodeKind::Blueprint and expand it when building
+    Node node;
+    node.id = unique_id;
+    node.name = unique_id;
+    node.type_name = blueprint_name;
+    node.kind = NodeKind::Blueprint;  // Mark as collapsed blueprint
+    node.collapsed = true;
+    node.blueprint_path = info->path;
+    node.pos = snapped_pos;
 
-        // Remove "instance:" prefix and add our prefix
-        size_t colon_pos = dev_name.find(':');
-        if (colon_pos != std::string::npos) {
-            dev_name = unique_prefix + "_" + dev_name.substr(colon_pos + 1);
+    // Calculate size based on number of exposed ports
+    size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
+    float height = 80.0f + (num_ports - 1) * 16.0f;
+    node.size = Pt(120.0f, height);
+
+    // Populate inputs/outputs from exposed ports (for editor display and wiring)
+    for (const auto& [port_name, port] : info->exposed_ports) {
+        if (port.direction == PortDirection::In) {
+            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
         } else {
-            dev_name = unique_prefix + "_" + dev_name;
+            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
         }
-
-        // Create Node from DeviceInstance
-        Node node;
-        node.id = dev_name;
-        node.name = dev_name;
-        node.type_name = dev.classname;
-        node.kind = NodeKind::Node;  // All flattened devices render as regular nodes
-
-        // Set position (offset from snapped_pos)
-        // For now, place them in a row - TODO: auto-layout
-        static float offset_x = 0.0f;
-        node.pos = Pt(snapped_pos.x + offset_x, snapped_pos.y);
-        offset_x += 140.0f;  // Space devices horizontally
-
-        // Get size from component definition
-        node.size = get_default_node_size(dev.classname, &component_registry);
-
-        // Add ports from device instance
-        for (const auto& [port_name, port] : dev.ports) {
-            if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
-                node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
-            }
-            if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut) {
-                node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
-            }
-        }
-
-        // Add node_content from component definition
-        const auto* def = component_registry.get(dev.classname);
-        if (def) {
-            node.node_content = create_node_content(def);
-        }
-
-        blueprint.add_node(node);
-
-        min_pos.x = std::min(min_pos.x, node.pos.x);
-        min_pos.y = std::min(min_pos.y, node.pos.y);
-        max_pos.x = std::max(max_pos.x, node.pos.x + node.size.x);
-        max_pos.y = std::max(max_pos.y, node.pos.y + node.size.y);
     }
 
-    // Add all connections (rewrite device names with our prefix)
-    for (const auto& conn : ctx.connections) {
-        Wire wire;
-        wire.id = blueprint.next_wire_id++;
-
-        // Rewrite from and to with our prefix
-        // Connection strings are like: "instance:vin.port" -> "instance:lamp.v_in"
-        std::string from = conn.from;
-        std::string to = conn.to;
-
-        // Replace "instance:" with unique_prefix + "_"
-        size_t from_colon = from.find(':');
-        if (from_colon != std::string::npos) {
-            from = unique_prefix + "_" + from.substr(from_colon + 1);
-        }
-        size_t to_colon = to.find(':');
-        if (to_colon != std::string::npos) {
-            to = unique_prefix + "_" + to.substr(to_colon + 1);
-        }
-
-        wire.start.node_id = from.substr(0, from.find('.'));
-        wire.start.port_name = from.substr(from.find('.') + 1);
-        wire.end.node_id = to.substr(0, to.find('.'));
-        wire.end.port_name = to.substr(to.find('.') + 1);
-
-        blueprint.add_wire(wire);
-    }
+    // Add collapsed blueprint node to blueprint
+    blueprint.add_node(node);
 
     // Clear visual cache to force rebuild
     visual_cache.clear();
 
-    // Rebuild simulation to include new blueprint devices
+    // Rebuild simulation (it will expand the collapsed node)
     rebuild_simulation();
 
-    spdlog::info("[editor] added blueprint: {} (prefix={}) at ({:.1f}, {:.1f}) with {} devices, {} connections",
-                 blueprint_name, unique_prefix, snapped_pos.x, snapped_pos.y,
-                 ctx.devices.size(), ctx.connections.size());
+    spdlog::info("[editor] added collapsed blueprint: {} (id={}) at ({:.1f}, {:.1f}) with {} inputs, {} outputs",
+                 blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
+                 node.inputs.size(), node.outputs.size());
 }
 
 void EditorApp::trigger_switch(const std::string& node_id) {

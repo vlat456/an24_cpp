@@ -9,7 +9,8 @@
 enum class NodeKind {
     Node,       ///< Обычный компонент (батарея, насос, etc.)
     Bus,        ///< Шина/мультиплексор - маленький квадрат
-    Ref         ///< Reference node (ground, voltage source)
+    Ref,        ///< Reference node (ground, voltage source)
+    Blueprint   ///< Свернутый nested blueprint (collapsed node)
 };
 
 /// Тип содержимого узла (пока простой enum)

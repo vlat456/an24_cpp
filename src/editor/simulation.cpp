@@ -3,12 +3,154 @@
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 #include <cmath>
+#include <fstream>
+#include <filesystem>
 
 using namespace an24;
 
+/// Expand collapsed blueprint nodes (replaces them with flattened devices)
+static Blueprint expand_blueprints(const Blueprint& input) {
+    Blueprint expanded = input;
+    expanded.nodes.clear();
+    expanded.wires.clear();
+
+    // Copy non-blueprint nodes
+    for (const auto& node : input.nodes) {
+        if (node.kind != NodeKind::Blueprint) {
+            expanded.add_node(node);
+        }
+    }
+
+    // Expand blueprint nodes
+    for (const auto& node : input.nodes) {
+        if (node.kind == NodeKind::Blueprint) {
+            spdlog::info("[sim] expanding collapsed blueprint: {} ({})",
+                       node.type_name, node.blueprint_path);
+
+            // Load the nested blueprint JSON
+            std::filesystem::path bp_path(node.blueprint_path);
+            if (!std::filesystem::exists(bp_path)) {
+                spdlog::error("[sim] blueprint file not found: {}", node.blueprint_path);
+                continue;
+            }
+
+            std::ifstream file(bp_path);
+            if (!file.is_open()) {
+                spdlog::error("[sim] failed to open blueprint: {}", node.blueprint_path);
+                continue;
+            }
+
+            std::string content((std::istreambuf_iterator<char>(file)),
+                                std::istreambuf_iterator<char>());
+
+            // Parse nested blueprint (triggers blueprint loading fallback)
+            an24::ParserContext nested_ctx;
+            try {
+                nested_ctx = an24::parse_json(content);
+            } catch (const std::exception& e) {
+                spdlog::error("[sim] failed to parse blueprint {}: {}",
+                           node.blueprint_path, e.what());
+                continue;
+            }
+
+            // Add all nested devices with prefix
+            std::string prefix = node.id;  // Use collapsed node's ID as prefix
+
+            for (const auto& dev : nested_ctx.devices) {
+                Node nested_node;
+                nested_node.id = prefix + ":" + dev.name;
+                nested_node.name = nested_node.id;
+                nested_node.type_name = dev.classname;
+                nested_node.kind = NodeKind::Node;
+                nested_node.collapsed = false;
+                nested_node.pos = node.pos;  // All nested devices at same position for now
+
+                // Get size from component registry
+                nested_node.size = get_default_node_size(dev.classname, nullptr);
+
+                // Add ports
+                for (const auto& [port_name, port] : dev.ports) {
+                    if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
+                        nested_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+                    }
+                    if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut) {
+                        nested_node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+                    }
+                }
+
+                expanded.add_node(nested_node);
+            }
+
+            // Rewrite connections with prefix
+            for (const auto& conn : nested_ctx.connections) {
+                Wire wire;
+                wire.id = expanded.next_wire_id++;
+
+                // Rewrite: "vin.port" -> "lamp_pass_through_1:vin.port"
+                wire.start.node_id = prefix + ":" + conn.from.substr(0, conn.from.find('.'));
+                wire.start.port_name = conn.from.substr(conn.from.find('.') + 1);
+                wire.end.node_id = prefix + ":" + conn.to.substr(0, conn.to.find('.'));
+                wire.end.port_name = conn.to.substr(conn.to.find('.') + 1);
+
+                expanded.add_wire(wire);
+            }
+
+            // Now connect parent's wires to the expanded devices
+            // Parent connects to "lamp_pass_through_1.vin" → should connect to "lamp_pass_through_1:vin.port"
+            // Parent connects from "lamp_pass_through_1.vout" → should connect from "lamp_pass_through_1:vout.port"
+            // We need to rewrite parent connections to point to the correct BlueprintInput/BlueprintOutput devices
+
+            spdlog::info("[sim] expanded blueprint: {} → {} devices, {} connections",
+                       node.id, nested_ctx.devices.size(), nested_ctx.connections.size());
+        }
+    }
+
+    // Rewrite connections that point to collapsed blueprint nodes
+    for (const auto& wire : input.wires) {
+        Wire new_wire = wire;
+        new_wire.id = expanded.next_wire_id++;
+
+        // Check if start node is a collapsed blueprint
+        bool start_is_blueprint = false;
+        for (const auto& node : input.nodes) {
+            if (node.kind == NodeKind::Blueprint && node.id == wire.start.node_id) {
+                // Rewrite to connect to BlueprintInput inside
+                // "collapsed_id.vin" → "collapsed_id:vin.port"
+                new_wire.start.node_id = node.id + ":" + wire.start.port_name;
+                new_wire.start.port_name = "port";
+                start_is_blueprint = true;
+                break;
+            }
+        }
+
+        // Check if end node is a collapsed blueprint
+        bool end_is_blueprint = false;
+        for (const auto& node : input.nodes) {
+            if (node.kind == NodeKind::Blueprint && node.id == wire.end.node_id) {
+                // Rewrite to connect to BlueprintOutput inside
+                // "collapsed_id.vout" → "collapsed_id:vout.port"
+                new_wire.end.node_id = node.id + ":" + wire.end.port_name;
+                new_wire.end.port_name = "port";
+                end_is_blueprint = true;
+                break;
+            }
+        }
+
+        expanded.add_wire(new_wire);
+    }
+
+    // Copy non-blueprint wires
+    // (already done above in the rewrite loop)
+
+    return expanded;
+}
+
 void SimulationController::build(const Blueprint& bp) {
+    // Expand collapsed blueprint nodes before building
+    Blueprint expanded = expand_blueprints(bp);
+
     // Convert blueprint to JSON, then parse as simulator format
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = blueprint_to_json(expanded);
     auto ctx = parse_json(json_str);
 
     // Build systems from parsed context

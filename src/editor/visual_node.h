@@ -216,6 +216,9 @@ public:
                 return std::make_unique<BusVisualNode>(node, BusOrientation::Horizontal, wires);
             case NodeKind::Ref:
                 return std::make_unique<RefVisualNode>(node);
+            case NodeKind::Blueprint:
+                // Collapsed blueprint nodes render like standard nodes with exposed ports
+                return std::make_unique<StandardVisualNode>(node);
             case NodeKind::Node:
             default:
                 return std::make_unique<StandardVisualNode>(node);
