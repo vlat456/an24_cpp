@@ -45,6 +45,9 @@ struct Node {
     bool collapsed = true;   ///< Show as single node (true) or expanded (false)
     std::string blueprint_path;  ///< Path to nested blueprint JSON (e.g., "blueprints/simple_battery.json")
 
+    // View-level visibility for blueprint collapsing
+    bool visible = true;      ///< Visibility flag (true = render this node, false = hidden)
+
     Pt pos;                  ///< Позиция (верхний левый угол)
     Pt size;                 ///< Размеры (ширина × высота)
 

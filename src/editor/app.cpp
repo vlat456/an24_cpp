@@ -930,18 +930,48 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
         blueprint.add_wire(wire);
     }
 
+    // Create COLLAPSED Blueprint node (visible in parent view)
+    Node collapsed_node;
+    collapsed_node.id = unique_id;
+    collapsed_node.name = unique_id;
+    collapsed_node.type_name = blueprint_name;
+    collapsed_node.kind = NodeKind::Blueprint;
+    collapsed_node.collapsed = true;
+    collapsed_node.blueprint_path = info->path;
+    collapsed_node.visible = true;  // Visible in parent view
+    collapsed_node.pos = snapped_pos;
+
+    // Calculate size based on number of exposed ports
+    size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
+    float height = 80.0f + (num_ports - 1) * 16.0f;
+    collapsed_node.size = Pt(120.0f, height);
+
+    // Add exposed ports from BlueprintInfo
+    for (const auto& [port_name, port] : info->exposed_ports) {
+        if (port.direction == PortDirection::In) {
+            collapsed_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+        } else {
+            collapsed_node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+        }
+    }
+
+    blueprint.add_node(collapsed_node);
+
+    // Set all internal nodes to hidden (not visible in parent view)
+    for (const auto& internal_id : internal_node_ids) {
+        Node* internal_node = blueprint.find_node(internal_id.c_str());
+        if (internal_node) {
+            internal_node->visible = false;
+        }
+    }
+
     // Create CollapsedGroup for editor-only visual collapsing
     CollapsedGroup collapsed_group;
     collapsed_group.id = unique_id;
     collapsed_group.blueprint_path = info->path;
     collapsed_group.type_name = blueprint_name;
     collapsed_group.pos = snapped_pos;
-
-    // Calculate size based on number of exposed ports
-    size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
-    float height = 80.0f + (num_ports - 1) * 16.0f;
     collapsed_group.size = Pt(120.0f, height);
-
     collapsed_group.internal_node_ids = internal_node_ids;
     blueprint.collapsed_groups.push_back(collapsed_group);
 

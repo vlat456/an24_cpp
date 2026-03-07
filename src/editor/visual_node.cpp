@@ -49,6 +49,7 @@ BaseVisualNode::BaseVisualNode(const Node& node)
     , size_(snap_size_to_grid(node.size))
     , node_id_(node.id)
     , ports_()
+    , visible_(node.visible)  // Initialize from Node state
 {}
 
 // [t4u5v6w7] Snap size to grid so bottom-right corner stays grid-aligned.
