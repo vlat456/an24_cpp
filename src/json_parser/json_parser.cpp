@@ -260,14 +260,32 @@ ParserContext parse_json(const std::string& json_text) {
         if (!ctx.registry.has(raw_dev.classname)) {
             // Phase 2: Fallback to blueprint loading
             std::string blueprint_path = "blueprints/" + raw_dev.classname + ".json";
-            if (std::filesystem::exists(blueprint_path)) {
+
+            // Try to find blueprint file (same logic as component registry)
+            std::filesystem::path blueprint_fs_path(blueprint_path);
+            if (!std::filesystem::exists(blueprint_fs_path) && blueprint_fs_path.is_relative()) {
+                std::vector<std::filesystem::path> try_paths = {
+                    blueprint_fs_path,
+                    "../" / blueprint_fs_path,
+                    "../../" / blueprint_fs_path,
+                    "../../../" / blueprint_fs_path,
+                };
+                for (const auto& path : try_paths) {
+                    if (std::filesystem::exists(path)) {
+                        blueprint_fs_path = path;
+                        break;
+                    }
+                }
+            }
+
+            if (std::filesystem::exists(blueprint_fs_path)) {
                 spdlog::info("[json_parser] Loading nested blueprint '{}' from {}",
-                           raw_dev.classname, blueprint_path);
+                           raw_dev.classname, blueprint_fs_path.string());
 
                 // Load nested blueprint file
-                std::ifstream blueprint_file(blueprint_path);
+                std::ifstream blueprint_file(blueprint_fs_path);
                 if (!blueprint_file.is_open()) {
-                    throw std::runtime_error("Failed to open blueprint: " + blueprint_path);
+                    throw std::runtime_error("Failed to open blueprint: " + blueprint_fs_path.string());
                 }
 
                 std::string blueprint_json((std::istreambuf_iterator<char>(blueprint_file)),

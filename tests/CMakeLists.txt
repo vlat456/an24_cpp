@@ -379,11 +379,13 @@ add_executable(blueprint_loading_tests
 )
 target_include_directories(blueprint_loading_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/jit_solver
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(blueprint_loading_tests PRIVATE
     json_parser
+    jit_solver
     GTest::gtest_main
 )
 gtest_discover_tests(blueprint_loading_tests)

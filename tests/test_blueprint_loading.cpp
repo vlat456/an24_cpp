@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
+#include "jit_solver/jit_solver.h"
+#include "jit_solver/state.h"
+#include "jit_solver/components/all.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <filesystem>
@@ -116,4 +119,127 @@ TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
     // Verify structure
     EXPECT_EQ(ctx.devices.size(), 4);  // gnd, bat, vin, vout
     EXPECT_EQ(ctx.connections.size(), 3);  // 3 connections
+}
+
+// =============================================================================
+// Helper: Run simulation to steady state
+// =============================================================================
+static SimulationState run_simulation(
+    BuildResult& result,
+    const std::vector<DeviceInstance>& devices,
+    int steps = 50
+) {
+    SimulationState state;
+
+    // Allocate signals
+    for (uint32_t i = 0; i < result.signal_count; ++i) {
+        bool is_fixed = std::binary_search(
+            result.fixed_signals.begin(),
+            result.fixed_signals.end(),
+            i
+        );
+        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+    }
+
+    // Set fixed signal values from RefNode devices
+    for (const auto& dev : devices) {
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) {
+                value = std::stof(it_val->second);
+            }
+            auto it_sig = result.port_to_signal.find(dev.name + ".v");
+            if (it_sig != result.port_to_signal.end()) {
+                state.across[it_sig->second] = value;
+            }
+        }
+    }
+
+    // SOR iteration
+    for (int step = 0; step < steps; ++step) {
+        state.clear_through();
+
+        // Solve electrical domain using domain_components
+        for (auto* variant : result.domain_components.electrical) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_electrical(state, 0.0f); }) {
+                    comp.solve_electrical(state, 1.0f / 60.0f);
+                }
+            }, *variant);
+        }
+
+        state.precompute_inv_conductance();
+
+        for (size_t i = 0; i < state.across.size(); ++i) {
+            if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
+                state.across[i] += state.through[i] * state.inv_conductance[i] * 1.3f;
+            }
+        }
+    }
+
+    return state;
+}
+
+// Helper to get signal voltage by port name
+static float get_voltage(const SimulationState& state, const BuildResult& result,
+                          const std::string& port_name) {
+    auto it = result.port_to_signal.find(port_name);
+    EXPECT_NE(it, result.port_to_signal.end()) << "Port not found: " << port_name;
+    return state.across[it->second];
+}
+
+// =============================================================================
+// Integration Tests: Full pipeline with simulation
+// =============================================================================
+
+TEST(BlueprintLoading, Integration_NestedBlueprintRunsSimulation) {
+    // Root blueprint uses nested simple_battery blueprint
+    // Connects a load resistor to verify output voltage
+
+    nlohmann::json root;
+    root["devices"] = {
+        {{"name", "main_gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
+        {{"name", "bat1"}, {"classname", "simple_battery"}},  // Loads from blueprints/
+        {{"name", "load"}, {"classname", "Resistor"}, {"params", {{"conductance", "0.1"}}}}
+    };
+    root["connections"] = {
+        {{"from", "main_gnd.v"}, {"to", "bat1.vin"}},
+        {{"from", "bat1.vout"}, {"to", "load.v_in"}},
+        {{"from", "load.v_out"}, {"to", "main_gnd.v"}}
+    };
+
+    // Parse (should trigger blueprint loading)
+    ParserContext ctx;
+    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
+
+    // Verify nested blueprint was loaded with prefix
+    EXPECT_GE(ctx.devices.size(), 5);  // main_gnd + simple_battery:4 devices + load
+    EXPECT_GE(ctx.connections.size(), 3);  // At least 3 connections
+
+    // Convert Connection structs to pairs for build_systems_dev
+    std::vector<std::pair<std::string, std::string>> connections;
+    for (const auto& conn : ctx.connections) {
+        connections.push_back({conn.from, conn.to});
+    }
+
+    // Build systems (full pipeline)
+    BuildResult result = build_systems_dev(ctx.devices, connections);
+
+    // Verify build succeeded
+    EXPECT_GT(result.signal_count, 0);
+    EXPECT_GT(result.devices.size(), 0);
+
+    // Run simulation
+    SimulationState state = run_simulation(result, ctx.devices);
+
+    // Verify battery output voltage (should be ~28V from simple_battery)
+    // The nested blueprint's BlueprintOutput "vout" becomes "bat1:vout"
+    float v_bat1_vout = get_voltage(state, result, "bat1:vout.port");
+    EXPECT_GT(v_bat1_vout, 25.0f) << "Nested battery output should be close to 28V";
+    EXPECT_LT(v_bat1_vout, 30.0f) << "Nested battery output should not exceed nominal significantly";
+
+    // Verify ground is at 0V
+    float v_gnd = get_voltage(state, result, "main_gnd.v");
+    EXPECT_NEAR(v_gnd, 0.0f, 0.1f) << "Ground should be at 0V";
 }
