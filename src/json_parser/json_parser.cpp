@@ -112,6 +112,20 @@ static DeviceInstance parse_device(const json& j) {
     }
     if (j.contains("critical")) dev.critical = j["critical"].get<bool>();
 
+    // Parse kind field (for editor and special handling)
+    if (j.contains("kind")) {
+        std::string kind_str = j["kind"].get<std::string>();
+        if (kind_str == "Bus") {
+            dev.kind = DeviceKind::Bus;
+        } else if (kind_str == "Ref") {
+            dev.kind = DeviceKind::Ref;
+        } else if (kind_str == "Blueprint") {
+            dev.kind = DeviceKind::Blueprint;
+        } else {
+            dev.kind = DeviceKind::Node;
+        }
+    }
+
     // Ports
     if (j.contains("ports")) {
         for (auto& [port_name, port_val] : j["ports"].items()) {
@@ -300,7 +314,7 @@ ParserContext parse_json(const std::string& json_text) {
     for (const auto& raw_dev : raw_devices) {
         // Check if component exists in registry
         if (!ctx.registry.has(raw_dev.classname)) {
-            // Phase 2: Fallback to blueprint loading
+            // Phase 2: Fallback to blueprint loading (always expand, never keep collapsed)
             std::string blueprint_path = "blueprints/" + raw_dev.classname + ".json";
 
             // Try to find blueprint file (same logic as component registry)
@@ -378,6 +392,65 @@ ParserContext parse_json(const std::string& json_text) {
     if (j.contains("connections")) {
         for (const auto& conn_j : j["connections"]) {
             ctx.connections.push_back(parse_connection(conn_j));
+        }
+    }
+
+    // Rewrite connections that point to expanded nested blueprints
+    // When a blueprint "lamp_bp" is expanded, its exposed ports become "lamp_bp:vin.port"
+    // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
+    // But we must NOT rewrite internal connections that already have the prefix
+    // Skip this for recursive blueprint loading (only process at top level)
+    if (ctx.devices.empty() || ctx.devices[0].name.find(':') == std::string::npos || true) {  // TODO: better detection
+        std::set<std::string> expanded_blueprint_names;
+        // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
+        // These have names like "lamp_bp:vin" and "lamp_bp:vout"
+        // The blueprint name is everything before the LAST colon
+        for (const auto& dev : ctx.devices) {
+            if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+                // Extract blueprint name (everything before the colon)
+                size_t colon_pos = dev.name.find(':');
+                if (colon_pos != std::string::npos) {
+                    std::string blueprint_name = dev.name.substr(0, colon_pos);
+                    expanded_blueprint_names.insert(blueprint_name);
+                    spdlog::debug("[json_parser] Found expanded blueprint from {}: blueprint '{}'",
+                                dev.classname, blueprint_name);
+                }
+            }
+        }
+
+        if (!expanded_blueprint_names.empty()) {
+            spdlog::info("[json_parser] Found {} expanded blueprints: [{}]",
+                         expanded_blueprint_names.size(),
+                         fmt::join(expanded_blueprint_names, ", "));
+
+            // Rewrite connections (only parent connections, not internal ones)
+            for (auto& conn : ctx.connections) {
+                // Helper to rewrite one side of a connection
+                auto rewrite_port = [&](std::string& port_ref) {
+                    size_t dot_pos = port_ref.find('.');
+                    if (dot_pos == std::string::npos) return;  // No port specified
+
+                    std::string device_name = port_ref.substr(0, dot_pos);
+                    std::string port_name = port_ref.substr(dot_pos + 1);
+
+                    // Skip if already has prefix (internal connection, already processed)
+                    if (device_name.find(':') != std::string::npos) {
+                        return;
+                    }
+
+                    // Check if this device is an expanded blueprint
+                    if (expanded_blueprint_names.count(device_name)) {
+                        // Rewrite: "lamp_bp.vin" -> "lamp_bp:vin.port"
+                        std::string old_ref = port_ref;
+                        port_ref = device_name + ":" + port_name + ".port";
+                        spdlog::info("[json_parser] Rewrote parent connection: '{}' -> '{}'",
+                                    old_ref, port_ref);
+                    }
+                };
+
+                rewrite_port(conn.from);
+                rewrite_port(conn.to);
+            }
         }
     }
 

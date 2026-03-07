@@ -20,4 +20,5 @@ include("/Users/vladimir/an24_cpp/build/tests/blueprint_ports_tests[1]_include.c
 include("/Users/vladimir/an24_cpp/build/tests/blueprint_integration_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/blueprint_loading_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/provider_pattern_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/lamp_passthrough_jit_test[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_hierarchical_tests[1]_include.cmake")

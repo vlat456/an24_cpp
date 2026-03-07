@@ -8,6 +8,8 @@
 #include <optional>
 #include <algorithm>
 #include <map>
+#include <filesystem>
+#include <spdlog/spdlog.h>
 #include <set>
 #include <queue>
 
@@ -35,6 +37,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
         switch (n.kind) {
             case NodeKind::Bus: device["kind"] = "Bus"; break;
             case NodeKind::Ref: device["kind"] = "Ref"; break;
+            case NodeKind::Blueprint: device["kind"] = "Blueprint"; break;
             default: device["kind"] = "Node"; break;
         }
         device["priority"] = "med";
@@ -50,14 +53,26 @@ std::string blueprint_to_json(const Blueprint& bp) {
         }
         device["ports"] = ports;
         
-        // Add value parameter for RefNode (required by simulator)
-        if (n.kind == NodeKind::Ref) {
+        // Add parameters from Node::params (overrides for component defaults)
+        if (!n.params.empty()) {
+            json params = json::object();
+            for (const auto& [key, value] : n.params) {
+                params[key] = value;
+            }
+            device["params"] = params;
+        }
+        // Add value parameter for RefNode if not already in params (backward compatibility)
+        else if (n.kind == NodeKind::Ref) {
             json params = json::object();
             // Use node_content.value if set, otherwise default to 0.0
             float value = (n.node_content.type == NodeContentType::Value) ? n.node_content.value : 0.0f;
             params["value"] = (value == 0.0f) ? "0.0" : std::to_string(value);
             device["params"] = params;
+        }
 
+        // Store blueprint_path for collapsed blueprint nodes
+        if (n.kind == NodeKind::Blueprint && !n.blueprint_path.empty()) {
+            device["blueprint_path"] = n.blueprint_path;
         }
         
         // NOTE: Other UI params (label, min, max, unit) are stored in editor.nodes, NOT in device.params
@@ -146,6 +161,8 @@ static Node device_to_node(const json& d, int index) {
             n.kind = NodeKind::Bus;
         } else if (kind_str == "Ref") {
             n.kind = NodeKind::Ref;
+        } else if (kind_str == "Blueprint") {
+            n.kind = NodeKind::Blueprint;
         } else {
             n.kind = NodeKind::Node;
         }
@@ -180,6 +197,13 @@ static Node device_to_node(const json& d, int index) {
                 n.inputs.push_back(p);
             }
         }
+    }
+
+    // Read blueprint_path for collapsed blueprint nodes
+    if (d.contains("blueprint_path") && n.kind == NodeKind::Blueprint) {
+        n.blueprint_path = d["blueprint_path"].get<std::string>();
+        // Blueprint nodes are always collapsed when loaded from JSON
+        n.collapsed = true;
     }
 
     // Auto-generate node_content based on device type
@@ -254,6 +278,9 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
             n.outputs.push_back(p);
         }
     }
+
+    // Copy params from DeviceInstance to Node
+    n.params = dev.params;
 
     return n;
 }
@@ -476,11 +503,19 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                     n.kind = NodeKind::Bus;
                 } else if (kind_str == "Ref") {
                     n.kind = NodeKind::Ref;
+                } else if (kind_str == "Blueprint") {
+                    n.kind = NodeKind::Blueprint;
                 } else if (kind_str == "Node") {
                     n.kind = NodeKind::Node;
                 }
                 // Re-calculate size based on kind (single source of truth)
                 n.size = get_default_node_size(n.type_name, &ctx.registry);
+            }
+
+            // Read blueprint_path for collapsed blueprint nodes
+            if (n.kind == NodeKind::Blueprint && j["devices"][dev_idx].contains("blueprint_path")) {
+                n.blueprint_path = j["devices"][dev_idx]["blueprint_path"].get<std::string>();
+                n.collapsed = true;
             }
 
             // Create node_content from ComponentDefinition
@@ -610,6 +645,39 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
             if (w.id.compare(0, 5, "wire_") == 0) {
                 int num = std::atoi(w.id.c_str() + 5);
                 if (num >= bp.next_wire_id) bp.next_wire_id = num + 1;
+            }
+        }
+
+        // Validate blueprint_path references exist
+        for (const auto& node : bp.nodes) {
+            if (node.kind == NodeKind::Blueprint && !node.blueprint_path.empty()) {
+                std::filesystem::path bp_path(node.blueprint_path);
+
+                // Try to find the blueprint file (same logic as simulation.cpp)
+                if (!std::filesystem::exists(bp_path) && bp_path.is_relative()) {
+                    std::vector<std::filesystem::path> try_paths = {
+                        bp_path,
+                        "../" / bp_path,
+                        "../../" / bp_path,
+                        "../../../" / bp_path,
+                    };
+
+                    bool found = false;
+                    for (const auto& path : try_paths) {
+                        if (std::filesystem::exists(path)) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        spdlog::error("================================================================================");
+                        spdlog::error("BLUEPRINT FILE NOT FOUND: {} (referenced by node '{}')",
+                                    node.blueprint_path, node.id);
+                        spdlog::error("The nested blueprint will fail to expand during simulation!");
+                        spdlog::error("================================================================================");
+                    }
+                }
             }
         }
 

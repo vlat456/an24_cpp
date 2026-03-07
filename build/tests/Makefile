@@ -396,6 +396,20 @@ provider_pattern_tests/fast:
 .PHONY : provider_pattern_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
+.PHONY : tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
+
+# Convenience name for target.
+lamp_passthrough_jit_test: tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
+.PHONY : lamp_passthrough_jit_test
+
+# fast build rule for target.
+lamp_passthrough_jit_test/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/build
+.PHONY : lamp_passthrough_jit_test/fast
+
+# Convenience name for target.
 tests/CMakeFiles/editor_hierarchical_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_hierarchical_tests.dir/rule
 .PHONY : tests/CMakeFiles/editor_hierarchical_tests.dir/rule
@@ -539,6 +553,7 @@ __/src/editor/simulation.o: __/src/editor/simulation.cpp.o
 __/src/editor/simulation.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.o
 .PHONY : __/src/editor/simulation.cpp.o
 
 __/src/editor/simulation.i: __/src/editor/simulation.cpp.i
@@ -548,6 +563,7 @@ __/src/editor/simulation.i: __/src/editor/simulation.cpp.i
 __/src/editor/simulation.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.i
 .PHONY : __/src/editor/simulation.cpp.i
 
 __/src/editor/simulation.s: __/src/editor/simulation.cpp.s
@@ -557,6 +573,7 @@ __/src/editor/simulation.s: __/src/editor/simulation.cpp.s
 __/src/editor/simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.s
 .PHONY : __/src/editor/simulation.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
@@ -910,6 +927,30 @@ test_editor_hierarchical.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/test_editor_hierarchical.cpp.s
 .PHONY : test_editor_hierarchical.cpp.s
 
+test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
+.PHONY : test_lamp_passthrough_jit.o
+
+# target to build an object file
+test_lamp_passthrough_jit.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o
+.PHONY : test_lamp_passthrough_jit.cpp.o
+
+test_lamp_passthrough_jit.i: test_lamp_passthrough_jit.cpp.i
+.PHONY : test_lamp_passthrough_jit.i
+
+# target to preprocess a source file
+test_lamp_passthrough_jit.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.i
+.PHONY : test_lamp_passthrough_jit.cpp.i
+
+test_lamp_passthrough_jit.s: test_lamp_passthrough_jit.cpp.s
+.PHONY : test_lamp_passthrough_jit.s
+
+# target to generate assembly for a file
+test_lamp_passthrough_jit.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
+.PHONY : test_lamp_passthrough_jit.cpp.s
+
 test_logical_solver.o: test_logical_solver.cpp.o
 .PHONY : test_logical_solver.o
 
@@ -1104,6 +1145,7 @@ help:
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
 	@echo "... json_parser_tests"
+	@echo "... lamp_passthrough_jit_test"
 	@echo "... logical_solver_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
@@ -1159,6 +1201,9 @@ help:
 	@echo "... test_editor_hierarchical.o"
 	@echo "... test_editor_hierarchical.i"
 	@echo "... test_editor_hierarchical.s"
+	@echo "... test_lamp_passthrough_jit.o"
+	@echo "... test_lamp_passthrough_jit.i"
+	@echo "... test_lamp_passthrough_jit.s"
 	@echo "... test_logical_solver.o"
 	@echo "... test_logical_solver.i"
 	@echo "... test_logical_solver.s"

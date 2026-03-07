@@ -28,7 +28,24 @@ static Blueprint expand_blueprints(const Blueprint& input) {
                        node.type_name, node.blueprint_path);
 
             // Load the nested blueprint JSON
+            // Try to find the blueprint file (same logic as JSON parser)
             std::filesystem::path bp_path(node.blueprint_path);
+            if (!std::filesystem::exists(bp_path) && bp_path.is_relative()) {
+                // Try common relative paths from build directory
+                std::vector<std::filesystem::path> try_paths = {
+                    bp_path,
+                    "../" / bp_path,
+                    "../../" / bp_path,
+                    "../../../" / bp_path,
+                };
+                for (const auto& path : try_paths) {
+                    if (std::filesystem::exists(path)) {
+                        bp_path = path;
+                        break;
+                    }
+                }
+            }
+
             if (!std::filesystem::exists(bp_path)) {
                 spdlog::error("[sim] blueprint file not found: {}", node.blueprint_path);
                 continue;
@@ -64,6 +81,9 @@ static Blueprint expand_blueprints(const Blueprint& input) {
                 nested_node.kind = NodeKind::Node;
                 nested_node.collapsed = false;
                 nested_node.pos = node.pos;  // All nested devices at same position for now
+
+                // Copy params from DeviceInstance (for Battery, RefNode, etc.)
+                nested_node.params = dev.params;
 
                 // Get size from component registry
                 nested_node.size = get_default_node_size(dev.classname, nullptr);

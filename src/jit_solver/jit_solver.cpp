@@ -436,17 +436,14 @@ BuildResult build_systems_dev(
     // Sentinel signal for unconnected ports
     result.signal_count++;
 
-    // Mark ground (gnd.RefNode with value=0) as fixed
+    // Mark all RefNode signals as fixed (voltage references maintain constant potential)
     for (const auto& dev : devices) {
         if (dev.classname == "RefNode") {
-            auto it_val = dev.params.find("value");
-            if (it_val != dev.params.end() && it_val->second == "0.0") {
-                std::string v = dev.name + ".v";
-                auto it = result.port_to_signal.find(v);
-                if (it != result.port_to_signal.end()) {
-                    result.fixed_signals.push_back(it->second);
-                    spdlog::debug("[build] fixed signal {} for {}", it->second, dev.name);
-                }
+            std::string v = dev.name + ".v";
+            auto it = result.port_to_signal.find(v);
+            if (it != result.port_to_signal.end()) {
+                result.fixed_signals.push_back(it->second);
+                spdlog::debug("[build] fixed signal {} for {}", it->second, dev.name);
             }
         }
     }

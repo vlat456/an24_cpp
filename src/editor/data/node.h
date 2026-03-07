@@ -4,6 +4,7 @@
 #include "port.h"
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 /// Вид узла (для рендеринга)
 enum class NodeKind {
@@ -49,6 +50,9 @@ struct Node {
 
     std::vector<Port> inputs;    ///< Входные порты
     std::vector<Port> outputs;   ///< Выходные порты
+
+    /// Parameters (optional, for overriding component defaults)
+    std::unordered_map<std::string, std::string> params;
 
     NodeContent node_content;  ///< Содержимое для отображения
 
