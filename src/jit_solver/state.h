@@ -72,7 +72,11 @@ struct SimulationState {
 
 /// Single SOR iteration - branchless implementation
 /// precompute_inv_conductance() must be called first
-inline void solve_sor_iteration(
+/// Force inline for AOT performance (no function call overhead)
+#if defined(__GNUC__) || defined(__clang__)
+__attribute__((always_inline)) inline
+#endif
+void solve_sor_iteration(
     float* __restrict across,
     const float* __restrict through,
     const float* __restrict inv_conductance,
