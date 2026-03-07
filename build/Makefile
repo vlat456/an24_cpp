@@ -406,6 +406,19 @@ editor_viewport_tests/fast:
 .PHONY : editor_viewport_tests/fast
 
 #=============================================================================
+# Target rules for targets named editor_render_tests
+
+# Build rule for target.
+editor_render_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_render_tests
+.PHONY : editor_render_tests
+
+# fast build rule for target.
+editor_render_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/build
+.PHONY : editor_render_tests/fast
+
+#=============================================================================
 # Target rules for targets named json_parser_tests
 
 # Build rule for target.
@@ -417,6 +430,32 @@ json_parser_tests: cmake_check_build_system
 json_parser_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
 .PHONY : json_parser_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_router_tests
+
+# Build rule for target.
+editor_router_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_router_tests
+.PHONY : editor_router_tests
+
+# fast build rule for target.
+editor_router_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/build
+.PHONY : editor_router_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_widget_tests
+
+# Build rule for target.
+editor_widget_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_widget_tests
+.PHONY : editor_widget_tests
+
+# fast build rule for target.
+editor_widget_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/build
+.PHONY : editor_widget_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_simulation_tests
@@ -476,8 +515,11 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_persist_tests"
+	@echo "... editor_render_tests"
+	@echo "... editor_router_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
+	@echo "... editor_widget_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

@@ -133,29 +133,30 @@ gtest_discover_tests(editor_viewport_tests)
 # )
 # gtest_discover_tests(editor_interaction_tests)
 
-# Disabled for AOT-only refactor - simulation.cpp depends on removed Systems
-# add_executable(editor_render_tests
-#     test_render.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
-# )
-# target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
-# target_include_directories(editor_render_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-#     ${json_SOURCE_DIR}/include
-# )
-# target_link_libraries(editor_render_tests PRIVATE
-#     GTest::gtest_main
-#     jit_solver
-#     json_parser
-# )
-# gtest_discover_tests(editor_render_tests)
+# Editor render tests
+add_executable(editor_render_tests
+    test_render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+)
+target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_render_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_render_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_render_tests)
 
 # Editor hit test tests (TDD Step 6)
 # add_executable(editor_hittest_tests
@@ -237,37 +238,51 @@ gtest_discover_tests(json_parser_tests)
 # gtest_discover_tests(editor_routing_tests)
 
 # A* Router tests
-# add_executable(editor_router_tests
-#     test_router.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-# )
-# target_include_directories(editor_router_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-# )
-# target_link_libraries(editor_router_tests PRIVATE
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(editor_router_tests)
+add_executable(editor_router_tests
+    test_router.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(editor_router_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_router_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_router_tests)
 
 # Widget & Layout tests
-# add_executable(editor_widget_tests
-#     test_widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-# )
-# target_compile_definitions(editor_widget_tests PRIVATE EDITOR_TESTING)
-# target_include_directories(editor_widget_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-# )
-# target_link_libraries(editor_widget_tests PRIVATE
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(editor_widget_tests)
+add_executable(editor_widget_tests
+    test_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(editor_widget_tests PRIVATE EDITOR_TESTING)
+target_include_directories(editor_widget_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_widget_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_widget_tests)
 
 # Editor simulation tests (TDD - integration with JIT solver)
 add_executable(editor_simulation_tests
