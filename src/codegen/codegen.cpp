@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <set>
 #include <filesystem>
 
 // Use nlohmann::json - will be available when linked with json_parser
@@ -351,6 +352,13 @@ std::string CodeGen::generate_source(
         if (domain.find("Thermal") != std::string::npos) {
             step_devices[{0, "thermal"}].push_back(dev.name);
         }
+
+        // Logical: every step (0, 1, 2, ...) - 60Hz boolean logic
+        if (domain.find("Logical") != std::string::npos) {
+            for (int step = 0; step < 60; ++step) {
+                step_devices[{step, "logical"}].push_back(dev.name);
+            }
+        }
     }
 
     // Generate each step method
@@ -385,9 +393,88 @@ std::string CodeGen::generate_source(
                     oss << "        st->through[" << v_in_idx << "] -= i;\n";
                     oss << "        st->through[" << v_out_idx << "] += i;\n";
                     oss << "    }\n";
+                } else if (dev_it->classname == "Resistor") {
+                    // Resistor: I = (V_in - V_out) * g
+                    std::string v_in_idx = dev_name + "_v_in_idx";
+                    std::string v_out_idx = dev_name + "_v_out_idx";
+                    oss << "    // Resistor: two-port conductance\n";
+                    oss << "    {\n";
+                    oss << "        float v_in = st->across[" << v_in_idx << "];\n";
+                    oss << "        float v_out = st->across[" << v_out_idx << "];\n";
+                    oss << "        float g = " << dev_name << ".conductance;\n";
+                    oss << "        float i = (v_in - v_out) * g;\n";
+                    oss << "        st->through[" << v_in_idx << "] -= i;\n";
+                    oss << "        st->through[" << v_out_idx << "] += i;\n";
+                    oss << "    }\n";
+                } else if (dev_it->classname == "Load") {
+                    // Load: I = V * g (to ground)
+                    std::string input_idx = dev_name + "_input_idx";
+                    oss << "    // Load: single port to ground\n";
+                    oss << "    {\n";
+                    oss << "        float v = st->across[" << input_idx << "];\n";
+                    oss << "        float g = " << dev_name << ".conductance;\n";
+                    oss << "        float i = v * g;\n";
+                    oss << "        st->through[" << input_idx << "] += i;\n";
+                    oss << "    }\n";
+                } else if (dev_it->classname == "Voltmeter") {
+                    // Voltmeter: high resistance load (I = V * g, g ~ 1e-6)
+                    std::string input_idx = dev_name + "_input_idx";
+                    oss << "    // Voltmeter: high resistance measurement\n";
+                    oss << "    {\n";
+                    oss << "        float v = st->across[" << input_idx << "];\n";
+                    oss << "        float g = " << dev_name << ".conductance;\n";
+                    oss << "        float i = v * g;\n";
+                    oss << "        st->through[" << input_idx << "] += i;\n";
+                    oss << "        " << dev_name << ".voltage = v;\n";
+                    oss << "    }\n";
+                } else if (dev_it->classname == "IndicatorLight") {
+                    // IndicatorLight: load + voltage threshold for on/off
+                    std::string input_idx = dev_name + "_input_idx";
+                    oss << "    // IndicatorLight: load with state tracking\n";
+                    oss << "    {\n";
+                    oss << "        float v = st->across[" << input_idx << "];\n";
+                    oss << "        float g = " << dev_name << ".conductance;\n";
+                    oss << "        float i = v * g;\n";
+                    oss << "        st->through[" << input_idx << "] += i;\n";
+                    oss << "        " << dev_name << ".is_on = (v > " << dev_name << ".threshold);\n";
+                    oss << "    }\n";
                 } else {
                     // Fallback to method call for complex components
                     oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
+                }
+            }
+        }
+
+        // Logical (every step) - boolean logic operations
+        auto log_it = step_devices.find({step, "logical"});
+        if (log_it != step_devices.end()) {
+            for (const auto& dev_name : log_it->second) {
+                // Find device
+                auto dev_it = std::find_if(devices.begin(), devices.end(),
+                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
+                if (dev_it == devices.end()) continue;
+
+                // Generate inline code based on component type
+                if (dev_it->classname == "Comparator") {
+                    // Comparator: Va >= Vb ? 1.0V : 0.0V with hysteresis
+                    std::string Va_idx = dev_name + "_Va_idx";
+                    std::string Vb_idx = dev_name + "_Vb_idx";
+                    std::string o_idx = dev_name + "_o_idx";
+                    oss << "    // Comparator: hysteresis comparison\n";
+                    oss << "    {\n";
+                    oss << "        float Va = st->across[" << Va_idx << "];\n";
+                    oss << "        float Vb = st->across[" << Vb_idx << "];\n";
+                    oss << "        float diff = Va - Vb;\n";
+                    oss << "        float Von = " << dev_name << ".Von;\n";
+                    oss << "        float Voff = " << dev_name << ".Voff;\n";
+                    oss << "        bool set = (diff >= Von);\n";
+                    oss << "        bool keep = (diff > Voff);\n";
+                    oss << "        " << dev_name << ".output_state = set || (" << dev_name << ".output_state && keep);\n";
+                    oss << "        st->across[" << o_idx << "] = " << dev_name << ".output_state ? 1.0f : 0.0f;\n";
+                    oss << "    }\n";
+                } else {
+                    // Fallback to method call
+                    oss << "    " << dev_name << ".solve_logical(*st, dt);\n";
                 }
             }
         }
@@ -580,6 +667,14 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
             return a.classname < b.classname;
         });
 
+    // Collect all unique port names for Param enum
+    std::set<std::string> all_port_names;
+    for (const auto& comp : all_components) {
+        for (const auto& port : comp.ports) {
+            all_port_names.insert(port);
+        }
+    }
+
     // Generate header file
     std::ostringstream oss;
 
@@ -596,6 +691,20 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <unordered_map>\n";
     oss << "\n";
     oss << "namespace an24 {\n";
+    oss << "\n";
+
+    // Generate enum for all port names (for Provider pattern)
+    oss << "// Port names enum (for constexpr Provider pattern)\n";
+    oss << "// Used by AOT components to get compile-time port indices\n";
+    oss << "enum class PortNames : uint32_t {\n";
+    size_t param_idx = 0;
+    for (const auto& port_name : all_port_names) {
+        oss << "    " << port_name;
+        if (param_idx < all_port_names.size() - 1) oss << ",\n";
+        else oss << "\n";
+        param_idx++;
+    }
+    oss << "};\n";
     oss << "\n";
 
     // Generate enum for component types

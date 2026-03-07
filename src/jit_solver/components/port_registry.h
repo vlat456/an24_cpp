@@ -12,6 +12,46 @@
 
 namespace an24 {
 
+// Port names enum (for constexpr Provider pattern)
+// Used by AOT components to get compile-time port indices
+enum class PortNames : uint32_t {
+    Va,
+    Vb,
+    ac_out,
+    brightness,
+    control,
+    ctrl,
+    dc_in,
+    flow_in,
+    flow_out,
+    heat_in,
+    heat_out,
+    i,
+    input,
+    k_mod,
+    lamp,
+    o,
+    o1,
+    o2,
+    output,
+    p_out,
+    power,
+    primary,
+    rpm_out,
+    secondary,
+    state,
+    t4_out,
+    temp_in,
+    temp_out,
+    v,
+    v_bus,
+    v_gen,
+    v_gen_ref,
+    v_in,
+    v_out,
+    v_start
+};
+
 // Component type enumeration
 enum class ComponentType {
     AGK47,
