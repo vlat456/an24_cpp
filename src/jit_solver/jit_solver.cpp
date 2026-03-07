@@ -161,16 +161,20 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "Transformer") {
         Transformer<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.ratio = get_float(dev, "ratio", 1.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Inverter") {
         Inverter<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.efficiency = get_float(dev, "efficiency", 0.95f);
+        comp.frequency = get_float(dev, "frequency", 400.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "LerpNode") {
         LerpNode<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.factor = get_float(dev, "factor", 1.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Splitter") {
@@ -181,6 +185,7 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "IndicatorLight") {
         IndicatorLight<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.max_brightness = get_float(dev, "max_brightness", 100.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Voltmeter") {
@@ -191,62 +196,86 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "HighPowerLoad") {
         HighPowerLoad<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.power_draw = get_float(dev, "power_draw", 500.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "ElectricPump") {
         ElectricPump<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.max_pressure = get_float(dev, "max_pressure", 1000.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "SolenoidValve") {
         SolenoidValve<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.normally_closed = get_bool(dev, "normally_closed", true);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "InertiaNode") {
         InertiaNode<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.mass = get_float(dev, "mass", 1.0f);
+        comp.damping = get_float(dev, "damping", 0.5f);
         comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "TempSensor") {
         TempSensor<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.sensitivity = get_float(dev, "sensitivity", 1.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "ElectricHeater") {
         ElectricHeater<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.max_power = get_float(dev, "max_power", 1000.0f);
+        comp.efficiency = get_float(dev, "efficiency", 0.9f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Radiator") {
         Radiator<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.cooling_capacity = get_float(dev, "cooling_capacity", 1000.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "DMR400") {
         DMR400<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.connect_threshold = get_float(dev, "connect_threshold", 2.0f);
+        comp.disconnect_threshold = get_float(dev, "disconnect_threshold", 10.0f);
+        comp.min_voltage_to_close = get_float(dev, "min_voltage_to_close", 20.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "RUG82") {
         RUG82<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.v_target = get_float(dev, "v_target", 28.5f);
+        comp.kp = get_float(dev, "kp", 2.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "RU19A") {
         RU19A<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.target_rpm = get_float(dev, "target_rpm", 16000.0f);
+        comp.spinup_inertia = get_float(dev, "spinup_inertia", 1.0f);
+        comp.spindown_inertia = get_float(dev, "spindown_inertia", 0.02f);
+        comp.crank_time = get_float(dev, "crank_time", 2.0f);
+        comp.ignition_time = get_float(dev, "ignition_time", 3.0f);
+        comp.t4_target = get_float(dev, "t4_target", 400.0f);
+        comp.t4_max = get_float(dev, "t4_max", 750.0f);
+        comp.auto_start = get_bool(dev, "auto_start", true);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Gyroscope") {
         Gyroscope<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.conductance = get_float(dev, "conductance", 0.001f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "AGK47") {
         AGK47<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.conductance = get_float(dev, "conductance", 0.001f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Bus") {
@@ -257,6 +286,7 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "RefNode") {
         RefNode<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.value = get_float(dev, "value", 0.0f);
         return ComponentVariant(std::move(comp));
     }
     else {
