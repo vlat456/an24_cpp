@@ -50,7 +50,18 @@ std::string blueprint_to_json(const Blueprint& bp) {
             ports[p.name] = {{"direction", "Out"}};
         }
         device["ports"] = ports;
-        // NOTE: UI params (label, value, min, max, unit) are stored in editor.nodes, NOT in device.params
+        
+        // Add value parameter for RefNode (required by simulator)
+        if (n.kind == NodeKind::Ref) {
+            json params = json::object();
+            // Use node_content.value if set, otherwise default to 0.0
+            float value = (n.node_content.type == NodeContentType::Value) ? n.node_content.value : 0.0f;
+            params["value"] = (value == 0.0f) ? "0.0" : std::to_string(value);
+            device["params"] = params;
+
+        }
+        
+        // NOTE: Other UI params (label, min, max, unit) are stored in editor.nodes, NOT in device.params
         // NOTE: Domains are NOT saved to JSON - they are defined in component definitions
         devices.push_back(device);
     }
