@@ -10,17 +10,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <variant>
 
 namespace an24 {
-
-// Forward declarations for Provider pattern (defined in provider.h)
-struct JitProvider;
-
-template <PortNames P, uint32_t Idx>
-struct Binding;
-
-template <typename... Bindings>
-struct AotProvider;
 
 // Port names enum (for constexpr Provider pattern)
 // Used by AOT components to get compile-time port indices
@@ -293,5 +285,57 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     }
     return {};
 }
+
+// Component variant for dynamic component storage (Editor JIT mode)
+// Enables type-safe storage of any component type without virtual calls
+using ComponentVariant = std::variant<
+    AGK47<JitProvider>,
+    Battery<JitProvider>,
+    Bus<JitProvider>,
+    Comparator<JitProvider>,
+    DMR400<JitProvider>,
+    ElectricHeater<JitProvider>,
+    ElectricPump<JitProvider>,
+    GS24<JitProvider>,
+    Generator<JitProvider>,
+    Gyroscope<JitProvider>,
+    HighPowerLoad<JitProvider>,
+    HoldButton<JitProvider>,
+    IndicatorLight<JitProvider>,
+    InertiaNode<JitProvider>,
+    Inverter<JitProvider>,
+    LerpNode<JitProvider>,
+    Load<JitProvider>,
+    RU19A<JitProvider>,
+    RUG82<JitProvider>,
+    Radiator<JitProvider>,
+    RefNode<JitProvider>,
+    Relay<JitProvider>,
+    Resistor<JitProvider>,
+    SolenoidValve<JitProvider>,
+    Splitter<JitProvider>,
+    Switch<JitProvider>,
+    TempSensor<JitProvider>,
+    Transformer<JitProvider>,
+    Voltmeter<JitProvider>
+>;
+
+// Visitor helper for calling solve_electrical on component variant
+template <typename... Visitors>
+struct overloaded : Visitors... {
+    using Visitors::operator()...;
+};
+
+// Helper visitor to call solve_electrical on any component
+inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {
+    component.solve_electrical(st, dt);
+};
+
+// Helper visitor to call post_step on any component (optional)
+inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {
+    if constexpr (requires { component.post_step(st, dt); }) {
+        component.post_step(st, dt);
+    }
+};
 
 } // namespace an24

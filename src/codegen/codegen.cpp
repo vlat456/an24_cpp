@@ -126,7 +126,8 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"jit_solver/state.h\"\n";
-    oss << "#include \"jit_solver/components/all.h\"\n\n";
+    oss << "#include \"jit_solver/components/all.h\"\n";
+    oss << "#include \"jit_solver/components/port_registry.h\"\n\n";
     oss << "// Compiler hints for optimization\n";
     oss << "#ifdef __GNUC__\n";
     oss << "#define AOT_INLINE __attribute__((always_inline)) inline\n";
