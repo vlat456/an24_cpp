@@ -49,6 +49,22 @@ target_link_libraries(port_macro_tests PRIVATE
 )
 gtest_discover_tests(port_macro_tests)
 
+# Editor ComponentVariant tests - Integration tests for Editor with ComponentVariant
+add_executable(editor_componentvariant_tests
+    editor_componentvariant_test.cpp
+)
+target_include_directories(editor_componentvariant_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_componentvariant_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_componentvariant_tests)
+
 # Editor data tests (TDD Step 1) - Disabled for AOT-only refactor
 # add_executable(editor_data_tests
 #     test_data.cpp
