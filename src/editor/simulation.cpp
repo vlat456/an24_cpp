@@ -53,7 +53,34 @@ void SimulationController::step(float dt) {
     if (!build_result.has_value()) return;
 
     state.clear_through();
-    build_result->systems.solve_step(state, step_count, dt);
+
+    // Multi-domain solving using std::visit on ComponentVariant
+    // Components have different solve methods for different domains
+    for (auto& [name, variant] : build_result->devices) {
+        std::visit([&](auto& comp) {
+            // Electrical/Logical domain (60 Hz)
+            if constexpr (requires { comp.solve_electrical(state, dt); }) {
+                comp.solve_electrical(state, dt);
+            }
+            // Logical domain (60 Hz)
+            else if constexpr (requires { comp.solve_logical(state, dt); }) {
+                comp.solve_logical(state, dt);
+            }
+            // Mechanical domain (20 Hz)
+            else if constexpr (requires { comp.solve_mechanical(state, dt); }) {
+                comp.solve_mechanical(state, dt);
+            }
+            // Hydraulic domain (5 Hz)
+            else if constexpr (requires { comp.solve_hydraulic(state, dt); }) {
+                comp.solve_hydraulic(state, dt);
+            }
+            // Thermal domain (1 Hz)
+            else if constexpr (requires { comp.solve_thermal(state, dt); }) {
+                comp.solve_thermal(state, dt);
+            }
+        }, variant);
+    }
+
     state.precompute_inv_conductance();
 
     // SOR update
@@ -63,7 +90,15 @@ void SimulationController::step(float dt) {
         }
     }
 
-    build_result->systems.post_step(state, dt);
+    // post_step for components that need it
+    for (auto& [name, variant] : build_result->devices) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.post_step(state, dt); }) {
+                comp.post_step(state, dt);
+            }
+        }, variant);
+    }
+
     time += dt;
     step_count++;
 }

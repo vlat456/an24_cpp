@@ -1,11 +1,270 @@
 #include "jit_solver.h"
 #include "state.h"
+#include "components/all.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <map>
 #include <vector>
 
 namespace an24 {
+
+namespace {
+
+/// Convert string port name to PortNames enum
+PortNames string_to_port_name(const std::string& port_name) {
+    static const std::unordered_map<std::string, PortNames> port_map = {
+        {"Va", PortNames::Va},
+        {"Vb", PortNames::Vb},
+        {"ac_out", PortNames::ac_out},
+        {"brightness", PortNames::brightness},
+        {"control", PortNames::control},
+        {"ctrl", PortNames::ctrl},
+        {"dc_in", PortNames::dc_in},
+        {"flow_in", PortNames::flow_in},
+        {"flow_out", PortNames::flow_out},
+        {"heat_in", PortNames::heat_in},
+        {"heat_out", PortNames::heat_out},
+        {"i", PortNames::i},
+        {"input", PortNames::input},
+        {"k_mod", PortNames::k_mod},
+        {"lamp", PortNames::lamp},
+        {"o", PortNames::o},
+        {"o1", PortNames::o1},
+        {"o2", PortNames::o2},
+        {"output", PortNames::output},
+        {"p_out", PortNames::p_out},
+        {"power", PortNames::power},
+        {"primary", PortNames::primary},
+        {"rpm_out", PortNames::rpm_out},
+        {"secondary", PortNames::secondary},
+        {"state", PortNames::state},
+        {"t4_out", PortNames::t4_out},
+        {"temp_in", PortNames::temp_in},
+        {"temp_out", PortNames::temp_out},
+        {"v", PortNames::v},
+        {"v_bus", PortNames::v_bus},
+        {"v_gen", PortNames::v_gen},
+        {"v_gen_ref", PortNames::v_gen_ref},
+        {"v_in", PortNames::v_in},
+        {"v_out", PortNames::v_out},
+        {"v_start", PortNames::v_start}
+    };
+
+    auto it = port_map.find(port_name);
+    if (it != port_map.end()) {
+        return it->second;
+    }
+    throw std::runtime_error("Unknown port name: " + port_name);
+}
+
+/// Setup port indices for a component from port_to_signal mapping
+template <typename T>
+void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult& result) {
+    for (const auto& [port_name, port] : dev.ports) {
+        std::string port_key = dev.name + "." + port_name;
+        auto it = result.port_to_signal.find(port_key);
+        if (it != result.port_to_signal.end()) {
+            PortNames port_enum = string_to_port_name(port_name);
+            comp.provider.set(port_enum, it->second);
+        }
+    }
+}
+
+/// Helper to get float param with default
+auto get_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
+    auto it = dev.params.find(key);
+    if (it != dev.params.end()) {
+        try {
+            return std::stof(it->second);
+        } catch (...) {
+            return default_val;
+        }
+    }
+    return default_val;
+};
+
+/// Helper to get bool param with default
+auto get_bool = [](const DeviceInstance& dev, const std::string& key, bool default_val) -> bool {
+    auto it = dev.params.find(key);
+    if (it != dev.params.end()) {
+        return it->second == "true" || it->second == "1";
+    }
+    return default_val;
+};
+
+/// Factory function - creates a ComponentVariant from DeviceInstance
+ComponentVariant create_component_variant(
+    const DeviceInstance& dev,
+    const BuildResult& result
+) {
+    if (dev.classname == "Battery") {
+        Battery<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.v_nominal = get_float(dev, "v_nominal", 28.0f);
+        comp.internal_r = get_float(dev, "internal_r", 0.01f);
+        comp.capacity = get_float(dev, "capacity", 1000.0f);
+        comp.charge = get_float(dev, "charge", comp.capacity);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Switch") {
+        Switch<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.closed = get_bool(dev, "initial_state", false);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Relay") {
+        Relay<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.closed = get_bool(dev, "initial_state", false);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Resistor") {
+        Resistor<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.conductance = get_float(dev, "conductance", 0.1f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Load") {
+        Load<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.conductance = get_float(dev, "conductance", 0.1f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Comparator") {
+        Comparator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.Von = get_float(dev, "Von", 0.1f);
+        comp.Voff = get_float(dev, "Voff", -0.1f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "HoldButton") {
+        HoldButton<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.is_pressed = get_bool(dev, "initial_state", false);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Generator") {
+        Generator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.v_nominal = get_float(dev, "v_nominal", 28.5f);
+        comp.internal_r = get_float(dev, "internal_r", 0.005f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "GS24") {
+        GS24<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.mode = GS24Mode::STARTER;
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Transformer") {
+        Transformer<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Inverter") {
+        Inverter<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "LerpNode") {
+        LerpNode<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Splitter") {
+        Splitter<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "IndicatorLight") {
+        IndicatorLight<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Voltmeter") {
+        Voltmeter<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "HighPowerLoad") {
+        HighPowerLoad<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "ElectricPump") {
+        ElectricPump<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "SolenoidValve") {
+        SolenoidValve<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "InertiaNode") {
+        InertiaNode<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "TempSensor") {
+        TempSensor<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "ElectricHeater") {
+        ElectricHeater<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Radiator") {
+        Radiator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "DMR400") {
+        DMR400<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "RUG82") {
+        RUG82<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "RU19A") {
+        RU19A<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Gyroscope") {
+        Gyroscope<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AGK47") {
+        AGK47<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Bus") {
+        Bus<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "RefNode") {
+        RefNode<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else {
+        throw std::runtime_error("Unknown component type: " + dev.classname);
+    }
+}
+
+} // anonymous namespace
 
 
 
@@ -144,6 +403,14 @@ BuildResult build_systems_dev(
 
     spdlog::info("[build] signal map: {} roots -> {} signals, {} fixed",
         unique_roots.size(), result.signal_count, result.fixed_signals.size());
+
+    // Create components dynamically using factory
+    for (const auto& dev : devices) {
+        ComponentVariant variant = create_component_variant(dev, result);
+        result.devices[dev.name] = variant;
+    }
+
+    spdlog::info("[build] created {} components", result.devices.size());
 
     return result;
 }

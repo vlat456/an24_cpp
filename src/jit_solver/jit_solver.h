@@ -1,6 +1,6 @@
 #pragma once
 
-#include "state.h"
+#include "components/port_registry.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
@@ -20,6 +20,10 @@ struct BuildResult {
     uint32_t signal_count;
     std::vector<uint32_t> fixed_signals;
     PortToSignal port_to_signal;
+
+    /// Dynamic components for JIT mode (Editor)
+    /// Map: device name -> ComponentVariant (type-safe dynamic container)
+    std::unordered_map<std::string, ComponentVariant> devices;
 };
 
 BuildResult build_systems_dev(

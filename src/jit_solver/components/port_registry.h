@@ -13,6 +13,13 @@
 #include <variant>
 
 namespace an24 {
+enum class PortNames : uint32_t;
+} // namespace an24
+
+#include "components/provider.h"
+#include "components/all.h"
+
+namespace an24 {
 
 // Port names enum (for constexpr Provider pattern)
 // Used by AOT components to get compile-time port indices

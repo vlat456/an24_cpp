@@ -693,6 +693,15 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <vector>\n";
     oss << "#include <variant>\n";
     oss << "\n";
+    // Forward declare PortNames for Provider pattern
+    oss << "namespace an24 {\n";
+    oss << "enum class PortNames : uint32_t;\n";
+    oss << "} // namespace an24\n";
+    oss << "\n";
+    // Include Provider pattern and component definitions
+    oss << "#include \"components/provider.h\"\n";
+    oss << "#include \"components/all.h\"\n";
+    oss << "\n";
     oss << "namespace an24 {\n";
     oss << "\n";
 
