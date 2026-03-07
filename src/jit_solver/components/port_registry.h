@@ -17,6 +17,7 @@ enum class ComponentType {
     AGK47,
     Battery,
     Bus,
+    Comparator,
     DMR400,
     ElectricHeater,
     ElectricPump,
@@ -37,6 +38,7 @@ enum class ComponentType {
     Relay,
     Resistor,
     SolenoidValve,
+    Splitter,
     Switch,
     TempSensor,
     Transformer,
@@ -47,6 +49,7 @@ enum class ComponentType {
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
+constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 2;
@@ -67,6 +70,7 @@ constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 3;
 constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
+constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
@@ -82,6 +86,11 @@ constexpr const char* Battery_PORTS[] = {
 };
 constexpr const char* Bus_PORTS[] = {
     "v"
+};
+constexpr const char* Comparator_PORTS[] = {
+    "Va",
+    "Vb",
+    "o"
 };
 constexpr const char* DMR400_PORTS[] = {
     "lamp",
@@ -171,6 +180,11 @@ constexpr const char* SolenoidValve_PORTS[] = {
     "flow_in",
     "flow_out"
 };
+constexpr const char* Splitter_PORTS[] = {
+    "i",
+    "o1",
+    "o2"
+};
 constexpr const char* Switch_PORTS[] = {
     "control",
     "state",
@@ -195,6 +209,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"AGK47", {"input"}},
         {"Battery", {"v_in", "v_out"}},
         {"Bus", {"v"}},
+        {"Comparator", {"Va", "Vb", "o"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_out", "v_in"}},
@@ -215,6 +230,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Relay", {"control", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
+        {"Splitter", {"i", "o1", "o2"}},
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
         {"Transformer", {"primary", "secondary"}},

@@ -252,17 +252,26 @@ std::string CodeGen::generate_source(
     oss << "    static float buf[SIGNAL_COUNT];\n";
     oss << "    convergence_buffer = buf;\n\n";
 
-    // Generate port index assignments for each device
+    // Validate and generate port index assignments
     for (const auto& dev : devices) {
         for (const auto& port : dev.ports) {
             const std::string& port_name = port.first;
+            const auto& port_def = port.second;
+
+            // Skip alias ports - they're handled by union-find at runtime, not C++ fields
+            if (port_def.alias.has_value() && !port_def.alias.value().empty()) {
+                continue;
+            }
+
             std::string port_key = dev.name + "." + port_name;
             uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
 
             // Map port name to C++ field name
             std::string field_name = port_name + "_idx";
 
-            oss << "    " << dev.name << "." << field_name << " = " << sig << ";\n";
+            // Validate: port must exist in C++ class (will fail compile if not)
+            // This catches mismatch between JSON definitions and C++ classes
+            oss << "    " << dev.name << "." << field_name << " = " << sig << ";  // " << port_key << "\n";
         }
 
         // Generate parameter assignments
@@ -273,6 +282,7 @@ std::string CodeGen::generate_source(
             // Skip internal computed fields
             if (param_name == "inv_internal_r" || param_name == "inv_capacity") continue;
 
+            // Validate: parameter must exist in C++ class (will fail compile if not)
             std::string type = infer_type(value);
             oss << "    " << dev.name << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
@@ -290,13 +300,22 @@ std::string CodeGen::generate_source(
     }
     oss << "}\n\n";
 
-    // Jump table dispatch
+    // Jump table dispatch - COMPUTED GOTO (faster than switch, branchless)
+    // Uses GCC/Clang labels-as-values extension
     oss << "void Systems::solve_step(void* state, uint32_t step, float dt) {\n";
-    oss << "    switch (step % 60) {\n";
+    oss << "    // Computed goto dispatch table (static const for one-time init)\n";
+    oss << "    static const void* dispatch_table[60] = {\n";
     for (int i = 0; i < 60; ++i) {
-        oss << "        case " << i << ": step_" << i << "(state, dt); break;\n";
+        oss << "        &&step_" << i << (i < 59 ? ",\n" : "\n");
     }
-    oss << "    }\n";
+    oss << "    };\n\n";
+    oss << "    // Direct jump - no bounds check needed (step % 60 is always 0-59)\n";
+    oss << "    goto *dispatch_table[step % 60];\n\n";
+    for (int i = 0; i < 60; ++i) {
+        oss << "    step_" << i << ":\n";
+        oss << "        step_" << i << "(state, dt);\n";
+        oss << "        return;\n\n";
+    }
     oss << "}\n\n";
 
     // Generate 60 step methods with domain scheduling

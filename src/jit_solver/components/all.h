@@ -89,6 +89,7 @@ public:
 class HoldButton : public Component {
 public:
     PORTS(HoldButton, control, state, v_in, v_out)
+    float idle = 0.0f;          // Idle value (when button not pressed)
     float last_control = 0.0f;   // Previous control value (edge detection)
     bool is_pressed = false;     // Current button state (latched)
     float downstream_g = 0.0f;  // Cached downstream conductance (from prev step)
@@ -96,8 +97,8 @@ public:
     float v_out_old = 0.0f;     // V_out at start of step (before SOR)
 
     HoldButton() = default;
-    HoldButton(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state)
-        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), last_control(0.0f), is_pressed(false) {}
+    HoldButton(uint32_t v_in, uint32_t v_out, uint32_t control, uint32_t state, float idle_val = 0.0f)
+        : v_in_idx(v_in), v_out_idx(v_out), control_idx(control), state_idx(state), idle(idle_val) {}
 
     [[nodiscard]] std::string_view type_name() const override { return "HoldButton"; }
     void solve_electrical(SimulationState& state, float dt) override;
@@ -123,6 +124,7 @@ public:
     PORTS(Load, input)
     float conductance = 0.1f;  // draws I = V * g
 
+    Load() = default;
     Load(uint32_t input, float g = 0.1f)
         : input_idx(input), conductance(g) {}
 
@@ -212,6 +214,7 @@ public:
     PORTS(Transformer, primary, secondary)
     float ratio = 1.0f;  // primary / secondary
 
+    Transformer() = default;
     Transformer(uint32_t primary, uint32_t secondary, float r)
         : primary_idx(primary), secondary_idx(secondary), ratio(r) {}
 

@@ -77,9 +77,6 @@
       "is_composite": false,
       "kind": "Ref",
       "name": "gnd",
-      "params": {
-        "value": "0.0"
-      },
       "ports": {
         "v": {
           "direction": "Out"
@@ -197,12 +194,6 @@
       "is_composite": false,
       "kind": "Node",
       "name": "light_1",
-      "params": {
-        "label": "OFF",
-        "max": "1.000000",
-        "min": "0.000000",
-        "value": "0.000000"
-      },
       "ports": {
         "brightness": {
           "direction": "Out"
@@ -224,13 +215,6 @@
       "is_composite": false,
       "kind": "Node",
       "name": "voltmeter_1",
-      "params": {
-        "label": "V",
-        "max": "30.000000",
-        "min": "0.000000",
-        "unit": "V",
-        "value": "0.000000"
-      },
       "ports": {
         "v_in": {
           "direction": "In"
@@ -282,13 +266,6 @@
       "is_composite": false,
       "kind": "Node",
       "name": "voltmeter_2",
-      "params": {
-        "label": "V",
-        "max": "30.000000",
-        "min": "0.000000",
-        "unit": "V",
-        "value": "0.000000"
-      },
       "ports": {
         "v_in": {
           "direction": "In"
@@ -322,13 +299,6 @@
       "is_composite": false,
       "kind": "Node",
       "name": "voltmeter_3",
-      "params": {
-        "label": "V",
-        "max": "30.000000",
-        "min": "0.000000",
-        "unit": "V",
-        "value": "0.000000"
-      },
       "ports": {
         "v_in": {
           "direction": "In"
@@ -344,13 +314,6 @@
       "is_composite": false,
       "kind": "Node",
       "name": "holdbutton_1",
-      "params": {
-        "closed": "false",
-        "label": "RELEASED",
-        "max": "1.000000",
-        "min": "0.000000",
-        "value": "0.000000"
-      },
       "ports": {
         "control": {
           "direction": "In"
@@ -423,6 +386,15 @@
         }
       },
       "holdbutton_1": {
+        "content": {
+          "label": "RELEASED",
+          "max": 1.0,
+          "min": 0.0,
+          "state": false,
+          "type": 2,
+          "unit": "",
+          "value": 0.0
+        },
         "pos": {
           "x": 352.0,
           "y": 288.0
@@ -453,6 +425,14 @@
         }
       },
       "light_1": {
+        "content": {
+          "label": "OFF",
+          "max": 1.0,
+          "min": 0.0,
+          "type": 4,
+          "unit": "",
+          "value": 0.0
+        },
         "pos": {
           "x": 560.0,
           "y": 560.0
@@ -503,6 +483,14 @@
         }
       },
       "voltmeter_1": {
+        "content": {
+          "label": "V",
+          "max": 30.0,
+          "min": 0.0,
+          "type": 1,
+          "unit": "V",
+          "value": 0.0
+        },
         "pos": {
           "x": 1120.0,
           "y": 304.0
@@ -513,6 +501,14 @@
         }
       },
       "voltmeter_2": {
+        "content": {
+          "label": "V",
+          "max": 30.0,
+          "min": 0.0,
+          "type": 1,
+          "unit": "V",
+          "value": 0.0
+        },
         "pos": {
           "x": 1136.0,
           "y": 80.0
@@ -523,6 +519,14 @@
         }
       },
       "voltmeter_3": {
+        "content": {
+          "label": "V",
+          "max": 30.0,
+          "min": 0.0,
+          "type": 1,
+          "unit": "V",
+          "value": 0.0
+        },
         "pos": {
           "x": 912.0,
           "y": 176.0

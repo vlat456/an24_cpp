@@ -50,26 +50,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
             ports[p.name] = {{"direction", "Out"}};
         }
         device["ports"] = ports;
-        // params from content
-        json params = json::object();
-        if (n.node_content.type != NodeContentType::None) {
-            if (!n.node_content.label.empty()) params["label"] = n.node_content.label;
-            params["value"] = std::to_string(n.node_content.value);
-            params["min"] = std::to_string(n.node_content.min);
-            params["max"] = std::to_string(n.node_content.max);
-            if (!n.node_content.unit.empty()) params["unit"] = n.node_content.unit;
-            // Switch state (for Relay, DMR400, etc.)
-            if (n.node_content.type == NodeContentType::Switch) {
-                params["closed"] = n.node_content.state ? "true" : "false";
-            }
-        }
-        // Ref nodes always get value=0.0 (ground reference)
-        if (n.kind == NodeKind::Ref && !params.contains("value")) {
-            params["value"] = "0.0";
-        }
-        if (!params.empty()) {
-            device["params"] = params;
-        }
+        // NOTE: UI params (label, value, min, max, unit) are stored in editor.nodes, NOT in device.params
         // NOTE: Domains are NOT saved to JSON - they are defined in component definitions
         devices.push_back(device);
     }
@@ -93,13 +74,31 @@ std::string blueprint_to_json(const Blueprint& bp) {
         {"grid_step", bp.grid_step}
     };
 
-    // node visual states (position + size per device)
+    // node visual states (position + size + content per device)
     json node_states = json::object();
     for (const auto& n : bp.nodes) {
-        node_states[n.id] = {
+        json node_state = {
             {"pos", {{"x", n.pos.x}, {"y", n.pos.y}}},
             {"size", {{"x", n.size.x}, {"y", n.size.y}}}
         };
+
+        // Store node_content (UI metadata) in editor.nodes
+        if (n.node_content.type != NodeContentType::None) {
+            json content = {
+                {"type", static_cast<int>(n.node_content.type)},
+                {"label", n.node_content.label},
+                {"value", n.node_content.value},
+                {"min", n.node_content.min},
+                {"max", n.node_content.max},
+                {"unit", n.node_content.unit}
+            };
+            if (n.node_content.type == NodeContentType::Switch) {
+                content["state"] = n.node_content.state;
+            }
+            node_state["content"] = content;
+        }
+
+        node_states[n.id] = node_state;
     }
     editor["nodes"] = node_states;
 
@@ -196,32 +195,6 @@ static Node device_to_node(const json& d, int index) {
         n.node_content.type = NodeContentType::Switch;
         n.node_content.label = "ON";
         n.node_content.state = false;
-    }
-
-    // [e5f6] Restore node_content from saved params (override auto-generated defaults)
-    if (d.contains("params")) {
-        const auto& params = d["params"];
-        if (params.contains("label"))
-            n.node_content.label = params["label"].get<std::string>();
-        if (params.contains("value")) {
-            try { n.node_content.value = std::stof(params["value"].get<std::string>()); }
-            catch (...) {}
-        }
-        if (params.contains("min")) {
-            try { n.node_content.min = std::stof(params["min"].get<std::string>()); }
-            catch (...) {}
-        }
-        if (params.contains("max")) {
-            try { n.node_content.max = std::stof(params["max"].get<std::string>()); }
-            catch (...) {}
-        }
-        if (params.contains("unit"))
-            n.node_content.unit = params["unit"].get<std::string>();
-        // Switch state (for Relay, DMR400, etc.)
-        if (params.contains("closed")) {
-            std::string closed_str = params["closed"].get<std::string>();
-            n.node_content.state = (closed_str == "true");
-        }
     }
 
     return n;
@@ -555,7 +528,7 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                 bp.grid_step = vp.value("grid_step", 16.0f);
             }
 
-            // node visual states (position + size)
+            // node visual states (position + size + content)
             if (editor.contains("nodes") && editor["nodes"].is_object()) {
                 for (auto& [node_id, node_state] : editor["nodes"].items()) {
                     for (auto& n : bp.nodes) {
@@ -567,6 +540,24 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                             if (node_state.contains("size")) {
                                 n.size.x = node_state["size"].value("x", n.size.x);
                                 n.size.y = node_state["size"].value("y", n.size.y);
+                            }
+                            // Restore node_content (UI metadata)
+                            if (node_state.contains("content")) {
+                                const auto& content = node_state["content"];
+                                if (content.contains("type"))
+                                    n.node_content.type = static_cast<NodeContentType>(content["type"].get<int>());
+                                if (content.contains("label"))
+                                    n.node_content.label = content["label"].get<std::string>();
+                                if (content.contains("value"))
+                                    n.node_content.value = content["value"].get<float>();
+                                if (content.contains("min"))
+                                    n.node_content.min = content["min"].get<float>();
+                                if (content.contains("max"))
+                                    n.node_content.max = content["max"].get<float>();
+                                if (content.contains("unit"))
+                                    n.node_content.unit = content["unit"].get<std::string>();
+                                if (content.contains("state"))
+                                    n.node_content.state = content["state"].get<bool>();
                             }
                             break;
                         }
