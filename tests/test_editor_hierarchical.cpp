@@ -704,4 +704,248 @@ TEST(VoltageFlow, MultipleRefNodes_AllFixed) {
 }
 
 // =============================================================================
+// Visibility-Based Blueprint Collapsing Tests
+// =============================================================================
+
+TEST(Visibility, CollapsedNodeVisible_InternalsHidden_AfterInsertion) {
+    // This test simulates what app.cpp::add_blueprint() does
+    Blueprint bp;
+
+    // Create collapsed Blueprint node (what add_blueprint creates)
+    Node collapsed;
+    collapsed.id = "lamp1";
+    collapsed.name = "lamp1";
+    collapsed.type_name = "lamp_pass_through";
+    collapsed.kind = NodeKind::Blueprint;
+    collapsed.visible = true;  // Collapsed node is VISIBLE
+    collapsed.pos = Pt(100.0f, 100.0f);
+    collapsed.size = Pt(120.0f, 80.0f);
+    collapsed.inputs.push_back(::Port("vin", PortSide::Input, an24::PortType::V));
+    collapsed.outputs.push_back(::Port("vout", PortSide::Output, an24::PortType::V));
+    bp.add_node(std::move(collapsed));
+
+    // Create internal expanded devices (these would be added by expanding the blueprint)
+    auto add_internal = [&](const std::string& id, const std::string& type) {
+        Node n;
+        n.id = "lamp1:" + id;
+        n.name = n.id;
+        n.type_name = type;
+        n.kind = NodeKind::Node;
+        n.visible = false;  // Internal nodes are HIDDEN in parent view
+        n.pos = Pt(100.0f, 100.0f);
+        n.size = Pt(80.0f, 60.0f);
+        bp.add_node(std::move(n));
+    };
+
+    add_internal("vin", "BlueprintInput");
+    add_internal("lamp", "IndicatorLight");
+    add_internal("vout", "BlueprintOutput");
+
+    // Verify visibility state
+    EXPECT_EQ(bp.nodes.size(), 4) << "Should have 4 nodes (collapsed + 3 internals)";
+
+    // Count visible vs hidden nodes
+    int visible_count = 0;
+    int hidden_count = 0;
+    for (const auto& n : bp.nodes) {
+        if (n.visible) visible_count++;
+        else hidden_count++;
+    }
+
+    EXPECT_EQ(visible_count, 1) << "Only collapsed node should be visible";
+    EXPECT_EQ(hidden_count, 3) << "All 3 internal nodes should be hidden";
+
+    // Verify collapsed node is visible
+    Node* collapsed_node = bp.find_node("lamp1");
+    ASSERT_NE(collapsed_node, nullptr) << "Collapsed node should exist";
+    EXPECT_TRUE(collapsed_node->visible) << "Collapsed node should be visible";
+    EXPECT_EQ(collapsed_node->kind, NodeKind::Blueprint) << "Collapsed node should have Blueprint kind";
+
+    // Verify internal nodes are hidden
+    for (const auto& internal_id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
+        Node* internal = bp.find_node(internal_id);
+        ASSERT_NE(internal, nullptr) << "Internal node " << internal_id << " should exist";
+        EXPECT_FALSE(internal->visible) << "Internal node " << internal_id << " should be hidden";
+    }
+}
+
+TEST(Visibility, DrillDown_HidesCollapsed_ShowsInternals) {
+    // Simulate drill-down operation
+    Blueprint bp;
+
+    // Create collapsed node
+    Node collapsed;
+    collapsed.id = "lamp1";
+    collapsed.visible = true;
+    collapsed.kind = NodeKind::Blueprint;
+    bp.add_node(std::move(collapsed));
+
+    // Create internal nodes
+    std::vector<std::string> internal_ids;
+    auto add_internal = [&](const std::string& id) {
+        Node n;
+        n.id = "lamp1:" + id;
+        n.visible = false;  // Hidden initially
+        internal_ids.push_back(n.id);
+        bp.add_node(std::move(n));
+    };
+
+    add_internal("vin");
+    add_internal("lamp");
+    add_internal("vout");
+
+    // Simulate drill_into("lamp1")
+    Node* collapsed_node = bp.find_node("lamp1");
+    ASSERT_NE(collapsed_node, nullptr);
+    collapsed_node->visible = false;  // Hide collapsed node
+
+    for (const auto& id : internal_ids) {
+        Node* internal = bp.find_node(id);
+        ASSERT_NE(internal, nullptr);
+        internal->visible = true;  // Show internal nodes
+    }
+
+    // Verify drill-down state
+    EXPECT_FALSE(collapsed_node->visible) << "Collapsed node should be hidden after drill-down";
+
+    int visible_count = 0;
+    for (const auto& n : bp.nodes) {
+        if (n.visible) visible_count++;
+    }
+
+    EXPECT_EQ(visible_count, 3) << "All 3 internal nodes should be visible after drill-down";
+
+    // Verify all internal nodes are now visible
+    for (const auto& id : internal_ids) {
+        Node* internal = bp.find_node(id);
+        EXPECT_TRUE(internal->visible) << "Internal node " << id << " should be visible after drill-down";
+    }
+}
+
+TEST(Visibility, DrillOut_ShowsCollapsed_HidesInternals) {
+    // Simulate drill-out operation (return to parent view)
+    Blueprint bp;
+
+    // Create collapsed node (hidden after drill-down)
+    Node collapsed;
+    collapsed.id = "lamp1";
+    collapsed.visible = false;  // Currently hidden (we're drilled in)
+    collapsed.kind = NodeKind::Blueprint;
+    bp.add_node(std::move(collapsed));
+
+    // Create internal nodes (visible after drill-down)
+    std::vector<std::string> internal_ids;
+    auto add_internal = [&](const std::string& id) {
+        Node n;
+        n.id = "lamp1:" + id;
+        n.visible = true;  // Currently visible (we're drilled in)
+        internal_ids.push_back(n.id);
+        bp.add_node(std::move(n));
+    };
+
+    add_internal("vin");
+    add_internal("lamp");
+    add_internal("vout");
+
+    // Simulate drill_out() - return to parent view
+    Node* collapsed_node = bp.find_node("lamp1");
+    ASSERT_NE(collapsed_node, nullptr);
+    collapsed_node->visible = true;  // Show collapsed node
+
+    for (const auto& id : internal_ids) {
+        Node* internal = bp.find_node(id);
+        ASSERT_NE(internal, nullptr);
+        internal->visible = false;  // Hide internal nodes
+    }
+
+    // Verify drill-out state (back to collapsed view)
+    EXPECT_TRUE(collapsed_node->visible) << "Collapsed node should be visible after drill-out";
+
+    int visible_count = 0;
+    for (const auto& n : bp.nodes) {
+        if (n.visible) visible_count++;
+    }
+
+    EXPECT_EQ(visible_count, 1) << "Only collapsed node should be visible after drill-out";
+
+    // Verify all internal nodes are hidden again
+    for (const auto& id : internal_ids) {
+        Node* internal = bp.find_node(id);
+        EXPECT_FALSE(internal->visible) << "Internal node " << id << " should be hidden after drill-out";
+    }
+}
+
+TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
+    // Test that simulation works correctly regardless of visibility state
+    Blueprint bp;
+
+    // Create collapsed Blueprint node
+    Node collapsed;
+    collapsed.id = "lamp1";
+    collapsed.visible = true;
+    collapsed.kind = NodeKind::Blueprint;
+    collapsed.pos = Pt(100.0f, 100.0f);
+    collapsed.size = Pt(120.0f, 80.0f);
+    collapsed.inputs.push_back(::Port("vin", PortSide::Input, an24::PortType::V));
+    collapsed.outputs.push_back(::Port("vout", PortSide::Output, an24::PortType::V));
+    bp.add_node(std::move(collapsed));
+
+    // Create internal nodes (expanded from lamp_pass_through blueprint)
+    auto add_device = [&](const std::string& id, const std::string& type, bool visible) {
+        Node n;
+        n.id = "lamp1:" + id;
+        n.name = n.id;
+        n.type_name = type;
+        n.visible = visible;
+        n.pos = Pt(100.0f, 100.0f);
+        n.size = Pt(80.0f, 60.0f);
+
+        // Add ports based on device type
+        if (type == "BlueprintInput") {
+            n.outputs.push_back(::Port("port", PortSide::Output, an24::PortType::V));
+        } else if (type == "BlueprintOutput") {
+            n.inputs.push_back(::Port("port", PortSide::Input, an24::PortType::V));
+        } else if (type == "IndicatorLight") {
+            n.inputs.push_back(::Port("in", PortSide::Input, an24::PortType::V));
+            n.outputs.push_back(::Port("out", PortSide::Output, an24::PortType::V));
+        }
+
+        bp.add_node(std::move(n));
+    };
+
+    // Add internal devices (hidden in parent view)
+    add_device("vin", "BlueprintInput", false);
+    add_device("lamp", "IndicatorLight", false);
+    add_device("vout", "BlueprintOutput", false);
+
+    // Add internal connections
+    Wire conn1;
+    conn1.id = "conn1";
+    conn1.start = WireEnd("lamp1:vin", "port", PortSide::Output);
+    conn1.end = WireEnd("lamp1:lamp", "in", PortSide::Input);
+    bp.add_wire(conn1);
+
+    Wire conn2;
+    conn2.id = "conn2";
+    conn2.start = WireEnd("lamp1:lamp", "out", PortSide::Output);
+    conn2.end = WireEnd("lamp1:vout", "port", PortSide::Input);
+    bp.add_wire(conn2);
+
+    // Build simulation (should work with ALL nodes regardless of visibility)
+    SimulationController sim;
+    sim.build(bp);
+
+    ASSERT_TRUE(sim.build_result.has_value()) << "Build should succeed with visibility state";
+    auto& result = *sim.build_result;
+
+    // Verify that all 4 devices were created (collapsed + 3 internals)
+    EXPECT_EQ(result.devices.size(), 4) << "Simulation should see all 4 nodes (collapsed + 3 internals)";
+
+    // Verify port mapping exists for both collapsed and internal nodes
+    // Note: BlueprintInput/BlueprintOutput have .port suffix
+    EXPECT_TRUE(result.port_to_signal.count("lamp1:vin.port")) << "BlueprintInput port should be mapped";
+    EXPECT_TRUE(result.port_to_signal.count("lamp1:vout.port")) << "BlueprintOutput port should be mapped";
+}
+
+// =============================================================================
 // Test: Persistence (Phase 5.3)
