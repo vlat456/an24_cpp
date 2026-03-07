@@ -40,7 +40,6 @@ std::string blueprint_to_json(const Blueprint& bp) {
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
-        device["is_composite"] = false;
         // ports
         json ports = json::object();
         for (const auto& p : n.inputs) {

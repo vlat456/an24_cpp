@@ -120,7 +120,6 @@ struct DeviceInstance {
     std::string priority = "med";  // high, med, low
     std::optional<size_t> bucket;  // computation bucket
     bool critical = false;
-    bool is_composite = false;
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;  // From component definition only, NOT user-configurable

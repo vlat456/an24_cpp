@@ -148,66 +148,132 @@ TEST(BlueprintOutput, PassThroughLikeBus) {
 
 ---
 
-## Phase 2: Blueprint Loading & Fallback
+## Phase 2: Blueprint Loading & Fallback (SIMPLIFIED)
 
-### 2.1 Parser Modification
+**Key insight:** DRY principle - use existing `parse_json()` for both root and nested blueprints.
 
-**File:** `src/jit_solver/jit_solver.cpp` (or `build_systems`)
+### 2.1 Create `blueprints/` Directory
+
+```bash
+mkdir blueprints/
+```
+
+This directory stores nested blueprint JSON files (parallel to `components/`).
+
+### 2.2 Modify `parse_json()` for Recursive Loading
+
+**File:** `src/json_parser/json_parser.cpp`
+
+When a device's `classname` is not in ComponentRegistry, automatically load from `blueprints/`:
+
 ```cpp
-class Systems {
-    // ... existing code ...
+// In parse_json() device processing loop:
+for (auto& dev : json_devices) {
+    std::string classname = dev["classname"];
 
-    /// Load component from registry or fallback to blueprint
-    const ComponentDefinition* load_component_or_blueprint(
-        const std::string& classname,
-        const ComponentRegistry& registry
-    ) {
-        // Try C++ registry first
-        if (auto* comp = registry.get(classname)) {
-            return comp;
-        }
-
-        // Fallback to blueprint file
+    // Check if in component registry
+    if (!registry.has(classname)) {
+        // Fallback: try loading nested blueprint
         std::string blueprint_path = "blueprints/" + classname + ".json";
         if (std::filesystem::exists(blueprint_path)) {
-            spdlog::info("[build] Found blueprint for {}", classname);
-            return load_blueprint_definition(blueprint_path, registry);
+            spdlog::info("[parser] Loading nested blueprint: {} from {}", classname, blueprint_path);
+
+            // Recursively parse nested blueprint (DRY - same code path!)
+            ParserContext nested = parse_json_file(blueprint_path, registry);
+
+            // Merge nested devices/connections with "classname:" prefix
+            merge_nested_blueprint(ctx, nested, classname);
+            continue;  // Skip normal device creation
         }
-
-        return nullptr;
     }
-};
+
+    // Normal device creation (existing code)
+    DeviceInstance device = create_device_instance(dev, registry);
+    ctx.devices.push_back(device);
+}
 ```
 
-### 2.2 Blueprint Definition Structure
+### 2.3 Helper: `merge_nested_blueprint()`
 
-**File:** `src/json_parser/json_parser.h`
+Merges nested blueprint into parent context with prefix:
+
 ```cpp
-/// Blueprint definition (loaded from .json file)
-struct BlueprintDefinition {
-    std::string name;         // Human-readable name
-    std::string description;
-    std::vector<DeviceInstance> devices;
-    std::vector<Connection> connections;
+void merge_nested_blueprint(
+    ParserContext& parent,
+    const ParserContext& nested,
+    const std::string& prefix  // e.g., "battery_module"
+) {
+    // Prefix all nested device names: "bat" -> "battery_module:bat"
+    for (const auto& dev : nested.devices) {
+        DeviceInstance prefixed = dev;
+        prefixed.name = prefix + ":" + dev.name;
+        parent.devices.push_back(prefixed);
+    }
 
-    // Exposed ports (derived from BlueprintInput/BlueprintOutput)
-    std::unordered_map<std::string, Port> exposed_ports;
-};
+    // Rewrite connections: "vin.port" -> "battery_module:vin.port"
+    for (const auto& conn : nested.connections) {
+        Connection rewritten = conn;
+        rewritten.from = prefix + ":" + conn.from;
+        rewritten.to = prefix + ":" + conn.to;
+        parent.connections.push_back(rewritten);
+    }
+}
 ```
 
-### 2.3 Tests
+### 2.4 Remove `is_composite` Field
+
+**Files to modify:**
+- `src/json_parser/json_parser.h` - Remove `bool is_composite` from `DeviceInstance`
+- No other changes needed (fallback mechanism replaces it)
+
+### 2.5 Test Blueprint
+
+**File:** `blueprints/simple_battery.json`
+
+```json
+{
+  "description": "Simple battery module with exposed ports",
+  "devices": [
+    {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+    {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.01"}},
+    {"name": "vin", "classname": "BlueprintInput"},
+    {"name": "vout", "classname": "BlueprintOutput"}
+  ],
+  "connections": [
+    {"from": "vin.port", "to": "bat.v_in"},
+    {"from": "bat.v_out", "to": "vout.port"},
+    {"from": "gnd.v", "to": "vin.port"}
+  ]
+}
+```
+
+**Usage in root blueprint:**
+```json
+{
+  "devices": [
+    {"name": "bat1", "classname": "simple_battery"}  // Not in registry, loads from blueprints/
+  ],
+  "connections": [
+    {"from": "main_bus.v", "to": "bat1.vin"}
+  ]
+}
+```
+
+### 2.6 Tests
 
 **File:** `tests/test_blueprint_loading.cpp`
+
 ```cpp
-TEST(BlueprintLoading, FallsBackToFileWhenNotInRegistry) {
-    // Create temporary blueprint file
-    // Try to load it via load_component_or_blueprint
-    // Should load successfully
+TEST(BlueprintLoading, FallbackToBlueprintWhenNotInRegistry) {
+    // Create blueprints/simple_battery.json
+    // Root blueprint uses "simple_battery" (not in component registry)
+    // parse_json() should automatically load from blueprints/
+    // Result: flattened devices with "simple_battery:" prefix
 }
 
-TEST(BlueprintLoading, ReturnsNullForUnknownComponent) {
-    // Try to load non-existent component
-    // Should return nullptr
+TEST(BlueprintLoading, MissingBlueprintReturnsError) {
+    // Try to load "nonexistent" (not in registry, no blueprint file)
+    // Should throw error or log warning
 }
 ```
 

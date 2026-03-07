@@ -373,6 +373,21 @@ target_link_libraries(blueprint_integration_tests PRIVATE
 )
 gtest_discover_tests(blueprint_integration_tests)
 
+# Blueprint loading tests (Phase 2: fallback to blueprints/)
+add_executable(blueprint_loading_tests
+    test_blueprint_loading.cpp
+)
+target_include_directories(blueprint_loading_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(blueprint_loading_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(blueprint_loading_tests)
+
 # Provider pattern tests (AOT vs JIT unified components)
 add_executable(provider_pattern_tests
     provider_test.cpp

@@ -111,7 +111,6 @@ static DeviceInstance parse_device(const json& j) {
         dev.bucket = j["bucket"].get<size_t>();
     }
     if (j.contains("critical")) dev.critical = j["critical"].get<bool>();
-    if (j.contains("is_composite")) dev.is_composite = j["is_composite"].get<bool>();
 
     // Ports
     if (j.contains("ports")) {
@@ -198,6 +197,32 @@ static SystemTemplate parse_template(const json& j) {
     return tpl;
 }
 
+/// Merge nested blueprint into parent context with name prefixing
+/// Phase 2.3: Helper for recursive blueprint loading
+static void merge_nested_blueprint(
+    ParserContext& parent,
+    const ParserContext& nested,
+    const std::string& prefix  // e.g., "battery_module"
+) {
+    spdlog::debug("[parser] Merging nested blueprint '{}' with {} devices, {} connections",
+                  prefix, nested.devices.size(), nested.connections.size());
+
+    // Prefix all nested device names: "bat" -> "battery_module:bat"
+    for (const auto& dev : nested.devices) {
+        DeviceInstance prefixed = dev;
+        prefixed.name = prefix + ":" + dev.name;
+        parent.devices.push_back(prefixed);
+    }
+
+    // Rewrite connections with prefix: "vin.port" -> "battery_module:vin.port"
+    for (const auto& conn : nested.connections) {
+        Connection rewritten = conn;
+        rewritten.from = prefix + ":" + conn.from;
+        rewritten.to = prefix + ":" + conn.to;
+        parent.connections.push_back(rewritten);
+    }
+}
+
 ParserContext parse_json(const std::string& json_text) {
     spdlog::debug("[json_parser] Parsing JSON text");
 
@@ -233,6 +258,33 @@ ParserContext parse_json(const std::string& json_text) {
     for (const auto& raw_dev : raw_devices) {
         // Check if component exists in registry
         if (!ctx.registry.has(raw_dev.classname)) {
+            // Phase 2: Fallback to blueprint loading
+            std::string blueprint_path = "blueprints/" + raw_dev.classname + ".json";
+            if (std::filesystem::exists(blueprint_path)) {
+                spdlog::info("[json_parser] Loading nested blueprint '{}' from {}",
+                           raw_dev.classname, blueprint_path);
+
+                // Load nested blueprint file
+                std::ifstream blueprint_file(blueprint_path);
+                if (!blueprint_file.is_open()) {
+                    throw std::runtime_error("Failed to open blueprint: " + blueprint_path);
+                }
+
+                std::string blueprint_json((std::istreambuf_iterator<char>(blueprint_file)),
+                                           std::istreambuf_iterator<char>());
+
+                // Recursively parse nested blueprint (DRY - same code path!)
+                ParserContext nested = parse_json(blueprint_json);
+
+                // Merge nested blueprint with prefix
+                merge_nested_blueprint(ctx, nested, raw_dev.name);
+
+                spdlog::info("[json_parser] Merged nested blueprint '{}' as device '{}'",
+                           raw_dev.classname, raw_dev.name);
+                continue;  // Skip normal device processing
+            }
+
+            // Not in registry and no blueprint found - error!
             spdlog::error("[json_parser] Unknown component classname '{}' in device '{}'",
                          raw_dev.classname, raw_dev.name);
             throw std::runtime_error("Unknown component classname: " + raw_dev.classname);
@@ -345,7 +397,6 @@ static json device_to_json(const DeviceInstance& dev) {
     if (dev.priority != "med") j["priority"] = dev.priority;
     if (dev.bucket.has_value()) j["bucket"] = dev.bucket.value();
     if (dev.critical) j["critical"] = true;
-    if (dev.is_composite) j["is_composite"] = true;
 
     if (!dev.ports.empty()) {
         json ports;
