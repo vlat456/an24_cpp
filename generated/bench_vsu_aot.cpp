@@ -22,66 +22,39 @@ int main() {
         state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
     }
 
-    // Initialize convergence buffer (zero-allocation in hot path!)
     state.resize_buffers(SIGNAL_COUNT);
 
-    std::cout << "=== C++ AOT Benchmark (Smart Convergence) ===\n";
+    std::cout << "=== C++ AOT Benchmark (Single-iteration, like JIT) ===\n";
     std::cout << "Signals: " << SIGNAL_COUNT << "\n";
     std::cout << "Devices: " << DEVICE_COUNT << "\n\n";
 
-    const float omega = 1.8f;
     const float dt = 0.016f;
-    const float tolerance = 0.001f;  // 1mV convergence
+    const uint32_t bench_steps = 10'000'000;
 
-    // Benchmark with smart convergence
-    const uint32_t bench_steps = 10000;
-    const uint32_t max_iter = 20;
+    // Warmup (100k steps)
+    for (uint32_t step = 0; step < 100'000; ++step) {
+        sys.solve_step(&state, step, dt);
+        sys.post_step(&state, dt);
+    }
 
-    std::cout << "=== Benchmark: " << bench_steps << " steps, smart convergence ===\n";
+    std::cout << "=== Benchmark: " << bench_steps << " steps, 1 iter/step (like JIT) ===\n";
 
-    // First, run to steady state
-    uint64_t total_iters = 0;
     auto start = std::chrono::high_resolution_clock::now();
 
     for (uint32_t step = 0; step < bench_steps; ++step) {
-        // Save state before iteration
-        state.save_convergence_state();
-
-        uint32_t iters = 0;
-        for (iters = 0; iters < max_iter; ++iters) {
-            state.clear_through();
-            sys.solve_step(&state, step, dt);
-            state.precompute_inv_conductance();
-
-            // Direct solver loop
-            for (size_t i = 0; i < state.across.size(); ++i) {
-                if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-                    state.across[i] += state.through[i] * state.inv_conductance[i] * omega;
-                }
-            }
-
-            // Check convergence
-            if (state.has_converged(tolerance)) {
-                break;
-            }
-        }
-        total_iters += iters + 1;
-
+        sys.solve_step(&state, step, dt);
         sys.post_step(&state, dt);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     double total_ms = std::chrono::duration<double, std::milli>(end - start).count();
-    double per_step_ns = (total_ms * 1e6) / bench_steps;
-    double per_iter_ns = (total_ms * 1e6) / total_iters;
-    double avg_iters = (double)total_iters / bench_steps;
     double steps_per_sec = bench_steps / (total_ms / 1000.0);
+    double per_step_ns = (total_ms * 1e6) / bench_steps;
 
     std::cout << std::fixed << std::setprecision(2);
     std::cout << "Total time:      " << total_ms << " ms\n";
-    std::cout << "Per step:        " << per_step_ns << " ns (" << steps_per_sec << " steps/sec)\n";
-    std::cout << "Per iter:        " << per_iter_ns << " ns\n";
-    std::cout << "Avg iters/step:  " << avg_iters << " (max " << max_iter << ")\n";
+    std::cout << "Per step:        " << per_step_ns << " ns\n";
+    std::cout << "Steps/sec:       " << steps_per_sec / 1e6 << "M steps/s\n";
 
     std::cout << "\nResults:\n";
     std::cout << "  bus=" << state.across[SIG_VSU_1_V_BUS] << "V\n";

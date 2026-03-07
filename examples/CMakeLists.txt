@@ -69,13 +69,12 @@ target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver s
 # target_link_libraries(gs24_aot_test PRIVATE jit_solver spdlog::spdlog)
 
 # AOT benchmark
-# Disabled for AOT-only refactor
-# add_executable(bench_vsu_aot
-#     ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp
-#     ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
-# )
-# target_include_directories(bench_vsu_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
-# target_link_libraries(bench_vsu_aot PRIVATE jit_solver spdlog::spdlog)
+add_executable(bench_vsu_aot
+    ${CMAKE_SOURCE_DIR}/generated/bench_vsu_aot.cpp
+    ${CMAKE_SOURCE_DIR}/generated/generated_vsu_test.cpp
+)
+target_include_directories(bench_vsu_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
+target_link_libraries(bench_vsu_aot PRIVATE jit_solver spdlog::spdlog)
 
 # AOT benchmark with DMR
 # Disabled for AOT-only refactor

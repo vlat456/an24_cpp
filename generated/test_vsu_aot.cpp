@@ -24,11 +24,10 @@ int main() {
     std::cout << "Signal count: " << SIGNAL_COUNT << "\n";
 
     // Run simulation (5000 cycles like json_test)
-    const float omega = 1.8f;
+    // step_X is now self-contained: clear_through + solve + precompute + SOR
     const float dt = 0.016f;
 
     for (int step = 0; step < 5000; ++step) {
-        state.clear_through();
         sys.solve_step(&state, step, dt);
 
         if (step % 500 == 0 || step == 4999) {
@@ -38,13 +37,6 @@ int main() {
                       << ", k_mod=" << state.across[SIG_RUG_VSU_K_MOD]
                       << ", brightness=" << state.across[SIG_LIGHT_1_BRIGHTNESS]
                       << "\n";
-        }
-
-        state.precompute_inv_conductance();
-        for (size_t i = 0; i < state.across.size(); ++i) {
-            if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-                state.across[i] += state.through[i] * state.inv_conductance[i] * omega;
-            }
         }
 
         sys.post_step(&state, dt);
