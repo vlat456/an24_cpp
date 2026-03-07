@@ -223,6 +223,48 @@ static void merge_nested_blueprint(
     }
 }
 
+/// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
+/// For Editor: displays exposed ports on collapsed nested blueprint nodes
+/// Returns map: exposed_port_name -> Port metadata
+std::unordered_map<std::string, Port> extract_exposed_ports(
+    const ParserContext& blueprint
+) {
+    std::unordered_map<std::string, Port> exposed;
+
+    for (const auto& dev : blueprint.devices) {
+        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            // The device NAME is the exposed port name (e.g., "vin", "vout")
+            std::string exposed_name = dev.name;
+
+            // Get metadata from params
+            Port port;
+            auto dir_it = dev.params.find("exposed_direction");
+            if (dir_it != dev.params.end()) {
+                port.direction = (dir_it->second == "In") ? PortDirection::In : PortDirection::Out;
+            } else {
+                port.direction = (dev.classname == "BlueprintInput") ? PortDirection::Out : PortDirection::In;
+            }
+
+            auto type_it = dev.params.find("exposed_type");
+            if (type_it != dev.params.end()) {
+                port.type = parse_port_type(type_it->second);
+            } else {
+                port.type = PortType::Any;  // Default
+            }
+
+            port.alias = std::nullopt;  // Exposed ports don't have aliases
+            exposed[exposed_name] = port;
+
+            spdlog::debug("[parser] Exposed port: {} ({}, {})",
+                         exposed_name,
+                         (port.direction == PortDirection::In) ? "In" : "Out",
+                         port_type_to_string(port.type));
+        }
+    }
+
+    return exposed;
+}
+
 ParserContext parse_json(const std::string& json_text) {
     spdlog::debug("[json_parser] Parsing JSON text");
 

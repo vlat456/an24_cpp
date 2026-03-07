@@ -243,3 +243,97 @@ TEST(BlueprintLoading, Integration_NestedBlueprintRunsSimulation) {
     float v_gnd = get_voltage(state, result, "main_gnd.v");
     EXPECT_NEAR(v_gnd, 0.0f, 0.1f) << "Ground should be at 0V";
 }
+
+// =============================================================================
+// Unit Tests: extract_exposed_ports()
+// =============================================================================
+
+TEST(ExtractExposedPorts, SimpleBatteryBlueprint) {
+    // Load the simple_battery blueprint
+    std::string blueprint_path = "blueprints/simple_battery.json";
+
+    std::ifstream file(blueprint_path);
+    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist";
+
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        (std::istreambuf_iterator<char>()));
+
+    ParserContext ctx = parse_json(content);
+
+    // Extract exposed ports
+    auto exposed = extract_exposed_ports(ctx);
+
+    // Should have 2 exposed ports: vin (BlueprintInput), vout (BlueprintOutput)
+    EXPECT_EQ(exposed.size(), 2);
+
+    // Check "vin" is exposed as Input
+    EXPECT_TRUE(exposed.count("vin")) << "Should have 'vin' exposed port";
+    EXPECT_EQ(exposed["vin"].direction, PortDirection::Out) << "vin should be Output (from blueprint perspective)";
+    EXPECT_EQ(exposed["vin"].type, PortType::V) << "vin should be type V";
+
+    // Check "vout" is exposed as Output
+    EXPECT_TRUE(exposed.count("vout")) << "Should have 'vout' exposed port";
+    EXPECT_EQ(exposed["vout"].direction, PortDirection::In) << "vout should be Input (from blueprint perspective)";
+    EXPECT_EQ(exposed["vout"].type, PortType::V) << "vout should be type V";
+}
+
+TEST(ExtractExposedPorts, MultipleBlueprints) {
+    // Create blueprint with multiple inputs/outputs
+    nlohmann::json bp;
+    bp["devices"] = {
+        {{"name", "in1"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "V"}, {"exposed_direction", "In"}}}},
+        {{"name", "in2"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "I"}, {"exposed_direction", "In"}}}},
+        {{"name", "out1"}, {"classname", "BlueprintOutput"}, {"params", {{"exposed_type", "Bool"}, {"exposed_direction", "Out"}}}},
+        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}}
+    };
+    bp["connections"] = {};
+
+    ParserContext ctx = parse_json(bp.dump());
+    auto exposed = extract_exposed_ports(ctx);
+
+    // Should have 3 exposed ports (in1, in2, out1), excluding gnd
+    EXPECT_EQ(exposed.size(), 3);
+
+    // Verify types
+    EXPECT_EQ(exposed["in1"].type, PortType::V);
+    EXPECT_EQ(exposed["in2"].type, PortType::I);
+    EXPECT_EQ(exposed["out1"].type, PortType::Bool);
+}
+
+TEST(ExtractExposedPorts, EmptyBlueprint) {
+    // Blueprint with no BlueprintInput/BlueprintOutput
+    nlohmann::json bp;
+    bp["devices"] = {
+        {{"name", "bat"}, {"classname", "Battery"}, {"params", {{"v_nominal", "28.0"}}}}
+    };
+    bp["connections"] = {};
+
+    ParserContext ctx = parse_json(bp.dump());
+    auto exposed = extract_exposed_ports(ctx);
+
+    // Should have 0 exposed ports
+    EXPECT_EQ(exposed.size(), 0);
+}
+
+TEST(ExtractExposedPorts, DefaultValues) {
+    // BlueprintInput/BlueprintOutput without explicit params should use defaults
+    nlohmann::json bp;
+    bp["devices"] = {
+        {"name", "in"}, {"classname", "BlueprintInput"},  // No params!
+        {"name", "out"}, {"classname", "BlueprintOutput"}  // No params!
+    };
+    bp["connections"] = {};
+
+    ParserContext ctx = parse_json(bp.dump());
+    auto exposed = extract_exposed_ports(ctx);
+
+    EXPECT_EQ(exposed.size(), 2);
+
+    // Default direction based on classname
+    EXPECT_EQ(exposed["in"].direction, PortDirection::Out);  // BlueprintInput exposes as Out
+    EXPECT_EQ(exposed["out"].direction, PortDirection::In);   // BlueprintOutput exposes as In
+
+    // Default type is Any
+    EXPECT_EQ(exposed["in"].type, PortType::Any);
+    EXPECT_EQ(exposed["out"].type, PortType::Any);
+}

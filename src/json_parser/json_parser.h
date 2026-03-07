@@ -219,6 +219,11 @@ struct ParserContext {
 /// Parse JSON text into a ParserContext
 ParserContext parse_json(const std::string& json_text);
 
+/// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
+/// For Editor: displays exposed ports on collapsed nested blueprint nodes
+/// Returns map: exposed_port_name -> Port metadata
+std::unordered_map<std::string, Port> extract_exposed_ports(const ParserContext& blueprint);
+
 /// Serialize a ParserContext to pretty-printed JSON
 std::string serialize_json(const ParserContext& ctx);
 
