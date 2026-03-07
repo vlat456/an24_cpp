@@ -21,7 +21,7 @@ enum class APUState { OFF, CRANKING, IGNITION, RUNNING, STOPPING };
 // =============================================================================
 
 /// Battery - voltage source with internal resistance
-class Battery : public Component {
+class Battery final : public Component {
 public:
     std::string name;
     PORTS(Battery, v_in, v_out)
@@ -44,7 +44,7 @@ public:
 /// Switch - manual toggle switch (triggered by control signal)
 /// Mirrors downstream conductance onto v_in so battery sees the load.
 /// post_step forces v_out=v_in when closed, v_out=0 when open.
-class Switch : public Component {
+class Switch final : public Component {
 public:
     PORTS(Switch, control, state, v_in, v_out)
     bool closed = false;        // Initial state (default: open)
@@ -64,7 +64,7 @@ public:
 
 /// Relay - on/off switch controlled by voltage threshold.
 /// Mirrors downstream conductance onto v_in so battery sees the load.
-class Relay : public Component {
+class Relay final : public Component {
 public:
     PORTS(Relay, control, v_in, v_out)
     bool closed = false;        // Current state
@@ -86,7 +86,7 @@ public:
 /// Mirrors downstream conductance onto v_in so battery sees the load.
 /// Control Protocol: 0.0V=Idle, 1.0V=Pressed, 2.0V=Released
 /// State output: 1.0V = pressed, 0.0V = released/idle
-class HoldButton : public Component {
+class HoldButton final : public Component {
 public:
     PORTS(HoldButton, control, state, v_in, v_out)
     float idle = 0.0f;          // Idle value (when button not pressed)
@@ -106,7 +106,7 @@ public:
 };
 
 /// Resistor - pure conductance element (resistive load)
-class Resistor : public Component {
+class Resistor final : public Component {
 public:
     PORTS(Resistor, v_in, v_out)
     float conductance = 0.1f;
@@ -119,7 +119,7 @@ public:
 };
 
 /// Load - single port resistive load to ground
-class Load : public Component {
+class Load final : public Component {
 public:
     PORTS(Load, input)
     float conductance = 0.1f;  // draws I = V * g
@@ -134,7 +134,7 @@ public:
 
 /// RefNode - fixed voltage reference (ground, bus)
 /// Uses single "v" port - connects to the network as a fixed voltage
-class RefNode : public Component {
+class RefNode final : public Component {
 public:
     PORTS(RefNode, v)
     float value = 0.0f;
@@ -148,7 +148,7 @@ public:
 };
 
 /// Bus - electrical bus/rail, connects all ports together
-class Bus : public Component {
+class Bus final : public Component {
 public:
     PORTS(Bus, v)
 
@@ -162,7 +162,7 @@ public:
 };
 
 /// Generator - voltage source like battery
-class Generator : public Component {
+class Generator final : public Component {
 public:
     PORTS(Generator, v_in, v_out)
     float internal_r = 0.005f;
@@ -177,7 +177,7 @@ public:
 };
 
 /// GS24 - Starter-Generator (ГС-24) with full state machine
-class GS24 : public Component {
+class GS24 final : public Component {
 public:
     PORTS(GS24, k_mod, v_in, v_out)
     // Mode state machine
@@ -209,7 +209,7 @@ public:
 };
 
 /// Transformer - AC transformer with voltage ratio
-class Transformer : public Component {
+class Transformer final : public Component {
 public:
     PORTS(Transformer, primary, secondary)
     float ratio = 1.0f;  // primary / secondary
@@ -223,7 +223,7 @@ public:
 };
 
 /// Inverter - DC to AC inverter
-class Inverter : public Component {
+class Inverter final : public Component {
 public:
     PORTS(Inverter, ac_out, dc_in)
     float efficiency = 0.95f;
@@ -237,7 +237,7 @@ public:
 };
 
 /// LerpNode - linear interpolation (voltage display filter)
-class LerpNode : public Component {
+class LerpNode final : public Component {
 public:
     PORTS(LerpNode, input, output)
     float factor = 1.0f;  // filter coefficient (0.1 = slow, 1.0 = instant)
@@ -252,7 +252,7 @@ public:
 };
 
 /// Splitter - 1-to-2 signal splitter (works with any type/domain)
-class Splitter : public Component {
+class Splitter final : public Component {
 public:
     PORTS(Splitter, i)
 
@@ -269,7 +269,7 @@ public:
 };
 
 /// IndicatorLight - aircraft indicator light (two power terminals + brightness output)
-class IndicatorLight : public Component {
+class IndicatorLight final : public Component {
 public:
     PORTS(IndicatorLight, brightness, v_in, v_out)
     float max_brightness = 100.0f;
@@ -284,7 +284,7 @@ public:
 };
 
 /// HighPowerLoad - high power electrical load
-class HighPowerLoad : public Component {
+class HighPowerLoad final : public Component {
 public:
     PORTS(HighPowerLoad, v_in, v_out)
     float power_draw = 500.0f;
@@ -301,7 +301,7 @@ public:
 // =============================================================================
 
 /// Voltmeter - analog voltage gauge (visual measurement only)
-class Voltmeter : public Component {
+class Voltmeter final : public Component {
 public:
     PORTS(Voltmeter, v_in)
 
@@ -317,7 +317,7 @@ public:
 };
 
 /// Gyroscope - power-only sensor
-class Gyroscope : public Component {
+class Gyroscope final : public Component {
 public:
     PORTS(Gyroscope, input)
     float conductance = 0.001f;
@@ -330,7 +330,7 @@ public:
 };
 
 /// AGK47 - attitude gyro
-class AGK47 : public Component {
+class AGK47 final : public Component {
 public:
     PORTS(AGK47, input)
     float conductance = 0.001f;
@@ -347,7 +347,7 @@ public:
 // =============================================================================
 
 /// ElectricPump - electric motor driving hydraulic pump
-class ElectricPump : public Component {
+class ElectricPump final : public Component {
 public:
     PORTS(ElectricPump, p_out, v_in)
     float max_pressure = 1000.0f;
@@ -361,7 +361,7 @@ public:
 };
 
 /// SolenoidValve - electrically controlled hydraulic valve
-class SolenoidValve : public Component {
+class SolenoidValve final : public Component {
 public:
     PORTS(SolenoidValve, ctrl, flow_in, flow_out)
     bool normally_closed = true;
@@ -378,7 +378,7 @@ public:
 // =============================================================================
 
 /// InertiaNode - mechanical inertia (first-order lag)
-class InertiaNode : public Component {
+class InertiaNode final : public Component {
 public:
     PORTS(InertiaNode, input, output)
     float mass = 1.0f;
@@ -400,7 +400,7 @@ public:
 // =============================================================================
 
 /// TempSensor - temperature sensor
-class TempSensor : public Component {
+class TempSensor final : public Component {
 public:
     PORTS(TempSensor, temp_in, temp_out)
     float sensitivity = 1.0f;
@@ -413,7 +413,7 @@ public:
 };
 
 /// ElectricHeater - electrical heater
-class ElectricHeater : public Component {
+class ElectricHeater final : public Component {
 public:
     PORTS(ElectricHeater, heat_out, power)
     float max_power = 1000.0f;
@@ -430,7 +430,7 @@ public:
 /// RUG-82 - Coal column voltage regulator (Угольный регулятор напряжения)
 /// RUG-82 - Coal column voltage regulator (Norton model)
 /// Input: v_gen (bus voltage), Output: k_mod (0...1 excitation modulation)
-class RUG82 : public Component {
+class RUG82 final : public Component {
 public:
     PORTS(RUG82, k_mod, v_gen)
     float v_target = 28.5f;   // target voltage (28.5V)
@@ -447,7 +447,7 @@ public:
 
 /// DMR-400 - Differential Minimum Relay (Дифференциально-минимальное реле)
 /// Connects generator to DC bus when ready, disconnects on reverse current
-class DMR400 : public Component {
+class DMR400 final : public Component {
 public:
     PORTS(DMR400, lamp, v_gen_ref, v_in, v_out)
     bool is_closed = false;          // contactor state (default open)
@@ -467,7 +467,7 @@ public:
 
 /// RU19A-300 - Auxiliary Power Unit (ВСУ)
 /// Combines: GS24 starter-generator + start sequence automation
-class RU19A : public Component {
+class RU19A final : public Component {
 public:
     // Electrical ports (auto-generated from components/RU19A.json)
     // Port order must match registry: k_mod, rpm_out, t4_out, v_bus, v_start
@@ -516,7 +516,7 @@ public:
 };
 
 /// Radiator - heat exchanger
-class Radiator : public Component {
+class Radiator final : public Component {
 public:
     PORTS(Radiator, heat_in, heat_out)
     float cooling_capacity = 1000.0f;
@@ -537,7 +537,7 @@ public:
 /// Parameters: Von (turn-on threshold), Voff (turn-off threshold)
 /// Output: o (boolean) - TRUE when (Va - Vb) > Von, FALSE when (Va - Vb) < Voff
 /// Maintains state when in hysteresis band (between Voff and Von)
-class Comparator : public Component {
+class Comparator final : public Component {
 public:
     PORTS(Comparator, Va, Vb, o)
     bool output_state = false;  // Current boolean output state

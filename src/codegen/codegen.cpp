@@ -180,17 +180,38 @@ std::string CodeGen::generate_header(
     oss << "/// Number of devices in this system\n";
     oss << "constexpr uint32_t DEVICE_COUNT = " << devices.size() << ";\n\n";
 
+    // Global simulation state pointer (set at init, available globally)
+    oss << "/// Global simulation state pointer (set once, used by all components)\n";
+    oss << "extern SimulationState* g_state;\n\n";
+
     // Systems class - ECS-like optimized
     oss << "// ==============================================================================\n";
     oss << "// SYSTEMS CLASS (ECS-like: direct field access, no virtual calls)\n";
+    oss << "// Components are NON-VIRTUAL for AOT - no vtable overhead\n";
     oss << "// ==============================================================================\n\n";
 
     oss << "class Systems {\n";
     oss << "public:\n";
 
-    // Device fields - direct access, no pointers
+    // Device objects - kept for compatibility, but NOT used in hot path
     for (const auto& dev : devices) {
         oss << "    " << dev.classname << " " << dev.name << ";\n";
+    }
+    oss << "\n";
+
+    // Port indices as flat arrays (DATA-ORIENTED: cache-friendly, no indirection)
+    oss << "    // Port indices - stored separately for direct access (data-oriented)\n";
+    oss << "    // This allows O(1) access without loading from object fields\n";
+    for (const auto& dev : devices) {
+        for (const auto& port : dev.ports) {
+            const std::string& port_name = port.first;
+            if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
+                continue;  // Skip alias ports
+            }
+            std::string port_key = dev.name + "." + port_name;
+            uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
+            oss << "    static constexpr uint32_t " << dev.name << "_" << port_name << "_idx = " << sig << ";\n";
+        }
     }
     oss << "\n";
 
@@ -245,36 +266,17 @@ std::string CodeGen::generate_source(
     oss << "#include <cstring>  // memcpy\n\n";
     oss << "namespace an24 {\n\n";
 
-    // Constructor - port assignments from port_to_signal map
+    // Constructor - only initialize component parameters (port indices are compile-time constants)
     oss << "Systems::Systems()\n";
     oss << "{\n";
     oss << "    // Pre-allocate convergence buffer (zero-allocation in hot path)\n";
-    oss << "    static float buf[SIGNAL_COUNT];\n";
+    oss << "    alignas(64) static float buf[SIGNAL_COUNT];\n";
     oss << "    convergence_buffer = buf;\n\n";
 
-    // Validate and generate port index assignments
+    // Port indices are now static constexpr - no runtime initialization needed!
+
+    // Generate parameter assignments
     for (const auto& dev : devices) {
-        for (const auto& port : dev.ports) {
-            const std::string& port_name = port.first;
-            const auto& port_def = port.second;
-
-            // Skip alias ports - they're handled by union-find at runtime, not C++ fields
-            if (port_def.alias.has_value() && !port_def.alias.value().empty()) {
-                continue;
-            }
-
-            std::string port_key = dev.name + "." + port_name;
-            uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
-
-            // Map port name to C++ field name
-            std::string field_name = port_name + "_idx";
-
-            // Validate: port must exist in C++ class (will fail compile if not)
-            // This catches mismatch between JSON definitions and C++ classes
-            oss << "    " << dev.name << "." << field_name << " = " << sig << ";  // " << port_key << "\n";
-        }
-
-        // Generate parameter assignments
         for (const auto& param : dev.params) {
             const std::string& param_name = param.first;
             const std::string& value = param.second;
@@ -282,7 +284,6 @@ std::string CodeGen::generate_source(
             // Skip internal computed fields
             if (param_name == "inv_internal_r" || param_name == "inv_capacity") continue;
 
-            // Validate: parameter must exist in C++ class (will fail compile if not)
             std::string type = infer_type(value);
             oss << "    " << dev.name << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
@@ -357,11 +358,37 @@ std::string CodeGen::generate_source(
         oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
 
-        // Electrical (every step)
+        // Electrical (every step) - DATA-ORIENTED: direct index access
         auto elec_it = step_devices.find({step, "electrical"});
         if (elec_it != step_devices.end()) {
             for (const auto& dev_name : elec_it->second) {
-                oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
+                // Find device
+                auto dev_it = std::find_if(devices.begin(), devices.end(),
+                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
+                if (dev_it == devices.end()) continue;
+
+                // Generate inline code based on component type
+                if (dev_it->classname == "Bus" || dev_it->classname == "RefNode") {
+                    // Bus/RefNode: no-op (just wire junction)
+                    oss << "    // " << dev_name << " (wire junction, no-op)\n";
+                } else if (dev_it->classname == "Battery") {
+                    // Battery: Thevenin -> Norton
+                    std::string v_in_idx = dev_name + "_v_in_idx";
+                    std::string v_out_idx = dev_name + "_v_out_idx";
+                    oss << "    // Battery: Norton equivalent\n";
+                    oss << "    {\n";
+                    oss << "        float v_gnd = st->across[" << v_in_idx << "];\n";
+                    oss << "        float v_bus = st->across[" << v_out_idx << "];\n";
+                    oss << "        float v_nominal = " << dev_name << ".v_nominal;\n";
+                    oss << "        float g = " << dev_name << ".inv_internal_r;\n";
+                    oss << "        float i = (v_nominal + v_gnd - v_bus) * g;\n";
+                    oss << "        st->through[" << v_in_idx << "] -= i;\n";
+                    oss << "        st->through[" << v_out_idx << "] += i;\n";
+                    oss << "    }\n";
+                } else {
+                    // Fallback to method call for complex components
+                    oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
+                }
             }
         }
 
