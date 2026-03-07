@@ -407,27 +407,4 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_wctrans_t.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/../../json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/common.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/tweakme.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/null_mutex.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/fmt/fmt.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/fmt/bundled/core.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/fmt/bundled/format.h \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/system_error \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__errc \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/cerrno \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/registry.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/periodic_worker.h \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/condition_variable \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__mutex_base \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/mutex \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/thread \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/logger.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/log_msg.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/backtracer.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/log_msg_buffer.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/circular_q.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/version.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/explicit_instantiations.h
