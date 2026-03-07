@@ -11,6 +11,7 @@
 #include <cmath>
 #include "jit_solver/state.h"
 #include "jit_solver/components/all.h"
+#include "jit_solver/components/port_registry.h"
 
 // Compiler hints for optimization
 #ifdef __GNUC__
@@ -54,18 +55,40 @@ constexpr uint32_t SIGNAL_COUNT = 8;
 /// Number of devices in this system
 constexpr uint32_t DEVICE_COUNT = 6;
 
+/// Global simulation state pointer (set once, used by all components)
+extern SimulationState* g_state;
+
 // ==============================================================================
 // SYSTEMS CLASS (ECS-like: direct field access, no virtual calls)
+// Components are NON-VIRTUAL for AOT - no vtable overhead
 // ==============================================================================
 
 class Systems {
 public:
-    RefNode gnd;
-    Battery bat_main_1;
-    RU19A vsu_1;
-    RUG82 rug_vsu;
-    IndicatorLight light_1;
-    LerpNode t4_sensor;
+    RefNode<AotProvider<Binding<PortNames::v, 0>>> gnd;
+    Battery<AotProvider<Binding<PortNames::v_in, 0>, Binding<PortNames::v_out, 1>>> bat_main_1;
+    RU19A<AotProvider<Binding<PortNames::k_mod, 4>, Binding<PortNames::rpm_out, 2>, Binding<PortNames::t4_out, 3>, Binding<PortNames::v_start, 1>, Binding<PortNames::v_bus, 1>>> vsu_1;
+    RUG82<AotProvider<Binding<PortNames::k_mod, 4>, Binding<PortNames::v_gen, 1>>> rug_vsu;
+    IndicatorLight<AotProvider<Binding<PortNames::v_out, 0>, Binding<PortNames::brightness, 5>, Binding<PortNames::v_in, 1>>> light_1;
+    LerpNode<AotProvider<Binding<PortNames::input, 3>, Binding<PortNames::output, 6>>> t4_sensor;
+
+    // Port indices - stored separately for direct access (data-oriented)
+    // This allows O(1) access without loading from object fields
+    static constexpr uint32_t gnd_v_idx = 0;
+    static constexpr uint32_t bat_main_1_v_in_idx = 0;
+    static constexpr uint32_t bat_main_1_v_out_idx = 1;
+    static constexpr uint32_t vsu_1_k_mod_idx = 4;
+    static constexpr uint32_t vsu_1_rpm_out_idx = 2;
+    static constexpr uint32_t vsu_1_t4_out_idx = 3;
+    static constexpr uint32_t vsu_1_v_start_idx = 1;
+    static constexpr uint32_t vsu_1_v_bus_idx = 1;
+    static constexpr uint32_t rug_vsu_k_mod_idx = 4;
+    static constexpr uint32_t rug_vsu_v_gen_idx = 1;
+    static constexpr uint32_t light_1_v_out_idx = 0;
+    static constexpr uint32_t light_1_brightness_idx = 5;
+    static constexpr uint32_t light_1_v_in_idx = 1;
+    static constexpr uint32_t t4_sensor_input_idx = 3;
+    static constexpr uint32_t t4_sensor_output_idx = 6;
 
     float* convergence_buffer = nullptr;
 
@@ -138,10 +161,10 @@ public:
     AOT_INLINE void step_58(void* state, float dt);
     AOT_INLINE void step_59(void* state, float dt);
 
-    /// Post-step updates
+    /// Post-step updates (state tracking, etc.)
     void post_step(void* state, float dt);
 
-    /// Balance electrical domain (AOT-optimized, __restrict)
+    /// Balance electrical domain (branchless, SIMD-friendly)
     AOT_INLINE void balance_electrical(void* state, float omega);
 
     /// Convergence check (sparse sampling)

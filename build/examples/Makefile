@@ -214,6 +214,20 @@ codegen_test/fast:
 .PHONY : codegen_test/fast
 
 # Convenience name for target.
+examples/CMakeFiles/bench_vsu_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/bench_vsu_aot.dir/rule
+.PHONY : examples/CMakeFiles/bench_vsu_aot.dir/rule
+
+# Convenience name for target.
+bench_vsu_aot: examples/CMakeFiles/bench_vsu_aot.dir/rule
+.PHONY : bench_vsu_aot
+
+# fast build rule for target.
+bench_vsu_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
+.PHONY : bench_vsu_aot/fast
+
+# Convenience name for target.
 examples/CMakeFiles/an24_editor.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_editor.dir/rule
 .PHONY : examples/CMakeFiles/an24_editor.dir/rule
@@ -384,6 +398,54 @@ __/_deps/imgui-src/imgui_widgets.s: __/_deps/imgui-src/imgui_widgets.cpp.s
 __/_deps/imgui-src/imgui_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
 .PHONY : __/_deps/imgui-src/imgui_widgets.cpp.s
+
+__/generated/bench_vsu_aot.o: __/generated/bench_vsu_aot.cpp.o
+.PHONY : __/generated/bench_vsu_aot.o
+
+# target to build an object file
+__/generated/bench_vsu_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o
+.PHONY : __/generated/bench_vsu_aot.cpp.o
+
+__/generated/bench_vsu_aot.i: __/generated/bench_vsu_aot.cpp.i
+.PHONY : __/generated/bench_vsu_aot.i
+
+# target to preprocess a source file
+__/generated/bench_vsu_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.i
+.PHONY : __/generated/bench_vsu_aot.cpp.i
+
+__/generated/bench_vsu_aot.s: __/generated/bench_vsu_aot.cpp.s
+.PHONY : __/generated/bench_vsu_aot.s
+
+# target to generate assembly for a file
+__/generated/bench_vsu_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.s
+.PHONY : __/generated/bench_vsu_aot.cpp.s
+
+__/generated/generated_vsu_test.o: __/generated/generated_vsu_test.cpp.o
+.PHONY : __/generated/generated_vsu_test.o
+
+# target to build an object file
+__/generated/generated_vsu_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o
+.PHONY : __/generated/generated_vsu_test.cpp.o
+
+__/generated/generated_vsu_test.i: __/generated/generated_vsu_test.cpp.i
+.PHONY : __/generated/generated_vsu_test.i
+
+# target to preprocess a source file
+__/generated/generated_vsu_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.i
+.PHONY : __/generated/generated_vsu_test.cpp.i
+
+__/generated/generated_vsu_test.s: __/generated/generated_vsu_test.cpp.s
+.PHONY : __/generated/generated_vsu_test.s
+
+# target to generate assembly for a file
+__/generated/generated_vsu_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.s
+.PHONY : __/generated/generated_vsu_test.cpp.s
 
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
@@ -760,6 +822,7 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
 	@echo "... hello_world"
@@ -781,6 +844,12 @@ help:
 	@echo "... __/_deps/imgui-src/imgui_widgets.o"
 	@echo "... __/_deps/imgui-src/imgui_widgets.i"
 	@echo "... __/_deps/imgui-src/imgui_widgets.s"
+	@echo "... __/generated/bench_vsu_aot.o"
+	@echo "... __/generated/bench_vsu_aot.i"
+	@echo "... __/generated/bench_vsu_aot.s"
+	@echo "... __/generated/generated_vsu_test.o"
+	@echo "... __/generated/generated_vsu_test.i"
+	@echo "... __/generated/generated_vsu_test.s"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"

@@ -315,6 +315,19 @@ codegen_test/fast:
 .PHONY : codegen_test/fast
 
 #=============================================================================
+# Target rules for targets named bench_vsu_aot
+
+# Build rule for target.
+bench_vsu_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bench_vsu_aot
+.PHONY : bench_vsu_aot
+
+# fast build rule for target.
+bench_vsu_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
+.PHONY : bench_vsu_aot/fast
+
+#=============================================================================
 # Target rules for targets named an24_editor
 
 # Build rule for target.
@@ -524,6 +537,7 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
 	@echo "... editor_componentvariant_tests"

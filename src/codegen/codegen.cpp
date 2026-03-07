@@ -6,6 +6,7 @@
 #include <cctype>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <filesystem>
 
 // Use nlohmann::json - will be available when linked with json_parser
@@ -278,8 +279,12 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
+    // Post-step updates
+    oss << "    /// Post-step updates (state tracking, etc.)\n";
+    oss << "    void post_step(void* state, float dt);\n\n";
+
     // Balance methods - domain-specific for AOT optimization
-    oss << "    /// Balance electrical domain (AOT-optimized, __restrict)\n";
+    oss << "    /// Balance electrical domain (branchless, SIMD-friendly)\n";
     oss << "    AOT_INLINE void balance_electrical(void* state, float omega);\n\n";
 
     oss << "    /// Convergence check (sparse sampling)\n";
@@ -307,6 +312,10 @@ std::string CodeGen::generate_source(
     // Include template definitions from all.cpp so compiler can instantiate AotProvider versions
     oss << "#include \"jit_solver/components/all.cpp\"\n";
     oss << "#include <cstring>  // memcpy\n\n";
+    // Enable fast-math for generated code only (not spdlog)
+    oss << "#ifdef __GNUC__\n";
+    oss << "#pragma GCC optimize(\"fast-math,unroll-loops\")\n";
+    oss << "#endif\n\n";
     oss << "namespace an24 {\n\n";
 
     // Explicit template instantiations for AotProvider
@@ -416,6 +425,7 @@ std::string CodeGen::generate_source(
     for (int step = 0; step < 60; ++step) {
         oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
+        oss << "    st->clear_through();\n";
 
         // Electrical (every step) - DATA-ORIENTED: direct index access
         auto elec_it = step_devices.find({step, "electrical"});
@@ -480,24 +490,39 @@ std::string CodeGen::generate_source(
             }
         }
 
+        // SOR solver - single iteration per step (real-time approximation)
+        // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
+        oss << "    st->precompute_inv_conductance();\n";
+        oss << "    balance_electrical(st, 1.3f);\n";
+
         oss << "}\n\n";
     }
 
-    // Balance electrical - FAST MATH version (no divisions, uses inv_omega = 1/omega)
-    // For WASM: this is critical - div is expensive!
-    oss << "AOT_INLINE void Systems::balance_electrical(void* state, float inv_omega) {\n";
+    // Post-step - call post_step on components that have it
+    // Only these classes define post_step: Switch, Relay, HoldButton, GS24, LerpNode, DMR400, RU19A
+    static const std::unordered_set<std::string> has_post_step = {
+        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A"
+    };
+    oss << "void Systems::post_step(void* state, float dt) {\n";
     oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    oss << "    // __restrict: no aliasing, enables SIMD\n";
+    for (const auto& dev : devices) {
+        if (has_post_step.count(dev.classname)) {
+            oss << "    " << dev.name << ".post_step(*st, dt);\n";
+        }
+    }
+    oss << "}\n\n";
+
+    // Balance electrical - branchless SIMD-friendly version
+    // After precompute_inv_conductance: inv_g[i]=0 for fixed signals, so no branch needed
+    oss << "AOT_INLINE void Systems::balance_electrical(void* state, float omega) {\n";
+    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
     oss << "    float* __restrict acc = st->across.data();\n";
     oss << "    const float* __restrict thr = st->through.data();\n";
     oss << "    const float* __restrict inv_g = st->inv_conductance.data();\n";
-    oss << "    const auto& types = st->signal_types;\n";
-    oss << "    const uint32_t count = static_cast<uint32_t>(st->across.size());\n";
     oss << "\n";
-    oss << "    for (uint32_t i = 0; i < count; ++i) {\n";
-    oss << "        if (!types[i].is_fixed && inv_g[i] > 0.0f) {\n";
-    oss << "            acc[i] += thr[i] * inv_g[i] * inv_omega;\n";
-    oss << "        }\n";
+    oss << "    // Branchless: inv_g[i]=0 for fixed signals, so acc+=0 (no update)\n";
+    oss << "    for (uint32_t i = 0; i < SIGNAL_COUNT; ++i) {\n";
+    oss << "        acc[i] += thr[i] * inv_g[i] * omega;\n";
     oss << "    }\n";
     oss << "}\n\n";
 

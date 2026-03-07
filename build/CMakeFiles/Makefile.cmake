@@ -144,6 +144,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "examples/CMakeFiles/hello_world.dir/DependInfo.cmake"
   "examples/CMakeFiles/an24_codegen.dir/DependInfo.cmake"
   "examples/CMakeFiles/codegen_test.dir/DependInfo.cmake"
+  "examples/CMakeFiles/bench_vsu_aot.dir/DependInfo.cmake"
   "examples/CMakeFiles/an24_editor.dir/DependInfo.cmake"
   "examples/CMakeFiles/benchmark_jit_vs_aot.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_registry_tests.dir/DependInfo.cmake"
