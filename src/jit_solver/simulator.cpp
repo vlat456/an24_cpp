@@ -1,7 +1,14 @@
 #include "simulator.h"
+#include "scheduling.h"
 #include "../editor/persist.h"
 #include "../json_parser/json_parser.h"
+#include "components/port_registry.h"
+#include "components/all.h"
+#include <spdlog/spdlog.h>
 #include <algorithm>
+#include <unordered_map>
+
+using namespace an24;
 
 namespace an24 {
 
@@ -113,11 +120,81 @@ template<typename SolverTag>
 void Simulator<SolverTag>::step(float dt) {
     if (!running_ || !build_result_.has_value()) return;
 
+    // DEBUG: Log first step
+    if (step_count_ == 0) {
+        spdlog::warn("[sim] ===== FIRST STEP =====");
+        spdlog::warn("[sim] {} devices, dt={}, signals={}",
+            build_result_->devices.size(), dt, state_.across.size());
+    }
+
     state_.clear_through();
-    
-    // AOT-only: component simulation is codegen'd, not runtime managed
-    // JIT would call: build_result_->systems.solve_step(state_, step_count_, dt);
-    
+
+    // Data-oriented multi-domain solving with zero branching
+    // Components are pre-sorted by domain, so we just iterate the relevant vectors
+
+    // Electrical/Logical: every step (60 Hz)
+    if (step_count_ == 0) {
+        spdlog::warn("[sim] Step {}: {} electrical, {} logical components",
+            step_count_,
+            build_result_->domain_components.electrical.size(),
+            build_result_->domain_components.logical.size());
+    }
+
+    for (auto* variant : build_result_->domain_components.electrical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_electrical(state_, dt); }) {
+                comp.solve_electrical(state_, dt);
+            }
+        }, *variant);
+    }
+
+    for (auto* variant : build_result_->domain_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state_, dt); }) {
+                comp.solve_logical(state_, dt);
+            }
+        }, *variant);
+    }
+
+    // Mechanical: every 3rd step (20 Hz)
+    if ((step_count_ % 3) == 0) {
+        if (step_count_ < 10) {
+            spdlog::warn("[sim] Step {}: calling {} mechanical components", step_count_, build_result_->domain_components.mechanical.size());
+        }
+        for (auto* variant : build_result_->domain_components.mechanical) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_mechanical(state_, dt); }) {
+                    comp.solve_mechanical(state_, dt);
+                }
+            }, *variant);
+        }
+    }
+
+    // Hydraulic: every 12th step (5 Hz)
+    if ((step_count_ % 12) == 0) {
+        for (auto* variant : build_result_->domain_components.hydraulic) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_hydraulic(state_, dt); }) {
+                    comp.solve_hydraulic(state_, dt);
+                }
+            }, *variant);
+        }
+    }
+
+    // Thermal: every 60th step (1 Hz)
+    if ((step_count_ % 60) == 0) {
+        if (!build_result_->domain_components.thermal.empty()) {
+            spdlog::warn("[sim] Step {}: calling {} thermal components", step_count_, build_result_->domain_components.thermal.size());
+        }
+        for (auto* variant : build_result_->domain_components.thermal) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_thermal(state_, dt); }) {
+                    comp.solve_thermal(state_, dt);
+                }
+            }, *variant);
+        }
+    }
+
     state_.precompute_inv_conductance();
 
     // SOR update
@@ -127,9 +204,23 @@ void Simulator<SolverTag>::step(float dt) {
         }
     }
 
-    // AOT-only: post_step is codegen'd
-    // JIT would call: build_result_->systems.post_step(state_, dt);
-    
+    // post_step for components that need it
+    for (auto& [name, variant] : build_result_->devices) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.post_step(state_, dt); }) {
+                if (step_count_ < 10 || (step_count_ % 60) == 0) {
+                    spdlog::debug("[sim] post_step: {}", name);
+                }
+                comp.post_step(state_, dt);
+            }
+        }, variant);
+    }
+
+    // DEBUG: Log every 60 steps
+    if (step_count_ == 0 || step_count_ % 60 == 0) {
+        spdlog::warn("[sim] Step {}: time={:.2f}s", step_count_, time_);
+    }
+
     time_ += dt;
     step_count_++;
 }

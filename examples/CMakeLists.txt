@@ -101,45 +101,47 @@ target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver s
 # target_include_directories(profile_vsu_dmr_aot PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/generated)
 # target_link_libraries(profile_vsu_dmr_aot PRIVATE jit_solver spdlog::spdlog)
 
-# Disabled for AOT-only refactor
-# find_package(OpenGL REQUIRED)
-# 
-# add_executable(an24_editor
-#     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-#     ${imgui_SOURCE_DIR}/imgui.cpp
-#     ${imgui_SOURCE_DIR}/imgui_draw.cpp
-#     ${imgui_SOURCE_DIR}/imgui_tables.cpp
-#     ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-#     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
-#     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-# )
-# target_include_directories(an24_editor PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/editor
-#     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-#     ${imgui_SOURCE_DIR}
-#     ${imgui_SOURCE_DIR}/backends
-#     ${SDL2_INCLUDE_DIRS}
-#     ${nfde_SOURCE_DIR}/src/include
-# )
-# target_link_libraries(an24_editor PRIVATE
-#     SDL2::SDL2
-#     "-framework OpenGL"
-#     "-framework Foundation"
-#     "-framework AppKit"
-#     "-framework UniformTypeIdentifiers"
-#     spdlog::spdlog
-#     ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
-#     jit_solver
-#     json_parser
-# )
+# Re-enabled after ComponentVariant integration
+find_package(OpenGL REQUIRED)
+
+add_executable(an24_editor
+    ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(an24_editor PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${SDL2_INCLUDE_DIRS}
+    ${nfde_SOURCE_DIR}/src/include
+)
+target_link_libraries(an24_editor PRIVATE
+    SDL2::SDL2
+    "-framework OpenGL"
+    "-framework Foundation"
+    "-framework AppKit"
+    "-framework UniformTypeIdentifiers"
+    spdlog::spdlog
+    ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
+    jit_solver
+    json_parser
+)
+

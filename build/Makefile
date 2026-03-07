@@ -315,6 +315,19 @@ codegen_test/fast:
 .PHONY : codegen_test/fast
 
 #=============================================================================
+# Target rules for targets named an24_editor
+
+# Build rule for target.
+an24_editor: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 an24_editor
+.PHONY : an24_editor
+
+# fast build rule for target.
+an24_editor/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
+.PHONY : an24_editor/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -339,6 +352,19 @@ port_macro_tests: cmake_check_build_system
 port_macro_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_macro_tests.dir/build.make tests/CMakeFiles/port_macro_tests.dir/build
 .PHONY : port_macro_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_componentvariant_tests
+
+# Build rule for target.
+editor_componentvariant_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_componentvariant_tests
+.PHONY : editor_componentvariant_tests
+
+# fast build rule for target.
+editor_componentvariant_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/build
+.PHONY : editor_componentvariant_tests/fast
 
 #=============================================================================
 # Target rules for targets named json_parser_tests
@@ -379,19 +405,6 @@ provider_pattern_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/build
 .PHONY : provider_pattern_tests/fast
 
-#=============================================================================
-# Target rules for targets named component_variant_test
-
-# Build rule for target.
-component_variant_test: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 component_variant_test
-.PHONY : component_variant_test
-
-# fast build rule for target.
-component_variant_test/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/build
-.PHONY : component_variant_test/fast
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -406,8 +419,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... an24_codegen"
+	@echo "... an24_editor"
 	@echo "... codegen_test"
-	@echo "... component_variant_test"
+	@echo "... editor_componentvariant_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

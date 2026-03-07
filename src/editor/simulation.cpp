@@ -1,6 +1,7 @@
 #include "simulation.h"
 #include "persist.h"
 #include "json_parser/json_parser.h"
+#include <spdlog/spdlog.h>
 #include <cmath>
 
 using namespace an24;
@@ -52,36 +53,80 @@ void SimulationController::build(const Blueprint& bp) {
 void SimulationController::step(float dt) {
     if (!build_result.has_value()) return;
 
+    // DEBUG: Log first step
+    if (step_count == 0) {
+        spdlog::warn("[sim] ===== FIRST STEP =====");
+        spdlog::warn("[sim] {} devices, dt={}, signals={}",
+            build_result->devices.size(), dt, state.across.size());
+
+        // Log battery voltage before solve
+        auto bat_it = build_result->port_to_signal.find("bat1.v_out");
+        if (bat_it != build_result->port_to_signal.end()) {
+            spdlog::warn("[sim] BEFORE: bat1.v_out = {:.2f}V", state.across[bat_it->second]);
+        }
+    }
+
     state.clear_through();
 
-    // Multi-domain solving using std::visit on ComponentVariant
-    // Components have different solve methods for different domains
-    for (auto& [name, variant] : build_result->devices) {
+    // Data-oriented multi-domain solving with zero branching
+    // Components are pre-sorted by domain, so we just iterate the relevant vectors
+
+    // Electrical/Logical: every step (60 Hz)
+    for (auto* variant : build_result->domain_components.electrical) {
         std::visit([&](auto& comp) {
-            // Electrical/Logical domain (60 Hz)
             if constexpr (requires { comp.solve_electrical(state, dt); }) {
                 comp.solve_electrical(state, dt);
             }
-            // Logical domain (60 Hz)
-            else if constexpr (requires { comp.solve_logical(state, dt); }) {
+        }, *variant);
+    }
+
+    for (auto* variant : build_result->domain_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state, dt); }) {
                 comp.solve_logical(state, dt);
             }
-            // Mechanical domain (20 Hz)
-            else if constexpr (requires { comp.solve_mechanical(state, dt); }) {
-                comp.solve_mechanical(state, dt);
-            }
-            // Hydraulic domain (5 Hz)
-            else if constexpr (requires { comp.solve_hydraulic(state, dt); }) {
-                comp.solve_hydraulic(state, dt);
-            }
-            // Thermal domain (1 Hz)
-            else if constexpr (requires { comp.solve_thermal(state, dt); }) {
-                comp.solve_thermal(state, dt);
-            }
-        }, variant);
+        }, *variant);
+    }
+
+    // Mechanical: every 3rd step (20 Hz)
+    if ((step_count % 3) == 0) {
+        for (auto* variant : build_result->domain_components.mechanical) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_mechanical(state, dt); }) {
+                    comp.solve_mechanical(state, dt);
+                }
+            }, *variant);
+        }
+    }
+
+    // Hydraulic: every 12th step (5 Hz)
+    if ((step_count % 12) == 0) {
+        for (auto* variant : build_result->domain_components.hydraulic) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_hydraulic(state, dt); }) {
+                    comp.solve_hydraulic(state, dt);
+                }
+            }, *variant);
+        }
+    }
+
+    // Thermal: every 60th step (1 Hz)
+    if ((step_count % 60) == 0) {
+        for (auto* variant : build_result->domain_components.thermal) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_thermal(state, dt); }) {
+                    comp.solve_thermal(state, dt);
+                }
+            }, *variant);
+        }
     }
 
     state.precompute_inv_conductance();
+
+    // DEBUG: Log conductance after solve
+    if (step_count == 0) {
+        spdlog::warn("[sim] AFTER solve: conductance[0]={:.6f}", state.conductance[0]);
+    }
 
     // SOR update
     for (size_t i = 0; i < state.across.size(); ++i) {
@@ -97,6 +142,14 @@ void SimulationController::step(float dt) {
                 comp.post_step(state, dt);
             }
         }, variant);
+    }
+
+    // DEBUG: Log every step
+    if (step_count == 0 || step_count % 60 == 0) {
+        auto bat_it = build_result->port_to_signal.find("bat1.v_out");
+        if (bat_it != build_result->port_to_signal.end()) {
+            spdlog::warn("[sim] Step {}: bat1.v_out = {:.2f}V", step_count, state.across[bat_it->second]);
+        }
     }
 
     time += dt;

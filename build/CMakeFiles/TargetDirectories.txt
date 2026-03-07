@@ -86,6 +86,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/hello_world.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_codegen.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/codegen_test.dir
+/Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_editor.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/rebuild_cache.dir
@@ -95,10 +96,10 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/strip.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_componentvariant_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/json_parser_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/provider_pattern_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/component_variant_test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

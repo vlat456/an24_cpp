@@ -1,4 +1,5 @@
 #include "jit_solver.h"
+#include "scheduling.h"
 #include "state.h"
 #include "components/all.h"
 #include <spdlog/spdlog.h>
@@ -438,9 +439,41 @@ BuildResult build_systems_dev(
     for (const auto& dev : devices) {
         ComponentVariant variant = create_component_variant(dev, result);
         result.devices[dev.name] = variant;
+
+        // Add to domain-specific vectors for zero-branch iteration
+        // Components can belong to multiple domains (e.g., ElectricHeater: electrical + thermal)
+        ComponentVariant* ptr = &result.devices[dev.name];
+        Domain domain_mask = get_component_domain_mask(variant);
+
+        // Log domain assignment for debugging
+        spdlog::debug("[build] {} -> [{}] domains", dev.name, get_domain_mask_string(domain_mask));
+
+        // Add component to each domain it belongs to
+        if (has_domain(domain_mask, Domain::Electrical)) {
+            result.domain_components.electrical.push_back(ptr);
+        }
+        if (has_domain(domain_mask, Domain::Logical)) {
+            result.domain_components.logical.push_back(ptr);
+        }
+        if (has_domain(domain_mask, Domain::Mechanical)) {
+            result.domain_components.mechanical.push_back(ptr);
+        }
+        if (has_domain(domain_mask, Domain::Hydraulic)) {
+            result.domain_components.hydraulic.push_back(ptr);
+        }
+        if (has_domain(domain_mask, Domain::Thermal)) {
+            result.domain_components.thermal.push_back(ptr);
+            spdlog::info("[build] {} -> THERMAL domain", dev.name);
+        }
     }
 
-    spdlog::info("[build] created {} components", result.devices.size());
+    spdlog::warn("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",
+        result.devices.size(),
+        result.domain_components.electrical.size(),
+        result.domain_components.logical.size(),
+        result.domain_components.mechanical.size(),
+        result.domain_components.hydraulic.size(),
+        result.domain_components.thermal.size());
 
     return result;
 }

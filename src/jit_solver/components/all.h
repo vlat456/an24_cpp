@@ -25,6 +25,8 @@ enum class APUState { OFF, CRANKING, IGNITION, RUNNING, STOPPING };
 template <typename Provider = JitProvider>
 class Battery {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     std::string name;
     float capacity = 1000.0f;
@@ -43,6 +45,8 @@ public:
 template <typename Provider = JitProvider>
 class Switch {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     bool closed = false;
     float last_control = 0.0f;
@@ -60,6 +64,8 @@ public:
 template <typename Provider = JitProvider>
 class Relay {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     bool closed = false;
     float hold_threshold = 0.5f;
@@ -77,6 +83,8 @@ public:
 template <typename Provider = JitProvider>
 class HoldButton {
 public:
+    static constexpr Domain domain = Domain::Logical;
+
     Provider provider;
     float idle = 0.0f;
     float last_control = 0.0f;
@@ -95,6 +103,8 @@ public:
 template <typename Provider = JitProvider>
 class Resistor {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float conductance = 0.1f;
 
@@ -107,6 +117,8 @@ public:
 template <typename Provider = JitProvider>
 class Load {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float conductance = 0.1f;
 
@@ -119,6 +131,8 @@ public:
 template <typename Provider = JitProvider>
 class RefNode {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float value = 0.0f;
 
@@ -131,6 +145,8 @@ public:
 template <typename Provider = JitProvider>
 class Bus {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
 
     Bus() = default;
@@ -142,6 +158,8 @@ public:
 template <typename Provider = JitProvider>
 class Generator {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float internal_r = 0.005f;
     float v_nominal = 28.5f;
@@ -155,6 +173,8 @@ public:
 template <typename Provider = JitProvider>
 class GS24 {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     GS24Mode mode = GS24Mode::STARTER;
     float start_time = 0.0f;
@@ -180,6 +200,8 @@ public:
 template <typename Provider = JitProvider>
 class Transformer {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float ratio = 1.0f;
 
@@ -192,6 +214,8 @@ public:
 template <typename Provider = JitProvider>
 class Inverter {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float efficiency = 0.95f;
     float frequency = 400.0f;
@@ -205,6 +229,8 @@ public:
 template <typename Provider = JitProvider>
 class LerpNode {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float factor = 1.0f;
 
@@ -218,6 +244,8 @@ public:
 template <typename Provider = JitProvider>
 class Splitter {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
 
     Splitter() = default;
@@ -232,6 +260,8 @@ public:
 template <typename Provider = JitProvider>
 class IndicatorLight {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float max_brightness = 100.0f;
     std::string color = "white";
@@ -245,6 +275,8 @@ public:
 template <typename Provider = JitProvider>
 class HighPowerLoad {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float power_draw = 500.0f;
 
@@ -257,6 +289,8 @@ public:
 template <typename Provider = JitProvider>
 class Voltmeter {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
 
     Voltmeter() = default;
@@ -268,6 +302,8 @@ public:
 template <typename Provider = JitProvider>
 class Gyroscope {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float conductance = 0.001f;
 
@@ -280,6 +316,8 @@ public:
 template <typename Provider = JitProvider>
 class AGK47 {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float conductance = 0.001f;
 
@@ -296,6 +334,8 @@ public:
 template <typename Provider = JitProvider>
 class ElectricPump {
 public:
+    static constexpr Domain domain = Domain::Hydraulic;
+
     Provider provider;
     float max_pressure = 1000.0f;
 
@@ -309,6 +349,8 @@ public:
 template <typename Provider = JitProvider>
 class SolenoidValve {
 public:
+    static constexpr Domain domain = Domain::Hydraulic;
+
     Provider provider;
     bool normally_closed = true;
 
@@ -325,6 +367,8 @@ public:
 template <typename Provider = JitProvider>
 class InertiaNode {
 public:
+    static constexpr Domain domain = Domain::Mechanical;
+
     Provider provider;
     float mass = 1.0f;
     float inv_mass = 1.0f;
@@ -344,6 +388,8 @@ public:
 template <typename Provider = JitProvider>
 class TempSensor {
 public:
+    static constexpr Domain domain = Domain::Thermal;
+
     Provider provider;
     float sensitivity = 1.0f;
 
@@ -356,6 +402,8 @@ public:
 template <typename Provider = JitProvider>
 class ElectricHeater {
 public:
+    static constexpr Domain domain = Domain::Electrical | Domain::Thermal;
+
     Provider provider;
     float max_power = 1000.0f;
     float efficiency = 0.9f;
@@ -370,6 +418,8 @@ public:
 template <typename Provider = JitProvider>
 class RUG82 {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     float v_target = 28.5f;
     float k_mod = 0.5f;
@@ -384,6 +434,8 @@ public:
 template <typename Provider = JitProvider>
 class DMR400 {
 public:
+    static constexpr Domain domain = Domain::Electrical;
+
     Provider provider;
     bool is_closed = false;
     float connect_threshold = 2.0f;
@@ -401,6 +453,8 @@ public:
 template <typename Provider = JitProvider>
 class RU19A {
 public:
+    static constexpr Domain domain = Domain::Electrical | Domain::Mechanical | Domain::Thermal;
+
     Provider provider;
     APUState state = APUState::OFF;
     float timer = 0.0f;
@@ -434,6 +488,8 @@ public:
 template <typename Provider = JitProvider>
 class Radiator {
 public:
+    static constexpr Domain domain = Domain::Thermal;
+
     Provider provider;
     float cooling_capacity = 1000.0f;
 
@@ -446,6 +502,8 @@ public:
 template <typename Provider = JitProvider>
 class Comparator {
 public:
+    static constexpr Domain domain = Domain::Logical;
+
     Provider provider;
     bool output_state = false;
     float Von = 5.0f;

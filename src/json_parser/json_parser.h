@@ -11,14 +11,29 @@ namespace an24 {
 // Forward declarations
 struct DeviceInstance;
 
-/// Domain types for multi-domain simulation
-enum class Domain {
-    Electrical,  // 60 Hz - fast electrical dynamics
-    Hydraulic,   // 5 Hz - slow fluid dynamics
-    Mechanical,  // 20 Hz - medium mechanical systems
-    Thermal,     // 1 Hz - very slow temperature changes
-    Logical      // 60 Hz - boolean logic operations (runs every frame)
+/// Domain types for multi-domain simulation (bitmask for multi-domain components)
+enum class Domain : uint8_t {
+    Electrical = 1 << 0,  // 60 Hz - fast electrical dynamics
+    Logical    = 1 << 1,  // 60 Hz - boolean logic operations (runs every frame)
+    Mechanical = 1 << 2,  // 20 Hz - medium mechanical systems
+    Hydraulic  = 1 << 3,  // 5 Hz - slow fluid dynamics
+    Thermal    = 1 << 4   // 1 Hz - very slow temperature changes
 };
+
+/// Bitwise OR for Domain bitmask
+constexpr Domain operator|(Domain a, Domain b) {
+    return static_cast<Domain>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+
+/// Bitwise AND for Domain bitmask
+constexpr Domain operator&(Domain a, Domain b) {
+    return static_cast<Domain>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+
+/// Check if domain mask has specific domain
+constexpr bool has_domain(Domain mask, Domain domain) {
+    return (static_cast<uint8_t>(mask) & static_cast<uint8_t>(domain)) != 0;
+}
 
 /// Port type for validation and AOT optimization
 enum class PortType {
