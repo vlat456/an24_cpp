@@ -13,6 +13,15 @@
 
 namespace an24 {
 
+// Forward declarations for Provider pattern (defined in provider.h)
+struct JitProvider;
+
+template <PortNames P, uint32_t Idx>
+struct Binding;
+
+template <typename... Bindings>
+struct AotProvider;
+
 // Port names enum (for constexpr Provider pattern)
 // Used by AOT components to get compile-time port indices
 enum class PortNames : uint32_t {

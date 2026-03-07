@@ -1,4 +1,5 @@
 #include "components/all.h"
+#include "components/port_registry.h"
 #include "../state.h"
 #include <spdlog/spdlog.h>
 #include <cmath>

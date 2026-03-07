@@ -690,6 +690,7 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
     oss << "#include <vector>\n";
+    oss << "#include <variant>\n";
     oss << "\n";
     oss << "namespace an24 {\n";
     oss << "\n";
@@ -760,6 +761,36 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "    return {};\n";
     oss << "}\n";
     oss << "\n";
+
+    // Generate ComponentVariant for dynamic component containers (Editor JIT)
+    oss << "// Component variant for dynamic component storage (Editor JIT mode)\n";
+    oss << "// Enables type-safe storage of any component type without virtual calls\n";
+    oss << "using ComponentVariant = std::variant<\n";
+    for (size_t i = 0; i < all_components.size(); ++i) {
+        oss << "    " << all_components[i].classname << "<JitProvider>";
+        if (i < all_components.size() - 1) oss << ",\n";
+        else oss << "\n";
+    }
+    oss << ">;\n\n";
+
+    // Generate visitor helper for calling solve methods on variant
+    oss << "// Visitor helper for calling solve_electrical on component variant\n";
+    oss << "template <typename... Visitors>\n";
+    oss << "struct overloaded : Visitors... {\n";
+    oss << "    using Visitors::operator()...;\n";
+    oss << "};\n\n";
+
+    oss << "// Helper visitor to call solve_electrical on any component\n";
+    oss << "inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {\n";
+    oss << "    component.solve_electrical(st, dt);\n";
+    oss << "};\n\n";
+
+    oss << "// Helper visitor to call post_step on any component (optional)\n";
+    oss << "inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {\n";
+    oss << "    if constexpr (requires { component.post_step(st, dt); }) {\n";
+    oss << "        component.post_step(st, dt);\n";
+    oss << "    }\n";
+    oss << "};\n\n";
 
     oss << "} // namespace an24\n";
 

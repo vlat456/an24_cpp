@@ -1,6 +1,7 @@
 #pragma once
 
 #include "provider.h"
+#include "port_registry.h"
 #include "../state.h"
 #include <cstdint>
 

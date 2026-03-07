@@ -1,4 +1,5 @@
 #include "jit_solver/components/provider_components.h"
+#include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
 #include <iostream>
 #include <cassert>
