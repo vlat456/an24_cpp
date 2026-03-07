@@ -145,3 +145,8 @@ target_link_libraries(an24_editor PRIVATE
     json_parser
 )
 
+# Benchmark JIT vs AOT
+add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
+target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
+

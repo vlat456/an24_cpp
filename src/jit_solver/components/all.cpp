@@ -16,13 +16,8 @@ void Battery<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/
     float v_bus = st.across[provider.get(PortNames::v_out)];
     float g = inv_internal_r;
 
-    spdlog::debug("[Battery {}] v_gnd={:.2f} v_bus={:.2f} g={:.2f}",
-        name, v_gnd, v_bus, g);
-
     float i = (v_nominal + v_gnd - v_bus) * g;
     i = std::clamp(i, -1000.0f, 1000.0f);
-
-    spdlog::debug("[Battery {}] i={:.2f}", name, i);
 
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
@@ -55,8 +50,6 @@ void Switch<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
 
     if (std::abs(current_control - last_control) > 0.1f) {
         closed = !closed;
-        spdlog::info("[Switch] Control changed {:.2f}→{:.2f}, toggled to closed={}",
-            last_control, current_control, closed);
     }
     last_control = current_control;
 
@@ -156,9 +149,6 @@ void Load<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
     float v = st.across[provider.get(PortNames::input)];
     float i = v * conductance;
 
-    spdlog::debug("[Load] node={} v={:.2f} g={:.2f} i={:.2f}",
-        provider.get(PortNames::input), v, conductance, i);
-
     stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
                           provider.get(PortNames::input), conductance);
 }
@@ -222,9 +212,6 @@ void GS24<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 
         float g_internal = 1.0f / r_internal;
 
-        spdlog::debug("[GS24 starter] v_bus={:.1f} back_emf={:.1f} I={:.0f}A mode=STARTER",
-            v_bus, back_emf, i_consumed);
-
         st.through[provider.get(PortNames::v_out)] -= i_consumed;
         st.through[provider.get(PortNames::v_in)] += i_consumed;
         st.conductance[provider.get(PortNames::v_out)] += g_internal;
@@ -244,9 +231,6 @@ void GS24<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 
         float g_norton = (r_norton > 0.0f) ? 1.0f / r_norton : 0.0f;
 
-        spdlog::debug("[GS24 gen] rpm%={:.0f}% phi={:.2f} k_mod={:.2f} I_no={:.1f}A mode=GENERATOR",
-            rpm_percent * 100, phi, k_mod, i_no);
-
         st.through[provider.get(PortNames::v_out)] += i_no;
         st.conductance[provider.get(PortNames::v_out)] += g_norton;
     }
@@ -265,14 +249,10 @@ void GS24<Provider>::post_step(an24::SimulationState& st, float dt) {
                 current_rpm += acceleration * dt;
             }
 
-            spdlog::debug("[GS24 post] rpm={:.0f} ({:.1f}%) cutoff={:.1f}",
-                current_rpm, rpm_percent * 100, rpm_cutoff * 100);
-
             if (rpm_percent >= rpm_cutoff) {
                 current_rpm = target_rpm * rpm_cutoff;
                 mode = GS24Mode::STARTER_WAIT;
                 wait_time = 0.0f;
-                spdlog::info("[GS24] STARTER -> STARTER_WAIT at {:.0f}% RPM", rpm_percent * 100);
             }
             break;
 
@@ -280,7 +260,6 @@ void GS24<Provider>::post_step(an24::SimulationState& st, float dt) {
             wait_time += dt;
             if (wait_time >= 1.0f) {
                 mode = GS24Mode::GENERATOR;
-                spdlog::info("[GS24] STARTER_WAIT -> GENERATOR");
             }
             break;
 
@@ -550,9 +529,6 @@ void RUG82<Provider>::solve_electrical(an24::SimulationState& st, float dt) {
     if (k_mod < 0.0f) k_mod = 0.0f;
     if (k_mod > 1.0f) k_mod = 1.0f;
 
-    spdlog::debug("[RUG82] v_gen={:.2f} error={:.2f} k_mod={:.2f}",
-        v_gen, error, k_mod);
-
     st.across[provider.get(PortNames::k_mod)] = k_mod;
 }
 
@@ -588,15 +564,11 @@ void DMR400<Provider>::post_step(an24::SimulationState& st, float dt) {
     if (!is_closed) {
         if (reconnect_delay <= 0.0f && v_gen > v_bus + connect_threshold && v_gen > min_voltage_to_close) {
             is_closed = true;
-            spdlog::info("[DMR400] CONNECTED: V_gen={:.1f} > V_bus={:.1f} + {:.1f}, V_gen > {:.1f}V",
-                v_gen, v_bus, connect_threshold, min_voltage_to_close);
         }
     } else {
         if (v_bus > v_gen + disconnect_threshold) {
             is_closed = false;
             reconnect_delay = 1.0f;
-            spdlog::warn("[DMR400] DISCONNECTED: Reverse current V_bus={:.1f} > V_gen={:.1f}",
-                v_bus, v_gen);
         }
     }
 
@@ -612,9 +584,6 @@ void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
     float v_start = st.across[provider.get(PortNames::v_start)];
     float v_bus = st.across[provider.get(PortNames::v_bus)];
 
-    spdlog::debug("[RU19A] solve_electrical: state={} v_start={:.2f}V v_bus={:.2f}V",
-        (int)this->state, v_start, v_bus);
-
     if (this->state == APUState::OFF) {
         return;
     }
@@ -629,9 +598,6 @@ void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 
         if (i_consumed < 0.0f) i_consumed = 0.0f;
         if (i_consumed > 1000.0f) i_consumed = 1000.0f;
-
-        spdlog::debug("[RU19A] starter mode: v_start={:.1f} back_emf={:.1f} I={:.0f}A",
-            v_start, back_emf, i_consumed);
 
         st.through[provider.get(PortNames::v_start)] -= i_consumed;
         st.conductance[provider.get(PortNames::v_start)] += 1.0f / R_START_INTERNAL;
@@ -653,9 +619,6 @@ void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 
         float g_norton = 1.0f / 0.08f;
 
-        spdlog::debug("[RU19A] generator mode: rpm={:.0f}% phi={:.2f} I={:.1f}A",
-            rpm_percent * 100, phi, i_no);
-
         st.through[provider.get(PortNames::v_bus)] += i_no;
         st.conductance[provider.get(PortNames::v_bus)] += g_norton;
     }
@@ -663,8 +626,6 @@ void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 
 template <typename Provider>
 void RU19A<Provider>::solve_mechanical(an24::SimulationState& st, float dt) {
-    spdlog::info("[RU19A] solve_mechanical called! state={}, current_rpm={:.0f}", (int)this->state, current_rpm);
-
     float target_rpm_local = 0.0f;
     float voltage_factor = 1.0f;
 
@@ -707,10 +668,6 @@ void RU19A<Provider>::solve_mechanical(an24::SimulationState& st, float dt) {
 
 template <typename Provider>
 void RU19A<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
-    spdlog::info("[RU19A] solve_thermal: state={} t4={:.1f} target={:.1f}",
-        (int)this->state, t4, (this->state == APUState::RUNNING) ? t4_target :
-                           (this->state == APUState::IGNITION) ? 150.0f : ambient_temp);
-
     (void)st;
 
     float target_temp = ambient_temp;
@@ -731,7 +688,6 @@ void RU19A<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
     t4 += (target_temp - t4) * dt * inertia;
 
     if (t4 > t4_max) {
-        spdlog::warn("[RU19A] HOT START ABORT! T4={:.0f}C > {:.0f}C", t4, t4_max);
         this->state = APUState::STOPPING;
     }
 
@@ -749,12 +705,8 @@ void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
             t4 = ambient_temp;
             timer = 0.0f;
 
-            float start_voltage = v_start;
-            spdlog::debug("[RU19A] OFF state: auto_start={}, v_start={:.2f}",
-                auto_start, start_voltage);
-            if (auto_start && start_voltage > 10.0f) {
+            if (auto_start && v_start > 10.0f) {
                 this->state = APUState::CRANKING;
-                spdlog::info("[RU19A] AUTOSTART - CRANKING");
             }
             break;
         }
@@ -763,7 +715,6 @@ void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
             if (timer >= crank_time) {
                 this->state = APUState::IGNITION;
                 timer = 0.0f;
-                spdlog::info("[RU19A] CRANKING -> IGNITION");
             }
             break;
         }
@@ -772,12 +723,10 @@ void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
             if (timer >= ignition_time) {
                 this->state = APUState::RUNNING;
                 timer = 0.0f;
-                spdlog::info("[RU19A] IGNITION -> RUNNING");
             }
 
             if (timer > start_timeout) {
                 this->state = APUState::STOPPING;
-                spdlog::warn("[RU19A] Start timeout!");
             }
             break;
         }
@@ -790,7 +739,6 @@ void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
             if (current_rpm <= 0.1f) {
                 current_rpm = 0.0f;
                 this->state = APUState::OFF;
-                spdlog::info("[RU19A] STOPPED");
             }
             break;
         }
@@ -842,38 +790,10 @@ void Comparator<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/
     st.across[provider.get(PortNames::o)] = output_state ? 1.0f : 0.0f;
 }
 
+} // namespace an24
+
 // =============================================================================
 // Explicit Template Instantiation for JitProvider
 // =============================================================================
 
-template class Battery<JitProvider>;
-template class Switch<JitProvider>;
-template class Relay<JitProvider>;
-template class Resistor<JitProvider>;
-template class Load<JitProvider>;
-template class Comparator<JitProvider>;
-template class HoldButton<JitProvider>;
-template class Generator<JitProvider>;
-template class GS24<JitProvider>;
-template class Transformer<JitProvider>;
-template class Inverter<JitProvider>;
-template class LerpNode<JitProvider>;
-template class Splitter<JitProvider>;
-template class IndicatorLight<JitProvider>;
-template class Voltmeter<JitProvider>;
-template class HighPowerLoad<JitProvider>;
-template class ElectricPump<JitProvider>;
-template class SolenoidValve<JitProvider>;
-template class InertiaNode<JitProvider>;
-template class TempSensor<JitProvider>;
-template class ElectricHeater<JitProvider>;
-template class Radiator<JitProvider>;
-template class DMR400<JitProvider>;
-template class RUG82<JitProvider>;
-template class RU19A<JitProvider>;
-template class Gyroscope<JitProvider>;
-template class AGK47<JitProvider>;
-template class Bus<JitProvider>;
-template class RefNode<JitProvider>;
-
-} // namespace an24
+#include "explicit_instantiations.h"

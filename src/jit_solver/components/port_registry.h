@@ -16,8 +16,8 @@ namespace an24 {
 enum class PortNames : uint32_t;
 } // namespace an24
 
-#include "components/provider.h"
-#include "components/all.h"
+#include "provider.h"
+#include "all.h"
 
 namespace an24 {
 

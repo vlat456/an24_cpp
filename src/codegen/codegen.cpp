@@ -98,6 +98,46 @@ bool has_domain(const DeviceInstance& dev, const std::string& domain) {
     return dev_domain.find(domain) != std::string::npos;
 }
 
+// Generate AotProvider<Binding<...>, ...> type string for a device
+std::string generate_aot_provider_type(
+    const DeviceInstance& dev,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    uint32_t signal_count
+) {
+    std::ostringstream oss;
+    oss << "AotProvider<";
+    bool first = true;
+    for (const auto& port : dev.ports) {
+        const std::string& port_name = port.first;
+        if (port.second.alias.has_value() && !port.second.alias.value().empty()) {
+            continue;
+        }
+        std::string port_key = dev.name + "." + port_name;
+        uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
+        if (!first) oss << ", ";
+        oss << "Binding<PortNames::" << port_name << ", " << sig << ">";
+        first = false;
+    }
+    oss << ">";
+    return oss.str();
+}
+
+// Get port name from device port definitions - NO FALLBACKS, fail hard
+std::string get_port_name(const std::unordered_map<std::string, Port>& ports, const std::string& required_port) {
+    if (ports.count(required_port)) {
+        return required_port;
+    }
+
+    // Build error message listing available ports
+    std::string available = "{";
+    for (const auto& [name, port] : ports) {
+        available += name + " ";
+    }
+    available += "}";
+
+    throw std::runtime_error("_codegen error: required port '" + required_port + "' not found. Available ports: " + available);
+}
+
 } // anonymous namespace
 
 std::string CodeGen::generate_header(
@@ -195,9 +235,11 @@ std::string CodeGen::generate_header(
     oss << "class Systems {\n";
     oss << "public:\n";
 
-    // Device objects - kept for compatibility, but NOT used in hot path
+    // Device objects with AotProvider - compile-time constexpr port index lookup
+    // Zero-cost abstraction: provider.get(PortNames::v_in) compiles to a constant
     for (const auto& dev : devices) {
-        oss << "    " << dev.classname << " " << dev.name << ";\n";
+        std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
+        oss << "    " << dev.classname << "<" << aot_type << "> " << dev.name << ";\n";
     }
     oss << "\n";
 
@@ -236,9 +278,6 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
-    oss << "    /// Post-step updates\n";
-    oss << "    void post_step(void* state, float dt);\n\n";
-
     // Balance methods - domain-specific for AOT optimization
     oss << "    /// Balance electrical domain (AOT-optimized, __restrict)\n";
     oss << "    AOT_INLINE void balance_electrical(void* state, float omega);\n\n";
@@ -265,8 +304,19 @@ std::string CodeGen::generate_source(
     std::ostringstream oss;
 
     oss << "#include \"" << header_name << "\"\n";
+    // Include template definitions from all.cpp so compiler can instantiate AotProvider versions
+    oss << "#include \"jit_solver/components/all.cpp\"\n";
     oss << "#include <cstring>  // memcpy\n\n";
     oss << "namespace an24 {\n\n";
+
+    // Explicit template instantiations for AotProvider
+    // These tell the compiler to generate code for Component<AotProvider<Bindings...>>
+    oss << "// Explicit template instantiations for AOT\n";
+    for (const auto& dev : devices) {
+        std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
+        oss << "template class " << dev.classname << "<" << aot_type << ">;\n";
+    }
+    oss << "\n";
 
     // Constructor - only initialize component parameters (port indices are compile-time constants)
     oss << "Systems::Systems()\n";
@@ -376,71 +426,11 @@ std::string CodeGen::generate_source(
                     [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
                 if (dev_it == devices.end()) continue;
 
-                // Generate inline code based on component type
-                if (dev_it->classname == "Bus" || dev_it->classname == "RefNode") {
-                    // Bus/RefNode: no-op (just wire junction)
-                    oss << "    // " << dev_name << " (wire junction, no-op)\n";
-                } else if (dev_it->classname == "Battery") {
-                    // Battery: Thevenin -> Norton
-                    std::string v_in_idx = dev_name + "_v_in_idx";
-                    std::string v_out_idx = dev_name + "_v_out_idx";
-                    oss << "    // Battery: Norton equivalent\n";
-                    oss << "    {\n";
-                    oss << "        float v_gnd = st->across[" << v_in_idx << "];\n";
-                    oss << "        float v_bus = st->across[" << v_out_idx << "];\n";
-                    oss << "        float v_nominal = " << dev_name << ".v_nominal;\n";
-                    oss << "        float g = " << dev_name << ".inv_internal_r;\n";
-                    oss << "        float i = (v_nominal + v_gnd - v_bus) * g;\n";
-                    oss << "        st->through[" << v_in_idx << "] -= i;\n";
-                    oss << "        st->through[" << v_out_idx << "] += i;\n";
-                    oss << "    }\n";
-                } else if (dev_it->classname == "Resistor") {
-                    // Resistor: I = (V_in - V_out) * g
-                    std::string v_in_idx = dev_name + "_v_in_idx";
-                    std::string v_out_idx = dev_name + "_v_out_idx";
-                    oss << "    // Resistor: two-port conductance\n";
-                    oss << "    {\n";
-                    oss << "        float v_in = st->across[" << v_in_idx << "];\n";
-                    oss << "        float v_out = st->across[" << v_out_idx << "];\n";
-                    oss << "        float g = " << dev_name << ".conductance;\n";
-                    oss << "        float i = (v_in - v_out) * g;\n";
-                    oss << "        st->through[" << v_in_idx << "] -= i;\n";
-                    oss << "        st->through[" << v_out_idx << "] += i;\n";
-                    oss << "    }\n";
-                } else if (dev_it->classname == "Load") {
-                    // Load: I = V * g (to ground)
-                    std::string input_idx = dev_name + "_input_idx";
-                    oss << "    // Load: single port to ground\n";
-                    oss << "    {\n";
-                    oss << "        float v = st->across[" << input_idx << "];\n";
-                    oss << "        float g = " << dev_name << ".conductance;\n";
-                    oss << "        float i = v * g;\n";
-                    oss << "        st->through[" << input_idx << "] += i;\n";
-                    oss << "    }\n";
-                } else if (dev_it->classname == "Voltmeter") {
-                    // Voltmeter: high resistance load (I = V * g, g ~ 1e-6)
-                    std::string input_idx = dev_name + "_input_idx";
-                    oss << "    // Voltmeter: high resistance measurement\n";
-                    oss << "    {\n";
-                    oss << "        float v = st->across[" << input_idx << "];\n";
-                    oss << "        float g = " << dev_name << ".conductance;\n";
-                    oss << "        float i = v * g;\n";
-                    oss << "        st->through[" << input_idx << "] += i;\n";
-                    oss << "        " << dev_name << ".voltage = v;\n";
-                    oss << "    }\n";
-                } else if (dev_it->classname == "IndicatorLight") {
-                    // IndicatorLight: load + voltage threshold for on/off
-                    std::string input_idx = dev_name + "_input_idx";
-                    oss << "    // IndicatorLight: load with state tracking\n";
-                    oss << "    {\n";
-                    oss << "        float v = st->across[" << input_idx << "];\n";
-                    oss << "        float g = " << dev_name << ".conductance;\n";
-                    oss << "        float i = v * g;\n";
-                    oss << "        st->through[" << input_idx << "] += i;\n";
-                    oss << "        " << dev_name << ".is_on = (v > " << dev_name << ".threshold);\n";
-                    oss << "    }\n";
+                // Call component method (compiler will inline with -O3 -ffast-math)
+                // Bus/RefNode are no-ops, others have solve_electrical()
+                if (dev_it->classname == "Bus" || dev_it->classname == "RefNode" || dev_it->classname == "Voltmeter") {
+                    oss << "    // " << dev_name << " (no-op)\n";
                 } else {
-                    // Fallback to method call for complex components
                     oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
                 }
             }
@@ -455,28 +445,8 @@ std::string CodeGen::generate_source(
                     [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
                 if (dev_it == devices.end()) continue;
 
-                // Generate inline code based on component type
-                if (dev_it->classname == "Comparator") {
-                    // Comparator: Va >= Vb ? 1.0V : 0.0V with hysteresis
-                    std::string Va_idx = dev_name + "_Va_idx";
-                    std::string Vb_idx = dev_name + "_Vb_idx";
-                    std::string o_idx = dev_name + "_o_idx";
-                    oss << "    // Comparator: hysteresis comparison\n";
-                    oss << "    {\n";
-                    oss << "        float Va = st->across[" << Va_idx << "];\n";
-                    oss << "        float Vb = st->across[" << Vb_idx << "];\n";
-                    oss << "        float diff = Va - Vb;\n";
-                    oss << "        float Von = " << dev_name << ".Von;\n";
-                    oss << "        float Voff = " << dev_name << ".Voff;\n";
-                    oss << "        bool set = (diff >= Von);\n";
-                    oss << "        bool keep = (diff > Voff);\n";
-                    oss << "        " << dev_name << ".output_state = set || (" << dev_name << ".output_state && keep);\n";
-                    oss << "        st->across[" << o_idx << "] = " << dev_name << ".output_state ? 1.0f : 0.0f;\n";
-                    oss << "    }\n";
-                } else {
-                    // Fallback to method call
-                    oss << "    " << dev_name << ".solve_logical(*st, dt);\n";
-                }
+                // Call component method (compiler will inline with -O3)
+                oss << "    " << dev_name << ".solve_logical(*st, dt);\n";
             }
         }
 
@@ -512,14 +482,6 @@ std::string CodeGen::generate_source(
 
         oss << "}\n\n";
     }
-
-    // Post-step
-    oss << "void Systems::post_step(void* state, float dt) {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    for (const auto& dev : devices) {
-        oss << "    " << dev.name << ".post_step(*st, dt);\n";
-    }
-    oss << "}\n\n";
 
     // Balance electrical - FAST MATH version (no divisions, uses inv_omega = 1/omega)
     // For WASM: this is critical - div is expensive!
@@ -699,8 +661,9 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "} // namespace an24\n";
     oss << "\n";
     // Include Provider pattern and component definitions
-    oss << "#include \"components/provider.h\"\n";
-    oss << "#include \"components/all.h\"\n";
+    // These are relative to port_registry.h location (src/jit_solver/components/)
+    oss << "#include \"provider.h\"\n";
+    oss << "#include \"all.h\"\n";
     oss << "\n";
     oss << "namespace an24 {\n";
     oss << "\n";
