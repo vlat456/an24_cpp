@@ -56,9 +56,6 @@ struct SimulationState {
     /// Precompute inverse conductance (1/G)
     void precompute_inv_conductance();
 
-    /// SOR solver with delta clamping and NaN/Inf protection
-    void solve_signals_balance(float sor_omega);
-
     /// Save current state for convergence checking
     void save_convergence_state();
 
