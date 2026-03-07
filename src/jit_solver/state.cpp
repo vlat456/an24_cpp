@@ -87,7 +87,7 @@ void SimulationState::solve_signals_balance(float sor_omega) {
     // Максимально допустимый скачок: MAX_DELTA = 5V за итерацию.
     // ====================================================================
 
-    constexpr float MAX_DELTA = 5.0f;  // Максимальное изменение за 1 итерацию SOR
+    constexpr float MAX_DELTA = 10.0f;  // Макс. изменение за 1 итерацию SOR
     bool solver_exploded = false;      // Флаг для детекции краша решателя
 
     for (size_t i = 0; i < across.size(); ++i) {

@@ -84,8 +84,8 @@ private:
     /// Integer step counter
     uint64_t step_count_ = 0;
 
-    /// SOR over-relaxation factor
-    float omega_ = 1.8f;
+    /// SOR over-relaxation factor (1.0 = Gauss-Seidel, 1.2-1.5 = stable for aircraft systems)
+    float omega_ = 1.3f;
 };
 
 // Type alias for backward compatibility

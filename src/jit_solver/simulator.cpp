@@ -177,8 +177,13 @@ void Simulator<SolverTag>::step(float dt) {
 
     state_.precompute_inv_conductance();
 
-    // SOR solver with delta clamping and NaN/Inf protection
-    state_.solve_signals_balance(omega_);
+    // SOR update - no clamping, it creates bistable traps
+    // Rely on omega_ for stability instead
+    for (size_t i = 0; i < state_.across.size(); ++i) {
+        if (!state_.signal_types[i].is_fixed && state_.inv_conductance[i] > 0.0f) {
+            state_.across[i] += state_.through[i] * state_.inv_conductance[i] * omega_;
+        }
+    }
 
     // post_step for components that need it
     for (auto& [name, variant] : build_result_->devices) {

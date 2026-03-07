@@ -17,7 +17,7 @@ void Battery<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/
     float g = inv_internal_r;
 
     float i = (v_nominal + v_gnd - v_bus) * g;
-    i = std::clamp(i, -1000.0f, 1000.0f);
+    i = std::clamp(i, -3000.0f, 3000.0f);  // Increased for 115V systems
 
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
