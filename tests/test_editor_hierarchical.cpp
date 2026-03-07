@@ -800,7 +800,7 @@ TEST(Visibility, DrillDown_HidesCollapsed_ShowsInternals) {
     collapsed_node->visible = false;  // Hide collapsed node
 
     for (const auto& id : internal_ids) {
-        Node* internal = bp.find_node(id);
+        Node* internal = bp.find_node(id.c_str());
         ASSERT_NE(internal, nullptr);
         internal->visible = true;  // Show internal nodes
     }
@@ -817,8 +817,8 @@ TEST(Visibility, DrillDown_HidesCollapsed_ShowsInternals) {
 
     // Verify all internal nodes are now visible
     for (const auto& id : internal_ids) {
-        Node* internal = bp.find_node(id);
-        EXPECT_TRUE(internal->visible) << "Internal node " << id << " should be visible after drill-down";
+        Node* internal = bp.find_node(id.c_str());
+        EXPECT_TRUE(internal->visible) << "Internal node " << id.c_str() << " should be visible after drill-down";
     }
 }
 
@@ -853,7 +853,7 @@ TEST(Visibility, DrillOut_ShowsCollapsed_HidesInternals) {
     collapsed_node->visible = true;  // Show collapsed node
 
     for (const auto& id : internal_ids) {
-        Node* internal = bp.find_node(id);
+        Node* internal = bp.find_node(id.c_str());
         ASSERT_NE(internal, nullptr);
         internal->visible = false;  // Hide internal nodes
     }
@@ -870,8 +870,8 @@ TEST(Visibility, DrillOut_ShowsCollapsed_HidesInternals) {
 
     // Verify all internal nodes are hidden again
     for (const auto& id : internal_ids) {
-        Node* internal = bp.find_node(id);
-        EXPECT_FALSE(internal->visible) << "Internal node " << id << " should be hidden after drill-out";
+        Node* internal = bp.find_node(id.c_str());
+        EXPECT_FALSE(internal->visible) << "Internal node " << id.c_str() << " should be hidden after drill-out";
     }
 }
 
@@ -882,6 +882,8 @@ TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
     // Create collapsed Blueprint node
     Node collapsed;
     collapsed.id = "lamp1";
+    collapsed.name = "lamp1";
+    collapsed.type_name = "lamp_pass_through";  // Must have a valid type_name
     collapsed.visible = true;
     collapsed.kind = NodeKind::Blueprint;
     collapsed.pos = Pt(100.0f, 100.0f);
@@ -906,8 +908,8 @@ TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
         } else if (type == "BlueprintOutput") {
             n.inputs.push_back(::Port("port", PortSide::Input, an24::PortType::V));
         } else if (type == "IndicatorLight") {
-            n.inputs.push_back(::Port("in", PortSide::Input, an24::PortType::V));
-            n.outputs.push_back(::Port("out", PortSide::Output, an24::PortType::V));
+            n.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
+            n.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
         }
 
         bp.add_node(std::move(n));
@@ -922,12 +924,12 @@ TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
     Wire conn1;
     conn1.id = "conn1";
     conn1.start = WireEnd("lamp1:vin", "port", PortSide::Output);
-    conn1.end = WireEnd("lamp1:lamp", "in", PortSide::Input);
+    conn1.end = WireEnd("lamp1:lamp", "v_in", PortSide::Input);
     bp.add_wire(conn1);
 
     Wire conn2;
     conn2.id = "conn2";
-    conn2.start = WireEnd("lamp1:lamp", "out", PortSide::Output);
+    conn2.start = WireEnd("lamp1:lamp", "v_out", PortSide::Output);
     conn2.end = WireEnd("lamp1:vout", "port", PortSide::Input);
     bp.add_wire(conn2);
 
@@ -938,10 +940,11 @@ TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
     ASSERT_TRUE(sim.build_result.has_value()) << "Build should succeed with visibility state";
     auto& result = *sim.build_result;
 
-    // Verify that all 4 devices were created (collapsed + 3 internals)
-    EXPECT_EQ(result.devices.size(), 4) << "Simulation should see all 4 nodes (collapsed + 3 internals)";
+    // Verify that only the 3 internal devices were created
+    // The collapsed Blueprint node is NOT a simulation device - it's just visual
+    EXPECT_EQ(result.devices.size(), 3) << "Simulation should only see the 3 internal devices (collapsed node is visual-only)";
 
-    // Verify port mapping exists for both collapsed and internal nodes
+    // Verify port mapping exists for internal nodes
     // Note: BlueprintInput/BlueprintOutput have .port suffix
     EXPECT_TRUE(result.port_to_signal.count("lamp1:vin.port")) << "BlueprintInput port should be mapped";
     EXPECT_TRUE(result.port_to_signal.count("lamp1:vout.port")) << "BlueprintOutput port should be mapped";
