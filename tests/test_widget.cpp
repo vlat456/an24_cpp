@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "editor/interfaces.h"
-#include "editor/widget.h"
-#include "editor/visual_node.h"
-#include "editor/render.h"
+#include "editor/visual/interfaces.h"
+#include "editor/visual/node/widget.h"
+#include "editor/visual/node/node.h"
+#include "editor/visual/render.h"
 #include "editor/data/node.h"
 
 // ============================================================================

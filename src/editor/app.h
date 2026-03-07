@@ -3,8 +3,8 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "interact/interaction.h"
-#include "hittest.h"
-#include "visual_scene.h"
+#include "visual/hittest.h"
+#include "visual/scene/scene.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
@@ -33,11 +33,6 @@ enum class Key {
 struct EditorApp {
     /// Scene graph (owns blueprint, viewport, visual cache)
     VisualScene scene;
-
-    /// Convenience aliases for gradual migration
-    Blueprint& blueprint = scene.blueprint();
-    Viewport& viewport = scene.viewport();
-    VisualNodeCache& visual_cache = scene.cache();
 
     /// Interaction state
     Interaction interaction;
@@ -93,7 +88,7 @@ struct EditorApp {
         if (simulation_running) {
             // If running, restart to rebuild components
             simulation.stop();
-            simulation.start(blueprint);
+            simulation.start(scene.blueprint());
         }
         // If not running, components will be built on next start()
     }
@@ -101,7 +96,7 @@ struct EditorApp {
     /// Запустить симуляцию
     void start_simulation() {
         if (!simulation_running) {
-            simulation.start(blueprint);  // Creates components!
+            simulation.start(scene.blueprint());  // Creates components!
             simulation_running = true;
         }
     }

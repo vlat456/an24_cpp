@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/visual_scene.h"
+#include "editor/visual/scene/scene.h"
 
 // ============================================================================
 // VisualScene: scene graph ownership + facade tests

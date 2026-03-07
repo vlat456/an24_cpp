@@ -3,7 +3,7 @@
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
-#include "editor/persist.h"
+#include "editor/visual/scene/persist.h"
 
 /// TDD: Logical Solver and Comparator Component
 /// These tests are written FIRST (TDD approach) and will FAIL until implementation is complete

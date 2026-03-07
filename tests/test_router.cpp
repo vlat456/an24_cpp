@@ -6,8 +6,8 @@
 #include "editor/router/router.h"
 #include "editor/router/crossings.h"
 #include "editor/data/blueprint.h"
-#include "editor/trigonometry.h"
-#include "editor/visual_node.h"
+#include "editor/visual/trigonometry.h"
+#include "editor/visual/node/node.h"
 
 // ============================================================================
 // Grid conversion tests

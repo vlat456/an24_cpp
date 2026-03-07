@@ -1,1 +1,0 @@
-/usr/bin/c++ -O3 -DNDEBUG -O3 -ffast-math -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/vsu_aot_test.dir/__/generated/test_vsu_aot.cpp.o CMakeFiles/vsu_aot_test.dir/__/generated/generated_vsu_test.cpp.o -o vsu_aot_test  ../src/jit_solver/libjit_solver.a ../_deps/spdlog-build/libspdlog.a

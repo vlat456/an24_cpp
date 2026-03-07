@@ -16,8 +16,8 @@
  */
 
 #include "editor/app.h"
-#include "editor/render.h"
-#include "editor/persist.h"
+#include "editor/visual/render.h"
+#include "editor/visual/scene/persist.h"
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
 #include "debug.h"
@@ -180,15 +180,10 @@ int main(int argc, char** argv) {
 
     // Загружаем файл по умолчанию
     const char* default_file = "/Users/vladimir/an24_cpp/blueprint.json";
-    auto bp = load_blueprint_from_file(default_file);
-    if (bp.has_value()) {
-        app.blueprint = std::move(*bp);
-        app.viewport.pan = app.blueprint.pan;
-        app.viewport.zoom = app.blueprint.zoom;
-        app.viewport.grid_step = app.blueprint.grid_step;
-        app.viewport.clamp_zoom();
-        // Clear visual cache to rebuild nodes with correct node_content
-        app.visual_cache.clear();
+    if (!app.scene.load(default_file)) {
+        // File doesn't exist or failed to load - that's ok, start with empty blueprint
+        DEBUG_INFO("Default file not found or failed to load: {}", default_file);
+    } else {
         DEBUG_INFO("Loaded default file: {}", default_file);
     }
 
@@ -257,29 +252,20 @@ int main(int argc, char** argv) {
                     nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
                     if (result == NFD_OKAY) {
                         auto bp = load_blueprint_from_file(outPath);
-                        if (bp.has_value()) {
-                            app.blueprint = std::move(*bp);
-                            // Restore viewport from loaded blueprint
-                            app.viewport.pan = app.blueprint.pan;
-                            app.viewport.zoom = app.blueprint.zoom;
-                            app.viewport.grid_step = app.blueprint.grid_step;
-                            app.viewport.clamp_zoom();
-                            // Clear visual cache to rebuild nodes with correct node_content
-                            app.visual_cache.clear();
+                        if (app.scene.load(outPath_str)) {
+                            DEBUG_INFO("Loaded file: {}", outPath_str);
+                        } else {
+                            DEBUG_ERROR("Failed to load file: {}", outPath_str);
                         }
                         NFD_FreePath(outPath);
                     }
                 }
                 if (ImGui::MenuItem("Save", "Ctrl+S")) {
-                    // Sync viewport to blueprint before saving
-                    app.blueprint.pan = app.viewport.pan;
-                    app.blueprint.zoom = app.viewport.zoom;
-                    app.blueprint.grid_step = app.viewport.grid_step;
                     nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
                     if (result == NFD_OKAY) {
-                        save_blueprint_to_file(app.blueprint, outPath);
+                        app.scene.save(outPath);
                         NFD_FreePath(outPath);
                     }
                 }
@@ -323,7 +309,7 @@ int main(int argc, char** argv) {
         imgui_dl.dl = ImGui::GetWindowDrawList();
 
         // Сетка
-        render_grid(&imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt);
+        render_grid(&imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt);
 
         // Get mouse position for tooltip detection
         Pt hover_world_pos;
@@ -331,14 +317,14 @@ int main(int argc, char** argv) {
         if (ImGui::IsWindowHovered()) {
             ImVec2 mouse_pos = ImGui::GetMousePos();
             Pt mouse(mouse_pos.x, mouse_pos.y);
-            hover_world_pos = app.viewport.screen_to_world(mouse, canvas_min_pt);
+            hover_world_pos = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
             has_hover = true;
         }
 
         // Blueprint - с симуляцией для подсветки проводов [h1a2b3c4] - pass cache
         TooltipInfo tooltip;
-        render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
-                         app.visual_cache,
+        render_blueprint(app.scene.blueprint(), &imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt,
+                         app.scene.cache(),
                          &app.interaction.selected_nodes, app.interaction.selected_wire,
                          &app.simulation,
                          has_hover ? &hover_world_pos : nullptr, &tooltip);
@@ -350,11 +336,11 @@ int main(int argc, char** argv) {
         if (app.interaction.dragging == Dragging::CreatingWire && app.interaction.has_wire_start()) {
             Pt start_pos = app.interaction.get_wire_start_pos();
             ImVec2 mouse_pos = ImGui::GetMousePos();
-            Pt end_world = app.viewport.screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
+            Pt end_world = app.scene.viewport().screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
 
             // Convert to screen coordinates
-            Pt start_screen = app.viewport.world_to_screen(start_pos, canvas_min_pt);
-            Pt end_screen = app.viewport.world_to_screen(end_world, canvas_min_pt);
+            Pt start_screen = app.scene.viewport().world_to_screen(start_pos, canvas_min_pt);
+            Pt end_screen = app.scene.viewport().world_to_screen(end_world, canvas_min_pt);
 
             // Draw temporary wire (dashed line)
             uint32_t wire_color = IM_COL32(255, 255, 100, 200); // Yellow

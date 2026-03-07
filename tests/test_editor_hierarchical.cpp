@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "editor/render.h"
+#include "editor/visual/render.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/viewport/viewport.h"
 #include "editor/simulation.h"
-#include "editor/persist.h"
-#include "editor/visual_node.h"
+#include "editor/visual/scene/persist.h"
+#include "editor/visual/node/node.h"
 #include "json_parser/json_parser.h"
 #include "jit_solver/simulator.h"
 #include <nlohmann/json.hpp>

@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 #include "editor/app.h"
 #include "editor/data/node.h"
-#include "editor/trigonometry.h"
+#include "editor/visual/trigonometry.h"
 
 /// TDD Step 7: Event handling
 
 TEST(EventsTest, DefaultApp_HasEmptyBlueprint) {
     EditorApp app;
-    EXPECT_TRUE(app.blueprint.nodes.empty());
-    EXPECT_TRUE(app.blueprint.wires.empty());
+    EXPECT_TRUE(app.scene.blueprint().nodes.empty());
+    EXPECT_TRUE(app.scene.blueprint().wires.empty());
 }
 
 TEST(EventsTest, NewCircuit_CreatesEmpty) {
@@ -18,11 +18,11 @@ TEST(EventsTest, NewCircuit_CreatesEmpty) {
     Node n;
     n.id = "test";
     n.at(100.0f, 50.0f);
-    app.blueprint.add_node(std::move(n));
+    app.scene.blueprint().add_node(std::move(n));
 
     // new_circuit() очищает
     app.new_circuit();
-    EXPECT_TRUE(app.blueprint.nodes.empty());
+    EXPECT_TRUE(app.scene.blueprint().nodes.empty());
 }
 
 TEST(EventsTest, MouseDown_OnNode_Selects) {
@@ -31,7 +31,7 @@ TEST(EventsTest, MouseDown_OnNode_Selects) {
     n.id = "batt1";
     n.at(100.0f, 50.0f);
     n.size_wh(120.0f, 80.0f);
-    app.blueprint.add_node(std::move(n));
+    app.scene.blueprint().add_node(std::move(n));
 
     // Клик на узел (внутри rect)
     app.on_mouse_down(Pt(150.0f, 90.0f), MouseButton::Left, Pt(0.0f, 0.0f));
@@ -46,7 +46,7 @@ TEST(EventsTest, MouseDown_Empty_SelectsNothing) {
     n.id = "batt1";
     n.at(100.0f, 50.0f);
     n.size_wh(120.0f, 80.0f);
-    app.blueprint.add_node(std::move(n));
+    app.scene.blueprint().add_node(std::move(n));
 
     // Клик вне узла
     app.on_mouse_down(Pt(10.0f, 10.0f), MouseButton::Left, Pt(0.0f, 0.0f));
@@ -56,7 +56,7 @@ TEST(EventsTest, MouseDown_Empty_SelectsNothing) {
 
 TEST(EventsTest, MouseDrag_UpdatesViewport) {
     EditorApp app;
-    float old_pan_x = app.viewport.pan.x;
+    float old_pan_x = app.scene.viewport().pan.x;
 
     // Click on empty space starts panning (Left button in empty area)
     app.on_mouse_down(Pt(500.0f, 500.0f), MouseButton::Left, Pt(0.0f, 0.0f));
@@ -64,16 +64,16 @@ TEST(EventsTest, MouseDrag_UpdatesViewport) {
     app.on_mouse_up(MouseButton::Left);
 
     // Pan должен измениться
-    EXPECT_NE(app.viewport.pan.x, old_pan_x);
+    EXPECT_NE(app.scene.viewport().pan.x, old_pan_x);
 }
 
 TEST(EventsTest, MouseWheel_Zooms) {
     EditorApp app;
-    float old_zoom = app.viewport.zoom;
+    float old_zoom = app.scene.viewport().zoom;
 
     app.on_scroll(0.1f, Pt(400.0f, 300.0f), Pt(0.0f, 0.0f));
 
-    EXPECT_GT(app.viewport.zoom, old_zoom);
+    EXPECT_GT(app.scene.viewport().zoom, old_zoom);
 }
 
 TEST(EventsTest, KeyDown_Escape_ClearsSelection) {

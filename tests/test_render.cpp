@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "editor/render.h"
+#include "editor/visual/render.h"
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/viewport/viewport.h"
-#include "editor/visual_node.h"
+#include "editor/visual/node/node.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;

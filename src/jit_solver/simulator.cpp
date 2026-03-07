@@ -1,6 +1,6 @@
 #include "simulator.h"
 #include "scheduling.h"
-#include "../editor/persist.h"
+#include "../editor/visual/scene/persist.h"
 #include "../json_parser/json_parser.h"
 #include "components/port_registry.h"
 #include "components/all.h"

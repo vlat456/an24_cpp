@@ -85,12 +85,12 @@ gtest_discover_tests(editor_data_tests)
 # Editor persist tests (TDD Step 2)
 add_executable(editor_persist_tests
     test_persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_compile_definitions(editor_persist_tests PRIVATE EDITOR_TESTING)
@@ -137,14 +137,14 @@ gtest_discover_tests(editor_viewport_tests)
 # Editor render tests
 add_executable(editor_render_tests
     test_render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_render_tests PRIVATE
@@ -163,15 +163,15 @@ gtest_discover_tests(editor_render_tests)
 # Editor hit test tests (TDD Step 6)
 add_executable(editor_hittest_tests
     test_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(editor_hittest_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_hittest_tests PRIVATE
@@ -252,12 +252,12 @@ gtest_discover_tests(json_parser_tests)
 # A* Router tests
 add_executable(editor_router_tests
     test_router.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(editor_router_tests PRIVATE
@@ -276,12 +276,12 @@ gtest_discover_tests(editor_router_tests)
 # Widget & Layout tests
 add_executable(editor_widget_tests
     test_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_compile_definitions(editor_widget_tests PRIVATE EDITOR_TESTING)
@@ -302,7 +302,7 @@ gtest_discover_tests(editor_widget_tests)
 add_executable(editor_simulation_tests
     test_simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(editor_simulation_tests PRIVATE
@@ -337,7 +337,7 @@ gtest_discover_tests(editor_simulation_tests)
 # Logical solver tests (TDD - Comparator component)
 add_executable(logical_solver_tests
     test_logical_solver.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(logical_solver_tests PRIVATE
@@ -441,12 +441,12 @@ gtest_discover_tests(lamp_passthrough_jit_test)
 # Editor hierarchical blueprint tests (TDD - collapsed node rendering, navigation, persistence)
 add_executable(editor_hierarchical_tests
     test_editor_hierarchical.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
@@ -467,13 +467,13 @@ gtest_discover_tests(editor_hierarchical_tests)
 # VisualPort tests (TDD - OOP port refactor)
 add_executable(visual_port_tests
     test_visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(visual_port_tests PRIVATE EDITOR_TESTING)
 target_include_directories(visual_port_tests PRIVATE
@@ -492,15 +492,15 @@ gtest_discover_tests(visual_port_tests)
 # VisualScene tests
 add_executable(visual_scene_tests
     test_visual_scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(visual_scene_tests PRIVATE EDITOR_TESTING)
 target_include_directories(visual_scene_tests PRIVATE

@@ -1,5 +1,5 @@
 #include "wires/hittest.h"
-#include "trigonometry.h"
+#include "visual/trigonometry.h"
 
 // TDD Green: Реализация hit_test_routing_point
 // Ищет routing point в проводах, возвращает индекс провода и точки

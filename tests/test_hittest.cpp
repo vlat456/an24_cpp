@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include "editor/hittest.h"
-#include "editor/trigonometry.h"
+#include "editor/visual/hittest.h"
+#include "editor/visual/trigonometry.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
-#include "editor/viewport.h"
-#include "editor/visual_node.h"
+#include "editor/viewport/viewport.h"
+#include "editor/visual/node/node.h"
 #include <cmath>
 
 /// TDD Step 6: Hit testing

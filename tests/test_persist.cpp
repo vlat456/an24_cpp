@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include "editor/persist.h"
+#include "editor/visual/scene/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
-#include "editor/visual_node.h"
+#include "editor/visual/node/node.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <set>

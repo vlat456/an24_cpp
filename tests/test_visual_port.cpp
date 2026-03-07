@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "editor/visual_port.h"
-#include "editor/render.h"  // get_port_color, IDrawList
+#include "editor/visual/port/port.h"
+#include "editor/visual/render.h"  // get_port_color, IDrawList
 
 // ============================================================================
 // Rich mock draw list that captures geometry details
