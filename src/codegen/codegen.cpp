@@ -490,12 +490,10 @@ std::string CodeGen::generate_source(
             }
         }
 
-        // SOR solver - 4 iterations for better convergence (rough approximation)
+        // SOR solver - single iteration per step (real-time approximation)
         // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
-        oss << "    for (int sor_iter = 0; sor_iter < 4; ++sor_iter) {\n";
-        oss << "        st->precompute_inv_conductance();\n";
-        oss << "        balance_electrical(st, 1.3f);\n";
-        oss << "    }\n";
+        oss << "    st->precompute_inv_conductance();\n";
+        oss << "    balance_electrical(st, 1.3f);\n";
 
         oss << "}\n\n";
     }

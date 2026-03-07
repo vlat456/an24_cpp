@@ -175,14 +175,12 @@ void Simulator<SolverTag>::step(float dt) {
         }
     }
 
-    // SOR solver - 4 iterations for better convergence (rough approximation)
-    for (int sor_iter = 0; sor_iter < 4; ++sor_iter) {
-        state_.precompute_inv_conductance();
+    // SOR solver - single iteration per step (real-time approximation)
+    state_.precompute_inv_conductance();
 
-        for (size_t i = 0; i < state_.across.size(); ++i) {
-            if (!state_.signal_types[i].is_fixed && state_.inv_conductance[i] > 0.0f) {
-                state_.across[i] += state_.through[i] * state_.inv_conductance[i] * omega_;
-            }
+    for (size_t i = 0; i < state_.across.size(); ++i) {
+        if (!state_.signal_types[i].is_fixed && state_.inv_conductance[i] > 0.0f) {
+            state_.across[i] += state_.through[i] * state_.inv_conductance[i] * omega_;
         }
     }
 
