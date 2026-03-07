@@ -199,6 +199,20 @@ an24_codegen/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/build
 .PHONY : an24_codegen/fast
 
+# Convenience name for target.
+examples/CMakeFiles/codegen_test.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/codegen_test.dir/rule
+.PHONY : examples/CMakeFiles/codegen_test.dir/rule
+
+# Convenience name for target.
+codegen_test: examples/CMakeFiles/codegen_test.dir/rule
+.PHONY : codegen_test
+
+# fast build rule for target.
+codegen_test/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/build
+.PHONY : codegen_test/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -222,6 +236,30 @@ __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
 __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_codegen.dir/build.make examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
+
+codegen_test.o: codegen_test.cpp.o
+.PHONY : codegen_test.o
+
+# target to build an object file
+codegen_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o
+.PHONY : codegen_test.cpp.o
+
+codegen_test.i: codegen_test.cpp.i
+.PHONY : codegen_test.i
+
+# target to preprocess a source file
+codegen_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.i
+.PHONY : codegen_test.cpp.i
+
+codegen_test.s: codegen_test.cpp.s
+.PHONY : codegen_test.s
+
+# target to generate assembly for a file
+codegen_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.s
+.PHONY : codegen_test.cpp.s
 
 main.o: main.cpp.o
 .PHONY : main.o
@@ -261,10 +299,14 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... an24_codegen"
+	@echo "... codegen_test"
 	@echo "... hello_world"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... codegen_test.o"
+	@echo "... codegen_test.i"
+	@echo "... codegen_test.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

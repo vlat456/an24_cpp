@@ -302,6 +302,19 @@ an24_codegen/fast:
 .PHONY : an24_codegen/fast
 
 #=============================================================================
+# Target rules for targets named codegen_test
+
+# Build rule for target.
+codegen_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen_test
+.PHONY : codegen_test
+
+# fast build rule for target.
+codegen_test/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/build
+.PHONY : codegen_test/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -366,6 +379,19 @@ provider_pattern_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/build
 .PHONY : provider_pattern_tests/fast
 
+#=============================================================================
+# Target rules for targets named component_variant_test
+
+# Build rule for target.
+component_variant_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 component_variant_test
+.PHONY : component_variant_test
+
+# fast build rule for target.
+component_variant_test/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/build
+.PHONY : component_variant_test/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -380,6 +406,8 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... an24_codegen"
+	@echo "... codegen_test"
+	@echo "... component_variant_test"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

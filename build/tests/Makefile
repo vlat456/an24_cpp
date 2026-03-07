@@ -241,12 +241,27 @@ provider_pattern_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/build
 .PHONY : provider_pattern_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/component_variant_test.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/component_variant_test.dir/rule
+.PHONY : tests/CMakeFiles/component_variant_test.dir/rule
+
+# Convenience name for target.
+component_variant_test: tests/CMakeFiles/component_variant_test.dir/rule
+.PHONY : component_variant_test
+
+# fast build rule for target.
+component_variant_test/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/build
+.PHONY : component_variant_test/fast
+
 __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.o
 
 # target to build an object file
 __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
 
 __/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
@@ -255,6 +270,7 @@ __/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
 # target to preprocess a source file
 __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
 
 __/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
@@ -263,6 +279,7 @@ __/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
 # target to generate assembly for a file
 __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
 __/src/editor/persist.o: __/src/editor/persist.cpp.o
@@ -271,6 +288,7 @@ __/src/editor/persist.o: __/src/editor/persist.cpp.o
 # target to build an object file
 __/src/editor/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/persist.cpp.o
 .PHONY : __/src/editor/persist.cpp.o
 
 __/src/editor/persist.i: __/src/editor/persist.cpp.i
@@ -279,6 +297,7 @@ __/src/editor/persist.i: __/src/editor/persist.cpp.i
 # target to preprocess a source file
 __/src/editor/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/persist.cpp.i
 .PHONY : __/src/editor/persist.cpp.i
 
 __/src/editor/persist.s: __/src/editor/persist.cpp.s
@@ -287,7 +306,32 @@ __/src/editor/persist.s: __/src/editor/persist.cpp.s
 # target to generate assembly for a file
 __/src/editor/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/__/src/editor/persist.cpp.s
 .PHONY : __/src/editor/persist.cpp.s
+
+component_variant_test.o: component_variant_test.cpp.o
+.PHONY : component_variant_test.o
+
+# target to build an object file
+component_variant_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/component_variant_test.cpp.o
+.PHONY : component_variant_test.cpp.o
+
+component_variant_test.i: component_variant_test.cpp.i
+.PHONY : component_variant_test.i
+
+# target to preprocess a source file
+component_variant_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/component_variant_test.cpp.i
+.PHONY : component_variant_test.cpp.i
+
+component_variant_test.s: component_variant_test.cpp.s
+.PHONY : component_variant_test.s
+
+# target to generate assembly for a file
+component_variant_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/component_variant_test.dir/build.make tests/CMakeFiles/component_variant_test.dir/component_variant_test.cpp.s
+.PHONY : component_variant_test.cpp.s
 
 json_parser_test.o: json_parser_test.cpp.o
 .PHONY : json_parser_test.o
@@ -422,6 +466,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... component_variant_test"
 	@echo "... json_parser_tests"
 	@echo "... logical_solver_tests"
 	@echo "... port_macro_tests"
@@ -433,6 +478,9 @@ help:
 	@echo "... __/src/editor/persist.o"
 	@echo "... __/src/editor/persist.i"
 	@echo "... __/src/editor/persist.s"
+	@echo "... component_variant_test.o"
+	@echo "... component_variant_test.i"
+	@echo "... component_variant_test.s"
 	@echo "... json_parser_test.o"
 	@echo "... json_parser_test.i"
 	@echo "... json_parser_test.s"
