@@ -67,16 +67,23 @@ struct SimulationState {
 };
 
 // ==============================================================================
+// AOT inline helpers - guaranteed to be inlined for performance
+// ==============================================================================
+
+#if defined(__GNUC__) || defined(__clang__)
+#define AOT_ALWAYS_INLINE __attribute__((always_inline)) inline
+#else
+#define AOT_ALWAYS_INLINE inline
+#endif
+
+// ==============================================================================
 // SOR solver - shared between JIT and AOT
 // ==============================================================================
 
 /// Single SOR iteration - branchless implementation
 /// precompute_inv_conductance() must be called first
 /// Force inline for AOT performance (no function call overhead)
-#if defined(__GNUC__) || defined(__clang__)
-__attribute__((always_inline)) inline
-#endif
-void solve_sor_iteration(
+AOT_ALWAYS_INLINE void solve_sor_iteration(
     float* __restrict across,
     const float* __restrict through,
     const float* __restrict inv_conductance,
@@ -96,7 +103,7 @@ void solve_sor_iteration(
 /// Stamp a two-port conductance between two nodes (most common pattern)
 /// Residual convention: through[i] > 0 means voltage at i should increase
 /// Branch current INTO idx1 = (V2 - V1) * g  (positive when V2 > V1)
-inline void stamp_two_port(
+AOT_ALWAYS_INLINE void stamp_two_port(
     float* __restrict conductance,
     float* __restrict through,
     const float* __restrict across,
@@ -113,7 +120,7 @@ inline void stamp_two_port(
 
 /// Stamp a one-port to ground (for loads, sensors)
 /// Current flows from node to ground: residual = -V*g (drains voltage)
-inline void stamp_one_port_ground(
+AOT_ALWAYS_INLINE void stamp_one_port_ground(
     float* __restrict conductance,
     float* __restrict through,
     const float* __restrict across,
@@ -127,7 +134,7 @@ inline void stamp_one_port_ground(
 
 /// Stamp a current source (Norton: current source + parallel conductance)
 /// Adds g to conductance, adds I_source to through
-inline void stamp_current_source(
+AOT_ALWAYS_INLINE void stamp_current_source(
     float* __restrict conductance,
     float* __restrict through,
     uint32_t idx,
@@ -140,7 +147,7 @@ inline void stamp_current_source(
 
 /// Stamp voltage source (Thevenin equivalent: voltage source in series with R)
 /// Converts to Norton: I_source = V / R, G = 1/R
-inline void stamp_voltage_source(
+AOT_ALWAYS_INLINE void stamp_voltage_source(
     float* __restrict conductance,
     float* __restrict through,
     const float* __restrict across,
