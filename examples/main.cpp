@@ -52,7 +52,7 @@ int main() {
 
     std::cout << "=== System ===\n";
     std::cout << "Signals: " << result.signal_count << "\n";
-    std::cout << "Components: " << result.systems.component_count() << "\n\n";
+    std::cout << "Fixed signals: " << result.fixed_signals.size() << "\n\n";
 
     // Print port mapping
     std::map<uint32_t, std::string> signal_to_port;
@@ -143,29 +143,9 @@ int main() {
     }
     std::cout << "\n";
 
-    // Run simulation
-    const int STEPS = 100;
-    const float omega = 1.5f;
-
-    for (int step = 0; step < STEPS; ++step) {
-        state.clear_through();
-        result.systems.solve_step(state, step, 1.0f / 60.0f);
-        state.precompute_inv_conductance();
-
-        for (size_t i = 0; i < state.across.size(); ++i) {
-            if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-                state.across[i] += state.through[i] * state.inv_conductance[i] * omega;
-            }
-        }
-    }
-
-    std::cout << "=== After " << STEPS << " steps ===\n";
-    for (size_t i = 0; i < state.across.size(); ++i) {
-        std::cout << "signal[" << i << "]: " << std::fixed << std::setprecision(2)
-                  << state.across[i] << " V";
-        if (state.signal_types[i].is_fixed) std::cout << " (FIXED)";
-        std::cout << "\n";
-    }
+    std::cout << "\n=== AOT-only Mode ===\n";
+    std::cout << "Component simulation is codegen'd, not runtime managed.\n";
+    std::cout << "Port mapping computed for AOT code generator.\n";
 
     return 0;
 }

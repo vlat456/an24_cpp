@@ -689,6 +689,7 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
+    oss << "#include <vector>\n";
     oss << "\n";
     oss << "namespace an24 {\n";
     oss << "\n";

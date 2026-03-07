@@ -835,7 +835,9 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: /Users/vladimir/a
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h
+  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h
 
 src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/Availability.h \
@@ -1174,7 +1176,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/to_underlying.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__variant/monostate.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/algorithm \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/array \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
@@ -1267,11 +1268,8 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/component.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/systems.h
+  /Users/vladimir/an24_cpp/src/jit_solver/state.h
 
 src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/Availability.h \
@@ -2553,6 +2551,8 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 
 /Users/vladimir/an24_cpp/src/jit_solver/state.cpp:
 
+/Users/vladimir/an24_cpp/src/jit_solver/systems.h:
+
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.h:
 
 /Users/vladimir/an24_cpp/src/editor/data/pt.h:
@@ -2561,8 +2561,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp:
 
-/Users/vladimir/an24_cpp/src/jit_solver/systems.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/map:
 
 /Users/vladimir/an24_cpp/src/editor/data/blueprint.h:
@@ -2570,6 +2568,8 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
 
 /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/all.h:
 
@@ -3332,6 +3332,8 @@ _deps/spdlog-src/include/spdlog/fmt/fmt.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_clock_t.h:
 

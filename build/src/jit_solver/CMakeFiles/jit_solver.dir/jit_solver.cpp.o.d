@@ -1,6 +1,7 @@
 src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/string \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__config \
@@ -404,11 +405,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/optional \
-  /Users/vladimir/an24_cpp/src/jit_solver/systems.h \
-  /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/array \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/../component.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/common.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/tweakme.h \

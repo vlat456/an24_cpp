@@ -114,7 +114,10 @@ void Simulator<SolverTag>::step(float dt) {
     if (!running_ || !build_result_.has_value()) return;
 
     state_.clear_through();
-    build_result_->systems.solve_step(state_, step_count_, dt);
+    
+    // AOT-only: component simulation is codegen'd, not runtime managed
+    // JIT would call: build_result_->systems.solve_step(state_, step_count_, dt);
+    
     state_.precompute_inv_conductance();
 
     // SOR update
@@ -124,7 +127,9 @@ void Simulator<SolverTag>::step(float dt) {
         }
     }
 
-    build_result_->systems.post_step(state_, dt);
+    // AOT-only: post_step is codegen'd
+    // JIT would call: build_result_->systems.post_step(state_, dt);
+    
     time_ += dt;
     step_count_++;
 }
