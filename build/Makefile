@@ -367,6 +367,19 @@ editor_componentvariant_tests/fast:
 .PHONY : editor_componentvariant_tests/fast
 
 #=============================================================================
+# Target rules for targets named editor_persist_tests
+
+# Build rule for target.
+editor_persist_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_persist_tests
+.PHONY : editor_persist_tests
+
+# fast build rule for target.
+editor_persist_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/build
+.PHONY : editor_persist_tests/fast
+
+#=============================================================================
 # Target rules for targets named json_parser_tests
 
 # Build rule for target.
@@ -378,6 +391,32 @@ json_parser_tests: cmake_check_build_system
 json_parser_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
 .PHONY : json_parser_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_simulation_tests
+
+# Build rule for target.
+editor_simulation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_simulation_tests
+.PHONY : editor_simulation_tests
+
+# fast build rule for target.
+editor_simulation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
+.PHONY : editor_simulation_tests/fast
+
+#=============================================================================
+# Target rules for targets named factory_validation_tests
+
+# Build rule for target.
+factory_validation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 factory_validation_tests
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
 
 #=============================================================================
 # Target rules for targets named logical_solver_tests
@@ -422,6 +461,9 @@ help:
 	@echo "... an24_editor"
 	@echo "... codegen_test"
 	@echo "... editor_componentvariant_tests"
+	@echo "... editor_persist_tests"
+	@echo "... editor_simulation_tests"
+	@echo "... factory_validation_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

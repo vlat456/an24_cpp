@@ -97,7 +97,10 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_componentvariant_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_persist_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/json_parser_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/factory_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/provider_pattern_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir

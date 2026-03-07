@@ -214,6 +214,20 @@ editor_componentvariant_tests/fast:
 .PHONY : editor_componentvariant_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/editor_persist_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_persist_tests.dir/rule
+.PHONY : tests/CMakeFiles/editor_persist_tests.dir/rule
+
+# Convenience name for target.
+editor_persist_tests: tests/CMakeFiles/editor_persist_tests.dir/rule
+.PHONY : editor_persist_tests
+
+# fast build rule for target.
+editor_persist_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/build
+.PHONY : editor_persist_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/json_parser_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/json_parser_tests.dir/rule
 .PHONY : tests/CMakeFiles/json_parser_tests.dir/rule
@@ -226,6 +240,34 @@ json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/rule
 json_parser_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/json_parser_tests.dir/build.make tests/CMakeFiles/json_parser_tests.dir/build
 .PHONY : json_parser_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/editor_simulation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_simulation_tests.dir/rule
+.PHONY : tests/CMakeFiles/editor_simulation_tests.dir/rule
+
+# Convenience name for target.
+editor_simulation_tests: tests/CMakeFiles/editor_simulation_tests.dir/rule
+.PHONY : editor_simulation_tests
+
+# fast build rule for target.
+editor_simulation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
+.PHONY : editor_simulation_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/factory_validation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : tests/CMakeFiles/factory_validation_tests.dir/rule
+
+# Convenience name for target.
+factory_validation_tests: tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/logical_solver_tests.dir/rule:
@@ -260,6 +302,8 @@ __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 
 # target to build an object file
 __/src/editor/data/blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
 
@@ -268,6 +312,8 @@ __/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
 
 # target to preprocess a source file
 __/src/editor/data/blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
 
@@ -276,6 +322,8 @@ __/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/data/blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
@@ -284,6 +332,8 @@ __/src/editor/persist.o: __/src/editor/persist.cpp.o
 
 # target to build an object file
 __/src/editor/persist.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.o
 .PHONY : __/src/editor/persist.cpp.o
 
@@ -292,6 +342,8 @@ __/src/editor/persist.i: __/src/editor/persist.cpp.i
 
 # target to preprocess a source file
 __/src/editor/persist.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.i
 .PHONY : __/src/editor/persist.cpp.i
 
@@ -300,8 +352,130 @@ __/src/editor/persist.s: __/src/editor/persist.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/persist.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/persist.cpp.s
 .PHONY : __/src/editor/persist.cpp.s
+
+__/src/editor/render.o: __/src/editor/render.cpp.o
+.PHONY : __/src/editor/render.o
+
+# target to build an object file
+__/src/editor/render.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/render.cpp.o
+.PHONY : __/src/editor/render.cpp.o
+
+__/src/editor/render.i: __/src/editor/render.cpp.i
+.PHONY : __/src/editor/render.i
+
+# target to preprocess a source file
+__/src/editor/render.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/render.cpp.i
+.PHONY : __/src/editor/render.cpp.i
+
+__/src/editor/render.s: __/src/editor/render.cpp.s
+.PHONY : __/src/editor/render.s
+
+# target to generate assembly for a file
+__/src/editor/render.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/render.cpp.s
+.PHONY : __/src/editor/render.cpp.s
+
+__/src/editor/simulation.o: __/src/editor/simulation.cpp.o
+.PHONY : __/src/editor/simulation.o
+
+# target to build an object file
+__/src/editor/simulation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.o
+.PHONY : __/src/editor/simulation.cpp.o
+
+__/src/editor/simulation.i: __/src/editor/simulation.cpp.i
+.PHONY : __/src/editor/simulation.i
+
+# target to preprocess a source file
+__/src/editor/simulation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.i
+.PHONY : __/src/editor/simulation.cpp.i
+
+__/src/editor/simulation.s: __/src/editor/simulation.cpp.s
+.PHONY : __/src/editor/simulation.s
+
+# target to generate assembly for a file
+__/src/editor/simulation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/simulation.cpp.s
+.PHONY : __/src/editor/simulation.cpp.s
+
+__/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
+.PHONY : __/src/editor/viewport/viewport.o
+
+# target to build an object file
+__/src/editor/viewport/viewport.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/viewport/viewport.cpp.o
+.PHONY : __/src/editor/viewport/viewport.cpp.o
+
+__/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
+.PHONY : __/src/editor/viewport/viewport.i
+
+# target to preprocess a source file
+__/src/editor/viewport/viewport.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/viewport/viewport.cpp.i
+.PHONY : __/src/editor/viewport/viewport.cpp.i
+
+__/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
+.PHONY : __/src/editor/viewport/viewport.s
+
+# target to generate assembly for a file
+__/src/editor/viewport/viewport.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/viewport/viewport.cpp.s
+.PHONY : __/src/editor/viewport/viewport.cpp.s
+
+__/src/editor/visual_node.o: __/src/editor/visual_node.cpp.o
+.PHONY : __/src/editor/visual_node.o
+
+# target to build an object file
+__/src/editor/visual_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual_node.cpp.o
+.PHONY : __/src/editor/visual_node.cpp.o
+
+__/src/editor/visual_node.i: __/src/editor/visual_node.cpp.i
+.PHONY : __/src/editor/visual_node.i
+
+# target to preprocess a source file
+__/src/editor/visual_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual_node.cpp.i
+.PHONY : __/src/editor/visual_node.cpp.i
+
+__/src/editor/visual_node.s: __/src/editor/visual_node.cpp.s
+.PHONY : __/src/editor/visual_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual_node.cpp.s
+.PHONY : __/src/editor/visual_node.cpp.s
+
+__/src/editor/widget.o: __/src/editor/widget.cpp.o
+.PHONY : __/src/editor/widget.o
+
+# target to build an object file
+__/src/editor/widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/widget.cpp.o
+.PHONY : __/src/editor/widget.cpp.o
+
+__/src/editor/widget.i: __/src/editor/widget.cpp.i
+.PHONY : __/src/editor/widget.i
+
+# target to preprocess a source file
+__/src/editor/widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/widget.cpp.i
+.PHONY : __/src/editor/widget.cpp.i
+
+__/src/editor/widget.s: __/src/editor/widget.cpp.s
+.PHONY : __/src/editor/widget.s
+
+# target to generate assembly for a file
+__/src/editor/widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/widget.cpp.s
+.PHONY : __/src/editor/widget.cpp.s
 
 editor_componentvariant_test.o: editor_componentvariant_test.cpp.o
 .PHONY : editor_componentvariant_test.o
@@ -326,6 +500,30 @@ editor_componentvariant_test.s: editor_componentvariant_test.cpp.s
 editor_componentvariant_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/editor_componentvariant_test.cpp.s
 .PHONY : editor_componentvariant_test.cpp.s
+
+factory_validation_test.o: factory_validation_test.cpp.o
+.PHONY : factory_validation_test.o
+
+# target to build an object file
+factory_validation_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.o
+.PHONY : factory_validation_test.cpp.o
+
+factory_validation_test.i: factory_validation_test.cpp.i
+.PHONY : factory_validation_test.i
+
+# target to preprocess a source file
+factory_validation_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.i
+.PHONY : factory_validation_test.cpp.i
+
+factory_validation_test.s: factory_validation_test.cpp.s
+.PHONY : factory_validation_test.s
+
+# target to generate assembly for a file
+factory_validation_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.s
+.PHONY : factory_validation_test.cpp.s
 
 json_parser_test.o: json_parser_test.cpp.o
 .PHONY : json_parser_test.o
@@ -447,6 +645,54 @@ test_logical_solver.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/test_logical_solver.cpp.s
 .PHONY : test_logical_solver.cpp.s
 
+test_persist.o: test_persist.cpp.o
+.PHONY : test_persist.o
+
+# target to build an object file
+test_persist.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/test_persist.cpp.o
+.PHONY : test_persist.cpp.o
+
+test_persist.i: test_persist.cpp.i
+.PHONY : test_persist.i
+
+# target to preprocess a source file
+test_persist.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/test_persist.cpp.i
+.PHONY : test_persist.cpp.i
+
+test_persist.s: test_persist.cpp.s
+.PHONY : test_persist.s
+
+# target to generate assembly for a file
+test_persist.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/test_persist.cpp.s
+.PHONY : test_persist.cpp.s
+
+test_simulation.o: test_simulation.cpp.o
+.PHONY : test_simulation.o
+
+# target to build an object file
+test_simulation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.o
+.PHONY : test_simulation.cpp.o
+
+test_simulation.i: test_simulation.cpp.i
+.PHONY : test_simulation.i
+
+# target to preprocess a source file
+test_simulation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.i
+.PHONY : test_simulation.cpp.i
+
+test_simulation.s: test_simulation.cpp.s
+.PHONY : test_simulation.s
+
+# target to generate assembly for a file
+test_simulation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
+.PHONY : test_simulation.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -461,6 +707,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... editor_componentvariant_tests"
+	@echo "... editor_persist_tests"
+	@echo "... editor_simulation_tests"
+	@echo "... factory_validation_tests"
 	@echo "... json_parser_tests"
 	@echo "... logical_solver_tests"
 	@echo "... port_macro_tests"
@@ -472,9 +721,27 @@ help:
 	@echo "... __/src/editor/persist.o"
 	@echo "... __/src/editor/persist.i"
 	@echo "... __/src/editor/persist.s"
+	@echo "... __/src/editor/render.o"
+	@echo "... __/src/editor/render.i"
+	@echo "... __/src/editor/render.s"
+	@echo "... __/src/editor/simulation.o"
+	@echo "... __/src/editor/simulation.i"
+	@echo "... __/src/editor/simulation.s"
+	@echo "... __/src/editor/viewport/viewport.o"
+	@echo "... __/src/editor/viewport/viewport.i"
+	@echo "... __/src/editor/viewport/viewport.s"
+	@echo "... __/src/editor/visual_node.o"
+	@echo "... __/src/editor/visual_node.i"
+	@echo "... __/src/editor/visual_node.s"
+	@echo "... __/src/editor/widget.o"
+	@echo "... __/src/editor/widget.i"
+	@echo "... __/src/editor/widget.s"
 	@echo "... editor_componentvariant_test.o"
 	@echo "... editor_componentvariant_test.i"
 	@echo "... editor_componentvariant_test.s"
+	@echo "... factory_validation_test.o"
+	@echo "... factory_validation_test.i"
+	@echo "... factory_validation_test.s"
 	@echo "... json_parser_test.o"
 	@echo "... json_parser_test.i"
 	@echo "... json_parser_test.s"
@@ -490,6 +757,12 @@ help:
 	@echo "... test_logical_solver.o"
 	@echo "... test_logical_solver.i"
 	@echo "... test_logical_solver.s"
+	@echo "... test_persist.o"
+	@echo "... test_persist.i"
+	@echo "... test_persist.s"
+	@echo "... test_simulation.o"
+	@echo "... test_simulation.i"
+	@echo "... test_simulation.s"
 .PHONY : help
 
 

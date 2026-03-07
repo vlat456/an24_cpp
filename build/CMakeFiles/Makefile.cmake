@@ -148,7 +148,10 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/port_registry_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_macro_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_componentvariant_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/editor_persist_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/json_parser_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/editor_simulation_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/factory_validation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logical_solver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/provider_pattern_tests.dir/DependInfo.cmake"
   )
