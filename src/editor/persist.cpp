@@ -142,6 +142,21 @@ std::string blueprint_to_json(const Blueprint& bp) {
     }
     editor["wires"] = wire_states;
 
+    // collapsed_groups (editor-only visual hierarchy metadata)
+    json collapsed_groups = json::array();
+    for (const auto& group : bp.collapsed_groups) {
+        json group_json = {
+            {"id", group.id},
+            {"blueprint_path", group.blueprint_path},
+            {"type_name", group.type_name},
+            {"pos", {{"x", group.pos.x}, {"y", group.pos.y}}},
+            {"size", {{"x", group.size.x}, {"y", group.size.y}}},
+            {"internal_node_ids", group.internal_node_ids}
+        };
+        collapsed_groups.push_back(group_json);
+    }
+    editor["collapsed_groups"] = collapsed_groups;
+
     j["editor"] = editor;
 
     return j.dump(2);
@@ -634,6 +649,34 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
                     }
                 }
             }
+
+            // Load collapsed_groups (editor-only visual hierarchy metadata)
+            if (editor.contains("collapsed_groups") && editor["collapsed_groups"].is_array()) {
+                for (const auto& group_json : editor["collapsed_groups"]) {
+                    CollapsedGroup group;
+                    group.id = group_json.value("id", "");
+                    group.blueprint_path = group_json.value("blueprint_path", "");
+                    group.type_name = group_json.value("type_name", "");
+
+                    if (group_json.contains("pos")) {
+                        group.pos.x = group_json["pos"].value("x", 0.0f);
+                        group.pos.y = group_json["pos"].value("y", 0.0f);
+                    }
+
+                    if (group_json.contains("size")) {
+                        group.size.x = group_json["size"].value("x", 120.0f);
+                        group.size.y = group_json["size"].value("y", 80.0f);
+                    }
+
+                    if (group_json.contains("internal_node_ids") && group_json["internal_node_ids"].is_array()) {
+                        for (const auto& node_id : group_json["internal_node_ids"]) {
+                            group.internal_node_ids.push_back(node_id.get<std::string>());
+                        }
+                    }
+
+                    bp.collapsed_groups.push_back(group);
+                }
+            }
         } else {
             // No editor metadata — auto-layout nodes and route wires
             auto_layout(bp);
@@ -648,10 +691,10 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
             }
         }
 
-        // Validate blueprint_path references exist
-        for (const auto& node : bp.nodes) {
-            if (node.kind == NodeKind::Blueprint && !node.blueprint_path.empty()) {
-                std::filesystem::path bp_path(node.blueprint_path);
+        // Validate blueprint_path references exist in collapsed_groups
+        for (const auto& group : bp.collapsed_groups) {
+            if (!group.blueprint_path.empty()) {
+                std::filesystem::path bp_path(group.blueprint_path);
 
                 // Try to find the blueprint file (same logic as simulation.cpp)
                 if (!std::filesystem::exists(bp_path) && bp_path.is_relative()) {
@@ -672,8 +715,8 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
 
                     if (!found) {
                         spdlog::error("================================================================================");
-                        spdlog::error("BLUEPRINT FILE NOT FOUND: {} (referenced by node '{}')",
-                                    node.blueprint_path, node.id);
+                        spdlog::error("BLUEPRINT FILE NOT FOUND: {} (referenced by collapsed group '{}')",
+                                    group.blueprint_path, group.id);
                         spdlog::error("The nested blueprint will fail to expand during simulation!");
                         spdlog::error("================================================================================");
                     }
