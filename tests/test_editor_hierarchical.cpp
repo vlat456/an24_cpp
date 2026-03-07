@@ -94,11 +94,11 @@ TEST(CollapsedNode, PortColors_MatchExposedType) {
     render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
 
     // Check for specific port type colors
-    // Colors are ImGui 32-bit RGBA: 0xRRGGBBAA
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF)) << "V port should be red";
-    EXPECT_TRUE(dl.has_circle_with_color(0x0080FFFF)) << "I port should be blue";
-    EXPECT_TRUE(dl.has_circle_with_color(0x00FF00FF)) << "Bool port should be green";
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF8000FF)) << "RPM port should be orange";
+    // Format: 0xAABBGGRR (alpha, blue, green, red) - see get_port_color()
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF)) << "V port should be red (0xFF0000FF = AABBGGRR)";
+    EXPECT_TRUE(dl.has_circle_with_color(0xFFFF0000)) << "I port should be blue (0xFFFF0000 = AABBGGRR)";
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00)) << "Bool port should be green (0xFF00FF00 = AABBGGRR)";
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF)) << "RPM port should be orange (0xFF00A5FF = AABBGGRR)";
 }
 
 TEST(CollapsedNode, VisualIndicator_IconOrBadge) {
@@ -220,17 +220,14 @@ TEST(ExposedPorts, PopulateNodePorts_FromExposedPorts) {
     node.type_name = classname;
     node.collapsed = true;
 
-    // FAIL: Need logic to populate inputs/outputs from exposed_ports
-    // This is what we'll implement:
-    // for (const auto& [name, port] : exposed_ports) {
-    //     if (port.direction == PortDirection::In) {
-    //         node.inputs.push_back(Port(name.c_str(), PortSide::Input, port.type));
-    //     } else {
-    //         node.outputs.push_back(Port(name.c_str(), PortSide::Output, port.type));
-    //     }
-    // }
-
-    // After implementation, these should pass:
+    // Populate inputs/outputs from exposed_ports
+    for (const auto& [name, port] : exposed_ports) {
+        if (port.direction == PortDirection::In) {
+            node.inputs.push_back(::Port(name.c_str(), PortSide::Input, port.type));
+        } else {
+            node.outputs.push_back(::Port(name.c_str(), PortSide::Output, port.type));
+        }
+    }
     EXPECT_EQ(node.inputs.size(), 1u) << "Should have 1 input port (vin)";
     EXPECT_EQ(node.outputs.size(), 1u) << "Should have 1 output port (vout)";
 

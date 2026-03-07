@@ -410,7 +410,10 @@ gtest_discover_tests(provider_pattern_tests)
 add_executable(editor_hierarchical_tests
     test_editor_hierarchical.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_compile_definitions(editor_hierarchical_tests PRIVATE EDITOR_TESTING)

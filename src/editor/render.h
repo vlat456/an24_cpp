@@ -100,6 +100,7 @@ public:
     }
     void add_circle_filled(Pt center, float radius, uint32_t color, int segments = 12) override {
         (void)center; (void)radius; (void)color; (void)segments;
+        had_circle_ = true;
         circle_colors_.push_back(color);
     }
     void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) override {

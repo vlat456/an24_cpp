@@ -39,6 +39,10 @@ struct Node {
     std::string type_name;   ///< Тип (Battery, Pump, Bus, etc.)
     NodeKind kind = NodeKind::Node;  ///< Вид узла для рендеринга
 
+    // Phase 5.1: Hierarchical blueprint support
+    bool collapsed = true;   ///< Show as single node (true) or expanded (false)
+    std::string blueprint_path;  ///< Path to nested blueprint JSON (e.g., "blueprints/simple_battery.json")
+
     Pt pos;                  ///< Позиция (верхний левый угол)
     Pt size;                 ///< Размеры (ширина × высота)
 
@@ -52,6 +56,8 @@ struct Node {
         , name()
         , type_name()
         , kind(NodeKind::Node)
+        , collapsed(true)
+        , blueprint_path()
         , pos(Pt::zero())
         , size(120.0f, 80.0f)
         , inputs()
