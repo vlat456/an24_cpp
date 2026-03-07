@@ -20,6 +20,7 @@ events:
     names:
       - "uname"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -35,8 +36,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -44,10 +43,10 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/uname"
       - "/Users/vladimir/.rbenv/shims/uname"
       - "/opt/homebrew/bin/uname"
       - "/opt/homebrew/opt/llvm/bin/clang/uname"
@@ -64,6 +63,7 @@ events:
     found: "/usr/bin/uname"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -80,8 +80,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -95,20 +93,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "message-v1"
@@ -138,6 +124,7 @@ events:
       - "make"
       - "smake"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -153,8 +140,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -162,10 +147,10 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/gmake"
       - "/Users/vladimir/.rbenv/shims/gmake"
       - "/opt/homebrew/bin/gmake"
       - "/opt/homebrew/opt/llvm/bin/clang/gmake"
@@ -181,8 +166,6 @@ events:
       - "/usr/sbin/gmake"
       - "/usr/bin/gmake"
       - "/Users/vladimir/development/flutter/bin/gmake"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/gmake"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/gmake"
       - "/System/Cryptexes/App/usr/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/gmake"
@@ -190,9 +173,9 @@ events:
       - "/opt/X11/bin/gmake"
       - "/Library/Apple/usr/bin/gmake"
       - "/Applications/Little Snitch.app/Contents/Components/gmake"
-      - "/Users/vladimir/.local/bin/gmake"
       - "/Applications/iTerm.app/Contents/Resources/utilities/gmake"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/gmake"
+      - "/Users/vladimir/.local/bin/make"
       - "/Users/vladimir/.rbenv/shims/make"
       - "/opt/homebrew/bin/make"
       - "/opt/homebrew/opt/llvm/bin/clang/make"
@@ -209,6 +192,7 @@ events:
     found: "/usr/bin/make"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -225,8 +209,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -240,20 +222,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -281,6 +251,7 @@ events:
       - "icx"
       - "clang++"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -296,8 +267,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -305,10 +274,10 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/c++"
       - "/Users/vladimir/.rbenv/shims/c++"
       - "/opt/homebrew/bin/c++"
       - "/opt/homebrew/opt/llvm/bin/clang/c++"
@@ -325,6 +294,7 @@ events:
     found: "/usr/bin/c++"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -341,8 +311,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -356,20 +324,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -398,6 +354,7 @@ events:
     found: "/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -414,8 +371,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -429,20 +384,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "message-v1"
@@ -528,6 +471,7 @@ events:
       - "ar"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -542,8 +486,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -551,12 +493,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/ar"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -573,8 +515,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -588,20 +528,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -624,6 +552,7 @@ events:
       - "ranlib"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -638,8 +567,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -647,12 +574,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/ranlib"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -669,8 +596,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -684,20 +609,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -720,6 +633,7 @@ events:
       - "strip"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -734,8 +648,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -743,12 +655,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/strip"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -765,8 +677,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -780,20 +690,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -816,6 +714,7 @@ events:
       - "ld"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -830,8 +729,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -839,12 +736,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/ld"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -861,8 +758,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -876,20 +771,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -912,6 +795,7 @@ events:
       - "nm"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -926,8 +810,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -935,12 +817,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/nm"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -957,8 +839,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -972,20 +852,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1008,6 +876,7 @@ events:
       - "objdump"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1022,8 +891,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1031,12 +898,12 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     found: "/usr/bin/objdump"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1053,8 +920,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1068,20 +933,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1104,6 +957,7 @@ events:
       - "objcopy"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1118,8 +972,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1127,11 +979,11 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
       - "/usr/bin/objcopy"
+      - "/Users/vladimir/.local/bin/objcopy"
       - "/Users/vladimir/.rbenv/shims/objcopy"
       - "/opt/homebrew/bin/objcopy"
       - "/opt/homebrew/opt/llvm/bin/clang/objcopy"
@@ -1146,8 +998,6 @@ events:
       - "/usr/local/bin/objcopy"
       - "/usr/sbin/objcopy"
       - "/Users/vladimir/development/flutter/bin/objcopy"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/objcopy"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/objcopy"
       - "/System/Cryptexes/App/usr/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/objcopy"
@@ -1155,12 +1005,12 @@ events:
       - "/opt/X11/bin/objcopy"
       - "/Library/Apple/usr/bin/objcopy"
       - "/Applications/Little Snitch.app/Contents/Components/objcopy"
-      - "/Users/vladimir/.local/bin/objcopy"
       - "/Applications/iTerm.app/Contents/Resources/utilities/objcopy"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/objcopy"
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1177,8 +1027,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1192,20 +1040,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1228,6 +1064,7 @@ events:
       - "readelf"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1242,8 +1079,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1251,11 +1086,11 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
       - "/usr/bin/readelf"
+      - "/Users/vladimir/.local/bin/readelf"
       - "/Users/vladimir/.rbenv/shims/readelf"
       - "/opt/homebrew/bin/readelf"
       - "/opt/homebrew/opt/llvm/bin/clang/readelf"
@@ -1270,8 +1105,6 @@ events:
       - "/usr/local/bin/readelf"
       - "/usr/sbin/readelf"
       - "/Users/vladimir/development/flutter/bin/readelf"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/readelf"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/readelf"
       - "/System/Cryptexes/App/usr/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/readelf"
@@ -1279,12 +1112,12 @@ events:
       - "/opt/X11/bin/readelf"
       - "/Library/Apple/usr/bin/readelf"
       - "/Applications/Little Snitch.app/Contents/Components/readelf"
-      - "/Users/vladimir/.local/bin/readelf"
       - "/Applications/iTerm.app/Contents/Resources/utilities/readelf"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/readelf"
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1301,8 +1134,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1316,20 +1147,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1352,6 +1171,7 @@ events:
       - "dlltool"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1366,8 +1186,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1375,11 +1193,11 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
       - "/usr/bin/dlltool"
+      - "/Users/vladimir/.local/bin/dlltool"
       - "/Users/vladimir/.rbenv/shims/dlltool"
       - "/opt/homebrew/bin/dlltool"
       - "/opt/homebrew/opt/llvm/bin/clang/dlltool"
@@ -1394,8 +1212,6 @@ events:
       - "/usr/local/bin/dlltool"
       - "/usr/sbin/dlltool"
       - "/Users/vladimir/development/flutter/bin/dlltool"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/dlltool"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/dlltool"
       - "/System/Cryptexes/App/usr/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/dlltool"
@@ -1403,12 +1219,12 @@ events:
       - "/opt/X11/bin/dlltool"
       - "/Library/Apple/usr/bin/dlltool"
       - "/Applications/Little Snitch.app/Contents/Components/dlltool"
-      - "/Users/vladimir/.local/bin/dlltool"
       - "/Applications/iTerm.app/Contents/Resources/utilities/dlltool"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/dlltool"
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1425,8 +1241,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1440,20 +1254,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1476,6 +1278,7 @@ events:
       - "addr2line"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1490,8 +1293,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1499,11 +1300,11 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
       - "/usr/bin/addr2line"
+      - "/Users/vladimir/.local/bin/addr2line"
       - "/Users/vladimir/.rbenv/shims/addr2line"
       - "/opt/homebrew/bin/addr2line"
       - "/opt/homebrew/opt/llvm/bin/clang/addr2line"
@@ -1518,8 +1319,6 @@ events:
       - "/usr/local/bin/addr2line"
       - "/usr/sbin/addr2line"
       - "/Users/vladimir/development/flutter/bin/addr2line"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/addr2line"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/addr2line"
       - "/System/Cryptexes/App/usr/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/addr2line"
@@ -1527,12 +1326,12 @@ events:
       - "/opt/X11/bin/addr2line"
       - "/Library/Apple/usr/bin/addr2line"
       - "/Applications/Little Snitch.app/Contents/Components/addr2line"
-      - "/Users/vladimir/.local/bin/addr2line"
       - "/Applications/iTerm.app/Contents/Resources/utilities/addr2line"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/addr2line"
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1549,8 +1348,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1564,20 +1361,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1600,6 +1385,7 @@ events:
       - "tapi"
     candidate_directories:
       - "/usr/bin/"
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1614,8 +1400,6 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1623,11 +1407,11 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
       - "/usr/bin/tapi"
+      - "/Users/vladimir/.local/bin/tapi"
       - "/Users/vladimir/.rbenv/shims/tapi"
       - "/opt/homebrew/bin/tapi"
       - "/opt/homebrew/opt/llvm/bin/clang/tapi"
@@ -1642,8 +1426,6 @@ events:
       - "/usr/local/bin/tapi"
       - "/usr/sbin/tapi"
       - "/Users/vladimir/development/flutter/bin/tapi"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/tapi"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/tapi"
       - "/System/Cryptexes/App/usr/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/tapi"
@@ -1651,12 +1433,12 @@ events:
       - "/opt/X11/bin/tapi"
       - "/Library/Apple/usr/bin/tapi"
       - "/Applications/Little Snitch.app/Contents/Components/tapi"
-      - "/Users/vladimir/.local/bin/tapi"
       - "/Applications/iTerm.app/Contents/Resources/utilities/tapi"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/tapi"
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1673,8 +1455,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1688,20 +1468,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
   -
     kind: "find-v1"
@@ -1723,6 +1491,7 @@ events:
     names:
       - "install_name_tool"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -1738,8 +1507,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -1747,10 +1514,10 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/install_name_tool"
       - "/Users/vladimir/.rbenv/shims/install_name_tool"
       - "/opt/homebrew/bin/install_name_tool"
       - "/opt/homebrew/opt/llvm/bin/clang/install_name_tool"
@@ -1767,6 +1534,7 @@ events:
     found: "/usr/bin/install_name_tool"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -1783,8 +1551,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -1798,20 +1564,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
   -
@@ -1823,8 +1577,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ"
-      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ"
+      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx"
+      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -1837,18 +1591,18 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ'
+        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_6fa25/fast
-        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_6fa25.dir/build.make CMakeFiles/cmTC_6fa25.dir/build
-        Building CXX object CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_41f16/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_41f16.dir/build.make CMakeFiles/cmTC_41f16.dir/build
+        Building CXX object CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
         Apple clang version 17.0.0 (clang-1700.0.13.5)
         Target: arm64-apple-darwin24.6.0
         Thread model: posix
         InstalledDir: /Library/Developer/CommandLineTools/usr/bin
         clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
-         "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+         "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
         clang -cc1 version 17.0.0 (clang-1700.0.13.5) default target arm64-apple-darwin24.6.0
         ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/SubFrameworks"
@@ -1862,13 +1616,13 @@ events:
          /Library/Developer/CommandLineTools/usr/include
          /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
         End of search list.
-        Linking CXX executable cmTC_6fa25
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6fa25.dir/link.txt --verbose=1
+        Linking CXX executable cmTC_41f16
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_41f16.dir/link.txt --verbose=1
         Apple clang version 17.0.0 (clang-1700.0.13.5)
         Target: arm64-apple-darwin24.6.0
         Thread model: posix
         InstalledDir: /Library/Developer/CommandLineTools/usr/bin
-         "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_6fa25 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a
+         "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_41f16 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a
         @(#)PROGRAM:ld PROJECT:ld-1167.5
         BUILD 01:45:05 Apr 30 2025
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
@@ -1881,7 +1635,7 @@ events:
         	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_6fa25
+        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_41f16
         
       exitCode: 0
   -
@@ -1927,18 +1681,18 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ']
+        ignore line: [Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_6fa25/fast]
-        ignore line: [/Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_6fa25.dir/build.make CMakeFiles/cmTC_6fa25.dir/build]
-        ignore line: [Building CXX object CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_41f16/fast]
+        ignore line: [/Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_41f16.dir/build.make CMakeFiles/cmTC_41f16.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [Apple clang version 17.0.0 (clang-1700.0.13.5)]
         ignore line: [Target: arm64-apple-darwin24.6.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Library/Developer/CommandLineTools/usr/bin]
         ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
-        ignore line: [ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-U4aFuJ -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-tZVXcx -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1 -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [clang -cc1 version 17.0.0 (clang-1700.0.13.5) default target arm64-apple-darwin24.6.0]
         ignore line: [ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/SubFrameworks"]
@@ -1952,13 +1706,13 @@ events:
         ignore line: [ /Library/Developer/CommandLineTools/usr/include]
         ignore line: [ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking CXX executable cmTC_6fa25]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6fa25.dir/link.txt --verbose=1]
+        ignore line: [Linking CXX executable cmTC_41f16]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_41f16.dir/link.txt --verbose=1]
         ignore line: [Apple clang version 17.0.0 (clang-1700.0.13.5)]
         ignore line: [Target: arm64-apple-darwin24.6.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Library/Developer/CommandLineTools/usr/bin]
-        link line: [ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_6fa25 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_41f16 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
           arg [/Library/Developer/CommandLineTools/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -1975,12 +1729,12 @@ events:
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_6fa25] ==> ignore
+          arg [cmTC_41f16] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
           arg [-search_paths_first] ==> ignore
           arg [-headerpad_max_install_names] ==> ignore
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_6fa25.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_41f16.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lSystem] ==> lib [System]
           arg [/Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a] ==> lib [/Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
@@ -2039,6 +1793,7 @@ events:
     names:
       - "git"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -2054,8 +1809,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -2063,7 +1816,6 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/bin/"
@@ -2098,6 +1850,7 @@ events:
       - "/Users/vladimir/Applications/"
       - "/Applications/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/git"
       - "/Users/vladimir/.rbenv/shims/git"
       - "/opt/homebrew/bin/git"
       - "/opt/homebrew/opt/llvm/bin/clang/git"
@@ -2114,6 +1867,7 @@ events:
     found: "/usr/bin/git"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2130,8 +1884,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2145,20 +1897,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -2188,8 +1928,8 @@ events:
     checks:
       - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
     directories:
-      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-En0bzY"
-      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-En0bzY"
+      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-LONupM"
+      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-LONupM"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -2201,15 +1941,15 @@ events:
       variable: "CMAKE_HAVE_LIBC_PTHREAD"
       cached: true
       stdout: |
-        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-En0bzY'
+        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-LONupM'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_37bb0/fast
-        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_37bb0.dir/build.make CMakeFiles/cmTC_37bb0.dir/build
-        Building CXX object CMakeFiles/cmTC_37bb0.dir/src.cxx.o
-        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -std=c++20 -arch arm64 -MD -MT CMakeFiles/cmTC_37bb0.dir/src.cxx.o -MF CMakeFiles/cmTC_37bb0.dir/src.cxx.o.d -o CMakeFiles/cmTC_37bb0.dir/src.cxx.o -c /Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-En0bzY/src.cxx
-        Linking CXX executable cmTC_37bb0
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_37bb0.dir/link.txt --verbose=1
-        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_37bb0.dir/src.cxx.o -o cmTC_37bb0
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_87b92/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_87b92.dir/build.make CMakeFiles/cmTC_87b92.dir/build
+        Building CXX object CMakeFiles/cmTC_87b92.dir/src.cxx.o
+        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -std=c++20 -arch arm64 -MD -MT CMakeFiles/cmTC_87b92.dir/src.cxx.o -MF CMakeFiles/cmTC_87b92.dir/src.cxx.o.d -o CMakeFiles/cmTC_87b92.dir/src.cxx.o -c /Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-LONupM/src.cxx
+        Linking CXX executable cmTC_87b92
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_87b92.dir/link.txt --verbose=1
+        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_87b92.dir/src.cxx.o -o cmTC_87b92
         
       exitCode: 0
   -
@@ -2242,6 +1982,7 @@ events:
     found: "/usr/bin/cc"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2258,8 +1999,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2273,20 +2012,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -2332,6 +2059,7 @@ events:
     found: "/opt/homebrew/share/cmake/Modules/CMakeCCompilerId.c.in"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2348,8 +2076,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2363,20 +2089,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -2476,8 +2190,8 @@ events:
     checks:
       - "Detecting C compiler ABI info"
     directories:
-      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B"
-      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B"
+      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO"
+      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO"
     cmakeVariables:
       CMAKE_C_FLAGS: ""
       CMAKE_C_FLAGS_DEBUG: "-g"
@@ -2489,18 +2203,18 @@ events:
       variable: "CMAKE_C_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B'
+        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_c419d/fast
-        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_c419d.dir/build.make CMakeFiles/cmTC_c419d.dir/build
-        Building C object CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o
-        /usr/bin/cc   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_40b30/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_40b30.dir/build.make CMakeFiles/cmTC_40b30.dir/build
+        Building C object CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o
+        /usr/bin/cc   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c
         Apple clang version 17.0.0 (clang-1700.0.13.5)
         Target: arm64-apple-darwin24.6.0
         Thread model: posix
         InstalledDir: /Library/Developer/CommandLineTools/usr/bin
         clang: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
-         "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -x c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c
+         "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -x c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c
         clang -cc1 version 17.0.0 (clang-1700.0.13.5) default target arm64-apple-darwin24.6.0
         ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/SubFrameworks"
@@ -2513,13 +2227,13 @@ events:
          /Library/Developer/CommandLineTools/usr/include
          /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
         End of search list.
-        Linking C executable cmTC_c419d
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c419d.dir/link.txt --verbose=1
+        Linking C executable cmTC_40b30
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_40b30.dir/link.txt --verbose=1
         Apple clang version 17.0.0 (clang-1700.0.13.5)
         Target: arm64-apple-darwin24.6.0
         Thread model: posix
         InstalledDir: /Library/Developer/CommandLineTools/usr/bin
-         "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_c419d -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a
+         "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_40b30 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a
         @(#)PROGRAM:ld PROJECT:ld-1167.5
         BUILD 01:45:05 Apr 30 2025
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
@@ -2532,7 +2246,7 @@ events:
         	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -o cmTC_c419d
+        /usr/bin/cc  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -o cmTC_40b30
         
       exitCode: 0
   -
@@ -2576,18 +2290,18 @@ events:
       Parsed C implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B']
+        ignore line: [Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_c419d/fast]
-        ignore line: [/Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_c419d.dir/build.make CMakeFiles/cmTC_c419d.dir/build]
-        ignore line: [Building C object CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o]
-        ignore line: [/usr/bin/cc   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_40b30/fast]
+        ignore line: [/Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_40b30.dir/build.make CMakeFiles/cmTC_40b30.dir/build]
+        ignore line: [Building C object CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o]
+        ignore line: [/usr/bin/cc   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c]
         ignore line: [Apple clang version 17.0.0 (clang-1700.0.13.5)]
         ignore line: [Target: arm64-apple-darwin24.6.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Library/Developer/CommandLineTools/usr/bin]
         ignore line: [clang: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
-        ignore line: [ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-HZl86B -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -x c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c]
+        ignore line: [ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx15.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.5 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO -target-linker-version 1167.5 -v -fcoverage-compilation-dir=/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-hkKdKO -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -sys-header-deps -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/17/include -internal-externc-isystem /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -x c /opt/homebrew/share/cmake/Modules/CMakeCCompilerABI.c]
         ignore line: [clang -cc1 version 17.0.0 (clang-1700.0.13.5) default target arm64-apple-darwin24.6.0]
         ignore line: [ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/SubFrameworks"]
@@ -2600,13 +2314,13 @@ events:
         ignore line: [ /Library/Developer/CommandLineTools/usr/include]
         ignore line: [ /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking C executable cmTC_c419d]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c419d.dir/link.txt --verbose=1]
+        ignore line: [Linking C executable cmTC_40b30]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_40b30.dir/link.txt --verbose=1]
         ignore line: [Apple clang version 17.0.0 (clang-1700.0.13.5)]
         ignore line: [Target: arm64-apple-darwin24.6.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Library/Developer/CommandLineTools/usr/bin]
-        link line: [ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_c419d -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 15.0.0 15.5 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_40b30 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
           arg [/Library/Developer/CommandLineTools/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -2623,12 +2337,12 @@ events:
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_c419d] ==> ignore
+          arg [cmTC_40b30] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
           arg [-search_paths_first] ==> ignore
           arg [-headerpad_max_install_names] ==> ignore
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_c419d.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [CMakeFiles/cmTC_40b30.dir/CMakeCCompilerABI.c.o] ==> ignore
           arg [-lSystem] ==> lib [System]
           arg [/Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a] ==> lib [/Library/Developer/CommandLineTools/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
         linker tool for 'C': /Library/Developer/CommandLineTools/usr/bin/ld
@@ -2694,6 +2408,7 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2710,8 +2425,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2725,20 +2438,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -2797,6 +2498,7 @@ events:
     found: "/opt/homebrew/Frameworks/Python.framework/Versions/3.14/bin/python3.14"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2813,8 +2515,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2828,20 +2528,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -2904,6 +2592,14 @@ events:
         mode: "config"
         reason: "no_exist"
       -
+        path: "/Users/vladimir/.local/SDL2Config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
+        path: "/Users/vladimir/.local/sdl2-config.cmake"
+        mode: "config"
+        reason: "no_exist"
+      -
         path: "/Users/vladimir/.rbenv/shims/SDL2Config.cmake"
         mode: "config"
         reason: "no_exist"
@@ -2953,6 +2649,7 @@ events:
       version: "2.32.10"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -2969,8 +2666,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -2984,20 +2679,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3041,6 +2724,7 @@ events:
     names:
       - "AppKit"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/Users/vladimir/.cargo/bin/"
@@ -3053,12 +2737,9 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/usr/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/"
@@ -3079,6 +2760,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/AppKit.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3095,8 +2777,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3110,20 +2790,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3160,8 +2828,8 @@ events:
     checks:
       - "Performing Test NFD_USE_ALLOWEDCONTENTTYPES"
     directories:
-      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-YJ02My"
-      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-YJ02My"
+      source: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-BfMFwu"
+      binary: "/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-BfMFwu"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -3173,15 +2841,15 @@ events:
       variable: "NFD_USE_ALLOWEDCONTENTTYPES"
       cached: true
       stdout: |
-        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-YJ02My'
+        Change Dir: '/Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-BfMFwu'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_44824/fast
-        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_44824.dir/build.make CMakeFiles/cmTC_44824.dir/build
-        Building CXX object CMakeFiles/cmTC_44824.dir/src.cxx.o
-        /usr/bin/c++ -DNFD_USE_ALLOWEDCONTENTTYPES  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_44824.dir/src.cxx.o -MF CMakeFiles/cmTC_44824.dir/src.cxx.o.d -o CMakeFiles/cmTC_44824.dir/src.cxx.o -c /Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-YJ02My/src.cxx
-        Linking CXX executable cmTC_44824
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_44824.dir/link.txt --verbose=1
-        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_44824.dir/src.cxx.o -o cmTC_44824
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2bcd8/fast
+        /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_2bcd8.dir/build.make CMakeFiles/cmTC_2bcd8.dir/build
+        Building CXX object CMakeFiles/cmTC_2bcd8.dir/src.cxx.o
+        /usr/bin/c++ -DNFD_USE_ALLOWEDCONTENTTYPES  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_2bcd8.dir/src.cxx.o -MF CMakeFiles/cmTC_2bcd8.dir/src.cxx.o.d -o CMakeFiles/cmTC_2bcd8.dir/src.cxx.o -c /Users/vladimir/an24_cpp/build/CMakeFiles/CMakeScratch/TryCompile-BfMFwu/src.cxx
+        Linking CXX executable cmTC_2bcd8
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2bcd8.dir/link.txt --verbose=1
+        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_2bcd8.dir/src.cxx.o -o cmTC_2bcd8
         
       exitCode: 0
   -
@@ -3202,6 +2870,7 @@ events:
     names:
       - "UniformTypeIdentifiers"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/Users/vladimir/.cargo/bin/"
@@ -3214,12 +2883,9 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/usr/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/"
@@ -3240,6 +2906,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/UniformTypeIdentifiers.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3256,8 +2923,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3271,20 +2936,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3332,6 +2985,7 @@ events:
       - "OpenGL"
       - "GL"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/Users/vladimir/.cargo/bin/"
@@ -3344,12 +2998,9 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/usr/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/"
@@ -3370,6 +3021,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3386,8 +3038,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3401,20 +3051,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3462,6 +3100,7 @@ events:
       - "OpenGL"
       - "GLU"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/Users/vladimir/.cargo/bin/"
@@ -3474,12 +3113,9 @@ events:
       - "/usr/local/bin/"
       - "/usr/sbin/"
       - "/usr/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/"
@@ -3500,6 +3136,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3516,8 +3153,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3531,20 +3166,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3592,6 +3215,7 @@ events:
       - "OpenGL/gl.h"
       - "GL/gl.h"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -3607,8 +3231,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -3616,7 +3238,6 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/"
@@ -3648,6 +3269,7 @@ events:
       - "/Network/Library/Frameworks/"
       - "/System/Library/Frameworks/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/OpenGL.framework/Headers/gl.h"
       - "/Users/vladimir/.rbenv/shims/OpenGL.framework/Headers/gl.h"
       - "/opt/homebrew/bin/OpenGL.framework/Headers/gl.h"
       - "/opt/homebrew/opt/llvm/bin/clang/OpenGL.framework/Headers/gl.h"
@@ -3663,8 +3285,6 @@ events:
       - "/usr/sbin/OpenGL.framework/Headers/gl.h"
       - "/usr/bin/OpenGL.framework/Headers/gl.h"
       - "/Users/vladimir/development/flutter/bin/OpenGL.framework/Headers/gl.h"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/OpenGL.framework/Headers/gl.h"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/OpenGL.framework/Headers/gl.h"
       - "/System/Cryptexes/App/usr/bin/OpenGL.framework/Headers/gl.h"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/OpenGL.framework/Headers/gl.h"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/OpenGL.framework/Headers/gl.h"
@@ -3672,7 +3292,6 @@ events:
       - "/opt/X11/bin/OpenGL.framework/Headers/gl.h"
       - "/Library/Apple/usr/bin/OpenGL.framework/Headers/gl.h"
       - "/Applications/Little Snitch.app/Contents/Components/OpenGL.framework/Headers/gl.h"
-      - "/Users/vladimir/.local/bin/OpenGL.framework/Headers/gl.h"
       - "/Applications/iTerm.app/Contents/Resources/utilities/OpenGL.framework/Headers/gl.h"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/OpenGL.framework/Headers/gl.h"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/OpenGL.framework/Headers/gl.h"
@@ -3701,6 +3320,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3717,8 +3337,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3732,20 +3350,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:
@@ -3793,6 +3399,7 @@ events:
       - "OpenGL/glu.h"
       - "GL/glu.h"
     candidate_directories:
+      - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
       - "/opt/homebrew/opt/llvm/bin/clang/"
@@ -3808,8 +3415,6 @@ events:
       - "/usr/sbin/"
       - "/usr/bin/"
       - "/Users/vladimir/development/flutter/bin/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/"
       - "/System/Cryptexes/App/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
@@ -3817,7 +3422,6 @@ events:
       - "/opt/X11/bin/"
       - "/Library/Apple/usr/bin/"
       - "/Applications/Little Snitch.app/Contents/Components/"
-      - "/Users/vladimir/.local/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/"
@@ -3849,6 +3453,7 @@ events:
       - "/Network/Library/Frameworks/"
       - "/System/Library/Frameworks/"
     searched_directories:
+      - "/Users/vladimir/.local/bin/OpenGL.framework/Headers/glu.h"
       - "/Users/vladimir/.rbenv/shims/OpenGL.framework/Headers/glu.h"
       - "/opt/homebrew/bin/OpenGL.framework/Headers/glu.h"
       - "/opt/homebrew/opt/llvm/bin/clang/OpenGL.framework/Headers/glu.h"
@@ -3864,8 +3469,6 @@ events:
       - "/usr/sbin/OpenGL.framework/Headers/glu.h"
       - "/usr/bin/OpenGL.framework/Headers/glu.h"
       - "/Users/vladimir/development/flutter/bin/OpenGL.framework/Headers/glu.h"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand/OpenGL.framework/Headers/glu.h"
-      - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli/OpenGL.framework/Headers/glu.h"
       - "/System/Cryptexes/App/usr/bin/OpenGL.framework/Headers/glu.h"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/OpenGL.framework/Headers/glu.h"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/OpenGL.framework/Headers/glu.h"
@@ -3873,7 +3476,6 @@ events:
       - "/opt/X11/bin/OpenGL.framework/Headers/glu.h"
       - "/Library/Apple/usr/bin/OpenGL.framework/Headers/glu.h"
       - "/Applications/Little Snitch.app/Contents/Components/OpenGL.framework/Headers/glu.h"
-      - "/Users/vladimir/.local/bin/OpenGL.framework/Headers/glu.h"
       - "/Applications/iTerm.app/Contents/Resources/utilities/OpenGL.framework/Headers/glu.h"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/OpenGL.framework/Headers/glu.h"
       - "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/OpenGL.framework/Headers/glu.h"
@@ -3902,6 +3504,7 @@ events:
     found: "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/OpenGL.framework"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/opt/llvm/bin/clang"
@@ -3918,8 +3521,6 @@ events:
         - "/usr/sbin"
         - "/usr/bin"
         - "/Users/vladimir/development/flutter/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
         - "/usr/local/bin"
         - "/System/Cryptexes/App/usr/bin"
         - "/usr/bin"
@@ -3933,20 +3534,8 @@ events:
         - "/Library/Apple/usr/bin"
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/opt/homebrew/bin"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand"
-        - "/Users/vladimir/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli"
-        - "/Users/vladimir/.local/bin"
-        - "/Users/vladimir/.rbenv/shims"
-        - "/opt/homebrew/opt/llvm/bin/clang"
         - "/Users/vladimir/.cargo/bin"
-        - "/Users/vladimir/bin"
-        - "/opt/homebrew/opt/llvm/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/openjdk@21/bin"
-        - "/Users/vladimir/.composer/vendor/bin"
-        - "/Users/vladimir/development/flutter/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
         - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts"
       CMAKE_INSTALL_PREFIX: "/usr/local"
       CMAKE_SYSTEM_PREFIX_PATH:

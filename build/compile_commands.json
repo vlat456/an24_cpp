@@ -73,37 +73,37 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/jit_solver.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/jit_solver.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/component.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/component.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/component.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/component.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/component.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/component.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/systems.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/systems.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/systems.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/systems.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/systems.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/state.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/state.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/state.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/state.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/state.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/simulator.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/simulator.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/all.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/all.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/all.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o"
 },
@@ -115,7 +115,7 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/hello_world.dir/main.cpp.o -c /Users/vladimir/an24_cpp/examples/main.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/hello_world.dir/main.cpp.o -c /Users/vladimir/an24_cpp/examples/main.cpp",
   "file": "/Users/vladimir/an24_cpp/examples/main.cpp",
   "output": "examples/CMakeFiles/hello_world.dir/main.cpp.o"
 },
@@ -127,19 +127,19 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_test.dir/codegen_test.cpp.o -c /Users/vladimir/an24_cpp/examples/codegen_test.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_test.dir/codegen_test.cpp.o -c /Users/vladimir/an24_cpp/examples/codegen_test.cpp",
   "file": "/Users/vladimir/an24_cpp/examples/codegen_test.cpp",
   "output": "examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/generated -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o -c /Users/vladimir/an24_cpp/generated/bench_vsu_aot.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/generated -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o -c /Users/vladimir/an24_cpp/generated/bench_vsu_aot.cpp",
   "file": "/Users/vladimir/an24_cpp/generated/bench_vsu_aot.cpp",
   "output": "examples/CMakeFiles/bench_vsu_aot.dir/__/generated/bench_vsu_aot.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/generated -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o -c /Users/vladimir/an24_cpp/generated/generated_vsu_test.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/generated -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o -c /Users/vladimir/an24_cpp/generated/generated_vsu_test.cpp",
   "file": "/Users/vladimir/an24_cpp/generated/generated_vsu_test.cpp",
   "output": "examples/CMakeFiles/bench_vsu_aot.dir/__/generated/generated_vsu_test.cpp.o"
 },
@@ -253,7 +253,7 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o -c /Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o -c /Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
   "file": "/Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
   "output": "examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o"
 },
@@ -265,13 +265,13 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -DTEST_DATA_DIR=\\\"/Users/vladimir/an24_cpp\\\" -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.o -c /Users/vladimir/an24_cpp/tests/port_macro_test.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -DTEST_DATA_DIR=\\\"/Users/vladimir/an24_cpp\\\" -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.o -c /Users/vladimir/an24_cpp/tests/port_macro_test.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/port_macro_test.cpp",
   "output": "tests/CMakeFiles/port_macro_tests.dir/port_macro_test.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/editor_componentvariant_tests.dir/editor_componentvariant_test.cpp.o -c /Users/vladimir/an24_cpp/tests/editor_componentvariant_test.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/editor_componentvariant_tests.dir/editor_componentvariant_test.cpp.o -c /Users/vladimir/an24_cpp/tests/editor_componentvariant_test.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/editor_componentvariant_test.cpp",
   "output": "tests/CMakeFiles/editor_componentvariant_tests.dir/editor_componentvariant_test.cpp.o"
 },
@@ -607,31 +607,31 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_ports.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_ports.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_blueprint_ports.cpp",
   "output": "tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_integration.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_integration.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_blueprint_integration.cpp",
   "output": "tests/CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_loading.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.o -c /Users/vladimir/an24_cpp/tests/test_blueprint_loading.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_blueprint_loading.cpp",
   "output": "tests/CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.o -c /Users/vladimir/an24_cpp/tests/provider_test.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.o -c /Users/vladimir/an24_cpp/tests/provider_test.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/provider_test.cpp",
   "output": "tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o -c /Users/vladimir/an24_cpp/tests/test_lamp_passthrough_jit.cpp",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o -c /Users/vladimir/an24_cpp/tests/test_lamp_passthrough_jit.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_lamp_passthrough_jit.cpp",
   "output": "tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.o"
 },

@@ -251,11 +251,10 @@ int main(int argc, char** argv) {
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
                     if (result == NFD_OKAY) {
-                        auto bp = load_blueprint_from_file(outPath);
-                        if (app.scene.load(outPath_str)) {
-                            DEBUG_INFO("Loaded file: {}", outPath_str);
+                        if (app.scene.load(outPath)) {
+                            DEBUG_INFO("Loaded file: {}", outPath);
                         } else {
-                            DEBUG_ERROR("Failed to load file: {}", outPath_str);
+                            DEBUG_ERROR("Failed to load file: {}", outPath);
                         }
                         NFD_FreePath(outPath);
                     }
@@ -277,15 +276,15 @@ int main(int argc, char** argv) {
             }
             if (ImGui::BeginMenu("View")) {
                 if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-                    app.viewport.zoom *= 1.1f;
-                    app.viewport.clamp_zoom(); // [d4e5f6g7]
+                    app.scene.viewport().zoom *= 1.1f;
+                    app.scene.viewport().clamp_zoom(); // [d4e5f6g7]
                 }
                 if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-                    app.viewport.zoom /= 1.1f;
-                    app.viewport.clamp_zoom(); // [d4e5f6g7]
+                    app.scene.viewport().zoom /= 1.1f;
+                    app.scene.viewport().clamp_zoom(); // [d4e5f6g7]
                 }
                 if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
-                    app.viewport.zoom = 1.0f;
+                    app.scene.viewport().zoom = 1.0f;
                 }
                 ImGui::EndMenu();
             }
@@ -356,10 +355,10 @@ int main(int argc, char** argv) {
         if (app.interaction.dragging == Dragging::ReconnectingWire) {
             Pt anchor_pos = app.interaction.get_reconnect_anchor_pos();
             ImVec2 mouse_pos = ImGui::GetMousePos();
-            Pt end_world = app.viewport.screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
+            Pt end_world = app.scene.viewport().screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
 
-            Pt anchor_screen = app.viewport.world_to_screen(anchor_pos, canvas_min_pt);
-            Pt end_screen = app.viewport.world_to_screen(end_world, canvas_min_pt);
+            Pt anchor_screen = app.scene.viewport().world_to_screen(anchor_pos, canvas_min_pt);
+            Pt end_screen = app.scene.viewport().world_to_screen(end_world, canvas_min_pt);
 
             uint32_t wire_color = IM_COL32(255, 150, 50, 200); // Orange
             imgui_dl.dl->AddLine(
@@ -371,12 +370,12 @@ int main(int argc, char** argv) {
         }
 
         // Render node content (ImGui widgets) - after DrawList rendering
-        for (auto& node : app.blueprint.nodes) {
+        for (auto& node : app.scene.blueprint().nodes) {
             // Skip hidden nodes (blueprint collapsing) — no ImGui content for invisible nodes
             if (!node.visible) continue;
 
             // Get or create visual node from cache (pass wires for Bus nodes)
-            auto* visual = app.visual_cache.getOrCreate(node, app.blueprint.wires);
+            auto* visual = app.scene.cache().getOrCreate(node, app.scene.blueprint().wires);
 
             // Update visual node position from current node position (for drag)
             visual->setPosition(node.pos);
@@ -386,8 +385,8 @@ int main(int argc, char** argv) {
             node.size = visual->getSize();
 
             // Calculate screen position of node
-            Pt screen_min = app.viewport.world_to_screen(visual->getPosition(), canvas_min_pt);
-            float zoom = app.viewport.zoom;
+            Pt screen_min = app.scene.viewport().world_to_screen(visual->getPosition(), canvas_min_pt);
+            float zoom = app.scene.viewport().zoom;
 
             // If node has content, use the visual node's layout to get content bounds
             NodeContentType ctype = visual->getContentType();
@@ -458,8 +457,8 @@ int main(int argc, char** argv) {
 
         // Marquee selection rectangle
         if (app.interaction.marquee_selecting) {
-            Pt start_screen = app.viewport.world_to_screen(app.interaction.marquee_start, canvas_min_pt);
-            Pt end_screen = app.viewport.world_to_screen(app.interaction.marquee_end, canvas_min_pt);
+            Pt start_screen = app.scene.viewport().world_to_screen(app.interaction.marquee_start, canvas_min_pt);
+            Pt end_screen = app.scene.viewport().world_to_screen(app.interaction.marquee_end, canvas_min_pt);
             Pt min(std::min(start_screen.x, end_screen.x), std::min(start_screen.y, end_screen.y));
             Pt max(std::max(start_screen.x, end_screen.x), std::max(start_screen.y, end_screen.y));
             // Transparent fill + border
@@ -488,7 +487,7 @@ int main(int argc, char** argv) {
             if (ImGui::IsMouseDoubleClicked(0)) { // Left double click
                 ImVec2 mouse_pos = ImGui::GetMousePos();
                 Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
                 app.on_double_click(world);
                 was_double_click = true;
             }
@@ -496,7 +495,7 @@ int main(int argc, char** argv) {
             if (!was_double_click && ImGui::IsMouseClicked(0)) { // Left
                 ImVec2 mouse_pos = ImGui::GetMousePos();
                 Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
 
                 if (alt_down) {
                     // Marquee selection
@@ -511,26 +510,26 @@ int main(int argc, char** argv) {
             if (ImGui::IsMouseClicked(1)) { // Right
                 ImVec2 mouse_pos = ImGui::GetMousePos();
                 Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
                 app.on_mouse_down(world, MouseButton::Right, canvas_min_pt);
             }
             if (ImGui::IsMouseClicked(2)) { // Middle
                 ImVec2 mouse_pos = ImGui::GetMousePos();
                 Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
                 app.on_mouse_down(world, MouseButton::Middle, canvas_min_pt);
             }
 
             // Mouse drag / panning
             if (ImGui::IsMouseDragging(2) && app.interaction.panning) { // Middle button = panning
                 ImVec2 delta = ImGui::GetMouseDragDelta(2);
-                Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
+                Pt world_delta(delta.x / app.scene.viewport().zoom, delta.y / app.scene.viewport().zoom);
                 app.on_mouse_drag(world_delta, canvas_min_pt);
                 ImGui::ResetMouseDragDelta(2);
             }
             if (ImGui::IsMouseDragging(0)) { // Left button = node drag, marquee, or wire creation
                 ImVec2 delta = ImGui::GetMouseDragDelta(0);
-                Pt world_delta(delta.x / app.viewport.zoom, delta.y / app.viewport.zoom);
+                Pt world_delta(delta.x / app.scene.viewport().zoom, delta.y / app.scene.viewport().zoom);
 
                 if (app.interaction.dragging == Dragging::CreatingWire) {
                     // Wire creation drag
@@ -539,7 +538,7 @@ int main(int argc, char** argv) {
                     // Marquee selection drag
                     ImVec2 mouse_pos = ImGui::GetMousePos();
                     Pt mouse(mouse_pos.x, mouse_pos.y);
-                    Pt world = app.viewport.screen_to_world(mouse, canvas_min_pt);
+                    Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
                     app.interaction.marquee_end = world;
                 } else {
                     // Normal node/routing point drag
