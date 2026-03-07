@@ -851,43 +851,108 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
     // Snap position to grid
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
 
-    // Create COLLAPSED node (single node, not flattened)
-    // The simulator will detect NodeKind::Blueprint and expand it when building
-    Node node;
-    node.id = unique_id;
-    node.name = unique_id;
-    node.type_name = blueprint_name;
-    node.kind = NodeKind::Blueprint;  // Mark as collapsed blueprint
-    node.collapsed = true;
-    node.blueprint_path = info->path;
-    node.pos = snapped_pos;
+    // IMMEDIATELY EXPAND the nested blueprint (always-flatten architecture)
+    // Load the nested blueprint JSON file
+    std::ifstream blueprint_file(info->path);
+    if (!blueprint_file.is_open()) {
+        spdlog::error("[editor] failed to open blueprint: {}", info->path);
+        return;
+    }
+
+    std::string content((std::istreambuf_iterator<char>(blueprint_file)),
+                        std::istreambuf_iterator<char>());
+
+    // Parse nested blueprint (this will expand any nested blueprints recursively)
+    an24::ParserContext nested_ctx;
+    try {
+        nested_ctx = an24::parse_json(content);
+    } catch (const std::exception& e) {
+        spdlog::error("[editor] failed to parse blueprint {}: {}",
+                     info->path, e.what());
+        return;
+    }
+
+    // Add all nested devices with prefix to the main blueprint
+    std::string prefix = unique_id;  // Use the blueprint's ID as prefix
+    std::vector<std::string> internal_node_ids;
+
+    for (const auto& dev : nested_ctx.devices) {
+        Node node;
+        node.id = prefix + ":" + dev.name;
+        node.name = node.id;
+        node.type_name = dev.classname;
+        node.kind = NodeKind::Node;  // All internal nodes are regular nodes
+        node.pos = snapped_pos;  // All start at same position (will be auto-layout)
+        node.size = get_default_node_size(dev.classname, &component_registry);
+
+        // Add ports from DeviceInstance
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
+                node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+            }
+            if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut) {
+                node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+            }
+        }
+
+        // Add params from DeviceInstance
+        node.params = dev.params;
+
+        // Create node_content from ComponentDefinition
+        const auto* def = component_registry.get(dev.classname);
+        if (def) {
+            node.node_content = create_node_content(def);
+        }
+
+        blueprint.add_node(node);
+        internal_node_ids.push_back(node.id);
+    }
+
+    // Add and rewrite connections with prefix
+    for (const auto& conn : nested_ctx.connections) {
+        Wire wire;
+        wire.id = prefix + ":" + conn.from + "->" + prefix + ":" + conn.to;
+
+        // Rewrite from: "vin.port" -> "unique_id:vin.port"
+        size_t from_dot = conn.from.find('.');
+        if (from_dot != std::string::npos) {
+            wire.start.node_id = prefix + ":" + conn.from.substr(0, from_dot);
+            wire.start.port_name = conn.from.substr(from_dot + 1);
+        }
+
+        // Rewrite to: "vout.port" -> "unique_id:vout.port"
+        size_t to_dot = conn.to.find('.');
+        if (to_dot != std::string::npos) {
+            wire.end.node_id = prefix + ":" + conn.to.substr(0, to_dot);
+            wire.end.port_name = conn.to.substr(to_dot + 1);
+        }
+
+        blueprint.add_wire(wire);
+    }
+
+    // Create CollapsedGroup for editor-only visual collapsing
+    CollapsedGroup collapsed_group;
+    collapsed_group.id = unique_id;
+    collapsed_group.blueprint_path = info->path;
+    collapsed_group.type_name = blueprint_name;
+    collapsed_group.pos = snapped_pos;
 
     // Calculate size based on number of exposed ports
     size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
-    node.size = Pt(120.0f, height);
+    collapsed_group.size = Pt(120.0f, height);
 
-    // Populate inputs/outputs from exposed ports (for editor display and wiring)
-    for (const auto& [port_name, port] : info->exposed_ports) {
-        if (port.direction == PortDirection::In) {
-            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
-        } else {
-            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
-        }
-    }
-
-    // Add collapsed blueprint node to blueprint
-    blueprint.add_node(node);
+    collapsed_group.internal_node_ids = internal_node_ids;
+    blueprint.collapsed_groups.push_back(collapsed_group);
 
     // Clear visual cache to force rebuild
     visual_cache.clear();
 
-    // Rebuild simulation (it will expand the collapsed node)
+    // Rebuild simulation (no expansion needed - devices are already flattened)
     rebuild_simulation();
 
-    spdlog::info("[editor] added collapsed blueprint: {} (id={}) at ({:.1f}, {:.1f}) with {} inputs, {} outputs",
-                 blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
-                 node.inputs.size(), node.outputs.size());
+    spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal connections",
+                 blueprint_name, unique_id, internal_node_ids.size(), nested_ctx.connections.size());
 }
 
 void EditorApp::trigger_switch(const std::string& node_id) {
