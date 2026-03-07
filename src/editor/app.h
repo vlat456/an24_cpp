@@ -50,6 +50,14 @@ struct EditorApp {
     /// Component registry (loaded from components/*.json)
     an24::ComponentRegistry component_registry;
 
+    /// Blueprint metadata for context menu
+    struct BlueprintInfo {
+        std::string name;              // Blueprint filename without .json (e.g., "simple_battery")
+        std::string path;              // Full path to blueprint file (e.g., "blueprints/simple_battery.json")
+        std::unordered_map<std::string, an24::Port> exposed_ports;  // Exposed ports from blueprint
+    };
+    std::vector<BlueprintInfo> blueprints;  // Discovered blueprints at startup
+
     /// Context menu state
     bool show_context_menu = false;
     Pt context_menu_pos;
@@ -67,6 +75,9 @@ struct EditorApp {
     EditorApp() {
         // Load component registry at startup
         component_registry = an24::load_component_registry();
+
+        // Scan blueprints/ directory for nested blueprints
+        scan_blueprints();
     }
 
     /// Создать новую схему
@@ -141,6 +152,12 @@ struct EditorApp {
 
     /// Добавить компонент на схему
     void add_component(const std::string& classname, Pt world_pos);
+
+    /// Scan blueprints/ directory and populate blueprints vector
+    void scan_blueprints();
+
+    /// Добавить вложенный блюпринт на схему (collapsed node)
+    void add_blueprint(const std::string& blueprint_name, Pt world_pos);
 
     /// Переключить Switch (toggle button)
     void trigger_switch(const std::string& node_id);

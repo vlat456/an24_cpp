@@ -7,7 +7,12 @@
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
+#include "json_parser/json_parser.h"
+#include <spdlog/spdlog.h>
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <limits>
 
 void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
@@ -743,6 +748,143 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     printf("Added component: %s (id=%s) at (%.1f, %.1f) with %zu inputs, %zu outputs\n",
            classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
            node.inputs.size(), node.outputs.size());
+}
+
+void EditorApp::scan_blueprints() {
+    namespace fs = std::filesystem;
+
+    // Try to find blueprints/ directory (same resolution logic as parse_json)
+    std::vector<fs::path> try_paths = {
+        "blueprints/",
+        "../blueprints/",
+        "../../blueprints/",
+    };
+
+    fs::path blueprints_dir;
+    bool found = false;
+    for (const auto& path : try_paths) {
+        if (fs::is_directory(path)) {
+            blueprints_dir = path;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        spdlog::warn("[editor] blueprints/ directory not found");
+        return;
+    }
+
+    // Scan for .json files
+    blueprints.clear();
+    for (const auto& entry : fs::directory_iterator(blueprints_dir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            std::string blueprint_name = entry.path().stem().string();
+            std::string blueprint_path = entry.path().string();
+
+            // Try to load blueprint and extract exposed ports
+            try {
+                std::ifstream file(entry.path());
+                if (!file.is_open()) continue;
+
+                std::string content((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+                file.close();
+
+                an24::ParserContext ctx = an24::parse_json(content);
+                auto exposed_ports = an24::extract_exposed_ports(ctx);
+
+                BlueprintInfo info;
+                info.name = blueprint_name;
+                info.path = blueprint_path;
+                info.exposed_ports = exposed_ports;
+
+                blueprints.push_back(std::move(info));
+
+                spdlog::info("[editor] discovered blueprint: {} ({} exposed ports)",
+                           blueprint_name, exposed_ports.size());
+            } catch (const std::exception& e) {
+                spdlog::warn("[editor] failed to load blueprint {}: {}",
+                           blueprint_name, e.what());
+            }
+        }
+    }
+
+    // Sort alphabetically
+    std::sort(blueprints.begin(), blueprints.end(),
+              [](const BlueprintInfo& a, const BlueprintInfo& b) {
+                  return a.name < b.name;
+              });
+
+    spdlog::info("[editor] scanned {} blueprints from {}", blueprints.size(), blueprints_dir.string());
+}
+
+void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
+    using namespace an24;
+
+    // Find blueprint info
+    const BlueprintInfo* info = nullptr;
+    for (const auto& bp : blueprints) {
+        if (bp.name == blueprint_name) {
+            info = &bp;
+            break;
+        }
+    }
+
+    if (!info) {
+        spdlog::error("[editor] blueprint not found: {}", blueprint_name);
+        return;
+    }
+
+    // Generate unique ID
+    int counter = 1;
+    std::string base_id = blueprint_name;
+    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
+
+    std::string unique_id;
+    do {
+        unique_id = base_id + "_" + std::to_string(counter++);
+    } while (blueprint.find_node(unique_id.c_str()) != nullptr);
+
+    // Snap position to grid
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
+
+    // Create collapsed node
+    Node node;
+    node.id = unique_id;
+    node.name = unique_id;
+    node.type_name = blueprint_name;  // Blueprint filename without .json
+    node.collapsed = true;  // Always collapsed initially
+    node.blueprint_path = info->path;
+    node.pos = snapped_pos;
+    node.kind = NodeKind::Node;  // Render as regular node
+
+    // Calculate size based on number of exposed ports
+    size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
+    float height = 80.0f + (num_ports - 1) * 16.0f;  // Header + port rows
+    node.size = Pt(120.0f, height);
+
+    // Populate inputs/outputs from exposed ports
+    for (const auto& [port_name, port] : info->exposed_ports) {
+        if (port.direction == PortDirection::In) {
+            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+        } else {
+            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+        }
+    }
+
+    // Add node to blueprint
+    blueprint.add_node(node);
+
+    // Clear visual cache to force rebuild
+    visual_cache.clear();
+
+    // Rebuild simulation to include new blueprint
+    rebuild_simulation();
+
+    spdlog::info("[editor] added blueprint: {} (id={}) at ({:.1f}, {:.1f}) with {} inputs, {} outputs",
+                 blueprint_name, unique_id, snapped_pos.x, snapped_pos.y,
+                 node.inputs.size(), node.outputs.size());
 }
 
 void EditorApp::trigger_switch(const std::string& node_id) {

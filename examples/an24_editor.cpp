@@ -584,17 +584,43 @@ int main(int argc, char** argv) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Add Component");
             ImGui::Separator();
 
-            // Get sorted list of component classnames
-            auto classnames = app.component_registry.list_classnames();
-            std::sort(classnames.begin(), classnames.end());
+            // Components submenu
+            if (ImGui::BeginMenu("Components")) {
+                // Get sorted list of component classnames
+                auto classnames = app.component_registry.list_classnames();
+                std::sort(classnames.begin(), classnames.end());
 
-            // Show menu items for each component
-            for (const auto& classname : classnames) {
-                const auto* def = app.component_registry.get(classname);
-                if (def && ImGui::MenuItem(classname.c_str())) {
-                    // Add component to blueprint at context_menu_pos
-                    app.add_component(classname, app.context_menu_pos);
+                // Show menu items for each component
+                for (const auto& classname : classnames) {
+                    const auto* def = app.component_registry.get(classname);
+                    if (def && ImGui::MenuItem(classname.c_str())) {
+                        // Add component to blueprint at context_menu_pos
+                        app.add_component(classname, app.context_menu_pos);
+                    }
                 }
+                ImGui::EndMenu();
+            }
+
+            // Blueprints submenu (nested blueprints)
+            if (ImGui::BeginMenu("Blueprints")) {
+                if (app.blueprints.empty()) {
+                    ImGui::TextDisabled("No blueprints found");
+                    ImGui::TextDisabled("(blueprints/ directory)");
+                } else {
+                    for (const auto& bp_info : app.blueprints) {
+                        // Show blueprint name with exposed port count
+                        std::string label = bp_info.name;
+                        if (!bp_info.exposed_ports.empty()) {
+                            label += " (" + std::to_string(bp_info.exposed_ports.size()) + " ports)";
+                        }
+
+                        if (ImGui::MenuItem(label.c_str())) {
+                            // Add collapsed blueprint node to blueprint at context_menu_pos
+                            app.add_blueprint(bp_info.name, app.context_menu_pos);
+                        }
+                    }
+                }
+                ImGui::EndMenu();
             }
 
             ImGui::EndPopup();
