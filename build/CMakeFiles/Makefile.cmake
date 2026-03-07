@@ -159,5 +159,8 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/editor_widget_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_simulation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logical_solver_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/blueprint_ports_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/blueprint_integration_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/blueprint_loading_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/provider_pattern_tests.dir/DependInfo.cmake"
   )

@@ -108,6 +108,9 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_ports_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_integration_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_loading_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/provider_pattern_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir

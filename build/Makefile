@@ -510,6 +510,45 @@ logical_solver_tests/fast:
 .PHONY : logical_solver_tests/fast
 
 #=============================================================================
+# Target rules for targets named blueprint_ports_tests
+
+# Build rule for target.
+blueprint_ports_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_ports_tests
+.PHONY : blueprint_ports_tests
+
+# fast build rule for target.
+blueprint_ports_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
+.PHONY : blueprint_ports_tests/fast
+
+#=============================================================================
+# Target rules for targets named blueprint_integration_tests
+
+# Build rule for target.
+blueprint_integration_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_integration_tests
+.PHONY : blueprint_integration_tests
+
+# fast build rule for target.
+blueprint_integration_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/build
+.PHONY : blueprint_integration_tests/fast
+
+#=============================================================================
+# Target rules for targets named blueprint_loading_tests
+
+# Build rule for target.
+blueprint_loading_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_loading_tests
+.PHONY : blueprint_loading_tests
+
+# fast build rule for target.
+blueprint_loading_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/build
+.PHONY : blueprint_loading_tests/fast
+
+#=============================================================================
 # Target rules for targets named provider_pattern_tests
 
 # Build rule for target.
@@ -539,6 +578,9 @@ help:
 	@echo "... an24_editor"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
+	@echo "... blueprint_integration_tests"
+	@echo "... blueprint_loading_tests"
+	@echo "... blueprint_ports_tests"
 	@echo "... codegen_test"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"

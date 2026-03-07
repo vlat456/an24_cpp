@@ -340,6 +340,48 @@ logical_solver_tests/fast:
 .PHONY : logical_solver_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/blueprint_ports_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_ports_tests.dir/rule
+.PHONY : tests/CMakeFiles/blueprint_ports_tests.dir/rule
+
+# Convenience name for target.
+blueprint_ports_tests: tests/CMakeFiles/blueprint_ports_tests.dir/rule
+.PHONY : blueprint_ports_tests
+
+# fast build rule for target.
+blueprint_ports_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/build
+.PHONY : blueprint_ports_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/blueprint_integration_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_integration_tests.dir/rule
+.PHONY : tests/CMakeFiles/blueprint_integration_tests.dir/rule
+
+# Convenience name for target.
+blueprint_integration_tests: tests/CMakeFiles/blueprint_integration_tests.dir/rule
+.PHONY : blueprint_integration_tests
+
+# fast build rule for target.
+blueprint_integration_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/build
+.PHONY : blueprint_integration_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/blueprint_loading_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_loading_tests.dir/rule
+.PHONY : tests/CMakeFiles/blueprint_loading_tests.dir/rule
+
+# Convenience name for target.
+blueprint_loading_tests: tests/CMakeFiles/blueprint_loading_tests.dir/rule
+.PHONY : blueprint_loading_tests
+
+# fast build rule for target.
+blueprint_loading_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/build
+.PHONY : blueprint_loading_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/provider_pattern_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/provider_pattern_tests.dir/rule
 .PHONY : tests/CMakeFiles/provider_pattern_tests.dir/rule
@@ -716,6 +758,78 @@ provider_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.s
 .PHONY : provider_test.cpp.s
 
+test_blueprint_integration.o: test_blueprint_integration.cpp.o
+.PHONY : test_blueprint_integration.o
+
+# target to build an object file
+test_blueprint_integration.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.o
+.PHONY : test_blueprint_integration.cpp.o
+
+test_blueprint_integration.i: test_blueprint_integration.cpp.i
+.PHONY : test_blueprint_integration.i
+
+# target to preprocess a source file
+test_blueprint_integration.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.i
+.PHONY : test_blueprint_integration.cpp.i
+
+test_blueprint_integration.s: test_blueprint_integration.cpp.s
+.PHONY : test_blueprint_integration.s
+
+# target to generate assembly for a file
+test_blueprint_integration.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_integration_tests.dir/build.make tests/CMakeFiles/blueprint_integration_tests.dir/test_blueprint_integration.cpp.s
+.PHONY : test_blueprint_integration.cpp.s
+
+test_blueprint_loading.o: test_blueprint_loading.cpp.o
+.PHONY : test_blueprint_loading.o
+
+# target to build an object file
+test_blueprint_loading.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.o
+.PHONY : test_blueprint_loading.cpp.o
+
+test_blueprint_loading.i: test_blueprint_loading.cpp.i
+.PHONY : test_blueprint_loading.i
+
+# target to preprocess a source file
+test_blueprint_loading.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.i
+.PHONY : test_blueprint_loading.cpp.i
+
+test_blueprint_loading.s: test_blueprint_loading.cpp.s
+.PHONY : test_blueprint_loading.s
+
+# target to generate assembly for a file
+test_blueprint_loading.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_loading_tests.dir/build.make tests/CMakeFiles/blueprint_loading_tests.dir/test_blueprint_loading.cpp.s
+.PHONY : test_blueprint_loading.cpp.s
+
+test_blueprint_ports.o: test_blueprint_ports.cpp.o
+.PHONY : test_blueprint_ports.o
+
+# target to build an object file
+test_blueprint_ports.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.o
+.PHONY : test_blueprint_ports.cpp.o
+
+test_blueprint_ports.i: test_blueprint_ports.cpp.i
+.PHONY : test_blueprint_ports.i
+
+# target to preprocess a source file
+test_blueprint_ports.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.i
+.PHONY : test_blueprint_ports.cpp.i
+
+test_blueprint_ports.s: test_blueprint_ports.cpp.s
+.PHONY : test_blueprint_ports.s
+
+# target to generate assembly for a file
+test_blueprint_ports.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
+.PHONY : test_blueprint_ports.cpp.s
+
 test_data.o: test_data.cpp.o
 .PHONY : test_data.o
 
@@ -921,6 +1035,9 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... blueprint_integration_tests"
+	@echo "... blueprint_loading_tests"
+	@echo "... blueprint_ports_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_persist_tests"
@@ -970,6 +1087,15 @@ help:
 	@echo "... provider_test.o"
 	@echo "... provider_test.i"
 	@echo "... provider_test.s"
+	@echo "... test_blueprint_integration.o"
+	@echo "... test_blueprint_integration.i"
+	@echo "... test_blueprint_integration.s"
+	@echo "... test_blueprint_loading.o"
+	@echo "... test_blueprint_loading.i"
+	@echo "... test_blueprint_loading.s"
+	@echo "... test_blueprint_ports.o"
+	@echo "... test_blueprint_ports.i"
+	@echo "... test_blueprint_ports.s"
 	@echo "... test_data.o"
 	@echo "... test_data.i"
 	@echo "... test_data.s"
