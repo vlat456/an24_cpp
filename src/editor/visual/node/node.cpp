@@ -1,6 +1,7 @@
 #include "visual/node/node.h"
 #include "data/node.h"
-#include "visual/render.h"
+#include "visual/renderer/render_theme.h"
+#include "visual/renderer/draw_list.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -27,14 +28,6 @@ Pt snap_size_to_grid(Pt size) {
         std::ceil(size.y / GRID_STEP) * GRID_STEP
     );
 }
-
-// Node style colors
-constexpr uint32_t COLOR_TEXT = 0xFFFFFFFF;
-constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
-constexpr uint32_t COLOR_BUS_FILL = 0xFF404060;
-constexpr uint32_t COLOR_BUS_BORDER = 0xFF8080A0;
-constexpr uint32_t COLOR_BODY_FILL = 0xFF303040;
-constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;
 
 }  // anonymous namespace
 
@@ -83,7 +76,7 @@ void VisualNode::setSize(Pt size) {
 
 void VisualNode::buildLayout(const Node& node) {
     // Header
-    layout_.addWidget(std::make_unique<HeaderWidget>(name_, COLOR_BUS_FILL));
+    layout_.addWidget(std::make_unique<HeaderWidget>(name_, render_theme::COLOR_BUS_FILL));
 
     // Port rows: pair inputs and outputs
     size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
@@ -189,10 +182,10 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     float header_h = HeaderWidget::HEIGHT * vp.zoom;
 
     // Body background (below header)
-    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_h), screen_max, COLOR_BODY_FILL);
+    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_h), screen_max, render_theme::COLOR_BODY_FILL);
 
     // Border
-    uint32_t border_color = is_selected ? COLOR_SELECTED : COLOR_BUS_BORDER;
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
     dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 
     // Update VoltmeterWidget value before rendering
@@ -391,17 +384,17 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt bus_min(screen_center.x - bus_w / 2, screen_center.y - bus_h / 2);
     Pt bus_max(screen_center.x + bus_w / 2, screen_center.y + bus_h / 2);
 
-    dl->add_rect_filled(bus_min, bus_max, COLOR_BUS_FILL);
-    uint32_t border_color = is_selected ? COLOR_SELECTED : COLOR_BUS_BORDER;
+    dl->add_rect_filled(bus_min, bus_max, render_theme::COLOR_BUS_FILL);
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
     dl->add_rect(bus_min, bus_max, border_color, 1.0f);
 
     Pt text_pos(bus_min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
-    dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 10.0f * vp.zoom);
+    dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
     float port_radius = PORT_RADIUS * vp.zoom;
     for (const auto& port : ports_) {
         Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
-        uint32_t port_color = get_port_color(port.type());
+        uint32_t port_color = render_theme::get_port_color(port.type());
         dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
     }
 }
@@ -450,17 +443,17 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt screen_center((screen_min.x + screen_max.x) / 2,
                      (screen_min.y + screen_max.y) / 2);
 
-    dl->add_rect_filled(screen_min, screen_max, COLOR_BUS_FILL);
-    uint32_t border_color = is_selected ? COLOR_SELECTED : COLOR_BUS_BORDER;
+    dl->add_rect_filled(screen_min, screen_max, render_theme::COLOR_BUS_FILL);
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
     dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
-    dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 10.0f * vp.zoom);
+    dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
     // [d5e6f7g8] Use grid-snapped position so rendering matches port world position.
     Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
-    uint32_t port_color = get_port_color(ports_[0].type());
+    uint32_t port_color = render_theme::get_port_color(ports_[0].type());
     dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, port_color, 8);
 }
 

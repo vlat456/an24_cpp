@@ -3,7 +3,8 @@
 #include "editor/visual/interfaces.h"
 #include "editor/visual/node/widget.h"
 #include "editor/visual/node/node.h"
-#include "editor/visual/render.h"
+#include "editor/visual/renderer/draw_list.h"
+#include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/data/node.h"
 
 // ============================================================================

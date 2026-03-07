@@ -90,7 +90,11 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_compile_definitions(editor_persist_tests PRIVATE EDITOR_TESTING)
@@ -137,7 +141,11 @@ gtest_discover_tests(editor_viewport_tests)
 # Editor render tests
 add_executable(editor_render_tests
     test_render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
@@ -164,7 +172,11 @@ gtest_discover_tests(editor_render_tests)
 add_executable(editor_hittest_tests
     test_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
@@ -256,7 +268,11 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
@@ -280,7 +296,11 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
@@ -445,7 +465,11 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
@@ -468,7 +492,11 @@ gtest_discover_tests(editor_hierarchical_tests)
 add_executable(visual_port_tests
     test_visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
@@ -493,7 +521,11 @@ gtest_discover_tests(visual_port_tests)
 add_executable(visual_scene_tests
     test_visual_scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp

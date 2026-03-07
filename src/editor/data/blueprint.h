@@ -83,6 +83,12 @@ struct Blueprint {
         }
         return nullptr;
     }
+    const Node* find_node(const char* id) const {
+        for (const auto& n : nodes) {
+            if (n.id == id) return &n;
+        }
+        return nullptr;
+    }
 
     /// Recompute visibility of all nodes from collapsed_groups + drill stack.
     /// Supports N-level deep hierarchical blueprints.

@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
-#include "editor/visual/render.h"
+#include "editor/visual/renderer/blueprint_renderer.h"
+#include "editor/visual/renderer/render_theme.h"
+#include "editor/visual/renderer/mock_draw_list.h"
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
@@ -18,7 +20,7 @@ TEST(RenderTest, EmptyBlueprint_DoesNotCrash) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 }
 
 /// Тест: рендер узла
@@ -35,7 +37,7 @@ TEST(RenderTest, Node_RendersRect) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
     EXPECT_TRUE(dl.had_rect());
 }
 
@@ -66,7 +68,7 @@ TEST(RenderTest, Wire_RendersLine) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
     EXPECT_TRUE(dl.had_polyline());
 }
 
@@ -76,7 +78,7 @@ TEST(RenderTest, Grid_DoesNotCrash) {
     Viewport vp;
     vp.grid_step = 16.0f;
     vp.zoom = 1.0f;
-    render_grid(&dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    BlueprintRenderer::renderGrid(dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
 }
 
 // ─── Wire highlighting tests ───
@@ -150,7 +152,7 @@ TEST(RenderTest, WireHighlighting_EnergizedWiresAreYellow) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, &sim);
 
     // Should have yellow/amber (energized) polylines: 0xFF44AAFF
@@ -164,7 +166,7 @@ TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
 
     // Without simulation, no yellow/amber polylines
     EXPECT_FALSE(dl.has_polyline_with_color(0xFF44AAFF))
@@ -183,12 +185,12 @@ TEST(RenderTest, Tooltip_PortHover_ShowsValue) {
     // Hover over a port position (battery v_out)
     // The battery is at (80, 80) size (120, 80), output port is on right side
     Pt hover_pos(80 + 120, 80 + 40); // right edge, center
-    TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
-                     nullptr, std::nullopt, &sim, &hover_pos, &tooltip);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, nullptr, std::nullopt, &sim);
+    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim);
 
     // Tooltip should be active if we hit a port
     if (tooltip.active) {
@@ -201,12 +203,12 @@ TEST(RenderTest, Tooltip_NoSimulation_NoTooltip) {
     Blueprint bp = create_render_circuit();
 
     Pt hover_pos(80 + 120, 80 + 40);
-    TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
-                     nullptr, std::nullopt, nullptr, &hover_pos, &tooltip);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+    TooltipInfo tooltip; // No sim → no detection
 
     // Without simulation, no tooltip
     EXPECT_FALSE(tooltip.active);
@@ -220,7 +222,7 @@ TEST(RenderTest, RenderTooltip_DrawsTextAndBackground) {
     tooltip.text = "28.00";
     tooltip.label = "bat.v_out";
 
-    render_tooltip(&dl, tooltip);
+    BlueprintRenderer::renderTooltip(dl, tooltip);
 
     // Should have drawn text
     EXPECT_FALSE(dl.texts_.empty()) << "Tooltip should render text";
@@ -231,7 +233,7 @@ TEST(RenderTest, RenderTooltip_InactiveDoesNothing) {
     TooltipInfo tooltip;
     tooltip.active = false;
 
-    render_tooltip(&dl, tooltip);
+    BlueprintRenderer::renderTooltip(dl, tooltip);
     EXPECT_TRUE(dl.texts_.empty()) << "Inactive tooltip should draw nothing";
 }
 
@@ -248,12 +250,12 @@ TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
     // Battery is at (80, 80) size (120, 80), output port is on right edge at (208, 112)
     // Resistor is at (320, 80), input port is on left edge at (320, 112)
     Pt hover_pos(260, 120); // middle of horizontal wire
-    TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
-                     nullptr, std::nullopt, &sim, &hover_pos, &tooltip);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, nullptr, std::nullopt, &sim);
+    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim);
 
     // Tooltip should be active for wire
     EXPECT_TRUE(tooltip.active) << "Tooltip should be active when hovering over wire";
@@ -267,12 +269,12 @@ TEST(RenderTest, Tooltip_WireHover_NoSimulation_NoTooltip) {
     Blueprint bp = create_render_circuit();
 
     Pt hover_pos(260, 120);
-    TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
-                     nullptr, std::nullopt, nullptr, &hover_pos, &tooltip);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+    TooltipInfo tooltip; // No sim → no detection
 
     // Without simulation, no tooltip
     EXPECT_FALSE(tooltip.active) << "Tooltip should not be active without simulation";
@@ -605,12 +607,12 @@ TEST(RenderTest, ContentBounds_OutputPortLabelOnRight) {
 // ============================================================================
 
 TEST(RenderTest, PortTypeColor_V_IsRed) {
-    // This test will fail until get_port_color() is implemented
+    // This test will fail until render_theme::get_port_color() is implemented
     // Format: 0xAABBGGRR (A=alpha, B=blue, G=green, R=red)
     // Red should be: 0xFF0000FF (alpha=FF, blue=00, green=00, red=FF)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::V);
+    uint32_t color = render_theme::get_port_color(PortType::V);
 
     EXPECT_EQ(color, 0xFF0000FF) << "Voltage ports should be red (0xFF0000FF)";
 }
@@ -619,7 +621,7 @@ TEST(RenderTest, PortTypeColor_I_IsBlue) {
     // Blue should be: 0xFFFF0000 (alpha=FF, blue=FF, green=00, red=00)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::I);
+    uint32_t color = render_theme::get_port_color(PortType::I);
 
     EXPECT_EQ(color, 0xFFFF0000) << "Current ports should be blue (0xFFFF0000)";
 }
@@ -628,7 +630,7 @@ TEST(RenderTest, PortTypeColor_Bool_IsGreen) {
     // Green should be: 0xFF00FF00 (alpha=FF, blue=00, green=FF, red=00)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::Bool);
+    uint32_t color = render_theme::get_port_color(PortType::Bool);
 
     EXPECT_EQ(color, 0xFF00FF00) << "Boolean ports should be green (0xFF00FF00)";
 }
@@ -637,7 +639,7 @@ TEST(RenderTest, PortTypeColor_RPM_IsOrange) {
     // Orange should be: 0xFF00A5FF (alpha=FF, blue=00, green=A5, red=FF)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::RPM);
+    uint32_t color = render_theme::get_port_color(PortType::RPM);
 
     EXPECT_EQ(color, 0xFF00A5FF) << "RPM ports should be orange (0xFF00A5FF)";
 }
@@ -646,7 +648,7 @@ TEST(RenderTest, PortTypeColor_Temperature_IsYellow) {
     // Yellow should be: 0xFF00FFFF (alpha=FF, blue=00, green=FF, red=FF)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::Temperature);
+    uint32_t color = render_theme::get_port_color(PortType::Temperature);
 
     EXPECT_EQ(color, 0xFF00FFFF) << "Temperature ports should be yellow (0xFF00FFFF)";
 }
@@ -655,7 +657,7 @@ TEST(RenderTest, PortTypeColor_Pressure_IsCyan) {
     // Cyan should be: 0xFFFFFF00 (alpha=FF, blue=FF, green=FF, red=00)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::Pressure);
+    uint32_t color = render_theme::get_port_color(PortType::Pressure);
 
     EXPECT_EQ(color, 0xFFFFFF00) << "Pressure ports should be cyan (0xFFFFFF00)";
 }
@@ -664,7 +666,7 @@ TEST(RenderTest, PortTypeColor_Position_IsPurple) {
     // Purple should be: 0xFF800080 (alpha=FF, blue=80, green=00, red=80)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::Position);
+    uint32_t color = render_theme::get_port_color(PortType::Position);
 
     EXPECT_EQ(color, 0xFF800080) << "Position ports should be purple (0xFF800080)";
 }
@@ -673,7 +675,7 @@ TEST(RenderTest, PortTypeColor_Any_IsGray) {
     // Gray should be: 0xFF808080 (alpha=FF, blue=80, green=80, red=80)
 
     using namespace an24;
-    uint32_t color = get_port_color(PortType::Any);
+    uint32_t color = render_theme::get_port_color(PortType::Any);
 
     EXPECT_EQ(color, 0xFF808080) << "Any ports should be gray (0xFF808080)";
 }
@@ -702,7 +704,7 @@ TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have red circles for voltage ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF))
@@ -738,7 +740,7 @@ TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have green circles for boolean ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00))
@@ -777,7 +779,7 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have orange circles for RPM ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF))
@@ -1063,7 +1065,7 @@ TEST(RenderVisibility, HiddenNode_NotRendered) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should render at least the visible node rect
     EXPECT_TRUE(dl.had_rect()) << "Visible node should render a rect";
@@ -1102,7 +1104,7 @@ TEST(RenderVisibility, WireToHiddenNode_NotRendered) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Wire should NOT be rendered — endpoint is hidden
     EXPECT_FALSE(dl.had_polyline()) << "Wire to hidden node should not render";
@@ -1138,7 +1140,7 @@ TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     EXPECT_TRUE(dl.had_polyline()) << "Wire between visible nodes should render";
 }

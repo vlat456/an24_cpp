@@ -2,8 +2,8 @@
 #include "visual/hittest.h"
 #include "wires/hittest.h"
 #include "visual/trigonometry.h"
-#include "router/router.h"
 #include "visual/node/node.h"
+#include "visual/scene/wire_manager.h"
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
@@ -11,11 +11,9 @@
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <algorithm>
-#include <cfloat>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <limits>
 
 void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
     (void)canvas_min;
@@ -25,79 +23,15 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
         // Сначала проверяем порты для создания проводов
         HitResult port_hit = scene.hitTestPorts(world_pos);
         if (port_hit.type == HitType::Port) {
-            // [k2l3m4n5] Determine if port belongs to a Bus node so we can
-            // skip the wire-matching loop for the unassigned "v" port.
-            NodeKind port_node_kind = NodeKind::Node;
-            for (const auto& n : scene.blueprint().nodes)
-                if (n.id == port_hit.port_node_id) { port_node_kind = n.kind; break; }
-
-            // [m6i8j0k2] Check if port already has a wire connected — if so, start
-            // wire reconnection (detach that end and let user drag to a new port).
-            for (size_t wi = 0; wi < scene.blueprint().wires.size(); wi++) {
-                const auto& w = scene.blueprint().wires[wi];
-
-                // [g1h2i3j4] For Bus alias ports, match by wire ID (port_wire_id)
-                // instead of port_name, because all Bus wires share port_name "v".
-                // [k2l3m4n5] For Bus main "v" port (port_wire_id empty), skip match
-                // entirely — it's the "new connection" port, not an existing wire.
-                bool match_start = false;
-                bool match_end = false;
-                if (!port_hit.port_wire_id.empty()) {
-                    // Bus alias port — match by wire ID
-                    match_start = (w.id == port_hit.port_wire_id &&
-                                   w.start.node_id == port_hit.port_node_id);
-                    match_end   = (w.id == port_hit.port_wire_id &&
-                                   w.end.node_id == port_hit.port_node_id);
-                } else if (port_node_kind != NodeKind::Bus) {
-                    // Normal (non-Bus) port — match by port name
-                    match_start = (w.start.node_id == port_hit.port_node_id &&
-                                   w.start.port_name == port_hit.port_name);
-                    match_end = (w.end.node_id == port_hit.port_node_id &&
-                                 w.end.port_name == port_hit.port_name);
-                }
-                // else: Bus main "v" port — no match (start new wire)
-                if (match_start || match_end) {
-                    // Detach the matching end — the "anchor" is the OTHER end
-                    bool detach_start = match_start;
-
-                    // [h2i3j4k5] Anchor = nearest routing point to the detached end,
-                    // not the far port. This way the reconnect line continues from the
-                    // last visible routing point instead of drawing a straight line
-                    // across the whole wire.
-                    Pt anchor_pos;
-                    PortSide fixed_side;
-                    if (detach_start) {
-                        fixed_side = w.end.side;
-                        if (!w.routing_points.empty()) {
-                            anchor_pos = w.routing_points.front();
-                        } else {
-                            const Node* end_node = nullptr;
-                            for (const auto& n : scene.blueprint().nodes)
-                                if (n.id == w.end.node_id) { end_node = &n; break; }
-                            anchor_pos = end_node
-                                ? editor_math::get_port_position(*end_node, w.end.port_name.c_str(),
-                                                                  scene.blueprint().wires, w.id.c_str(), scene.cache())
-                                : Pt::zero();
-                        }
-                    } else {
-                        fixed_side = w.start.side;
-                        if (!w.routing_points.empty()) {
-                            anchor_pos = w.routing_points.back();
-                        } else {
-                            const Node* start_node = nullptr;
-                            for (const auto& n : scene.blueprint().nodes)
-                                if (n.id == w.start.node_id) { start_node = &n; break; }
-                            anchor_pos = start_node
-                                ? editor_math::get_port_position(*start_node, w.start.port_name.c_str(),
-                                                                  scene.blueprint().wires, w.id.c_str(), scene.cache())
-                                : Pt::zero();
-                        }
-                    }
-
-                    interaction.start_wire_reconnect(wi, detach_start, anchor_pos, fixed_side);
-                    DEBUG_LOG("Started wire reconnection: wire={} detach_start={}", w.id, detach_start);
-                    return;
-                }
+            // Try to detach an existing wire from this port (wire reconnection).
+            auto wire_match = wire_manager.findWireOnPort(port_hit);
+            if (wire_match) {
+                interaction.start_wire_reconnect(
+                    wire_match->wire_index, wire_match->detach_start,
+                    wire_match->anchor_pos, wire_match->fixed_side);
+                DEBUG_LOG("Started wire reconnection: wire={} detach_start={}",
+                         scene.wires()[wire_match->wire_index].id, wire_match->detach_start);
+                return;
             }
 
             // No existing wire on this port — start creating a new wire
@@ -124,23 +58,23 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
             interaction.add_node_selection(hit.node_index);
             // drag_anchor = позиция первого выделенного узла (unsnapped accumulator)
             // [h1a2b3c4] Use cache instead of VisualNodeFactory::create
-            auto* primary_visual = scene.cache().getOrCreate(scene.blueprint().nodes[hit.node_index], scene.blueprint().wires);
+            auto* primary_visual = scene.cache().getOrCreate(scene.nodes()[hit.node_index], scene.wires());
             Pt primary_pos = primary_visual->getPosition();
             interaction.start_drag_node(primary_pos);
             // Сохраняем смещения относительно anchor для каждого выделенного узла
             interaction.drag_node_offsets.clear();
             for (size_t idx : interaction.selected_nodes) {
-                if (idx < scene.blueprint().nodes.size()) {
-                    auto* visual = scene.cache().getOrCreate(scene.blueprint().nodes[idx], scene.blueprint().wires);
+                if (idx < scene.nodes().size()) {
+                    auto* visual = scene.cache().getOrCreate(scene.nodes()[idx], scene.wires());
                     interaction.drag_node_offsets.push_back(visual->getPosition() - primary_pos);
                 }
             }
         } else if (hit.type == HitType::RoutingPoint) {
             // Выделяем routing point и начинаем drag
             // [e5f6g7h8] Bounds-check indices before indexing
-            if (hit.wire_index < scene.blueprint().wires.size() &&
-                hit.routing_point_index < scene.blueprint().wires[hit.wire_index].routing_points.size()) {
-                Pt rp_pos = scene.blueprint().wires[hit.wire_index].routing_points[hit.routing_point_index];
+            if (hit.wire_index < scene.wires().size() &&
+                hit.routing_point_index < scene.wires()[hit.wire_index].routing_points.size()) {
+                Pt rp_pos = scene.wires()[hit.wire_index].routing_points[hit.routing_point_index];
                 interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index, rp_pos);
             }
         } else if (hit.type == HitType::Wire) {
@@ -183,8 +117,8 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             }
 
             bool reconnected = false;
-            if (port_hit.type == HitType::Port && wire_idx < scene.blueprint().wires.size()) {
-                auto& wire = scene.blueprint().wires[wire_idx];
+            if (port_hit.type == HitType::Port && wire_idx < scene.wires().size()) {
+                auto& wire = scene.wires()[wire_idx];
 
                 // [a1b2c3d4] Check if dropped back on the SAME port that was
                 // detached — if so, leave the wire completely unchanged.
@@ -208,31 +142,20 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                 // The fixed end determines compatibility
                 const WireEnd& fixed = detach_start ? wire.end : wire.start;
 
-                bool same_port = (port_hit.port_node_id == fixed.node_id &&
-                                  port_hit.port_name == fixed.port_name);
+                bool same_port = WireManager::isSamePort(
+                    port_hit.port_node_id, port_hit.port_name,
+                    fixed.node_id, fixed.port_name);
                 bool compatible = !same_port &&
-                                  (port_hit.port_side != fixed_side ||
-                                   port_hit.port_side == PortSide::InOut ||
-                                   fixed_side == PortSide::InOut);
+                                  WireManager::canConnect(port_hit.port_side, fixed_side);
                 fprintf(stderr, "[WIRE-RECONN]   fixed=%s.%s same_port=%d compatible=%d (hit_side=%d fixed_side=%d)\n",
                         fixed.node_id.c_str(), fixed.port_name.c_str(),
                         same_port, compatible, (int)port_hit.port_side, (int)fixed_side);
-                (void)fixed; // used above for same_port check
 
                 if (compatible) {
-                    // Update the detached end to point to the new port
                     WireEnd new_end(port_hit.port_node_id.c_str(),
                                    port_hit.port_name.c_str(),
                                    port_hit.port_side);
-                    if (detach_start) {
-                        wire.start = new_end;
-                    } else {
-                        wire.end = new_end;
-                    }
-                    // Clear routing points since topology changed
-                    wire.routing_points.clear();
-                    // Invalidate cache and rebuild
-                    scene.cache().clear();
+                    scene.reconnectWire(wire_idx, detach_start, new_end);
                     rebuild_simulation();
                     reconnected = true;
                     DEBUG_LOG("Reconnected wire {} to {}.{}", wire.id,
@@ -240,13 +163,11 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                 }
             }
 
-            if (!reconnected && wire_idx < scene.blueprint().wires.size()) {
+            if (!reconnected && wire_idx < scene.wireCount()) {
                 // Released on invalid target — delete the wire
                 fprintf(stderr, "[WIRE-RECONN]   NOT reconnected — deleting wire[%zu] id=%s\n",
-                        wire_idx, scene.blueprint().wires[wire_idx].id.c_str());
-                const auto& wire = scene.blueprint().wires[wire_idx];
-                scene.cache().onWireDeleted(wire, scene.blueprint().nodes);
-                scene.blueprint().wires.erase(scene.blueprint().wires.begin() + wire_idx);
+                        wire_idx, scene.wires()[wire_idx].id.c_str());
+                scene.removeWire(wire_idx);
                 rebuild_simulation();
                 DEBUG_LOG("Deleted wire during reconnection (no valid target)");
             }
@@ -266,16 +187,12 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                 const std::string& start_port = interaction.get_wire_start_port();
                 PortSide start_side = interaction.get_wire_start_side();
 
-                // Check compatibility:
-                // 1. Can't connect a port to itself
-                // 2. Input should connect to output (or output to input)
-                // 3. InOut ports can connect to anything
-                bool same_port = (port_hit.port_node_id == start_node &&
-                                  port_hit.port_name == start_port);
+                // Check compatibility using single source of truth
+                bool same_port = WireManager::isSamePort(
+                    port_hit.port_node_id, port_hit.port_name,
+                    start_node, start_port);
                 bool compatible = !same_port &&
-                                  (port_hit.port_side != start_side ||
-                                   port_hit.port_side == PortSide::InOut ||
-                                   start_side == PortSide::InOut);
+                                  WireManager::canConnect(port_hit.port_side, start_side);
 
                 fprintf(stderr, "[WIRE-CREATE] from %s.%s(side=%d) to %s.%s(side=%d): same_port=%d compatible=%d\n",
                         start_node.c_str(), start_port.c_str(), (int)start_side,
@@ -292,20 +209,13 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                     // [f6g7h8i9] Use monotonic counter to avoid ID collision
                     // when wires are deleted and re-created.
                     Wire w = Wire::make(
-                        ("wire_" + std::to_string(scene.blueprint().next_wire_id++)).c_str(),
+                        scene.nextWireId().c_str(),
                         start_end,
                         end_end
                     );
 
-                    // Validate port types before adding wire
-                    if (scene.blueprint().add_wire_validated(std::move(w))) {
-                        // Update visual cache to create new visual ports for Bus nodes
-                        // Use the wire that was just added (it's now at the end of the list)
-                        if (!scene.blueprint().wires.empty()) {
-                            scene.cache().onWireAdded(scene.blueprint().wires.back(), scene.blueprint().nodes);
-                        }
-
-                        rebuild_simulation();  // Update simulation with new wire
+                    if (scene.addWire(std::move(w))) {
+                        rebuild_simulation();
                         fprintf(stderr, "[WIRE-CREATE] SUCCESS: wire added\n");
                     } else {
                         fprintf(stderr, "[WIRE-CREATE] REJECTED by add_wire_validated\n");
@@ -329,8 +239,8 @@ void EditorApp::on_mouse_up(MouseButton btn) {
             float min_y = std::min(interaction.marquee_start.y, interaction.marquee_end.y);
             float max_y = std::max(interaction.marquee_start.y, interaction.marquee_end.y);
 
-            for (size_t i = 0; i < scene.blueprint().nodes.size(); i++) {
-                auto* visual = scene.cache().getOrCreate(scene.blueprint().nodes[i], scene.blueprint().wires);
+            for (size_t i = 0; i < scene.nodes().size(); i++) {
+                auto* visual = scene.cache().getOrCreate(scene.nodes()[i], scene.wires());
                 Pt pos = visual->getPosition();
                 Pt size = visual->getSize();
                 // Check if node center is in marquee
@@ -363,26 +273,26 @@ void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
     } else if (interaction.dragging == Dragging::Node) {
         // Accumulate unsnapped delta, then snap
         interaction.update_drag_anchor(world_delta);
-        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.blueprint().grid_step);
+        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.gridStep());
         for (size_t i = 0; i < interaction.selected_nodes.size(); i++) {
             size_t idx = interaction.selected_nodes[i];
-            if (idx < scene.blueprint().nodes.size()) {
+            if (idx < scene.nodes().size()) {
                 Pt offset = (i < interaction.drag_node_offsets.size())
                     ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
                 Pt new_pos = snapped + offset;
-                auto* visual = scene.cache().getOrCreate(scene.blueprint().nodes[idx], scene.blueprint().wires);
+                auto* visual = scene.cache().getOrCreate(scene.nodes()[idx], scene.wires());
                 visual->setPosition(new_pos);
-                scene.blueprint().nodes[idx].pos = new_pos;
+                scene.nodes()[idx].pos = new_pos;
             }
         }
     } else if (interaction.dragging == Dragging::RoutingPoint) {
         // Accumulate unsnapped delta, then snap
         interaction.update_drag_anchor(world_delta);
-        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.blueprint().grid_step);
+        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.gridStep());
         size_t wire_idx = interaction.routing_point_wire;
         size_t rp_idx = interaction.routing_point_index;
-        if (wire_idx < scene.blueprint().wires.size()) {
-            auto& wire = scene.blueprint().wires[wire_idx];
+        if (wire_idx < scene.wires().size()) {
+            auto& wire = scene.wires()[wire_idx];
             if (rp_idx < wire.routing_points.size()) {
                 wire.routing_points[rp_idx] = snapped;
             }
@@ -413,106 +323,31 @@ void EditorApp::on_key_down(Key key) {
             start_simulation();
         }
     } else if (key == Key::Delete) {
-        // Удаление всех выделенных узлов (с конца чтобы не сбить индексы)
+        // Удаление всех выделенных узлов (sorted descending for stable erase)
         std::sort(interaction.selected_nodes.begin(), interaction.selected_nodes.end(), std::greater<size_t>());
-
-        // Collect IDs of nodes to delete
-        std::vector<std::string> deleted_ids;
-        for (size_t idx : interaction.selected_nodes) {
-            if (idx < scene.blueprint().nodes.size()) {
-                deleted_ids.push_back(scene.blueprint().nodes[idx].id);
-                scene.blueprint().nodes.erase(scene.blueprint().nodes.begin() + idx);
-            }
-        }
-
-        // Remove wires that reference deleted nodes
-        scene.blueprint().wires.erase(
-            std::remove_if(scene.blueprint().wires.begin(), scene.blueprint().wires.end(),
-                [&deleted_ids](const Wire& w) {
-                    for (const auto& id : deleted_ids) {
-                        if (w.start.node_id == id || w.end.node_id == id) return true;
-                    }
-                    return false;
-                }),
-            scene.blueprint().wires.end());
-
+        scene.removeNodes(interaction.selected_nodes);
         interaction.clear_selection();
-
-        // [g2c5f9a1] Clear visual cache so Bus nodes drop stale wire ports.
-        scene.cache().clear();
-
-        // Rebuild simulation after removing nodes
         rebuild_simulation();
     } else if (key == Key::R) {
-        // R - роутинг выделенного провода
+        // R - route selected wire via A*
         if (interaction.selected_wire.has_value()) {
             size_t wire_idx = *interaction.selected_wire;
-            if (wire_idx < scene.blueprint().wires.size()) {
-                Wire& wire = scene.blueprint().wires[wire_idx];
-
-                // Находим start и end node
-                const Node* start_node = nullptr;
-                const Node* end_node = nullptr;
-                for (const auto& n : scene.blueprint().nodes) {
-                    if (n.id == wire.start.node_id) start_node = &n;
-                    if (n.id == wire.end.node_id) end_node = &n;
-                }
-
-                if (start_node && end_node) {
-                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), scene.blueprint().wires, wire.id.c_str(), scene.cache());
-                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), scene.blueprint().wires, wire.id.c_str(), scene.cache());
-
-                    // Build existing wire polylines (all wires except current)
-                    std::vector<std::vector<Pt>> existing_paths;
-                    for (size_t i = 0; i < scene.blueprint().wires.size(); i++) {
-                        if (i == wire_idx) continue;
-                        const auto& ow = scene.blueprint().wires[i];
-                        const Node* sn = nullptr;
-                        const Node* en = nullptr;
-                        for (const auto& n : scene.blueprint().nodes) {
-                            if (n.id == ow.start.node_id) sn = &n;
-                            if (n.id == ow.end.node_id) en = &n;
-                        }
-                        if (!sn || !en) continue;
-                        std::vector<Pt> poly;
-                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str(), scene.blueprint().wires, ow.id.c_str(), scene.cache()));
-                        poly.insert(poly.end(), ow.routing_points.begin(), ow.routing_points.end());
-                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str(), scene.blueprint().wires, ow.id.c_str(), scene.cache()));
-                        existing_paths.push_back(std::move(poly));
-                    }
-
-                    // Роутинг с port departure/arrival + existing wire avoidance
-                    auto path = route_around_nodes(
-                        start_pos, end_pos,
-                        *start_node, wire.start.port_name.c_str(),
-                        *end_node, wire.end.port_name.c_str(),
-                        scene.blueprint().nodes, scene.blueprint().grid_step,
-                        existing_paths);
-
-                    if (!path.empty()) {
-                        // Strip first and last points (they are port positions, not routing points)
-                        // routing_points = intermediate waypoints only
-                        if (path.size() > 2) {
-                            wire.routing_points.assign(path.begin() + 1, path.end() - 1);
-                        } else {
-                            wire.routing_points.clear();
-                        }
-                        DEBUG_LOG("Rerouted wire {} with {} points", wire.id, wire.routing_points.size());
-                    } else {
-                        DEBUG_LOG("Could not find A* route for wire {}", wire.id);
-                    }
-                }
+            if (wire_manager.routeWire(wire_idx)) {
+                DEBUG_LOG("Rerouted wire {} with {} points",
+                         scene.wires()[wire_idx].id,
+                         scene.wires()[wire_idx].routing_points.size());
+            } else {
+                DEBUG_LOG("Could not find A* route for wire {}",
+                         wire_idx < scene.wireCount() ? scene.wires()[wire_idx].id : "?");
             }
         }
     } else if (key == Key::RightBracket) {
         // ] = increase grid size
-        scene.viewport().grid_step_up();
-        scene.blueprint().grid_step = scene.viewport().grid_step;  // Sync with blueprint
+        scene.gridStepUp();
         DEBUG_LOG("Grid step increased to {}", scene.viewport().grid_step);
     } else if (key == Key::LeftBracket) {
         // [ = decrease grid size
-        scene.viewport().grid_step_down();
-        scene.blueprint().grid_step = scene.viewport().grid_step;  // Sync with blueprint
+        scene.gridStepDown();
         DEBUG_LOG("Grid step decreased to {}", scene.viewport().grid_step);
     }
 }
@@ -520,67 +355,27 @@ void EditorApp::on_key_down(Key key) {
 void EditorApp::on_double_click(Pt world_pos) {
     DEBUG_LOG("Double click at ({:.1f}, {:.1f})", world_pos.x, world_pos.y);
 
-    // 1. Сначала проверяем hit на routing point - удалить
+    // 1. Check routing point hit — remove it
     auto rp_hit = hit_test_routing_point(scene.blueprint(), world_pos);
     if (rp_hit) {
         DEBUG_LOG("Double click: delete routing point wire={} rp={}", rp_hit->wire_index, rp_hit->routing_point_index);
-        if (rp_hit->wire_index < scene.blueprint().wires.size()) {
-            auto& wire = scene.blueprint().wires[rp_hit->wire_index];
-            if (rp_hit->routing_point_index < wire.routing_points.size()) {
-                wire.routing_points.erase(wire.routing_points.begin() + rp_hit->routing_point_index);
-            }
-        }
+        wire_manager.removeRoutingPoint(rp_hit->wire_index, rp_hit->routing_point_index);
         return;
     }
 
-    // 2. Потом проверяем hit на wire - добавить новую точку
+    // 2. Check wire hit — add a routing point
     HitResult hit = scene.hitTest(world_pos);
     DEBUG_LOG("Double click: hit type={}", (int)hit.type);
     if (hit.type == HitType::Wire) {
         DEBUG_LOG("Double click: add routing point to wire {}", hit.wire_index);
-        if (hit.wire_index < scene.blueprint().wires.size()) {
-            auto& wire = scene.blueprint().wires[hit.wire_index];
-
-            // Находим ближайший сегмент и вставляем после него
-            const Node* start_node = nullptr;
-            const Node* end_node = nullptr;
-            for (const auto& n : scene.blueprint().nodes) {
-                if (n.id == wire.start.node_id) start_node = &n;
-                if (n.id == wire.end.node_id) end_node = &n;
-            }
-            if (!start_node || !end_node) return;
-
-            Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), scene.blueprint().wires, wire.id.c_str(), scene.cache());
-            Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), scene.blueprint().wires, wire.id.c_str(), scene.cache());
-
-            // [j3f5a7b9] Seed min_dist with infinity, not the phantom direct-line distance
-            // which ignores routing points entirely.
-            size_t insert_idx = 0;
-            float min_dist = std::numeric_limits<float>::max();
-
-            // Проверяем сегменты: start -> rp[0] -> ... -> rp[n] -> end
-            Pt prev = start_pos;
-            for (size_t i = 0; i <= wire.routing_points.size(); i++) {
-                Pt next = (i < wire.routing_points.size()) ? wire.routing_points[i] : end_pos;
-                float dist = editor_math::distance_to_segment(world_pos, prev, next);
-                if (dist < min_dist) {
-                    min_dist = dist;
-                    insert_idx = i; // вставить перед next
-                }
-                prev = next;
-            }
-
-            // Вставляем с привязкой к сетке
-            Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.blueprint().grid_step);
-            wire.routing_points.insert(wire.routing_points.begin() + insert_idx, snapped_pos);
-        }
+        wire_manager.addRoutingPoint(hit.wire_index, world_pos);
     }
 }
 
 void EditorApp::update_node_content_from_simulation() {
     if (!simulation_running) return;
 
-    for (auto& node : scene.blueprint().nodes) {
+    for (auto& node : scene.nodes()) {
         // Skip hidden nodes (blueprint collapsing) — no content updates needed
         if (!node.visible) continue;
         // Update Voltmeter gauge voltage
@@ -621,7 +416,7 @@ void EditorApp::update_node_content_from_simulation() {
 void EditorApp::reset_node_content() {
     using namespace an24;
 
-    for (auto& node : scene.blueprint().nodes) {
+    for (auto& node : scene.nodes()) {
         // Skip hidden nodes (blueprint collapsing)
         if (!node.visible) continue;
 
@@ -722,10 +517,10 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene.blueprint().find_node(unique_id.c_str()) != nullptr);
+    } while (scene.findNode(unique_id.c_str()) != nullptr);
     
     // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.blueprint().grid_step);
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
     
     // Create node
     Node node;
@@ -762,11 +557,8 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     // Create node_content from component definition (no more hardcoded component lists!)
     node.node_content = create_node_content(def);
 
-    // Add node to blueprint
-    scene.blueprint().add_node(node);
-
-    // Clear visual cache to force rebuild
-    scene.cache().clear();
+    // Add node to scene
+    scene.addNode(node);
 
     // Rebuild simulation to include new component
     rebuild_simulation();
@@ -870,10 +662,10 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene.blueprint().find_node(unique_id.c_str()) != nullptr);
+    } while (scene.findNode(unique_id.c_str()) != nullptr);
 
     // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.blueprint().grid_step);
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
 
     // IMMEDIATELY EXPAND the nested blueprint (always-flatten architecture)
     // Load the nested blueprint JSON file

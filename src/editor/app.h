@@ -5,6 +5,7 @@
 #include "interact/interaction.h"
 #include "visual/hittest.h"
 #include "visual/scene/scene.h"
+#include "visual/scene/wire_manager.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
@@ -33,6 +34,9 @@ enum class Key {
 struct EditorApp {
     /// Scene graph (owns blueprint, viewport, visual cache)
     VisualScene scene;
+
+    /// Wire operations (non-owning reference to scene)
+    WireManager wire_manager{scene};
 
     /// Interaction state
     Interaction interaction;

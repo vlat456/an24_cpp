@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "editor/visual/port/port.h"
-#include "editor/visual/render.h"  // get_port_color, IDrawList
+#include "editor/visual/renderer/render_theme.h"
+#include "editor/visual/renderer/draw_list.h"
 
 // ============================================================================
 // Rich mock draw list that captures geometry details
@@ -62,16 +63,16 @@ TEST(VisualPortTest, Construction_BusAlias) {
 
 TEST(VisualPortTest, Color_MatchesPortType) {
     VisualPort v("p", PortSide::Input, an24::PortType::V);
-    EXPECT_EQ(v.color(), get_port_color(an24::PortType::V));
+    EXPECT_EQ(v.color(), render_theme::get_port_color(an24::PortType::V));
 
     VisualPort i("p", PortSide::Input, an24::PortType::I);
-    EXPECT_EQ(i.color(), get_port_color(an24::PortType::I));
+    EXPECT_EQ(i.color(), render_theme::get_port_color(an24::PortType::I));
 
     VisualPort b("p", PortSide::Input, an24::PortType::Bool);
-    EXPECT_EQ(b.color(), get_port_color(an24::PortType::Bool));
+    EXPECT_EQ(b.color(), render_theme::get_port_color(an24::PortType::Bool));
 
     VisualPort any("p", PortSide::Input, an24::PortType::Any);
-    EXPECT_EQ(any.color(), get_port_color(an24::PortType::Any));
+    EXPECT_EQ(any.color(), render_theme::get_port_color(an24::PortType::Any));
 }
 
 // ============================================================================
@@ -202,7 +203,7 @@ TEST(VisualPortTest, Render_DrawsCircle) {
     EXPECT_FLOAT_EQ(dl.circles[0].center.x, 100.0f);
     EXPECT_FLOAT_EQ(dl.circles[0].center.y, 200.0f);
     EXPECT_FLOAT_EQ(dl.circles[0].radius, VisualPort::RADIUS);
-    EXPECT_EQ(dl.circles[0].color, get_port_color(an24::PortType::V));
+    EXPECT_EQ(dl.circles[0].color, render_theme::get_port_color(an24::PortType::V));
 }
 
 TEST(VisualPortTest, Render_WithLabelRight) {
@@ -277,8 +278,8 @@ TEST(VisualPortTest, BusAlias_CompatibleWithOutputV) {
 
 TEST(VisualPortTest, SetType_UpdatesColor) {
     VisualPort port("p", PortSide::Input, an24::PortType::Any);
-    EXPECT_EQ(port.color(), get_port_color(an24::PortType::Any));
+    EXPECT_EQ(port.color(), render_theme::get_port_color(an24::PortType::Any));
 
     port.setType(an24::PortType::V);
-    EXPECT_EQ(port.color(), get_port_color(an24::PortType::V));
+    EXPECT_EQ(port.color(), render_theme::get_port_color(an24::PortType::V));
 }

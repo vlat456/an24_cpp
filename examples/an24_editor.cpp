@@ -16,7 +16,8 @@
  */
 
 #include "editor/app.h"
-#include "editor/visual/render.h"
+#include "editor/visual/renderer/blueprint_renderer.h"
+#include "editor/visual/renderer/draw_list.h"
 #include "editor/visual/scene/persist.h"
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
@@ -308,7 +309,7 @@ int main(int argc, char** argv) {
         imgui_dl.dl = ImGui::GetWindowDrawList();
 
         // Сетка
-        render_grid(&imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt);
+        BlueprintRenderer::renderGrid(imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt);
 
         // Get mouse position for tooltip detection
         Pt hover_world_pos;
@@ -321,15 +322,22 @@ int main(int argc, char** argv) {
         }
 
         // Blueprint - с симуляцией для подсветки проводов [h1a2b3c4] - pass cache
+        BlueprintRenderer renderer;
+        renderer.render(app.scene.blueprint(), imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt,
+                        app.scene.cache(),
+                        &app.interaction.selected_nodes, app.interaction.selected_wire,
+                        &app.simulation);
+
+        // Detect tooltip if hovering
         TooltipInfo tooltip;
-        render_blueprint(app.scene.blueprint(), &imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt,
-                         app.scene.cache(),
-                         &app.interaction.selected_nodes, app.interaction.selected_wire,
-                         &app.simulation,
-                         has_hover ? &hover_world_pos : nullptr, &tooltip);
+        if (has_hover) {
+            tooltip = renderer.detectTooltip(app.scene.blueprint(), app.scene.viewport(),
+                                             canvas_min_pt, app.scene.cache(),
+                                             hover_world_pos, app.simulation);
+        }
 
         // Render tooltip if active
-        render_tooltip(&imgui_dl, tooltip);
+        BlueprintRenderer::renderTooltip(imgui_dl, tooltip);
 
         // Render temporary wire during creation
         if (app.interaction.dragging == Dragging::CreatingWire && app.interaction.has_wire_start()) {

@@ -106,13 +106,18 @@ find_package(OpenGL REQUIRED)
 add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp

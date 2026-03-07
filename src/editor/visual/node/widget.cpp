@@ -1,5 +1,6 @@
 #include "visual/node/widget.h"
-#include "visual/render.h"
+#include "visual/renderer/draw_list.h"
+#include "visual/renderer/render_theme.h"
 #include <algorithm>
 #include <cstring>
 #include <cmath>
@@ -190,7 +191,7 @@ void PortRowWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     // Left port: circle centered at left edge of node
     if (!left_port_.empty()) {
         Pt left_center(origin.x, center_y);
-        uint32_t left_color = get_port_color(left_type_);
+        uint32_t left_color = render_theme::get_port_color(left_type_);
         dl->add_circle_filled(left_center, r, left_color, 8);
 
         // Label right of circle
@@ -201,7 +202,7 @@ void PortRowWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     // Right port: circle centered at right edge of node
     if (!right_port_.empty()) {
         Pt right_center(origin.x + w, center_y);
-        uint32_t right_color = get_port_color(right_type_);
+        uint32_t right_color = render_theme::get_port_color(right_type_);
         dl->add_circle_filled(right_center, r, right_color, 8);
 
         // Label left of circle (right-aligned text)

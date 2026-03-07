@@ -16,7 +16,7 @@
 // Forward declaration
 struct EditorApp;
 
-// Forward declaration (IDrawList is defined in render.h)
+// Forward declaration (IDrawList is defined in visual/renderer/draw_list.h)
 struct IDrawList;
 
 // ============================================================================

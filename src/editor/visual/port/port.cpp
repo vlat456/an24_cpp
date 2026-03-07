@@ -1,5 +1,6 @@
 #include "visual/port/port.h"
-#include "visual/render.h"
+#include "visual/renderer/render_theme.h"
+#include "visual/renderer/draw_list.h"
 #include <cmath>
 
 // ============================================================================
@@ -22,7 +23,7 @@ VisualPort::VisualPort(const std::string& name,
 }
 
 uint32_t VisualPort::color() const {
-    return get_port_color(type_);
+    return render_theme::get_port_color(type_);
 }
 
 Bounds VisualPort::calcBounds() const {

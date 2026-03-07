@@ -143,7 +143,7 @@ TEST(VisualScene, Render_DoesNotCrash) {
         Pt calc_text_size(const char*, float) const override { return Pt(0, 0); }
     } dl;
 
-    scene.render(&dl, Pt(0, 0), Pt(800, 600));
+    scene.render(dl, Pt(0, 0), Pt(800, 600));
     // No crash = pass
 }
 

@@ -4,9 +4,11 @@
 #include "viewport/viewport.h"
 #include "visual/node/node.h"
 #include "visual/hittest.h"
-#include "visual/render.h"
+#include "visual/renderer/blueprint_renderer.h"
 #include "visual/trigonometry.h"
 #include "visual/scene/persist.h"
+#include <algorithm>
+#include <string>
 
 /// Scene graph: owns blueprint data, visual cache, and viewport.
 /// Single authority for hit testing, rendering, and scene mutations.
@@ -15,7 +17,7 @@ class VisualScene {
 public:
     VisualScene() = default;
 
-    // ---- Data access (for read + gradual migration) ----
+    // ---- Data access ----
 
     Blueprint& blueprint() { return bp_; }
     const Blueprint& blueprint() const { return bp_; }
@@ -24,6 +26,17 @@ public:
     const Viewport& viewport() const { return vp_; }
 
     VisualNodeCache& cache() { return cache_; }
+
+    // Convenience: direct access to nodes/wires
+    std::vector<Node>& nodes() { return bp_.nodes; }
+    const std::vector<Node>& nodes() const { return bp_.nodes; }
+    std::vector<Wire>& wires() { return bp_.wires; }
+    const std::vector<Wire>& wires() const { return bp_.wires; }
+    size_t nodeCount() const { return bp_.nodes.size(); }
+    size_t wireCount() const { return bp_.wires.size(); }
+    float gridStep() const { return bp_.grid_step; }
+    const Node* findNode(const char* id) const { return bp_.find_node(id); }
+    Node* findNode(const char* id) { return bp_.find_node(id); }
 
     // ---- Hit testing ----
 
@@ -37,17 +50,20 @@ public:
 
     // ---- Rendering ----
 
-    void render(IDrawList* dl, Pt canvas_min, Pt canvas_max,
+    void render(IDrawList& dl, Pt canvas_min, Pt canvas_max,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
-                const an24::Simulator<an24::JIT_Solver>* simulation = nullptr,
-                const Pt* hover_world_pos = nullptr,
-                TooltipInfo* out_tooltip = nullptr)
+                const an24::Simulator<an24::JIT_Solver>* sim = nullptr)
     {
-        render_blueprint(bp_, dl, vp_, canvas_min, canvas_max, cache_,
-                         selected_nodes, selected_wire, simulation,
-                         hover_world_pos, out_tooltip);
+        renderer_.render(bp_, dl, vp_, canvas_min, canvas_max, cache_,
+                         selected_nodes, selected_wire, sim);
     }
+
+    TooltipInfo detectTooltip(Pt world_pos, const an24::Simulator<an24::JIT_Solver>& sim) {
+        return renderer_.detectTooltip(bp_, vp_, Pt(), cache_, world_pos, sim);
+    }
+
+    BlueprintRenderer& renderer() { return renderer_; }
 
     // ---- Scene mutations ----
 
@@ -80,6 +96,62 @@ public:
         Wire copy = bp_.wires[index];
         bp_.wires.erase(bp_.wires.begin() + static_cast<long>(index));
         cache_.onWireDeleted(copy, bp_.nodes);
+    }
+
+    /// Remove multiple nodes by index (indices must be sorted descending).
+    /// Connected wires are removed automatically.
+    void removeNodes(const std::vector<size_t>& sorted_desc_indices) {
+        std::vector<std::string> deleted_ids;
+        for (size_t idx : sorted_desc_indices) {
+            if (idx < bp_.nodes.size()) {
+                deleted_ids.push_back(bp_.nodes[idx].id);
+                bp_.nodes.erase(bp_.nodes.begin() + static_cast<long>(idx));
+            }
+        }
+        bp_.wires.erase(
+            std::remove_if(bp_.wires.begin(), bp_.wires.end(),
+                [&deleted_ids](const Wire& w) {
+                    for (const auto& id : deleted_ids)
+                        if (w.start.node_id == id || w.end.node_id == id) return true;
+                    return false;
+                }),
+            bp_.wires.end());
+        cache_.clear();
+    }
+
+    /// Reconnect one end of a wire to a new port. Clears routing points.
+    void reconnectWire(size_t wire_idx, bool reconnect_start, WireEnd new_end) {
+        if (wire_idx >= bp_.wires.size()) return;
+        auto& wire = bp_.wires[wire_idx];
+        if (reconnect_start)
+            wire.start = new_end;
+        else
+            wire.end = new_end;
+        wire.routing_points.clear();
+        cache_.clear();
+    }
+
+    /// Move a node to new_pos, updating both the data and the visual.
+    void moveNode(size_t index, Pt new_pos) {
+        if (index >= bp_.nodes.size()) return;
+        bp_.nodes[index].pos = new_pos;
+        auto* vis = cache_.getOrCreate(bp_.nodes[index], bp_.wires);
+        if (vis) vis->setPosition(new_pos);
+    }
+
+    /// Sync grid step between viewport and blueprint.
+    void gridStepUp() {
+        vp_.grid_step_up();
+        bp_.grid_step = vp_.grid_step;
+    }
+    void gridStepDown() {
+        vp_.grid_step_down();
+        bp_.grid_step = vp_.grid_step;
+    }
+
+    /// Allocate a unique wire ID string.
+    std::string nextWireId() {
+        return "wire_" + std::to_string(bp_.next_wire_id++);
     }
 
     // ---- Utility ----
@@ -132,4 +204,5 @@ private:
     Blueprint bp_;
     Viewport vp_;
     VisualNodeCache cache_;
+    BlueprintRenderer renderer_;
 };
