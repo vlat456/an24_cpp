@@ -338,10 +338,10 @@ int main(int argc, char** argv) {
         // Blueprint - с симуляцией для подсветки проводов [h1a2b3c4] - pass cache
         TooltipInfo tooltip;
         render_blueprint(app.blueprint, &imgui_dl, app.viewport, canvas_min_pt, canvas_max_pt,
+                         app.visual_cache,
                          &app.interaction.selected_nodes, app.interaction.selected_wire,
                          &app.simulation,
-                         has_hover ? &hover_world_pos : nullptr, &tooltip,
-                         &app.visual_cache);
+                         has_hover ? &hover_world_pos : nullptr, &tooltip);
 
         // Render tooltip if active
         render_tooltip(&imgui_dl, tooltip);

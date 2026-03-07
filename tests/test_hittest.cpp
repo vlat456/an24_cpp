@@ -11,8 +11,9 @@
 
 TEST(HitTest, EmptyBlueprint_ReturnsNone) {
     Blueprint bp;
+    VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, Pt(100.0f, 100.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), vp);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -24,9 +25,10 @@ TEST(HitTest, Node_Inside_ReturnsNode) {
     n.size_wh(120.0f, 80.0f);
     bp.add_node(std::move(n));
 
+    VisualNodeCache cache;
     Viewport vp;
     // Клик внутри узла
-    auto hit = hit_test(bp, Pt(150.0f, 80.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -39,9 +41,10 @@ TEST(HitTest, Node_Outside_ReturnsNone) {
     n.size_wh(120.0f, 80.0f);
     bp.add_node(std::move(n));
 
+    VisualNodeCache cache;
     Viewport vp;
     // Клик вне узла
-    auto hit = hit_test(bp, Pt(0.0f, 0.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(0.0f, 0.0f), vp);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -60,9 +63,10 @@ TEST(HitTest, MultipleNodes_ReturnsClosest) {
     n2.size_wh(100.0f, 50.0f);
     bp.add_node(std::move(n2));
 
+    VisualNodeCache cache;
     Viewport vp;
     // Клик между узлами - первый найденный
-    auto hit = hit_test(bp, Pt(50.0f, 25.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(50.0f, 25.0f), vp);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -359,7 +363,7 @@ TEST(RegressionBusPort, GetPortPositionWireIdCorrectIndex) {
 // [h1a2b3c4] Cached hit_test overload must give same results as uncached
 // ============================================================================
 
-TEST(CachedHitTest, CachedHitTestMatchesUncached) {
+TEST(CachedHitTest, CachedHitTest_InsideAndOutside) {
     Blueprint bp;
     Node n;
     n.id = "n1";
@@ -371,17 +375,12 @@ TEST(CachedHitTest, CachedHitTestMatchesUncached) {
     VisualNodeCache cache;
 
     // Point inside node
-    HitResult r1 = hit_test(bp, Pt(150.0f, 90.0f), vp);
-    HitResult r2 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp);
+    HitResult r1 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp);
     EXPECT_EQ(r1.type, HitType::Node);
-    EXPECT_EQ(r2.type, HitType::Node);
-    EXPECT_EQ(r1.node_index, r2.node_index);
 
     // Point outside
-    HitResult r3 = hit_test(bp, Pt(500.0f, 500.0f), vp);
-    HitResult r4 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp);
-    EXPECT_EQ(r3.type, HitType::None);
-    EXPECT_EQ(r4.type, HitType::None);
+    HitResult r2 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp);
+    EXPECT_EQ(r2.type, HitType::None);
 }
 
 // [i2d4e6f8] Wire hit tolerance should be uniform (5.0f)
@@ -396,11 +395,12 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     w.add_routing_point(Pt(200.0f, 100.0f));
     bp.add_wire(std::move(w));
 
+    VisualNodeCache cache;
     Viewport vp;
 
     // 4.5 world units from the first segment (start→routing_point) should hit
     // This confirms tolerance is 5.0f, not 20.0f
-    Pt start_pos = editor_math::get_port_position(bp.nodes[0], "o", bp.wires);
+    Pt start_pos = editor_math::get_port_position(bp.nodes[0], "o", bp.wires, nullptr, cache);
     // Midpoint of first segment + 4.5 units perpendicular
     Pt mid((start_pos.x + 200.0f) / 2.0f, (start_pos.y + 100.0f) / 2.0f);
     float seg_dx = 200.0f - start_pos.x;
@@ -409,13 +409,13 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     Pt perp(-seg_dy / seg_len * 4.5f, seg_dx / seg_len * 4.5f);
     Pt test_pt(mid.x + perp.x, mid.y + perp.y);
 
-    HitResult r = hit_test(bp, test_pt, vp);
+    HitResult r = hit_test(bp, cache, test_pt, vp);
     EXPECT_EQ(r.type, HitType::Wire);
 
     // 6.0 units away should NOT hit
     Pt perp_far(-seg_dy / seg_len * 6.0f, seg_dx / seg_len * 6.0f);
     Pt test_pt_far(mid.x + perp_far.x, mid.y + perp_far.y);
-    HitResult r2 = hit_test(bp, test_pt_far, vp);
+    HitResult r2 = hit_test(bp, cache, test_pt_far, vp);
     EXPECT_EQ(r2.type, HitType::None);
 }
 
@@ -457,8 +457,8 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
         cache.getOrCreate(n, bp.wires);
 
     // Click near the midpoint of wire w2
-    Pt start2 = editor_math::get_port_position(bp.nodes[2], "o", bp.wires, "w2", &cache);
-    Pt end2   = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", &cache);
+    Pt start2 = editor_math::get_port_position(bp.nodes[2], "o", bp.wires, "w2", cache);
+    Pt end2   = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", cache);
     Pt mid2((start2.x + end2.x) / 2.0f, (start2.y + end2.y) / 2.0f);
 
     HitResult r = hit_test(bp, cache, mid2, vp);
@@ -496,7 +496,7 @@ TEST(HitTest, PortHit_BusAlias_ReturnsCorrectWireId) {
         cache.getOrCreate(n, bp.wires);
 
     // Get position of w2's alias port on the bus
-    Pt w2_port_pos = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", &cache);
+    Pt w2_port_pos = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", cache);
 
     HitResult r = hit_test_ports(bp, cache, w2_port_pos);
     EXPECT_EQ(r.type, HitType::Port);
@@ -541,9 +541,10 @@ TEST(HitTestVisibility, HiddenNode_NotHittable) {
     n.visible = false;  // Hidden (internal blueprint node)
     bp.add_node(std::move(n));
 
+    VisualNodeCache cache;
     Viewport vp;
     // Click inside the hidden node's bounds
-    auto hit = hit_test(bp, Pt(150.0f, 80.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
     EXPECT_EQ(hit.type, HitType::None) << "Hidden node should not be hittable";
 }
 
@@ -572,8 +573,9 @@ TEST(HitTestVisibility, VisibleNode_StillHittable) {
     n.visible = true;
     bp.add_node(std::move(n));
 
+    VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, Pt(150.0f, 80.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
     EXPECT_EQ(hit.type, HitType::Node) << "Visible node should be hittable";
     EXPECT_EQ(hit.node_index, 0u);
 }
@@ -624,9 +626,10 @@ TEST(HitTestVisibility, WireToHiddenNode_NotHittable) {
     w.end.port_name = "in";
     bp.add_wire(std::move(w));
 
+    VisualNodeCache cache;
     Viewport vp;
     // Click on the midpoint of where the wire would be
-    auto hit = hit_test(bp, Pt(200.0f, 25.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp);
     EXPECT_EQ(hit.type, HitType::None) << "Wire to hidden node should not be hittable";
 }
 

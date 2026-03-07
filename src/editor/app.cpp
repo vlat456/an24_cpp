@@ -76,7 +76,7 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
                                 if (n.id == w.end.node_id) { end_node = &n; break; }
                             anchor_pos = end_node
                                 ? editor_math::get_port_position(*end_node, w.end.port_name.c_str(),
-                                                                  blueprint.wires, w.id.c_str(), &visual_cache)
+                                                                  blueprint.wires, w.id.c_str(), visual_cache)
                                 : Pt::zero();
                         }
                     } else {
@@ -89,7 +89,7 @@ void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool
                                 if (n.id == w.start.node_id) { start_node = &n; break; }
                             anchor_pos = start_node
                                 ? editor_math::get_port_position(*start_node, w.start.port_name.c_str(),
-                                                                  blueprint.wires, w.id.c_str(), &visual_cache)
+                                                                  blueprint.wires, w.id.c_str(), visual_cache)
                                 : Pt::zero();
                         }
                     }
@@ -459,8 +459,8 @@ void EditorApp::on_key_down(Key key) {
                 }
 
                 if (start_node && end_node) {
-                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires);
-                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires);
+                    Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires, wire.id.c_str(), visual_cache);
+                    Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires, wire.id.c_str(), visual_cache);
 
                     // Build existing wire polylines (all wires except current)
                     std::vector<std::vector<Pt>> existing_paths;
@@ -475,9 +475,9 @@ void EditorApp::on_key_down(Key key) {
                         }
                         if (!sn || !en) continue;
                         std::vector<Pt> poly;
-                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str(), blueprint.wires));
+                        poly.push_back(editor_math::get_port_position(*sn, ow.start.port_name.c_str(), blueprint.wires, ow.id.c_str(), visual_cache));
                         poly.insert(poly.end(), ow.routing_points.begin(), ow.routing_points.end());
-                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str(), blueprint.wires));
+                        poly.push_back(editor_math::get_port_position(*en, ow.end.port_name.c_str(), blueprint.wires, ow.id.c_str(), visual_cache));
                         existing_paths.push_back(std::move(poly));
                     }
 
@@ -550,8 +550,8 @@ void EditorApp::on_double_click(Pt world_pos) {
             }
             if (!start_node || !end_node) return;
 
-            Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires);
-            Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires);
+            Pt start_pos = editor_math::get_port_position(*start_node, wire.start.port_name.c_str(), blueprint.wires, wire.id.c_str(), visual_cache);
+            Pt end_pos = editor_math::get_port_position(*end_node, wire.end.port_name.c_str(), blueprint.wires, wire.id.c_str(), visual_cache);
 
             // [j3f5a7b9] Seed min_dist with infinity, not the phantom direct-line distance
             // which ignores routing points entirely.

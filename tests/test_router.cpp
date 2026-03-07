@@ -7,6 +7,7 @@
 #include "editor/router/crossings.h"
 #include "editor/data/blueprint.h"
 #include "editor/trigonometry.h"
+#include "editor/visual_node.h"
 
 // ============================================================================
 // Grid conversion tests
@@ -608,9 +609,11 @@ TEST(RouterTest, RouteWithPortDeparture) {
     n2.input("in");
 
     std::vector<Node> nodes = {n1, n2};
+    std::vector<Wire> wires;
 
-    Pt start_pos = editor_math::get_port_position(n1, "out");  // right side of n1
-    Pt end_pos = editor_math::get_port_position(n2, "in");      // left side of n2
+    VisualNodeCache cache;
+    Pt start_pos = editor_math::get_port_position(n1, "out", wires, nullptr, cache);  // right side of n1
+    Pt end_pos = editor_math::get_port_position(n2, "in", wires, nullptr, cache);      // left side of n2
 
     auto path = route_around_nodes(start_pos, end_pos, n1, "out", n2, "in", nodes, 16.0f);
     ASSERT_FALSE(path.empty());

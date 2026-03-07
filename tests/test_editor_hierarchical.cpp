@@ -217,7 +217,8 @@ TEST(CollapsedNode, RendersAsSingleNode) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should render single rectangle for collapsed node
     EXPECT_TRUE(dl.had_rect()) << "Collapsed node should render as rectangle";
@@ -244,7 +245,8 @@ TEST(CollapsedNode, ExposedPorts_RenderOnBoundary) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should render circles for ports on node boundary
     EXPECT_TRUE(dl.had_circle()) << "Exposed ports should render as circles";
@@ -275,7 +277,8 @@ TEST(CollapsedNode, PortColors_MatchExposedType) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Check for specific port type colors
     // Format: 0xAABBGGRR (alpha, blue, green, red) - see get_port_color()
@@ -300,7 +303,8 @@ TEST(CollapsedNode, VisualIndicator_IconOrBadge) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have some visual indicator (text, small rect, etc.)
     // For now, just check that something was rendered
@@ -456,7 +460,8 @@ TEST(CollapsedNode, VisualStyle_DifferentFromRegularNode) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have rendered something (implementation details TBD)
     EXPECT_TRUE(dl.had_rect()) << "Should render nodes";

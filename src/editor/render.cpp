@@ -93,11 +93,11 @@ uint32_t get_port_color(an24::PortType type) {
 }
 
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
+                      VisualNodeCache& cache,
                       const std::vector<size_t>* selected_nodes, std::optional<size_t> selected_wire,
                       const an24::Simulator<an24::JIT_Solver>* simulation,
                       const Pt* hover_world_pos,
-                      TooltipInfo* out_tooltip,
-                      VisualNodeCache* cache) {
+                      TooltipInfo* out_tooltip) {
 
     // Wire has current color - yellow
     constexpr uint32_t COLOR_WIRE_CURRENT = 0xFF44AAFF; // yellow AA (FF,, 44)
@@ -328,18 +328,10 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         }
     }
 
-    // Рендерим узлы - используем VisualNodeCache [h1a2b3c4]
+    // Рендерим узлы
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
-        // Use cache when available to avoid re-creating visuals every frame
-        VisualNode* visual = nullptr;
-        std::unique_ptr<VisualNode> visual_owned;
-        if (cache) {
-            visual = cache->getOrCreate(n, bp.wires);
-        } else {
-            visual_owned = VisualNodeFactory::create(n, bp.wires);
-            visual = visual_owned.get();
-        }
+        auto* visual = cache.getOrCreate(n, bp.wires);
 
         // Skip hidden nodes (for blueprint collapsing)
         if (!visual->isVisible()) {
@@ -367,14 +359,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         for (const auto& n : bp.nodes) {
             // Skip hidden nodes (blueprint collapsing)
             if (!n.visible) continue;
-            VisualNode* vis;
-            std::unique_ptr<VisualNode> vis_owned;
-            if (cache) {
-                vis = cache->getOrCreate(n, bp.wires);
-            } else {
-                vis_owned = VisualNodeFactory::create(n, bp.wires);
-                vis = vis_owned.get();
-            }
+            auto* vis = cache.getOrCreate(n, bp.wires);
             for (size_t pi = 0; pi < vis->getPortCount(); pi++) {
                 auto* port = vis->getPort(pi);
                 if (!port) continue;

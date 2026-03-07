@@ -17,7 +17,8 @@ TEST(RenderTest, EmptyBlueprint_DoesNotCrash) {
     Blueprint bp;
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 }
 
 /// Тест: рендер узла
@@ -33,7 +34,8 @@ TEST(RenderTest, Node_RendersRect) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
     EXPECT_TRUE(dl.had_rect());
 }
 
@@ -63,7 +65,8 @@ TEST(RenderTest, Wire_RendersLine) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
     EXPECT_TRUE(dl.had_polyline());
 }
 
@@ -146,7 +149,8 @@ TEST(RenderTest, WireHighlighting_EnergizedWiresAreYellow) {
     // Render with simulation
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, &sim);
 
     // Should have yellow/amber (energized) polylines: 0xFF44AAFF
@@ -159,7 +163,8 @@ TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache);
 
     // Without simulation, no yellow/amber polylines
     EXPECT_FALSE(dl.has_polyline_with_color(0xFF44AAFF))
@@ -181,7 +186,8 @@ TEST(RenderTest, Tooltip_PortHover_ShowsValue) {
     TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, &sim, &hover_pos, &tooltip);
 
     // Tooltip should be active if we hit a port
@@ -198,7 +204,8 @@ TEST(RenderTest, Tooltip_NoSimulation_NoTooltip) {
     TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, nullptr, &hover_pos, &tooltip);
 
     // Without simulation, no tooltip
@@ -244,7 +251,8 @@ TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
     TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, &sim, &hover_pos, &tooltip);
 
     // Tooltip should be active for wire
@@ -262,7 +270,8 @@ TEST(RenderTest, Tooltip_WireHover_NoSimulation_NoTooltip) {
     TooltipInfo tooltip;
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600),
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, nullptr, &hover_pos, &tooltip);
 
     // Without simulation, no tooltip
@@ -692,7 +701,8 @@ TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have red circles for voltage ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF))
@@ -727,7 +737,8 @@ TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have green circles for boolean ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00))
@@ -765,7 +776,8 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have orange circles for RPM ports
     EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF))
@@ -1050,7 +1062,8 @@ TEST(RenderVisibility, HiddenNode_NotRendered) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should render at least the visible node rect
     EXPECT_TRUE(dl.had_rect()) << "Visible node should render a rect";
@@ -1088,7 +1101,8 @@ TEST(RenderVisibility, WireToHiddenNode_NotRendered) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Wire should NOT be rendered — endpoint is hidden
     EXPECT_FALSE(dl.had_polyline()) << "Wire to hidden node should not render";
@@ -1123,7 +1137,8 @@ TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
 
     MockDrawList dl;
     Viewport vp;
-    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f));
+    VisualNodeCache cache;
+    render_blueprint(bp, &dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     EXPECT_TRUE(dl.had_polyline()) << "Wire between visible nodes should render";
 }

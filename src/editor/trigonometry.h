@@ -10,32 +10,16 @@
 
 namespace editor_math {
 
-// [h1a2b3c4] Overload using VisualNodeCache – avoids creating a fresh visual
-// on every call. Falls back to factory if cache is nullptr.
 inline Pt get_port_position(const Node& node, const char* port_name,
                             const std::vector<Wire>& wires,
                             const char* wire_id,
-                            VisualNodeCache* cache) {
-    VisualNode* visual = nullptr;
-    std::unique_ptr<VisualNode> visual_owned;
-    if (cache) {
-        visual = cache->getOrCreate(node, wires);
-    } else {
-        visual_owned = VisualNodeFactory::create(node, wires);
-        visual = visual_owned.get();
-    }
+                            VisualNodeCache& cache) {
+    VisualNode* visual = cache.getOrCreate(node, wires);
     const VisualPort* port = visual->resolveWirePort(port_name, wire_id);
     if (port) return port->worldPosition();
     // Fallback: center of node
     return Pt(visual->getPosition().x + visual->getSize().x / 2,
               visual->getPosition().y + visual->getSize().y / 2);
-}
-
-// Legacy overload without cache (creates fresh visual each call – slow path)
-inline Pt get_port_position(const Node& node, const char* port_name,
-                            const std::vector<Wire>& wires = {},
-                            const char* wire_id = nullptr) {
-    return get_port_position(node, port_name, wires, wire_id, nullptr);
 }
 
 // Расстояние между точками

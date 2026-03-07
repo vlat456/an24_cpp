@@ -37,16 +37,13 @@ struct TooltipInfo {
 class VisualNodeCache;
 
 /// Рендерит Blueprint (узлы и провода) в IDrawList
-/// @param hover_world_pos - optional mouse position in world coords (for tooltip)
-/// @param out_tooltip - optional, filled if cursor is over a port/wire
-/// @param cache - optional VisualNodeCache* to avoid re-creating visuals every frame [h1a2b3c4]
 void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt canvas_min, Pt canvas_max,
+                      VisualNodeCache& cache,
                       const std::vector<size_t>* selected_nodes = nullptr,
                       std::optional<size_t> selected_wire = std::nullopt,
                       const class an24::Simulator<an24::JIT_Solver>* simulation = nullptr,
                       const Pt* hover_world_pos = nullptr,
-                      TooltipInfo* out_tooltip = nullptr,
-                      VisualNodeCache* cache = nullptr);
+                      TooltipInfo* out_tooltip = nullptr);
 
 /// Рендерит tooltip (вызывается после render_blueprint)
 void render_tooltip(IDrawList* dl, const TooltipInfo& tooltip);
