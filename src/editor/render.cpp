@@ -325,6 +325,22 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
     // Рендерим узлы - используем VisualNodeCache [h1a2b3c4]
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
+        // Use cache when available to avoid re-creating visuals every frame
+        BaseVisualNode* visual = nullptr;
+        std::unique_ptr<BaseVisualNode> visual_owned;
+        if (cache) {
+            visual = cache->getOrCreate(n, bp.wires);
+        } else {
+            visual_owned = VisualNodeFactory::create(n, bp.wires);
+            visual = visual_owned.get();
+        }
+
+        // Skip hidden nodes (for blueprint collapsing)
+        if (!visual->isVisible()) {
+            node_idx++;
+            continue;
+        }
+
         // Check if node is selected
         bool is_selected = false;
         if (selected_nodes) {
@@ -333,14 +349,7 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             }
         }
 
-        // Use cache when available to avoid re-creating visuals every frame
-        if (cache) {
-            auto* visual = cache->getOrCreate(n, bp.wires);
-            visual->render(dl, vp, canvas_min, is_selected);
-        } else {
-            auto visual = VisualNodeFactory::create(n, bp.wires);
-            visual->render(dl, vp, canvas_min, is_selected);
-        }
+        visual->render(dl, vp, canvas_min, is_selected);
 
         node_idx++;
     }
