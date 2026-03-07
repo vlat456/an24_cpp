@@ -283,10 +283,6 @@ std::string CodeGen::generate_header(
     oss << "    /// Post-step updates (state tracking, etc.)\n";
     oss << "    void post_step(void* state, float dt);\n\n";
 
-    // Balance methods - domain-specific for AOT optimization
-    oss << "    /// Balance electrical domain (branchless, SIMD-friendly)\n";
-    oss << "    AOT_INLINE void balance_electrical(void* state, float omega);\n\n";
-
     oss << "    /// Convergence check (sparse sampling)\n";
     oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
 
@@ -493,7 +489,7 @@ std::string CodeGen::generate_source(
         // SOR solver - single iteration per step (real-time approximation)
         // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
         oss << "    st->precompute_inv_conductance();\n";
-        oss << "    balance_electrical(st, 1.3f);\n";
+        oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, 1.3f);\n";
 
         oss << "}\n\n";
     }
@@ -510,20 +506,6 @@ std::string CodeGen::generate_source(
             oss << "    " << dev.name << ".post_step(*st, dt);\n";
         }
     }
-    oss << "}\n\n";
-
-    // Balance electrical - branchless SIMD-friendly version
-    // After precompute_inv_conductance: inv_g[i]=0 for fixed signals, so no branch needed
-    oss << "AOT_INLINE void Systems::balance_electrical(void* state, float omega) {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    oss << "    float* __restrict acc = st->across.data();\n";
-    oss << "    const float* __restrict thr = st->through.data();\n";
-    oss << "    const float* __restrict inv_g = st->inv_conductance.data();\n";
-    oss << "\n";
-    oss << "    // Branchless: inv_g[i]=0 for fixed signals, so acc+=0 (no update)\n";
-    oss << "    for (uint32_t i = 0; i < SIGNAL_COUNT; ++i) {\n";
-    oss << "        acc[i] += thr[i] * inv_g[i] * omega;\n";
-    oss << "    }\n";
     oss << "}\n\n";
 
     // Convergence check - optimized with sparse sampling

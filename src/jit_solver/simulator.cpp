@@ -176,12 +176,15 @@ void Simulator<SolverTag>::step(float dt) {
     }
 
     // SOR solver - single iteration per step (real-time approximation)
-    // Branchless: precompute sets inv_g=0 for fixed signals, so across+=0 (no update)
     state_.precompute_inv_conductance();
 
-    for (size_t i = 0; i < state_.across.size(); ++i) {
-        state_.across[i] += state_.through[i] * state_.inv_conductance[i] * omega_;
-    }
+    solve_sor_iteration(
+        state_.across.data(),
+        state_.through.data(),
+        state_.inv_conductance.data(),
+        state_.across.size(),
+        omega_
+    );
 
     // post_step for components that need it
     for (auto& [name, variant] : build_result_->devices) {

@@ -67,6 +67,24 @@ struct SimulationState {
 };
 
 // ==============================================================================
+// SOR solver - shared between JIT and AOT
+// ==============================================================================
+
+/// Single SOR iteration - branchless implementation
+/// precompute_inv_conductance() must be called first
+inline void solve_sor_iteration(
+    float* __restrict across,
+    const float* __restrict through,
+    const float* __restrict inv_conductance,
+    size_t count,
+    float omega
+) {
+    for (size_t i = 0; i < count; ++i) {
+        across[i] += through[i] * inv_conductance[i] * omega;
+    }
+}
+
+// ==============================================================================
 // Norton stamping helpers - optimized inline functions for common patterns
 // These reduce code duplication and enable better compiler optimization
 // ==============================================================================
