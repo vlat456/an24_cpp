@@ -613,6 +613,19 @@ visual_port_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/build
 .PHONY : visual_port_tests/fast
 
+#=============================================================================
+# Target rules for targets named visual_scene_tests
+
+# Build rule for target.
+visual_scene_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_scene_tests
+.PHONY : visual_scene_tests
+
+# fast build rule for target.
+visual_scene_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/build
+.PHONY : visual_scene_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -660,6 +673,7 @@ help:
 	@echo "... provider_pattern_tests"
 	@echo "... spdlog"
 	@echo "... visual_port_tests"
+	@echo "... visual_scene_tests"
 .PHONY : help
 
 

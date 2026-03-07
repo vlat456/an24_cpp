@@ -167,4 +167,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/lamp_passthrough_jit_test.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_hierarchical_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_port_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/visual_scene_tests.dir/DependInfo.cmake"
   )

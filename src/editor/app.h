@@ -4,7 +4,7 @@
 #include "viewport/viewport.h"
 #include "interact/interaction.h"
 #include "hittest.h"
-#include "visual_node.h"
+#include "visual_scene.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
@@ -31,17 +31,16 @@ enum class Key {
 
 /// Главное приложение редактора
 struct EditorApp {
-    /// Данные схемы
-    Blueprint blueprint;
+    /// Scene graph (owns blueprint, viewport, visual cache)
+    VisualScene scene;
 
-    /// Viewport (pan, zoom)
-    Viewport viewport;
+    /// Convenience aliases for gradual migration
+    Blueprint& blueprint = scene.blueprint();
+    Viewport& viewport = scene.viewport();
+    VisualNodeCache& visual_cache = scene.cache();
 
     /// Interaction state
     Interaction interaction;
-
-    /// Visual node cache for rendering content (ImGui widgets)
-    VisualNodeCache visual_cache;
 
     /// JIT Simulation (manages component lifecycle)
     an24::Simulator<an24::JIT_Solver> simulation;
@@ -82,13 +81,11 @@ struct EditorApp {
 
     /// Создать новую схему
     void new_circuit() {
-        blueprint = Blueprint();
-        viewport = Viewport();
+        scene.reset();
         interaction = Interaction();
-        simulation = an24::Simulator<an24::JIT_Solver>();  // Reset simulator
+        simulation = an24::Simulator<an24::JIT_Solver>();
         simulation_running = false;
         drill_stack_.clear();
-        visual_cache.clear();
     }
 
     /// Перестроить симуляцию (при изменении схемы)

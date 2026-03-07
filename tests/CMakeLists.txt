@@ -488,3 +488,30 @@ target_link_libraries(visual_port_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(visual_port_tests)
+
+# VisualScene tests
+add_executable(visual_scene_tests
+    test_visual_scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/persist.cpp
+)
+target_compile_definitions(visual_scene_tests PRIVATE EDITOR_TESTING)
+target_include_directories(visual_scene_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(visual_scene_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_scene_tests)
