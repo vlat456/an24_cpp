@@ -1,5 +1,4 @@
 #include "state.h"
-#include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -140,10 +139,6 @@ void SimulationState::solve_signals_balance(float sor_omega) {
             // ====================================================================
 
             if (!std::isfinite(new_v)) {
-                // Решатель "взорвался"! Логируем и восстанавливаемся.
-                spdlog::error("[SOR] Node {} exploded! v={:.2f} -> NaN/Inf. "
-                               "Delta clamping failed. Resetting to 0V.",
-                               i, current_v);
                 across[i] = 0.0f;  // Безопасное значение по умолчанию
                 solver_exploded = true;
             } else {
@@ -151,58 +146,6 @@ void SimulationState::solve_signals_balance(float sor_omega) {
                 across[i] = new_v;
             }
         }
-    }
-
-    // Логируем если решатель взорвался (для отладки)
-    if (solver_exploded) {
-        spdlog::warn("[SOR] Solver exploded this frame, but recovered. "
-                      "Check for short circuits or sudden topology changes.");
-    }
-}
-
-void SimulationState::solve_signals_balance_fast(float inv_omega) {
-    // ====================================================================
-    // Быстрая версия SOR с инвертированным omega
-    // ====================================================================
-    // inv_omega = 1.0 / sor_omega - умножение быстрее деления
-    // Все защиты от взрыва решателя такие же, как в solve_signals_balance()
-    //
-    // Применяется когда sor_omega известен на этапе компиляции.
-    // ====================================================================
-
-    constexpr float MAX_DELTA = 5.0f;  // Максимальное изменение за 1 итерацию
-    bool solver_exploded = false;
-
-    for (size_t i = 0; i < across.size(); ++i) {
-        if (!signal_types[i].is_fixed && inv_conductance[i] > 0.0f) {
-            float current_v = across[i];
-            float target_v = through[i] * inv_conductance[i];
-
-            // Вычисляем delta с инвертированным omega (умножение вместо деления)
-            // При omega = 1.5: inv_omega = 0.667
-            // delta = (target_v - current_v) * inv_omega  - эквивалентно
-            // delta = (target_v - current_v) / omega      но с умножением
-            float delta = (target_v - current_v) * inv_omega;
-
-            // Защита от взрыва (delta clamping)
-            delta = std::clamp(delta, -MAX_DELTA, MAX_DELTA);
-
-            float new_v = current_v + delta;
-
-            // Детекция краша решателя (NaN/Inf)
-            if (!std::isfinite(new_v)) {
-                spdlog::error("[SOR Fast] Node {} exploded! v={:.2f} -> NaN/Inf. Resetting to 0V.",
-                               i, current_v);
-                across[i] = 0.0f;
-                solver_exploded = true;
-            } else {
-                across[i] = new_v;
-            }
-        }
-    }
-
-    if (solver_exploded) {
-        spdlog::warn("[SOR Fast] Solver exploded, recovered.");
     }
 }
 

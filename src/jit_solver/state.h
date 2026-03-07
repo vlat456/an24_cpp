@@ -56,10 +56,7 @@ struct SimulationState {
     /// Precompute inverse conductance (1/G)
     void precompute_inv_conductance();
 
-    /// BRANCHLESS solve: iterates only over dynamic signals, no is_fixed check!
-    void solve_signals_balance_fast(float inv_omega);
-
-    /// Legacy solver (kept for compatibility)
+    /// SOR solver with delta clamping and NaN/Inf protection
     void solve_signals_balance(float sor_omega);
 
     /// Save current state for convergence checking
