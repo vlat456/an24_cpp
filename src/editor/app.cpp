@@ -174,6 +174,14 @@ void EditorApp::on_mouse_up(MouseButton btn) {
 
             HitResult port_hit = hit_test_ports(blueprint, visual_cache, last_mouse_pos);
 
+            fprintf(stderr, "[WIRE-RECONN] mouse_up: port_hit.type=%d wire_idx=%zu detach_start=%d fixed_side=%d\n",
+                    (int)port_hit.type, wire_idx, detach_start, (int)fixed_side);
+            if (port_hit.type == HitType::Port) {
+                fprintf(stderr, "[WIRE-RECONN]   hit port: %s.%s side=%d wire_id=%s\n",
+                        port_hit.port_node_id.c_str(), port_hit.port_name.c_str(),
+                        (int)port_hit.port_side, port_hit.port_wire_id.c_str());
+            }
+
             bool reconnected = false;
             if (port_hit.type == HitType::Port && wire_idx < blueprint.wires.size()) {
                 auto& wire = blueprint.wires[wire_idx];
@@ -191,6 +199,7 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                                         port_hit.port_name == detached.port_name);
                 }
                 if (same_as_original) {
+                    fprintf(stderr, "[WIRE-RECONN]   dropped back on original port — no change\n");
                     interaction.clear_wire_reconnect();
                     DEBUG_LOG("Wire {} dropped back on original port — no change", wire.id);
                     return;
@@ -205,6 +214,9 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                                   (port_hit.port_side != fixed_side ||
                                    port_hit.port_side == PortSide::InOut ||
                                    fixed_side == PortSide::InOut);
+                fprintf(stderr, "[WIRE-RECONN]   fixed=%s.%s same_port=%d compatible=%d (hit_side=%d fixed_side=%d)\n",
+                        fixed.node_id.c_str(), fixed.port_name.c_str(),
+                        same_port, compatible, (int)port_hit.port_side, (int)fixed_side);
                 (void)fixed; // used above for same_port check
 
                 if (compatible) {
@@ -230,6 +242,8 @@ void EditorApp::on_mouse_up(MouseButton btn) {
 
             if (!reconnected && wire_idx < blueprint.wires.size()) {
                 // Released on invalid target — delete the wire
+                fprintf(stderr, "[WIRE-RECONN]   NOT reconnected — deleting wire[%zu] id=%s\n",
+                        wire_idx, blueprint.wires[wire_idx].id.c_str());
                 const auto& wire = blueprint.wires[wire_idx];
                 visual_cache.onWireDeleted(wire, blueprint.nodes);
                 blueprint.wires.erase(blueprint.wires.begin() + wire_idx);
@@ -263,6 +277,11 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                                    port_hit.port_side == PortSide::InOut ||
                                    start_side == PortSide::InOut);
 
+                fprintf(stderr, "[WIRE-CREATE] from %s.%s(side=%d) to %s.%s(side=%d): same_port=%d compatible=%d\n",
+                        start_node.c_str(), start_port.c_str(), (int)start_side,
+                        port_hit.port_node_id.c_str(), port_hit.port_name.c_str(), (int)port_hit.port_side,
+                        same_port, compatible);
+
                 if (compatible) {
                     // Create the wire
                     WireEnd start_end(start_node.c_str(), start_port.c_str(), start_side);
@@ -287,13 +306,13 @@ void EditorApp::on_mouse_up(MouseButton btn) {
                         }
 
                         rebuild_simulation();  // Update simulation with new wire
-                        DEBUG_LOG("Created wire from {}.{} to {}.{}",
-                                 start_node, start_port, port_hit.port_node_id, port_hit.port_name);
+                        fprintf(stderr, "[WIRE-CREATE] SUCCESS: wire added\n");
                     } else {
-                        // Wire validation failed - incompatible port types
-                        DEBUG_LOG("Rejected wire from {}.{} to {}.{} - incompatible port types",
-                                 start_node, start_port, port_hit.port_node_id, port_hit.port_name);
+                        fprintf(stderr, "[WIRE-CREATE] REJECTED by add_wire_validated\n");
                     }
+                } else {
+                    fprintf(stderr, "[WIRE-CREATE] REJECTED: not compatible (same_port=%d sides: start=%d hit=%d)\n",
+                            same_port, (int)start_side, (int)port_hit.port_side);
                 }
             }
 

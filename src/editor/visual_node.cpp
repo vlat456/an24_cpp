@@ -34,57 +34,25 @@ constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
 constexpr uint32_t COLOR_BUS_FILL = 0xFF404060;
 constexpr uint32_t COLOR_BUS_BORDER = 0xFF8080A0;
 constexpr uint32_t COLOR_BODY_FILL = 0xFF303040;
-constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;
-constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;
 constexpr uint32_t COLOR_SELECTED = 0xFF00FF00;
 
 }  // anonymous namespace
 
 // ============================================================================
-// BaseVisualNode
+// VisualNode
 // ============================================================================
 
-BaseVisualNode::BaseVisualNode(const Node& node)
+VisualNode::VisualNode(const Node& node)
     : position_(snap_to_grid(node.pos))
     , size_(snap_size_to_grid(node.size))
     , node_id_(node.id)
     , ports_()
-    , visible_(node.visible)  // Initialize from Node state
-{}
-
-// [t4u5v6w7] Snap size to grid so bottom-right corner stays grid-aligned.
-void BaseVisualNode::setSize(Pt size) {
-    size_ = snap_size_to_grid(size);
-}
-
-// ============================================================================
-// StandardVisualNode
-// ============================================================================
-
-StandardVisualNode::StandardVisualNode(const Node& node)
-    : BaseVisualNode(node)
-    , inputs_()
-    , outputs_()
+    , visible_(node.visible)
     , name_(node.name)
     , type_name_(node.type_name)
     , node_content_(node.node_content)
 {
-    // Store port info
-    for (const auto& p : node.inputs) {
-        Port port;
-        port.name = p.name;
-        port.type = p.type;
-        inputs_.push_back(port);
-    }
-    for (const auto& p : node.outputs) {
-        Port port;
-        port.name = p.name;
-        port.type = p.type;
-        outputs_.push_back(port);
-    }
-
-    // Build widget layout
-    buildLayout();
+    buildLayout(node);
 
     // Auto-size node to fit all widgets
     Pt preferred = layout_.getPreferredSize(nullptr);
@@ -95,27 +63,36 @@ StandardVisualNode::StandardVisualNode(const Node& node)
     // Recalculate layout with final size
     layout_.layout(size_.x, size_.y);
 
-    // Cache world positions in port structs
-    for (size_t i = 0; i < inputs_.size(); i++) {
-        inputs_[i].world_position = getPortPosition(inputs_[i].name);
-    }
-    for (size_t i = 0; i < outputs_.size(); i++) {
-        outputs_[i].world_position = getPortPosition(outputs_[i].name);
+    // Build VisualPort objects from layout positions
+    buildPorts(node);
+}
+
+void VisualNode::setPosition(Pt pos) {
+    Pt delta(pos.x - position_.x, pos.y - position_.y);
+    position_ = pos;
+    for (auto& port : ports_) {
+        Pt old = port.worldPosition();
+        port.setWorldPosition(Pt(old.x + delta.x, old.y + delta.y));
     }
 }
 
-void StandardVisualNode::buildLayout() {
+// [t4u5v6w7] Snap size to grid so bottom-right corner stays grid-aligned.
+void VisualNode::setSize(Pt size) {
+    size_ = snap_size_to_grid(size);
+}
+
+void VisualNode::buildLayout(const Node& node) {
     // Header
     layout_.addWidget(std::make_unique<HeaderWidget>(name_, COLOR_BUS_FILL));
 
     // Port rows: pair inputs and outputs
-    size_t max_ports = std::max(inputs_.size(), outputs_.size());
+    size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
     port_rows_.clear();
     for (size_t i = 0; i < max_ports; i++) {
-        std::string left = (i < inputs_.size()) ? inputs_[i].name : "";
-        std::string right = (i < outputs_.size()) ? outputs_[i].name : "";
-        an24::PortType left_type = (i < inputs_.size()) ? inputs_[i].type : an24::PortType::Any;
-        an24::PortType right_type = (i < outputs_.size()) ? outputs_[i].type : an24::PortType::Any;
+        std::string left = (i < node.inputs.size()) ? node.inputs[i].name : "";
+        std::string right = (i < node.outputs.size()) ? node.outputs[i].name : "";
+        an24::PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : an24::PortType::Any;
+        an24::PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : an24::PortType::Any;
         auto row = std::make_unique<PortRowWidget>(left, right, left_type, right_type);
         port_rows_.push_back(static_cast<PortRowWidget*>(
             layout_.addWidget(std::move(row))));
@@ -124,7 +101,6 @@ void StandardVisualNode::buildLayout() {
     // Content area (flexible, takes remaining space)
     if (node_content_.type != NodeContentType::None) {
         if (node_content_.type == NodeContentType::Gauge) {
-            // Use VoltmeterWidget for gauge content
             layout_.addWidget(std::make_unique<VoltmeterWidget>(
                 node_content_.value,
                 node_content_.min,
@@ -132,14 +108,13 @@ void StandardVisualNode::buildLayout() {
                 node_content_.unit
             ));
         } else {
-            // Use ContentWidget for other content types (Value, Text, Switch)
             float left_margin = PORT_RADIUS + 3.0f;
             float right_margin = PORT_RADIUS + 3.0f;
-            for (const auto& p : inputs_) {
+            for (const auto& p : node.inputs) {
                 float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
                 left_margin = std::max(left_margin, lw);
             }
-            for (const auto& p : outputs_) {
+            for (const auto& p : node.outputs) {
                 float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
                 right_margin = std::max(right_margin, lw);
             }
@@ -152,60 +127,61 @@ void StandardVisualNode::buildLayout() {
     layout_.addWidget(std::make_unique<TypeNameWidget>(type_name_));
 }
 
-size_t StandardVisualNode::getPortCount() const {
-    return inputs_.size() + outputs_.size();
+void VisualNode::buildPorts(const Node& node) {
+    ports_.clear();
+    for (const auto& p : node.inputs) {
+        VisualPort vp(p.name, PortSide::Input, p.type);
+        for (const auto* row : port_rows_) {
+            if (row->leftPortName() == p.name) {
+                Pt local = row->leftPortCenter();
+                vp.setWorldPosition(Pt(position_.x + local.x, position_.y + local.y));
+                break;
+            }
+        }
+        ports_.push_back(std::move(vp));
+    }
+    for (const auto& p : node.outputs) {
+        VisualPort vp(p.name, PortSide::Output, p.type);
+        for (const auto* row : port_rows_) {
+            if (row->rightPortName() == p.name) {
+                Pt local = row->rightPortCenter();
+                vp.setWorldPosition(Pt(position_.x + local.x, position_.y + local.y));
+                break;
+            }
+        }
+        ports_.push_back(std::move(vp));
+    }
 }
 
-const BaseVisualNode::Port* StandardVisualNode::getPort(const std::string& name) const {
-    for (const auto& p : inputs_) {
-        if (p.name == name) return &p;
-    }
-    for (const auto& p : outputs_) {
-        if (p.name == name) return &p;
+const VisualPort* VisualNode::getPort(const std::string& name) const {
+    for (const auto& p : ports_) {
+        if (p.name() == name) return &p;
     }
     return nullptr;
 }
 
-const BaseVisualNode::Port* StandardVisualNode::getPort(size_t index) const {
-    if (index < inputs_.size()) return &inputs_[index];
-    index -= inputs_.size();
-    if (index < outputs_.size()) return &outputs_[index];
-    return nullptr;
+const VisualPort* VisualNode::getPort(size_t index) const {
+    return index < ports_.size() ? &ports_[index] : nullptr;
 }
 
-std::vector<std::string> StandardVisualNode::getPortNames() const {
+std::vector<std::string> VisualNode::getPortNames() const {
     std::vector<std::string> names;
-    for (const auto& p : inputs_) names.push_back(p.name);
-    for (const auto& p : outputs_) names.push_back(p.name);
+    for (const auto& p : ports_) names.push_back(p.name());
     return names;
 }
 
-Pt StandardVisualNode::getPortPosition(const std::string& port_name,
-                                       const char* wire_id) const {
-    (void)wire_id;
-
-    // Search port rows for matching port name
-    for (const auto* row : port_rows_) {
-        if (row->leftPortName() == port_name) {
-            Pt local = row->leftPortCenter();
-            return Pt(position_.x + local.x, position_.y + local.y);
-        }
-        if (row->rightPortName() == port_name) {
-            Pt local = row->rightPortCenter();
-            return Pt(position_.x + local.x, position_.y + local.y);
-        }
-    }
-
-    // Fallback: center of node
-    return Pt(position_.x + size_.x / 2, position_.y + size_.y / 2);
+const VisualPort* VisualNode::resolveWirePort(const std::string& port_name,
+                                               const char* wire_id) const {
+    (void)wire_id;  // Default: ignore wire_id
+    return getPort(port_name);
 }
 
-void StandardVisualNode::connectWire(const Wire&) {}
-void StandardVisualNode::disconnectWire(const Wire&) {}
-void StandardVisualNode::recalculatePorts() {}
+void VisualNode::connectWire(const Wire&) {}
+void VisualNode::disconnectWire(const Wire&) {}
+void VisualNode::recalculatePorts() {}
 
-void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
-                                bool is_selected) const {
+void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
+                        bool is_selected) const {
     Pt screen_min = vp.world_to_screen(position_, canvas_min);
     Pt screen_max = vp.world_to_screen(
         Pt(position_.x + size_.x, position_.y + size_.y), canvas_min);
@@ -234,23 +210,13 @@ void StandardVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min
     layout_.render(dl, screen_min, vp.zoom);
 }
 
-NodeContentType StandardVisualNode::getContentType() const {
-    return node_content_.type;
-}
-
-const NodeContent& StandardVisualNode::getNodeContent() const {
-    return node_content_;
-}
-
-Bounds StandardVisualNode::getContentBounds() const {
-    // Find the ContentWidget and calculate proper content bounds from port rows
+Bounds VisualNode::getContentBounds() const {
     const ContentWidget* content_widget = nullptr;
     float max_left_edge = 0.0f;
     float max_right_edge = 0.0f;
     float content_height = 0.0f;
     bool found_any_port_row = false;
 
-    // First find the content widget and collect all port row bounds
     for (size_t i = 0; i < layout_.childCount(); i++) {
         auto* w = layout_.child(i);
         if (auto* cw = dynamic_cast<const ContentWidget*>(w)) {
@@ -269,34 +235,28 @@ Bounds StandardVisualNode::getContentBounds() const {
         return {};
     }
 
-    // Use port row bounds if available, otherwise use widget's own content area
     if (found_any_port_row && max_right_edge > max_left_edge) {
-        // [x8y9z0a1] Use symmetric margins so the content area is horizontally
-        // centred within the node body, preventing visual misalignment when left
-        // and right port labels differ in length.
+        // [x8y9z0a1] Use symmetric margins for horizontal centering
         float left_margin  = max_left_edge;
         float right_margin = content_widget->width() - max_right_edge;
         float symmetric_margin = std::max(left_margin, right_margin);
         float content_w = content_widget->width() - 2.0f * symmetric_margin;
 
-        Bounds result = {
+        return {
             content_widget->x() + symmetric_margin,
             content_widget->y(),
             std::max(0.0f, content_w),
             content_height
         };
-        return result;
     }
 
-    // Fallback: use widget's getContentArea() method
     Bounds content_area = content_widget->getContentArea();
-    Bounds result = {
+    return {
         content_widget->x() + content_area.x,
         content_widget->y() + content_area.y,
         content_area.w,
         content_area.h
     };
-    return result;
 }
 
 // ============================================================================
@@ -305,49 +265,42 @@ Bounds StandardVisualNode::getContentBounds() const {
 
 BusVisualNode::BusVisualNode(const Node& node, BusOrientation orientation,
                              const std::vector<Wire>& wires)
-    : BaseVisualNode(node)
+    : VisualNode(node)
     , orientation_(orientation)
-    , name_(node.name)
     , wires_(wires)
 {
-    // Build ports via distributePortsInRow (alias ports first, then "v")
+    // Reset size — base constructor may have auto-sized for layout that Bus doesn't use
+    size_ = snap_size_to_grid(node.size);
+    // Override base class ports — Bus has its own port layout
     distributePortsInRow(wires_);
 }
 
 void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     ports_.clear();
 
-    // [i3j4k5l6] Wire alias ports FIRST (indices 0..N-1) so they occupy the
-    // leading positions.  The logical "v" port goes at the end as a
-    // "connect new wire here" target — fixing the "first port always empty" bug.
+    // [i3j4k5l6] Wire alias ports FIRST (indices 0..N-1).
+    // The logical "v" port goes at the end as a "connect new wire here" target.
     for (const auto& w : wires) {
         if (w.start.node_id == node_id_ || w.end.node_id == node_id_) {
-            Port p;
-            p.name = w.id;              // Visual alias name (wire ID)
-            p.target_port = "v";        // Targets logical port "v"
-            p.type = an24::PortType::V; // Bus ports are voltage type
-            p.world_position = calculatePortPosition(ports_.size());
-            ports_.push_back(p);
+            VisualPort vp(w.id, PortSide::InOut, an24::PortType::V, "v");
+            vp.setWorldPosition(calculatePortPosition(ports_.size()));
+            ports_.push_back(std::move(vp));
         }
     }
 
     // Logical "v" port at the end (for new wire connections)
-    Port v_port;
-    v_port.name = "v";
-    v_port.target_port = "";  // Empty means same as name (logical port)
-    v_port.type = an24::PortType::V; // Bus ports are voltage type
-    v_port.world_position = calculatePortPosition(ports_.size());
-    ports_.push_back(v_port);
+    VisualPort v_port("v", PortSide::InOut, an24::PortType::V);
+    v_port.setWorldPosition(calculatePortPosition(ports_.size()));
+    ports_.push_back(std::move(v_port));
 
-    // Only resize if we have wires (i.e., more than just the base "v" port)
-    // This preserves the initial size from component definition when bus is empty
-    if (wires.size() > 0) {
+    // Resize if we have wires (preserves initial size when bus is empty)
+    if (!wires.empty()) {
         size_ = calculateBusSize(ports_.size());
     }
 
-    // Recalculate all port positions
+    // Recalculate all port positions after resize
     for (size_t i = 0; i < ports_.size(); i++) {
-        ports_[i].world_position = calculatePortPosition(i);
+        ports_[i].setWorldPosition(calculatePortPosition(i));
     }
 }
 
@@ -380,77 +333,44 @@ Pt BusVisualNode::calculatePortPosition(size_t index) const {
     }
 }
 
-const BaseVisualNode::Port* BusVisualNode::getPort(const std::string& name) const {
-    for (const auto& p : ports_) {
-        if (p.name == name) return &p;
-    }
-    return nullptr;
-}
-
-const BaseVisualNode::Port* BusVisualNode::getPort(size_t index) const {
-    return index < ports_.size() ? &ports_[index] : nullptr;
-}
-
-std::vector<std::string> BusVisualNode::getPortNames() const {
-    std::vector<std::string> names;
-    for (const auto& p : ports_) names.push_back(p.name);
-    return names;
-}
-
-Pt BusVisualNode::getPortPosition(const std::string& port_name,
-                                  const char* wire_id) const {
+const VisualPort* BusVisualNode::resolveWirePort(const std::string& port_name,
+                                                  const char* wire_id) const {
     // [e7b4c2d5] When wire_id is provided and port_name is "v", resolve by wire_id FIRST.
-    // Previously the "v" port was found at index 0 before the wire_id fallback was reached,
-    // causing all wire endpoints to snap to the main "v" port position.
-    // [i3j4k5l6] Alias ports now start at index 0 (main "v" is at the end).
+    // Alias ports have name == wire_id, target_port == "v".
     if (port_name == "v" && wire_id != nullptr) {
-        size_t port_index = 0;
-        for (const auto& w : wires_) {
-            bool connects = (w.start.node_id == node_id_ || w.end.node_id == node_id_);
-            if (!connects) continue;
-            if (w.id == wire_id) {
-                return calculatePortPosition(port_index);
-            }
-            port_index++;
+        for (const auto& p : ports_) {
+            if (p.name() == wire_id) return &p;
         }
     }
 
-    for (size_t i = 0; i < ports_.size(); i++) {
-        if (ports_[i].name == port_name) {
-            return calculatePortPosition(i);
-        }
-    }
-
-    return Pt(position_.x + size_.x / 2, position_.y + size_.y / 2);
+    return getPort(port_name);
 }
 
 void BusVisualNode::connectWire(const Wire& wire) {
     if (wire.start.node_id == node_id_ || wire.end.node_id == node_id_) {
-        // [b8d2e4f1] Add wire to wires_ before redistributing;
-        // otherwise distributePortsInRow uses stale wire list.
+        // [b8d2e4f1] Add wire to wires_ before redistributing
         wires_.push_back(wire);
         distributePortsInRow(wires_);
-        // Resize bus to fit new port count
         size_ = calculateBusSize(ports_.size());
     }
 }
 
 void BusVisualNode::disconnectWire(const Wire& wire) {
-    // [b8d2e4f1] Also remove wire from wires_ to keep it in sync
+    // [b8d2e4f1] Remove wire from wires_ to keep in sync
     wires_.erase(
         std::remove_if(wires_.begin(), wires_.end(),
             [&](const Wire& w) { return w.id == wire.id; }),
         wires_.end());
+    // Remove the alias port for this wire
     std::string port_name = wire.id;
     ports_.erase(
         std::remove_if(ports_.begin(), ports_.end(),
-            [&](const Port& p) { return p.name == port_name; }),
+            [&](const VisualPort& p) { return p.name() == port_name; }),
         ports_.end());
-    // Resize bus to fit new port count
+    // Resize and recalculate positions
     size_ = calculateBusSize(ports_.size());
-    // Recalculate port positions after resize
     for (size_t i = 0; i < ports_.size(); i++) {
-        ports_[i].world_position = calculatePortPosition(i);
+        ports_[i].setWorldPosition(calculatePortPosition(i));
     }
 }
 
@@ -479,10 +399,9 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 10.0f * vp.zoom);
 
     float port_radius = PORT_RADIUS * vp.zoom;
-    for (size_t i = 0; i < ports_.size(); i++) {
-        Pt world_pos = calculatePortPosition(i);
-        Pt screen_pos = vp.world_to_screen(world_pos, canvas_min);
-        uint32_t port_color = get_port_color(ports_[i].type);
+    for (const auto& port : ports_) {
+        Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
+        uint32_t port_color = get_port_color(port.type());
         dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
     }
 }
@@ -492,14 +411,16 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 // ============================================================================
 
 RefVisualNode::RefVisualNode(const Node& node)
-    : BaseVisualNode(node)
-    , name_(node.name)
+    : VisualNode(node)
 {
-    // [c5a9b7d2] Use actual port name from node definition instead of hardcoded "ref".
-    // RefNode.json defines port "v" — hit test resolves port_name from visual port,
-    // so using "ref" caused wire creation to use wrong port name.
-    std::string port_name = "v";  // default fallback
-    an24::PortType port_type = an24::PortType::V;  // default fallback
+    // Reset size — base constructor may have auto-sized for layout that Ref doesn't use
+    size_ = snap_size_to_grid(node.size);
+    // Override base class ports — Ref has a single port on top
+    ports_.clear();
+
+    // [c5a9b7d2] Use actual port name from node definition
+    std::string port_name = "v";
+    an24::PortType port_type = an24::PortType::V;
     if (!node.outputs.empty()) {
         port_name = node.outputs[0].name;
         port_type = node.outputs[0].type;
@@ -507,43 +428,17 @@ RefVisualNode::RefVisualNode(const Node& node)
         port_name = node.inputs[0].name;
         port_type = node.inputs[0].type;
     }
-    Port p;
-    p.name = port_name;
-    p.type = port_type;
+
+    VisualPort vp(port_name, PortSide::Output, port_type);
     // [d5e6f7g8] Snap port position to grid so wires align to grid lines.
-    p.world_position = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
-    ports_.push_back(p);
+    vp.setWorldPosition(snap_to_grid(Pt(position_.x + size_.x / 2, position_.y)));
+    ports_.push_back(std::move(vp));
 }
-
-const BaseVisualNode::Port* RefVisualNode::getPort(const std::string& name) const {
-    for (const auto& p : ports_) {
-        if (p.name == name) return &p;
-    }
-    return nullptr;
-}
-
-const BaseVisualNode::Port* RefVisualNode::getPort(size_t index) const {
-    return index < ports_.size() ? &ports_[index] : nullptr;
-}
-
-std::vector<std::string> RefVisualNode::getPortNames() const {
-    std::vector<std::string> names;
-    for (const auto& p : ports_) names.push_back(p.name);
-    return names;
-}
-
-Pt RefVisualNode::getPortPosition(const std::string&, const char*) const {
-    // [d5e6f7g8] Snap to grid so wire endpoints land on grid lines.
-    return snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
-}
-
-void RefVisualNode::connectWire(const Wire&) {}
-void RefVisualNode::disconnectWire(const Wire&) {}
 
 void RefVisualNode::recalculatePorts() {
     if (!ports_.empty()) {
         // [d5e6f7g8] Keep port position grid-snapped after moves.
-        ports_[0].world_position = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
+        ports_[0].setWorldPosition(snap_to_grid(Pt(position_.x + size_.x / 2, position_.y)));
     }
 }
 
@@ -562,10 +457,10 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), COLOR_TEXT, 10.0f * vp.zoom);
 
-    // [d5e6f7g8] Use grid-snapped position so rendering matches getPortPosition.
+    // [d5e6f7g8] Use grid-snapped position so rendering matches port world position.
     Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
-    uint32_t port_color = get_port_color(ports_[0].type);
+    uint32_t port_color = get_port_color(ports_[0].type());
     dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, port_color, 8);
 }
 
@@ -573,7 +468,7 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 // VisualNodeCache
 // ============================================================================
 
-BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wire>& wires) {
+VisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wire>& wires) {
     auto it = cache_.find(node.id);
     if (it == cache_.end()) {
         auto visual = VisualNodeFactory::create(node, wires);
@@ -583,57 +478,35 @@ BaseVisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector
     }
     // Sync node_content from blueprint (simulation may have updated it)
     it->second->updateNodeContent(node.node_content);
+    // Sync position from data model (loading/external edits may change it)
+    it->second->setPosition(snap_to_grid(node.pos));
     // Sync visibility from data model (drill-in/out may have changed it)
     it->second->setVisible(node.visible);
     return it->second.get();
 }
 
-BaseVisualNode* VisualNodeCache::get(const std::string& node_id) {
+VisualNode* VisualNodeCache::get(const std::string& node_id) {
     auto it = cache_.find(node_id);
     return it != cache_.end() ? it->second.get() : nullptr;
 }
 
 void VisualNodeCache::onWireAdded(const Wire& wire, const std::vector<Node>& all_nodes) {
-    (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
         if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
-            // For Bus nodes, use connectWire to trigger dynamic resize
-            // Previously we erased the cache, but that caused the node to recreate
-            // with its original size from the Node object, losing visual state
-            if (node.kind == NodeKind::Bus) {
-                auto* visual = get(node.id);
-                if (visual) {
-                    visual->connectWire(wire);
-                }
-            } else {
-                // For other nodes, use connectWire method
-                auto* visual = get(node.id);
-                if (visual) {
-                    visual->connectWire(wire);
-                }
+            auto* visual = get(node.id);
+            if (visual) {
+                visual->connectWire(wire);
             }
         }
     }
 }
 
 void VisualNodeCache::onWireDeleted(const Wire& wire, const std::vector<Node>& all_nodes) {
-    (void)wire;  // Will be used when iterating wires
     for (const auto& node : all_nodes) {
         if (node.id == wire.start.node_id || node.id == wire.end.node_id) {
-            // For Bus nodes, use disconnectWire to trigger dynamic resize
-            // Previously we erased the cache, but that caused the node to recreate
-            // with its original size from the Node object, losing visual state
-            if (node.kind == NodeKind::Bus) {
-                auto* visual = get(node.id);
-                if (visual) {
-                    visual->disconnectWire(wire);
-                }
-            } else {
-                // For other nodes, use disconnectWire method
-                auto* visual = get(node.id);
-                if (visual) {
-                    visual->disconnectWire(wire);
-                }
+            auto* visual = get(node.id);
+            if (visual) {
+                visual->disconnectWire(wire);
             }
         }
     }

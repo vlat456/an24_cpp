@@ -202,7 +202,7 @@ HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_p
             const auto* port = visual->getPort(port_idx);
             if (!port) break;
 
-            Pt port_pos = visual->getPortPosition(port->name);
+            Pt port_pos = port->worldPosition();
             float dist = editor_math::distance(world_pos, port_pos);
             if (dist <= PORT_HIT_RADIUS) {
                 result.type = HitType::Port;
@@ -210,43 +210,18 @@ HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_p
                 result.port_index = port_idx;
                 result.is_input = false;  // [l5h7i9j1] Placeholder; actual side determined below via port_side
                 result.port_node_id = node.id;
-                // Use target_port if set (for PortAlias), otherwise use port name
-                result.port_name = port->target_port.empty() ? port->name : port->target_port;
+                // Use logicalName() to get the target port ("v" for aliases, name for normal ports)
+                result.port_name = port->logicalName();
                 result.port_position = port_pos;
 
                 // [g1h2i3j4] For Bus alias ports, store the wire ID so the caller
                 // can identify which specific wire is connected to this port.
-                if (!port->target_port.empty()) {
-                    result.port_wire_id = port->name;  // alias name IS the wire ID
+                if (port->isAlias()) {
+                    result.port_wire_id = port->name();  // alias name IS the wire ID
                 }
 
-                // Determine port side by checking if it's in inputs or outputs
-                // For aliased ports, check the target port instead
-                std::string port_to_check = port->target_port.empty() ? port->name : port->target_port;
-
-                bool is_input = false;
-                bool is_output = false;
-                for (const auto& p : node.inputs) {
-                    if (p.name == port_to_check) {
-                        is_input = true;
-                        break;
-                    }
-                }
-                for (const auto& p : node.outputs) {
-                    if (p.name == port_to_check) {
-                        is_output = true;
-                        break;
-                    }
-                }
-
-                // Set port side based on membership
-                if (is_input && is_output) {
-                    result.port_side = PortSide::InOut;
-                } else if (is_input) {
-                    result.port_side = PortSide::Input;
-                } else {
-                    result.port_side = PortSide::Output;
-                }
+                // Determine port side from VisualPort (already computed correctly)
+                result.port_side = port->side();
 
                 return result;
             }

@@ -5,6 +5,7 @@
 #include "editor/data/wire.h"
 #include "editor/visual_node.h"
 #include "json_parser/json_parser.h"
+#include <nlohmann/json.hpp>
 #include <set>
 
 /// TDD Step 2: Persist - сначала тесты
@@ -599,5 +600,300 @@ TEST(PersistTest, BusVisualNode_SizeIsGridSnapped) {
 
     EXPECT_NEAR(fmod(bus.getSize().x, GRID_STEP), 0.0f, 0.01f) << "Width should remain grid-snapped";
     EXPECT_NEAR(fmod(bus.getSize().y, GRID_STEP), 0.0f, 0.01f) << "Height should remain grid-snapped";
+}
+
+// ─── Regression: Port type roundtrip through editor format ─────────────────
+
+TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
+    Blueprint bp;
+
+    Node bus;
+    bus.id = "main_bus";
+    bus.name = "main_bus";
+    bus.type_name = "Bus";
+    bus.kind = NodeKind::Bus;
+    bus.at(100.0f, 100.0f);
+    // Bus port is InOut with type V
+    Port bus_port;
+    bus_port.name = "v";
+    bus_port.side = PortSide::InOut;
+    bus_port.type = an24::PortType::V;
+    bus.inputs.push_back(bus_port);
+    bus.outputs.push_back(bus_port);
+    bp.add_node(std::move(bus));
+
+    Node dmr;
+    dmr.id = "dmr1";
+    dmr.name = "dmr1";
+    dmr.type_name = "DMR400";
+    dmr.at(200.0f, 100.0f);
+    Port vin; vin.name = "v_in"; vin.side = PortSide::Input; vin.type = an24::PortType::V;
+    Port vout; vout.name = "v_out"; vout.side = PortSide::Output; vout.type = an24::PortType::V;
+    Port lamp; lamp.name = "lamp"; lamp.side = PortSide::Output; lamp.type = an24::PortType::V;
+    dmr.inputs.push_back(vin);
+    dmr.outputs.push_back(vout);
+    dmr.outputs.push_back(lamp);
+    bp.add_node(std::move(dmr));
+
+    // Roundtrip through editor format
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+
+    // Check Bus port is InOut
+    const Node* loaded_bus = bp2->find_node("main_bus");
+    ASSERT_NE(loaded_bus, nullptr);
+    bool found_in = false, found_out = false;
+    for (const auto& p : loaded_bus->inputs)
+        if (p.name == "v") found_in = true;
+    for (const auto& p : loaded_bus->outputs)
+        if (p.name == "v") found_out = true;
+    EXPECT_TRUE(found_in) << "Bus 'v' should be in inputs (InOut)";
+    EXPECT_TRUE(found_out) << "Bus 'v' should be in outputs (InOut)";
+
+    // Check port types are preserved
+    const Node* loaded_dmr = bp2->find_node("dmr1");
+    ASSERT_NE(loaded_dmr, nullptr);
+    for (const auto& p : loaded_dmr->inputs) {
+        if (p.name == "v_in")
+            EXPECT_EQ(p.type, an24::PortType::V) << "v_in port type should be V";
+    }
+    for (const auto& p : loaded_dmr->outputs) {
+        if (p.name == "v_out")
+            EXPECT_EQ(p.type, an24::PortType::V) << "v_out port type should be V";
+        if (p.name == "lamp")
+            EXPECT_EQ(p.type, an24::PortType::V) << "lamp port type should be V";
+    }
+}
+
+// ─── Regression: InOut port allows wire from both directions ───────────────
+
+TEST(PersistTest, InOutPort_AllowsWireFromBothDirections) {
+    Blueprint bp;
+
+    // Bus with InOut port
+    Node bus;
+    bus.id = "bus1";
+    bus.name = "bus1";
+    bus.type_name = "Bus";
+    bus.kind = NodeKind::Bus;
+    Port bus_port;
+    bus_port.name = "v";
+    bus_port.side = PortSide::InOut;
+    bus_port.type = an24::PortType::V;
+    bus.inputs.push_back(bus_port);
+    bus.outputs.push_back(bus_port);
+    bp.add_node(std::move(bus));
+
+    // DMR with output
+    Node dmr;
+    dmr.id = "dmr1";
+    dmr.name = "dmr1";
+    dmr.type_name = "DMR400";
+    Port vout; vout.name = "v_out"; vout.side = PortSide::Output;
+    dmr.outputs.push_back(vout);
+    bp.add_node(std::move(dmr));
+
+    // Wire: dmr1.v_out → bus1.v (Output → InOut = should succeed)
+    Wire w1 = Wire::make("w1",
+        WireEnd("dmr1", "v_out", PortSide::Output),
+        WireEnd("bus1", "v", PortSide::InOut));
+    EXPECT_TRUE(bp.add_wire_validated(std::move(w1)))
+        << "Output to InOut should be allowed";
+
+    // Second source node
+    Node src;
+    src.id = "src1";
+    src.name = "src1";
+    src.type_name = "Battery";
+    Port src_out; src_out.name = "v_out"; src_out.side = PortSide::Output;
+    src.outputs.push_back(src_out);
+    bp.add_node(std::move(src));
+
+    // Wire: src1.v_out → bus1.v (Bus allows multiple wires)
+    Wire w2 = Wire::make("w2",
+        WireEnd("src1", "v_out", PortSide::Output),
+        WireEnd("bus1", "v", PortSide::InOut));
+    EXPECT_TRUE(bp.add_wire_validated(std::move(w2)))
+        << "Bus should allow multiple incoming wires";
+}
+
+// ─── Regression: Duplicate node dedup in editor format ─────────────────────
+
+TEST(PersistTest, DuplicateNodes_DedupedOnLoad) {
+    // Manually create JSON with duplicate nodes
+    nlohmann::json j;
+    j["devices"] = nlohmann::json::array();
+
+    // Same node twice with different positions
+    nlohmann::json dev1 = {
+        {"name", "bat1"}, {"classname", "Battery"}, {"kind", "Node"},
+        {"ports", {{"v_out", {{"direction", "Out"}}}}},
+        {"pos", {{"x", 100.0f}, {"y", 100.0f}}},
+        {"size", {{"x", 120.0f}, {"y", 80.0f}}}
+    };
+    j["devices"].push_back(dev1);
+    // Duplicate with different position
+    nlohmann::json dev2 = dev1;
+    dev2["pos"] = {{"x", 500.0f}, {"y", 500.0f}};
+    j["devices"].push_back(dev2);
+    // Third copy
+    j["devices"].push_back(dev1);
+
+    j["wires"] = nlohmann::json::array();
+
+    auto bp = blueprint_from_json(j.dump());
+    ASSERT_TRUE(bp.has_value());
+
+    // Should only have 1 node (duplicates removed)
+    EXPECT_EQ(bp->nodes.size(), 1u) << "Duplicate nodes should be deduped on load";
+    EXPECT_EQ(bp->nodes[0].id, "bat1");
+    // First occurrence wins
+    EXPECT_FLOAT_EQ(bp->nodes[0].pos.x, 100.0f);
+}
+
+// ─── Regression: blueprint-to-blueprint wire not dropped ───────────────────
+
+TEST(PersistTest, BlueprintToBlueprintWire_NotDropped) {
+    Blueprint bp;
+
+    // Two Blueprint nodes (collapsed groups)
+    Node bp1;
+    bp1.id = "battery_bp";
+    bp1.name = "battery_bp";
+    bp1.type_name = "simple_battery";
+    bp1.kind = NodeKind::Blueprint;
+    bp1.blueprint_path = "blueprints/simple_battery.json";
+    bp1.output("vout");
+    bp.add_node(std::move(bp1));
+
+    // Internal node for bp1's vout port
+    Node bp1_vout;
+    bp1_vout.id = "battery_bp:vout";
+    bp1_vout.name = "battery_bp:vout";
+    bp1_vout.type_name = "BlueprintOutput";
+    bp1_vout.input("port");
+    bp1_vout.output("ext");
+    bp.add_node(std::move(bp1_vout));
+
+    Node bp2;
+    bp2.id = "lamp_bp";
+    bp2.name = "lamp_bp";
+    bp2.type_name = "lamp_pass_through";
+    bp2.kind = NodeKind::Blueprint;
+    bp2.blueprint_path = "blueprints/lamp_pass_through.json";
+    bp2.input("vin");
+    bp.add_node(std::move(bp2));
+
+    // Internal node for bp2's vin port
+    Node bp2_vin;
+    bp2_vin.id = "lamp_bp:vin";
+    bp2_vin.name = "lamp_bp:vin";
+    bp2_vin.type_name = "BlueprintInput";
+    bp2_vin.input("ext");
+    bp2_vin.output("port");
+    bp.add_node(std::move(bp2_vin));
+
+    // Wire connecting two blueprint nodes
+    Wire w;
+    w.id = "wire_bp2bp";
+    w.start = WireEnd("battery_bp", "vout", PortSide::Output);
+    w.end = WireEnd("lamp_bp", "vin", PortSide::Input);
+    bp.add_wire(std::move(w));
+
+    // Convert to simulation JSON
+    std::string sim_json = blueprint_to_json(bp);
+
+    // The rewritten wire should connect battery_bp:vout.ext → lamp_bp:vin.ext
+    EXPECT_NE(sim_json.find("battery_bp:vout"), std::string::npos)
+        << "Wire from blueprint node should be rewritten to internal port";
+    EXPECT_NE(sim_json.find("lamp_bp:vin"), std::string::npos)
+        << "Wire to blueprint node should be rewritten to internal port";
+
+    // Parse and verify connection exists
+    auto parsed = blueprint_from_json(sim_json);
+    ASSERT_TRUE(parsed.has_value());
+
+    // Find the rewritten wire
+    bool found_wire = false;
+    for (const auto& wire : parsed->wires) {
+        if (wire.start.node_id == "battery_bp:vout" && wire.end.node_id == "lamp_bp:vin") {
+            found_wire = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_wire) << "Wire between two Blueprint nodes must not be dropped";
+}
+
+// ─── Regression: VisualNode position syncs from Node data ──────────────────
+
+TEST(PersistTest, VisualCache_PositionSync) {
+    Node n;
+    n.id = "test_node";
+    n.name = "test_node";
+    n.type_name = "Battery";
+    n.kind = NodeKind::Node;
+    n.at(96.0f, 192.0f);  // grid-aligned (16px grid)
+    n.input("v_in");
+    n.output("v_out");
+
+    VisualNodeCache cache;
+    std::vector<Wire> wires;
+
+    // First access — creates visual at node position
+    auto* visual = cache.getOrCreate(n, wires);
+    ASSERT_NE(visual, nullptr);
+    EXPECT_FLOAT_EQ(visual->getPosition().x, 96.0f);
+    EXPECT_FLOAT_EQ(visual->getPosition().y, 192.0f);
+
+    // Simulate external position change (e.g. load from file)
+    // Use grid-aligned values (grid step = 16)
+    n.pos = Pt(400.0f, 496.0f);
+
+    // Second access — should sync position from node data
+    auto* visual2 = cache.getOrCreate(n, wires);
+    EXPECT_FLOAT_EQ(visual2->getPosition().x, 400.0f);
+    EXPECT_FLOAT_EQ(visual2->getPosition().y, 496.0f);
+
+    // Port position should use updated position
+    Pt port_pos = visual2->getPort("v_out")->worldPosition();
+    EXPECT_GT(port_pos.x, 300.0f) << "Port position should reflect updated node position";
+}
+
+// ─── Regression: Port types loaded from component registry ────────────────
+
+TEST(PersistTest, PortTypes_LoadedFromRegistry) {
+    // Create editor-format JSON WITHOUT port types (like old saves)
+    nlohmann::json j;
+    j["devices"] = nlohmann::json::array();
+
+    nlohmann::json dmr = {
+        {"name", "dmr1"}, {"classname", "DMR400"}, {"kind", "Node"},
+        {"ports", {
+            {"v_in", {{"direction", "In"}}},
+            {"v_out", {{"direction", "Out"}}},
+            {"v_gen_ref", {{"direction", "In"}}},
+            {"lamp", {{"direction", "Out"}}}
+        }},
+        {"pos", {{"x", 100.0f}, {"y", 100.0f}}},
+        {"size", {{"x", 120.0f}, {"y", 80.0f}}}
+    };
+    j["devices"].push_back(dmr);
+    j["wires"] = nlohmann::json::array();
+
+    auto bp = blueprint_from_json(j.dump());
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->nodes.size(), 1u);
+
+    // Port types should be resolved from the component registry
+    const Node& loaded = bp->nodes[0];
+    for (const auto& p : loaded.inputs) {
+        if (p.name == "v_in" || p.name == "v_gen_ref")
+            EXPECT_EQ(p.type, an24::PortType::V) << p.name << " should be type V from registry";
+    }
+    for (const auto& p : loaded.outputs) {
+        if (p.name == "v_out" || p.name == "lamp")
+            EXPECT_EQ(p.type, an24::PortType::V) << p.name << " should be type V from registry";
+    }
 }
 

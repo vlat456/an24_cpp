@@ -16,12 +16,19 @@ inline Pt get_port_position(const Node& node, const char* port_name,
                             const std::vector<Wire>& wires,
                             const char* wire_id,
                             VisualNodeCache* cache) {
+    VisualNode* visual = nullptr;
+    std::unique_ptr<VisualNode> visual_owned;
     if (cache) {
-        auto* visual = cache->getOrCreate(node, wires);
-        return visual->getPortPosition(port_name, wire_id);
+        visual = cache->getOrCreate(node, wires);
+    } else {
+        visual_owned = VisualNodeFactory::create(node, wires);
+        visual = visual_owned.get();
     }
-    auto visual = VisualNodeFactory::create(node, wires);
-    return visual->getPortPosition(port_name, wire_id);
+    const VisualPort* port = visual->resolveWirePort(port_name, wire_id);
+    if (port) return port->worldPosition();
+    // Fallback: center of node
+    return Pt(visual->getPosition().x + visual->getSize().x / 2,
+              visual->getPosition().y + visual->getSize().y / 2);
 }
 
 // Legacy overload without cache (creates fresh visual each call – slow path)

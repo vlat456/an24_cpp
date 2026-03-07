@@ -1750,3 +1750,246 @@ TEST(BlueprintVisibility, HiddenNodeHasNoVisibleContent) {
     EXPECT_EQ(visual->getContentType(), NodeContentType::Text);
 }
 
+// =============================================================================
+// Diagnostic: Load blueprint.json and run JIT simulation
+// =============================================================================
+
+TEST(BlueprintSignalFlow, BlueprintJsonFile_SOR_Stability) {
+    // Load the user's blueprint.json file
+    std::vector<std::string> paths = {
+        "blueprint.json",
+        "../blueprint.json",
+        "../../blueprint.json",
+    };
+    std::string json_str;
+    for (const auto& p : paths) {
+        std::ifstream f(p);
+        if (f.is_open()) {
+            json_str.assign(std::istreambuf_iterator<char>(f),
+                           std::istreambuf_iterator<char>());
+            break;
+        }
+    }
+    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.json";
+
+    // Load as editor format
+    auto bp_opt = blueprint_from_json(json_str);
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse blueprint.json";
+    Blueprint& bp = *bp_opt;
+
+    // Count duplicate device names
+    std::map<std::string, int> name_counts;
+    for (const auto& n : bp.nodes) {
+        name_counts[n.id]++;
+    }
+    int duplicates = 0;
+    for (const auto& [name, count] : name_counts) {
+        if (count > 1) {
+            std::cerr << "  DUPLICATE: " << name << " x" << count << "\n";
+            duplicates++;
+        }
+    }
+    std::cerr << "Total nodes: " << bp.nodes.size()
+              << ", unique: " << name_counts.size()
+              << ", duplicates: " << duplicates << "\n";
+
+    // Convert to simulation JSON
+    std::string sim_json = blueprint_to_json(bp);
+    auto j = json::parse(sim_json);
+
+    // Check for duplicate device names in simulation format
+    std::set<std::string> sim_names;
+    int sim_dupes = 0;
+    for (const auto& dev : j["devices"]) {
+        std::string name = dev["name"].get<std::string>();
+        if (sim_names.count(name)) {
+            std::cerr << "  SIM DUPLICATE: " << name << "\n";
+            sim_dupes++;
+        }
+        sim_names.insert(name);
+    }
+    std::cerr << "Simulation devices: " << j["devices"].size()
+              << ", unique: " << sim_names.size()
+              << ", sim duplicates: " << sim_dupes << "\n";
+
+    // Parse and run simulation
+    auto ctx = parse_json(sim_json);
+    std::vector<std::pair<std::string, std::string>> connections;
+    for (const auto& c : ctx.connections) connections.push_back({c.from, c.to});
+    auto result = build_systems_dev(ctx.devices, connections);
+
+    SimulationState state;
+    for (uint32_t i = 0; i < result.signal_count; ++i) {
+        bool is_fixed = std::binary_search(
+            result.fixed_signals.begin(), result.fixed_signals.end(), i);
+        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+    }
+    for (const auto& dev : ctx.devices) {
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) value = std::stof(it_val->second);
+            auto it_sig = result.port_to_signal.find(dev.name + ".v");
+            if (it_sig != result.port_to_signal.end())
+                state.across[it_sig->second] = value;
+        }
+    }
+    state.resize_buffers(result.signal_count);
+
+    // Run 200 steps
+    for (int step = 0; step < 200; step++) {
+        state.clear_through();
+        for (auto& [name, variant] : result.devices) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_electrical(state, 0.016f); }) {
+                    comp.solve_electrical(state, 0.016f);
+                }
+            }, variant);
+        }
+        state.precompute_inv_conductance();
+        solve_sor_iteration(state.across.data(), state.through.data(),
+                           state.inv_conductance.data(), state.across.size(), 1.3f);
+    }
+
+    // Dump all signal voltages
+    std::cerr << "\n=== SIGNAL VOLTAGES after 200 steps ===\n";
+    for (const auto& [port, sig] : result.port_to_signal) {
+        float v = state.across[sig];
+        if (std::abs(v) > 0.1f || std::isnan(v) || std::isinf(v)) {
+            std::cerr << "  " << port << " = " << v << "V (signal " << sig << ")\n";
+        }
+    }
+
+    // Check no NaN/inf
+    bool has_nan = false, has_inf = false;
+    float max_voltage = 0;
+    for (size_t i = 0; i < state.across.size(); i++) {
+        if (std::isnan(state.across[i])) has_nan = true;
+        if (std::isinf(state.across[i])) has_inf = true;
+        max_voltage = std::max(max_voltage, std::abs(state.across[i]));
+    }
+    std::cerr << "Max voltage: " << max_voltage << "V\n";
+    std::cerr << "Has NaN: " << has_nan << ", Has inf: " << has_inf << "\n";
+
+    EXPECT_FALSE(has_nan) << "SOR must not produce NaN";
+    EXPECT_FALSE(has_inf) << "SOR must not produce inf";
+    EXPECT_LT(max_voltage, 1000.0f) << "Voltage should not explode (max=" << max_voltage << ")";
+}
+
+// Same test but using Simulator<JIT_Solver> (the actual editor path)
+TEST(BlueprintSignalFlow, BlueprintJsonFile_JIT_Simulator) {
+    std::vector<std::string> paths = {
+        "blueprint.json", "../blueprint.json", "../../blueprint.json",
+    };
+    std::string json_str;
+    for (const auto& p : paths) {
+        std::ifstream f(p);
+        if (f.is_open()) {
+            json_str.assign(std::istreambuf_iterator<char>(f),
+                           std::istreambuf_iterator<char>());
+            break;
+        }
+    }
+    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.json";
+
+    auto bp_opt = blueprint_from_json(json_str);
+    ASSERT_TRUE(bp_opt.has_value());
+    Blueprint& bp = *bp_opt;
+
+    // Use actual Simulator<JIT_Solver> - same as the editor
+    an24::Simulator<an24::JIT_Solver> sim;
+    sim.start(bp);
+
+    // Run 500 steps (like the editor would)
+    for (int i = 0; i < 500; i++) {
+        sim.step(0.016f);
+    }
+
+    // Check battery voltages
+    float main_bat = sim.get_wire_voltage("bat_main_1.v_out");
+    std::cerr << "bat_main_1.v_out = " << main_bat << "V\n";
+
+    // Check simple_battery internal battery
+    float nested_bat = sim.get_wire_voltage("simple_battery_1:bat.v_out");
+    std::cerr << "simple_battery_1:bat.v_out = " << nested_bat << "V\n";
+
+    // Check via collapsed node port (the fallback path)
+    float collapsed_vout = sim.get_wire_voltage("simple_battery_1.vout");
+    std::cerr << "simple_battery_1.vout (fallback) = " << collapsed_vout << "V\n";
+
+    // Dump ALL voltages > 0.1
+    std::cerr << "\n=== ALL SIGNIFICANT VOLTAGES ===\n";
+    // Access build result via the simulation JSON path
+    std::string sim_json = blueprint_to_json(bp);
+    auto ctx = parse_json(sim_json);
+    std::vector<std::pair<std::string, std::string>> connections;
+    for (const auto& c : ctx.connections) connections.push_back({c.from, c.to});
+    auto result = build_systems_dev(ctx.devices, connections);
+    
+    // Run standalone to compare
+    SimulationState state;
+    for (uint32_t si = 0; si < result.signal_count; ++si) {
+        bool is_fixed = std::binary_search(
+            result.fixed_signals.begin(), result.fixed_signals.end(), si);
+        (void)state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
+    }
+    for (const auto& dev : ctx.devices) {
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) value = std::stof(it_val->second);
+            auto it_sig = result.port_to_signal.find(dev.name + ".v");
+            if (it_sig != result.port_to_signal.end())
+                state.across[it_sig->second] = value;
+        }
+    }
+    state.resize_buffers(result.signal_count);
+    for (int step = 0; step < 500; step++) {
+        state.clear_through();
+        for (auto& [name, variant] : result.devices) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_electrical(state, 0.016f); }) {
+                    comp.solve_electrical(state, 0.016f);
+                }
+                if constexpr (requires { comp.solve_logical(state, 0.016f); }) {
+                    comp.solve_logical(state, 0.016f);
+                }
+            }, variant);
+        }
+        state.precompute_inv_conductance();
+        solve_sor_iteration(state.across.data(), state.through.data(),
+                           state.inv_conductance.data(), state.across.size(), 1.3f);
+        // Post-step
+        for (auto& [name, variant] : result.devices) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.post_step(state, 0.016f); }) {
+                    comp.post_step(state, 0.016f);
+                }
+            }, variant);
+        }
+    }
+
+    // Dump
+    for (const auto& [port, sig] : result.port_to_signal) {
+        float v = state.across[sig];
+        if (std::abs(v) > 0.1f || std::isnan(v) || std::isinf(v)) {
+            std::cerr << "  " << port << " = " << v << "V\n";
+        }
+    }
+
+    // Check stability
+    float max_v = 0;
+    bool has_nan_v = false, has_inf_v = false;
+    for (size_t i = 0; i < state.across.size(); i++) {
+        if (std::isnan(state.across[i])) has_nan_v = true;
+        if (std::isinf(state.across[i])) has_inf_v = true;
+        max_v = std::max(max_v, std::abs(state.across[i]));
+    }
+    std::cerr << "Max voltage: " << max_v << "V, NaN=" << has_nan_v << " inf=" << has_inf_v << "\n";
+
+    EXPECT_FALSE(has_nan_v) << "SOR must not produce NaN";
+    EXPECT_FALSE(has_inf_v) << "SOR must not produce inf";
+    EXPECT_LT(max_v, 1000.0f) << "Voltage should not explode";
+    EXPECT_GT(main_bat, 10.0f) << "Main battery should produce voltage";
+}
+

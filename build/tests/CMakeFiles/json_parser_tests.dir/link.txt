@@ -1,1 +1,1 @@
-/usr/bin/c++ -O3 -DNDEBUG -O3 -ffast-math -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.o -o json_parser_tests  ../src/json_parser/libjson_parser.a ../lib/libgtest_main.a ../_deps/spdlog-build/libspdlog.a ../lib/libgtest.a
+/usr/bin/c++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/json_parser_tests.dir/json_parser_test.cpp.o -o json_parser_tests  ../src/json_parser/libjson_parser.a ../lib/libgtest_main.a ../_deps/spdlog-build/libspdlogd.a ../lib/libgtest.a

@@ -15,6 +15,30 @@
 
 using json = nlohmann::json;
 
+static std::string port_type_str(an24::PortType t) {
+    switch (t) {
+        case an24::PortType::V: return "V";
+        case an24::PortType::I: return "I";
+        case an24::PortType::Bool: return "Bool";
+        case an24::PortType::RPM: return "RPM";
+        case an24::PortType::Temperature: return "Temperature";
+        case an24::PortType::Pressure: return "Pressure";
+        case an24::PortType::Position: return "Position";
+        default: return "Any";
+    }
+}
+
+static an24::PortType parse_port_type_str(const std::string& s) {
+    if (s == "V") return an24::PortType::V;
+    if (s == "I") return an24::PortType::I;
+    if (s == "Bool") return an24::PortType::Bool;
+    if (s == "RPM") return an24::PortType::RPM;
+    if (s == "Temperature") return an24::PortType::Temperature;
+    if (s == "Pressure") return an24::PortType::Pressure;
+    if (s == "Position") return an24::PortType::Position;
+    return an24::PortType::Any;
+}
+
 // Публичные функции
 
 std::string blueprint_to_json(const Blueprint& bp) {
@@ -28,10 +52,14 @@ std::string blueprint_to_json(const Blueprint& bp) {
 
     // devices (simulator format) - full format for AOT/JIT compatibility
     json devices = json::array();
+    std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs
     for (const auto& n : bp.nodes) {
         // Skip collapsed Blueprint nodes — they are visual-only wrappers.
         // The actual internal devices already exist in the flat blueprint.
         if (n.kind == NodeKind::Blueprint) continue;
+
+        // Skip duplicate node IDs (malformed saves may contain duplicates)
+        if (!emitted_ids.insert(n.id).second) continue;
 
         json device = json::object();
         device["name"] = n.id;
@@ -106,9 +134,6 @@ std::string blueprint_to_json(const Blueprint& bp) {
         // union-find merges with "port", connecting external wires to internal circuit.
         bool start_is_bp = blueprint_node_ids.count(from_node) > 0;
         bool end_is_bp = blueprint_node_ids.count(to_node) > 0;
-
-        // Skip wires between two Blueprint nodes (shouldn't happen, but be safe)
-        if (start_is_bp && end_is_bp) continue;
 
         if (start_is_bp) {
             // "lamp1.vout" → "lamp1:vout.ext"
@@ -201,7 +226,9 @@ std::string blueprint_to_json(const Blueprint& bp) {
 
     // collapsed_groups (editor-only visual hierarchy metadata)
     json collapsed_groups = json::array();
+    std::set<std::string> saved_group_ids;  // Dedup collapsed_groups
     for (const auto& group : bp.collapsed_groups) {
+        if (!saved_group_ids.insert(group.id).second) continue;
         json group_json = {
             {"id", group.id},
             {"blueprint_path", group.blueprint_path},
@@ -236,7 +263,9 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
 
     // devices: flat list of ALL nodes including Blueprint kind
     json devices = json::array();
+    std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs on save
     for (const auto& n : bp.nodes) {
+        if (!emitted_ids.insert(n.id).second) continue;
         json device = json::object();
         device["name"] = n.id;
         device["classname"] = n.type_name;
@@ -252,12 +281,20 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
         if (git != node_to_group.end())
             device["group_id"] = git->second;
 
-        // ports
+        // ports — detect InOut by checking if port appears in both inputs and outputs
+        std::set<std::string> input_names, output_names;
+        for (const auto& p : n.inputs) input_names.insert(p.name);
+        for (const auto& p : n.outputs) output_names.insert(p.name);
+
         json ports = json::object();
-        for (const auto& p : n.inputs)
-            ports[p.name] = {{"direction", "In"}};
-        for (const auto& p : n.outputs)
-            ports[p.name] = {{"direction", "Out"}};
+        for (const auto& p : n.inputs) {
+            bool is_inout = output_names.count(p.name) > 0;
+            ports[p.name] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
+        }
+        for (const auto& p : n.outputs) {
+            if (input_names.count(p.name) > 0) continue; // already written as InOut
+            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
+        }
         device["ports"] = ports;
 
         if (!n.params.empty()) {
@@ -313,7 +350,9 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
 
     // collapsed_groups: hierarchy metadata for visual grouping
     json collapsed_groups = json::array();
+    std::set<std::string> emitted_group_ids;  // Dedup collapsed_groups
     for (const auto& group : bp.collapsed_groups) {
+        if (!emitted_group_ids.insert(group.id).second) continue;
         collapsed_groups.push_back({
             {"id", group.id},
             {"blueprint_path", group.blueprint_path},
@@ -658,17 +697,36 @@ static void auto_layout(Blueprint& bp) {
     }
 }
 
+// ─── Apply port types from component registry ──────────────────────────────
+
+static void apply_port_types_from_registry(Node& n, const an24::ComponentRegistry& registry) {
+    const auto* def = registry.get(n.type_name);
+    if (!def) return;
+    for (auto& p : n.inputs) {
+        auto it = def->default_ports.find(p.name);
+        if (it != def->default_ports.end()) p.type = it->second.type;
+    }
+    for (auto& p : n.outputs) {
+        auto it = def->default_ports.find(p.name);
+        if (it != def->default_ports.end()) p.type = it->second.type;
+    }
+}
+
 // ─── Load: new editor format (flat devices + wires + collapsed_groups) ─────
 
 static std::optional<Blueprint> load_editor_format(const json& j) {
     Blueprint bp;
 
     // Load devices → nodes (all inline: pos, size, kind, content, group_id)
+    std::set<std::string> loaded_ids;  // Dedup: skip duplicate node IDs
     for (const auto& d : j["devices"]) {
         Node n;
         n.id = d.value("name", "");
         n.name = n.id;
         n.type_name = d.value("classname", "");
+
+        // Skip duplicate node IDs (malformed saves may contain duplicates)
+        if (!loaded_ids.insert(n.id).second) continue;
 
         // Kind
         std::string kind_str = d.value("kind", "Node");
@@ -682,6 +740,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             for (auto& [port_name, port_info] : d["ports"].items()) {
                 Port p;
                 p.name = port_name;
+                if (port_info.contains("type"))
+                    p.type = parse_port_type_str(port_info["type"].get<std::string>());
                 std::string dir = port_info.value("direction", "In");
                 if (dir == "Out" || dir == "InOut") {
                     p.side = PortSide::Output;
@@ -740,6 +800,11 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         bp.nodes.push_back(std::move(n));
     }
 
+    // Resolve port types from component registry
+    an24::ComponentRegistry registry = an24::load_component_registry();
+    for (auto& n : bp.nodes)
+        apply_port_types_from_registry(n, registry);
+
     // Load wires (flat, original form)
     for (const auto& ws : j["wires"]) {
         std::string from = ws.value("from", "");
@@ -769,17 +834,23 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     // Reconstruct collapsed_groups from group metadata + group_id on devices
     if (j.contains("collapsed_groups") && j["collapsed_groups"].is_array()) {
         // Build map of group_id → internal node IDs from device group_id tags
-        std::map<std::string, std::vector<std::string>> group_members;
+        // Use sets to dedup (malformed saves may have duplicate devices)
+        std::map<std::string, std::set<std::string>> group_member_sets;
         for (const auto& d : j["devices"]) {
             if (d.contains("group_id")) {
-                group_members[d["group_id"].get<std::string>()].push_back(
+                group_member_sets[d["group_id"].get<std::string>()].insert(
                     d.value("name", ""));
             }
         }
+        std::map<std::string, std::vector<std::string>> group_members;
+        for (auto& [gid, members] : group_member_sets)
+            group_members[gid] = std::vector<std::string>(members.begin(), members.end());
 
+        std::set<std::string> loaded_group_ids;  // Dedup collapsed_groups by ID
         for (const auto& gj : j["collapsed_groups"]) {
             CollapsedGroup group;
             group.id = gj.value("id", "");
+            if (!loaded_group_ids.insert(group.id).second) continue;
             group.blueprint_path = gj.value("blueprint_path", "");
             group.type_name = gj.value("type_name", "");
 
@@ -989,9 +1060,11 @@ static std::optional<Blueprint> load_legacy_format(const json& j, const std::str
 
         // Collapsed groups
         if (editor.contains("collapsed_groups") && editor["collapsed_groups"].is_array()) {
+            std::set<std::string> loaded_group_ids;
             for (const auto& gj : editor["collapsed_groups"]) {
                 CollapsedGroup group;
                 group.id = gj.value("id", "");
+                if (!loaded_group_ids.insert(group.id).second) continue;
                 group.blueprint_path = gj.value("blueprint_path", "");
                 group.type_name = gj.value("type_name", "");
                 if (gj.contains("pos")) {

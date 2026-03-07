@@ -97,7 +97,7 @@ TEST(PortHitTest, NodeWithPorts_ClickNearPort_ReturnsPort) {
     ASSERT_NE(visual, nullptr);
 
     // Получаем позицию входного порта
-    Pt port_pos = visual->getPortPosition("v_in");
+    Pt port_pos = visual->getPort("v_in")->worldPosition();
 
     // Кликаем прямо на порт
     auto hit = hit_test_ports(bp, cache, port_pos);
@@ -171,7 +171,7 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
     ASSERT_NE(visual, nullptr);
 
     // Get position of visual port created for wire
-    Pt wire_port_pos = visual->getPortPosition("wire_1");
+    Pt wire_port_pos = visual->getPort("wire_1")->worldPosition();
 
     // Hit test should find the port
     auto hit = hit_test_ports(bp, cache, wire_port_pos);
@@ -204,13 +204,13 @@ TEST(RegressionBusPort, SetSizeDoesNotCorruptPortPositions) {
     BusVisualNode visual(bus);
 
     // Get port position before setSize
-    Pt pos_before = visual.getPortPosition("v");
+    Pt pos_before = visual.getPort("v")->worldPosition();
 
     // Simulate what an24_editor.cpp does: setSize with node.size
     visual.setSize(Pt(40.0f, 40.0f));
 
     // Port position must not change
-    Pt pos_after = visual.getPortPosition("v");
+    Pt pos_after = visual.getPort("v")->worldPosition();
     EXPECT_FLOAT_EQ(pos_before.x, pos_after.x);
     EXPECT_FLOAT_EQ(pos_before.y, pos_after.y);
 
@@ -241,8 +241,8 @@ TEST(RegressionBusPort, CachedAndFreshVisualsAgreeOnPortPosition) {
     auto fresh = VisualNodeFactory::create(bp.nodes[0], bp.wires);
 
     // Both must agree on port position
-    Pt cached_pos = cached->getPortPosition("v");
-    Pt fresh_pos = fresh->getPortPosition("v");
+    Pt cached_pos = cached->getPort("v")->worldPosition();
+    Pt fresh_pos = fresh->getPort("v")->worldPosition();
     EXPECT_FLOAT_EQ(cached_pos.x, fresh_pos.x);
     EXPECT_FLOAT_EQ(cached_pos.y, fresh_pos.y);
 }
@@ -264,7 +264,7 @@ TEST(RegressionBusPort, HitTestFindsPortAfterSetSize) {
     visual->setSize(bus.size);
 
     // Get the actual port position (after setSize, which should be no-op)
-    Pt port_pos = visual->getPortPosition("v");
+    Pt port_pos = visual->getPort("v")->worldPosition();
 
     // Hit test at exact port position must find it
     auto hit = hit_test_ports(bp, cache, port_pos);
@@ -289,7 +289,7 @@ TEST(RegressionRefPort, RefNodeUsesActualPortName) {
 
     const auto* port = visual.getPort(size_t(0));
     ASSERT_NE(port, nullptr);
-    EXPECT_EQ(port->name, "v");  // Was "ref" before fix
+    EXPECT_EQ(port->name(), "v");  // Was "ref" before fix
 }
 
 // [c5a9b7d2] Hit test on RefNode must return "v" not "ref".
@@ -305,7 +305,7 @@ TEST(RegressionRefPort, HitTestReturnsCorrectPortName) {
 
     VisualNodeCache cache;
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
-    Pt port_pos = visual->getPortPosition("v");
+    Pt port_pos = visual->getPort("v")->worldPosition();
 
     auto hit = hit_test_ports(bp, cache, port_pos);
     EXPECT_EQ(hit.type, HitType::Port);
@@ -348,8 +348,8 @@ TEST(RegressionBusPort, GetPortPositionWireIdCorrectIndex) {
     BusVisualNode visual(bus, BusOrientation::Horizontal, {w});
 
     // Port "v" is at index 0, wire alias is at index 1
-    Pt v_pos = visual.getPortPosition("v");
-    Pt wire_pos = visual.getPortPosition("v", "wire_1");
+    Pt v_pos = visual.getPort("v")->worldPosition();
+    Pt wire_pos = visual.resolveWirePort("v", "wire_1")->worldPosition();
 
     // They must be at different positions (off-by-one bug made them the same)
     EXPECT_NE(v_pos.x, wire_pos.x);
@@ -520,7 +520,7 @@ TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
     auto* visual = cache.get("bus1");
     ASSERT_NE(visual, nullptr);
     // "v" is the only port (no wires), at index 0
-    Pt v_pos = visual->getPortPosition("v");
+    Pt v_pos = visual->getPort("v")->worldPosition();
 
     HitResult r = hit_test_ports(bp, cache, v_pos);
     EXPECT_EQ(r.type, HitType::Port);
@@ -593,7 +593,7 @@ TEST(HitTestVisibility, HiddenPort_NotHittable) {
     ASSERT_NE(visual, nullptr);
 
     // Get port position even though node is hidden
-    Pt port_pos = visual->getPortPosition("v_in");
+    Pt port_pos = visual->getPort("v_in")->worldPosition();
 
     auto hit = hit_test_ports(bp, cache, port_pos);
     EXPECT_EQ(hit.type, HitType::None) << "Port on hidden node should not be hittable";

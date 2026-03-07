@@ -276,7 +276,7 @@ TEST(WireCreationTest, MouseDownOnPort_StartsCreatingWire) {
     auto* visual = cache.getOrCreate(node);
     ASSERT_NE(visual, nullptr);
 
-    Pt port_pos = visual->getPortPosition(node.outputs[0].name);
+    Pt port_pos = visual->getPort(node.outputs[0].name)->worldPosition();
 
     // Mouse down on the output port
     app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -303,8 +303,8 @@ TEST(WireCreationTest, MouseUpOnCompatiblePort_CreatesWire) {
     ASSERT_NE(batt_visual, nullptr);
     ASSERT_NE(load_visual, nullptr);
 
-    Pt batt_out_pos = batt_visual->getPortPosition(batt.outputs[0].name);
-    Pt load_in_pos = load_visual->getPortPosition(load.inputs[0].name);
+    Pt batt_out_pos = batt_visual->getPort(batt.outputs[0].name)->worldPosition();
+    Pt load_in_pos = load_visual->getPort(load.inputs[0].name)->worldPosition();
 
     // Start dragging from battery output
     app.on_mouse_down(batt_out_pos, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -340,8 +340,8 @@ TEST(WireCreationTest, MouseUpOnIncompatiblePort_DoesNotCreateWire) {
     ASSERT_NE(batt1_visual, nullptr);
     ASSERT_NE(batt2_visual, nullptr);
 
-    Pt batt1_out_pos = batt1_visual->getPortPosition(batt1.outputs[0].name);
-    Pt batt2_out_pos = batt2_visual->getPortPosition(batt2.outputs[0].name);
+    Pt batt1_out_pos = batt1_visual->getPort(batt1.outputs[0].name)->worldPosition();
+    Pt batt2_out_pos = batt2_visual->getPort(batt2.outputs[0].name)->worldPosition();
 
     // Start dragging from first battery output
     app.on_mouse_down(batt1_out_pos, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -368,7 +368,7 @@ TEST(WireCreationTest, MouseUpOnEmptySpace_CancelsWireCreation) {
     auto* visual = cache.getOrCreate(node);
     ASSERT_NE(visual, nullptr);
 
-    Pt port_pos = visual->getPortPosition(node.outputs[0].name);
+    Pt port_pos = visual->getPort(node.outputs[0].name)->worldPosition();
 
     // Start dragging from output port
     app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -407,7 +407,7 @@ TEST(WireReconnectionTest, ClickOnOccupiedPort_StartsReconnection) {
 
     // Get the position of the battery output port (occupied)
     auto* batt_visual = app.visual_cache.getOrCreate(batt);
-    Pt port_pos = batt_visual->getPortPosition(batt.outputs[0].name);
+    Pt port_pos = batt_visual->getPort(batt.outputs[0].name)->worldPosition();
 
     // Click on the occupied port
     app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -438,7 +438,7 @@ TEST(WireReconnectionTest, ReleaseOnValidPort_ReconnectsWire) {
 
     // Get port positions
     auto* load1_visual = app.visual_cache.getOrCreate(load1);
-    Pt load1_port = load1_visual->getPortPosition(load1.inputs[0].name);
+    Pt load1_port = load1_visual->getPort(load1.inputs[0].name)->worldPosition();
 
     // Start reconnection from load1's input port (end of wire)
     app.on_mouse_down(load1_port, MouseButton::Left, Pt(0.0f, 0.0f));
@@ -446,7 +446,7 @@ TEST(WireReconnectionTest, ReleaseOnValidPort_ReconnectsWire) {
 
     // Drag to load2's input port
     auto* load2_visual = app.visual_cache.getOrCreate(load2);
-    Pt load2_port = load2_visual->getPortPosition(load2.inputs[0].name);
+    Pt load2_port = load2_visual->getPort(load2.inputs[0].name)->worldPosition();
     Pt delta = load2_port - load1_port;
     app.on_mouse_drag(delta, Pt(0.0f, 0.0f));
 
@@ -478,7 +478,7 @@ TEST(WireReconnectionTest, ReleaseOnEmpty_DeletesWire) {
 
     // Start reconnection
     auto* load_visual = app.visual_cache.getOrCreate(load);
-    Pt port_pos = load_visual->getPortPosition(load.inputs[0].name);
+    Pt port_pos = load_visual->getPort(load.inputs[0].name)->worldPosition();
     app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
     ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
 
@@ -502,7 +502,7 @@ TEST(WireReconnectionTest, ClickOnFreePort_StartsCreatingWire) {
 
     // Get the position of the output port (no wire attached)
     auto* visual = app.visual_cache.getOrCreate(batt);
-    Pt port_pos = visual->getPortPosition(batt.outputs[0].name);
+    Pt port_pos = visual->getPort(batt.outputs[0].name)->worldPosition();
 
     app.on_mouse_down(port_pos, MouseButton::Left, Pt(0.0f, 0.0f));
 
@@ -605,7 +605,7 @@ TEST(ReconnectAnchorTest, AnchorIsLastRoutingPoint) {
 
     // Click on end port of node "b" (input "i")
     auto* bv = app.visual_cache.get("b");
-    Pt end_port_pos = bv->getPortPosition("i");
+    Pt end_port_pos = bv->getPort("i")->worldPosition();
     app.on_mouse_down(end_port_pos, MouseButton::Left, Pt(0, 0));
 
     EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
@@ -636,7 +636,7 @@ TEST(ReconnectAnchorTest, AnchorIsFirstRoutingPoint_WhenDetachStart) {
 
     // Click on start port of node "a" (output "o")
     auto* av = app.visual_cache.get("a");
-    Pt start_port_pos = av->getPortPosition("o");
+    Pt start_port_pos = av->getPort("o")->worldPosition();
     app.on_mouse_down(start_port_pos, MouseButton::Left, Pt(0, 0));
 
     EXPECT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
@@ -671,7 +671,7 @@ TEST(ReconnectTest, DropOnSamePort_KeepsWireUnchanged) {
 
     // Click on end port of node "b" (input "i") — starts reconnection
     auto* bv = app.visual_cache.get("b");
-    Pt end_port_pos = bv->getPortPosition("i");
+    Pt end_port_pos = bv->getPort("i")->worldPosition();
     app.on_mouse_down(end_port_pos, MouseButton::Left, Pt(0, 0));
     ASSERT_EQ(app.interaction.dragging, Dragging::ReconnectingWire);
 
@@ -756,7 +756,7 @@ TEST(BusNewPortTest, ClickUnassignedV_StartsWireCreation_NotReconnection) {
     // Get position of the unassigned "v" port (last port on Bus)
     auto* bus_visual = app.visual_cache.get("bus1");
     ASSERT_NE(bus_visual, nullptr);
-    Pt v_pos = bus_visual->getPortPosition("v");  // main "v" (no wire_id)
+    Pt v_pos = bus_visual->getPort("v")->worldPosition();  // main "v" (no wire_id)
 
     app.on_mouse_down(v_pos, MouseButton::Left, Pt(0, 0));
 
@@ -787,13 +787,13 @@ TEST(RefBusConnectionTest, RefNode_ConnectsTo_Bus) {
 
     // Start wire from RefNode port
     auto* ref_visual = app.visual_cache.get("ref1");
-    Pt ref_port = ref_visual->getPortPosition("v");
+    Pt ref_port = ref_visual->getPort("v")->worldPosition();
     app.on_mouse_down(ref_port, MouseButton::Left, Pt(0, 0));
     ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire);
 
     // Drop on Bus "v" port
     auto* bus_visual = app.visual_cache.get("bus1");
-    Pt bus_port = bus_visual->getPortPosition("v");
+    Pt bus_port = bus_visual->getPort("v")->worldPosition();
     app.last_mouse_pos = bus_port;
     app.on_mouse_up(MouseButton::Left);
 
@@ -827,14 +827,14 @@ TEST(RefBusConnectionTest, Bus_ConnectsTo_RefNode) {
 
     // Start wire from Bus unassigned "v" port
     auto* bus_visual = app.visual_cache.get("bus1");
-    Pt bus_port = bus_visual->getPortPosition("v");
+    Pt bus_port = bus_visual->getPort("v")->worldPosition();
     app.on_mouse_down(bus_port, MouseButton::Left, Pt(0, 0));
     ASSERT_EQ(app.interaction.dragging, Dragging::CreatingWire)
         << "Should start wire creation from Bus 'v' port, not reconnection";
 
     // Drop on RefNode port
     auto* ref_visual = app.visual_cache.get("ref1");
-    Pt ref_port = ref_visual->getPortPosition("v");
+    Pt ref_port = ref_visual->getPort("v")->worldPosition();
     app.last_mouse_pos = ref_port;
     app.on_mouse_up(MouseButton::Left);
 

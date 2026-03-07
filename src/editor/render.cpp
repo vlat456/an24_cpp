@@ -332,8 +332,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
         // Use cache when available to avoid re-creating visuals every frame
-        BaseVisualNode* visual = nullptr;
-        std::unique_ptr<BaseVisualNode> visual_owned;
+        VisualNode* visual = nullptr;
+        std::unique_ptr<VisualNode> visual_owned;
         if (cache) {
             visual = cache->getOrCreate(n, bp.wires);
         } else {
@@ -367,8 +367,8 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
         for (const auto& n : bp.nodes) {
             // Skip hidden nodes (blueprint collapsing)
             if (!n.visible) continue;
-            BaseVisualNode* vis;
-            std::unique_ptr<BaseVisualNode> vis_owned;
+            VisualNode* vis;
+            std::unique_ptr<VisualNode> vis_owned;
             if (cache) {
                 vis = cache->getOrCreate(n, bp.wires);
             } else {
@@ -378,17 +378,17 @@ void render_blueprint(const Blueprint& bp, IDrawList* dl, const Viewport& vp, Pt
             for (size_t pi = 0; pi < vis->getPortCount(); pi++) {
                 auto* port = vis->getPort(pi);
                 if (!port) continue;
-                float dx = hover_world_pos->x - port->world_position.x;
-                float dy = hover_world_pos->y - port->world_position.y;
+                Pt port_wpos = port->worldPosition();
+                float dx = hover_world_pos->x - port_wpos.x;
+                float dy = hover_world_pos->y - port_wpos.y;
                 if (dx * dx + dy * dy <= PORT_RADIUS * PORT_RADIUS) {
                     // [f6a8d3e7] Use logical port name for simulation lookup.
-                    // Bus visual alias ports have name=wire_id, target_port="v".
-                    std::string logical_port = port->target_port.empty() ? port->name : port->target_port;
+                    std::string logical_port = port->logicalName();
                     float val = simulation->get_port_value(n.id, logical_port);
                     char buf[64];
                     std::snprintf(buf, sizeof(buf), "%.3f", val);
                     out_tooltip->active = true;
-                    out_tooltip->screen_pos = vp.world_to_screen(port->world_position, canvas_min);
+                    out_tooltip->screen_pos = vp.world_to_screen(port_wpos, canvas_min);
                     out_tooltip->label = n.id + "." + logical_port;
                     out_tooltip->text = buf;
                     return;

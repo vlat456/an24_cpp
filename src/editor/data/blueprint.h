@@ -55,8 +55,11 @@ struct Blueprint {
         , grid_step(16.0f)
     {}
 
-    /// Добавить узел
+    /// Добавить узел (returns index, or existing index if ID already present)
     size_t add_node(Node node) {
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            if (nodes[i].id == node.id) return i;
+        }
         size_t idx = nodes.size();
         nodes.push_back(std::move(node));
         return idx;

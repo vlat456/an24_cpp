@@ -600,6 +600,19 @@ editor_hierarchical_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/build
 .PHONY : editor_hierarchical_tests/fast
 
+#=============================================================================
+# Target rules for targets named visual_port_tests
+
+# Build rule for target.
+visual_port_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_port_tests
+.PHONY : visual_port_tests
+
+# fast build rule for target.
+visual_port_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/build
+.PHONY : visual_port_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -646,6 +659,7 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... spdlog"
+	@echo "... visual_port_tests"
 .PHONY : help
 
 

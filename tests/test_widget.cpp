@@ -311,10 +311,10 @@ TEST(ContentWidgetTest, EmptyLabelDoesNotRender) {
 }
 
 // ============================================================================
-// StandardVisualNode layout integration tests
+// VisualNode layout integration tests
 // ============================================================================
 
-TEST(StandardVisualNodeLayoutTest, NodeWithPortsHasLayout) {
+TEST(VisualNodeLayoutTest, NodeWithPortsHasLayout) {
     Node n;
     n.id = "batt1";
     n.name = "Battery";
@@ -323,14 +323,14 @@ TEST(StandardVisualNodeLayoutTest, NodeWithPortsHasLayout) {
     n.input("v_in");
     n.output("v_out");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     const auto& layout = visual.getLayout();
 
     // Should have: header + 1 port row + typename = 3 children
     EXPECT_EQ(layout.childCount(), 3u);
 }
 
-TEST(StandardVisualNodeLayoutTest, PortPositionsAtNodeEdges) {
+TEST(VisualNodeLayoutTest, PortPositionsAtNodeEdges) {
     Node n;
     n.id = "n1";
     n.name = "Test";
@@ -339,18 +339,18 @@ TEST(StandardVisualNodeLayoutTest, PortPositionsAtNodeEdges) {
     n.input("in");
     n.output("out");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
     // Input port should be at left edge of node (x = snapped node.x)
-    Pt in_pos = visual.getPortPosition("in");
+    Pt in_pos = visual.getPort("in")->worldPosition();
     EXPECT_FLOAT_EQ(in_pos.x, visual.getPosition().x);  // left edge
 
     // Output port should be at right edge of node (x = node.x + width)
-    Pt out_pos = visual.getPortPosition("out");
+    Pt out_pos = visual.getPort("out")->worldPosition();
     EXPECT_FLOAT_EQ(out_pos.x, visual.getPosition().x + visual.getSize().x);  // right edge
 }
 
-TEST(StandardVisualNodeLayoutTest, PortsVerticallyCenteredInRows) {
+TEST(VisualNodeLayoutTest, PortsVerticallyCenteredInRows) {
     Node n;
     n.id = "n1";
     n.name = "Test";
@@ -360,10 +360,10 @@ TEST(StandardVisualNodeLayoutTest, PortsVerticallyCenteredInRows) {
     n.input("in2");
     n.output("out1");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
-    Pt in1 = visual.getPortPosition("in1");
-    Pt in2 = visual.getPortPosition("in2");
+    Pt in1 = visual.getPort("in1")->worldPosition();
+    Pt in2 = visual.getPort("in2")->worldPosition();
 
     // Ports should be spaced by ROW_HEIGHT (16)
     EXPECT_FLOAT_EQ(in2.y - in1.y, PortRowWidget::ROW_HEIGHT);
@@ -373,7 +373,7 @@ TEST(StandardVisualNodeLayoutTest, PortsVerticallyCenteredInRows) {
     EXPECT_FLOAT_EQ(in1.y, expected_y);
 }
 
-TEST(StandardVisualNodeLayoutTest, NodeAutoSizesForManyPorts) {
+TEST(VisualNodeLayoutTest, NodeAutoSizesForManyPorts) {
     Node n;
     n.id = "n1";
     n.name = "Test";
@@ -384,14 +384,14 @@ TEST(StandardVisualNodeLayoutTest, NodeAutoSizesForManyPorts) {
     n.input("in3");
     n.output("out1");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
     // Node should auto-size to fit: header(24) + 3 rows(48) + typename(16) = 88
     // Snapped to grid: ceil(88/16)*16 = 96
     EXPECT_GE(visual.getSize().y, 88.0f);
 }
 
-TEST(StandardVisualNodeLayoutTest, NodeWithContent) {
+TEST(VisualNodeLayoutTest, NodeWithContent) {
     Node n;
     n.id = "n1";
     n.name = "Switch";
@@ -404,13 +404,13 @@ TEST(StandardVisualNodeLayoutTest, NodeWithContent) {
     nc.label = "ON/OFF";
     n.with_content(nc);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
     // Should have: header + 1 port row + content + typename = 4 children
     EXPECT_EQ(visual.getLayout().childCount(), 4u);
 }
 
-TEST(StandardVisualNodeLayoutTest, RenderDoesNotCrash) {
+TEST(VisualNodeLayoutTest, RenderDoesNotCrash) {
     Node n;
     n.id = "n1";
     n.name = "Battery";
@@ -419,7 +419,7 @@ TEST(StandardVisualNodeLayoutTest, RenderDoesNotCrash) {
     n.input("v_in");
     n.output("v_out");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     DetailedMockDrawList dl;
     Viewport vp;
     visual.render(&dl, vp, Pt(0, 0), false);
@@ -428,14 +428,14 @@ TEST(StandardVisualNodeLayoutTest, RenderDoesNotCrash) {
     EXPECT_GE(dl.circles.size(), 2u);  // at least 2 port circles
 }
 
-TEST(StandardVisualNodeLayoutTest, SelectedNodeRenders) {
+TEST(VisualNodeLayoutTest, SelectedNodeRenders) {
     Node n;
     n.id = "n1";
     n.name = "Test";
     n.type_name = "test";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     MockDrawList dl;
     Viewport vp;
     visual.render(&dl, vp, Pt(0, 0), true);
@@ -505,7 +505,7 @@ TEST(IDrawableTest, StandardNodeIsDrawable) {
     n.type_name = "test";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     IDrawable* drawable = &visual;
 
     MockDrawList dl;
@@ -559,7 +559,7 @@ TEST(ISelectableTest, ContainsPointInside) {
     n.type_name = "test";
     n.at(96, 192).size_wh(128, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     ISelectable* selectable = &visual;
 
     // Point inside the node
@@ -577,7 +577,7 @@ TEST(ISelectableTest, ContainsPointOutside) {
     n.type_name = "test";
     n.at(96, 192).size_wh(128, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     ISelectable* selectable = &visual;
 
     // Point outside
@@ -612,7 +612,7 @@ TEST(IDraggableTest, GetSetPosition) {
     n.type_name = "test";
     n.at(96, 192).size_wh(128, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     IDraggable* draggable = &visual;
 
     Pt pos = draggable->getPosition();
@@ -631,7 +631,7 @@ TEST(IDraggableTest, GetSetSize) {
     n.type_name = "test";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     IDraggable* draggable = &visual;
 
     Pt size = draggable->getSize();
@@ -651,7 +651,7 @@ TEST(IDraggableTest, DragUpdatesSelectionBounds) {
     n.type_name = "test";
     n.at(96, 192).size_wh(128, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     IDraggable* draggable = &visual;
     ISelectable* selectable = &visual;
 
@@ -674,7 +674,7 @@ TEST(IPersistableTest, NodeHasStableId) {
     n.type_name = "battery";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     IPersistable* persistable = &visual;
 
     EXPECT_EQ(persistable->getId(), "battery_42");
@@ -723,8 +723,8 @@ TEST(ContentAccessTest, StandardNodeWithContent) {
     nc.label = "ON/OFF";
     n.with_content(nc);
 
-    StandardVisualNode visual(n);
-    BaseVisualNode* base = &visual;
+    VisualNode visual(n);
+    VisualNode* base = &visual;
 
     EXPECT_EQ(base->getContentType(), NodeContentType::Switch);
     EXPECT_EQ(base->getNodeContent().label, "ON/OFF");
@@ -741,8 +741,8 @@ TEST(ContentAccessTest, NodeWithoutContentReturnsNone) {
     n.type_name = "test";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
-    BaseVisualNode* base = &visual;
+    VisualNode visual(n);
+    VisualNode* base = &visual;
 
     EXPECT_EQ(base->getContentType(), NodeContentType::None);
 }
@@ -755,7 +755,7 @@ TEST(ContentAccessTest, BusNodeContentDefaultsToNone) {
     n.at(0, 0).size_wh(64, 32);
 
     BusVisualNode visual(n);
-    BaseVisualNode* base = &visual;
+    VisualNode* base = &visual;
 
     EXPECT_EQ(base->getContentType(), NodeContentType::None);
 }
@@ -771,7 +771,7 @@ TEST(InterfaceCastTest, NodeSupportsAllInterfaces) {
     n.type_name = "test";
     n.at(0, 0).size_wh(120, 80);
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
     // All four interfaces accessible
     IDrawable* drawable = dynamic_cast<IDrawable*>(&visual);
@@ -812,7 +812,7 @@ TEST(VisualNodeTest, SetSize_SnapsToGrid) {
     n.at(0, 0).size_wh(120, 80);
     n.input("a"); n.output("b");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
 
     // Set non-grid-aligned size → should ceil-snap to next grid (16px) boundary
     visual.setSize(Pt(130.0f, 90.0f));
@@ -857,7 +857,7 @@ TEST(VisualNodeTest, ContentBounds_SymmetricMargins) {
     n.node_content.type = NodeContentType::Switch;
     n.node_content.label = "ON";
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     Bounds cb = visual.getContentBounds();
 
     // Content area must be centred: left margin == right margin
@@ -898,10 +898,10 @@ TEST(VisualNodeTest, BusPortOrder_AliasFirst_VLast) {
     ASSERT_NE(p2, nullptr);
 
     // First two are alias ports (named after wire IDs)
-    EXPECT_EQ(p0->name, "w1");
-    EXPECT_EQ(p1->name, "w2");
+    EXPECT_EQ(p0->name(), "w1");
+    EXPECT_EQ(p1->name(), "w2");
     // Last is the logical "v" port
-    EXPECT_EQ(p2->name, "v");
+    EXPECT_EQ(p2->name(), "v");
 }
 
 TEST(VisualNodeTest, BusPortOrder_NoWires_SingleVPort) {
@@ -916,7 +916,7 @@ TEST(VisualNodeTest, BusPortOrder_NoWires_SingleVPort) {
     EXPECT_EQ(visual.getPortCount(), 1u);
     auto* p0 = visual.getPort(size_t(0));
     ASSERT_NE(p0, nullptr);
-    EXPECT_EQ(p0->name, "v");
+    EXPECT_EQ(p0->name(), "v");
 }
 
 // ============================================================================
@@ -935,7 +935,7 @@ TEST(RefNodeGridTest, PortPosition_IsGridAligned) {
         n.output("v");
         RefVisualNode visual(n);
 
-        Pt port = visual.getPortPosition("v");
+        Pt port = visual.getPort("v")->worldPosition();
         float rx = std::fmod(port.x, GRID);
         float ry = std::fmod(port.y, GRID);
         EXPECT_NEAR(rx, 0.0f, 0.01f)
@@ -954,9 +954,9 @@ TEST(StandardNodeGridTest, PortPositions_AreGridAligned) {
     n.input("a"); n.input("b");
     n.output("c"); n.output("d");
 
-    StandardVisualNode visual(n);
+    VisualNode visual(n);
     for (const auto& pname : visual.getPortNames()) {
-        Pt port = visual.getPortPosition(pname);
+        Pt port = visual.getPort(pname)->worldPosition();
         float rx = std::fmod(port.x, GRID);
         float ry = std::fmod(port.y, GRID);
         EXPECT_NEAR(rx, 0.0f, 0.01f)
@@ -982,12 +982,12 @@ TEST(BusNodeGridTest, PortPositions_AreGridAligned) {
     for (size_t i = 0; i < visual.getPortCount(); i++) {
         auto* p = visual.getPort(i);
         ASSERT_NE(p, nullptr);
-        Pt port = visual.getPortPosition(p->name);
+        Pt port = visual.getPort(p->name())->worldPosition();
         float rx = std::fmod(port.x, GRID);
         float ry = std::fmod(port.y, GRID);
         EXPECT_NEAR(rx, 0.0f, 0.01f)
-            << "Bus port '" << p->name << "' X not grid-aligned";
+            << "Bus port '" << p->name() << "' X not grid-aligned";
         EXPECT_NEAR(ry, 0.0f, 0.01f)
-            << "Bus port '" << p->name << "' Y not grid-aligned";
+            << "Bus port '" << p->name() << "' Y not grid-aligned";
     }
 }

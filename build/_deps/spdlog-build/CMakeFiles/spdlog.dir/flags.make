@@ -6,7 +6,7 @@ CXX_DEFINES = -DSPDLOG_COMPILED_LIB
 
 CXX_INCLUDES = -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include
 
-CXX_FLAGSarm64 = -O3 -DNDEBUG -O3 -ffast-math -std=c++20 -arch arm64
+CXX_FLAGSarm64 = -g -std=c++20 -arch arm64
 
-CXX_FLAGS = -O3 -DNDEBUG -O3 -ffast-math -std=c++20 -arch arm64
+CXX_FLAGS = -g -std=c++20 -arch arm64
 
