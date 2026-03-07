@@ -234,6 +234,12 @@
   "output": "examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o"
 },
 {
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o -c /Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
+  "file": "/Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
+  "output": "examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o"
+},
+{
   "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DTEST_DATA_DIR=\\\"/Users/vladimir/an24_cpp\\\" -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/port_registry_tests.dir/port_registry_test.cpp.o -c /Users/vladimir/an24_cpp/tests/port_registry_test.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/port_registry_test.cpp",

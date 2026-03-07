@@ -227,6 +227,20 @@ an24_editor/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/build
 .PHONY : an24_editor/fast
 
+# Convenience name for target.
+examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule
+.PHONY : examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule
+
+# Convenience name for target.
+benchmark_jit_vs_aot: examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule
+.PHONY : benchmark_jit_vs_aot
+
+# fast build rule for target.
+benchmark_jit_vs_aot/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
+.PHONY : benchmark_jit_vs_aot/fast
+
 __/_deps/imgui-src/backends/imgui_impl_opengl3.o: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
 .PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.o
 
@@ -659,6 +673,30 @@ an24_editor.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/an24_editor.cpp.s
 .PHONY : an24_editor.cpp.s
 
+benchmark_jit_vs_aot.o: benchmark_jit_vs_aot.cpp.o
+.PHONY : benchmark_jit_vs_aot.o
+
+# target to build an object file
+benchmark_jit_vs_aot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o
+.PHONY : benchmark_jit_vs_aot.cpp.o
+
+benchmark_jit_vs_aot.i: benchmark_jit_vs_aot.cpp.i
+.PHONY : benchmark_jit_vs_aot.i
+
+# target to preprocess a source file
+benchmark_jit_vs_aot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.i
+.PHONY : benchmark_jit_vs_aot.cpp.i
+
+benchmark_jit_vs_aot.s: benchmark_jit_vs_aot.cpp.s
+.PHONY : benchmark_jit_vs_aot.s
+
+# target to generate assembly for a file
+benchmark_jit_vs_aot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.s
+.PHONY : benchmark_jit_vs_aot.cpp.s
+
 codegen_test.o: codegen_test.cpp.o
 .PHONY : codegen_test.o
 
@@ -722,6 +760,7 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
 	@echo "... hello_world"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.o"
@@ -778,6 +817,9 @@ help:
 	@echo "... an24_editor.o"
 	@echo "... an24_editor.i"
 	@echo "... an24_editor.s"
+	@echo "... benchmark_jit_vs_aot.o"
+	@echo "... benchmark_jit_vs_aot.i"
+	@echo "... benchmark_jit_vs_aot.s"
 	@echo "... codegen_test.o"
 	@echo "... codegen_test.i"
 	@echo "... codegen_test.s"

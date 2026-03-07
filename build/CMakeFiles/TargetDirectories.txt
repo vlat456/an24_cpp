@@ -87,6 +87,7 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_codegen.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/codegen_test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_editor.dir
+/Users/vladimir/an24_cpp/build/examples/CMakeFiles/benchmark_jit_vs_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/rebuild_cache.dir

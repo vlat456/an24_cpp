@@ -328,6 +328,19 @@ an24_editor/fast:
 .PHONY : an24_editor/fast
 
 #=============================================================================
+# Target rules for targets named benchmark_jit_vs_aot
+
+# Build rule for target.
+benchmark_jit_vs_aot: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 benchmark_jit_vs_aot
+.PHONY : benchmark_jit_vs_aot
+
+# fast build rule for target.
+benchmark_jit_vs_aot/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
+.PHONY : benchmark_jit_vs_aot/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -511,6 +524,7 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"

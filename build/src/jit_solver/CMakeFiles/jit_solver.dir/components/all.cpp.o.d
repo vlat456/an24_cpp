@@ -429,4 +429,5 @@ src/jit_solver/CMakeFiles/jit_solver.dir/components/all.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/log_msg_buffer.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/circular_q.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/version.h \
-  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h
+  /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/explicit_instantiations.h
