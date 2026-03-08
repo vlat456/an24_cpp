@@ -1,21 +1,19 @@
 #include "blueprint.h"
 #include "port.h"
+#include "layout_constants.h"
 #include <set>
 #include <cstdio>
 #include <spdlog/spdlog.h>
 
 // BUGFIX [e4a1b7] Runtime dedup: reject exact-duplicate wires with warning
+// [2.1] O(1) set-based dedup replaces O(n) linear scan
 size_t Blueprint::add_wire(Wire wire) {
-    for (const auto& w : wires) {
-        if (w.start.node_id == wire.start.node_id &&
-            w.start.port_name == wire.start.port_name &&
-            w.end.node_id == wire.end.node_id &&
-            w.end.port_name == wire.end.port_name) {
-            spdlog::warn("[dedup] Runtime duplicate wire rejected: {}.{} → {}.{}",
-                wire.start.node_id, wire.start.port_name,
-                wire.end.node_id, wire.end.port_name);
-            return SIZE_MAX;
-        }
+    WireKey key(wire);
+    if (!wire_index_.insert(key).second) {
+        spdlog::warn("[dedup] Runtime duplicate wire rejected: {}.{} → {}.{}",
+            wire.start.node_id, wire.start.port_name,
+            wire.end.node_id, wire.end.port_name);
+        return SIZE_MAX;
     }
     size_t idx = wires.size();
     wires.push_back(std::move(wire));
@@ -95,15 +93,15 @@ bool Blueprint::add_wire_validated(Wire wire) {
     }
 
     wires.push_back(std::move(wire));
+    wire_index_.insert(WireKey(wires.back()));
     return true;
 }
 
 // ─── Auto-layout for a single group ───
 
-static constexpr float LAYOUT_GRID = 16.0f;
 static Pt layout_snap(Pt p) {
-    return Pt(std::round(p.x / LAYOUT_GRID) * LAYOUT_GRID,
-              std::round(p.y / LAYOUT_GRID) * LAYOUT_GRID);
+    return Pt(std::round(p.x / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID,
+              std::round(p.y / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID);
 }
 
 void Blueprint::auto_layout_group(const std::string& group_id) {
@@ -131,10 +129,10 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
         loads.empty() && grounds.empty() && bp_outputs.empty())
         return;
 
-    constexpr float col_spacing = 200.0f;
-    constexpr float row_spacing = 120.0f;
-    constexpr float origin_x = 80.0f;
-    constexpr float origin_y = 80.0f;
+    constexpr float col_spacing = editor_constants::LAYOUT_COL_SPACING;
+    constexpr float row_spacing = editor_constants::LAYOUT_ROW_SPACING;
+    constexpr float origin_x = editor_constants::LAYOUT_ORIGIN_X;
+    constexpr float origin_y = editor_constants::LAYOUT_ORIGIN_Y;
 
     // Columns left→right: BlueprintInput | Sources | Buses | Loads | BlueprintOutput
     float col = origin_x;

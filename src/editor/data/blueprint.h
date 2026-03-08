@@ -3,11 +3,13 @@
 #include "node.h"
 #include "wire.h"
 #include "pt.h"
+#include "layout_constants.h"
 #include "../../json_parser/json_parser.h"
 #include <vector>
 #include <string>
 #include <set>
 #include <unordered_map>
+#include <unordered_set>
 
 /// Collapsed blueprint group - editor-only metadata for visual hierarchy
 /// When a blueprint is expanded in the simulation, we still want to show it as collapsed
@@ -21,10 +23,10 @@ struct CollapsedGroup {
     std::vector<std::string> internal_node_ids;  // IDs of internal devices in this group
 
     // Constructor
-    CollapsedGroup() : pos(Pt::zero()), size(Pt(120.0f, 80.0f)) {}
+    CollapsedGroup() : pos(Pt::zero()), size(Pt(editor_constants::COLLAPSED_GROUP_WIDTH, editor_constants::COLLAPSED_GROUP_HEIGHT)) {}
 
     CollapsedGroup(const std::string& id_, const std::string& path, const std::string& type)
-        : id(id_), blueprint_path(path), type_name(type), pos(Pt::zero()), size(Pt(120.0f, 80.0f)) {}
+        : id(id_), blueprint_path(path), type_name(type), pos(Pt::zero()), size(Pt(editor_constants::COLLAPSED_GROUP_WIDTH, editor_constants::COLLAPSED_GROUP_HEIGHT)) {}
 };
 
 /// Blueprint - схема соединений (все домены: электрика, гидравлика, механика)
@@ -37,6 +39,18 @@ struct Blueprint {
 
     /// Все провода (соединения между портами)
     std::vector<Wire> wires;
+
+    /// [2.1] O(1) wire dedup index — mirrors wires vector
+    std::unordered_set<WireKey, WireKeyHash> wire_index_;
+
+    /// [2.1] Rebuild wire_index_ from wires vector (after bulk modifications)
+    void rebuild_wire_index() {
+        wire_index_.clear();
+        wire_index_.reserve(wires.size());
+        for (const auto& w : wires) {
+            wire_index_.insert(WireKey(w));
+        }
+    }
 
     /// Editor-only metadata: visually collapsed blueprint groups
     /// These are NOT separate devices - they're just visual groupings of existing nodes
@@ -53,7 +67,7 @@ struct Blueprint {
     Blueprint()
         : pan(Pt::zero())
         , zoom(1.0f)
-        , grid_step(16.0f)
+        , grid_step(editor_constants::DEFAULT_GRID_STEP)
     {}
 
     /// Добавить узел (returns index, or existing index if ID already present)

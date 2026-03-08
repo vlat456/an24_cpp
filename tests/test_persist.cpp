@@ -4,6 +4,7 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/scene/scene.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <set>
@@ -1497,6 +1498,178 @@ TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
     // Null def
     NodeContent nc = create_node_content_from_def(nullptr);
     EXPECT_EQ(nc.type, NodeContentType::None);
+}
+
+// =============================================================================
+// [2.1] Wire dedup O(1) set — regression tests
+// =============================================================================
+
+TEST(WireDedup, WireKey_EqualityAndHash) {
+    Wire w1 = Wire::make("w1", wire_output("a", "out"), wire_input("b", "in"));
+    Wire w2 = Wire::make("w2", wire_output("a", "out"), wire_input("b", "in"));
+    Wire w3 = Wire::make("w3", wire_output("a", "out"), wire_input("c", "in"));
+
+    WireKey k1(w1), k2(w2), k3(w3);
+    EXPECT_EQ(k1, k2) << "Same endpoints should be equal regardless of wire id";
+    EXPECT_NE(k1, k3) << "Different endpoints should not be equal";
+
+    WireKeyHash h;
+    EXPECT_EQ(h(k1), h(k2)) << "Equal keys must have equal hashes";
+}
+
+TEST(WireDedup, AddWire_SetBasedDedup) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w1 = Wire::make("w1", wire_output("a", "v_out"), wire_input("b", "v_in"));
+    Wire w2 = Wire::make("w2", wire_output("a", "v_out"), wire_input("b", "v_in"));
+
+    EXPECT_NE(bp.add_wire(std::move(w1)), SIZE_MAX);
+    EXPECT_EQ(bp.add_wire(std::move(w2)), SIZE_MAX) << "Set-based dedup should reject duplicate";
+    EXPECT_EQ(bp.wires.size(), 1u);
+    EXPECT_EQ(bp.wire_index_.size(), 1u);
+}
+
+TEST(WireDedup, WireIndex_SyncAfterRebuild) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.output("i_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.input("i_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    bp.add_wire(Wire::make("w1", wire_output("a", "v_out"), wire_input("b", "v_in")));
+    bp.add_wire(Wire::make("w2", wire_output("a", "i_out"), wire_input("b", "i_in")));
+    EXPECT_EQ(bp.wire_index_.size(), 2u);
+
+    // Manually erase a wire and rebuild
+    bp.wires.erase(bp.wires.begin());
+    bp.rebuild_wire_index();
+    EXPECT_EQ(bp.wire_index_.size(), 1u);
+    EXPECT_EQ(bp.wires.size(), 1u);
+
+    // Now the previously-blocked connection should be addable
+    size_t idx = bp.add_wire(Wire::make("w3", wire_output("a", "v_out"), wire_input("b", "v_in")));
+    EXPECT_NE(idx, SIZE_MAX) << "After rebuild, removed wire key should be re-addable";
+}
+
+TEST(WireDedup, Scene_RemoveWire_SyncsIndex) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_wire(Wire::make("w1", wire_output("a", "v_out"), wire_input("b", "v_in")));
+
+    VisualScene scene(bp);
+    EXPECT_EQ(bp.wire_index_.size(), 1u);
+
+    scene.removeWire(0);
+    EXPECT_EQ(bp.wires.size(), 0u);
+    EXPECT_EQ(bp.wire_index_.size(), 0u) << "wire_index_ must be cleared when wire is removed via scene";
+}
+
+TEST(WireDedup, Scene_RemoveNode_SyncsIndex) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_wire(Wire::make("w1", wire_output("a", "v_out"), wire_input("b", "v_in")));
+
+    VisualScene scene(bp);
+    scene.removeNode(0); // Remove node "a" — wire "w1" should also be removed
+    EXPECT_EQ(bp.wires.size(), 0u);
+    EXPECT_EQ(bp.wire_index_.size(), 0u) << "wire_index_ must sync after node removal";
+}
+
+TEST(WireDedup, Scene_ReconnectWire_UpdatesIndex) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    Node c; c.id = "c"; c.type_name = "Resistor"; c.input("v_in"); c.at(400, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_node(std::move(c));
+    bp.add_wire(Wire::make("w1", wire_output("a", "v_out"), wire_input("b", "v_in")));
+
+    VisualScene scene(bp);
+    // Reconnect wire end from b to c
+    scene.reconnectWire(0, false, wire_input("c", "v_in"));
+    EXPECT_EQ(bp.wire_index_.size(), 1u);
+
+    // The old connection should now be addable (no longer in index)
+    size_t idx = bp.add_wire(Wire::make("w2", wire_output("a", "v_out"), wire_input("b", "v_in")));
+    EXPECT_NE(idx, SIZE_MAX) << "Old endpoint should be re-addable after reconnect";
+}
+
+// =============================================================================
+// [2.5] Bus port invariants — regression tests
+// =============================================================================
+
+TEST(BusInvariant, Construction_PortsEqualWiresPlusOne) {
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    bus.at(0, 0).size_wh(128, 32);
+    bus.input("v"); bus.output("v");
+
+    // Two wires touching the bus
+    std::vector<Wire> wires;
+    wires.push_back(Wire::make("w1", wire_output("bus1", "v"), wire_input("r1", "in")));
+    wires.push_back(Wire::make("w2", wire_output("gen", "out"), wire_input("bus1", "v")));
+    // One wire NOT touching the bus
+    wires.push_back(Wire::make("w3", wire_output("gen", "out2"), wire_input("r1", "in2")));
+
+    BusVisualNode vis(bus, BusOrientation::Horizontal, wires);
+    // Should have 2 alias ports + 1 logical "v" port = 3
+    EXPECT_EQ(vis.getPortCount(), 3u) << "Bus should filter wires: 2 connected + 1 logical 'v'";
+}
+
+TEST(BusInvariant, ConnectWire_AddsPort) {
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    bus.at(0, 0).size_wh(128, 32);
+    bus.input("v"); bus.output("v");
+
+    BusVisualNode vis(bus, BusOrientation::Horizontal, {});
+    EXPECT_EQ(vis.getPortCount(), 1u) << "Empty bus: just the logical 'v' port";
+
+    Wire w = Wire::make("w1", wire_output("bus1", "v"), wire_input("r1", "in"));
+    vis.connectWire(w);
+    EXPECT_EQ(vis.getPortCount(), 2u) << "After connect: 1 alias + 1 logical 'v'";
+}
+
+TEST(BusInvariant, DisconnectWire_RemovesPort) {
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    bus.at(0, 0).size_wh(128, 32);
+    bus.input("v"); bus.output("v");
+
+    std::vector<Wire> wires;
+    wires.push_back(Wire::make("w1", wire_output("bus1", "v"), wire_input("r1", "in")));
+    wires.push_back(Wire::make("w2", wire_output("gen", "out"), wire_input("bus1", "v")));
+
+    BusVisualNode vis(bus, BusOrientation::Horizontal, wires);
+    EXPECT_EQ(vis.getPortCount(), 3u);
+
+    vis.disconnectWire(wires[0]);
+    EXPECT_EQ(vis.getPortCount(), 2u) << "After disconnect: 1 alias + 1 logical 'v'";
+}
+
+TEST(BusInvariant, Construction_FiltersUnrelatedWires) {
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    bus.at(0, 0).size_wh(128, 32);
+    bus.input("v"); bus.output("v");
+
+    // 10 wires, none touching this bus
+    std::vector<Wire> wires;
+    for (int i = 0; i < 10; ++i) {
+        std::string id = "w" + std::to_string(i);
+        wires.push_back(Wire::make(id.c_str(),
+            wire_output("other_a", "out"), wire_input("other_b", "in")));
+    }
+
+    BusVisualNode vis(bus, BusOrientation::Horizontal, wires);
+    EXPECT_EQ(vis.getPortCount(), 1u) << "Bus with no connected wires: just the logical 'v' port";
 }
 
 

@@ -4,6 +4,7 @@
 #include "port.h"
 #include <string>
 #include <vector>
+#include <functional>
 
 /// Конец провода - ссылка на порт узла
 struct WireEnd {
@@ -51,3 +52,33 @@ inline WireEnd wire_output(const char* node, const char* port) {
 inline WireEnd wire_input(const char* node, const char* port) {
     return WireEnd(node, port, PortSide::Input);
 }
+
+/// [2.1] Dedup key for Wire — identifies a connection by its two endpoints.
+/// Side is intentionally excluded: the connection identity is (node+port) × 2.
+struct WireKey {
+    std::string start_node;
+    std::string start_port;
+    std::string end_node;
+    std::string end_port;
+
+    explicit WireKey(const Wire& w)
+        : start_node(w.start.node_id), start_port(w.start.port_name)
+        , end_node(w.end.node_id), end_port(w.end.port_name) {}
+
+    bool operator==(const WireKey& o) const {
+        return start_node == o.start_node && start_port == o.start_port &&
+               end_node == o.end_node && end_port == o.end_port;
+    }
+};
+
+/// Hash for WireKey (combine 4 string hashes)
+struct WireKeyHash {
+    size_t operator()(const WireKey& k) const {
+        std::hash<std::string> h;
+        size_t seed = h(k.start_node);
+        seed ^= h(k.start_port) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= h(k.end_node)   + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^= h(k.end_port)   + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};

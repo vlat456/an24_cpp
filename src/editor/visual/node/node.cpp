@@ -2,6 +2,8 @@
 #include "data/node.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
+#include "layout_constants.h"
+#include <cassert>
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -12,26 +14,22 @@
 
 namespace {
 
-constexpr float PORT_RADIUS = 6.0f;
-
 // BUGFIX [8d4e6a] Removed hardcoded GRID_STEP=16 snap in VisualNode constructor.
 // Node positions are already snapped by callers (CanvasInput, add_component, persist loader).
 // Re-snapping here to 16px silently moved nodes placed on 4/8/12px grids.
 // Port position snapping still uses 16px (internal layout, not user-facing).
 
-constexpr float PORT_LAYOUT_GRID = 16.0f;
-
 Pt snap_to_grid(Pt pos) {
     return Pt(
-        std::round(pos.x / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID,
-        std::round(pos.y / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID
+        std::round(pos.x / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID,
+        std::round(pos.y / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID
     );
 }
 
 Pt snap_size_to_grid(Pt size) {
     return Pt(
-        std::ceil(size.x / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID,
-        std::ceil(size.y / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID
+        std::ceil(size.x / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID,
+        std::ceil(size.y / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID
     );
 }
 
@@ -106,14 +104,14 @@ void VisualNode::buildLayout(const Node& node) {
                 node_content_.unit
             ));
         } else {
-            float left_margin = PORT_RADIUS + 3.0f;
-            float right_margin = PORT_RADIUS + 3.0f;
+            float left_margin = editor_constants::PORT_RADIUS + 3.0f;
+            float right_margin = editor_constants::PORT_RADIUS + 3.0f;
             for (const auto& p : node.inputs) {
-                float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
+                float lw = p.name.length() * 9.0f * 0.6f + editor_constants::PORT_RADIUS + 3.0f;
                 left_margin = std::max(left_margin, lw);
             }
             for (const auto& p : node.outputs) {
-                float lw = p.name.length() * 9.0f * 0.6f + PORT_RADIUS + 3.0f;
+                float lw = p.name.length() * 9.0f * 0.6f + editor_constants::PORT_RADIUS + 3.0f;
                 right_margin = std::max(right_margin, lw);
             }
             layout_.addWidget(std::make_unique<ContentWidget>(
@@ -265,8 +263,12 @@ BusVisualNode::BusVisualNode(const Node& node, BusOrientation orientation,
                              const std::vector<Wire>& wires)
     : VisualNode(node)
     , orientation_(orientation)
-    , wires_(wires)
 {
+    // [2.5] Store only wires connected to this bus (not the full blueprint)
+    for (const auto& w : wires) {
+        if (w.start.node_id == node_id_ || w.end.node_id == node_id_)
+            wires_.push_back(w);
+    }
     // Reset size — base constructor may have auto-sized for layout that Bus doesn't use
     size_ = snap_size_to_grid(node.size);
     // Override base class ports — Bus has its own port layout
@@ -300,14 +302,17 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i].setWorldPosition(calculatePortPosition(i));
     }
+
+    // [2.5] Bus invariant: ports = alias ports (one per connected wire) + 1 logical "v" port
+    assert(ports_.size() == wires_.size() + 1);
 }
 
 Pt BusVisualNode::calculateBusSize(size_t port_count) const {
     Pt size;
     if (orientation_ == BusOrientation::Horizontal) {
-        size = Pt((port_count + 2) * PORT_LAYOUT_GRID, PORT_LAYOUT_GRID * 2);
+        size = Pt((port_count + 2) * editor_constants::PORT_LAYOUT_GRID, editor_constants::PORT_LAYOUT_GRID * 2);
     } else {
-        size = Pt(PORT_LAYOUT_GRID * 2, (port_count + 2) * PORT_LAYOUT_GRID);
+        size = Pt(editor_constants::PORT_LAYOUT_GRID * 2, (port_count + 2) * editor_constants::PORT_LAYOUT_GRID);
     }
     return snap_size_to_grid(size);
 }
@@ -318,7 +323,7 @@ Pt BusVisualNode::calculatePortPosition(size_t index) const {
     }
 
     bool ports_on_bottom = (size_.x > size_.y);
-    float step = PORT_LAYOUT_GRID;
+    float step = editor_constants::PORT_LAYOUT_GRID;
 
     if (ports_on_bottom) {
         float x = position_.x + step * (index + 1);
@@ -370,6 +375,8 @@ void BusVisualNode::disconnectWire(const Wire& wire) {
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i].setWorldPosition(calculatePortPosition(i));
     }
+    // [2.5] Bus invariant: ports = wires + 1 logical "v" port
+    assert(ports_.size() == wires_.size() + 1);
 }
 
 void BusVisualNode::recalculatePorts() {
@@ -396,7 +403,7 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt text_pos(bus_min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
-    float port_radius = PORT_RADIUS * vp.zoom;
+    float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
     for (const auto& port : ports_) {
         Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
         uint32_t port_color = render_theme::get_port_color(port.type());
@@ -459,7 +466,7 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     uint32_t port_color = render_theme::get_port_color(ports_[0].type());
-    dl->add_circle_filled(port_pos, PORT_RADIUS * vp.zoom, port_color, 8);
+    dl->add_circle_filled(port_pos, editor_constants::PORT_RADIUS * vp.zoom, port_color, 8);
 }
 
 // ============================================================================

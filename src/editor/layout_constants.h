@@ -1,0 +1,41 @@
+#pragma once
+
+/// Central registry of grid and layout constants used across the editor.
+/// [2.3] Eliminates magic numbers scattered in layout code.
+
+namespace editor_constants {
+
+// ---- Grid steps (user-facing, for snapping) ----
+// Available grid steps are defined in viewport.cpp GRID_STEPS array.
+// Default grid step for new blueprints/viewports:
+constexpr float DEFAULT_GRID_STEP = 16.0f;
+
+// ---- Internal layout grid (port/node layout) ----
+// Used for snapping port positions and node sizes internally.
+// NOT the same as user-facing grid_step.
+constexpr float PORT_LAYOUT_GRID = 16.0f;
+
+// ---- Auto-layout spacing ----
+constexpr float LAYOUT_COL_SPACING = 200.0f;
+constexpr float LAYOUT_ROW_SPACING = 120.0f;
+constexpr float LAYOUT_ORIGIN_X    = 80.0f;
+constexpr float LAYOUT_ORIGIN_Y    = 80.0f;
+
+// ---- Port rendering ----
+constexpr float PORT_RADIUS    = 6.0f;
+constexpr float PORT_HIT_RADIUS = 10.0f;
+
+// ---- Zoom bounds ----
+constexpr float ZOOM_MIN   = 0.25f;
+constexpr float ZOOM_MAX   = 4.0f;
+constexpr float ZOOM_SPEED = 0.001f;
+
+// ---- Hit test tolerances ----
+constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
+constexpr float WIRE_SEGMENT_HIT_TOLERANCE = 5.0f;
+
+// ---- Default collapsed group size ----
+constexpr float COLLAPSED_GROUP_WIDTH  = 120.0f;
+constexpr float COLLAPSED_GROUP_HEIGHT = 80.0f;
+
+}  // namespace editor_constants

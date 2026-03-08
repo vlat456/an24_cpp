@@ -8,6 +8,7 @@
 #include "visual/trigonometry.h"
 #include "visual/scene/persist.h"
 #include <algorithm>
+#include <cassert>
 #include <string>
 #include <unordered_set>
 
@@ -18,7 +19,7 @@ class VisualScene {
 public:
     /// Construct a scene viewing a shared blueprint, filtered by group_id.
     explicit VisualScene(Blueprint& bp, const std::string& group_id = "")
-        : bp_(&bp), group_id_(group_id) {}
+        : bp_(&bp), group_id_(group_id) { assert(bp_); }
 
     // ---- Group filtering ----
 
@@ -38,8 +39,8 @@ public:
 
     // ---- Data access ----
 
-    Blueprint& blueprint() { return *bp_; }
-    const Blueprint& blueprint() const { return *bp_; }
+    Blueprint& blueprint() { assert(bp_); return *bp_; }
+    const Blueprint& blueprint() const { assert(bp_); return *bp_; }
 
     Viewport& viewport() { return vp_; }
     const Viewport& viewport() const { return vp_; }
@@ -87,6 +88,7 @@ public:
     // ---- Scene mutations ----
 
     size_t addNode(Node node) {
+        assert(bp_);
         cache_.getOrCreate(node, bp_->wires);
         return bp_->add_node(std::move(node));
     }
@@ -101,10 +103,12 @@ public:
                 bp_->wires.erase(bp_->wires.begin() + i);
         }
         bp_->nodes.erase(bp_->nodes.begin() + static_cast<long>(index));
+        bp_->rebuild_wire_index();
         cache_.clear();
     }
 
     [[nodiscard]] bool addWire(Wire wire) {
+        assert(bp_);
         bool ok = bp_->add_wire_validated(std::move(wire));
         if (ok) cache_.onWireAdded(bp_->wires.back(), bp_->nodes);
         return ok;
@@ -114,6 +118,7 @@ public:
         if (index >= bp_->wires.size()) return;
         Wire copy = bp_->wires[index];
         bp_->wires.erase(bp_->wires.begin() + static_cast<long>(index));
+        bp_->wire_index_.erase(WireKey(copy));
         cache_.onWireDeleted(copy, bp_->nodes);
     }
 
@@ -141,6 +146,7 @@ public:
                     [&deleted_ids](const std::string& id) { return deleted_ids.count(id); }),
                 g.internal_node_ids.end());
         }
+        bp_->rebuild_wire_index();
         cache_.clear();
     }
 
@@ -148,11 +154,13 @@ public:
     void reconnectWire(size_t wire_idx, bool reconnect_start, WireEnd new_end) {
         if (wire_idx >= bp_->wires.size()) return;
         auto& wire = bp_->wires[wire_idx];
+        bp_->wire_index_.erase(WireKey(wire));
         if (reconnect_start)
             wire.start = new_end;
         else
             wire.end = new_end;
         wire.routing_points.clear();
+        bp_->wire_index_.insert(WireKey(wire));
         cache_.clear();
     }
 
@@ -216,6 +224,7 @@ public:
         auto bp = load_blueprint_from_file(path);
         if (!bp.has_value()) return false;
         *bp_ = std::move(*bp);
+        bp_->rebuild_wire_index();
         vp_.pan = bp_->pan;
         vp_.zoom = bp_->zoom;
         vp_.grid_step = bp_->grid_step;

@@ -583,6 +583,9 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         bp.wires.push_back(std::move(w));
     }
 
+    // [2.1] Rebuild wire dedup index after loading all wires
+    bp.rebuild_wire_index();
+
     // Reconstruct collapsed_groups from group metadata + group_id on devices
     if (j.contains("collapsed_groups") && j["collapsed_groups"].is_array()) {
         // Build map of group_id → internal node IDs from device group_id tags

@@ -1,6 +1,7 @@
 #include "visual/hittest.h"
 #include "visual/trigonometry.h"
 #include "visual/node/node.h"
+#include "layout_constants.h"
 
 // [h1a2b3c4] Primary overload: use VisualNodeCache for consistent hit testing
 HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp,
@@ -21,7 +22,6 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
     }
 
     // Check routing points on wires belonging to this group
-    constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
         // Skip wires whose endpoints are not in this group
@@ -32,7 +32,7 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
         for (size_t rp_idx = 0; rp_idx < w.routing_points.size(); rp_idx++) {
             const Pt& rp = w.routing_points[rp_idx];
             float dist = editor_math::distance(world_pos, rp);
-            if (dist <= ROUTING_POINT_HIT_RADIUS) {
+            if (dist <= editor_constants::ROUTING_POINT_HIT_RADIUS) {
                 result.type = HitType::RoutingPoint;
                 result.wire_index = wire_idx;
                 result.routing_point_index = rp_idx;
@@ -41,10 +41,7 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
         }
     }
 
-    // [i2d4e6f8] Wire segment hit tolerance unified to 5.0f
-    constexpr float WIRE_HIT_TOLERANCE = 5.0f;
-
-    // Check wire segments
+    // [i2d4e6f8] Wire segment hit tolerance
     for (size_t i = 0; i < bp.wires.size(); i++) {
         const auto& w = bp.wires[i];
 
@@ -64,7 +61,7 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
         Pt prev = start_pos;
         for (const auto& rp : w.routing_points) {
             float dist = editor_math::distance_to_segment(world_pos, prev, rp);
-            if (dist < WIRE_HIT_TOLERANCE) {
+            if (dist < editor_constants::WIRE_SEGMENT_HIT_TOLERANCE) {
                 result.type = HitType::Wire;
                 result.wire_index = i;
                 return result;
@@ -72,7 +69,7 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
             prev = rp;
         }
         float dist = editor_math::distance_to_segment(world_pos, prev, end_pos);
-        if (dist < WIRE_HIT_TOLERANCE) {
+        if (dist < editor_constants::WIRE_SEGMENT_HIT_TOLERANCE) {
             result.type = HitType::Wire;
             result.wire_index = i;
             return result;
@@ -89,7 +86,7 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
 // ============================================================================
 
 namespace {
-    constexpr float PORT_HIT_RADIUS = 10.0f;  // Радиус зоны клика порта
+    constexpr float PORT_HIT_RADIUS = editor_constants::PORT_HIT_RADIUS;  // Радиус зоны клика порта
 }
 
 HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
