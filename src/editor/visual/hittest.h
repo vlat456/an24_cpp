@@ -30,7 +30,8 @@ struct HitResult {
     std::string port_name;           ///< Имя порта (logical, e.g. "v" for Bus)
     std::string port_wire_id;       ///< [g1h2i3j4] Wire ID for Bus alias ports (empty for normal ports)
     Pt port_position;               ///< Позиция порта
-    PortSide port_side = PortSide::Input;  ///< [BUG-a1b2] Was uninitialized — UB on read when type != Port
+    // BUGFIX [4k9m2x7p] Initialize port_side: was uninitialized causing UB on read when type != Port
+    PortSide port_side = PortSide::Input;
 };
 
 /// Определить что находится в указанной точке (мировые координаты)

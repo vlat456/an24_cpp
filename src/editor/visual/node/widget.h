@@ -220,7 +220,10 @@ public:
     static constexpr float NEEDLE_LENGTH = 32.0f;
 
 private:
-    mutable float value_;  // mutable to allow updates in const render()
+    // BUGFIX [9t3r5e8u] mutable field for value caching in const render()
+    // This is acceptable because render() needs to update internal state while remaining const.
+    // Alternative: redesign to separate model (VisualNode) from view (render) state.
+    mutable float value_;
     float min_val_;
     float max_val_;
     std::string unit_;
