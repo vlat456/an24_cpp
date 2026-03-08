@@ -16,6 +16,7 @@
  */
 
 #include "editor/app.h"
+#include "editor/window/window_manager.h"
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/visual/scene/persist.h"
@@ -208,25 +209,22 @@ int main(int argc, char** argv) {
 
         // Обработка клавиатуры через ImGui
         if (!io.WantCaptureKeyboard) {
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-                app.on_key_down(Key::Escape);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-                app.on_key_down(Key::Delete);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-                app.on_key_down(Key::R);
-            }
+            // Space toggles simulation (app-level, not per-window)
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
-                app.on_key_down(Key::Space);
+                if (app.simulation_running) app.stop_simulation();
+                else app.start_simulation();
             }
-            // [ and ] keys for grid size adjustment
-            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
-                app.on_key_down(Key::LeftBracket);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
-                app.on_key_down(Key::RightBracket);
-            }
+            // Per-window keys operate on root window's input
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+                app.apply_input_result(app.input.on_key(Key::Escape));
+            if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+                app.apply_input_result(app.input.on_key(Key::Delete));
+            if (ImGui::IsKeyPressed(ImGuiKey_R))
+                app.apply_input_result(app.input.on_key(Key::R));
+            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket))
+                app.apply_input_result(app.input.on_key(Key::LeftBracket));
+            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket))
+                app.apply_input_result(app.input.on_key(Key::RightBracket));
         }
 
         // Обновление симуляции каждый кадр
@@ -292,283 +290,242 @@ int main(int argc, char** argv) {
             ImGui::EndMainMenuBar();
         }
 
-        // Canvas область - на весь экран под меню
+        // ================================================================
+        // Helper lambda: render + handle input for any BlueprintWindow.
+        // Used identically for root canvas and sub-windows.
+        // ================================================================
+        auto process_window = [&](BlueprintWindow& win, Pt cmin, Pt cmax,
+                                  ImDrawList* draw_list, bool hovered)
+        {
+            ImGuiDrawList dl;
+            dl.dl = draw_list;
+
+            // Grid + blueprint
+            BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
+            win.scene.render(dl, cmin, cmax,
+                             &win.input.selected_nodes(), win.input.selected_wire(),
+                             &app.simulation);
+
+            // Tooltip
+            if (hovered) {
+                ImVec2 mp = ImGui::GetMousePos();
+                Pt world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
+                auto tooltip = win.scene.detectTooltip(world, app.simulation, cmin);
+                BlueprintRenderer::renderTooltip(dl, tooltip);
+            }
+
+            // Temporary wire while creating/reconnecting
+            if (win.input.has_temp_wire()) {
+                Pt start_world = win.input.temp_wire_start();
+                Pt end_world = win.input.temp_wire_end_world();
+                Pt s = win.scene.viewport().world_to_screen(start_world, cmin);
+                Pt e = win.scene.viewport().world_to_screen(end_world, cmin);
+                uint32_t color = win.input.is_reconnecting()
+                    ? IM_COL32(255, 150, 50, 200)
+                    : IM_COL32(255, 255, 100, 200);
+                dl.dl->AddLine(ImVec2(s.x, s.y), ImVec2(e.x, e.y), color, 2.0f);
+            }
+
+            // Node content widgets
+            for (auto& node : app.blueprint.nodes) {
+                if (node.group_id != win.scene.groupId()) continue;
+
+                auto* visual = win.scene.cache().getOrCreate(node, app.blueprint.wires);
+                visual->setPosition(node.pos);
+                visual->setSize(node.size);
+                node.size = visual->getSize();
+
+                Pt screen_min = win.scene.viewport().world_to_screen(visual->getPosition(), cmin);
+                float zoom = win.scene.viewport().zoom;
+                NodeContentType ctype = visual->getContentType();
+                if (ctype == NodeContentType::None) continue;
+
+                Bounds cb = visual->getContentBounds();
+                float cx = screen_min.x + cb.x * zoom;
+                float cy = screen_min.y + cb.y * zoom;
+                float aw = cb.w * zoom;
+                if (aw <= 20.0f) continue;
+
+                ImGui::SetCursorScreenPos(ImVec2(cx, cy));
+                NodeContent& content = node.node_content;
+
+                switch (content.type) {
+                    case NodeContentType::Switch: {
+                        if (node.type_name == "HoldButton") {
+                            bool checked = content.state;
+                            std::string id = "##hold_" + node.id;
+                            if (ImGui::Checkbox(id.c_str(), &checked)) {
+                                if (checked) app.hold_button_press(node.id);
+                                else app.hold_button_release(node.id);
+                            }
+                        } else {
+                            std::string label = content.state ? "ON" : "OFF";
+                            std::string id = label + "##" + node.id;
+                            if (ImGui::Button(id.c_str(), ImVec2(aw, 0)))
+                                app.trigger_switch(node.id);
+                        }
+                        break;
+                    }
+                    case NodeContentType::Value: {
+                        ImGui::SetNextItemWidth(aw);
+                        std::string id = "##v_" + node.id;
+                        ImGui::SliderFloat(id.c_str(), &content.value, content.min, content.max, "%.2f");
+                        break;
+                    }
+                    case NodeContentType::Gauge: {
+                        float range = content.max - content.min;
+                        float progress = (range > 1e-6f) ? (content.value - content.min) / range : 0.0f;
+                        progress = std::max(0.0f, std::min(1.0f, progress));
+                        ImGui::ProgressBar(progress, ImVec2(aw, 0));
+                        break;
+                    }
+                    case NodeContentType::Text:
+                        ImGui::Text("%s", content.label.c_str());
+                        break;
+                    default: break;
+                }
+            }
+
+            // Marquee selection rectangle
+            if (win.input.is_marquee_selecting()) {
+                Pt ms = win.scene.viewport().world_to_screen(win.input.marquee_start(), cmin);
+                Pt me = win.scene.viewport().world_to_screen(win.input.marquee_end(), cmin);
+                Pt rmin(std::min(ms.x, me.x), std::min(ms.y, me.y));
+                Pt rmax(std::max(ms.x, me.x), std::max(ms.y, me.y));
+                dl.add_rect_filled(rmin, rmax, 0x4000FF00);
+                dl.add_rect(rmin, rmax, 0xFF00FF00, 1.0f);
+            }
+
+            // ---- Input handling (unified FSM) ----
+            if (!hovered) return;
+
+            Modifiers mods;
+            mods.alt  = io.KeyAlt;
+            mods.ctrl = io.KeyCtrl || io.KeySuper;
+
+            ImVec2 mp = ImGui::GetMousePos();
+            Pt screen_pos(mp.x, mp.y);
+
+            // Scroll → zoom
+            if (io.MouseWheel != 0.0f)
+                app.apply_input_result(win.input.on_scroll(io.MouseWheel * 10.0f, screen_pos, cmin), win.group_id);
+
+            // Double-click (before single click)
+            bool was_dbl = false;
+            if (ImGui::IsMouseDoubleClicked(0)) {
+                app.apply_input_result(win.input.on_double_click(screen_pos, cmin), win.group_id);
+                was_dbl = true;
+            }
+
+            // Left click
+            if (!was_dbl && ImGui::IsMouseClicked(0))
+                app.apply_input_result(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods), win.group_id);
+
+            // Right click
+            if (ImGui::IsMouseClicked(1))
+                app.apply_input_result(win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods), win.group_id);
+
+            // Left drag
+            if (ImGui::IsMouseDragging(0)) {
+                ImVec2 delta = ImGui::GetMouseDragDelta(0);
+                app.apply_input_result(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin), win.group_id);
+                ImGui::ResetMouseDragDelta(0);
+            }
+
+            // Left release
+            if (ImGui::IsMouseReleased(0))
+                app.apply_input_result(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
+        };
+
+        // ================================================================
+        // Root canvas — full-screen behind everything
+        // ================================================================
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         float menu_height = ImGui::GetFrameHeight();
         ImGui::SetNextWindowPos(ImVec2(0, menu_height));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_height));
-        ImGui::Begin("Canvas", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin("Canvas", nullptr,
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
         auto canvas_min = ImGui::GetWindowContentRegionMin();
         auto canvas_max = ImGui::GetWindowContentRegionMax();
         Pt canvas_min_pt(canvas_min.x + ImGui::GetWindowPos().x, canvas_min.y + ImGui::GetWindowPos().y);
         Pt canvas_max_pt(canvas_max.x + ImGui::GetWindowPos().x, canvas_max.y + ImGui::GetWindowPos().y);
+        bool root_hovered = ImGui::IsWindowHovered();
 
-        // Рендеринг
-        ImGuiDrawList imgui_dl;
-        imgui_dl.dl = ImGui::GetWindowDrawList();
-
-        // Сетка
-        BlueprintRenderer::renderGrid(imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt);
-
-        // Get mouse position for tooltip detection
-        Pt hover_world_pos;
-        bool has_hover = false;
-        if (ImGui::IsWindowHovered()) {
-            ImVec2 mouse_pos = ImGui::GetMousePos();
-            Pt mouse(mouse_pos.x, mouse_pos.y);
-            hover_world_pos = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-            has_hover = true;
-        }
-
-        // Blueprint - с симуляцией для подсветки проводов [h1a2b3c4] - pass cache
-        BlueprintRenderer renderer;
-        renderer.render(app.scene.blueprint(), imgui_dl, app.scene.viewport(), canvas_min_pt, canvas_max_pt,
-                        app.scene.cache(),
-                        &app.interaction.selected_nodes, app.interaction.selected_wire,
-                        &app.simulation);
-
-        // Detect tooltip if hovering
-        TooltipInfo tooltip;
-        if (has_hover) {
-            tooltip = renderer.detectTooltip(app.scene.blueprint(), app.scene.viewport(),
-                                             canvas_min_pt, app.scene.cache(),
-                                             hover_world_pos, app.simulation);
-        }
-
-        // Render tooltip if active
-        BlueprintRenderer::renderTooltip(imgui_dl, tooltip);
-
-        // Render temporary wire during creation
-        if (app.interaction.dragging == Dragging::CreatingWire && app.interaction.has_wire_start()) {
-            Pt start_pos = app.interaction.get_wire_start_pos();
-            ImVec2 mouse_pos = ImGui::GetMousePos();
-            Pt end_world = app.scene.viewport().screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
-
-            // Convert to screen coordinates
-            Pt start_screen = app.scene.viewport().world_to_screen(start_pos, canvas_min_pt);
-            Pt end_screen = app.scene.viewport().world_to_screen(end_world, canvas_min_pt);
-
-            // Draw temporary wire (dashed line)
-            uint32_t wire_color = IM_COL32(255, 255, 100, 200); // Yellow
-            imgui_dl.dl->AddLine(
-                ImVec2(start_screen.x, start_screen.y),
-                ImVec2(end_screen.x, end_screen.y),
-                wire_color,
-                2.0f
-            );
-        }
-
-        // [m6i8j0k2] Render temporary wire during reconnection
-        if (app.interaction.dragging == Dragging::ReconnectingWire) {
-            Pt anchor_pos = app.interaction.get_reconnect_anchor_pos();
-            ImVec2 mouse_pos = ImGui::GetMousePos();
-            Pt end_world = app.scene.viewport().screen_to_world(Pt(mouse_pos.x, mouse_pos.y), canvas_min_pt);
-
-            Pt anchor_screen = app.scene.viewport().world_to_screen(anchor_pos, canvas_min_pt);
-            Pt end_screen = app.scene.viewport().world_to_screen(end_world, canvas_min_pt);
-
-            uint32_t wire_color = IM_COL32(255, 150, 50, 200); // Orange
-            imgui_dl.dl->AddLine(
-                ImVec2(anchor_screen.x, anchor_screen.y),
-                ImVec2(end_screen.x, end_screen.y),
-                wire_color,
-                2.0f
-            );
-        }
-
-        // Render node content (ImGui widgets) - after DrawList rendering
-        for (auto& node : app.scene.blueprint().nodes) {
-            // Skip hidden nodes (blueprint collapsing) — no ImGui content for invisible nodes
-            if (!node.visible) continue;
-
-            // Get or create visual node from cache (pass wires for Bus nodes)
-            auto* visual = app.scene.cache().getOrCreate(node, app.scene.blueprint().wires);
-
-            // Update visual node position from current node position (for drag)
-            visual->setPosition(node.pos);
-            visual->setSize(node.size);
-            // [a3f7c1e0] Sync node.size back from visual for Bus/Ref nodes
-            // whose setSize is a no-op (they calculate size internally from ports).
-            node.size = visual->getSize();
-
-            // Calculate screen position of node
-            Pt screen_min = app.scene.viewport().world_to_screen(visual->getPosition(), canvas_min_pt);
-            float zoom = app.scene.viewport().zoom;
-
-            // If node has content, use the visual node's layout to get content bounds
-            NodeContentType ctype = visual->getContentType();
-            if (ctype != NodeContentType::None) {
-                Bounds cb = visual->getContentBounds();
-                float content_x = screen_min.x + cb.x * zoom;
-                float content_y = screen_min.y + cb.y * zoom;
-                float available_width = cb.w * zoom;
-
-                if (available_width > 20.0f) {
-                    ImGui::SetCursorScreenPos(ImVec2(content_x, content_y));
-
-                    // Get reference to node content for modification
-                    NodeContent& content = node.node_content;
-
-                    switch (content.type) {
-                        case NodeContentType::Switch: {
-                            if (node.type_name == "HoldButton") {
-                                // [f3g4h5i6] HoldButton: checkbox — on = pressed, off = released
-                                bool checked = content.state;
-                                std::string cb_id = "##hold_" + node.id;
-                                if (ImGui::Checkbox(cb_id.c_str(), &checked)) {
-                                    if (checked) {
-                                        app.hold_button_press(node.id);
-                                    } else {
-                                        app.hold_button_release(node.id);
-                                    }
-                                }
-                            } else {
-                                // Regular toggle switch
-                                std::string label = content.state ? "ON" : "OFF";
-                                std::string button_id = label + "##" + node.id;
-
-                                if (ImGui::Button(button_id.c_str(), ImVec2(available_width, 0))) {
-                                    app.trigger_switch(node.id);
-                                }
-                            }
-                            break;
-                        }
-                        case NodeContentType::Value: {
-                            ImGui::SetNextItemWidth(available_width);
-                            std::string slider_id = "##" + node.id;
-                            ImGui::SliderFloat(slider_id.c_str(), &content.value,
-                                              content.min, content.max, "%.2f");
-                            break;
-                        }
-                        case NodeContentType::Gauge: {
-                            // [b2c3d4e5] ProgressBar ignores SetNextItemWidth —
-                            // pass explicit size to prevent bar extending to window edge.
-                            // [c3d4e5f6] Guard against division by zero when min == max.
-                            float range = content.max - content.min;
-                            float progress = (range > 1e-6f)
-                                ? (content.value - content.min) / range : 0.0f;
-                            progress = std::max(0.0f, std::min(1.0f, progress));
-                            ImGui::ProgressBar(progress, ImVec2(available_width, 0));
-                            break;
-                        }
-                        case NodeContentType::Text: {
-                            ImGui::Text("%s", content.label.c_str());
-                            break;
-                        }
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-
-        // Marquee selection rectangle
-        if (app.interaction.marquee_selecting) {
-            Pt start_screen = app.scene.viewport().world_to_screen(app.interaction.marquee_start, canvas_min_pt);
-            Pt end_screen = app.scene.viewport().world_to_screen(app.interaction.marquee_end, canvas_min_pt);
-            Pt min(std::min(start_screen.x, end_screen.x), std::min(start_screen.y, end_screen.y));
-            Pt max(std::max(start_screen.x, end_screen.x), std::max(start_screen.y, end_screen.y));
-            // Transparent fill + border
-            imgui_dl.add_rect_filled(min, max, 0x4000FF00); // semi-transparent green
-            imgui_dl.add_rect(min, max, 0xFF00FF00, 1.0f); // green border
-        }
-
-        // Обработка мыши через ImGui (когда канва под мышью)
-        if (ImGui::IsWindowHovered()) {
-            // Zoom через колесико
-            if (io.MouseWheel != 0.0f) {
-                // [k4g6h8i0] Pass raw screen position — zoom_at calls screen_to_world
-                // which already subtracts canvas_min. Previously we subtracted canvas_min
-                // here AND zoom_at subtracted it again → zoom drifted away from cursor.
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse_screen(mouse_pos.x, mouse_pos.y);
-                app.on_scroll(io.MouseWheel * 10.0f, mouse_screen, canvas_min_pt);
-            }
-
-            // Mouse down
-            bool alt_down = io.KeyAlt; // Alt = marquee
-            bool ctrl_down = io.KeyCtrl || io.KeySuper; // Ctrl/Cmd = add to selection
-
-            // [o8k0l2m4] Check double-click BEFORE single-click so we don't fire both.
-            bool was_double_click = false;
-            if (ImGui::IsMouseDoubleClicked(0)) { // Left double click
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-                app.on_double_click(world);
-                was_double_click = true;
-            }
-
-            if (!was_double_click && ImGui::IsMouseClicked(0)) { // Left
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-
-                if (alt_down) {
-                    // Marquee selection
-                    app.interaction.marquee_selecting = true;
-                    app.interaction.marquee_start = world;
-                    app.interaction.marquee_end = world;
-                } else {
-                    // Передаем ctrl_down чтобы решить add или replace
-                    app.on_mouse_down(world, MouseButton::Left, canvas_min_pt, ctrl_down);
-                }
-            }
-            if (ImGui::IsMouseClicked(1)) { // Right
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-                app.on_mouse_down(world, MouseButton::Right, canvas_min_pt);
-            }
-            if (ImGui::IsMouseClicked(2)) { // Middle
-                ImVec2 mouse_pos = ImGui::GetMousePos();
-                Pt mouse(mouse_pos.x, mouse_pos.y);
-                Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-                app.on_mouse_down(world, MouseButton::Middle, canvas_min_pt);
-            }
-
-            // Mouse drag / panning
-            if (ImGui::IsMouseDragging(2) && app.interaction.panning) { // Middle button = panning
-                ImVec2 delta = ImGui::GetMouseDragDelta(2);
-                Pt world_delta(delta.x / app.scene.viewport().zoom, delta.y / app.scene.viewport().zoom);
-                app.on_mouse_drag(world_delta, canvas_min_pt);
-                ImGui::ResetMouseDragDelta(2);
-            }
-            if (ImGui::IsMouseDragging(0)) { // Left button = node drag, marquee, or wire creation
-                ImVec2 delta = ImGui::GetMouseDragDelta(0);
-                Pt world_delta(delta.x / app.scene.viewport().zoom, delta.y / app.scene.viewport().zoom);
-
-                if (app.interaction.dragging == Dragging::CreatingWire) {
-                    // Wire creation drag
-                    app.on_mouse_drag(world_delta, canvas_min_pt);
-                } else if (app.interaction.marquee_selecting) {
-                    // Marquee selection drag
-                    ImVec2 mouse_pos = ImGui::GetMousePos();
-                    Pt mouse(mouse_pos.x, mouse_pos.y);
-                    Pt world = app.scene.viewport().screen_to_world(mouse, canvas_min_pt);
-                    app.interaction.marquee_end = world;
-                } else {
-                    // Normal node/routing point drag
-                    app.on_mouse_drag(world_delta, canvas_min_pt);
-                }
-                ImGui::ResetMouseDragDelta(0);
-            }
-
-            // Mouse up
-            if (ImGui::IsMouseReleased(0)) {
-                app.on_mouse_up(MouseButton::Left);
-            }
-            if (ImGui::IsMouseReleased(1)) {
-                app.on_mouse_up(MouseButton::Right);
-            }
-            if (ImGui::IsMouseReleased(2)) {
-                app.on_mouse_up(MouseButton::Middle);
-            }
-        }
+        process_window(app.window_manager.root(), canvas_min_pt, canvas_max_pt,
+                        ImGui::GetWindowDrawList(), root_hovered);
 
         ImGui::End();
         ImGui::PopStyleVar();
+
+        // ================================================================
+        // Sub-blueprint windows (one per open collapsed group)
+        // ================================================================
+        app.window_manager.removeClosedWindows();
+        for (auto& win_ptr : app.window_manager.windows()) {
+            auto& win = *win_ptr;
+            if (win.group_id.empty()) continue;
+            if (!win.open) continue;
+
+            ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+            std::string win_title = win.title + "###" + win.group_id;
+            if (!ImGui::Begin(win_title.c_str(), &win.open,
+                    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+                ImGui::End();
+                continue;
+            }
+
+            // Toolbar: Fit View + Auto Layout
+            if (ImGui::Button("Fit View")) {
+                Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+                for (const auto& node : app.blueprint.nodes) {
+                    if (node.group_id != win.group_id) continue;
+                    bmin.x = std::min(bmin.x, node.pos.x);
+                    bmin.y = std::min(bmin.y, node.pos.y);
+                    bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
+                    bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
+                }
+                if (bmin.x < bmax.x && bmin.y < bmax.y) {
+                    ImVec2 ws = ImGui::GetContentRegionAvail();
+                    win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Auto Layout")) {
+                app.blueprint.auto_layout_group(win.group_id);
+                win.scene.clearCache();
+                // Fit view after layout
+                Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+                for (const auto& node : app.blueprint.nodes) {
+                    if (node.group_id != win.group_id) continue;
+                    bmin.x = std::min(bmin.x, node.pos.x);
+                    bmin.y = std::min(bmin.y, node.pos.y);
+                    bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
+                    bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
+                }
+                if (bmin.x < bmax.x && bmin.y < bmax.y) {
+                    ImVec2 ws = ImGui::GetContentRegionAvail();
+                    win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
+                }
+            }
+
+            // InvisibleButton captures mouse input in content area
+            ImVec2 content_size = ImGui::GetContentRegionAvail();
+            ImGui::InvisibleButton(("##canvas_" + win.group_id).c_str(), content_size);
+            bool sub_hovered = ImGui::IsItemHovered();
+
+            auto sub_cmin = ImGui::GetWindowContentRegionMin();
+            auto sub_cmax = ImGui::GetWindowContentRegionMax();
+            Pt sub_min(sub_cmin.x + ImGui::GetWindowPos().x, sub_cmin.y + ImGui::GetWindowPos().y);
+            Pt sub_max(sub_cmax.x + ImGui::GetWindowPos().x, sub_cmax.y + ImGui::GetWindowPos().y);
+
+            process_window(win, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
+
+            ImGui::End();
+        }
 
         // Context menu for adding components (right-click on empty space)
         if (app.show_context_menu) {
@@ -591,7 +548,7 @@ int main(int argc, char** argv) {
                     const auto* def = app.component_registry.get(classname);
                     if (def && ImGui::MenuItem(classname.c_str())) {
                         // Add component to blueprint at context_menu_pos
-                        app.add_component(classname, app.context_menu_pos);
+                        app.add_component(classname, app.context_menu_pos, app.context_menu_group_id);
                     }
                 }
                 ImGui::EndMenu();
@@ -612,7 +569,7 @@ int main(int argc, char** argv) {
 
                         if (ImGui::MenuItem(label.c_str())) {
                             // Add collapsed blueprint node to blueprint at context_menu_pos
-                            app.add_blueprint(bp_info.name, app.context_menu_pos);
+                            app.add_blueprint(bp_info.name, app.context_menu_pos, app.context_menu_group_id);
                         }
                     }
                 }

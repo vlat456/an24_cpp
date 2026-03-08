@@ -6,13 +6,15 @@
 // ============================================================================
 
 TEST(VisualScene, DefaultEmpty) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     EXPECT_TRUE(scene.blueprint().nodes.empty());
     EXPECT_TRUE(scene.blueprint().wires.empty());
 }
 
 TEST(VisualScene, AddNode_AppearsInBlueprint) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n;
     n.id = "n1";
     n.at(100, 50).size_wh(120, 80);
@@ -25,7 +27,8 @@ TEST(VisualScene, AddNode_AppearsInBlueprint) {
 }
 
 TEST(VisualScene, AddNode_CreatesVisual) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n;
     n.id = "n1";
     n.at(100, 50).size_wh(120, 80);
@@ -36,7 +39,8 @@ TEST(VisualScene, AddNode_CreatesVisual) {
 }
 
 TEST(VisualScene, RemoveNode_RemovesConnectedWires) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n1; n1.id = "a"; n1.at(0, 0).size_wh(120, 80); n1.output("o");
     Node n2; n2.id = "b"; n2.at(300, 0).size_wh(120, 80); n2.input("i");
     scene.addNode(std::move(n1));
@@ -52,7 +56,8 @@ TEST(VisualScene, RemoveNode_RemovesConnectedWires) {
 }
 
 TEST(VisualScene, RemoveWire) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n1; n1.id = "a"; n1.at(0, 0).size_wh(120, 80); n1.output("o");
     Node n2; n2.id = "b"; n2.at(300, 0).size_wh(120, 80); n2.input("i");
     scene.addNode(std::move(n1));
@@ -65,7 +70,8 @@ TEST(VisualScene, RemoveWire) {
 }
 
 TEST(VisualScene, HitTest_Node) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n;
     n.id = "n1";
     n.at(100, 50).size_wh(120, 80);
@@ -77,13 +83,15 @@ TEST(VisualScene, HitTest_Node) {
 }
 
 TEST(VisualScene, HitTest_Empty_ReturnsNone) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     auto hit = scene.hitTest(Pt(100, 100));
     EXPECT_EQ(hit.type, HitType::None);
 }
 
 TEST(VisualScene, HitTestPorts_FindsPort) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n;
     n.id = "n1";
     n.at(100, 50).size_wh(120, 80);
@@ -100,7 +108,8 @@ TEST(VisualScene, HitTestPorts_FindsPort) {
 }
 
 TEST(VisualScene, PortPosition_MatchesVisual) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n;
     n.id = "n1";
     n.at(100, 50).size_wh(120, 80);
@@ -115,7 +124,8 @@ TEST(VisualScene, PortPosition_MatchesVisual) {
 }
 
 TEST(VisualScene, Reset_ClearsEverything) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n; n.id = "n1"; n.at(0, 0).size_wh(100, 50);
     scene.addNode(std::move(n));
     EXPECT_FALSE(scene.blueprint().nodes.empty());
@@ -126,7 +136,8 @@ TEST(VisualScene, Reset_ClearsEverything) {
 }
 
 TEST(VisualScene, Render_DoesNotCrash) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     Node n; n.id = "n1"; n.at(100, 50).size_wh(120, 80);
     n.output("out");
     scene.addNode(std::move(n));
@@ -148,7 +159,8 @@ TEST(VisualScene, Render_DoesNotCrash) {
 }
 
 TEST(VisualScene, ViewportAccessible) {
-    VisualScene scene;
+    Blueprint bp;
+    VisualScene scene(bp);
     scene.viewport().zoom = 2.0f;
     EXPECT_FLOAT_EQ(scene.viewport().zoom, 2.0f);
 }

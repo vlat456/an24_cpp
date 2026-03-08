@@ -626,6 +626,19 @@ visual_scene_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/build
 .PHONY : visual_scene_tests/fast
 
+#=============================================================================
+# Target rules for targets named multi_window_tests
+
+# Build rule for target.
+multi_window_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 multi_window_tests
+.PHONY : multi_window_tests
+
+# fast build rule for target.
+multi_window_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/build
+.PHONY : multi_window_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -667,6 +680,7 @@ help:
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... logical_solver_tests"
+	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"

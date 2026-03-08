@@ -10,6 +10,7 @@ class MockDrawList : public IDrawList {
 public:
     bool had_line_ = false;
     bool had_rect_ = false;
+    size_t rect_count_ = 0;
     bool had_circle_ = false;
     bool had_polyline_ = false;
 
@@ -23,8 +24,8 @@ public:
     std::vector<uint32_t> circle_colors_;
 
     void add_line(Pt, Pt, uint32_t, float) override { had_line_ = true; }
-    void add_rect(Pt, Pt, uint32_t, float) override { had_rect_ = true; }
-    void add_rect_filled(Pt, Pt, uint32_t) override {}
+    void add_rect(Pt, Pt, uint32_t, float) override { had_rect_ = true; rect_count_++; }
+    void add_rect_filled(Pt, Pt, uint32_t) override { had_rect_ = true; rect_count_++; }
     void add_circle(Pt, float, uint32_t color, int) override {
         had_circle_ = true;
         circle_colors_.push_back(color);
@@ -46,6 +47,7 @@ public:
 
     bool had_line() const { return had_line_; }
     bool had_rect() const { return had_rect_; }
+    size_t rect_count() const { return rect_count_; }
     bool had_circle() const { return had_circle_; }
     bool had_polyline() const { return had_polyline_; }
 

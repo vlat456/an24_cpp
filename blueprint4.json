@@ -19,6 +19,11 @@
       "blueprint_path": "blueprints/lamp_pass_through.json",
       "id": "lamp_pass_through_3",
       "type_name": "lamp_pass_through"
+    },
+    {
+      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "id": "lamp_pass_through_4",
+      "type_name": "lamp_pass_through"
     }
   ],
   "devices": [
@@ -914,7 +919,7 @@
         }
       },
       "pos": {
-        "x": 480.0,
+        "x": 688.0,
         "y": 208.0
       },
       "size": {
@@ -942,7 +947,7 @@
         }
       },
       "pos": {
-        "x": 480.0,
+        "x": 848.0,
         "y": 320.0
       },
       "size": {
@@ -975,27 +980,124 @@
       }
     },
     {
-      "classname": "ElectricHeater",
-      "group_id": "lamp_pass_through_3",
+      "classname": "BlueprintInput",
+      "group_id": "lamp_pass_through_4",
       "kind": "Node",
-      "name": "electricheater_1",
+      "name": "lamp_pass_through_4:vin",
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
       "ports": {
-        "heat_out": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      },
+      "pos": {
+        "x": 480.0,
+        "y": 80.0
+      },
+      "size": {
+        "x": 20.0,
+        "y": 20.0
+      }
+    },
+    {
+      "classname": "IndicatorLight",
+      "content": {
+        "label": "OFF",
+        "max": 1.0,
+        "min": 0.0,
+        "type": 4,
+        "unit": "",
+        "value": 0.0
+      },
+      "group_id": "lamp_pass_through_4",
+      "kind": "Node",
+      "name": "lamp_pass_through_4:lamp",
+      "params": {
+        "color": "red",
+        "max_brightness": "100.0"
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": "I"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 480.0,
+        "y": 208.0
+      },
+      "size": {
+        "x": 120.0,
+        "y": 80.0
+      }
+    },
+    {
+      "classname": "BlueprintOutput",
+      "group_id": "lamp_pass_through_4",
+      "kind": "Node",
+      "name": "lamp_pass_through_4:vout",
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "ports": {
+        "ext": {
           "direction": "Out",
           "type": "Any"
         },
-        "power": {
+        "port": {
           "direction": "In",
           "type": "Any"
         }
       },
       "pos": {
-        "x": 240.0,
-        "y": 128.0
+        "x": 480.0,
+        "y": 320.0
+      },
+      "size": {
+        "x": 20.0,
+        "y": 20.0
+      }
+    },
+    {
+      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "classname": "lamp_pass_through",
+      "group_id": "lamp_pass_through_3",
+      "kind": "Blueprint",
+      "name": "lamp_pass_through_4",
+      "ports": {
+        "vin": {
+          "direction": "In",
+          "type": "V"
+        },
+        "vout": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 448.0,
+        "y": 256.0
       },
       "size": {
         "x": 128.0,
-        "y": 80.0
+        "y": 96.0
       }
     }
   ],
@@ -1216,6 +1318,11 @@
       "to": "splitter_1.i"
     },
     {
+      "from": "lamp_pass_through_3:vin.port",
+      "routing_points": [],
+      "to": "lamp_pass_through_3:lamp.v_in"
+    },
+    {
       "from": "lamp_pass_through_3:lamp.v_out",
       "routing_points": [],
       "to": "lamp_pass_through_3:vout.port"
@@ -1231,14 +1338,14 @@
       "to": "dmr_vsu.v_gen_ref"
     },
     {
-      "from": "electricheater_1.heat_out",
-      "routing_points": [
-        {
-          "x": 448.0,
-          "y": 160.0
-        }
-      ],
-      "to": "lamp_pass_through_3:lamp.v_in"
+      "from": "lamp_pass_through_4:vin.port",
+      "routing_points": [],
+      "to": "lamp_pass_through_4:lamp.v_in"
+    },
+    {
+      "from": "lamp_pass_through_4:lamp.v_out",
+      "routing_points": [],
+      "to": "lamp_pass_through_4:vout.port"
     }
   ]
 }

@@ -32,4 +32,8 @@ struct Viewport {
 
     /// Ограничить zoom в допустимый диапазон
     void clamp_zoom();
+
+    /// Fit viewport to show a world-space bounding box centered in the given window size.
+    /// Adds padding around the content.
+    void fit_content(Pt content_min, Pt content_max, float window_w, float window_h);
 };

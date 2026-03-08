@@ -519,6 +519,30 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
+__/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
+.PHONY : __/src/editor/input/canvas_input.o
+
+# target to build an object file
+__/src/editor/input/canvas_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.o
+.PHONY : __/src/editor/input/canvas_input.cpp.o
+
+__/src/editor/input/canvas_input.i: __/src/editor/input/canvas_input.cpp.i
+.PHONY : __/src/editor/input/canvas_input.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.i
+.PHONY : __/src/editor/input/canvas_input.cpp.i
+
+__/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
+.PHONY : __/src/editor/input/canvas_input.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
+.PHONY : __/src/editor/input/canvas_input.cpp.s
+
 __/src/editor/simulation.o: __/src/editor/simulation.cpp.o
 .PHONY : __/src/editor/simulation.o
 
@@ -1003,6 +1027,9 @@ help:
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/input/canvas_input.o"
+	@echo "... __/src/editor/input/canvas_input.i"
+	@echo "... __/src/editor/input/canvas_input.s"
 	@echo "... __/src/editor/simulation.o"
 	@echo "... __/src/editor/simulation.i"
 	@echo "... __/src/editor/simulation.s"

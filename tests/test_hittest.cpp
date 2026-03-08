@@ -529,64 +529,64 @@ TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
 }
 
 // =============================================================================
-// Visibility Tests: Blueprint Collapsing
+// Group Filtering Tests: Blueprint Collapsing via group_id
 // =============================================================================
 
-TEST(HitTestVisibility, HiddenNode_NotHittable) {
+TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable) {
     Blueprint bp;
 
     Node n;
-    n.id = "hidden1";
+    n.id = "internal1";
     n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    n.visible = false;  // Hidden (internal blueprint node)
+    n.group_id = "lamp1";  // Not in root group
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
     Viewport vp;
-    // Click inside the hidden node's bounds
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
-    EXPECT_EQ(hit.type, HitType::None) << "Hidden node should not be hittable";
+    // Click inside the node's bounds, but filtering for root group ""
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
-TEST(HitTestVisibility, HiddenNode_NotHittable_WithCache) {
+TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable_WithCache) {
     Blueprint bp;
 
     Node n;
-    n.id = "hidden1";
+    n.id = "internal1";
     n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    n.visible = false;
+    n.group_id = "lamp1";
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
     Viewport vp;
 
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
-    EXPECT_EQ(hit.type, HitType::None) << "Hidden node should not be hittable (cache overload)";
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
-TEST(HitTestVisibility, VisibleNode_StillHittable) {
+TEST(HitTestGroupFilter, NodeInSameGroup_Hittable) {
     Blueprint bp;
 
     Node n;
-    n.id = "vis1";
+    n.id = "root1";
     n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    n.visible = true;
+    n.group_id = "";
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
-    EXPECT_EQ(hit.type, HitType::Node) << "Visible node should be hittable";
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    EXPECT_EQ(hit.type, HitType::Node) << "Node in same group should be hittable";
     EXPECT_EQ(hit.node_index, 0u);
 }
 
-TEST(HitTestVisibility, HiddenPort_NotHittable) {
+TEST(HitTestGroupFilter, PortInDifferentGroup_NotHittable) {
     Blueprint bp;
 
     Node n;
-    n.id = "hidden1";
+    n.id = "internal1";
     n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    n.visible = false;
+    n.group_id = "lamp1";
     n.input("v_in").output("v_out");
     bp.add_node(std::move(n));
 
@@ -594,27 +594,26 @@ TEST(HitTestVisibility, HiddenPort_NotHittable) {
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
-    // Get port position even though node is hidden
     Pt port_pos = visual->getPort("v_in")->worldPosition();
 
-    auto hit = hit_test_ports(bp, cache, port_pos);
-    EXPECT_EQ(hit.type, HitType::None) << "Port on hidden node should not be hittable";
+    auto hit = hit_test_ports(bp, cache, port_pos, "");
+    EXPECT_EQ(hit.type, HitType::None) << "Port on node in different group should not be hittable";
 }
 
-TEST(HitTestVisibility, WireToHiddenNode_NotHittable) {
+TEST(HitTestGroupFilter, WireCrossGroup_NotHittable) {
     Blueprint bp;
 
     Node n1;
     n1.id = "n1";
     n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
-    n1.visible = true;
+    n1.group_id = "";
     n1.output("out");
     bp.add_node(std::move(n1));
 
     Node n2;
     n2.id = "n2";
     n2.at(300.0f, 0.0f).size_wh(100.0f, 50.0f);
-    n2.visible = false;
+    n2.group_id = "lamp1";
     n2.input("in");
     bp.add_node(std::move(n2));
 
@@ -628,42 +627,38 @@ TEST(HitTestVisibility, WireToHiddenNode_NotHittable) {
 
     VisualNodeCache cache;
     Viewport vp;
-    // Click on the midpoint of where the wire would be
-    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp);
-    EXPECT_EQ(hit.type, HitType::None) << "Wire to hidden node should not be hittable";
+    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp, "");
+    EXPECT_EQ(hit.type, HitType::None) << "Wire crossing groups should not be hittable";
 }
 
-TEST(HitTestVisibility, DrillInOut_CacheSyncsVisibility) {
+TEST(HitTestGroupFilter, DrillInOut_GroupSwitching) {
     Blueprint bp;
 
-    // Collapsed node - visible initially
+    // Collapsed node - root group
     Node collapsed;
     collapsed.id = "lamp1";
     collapsed.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    collapsed.visible = true;
+    collapsed.group_id = "";
     collapsed.kind = NodeKind::Blueprint;
     bp.add_node(std::move(collapsed));
 
-    // Internal node - hidden initially
+    // Internal node - in "lamp1" group
     Node internal;
     internal.id = "lamp1:lamp";
     internal.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    internal.visible = false;
+    internal.group_id = "lamp1";
     bp.add_node(std::move(internal));
 
     VisualNodeCache cache;
     Viewport vp;
 
-    // Before drill-in: collapsed is hittable
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    // At root: collapsed is hittable, internal is not
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
     EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 0u);
 
-    // Simulate drill_into: toggle visibility
-    bp.nodes[0].visible = false;
-    bp.nodes[1].visible = true;
-
-    // After drill-in: collapsed is NOT hittable, internal IS
-    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    // Drilled into "lamp1": internal is hittable, collapsed is not
+    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "lamp1");
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 1u) << "After drill-in, internal node should be hittable";
 }

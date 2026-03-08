@@ -40,7 +40,6 @@ VisualNode::VisualNode(const Node& node)
     , size_(snap_size_to_grid(node.size))
     , node_id_(node.id)
     , ports_()
-    , visible_(node.visible)
     , name_(node.name)
     , type_name_(node.type_name)
     , node_content_(node.node_content)
@@ -473,8 +472,6 @@ VisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wir
     it->second->updateNodeContent(node.node_content);
     // Sync position from data model (loading/external edits may change it)
     it->second->setPosition(snap_to_grid(node.pos));
-    // Sync visibility from data model (drill-in/out may have changed it)
-    it->second->setVisible(node.visible);
     return it->second.get();
 }
 

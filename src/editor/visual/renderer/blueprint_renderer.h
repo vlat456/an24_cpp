@@ -21,13 +21,15 @@ public:
                 Pt canvas_min, Pt canvas_max, VisualNodeCache& cache,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
-                const an24::Simulator<an24::JIT_Solver>* sim = nullptr);
+                const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
+                const std::string& group_id = "");
 
     /// Detect tooltip at hover position (call after render()).
     TooltipInfo detectTooltip(const Blueprint& bp, const Viewport& vp,
                               Pt canvas_min, VisualNodeCache& cache,
                               Pt world_pos,
-                              const an24::Simulator<an24::JIT_Solver>& sim) const;
+                              const an24::Simulator<an24::JIT_Solver>& sim,
+                              const std::string& group_id = "") const;
 
     /// Render a tooltip box.
     static void renderTooltip(IDrawList& dl, const TooltipInfo& tooltip);

@@ -117,6 +117,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_hierarchical_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_port_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_scene_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

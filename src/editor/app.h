@@ -2,44 +2,29 @@
 
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
-#include "interact/interaction.h"
+#include "input/input_types.h"
+#include "input/canvas_input.h"
 #include "visual/hittest.h"
 #include "visual/scene/scene.h"
 #include "visual/scene/wire_manager.h"
+#include "window/window_manager.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
 #include <unordered_set>
 
-/// Кнопки мыши
-enum class MouseButton {
-    Left,
-    Middle,
-    Right
-};
-
-/// Клавиши клавиатуры
-enum class Key {
-    Escape,
-    Delete,
-    S,       // Ctrl+S = save
-    Z,       // Ctrl+Z = undo
-    R,       // R = reroute selected wire
-    Space,   // Space = toggle simulation
-    LeftBracket,   // [ = decrease grid size
-    RightBracket,  // ] = increase grid size
-};
-
 /// Главное приложение редактора
 struct EditorApp {
-    /// Scene graph (owns blueprint, viewport, visual cache)
-    VisualScene scene;
+    /// Shared blueprint data (single source of truth)
+    Blueprint blueprint;
 
-    /// Wire operations (non-owning reference to scene)
-    WireManager wire_manager{scene};
+    /// Window manager: owns all editor windows (root + sub-blueprint windows)
+    WindowManager window_manager{blueprint};
 
-    /// Interaction state
-    Interaction interaction;
+    /// Convenience accessors for the root window
+    VisualScene& scene = window_manager.root().scene;
+    CanvasInput& input = window_manager.root().input;
+    WireManager& wire_manager = window_manager.root().wire_manager;
 
     /// JIT Simulation (manages component lifecycle)
     an24::Simulator<an24::JIT_Solver> simulation;
@@ -56,9 +41,10 @@ struct EditorApp {
     };
     std::vector<BlueprintInfo> blueprints;  // Discovered blueprints at startup
 
-    /// Context menu state
+    /// Context menu state (tracks which window triggered it)
     bool show_context_menu = false;
     Pt context_menu_pos;
+    std::string context_menu_group_id;
 
     /// Manual signal overrides (for button clicks, etc.)
     /// Maps "node_id.port_name" -> voltage value (temporary, cleared after use)
@@ -66,9 +52,6 @@ struct EditorApp {
 
     /// HoldButtons currently being held (mouse is down on them)
     std::unordered_set<std::string> held_buttons;
-
-    /// Last mouse position (for wire creation, etc.)
-    Pt last_mouse_pos;
 
     EditorApp() {
         // Load component registry at startup
@@ -80,11 +63,10 @@ struct EditorApp {
 
     /// Создать новую схему
     void new_circuit() {
+        window_manager.closeAll();
         scene.reset();
-        interaction = Interaction();
         simulation = an24::Simulator<an24::JIT_Solver>();
         simulation_running = false;
-        drill_stack_.clear();
     }
 
     /// Перестроить симуляцию (при изменении схемы)
@@ -129,32 +111,25 @@ struct EditorApp {
     /// Обновить симуляцию (apply overrides, step, clear overrides)
     void update_simulation_step();
 
-    /// Обработка mouse down
-    void on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection = false);
+    /// Handle InputResult from any window's CanvasInput
+    void apply_input_result(const InputResult& r, const std::string& group_id = "") {
+        if (r.rebuild_simulation) rebuild_simulation();
+        if (r.show_context_menu) {
+            show_context_menu = true;
+            context_menu_pos = r.context_menu_pos;
+            context_menu_group_id = group_id;
+        }
+        if (!r.open_sub_window.empty()) open_sub_window(r.open_sub_window);
+    }
 
-    /// Обработка mouse up
-    void on_mouse_up(MouseButton btn);
-
-    /// Обработка mouse drag
-    void on_mouse_drag(Pt world_delta, Pt canvas_min);
-
-    /// Обработка scroll (zoom)
-    void on_scroll(float delta, Pt mouse_pos, Pt canvas_min);
-
-    /// Обработка key down
-    void on_key_down(Key key);
-
-    /// Обработка double click - добавить/удалить routing point
-    void on_double_click(Pt world_pos);
-
-    /// Добавить компонент на схему
-    void add_component(const std::string& classname, Pt world_pos);
+    /// Добавить компонент на схему (group_id = which sub-blueprint to add to)
+    void add_component(const std::string& classname, Pt world_pos, const std::string& group_id = "");
 
     /// Scan blueprints/ directory and populate blueprints vector
     void scan_blueprints();
 
     /// Добавить вложенный блюпринт на схему (collapsed node)
-    void add_blueprint(const std::string& blueprint_name, Pt world_pos);
+    void add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id = "");
 
     /// Переключить Switch (toggle button)
     void trigger_switch(const std::string& node_id);
@@ -165,22 +140,13 @@ struct EditorApp {
     /// HoldButton: отпустить кнопку (control = 2.0V, затем 0.0V)
     void hold_button_release(const std::string& node_id);
 
-    /// Drill-down into a nested blueprint (show internal nodes)
-    void drill_into(const std::string& collapsed_group_id);
-
-    /// Drill-out to parent view (show collapsed node)
-    void drill_out();
+    /// Open a sub-window for a collapsed group (replaces drill_into).
+    void open_sub_window(const std::string& collapsed_group_id);
 
     /// Get current drill depth name (empty = top-level, non-empty = deepest drilled group)
     std::string get_current_view() const {
-        return drill_stack_.empty() ? std::string() : drill_stack_.back();
+        return scene.groupId();
     }
 
-    /// Get full drill navigation stack (for multi-level hierarchy)
-    const std::vector<std::string>& get_drill_stack() const { return drill_stack_; }
-
 private:
-    /// Drill navigation stack: [] = top-level, ["A"] = inside A,
-    /// ["A", "A:sub"] = inside sub which is inside A
-    std::vector<std::string> drill_stack_;
 };

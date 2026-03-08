@@ -44,10 +44,6 @@ public:
     // --- IPersistable ---
     const std::string& getId() const override { return node_id_; }
 
-    // --- Visibility ---
-    bool isVisible() const { return visible_; }
-    void setVisible(bool visible) { visible_ = visible; }
-
     // --- ISelectable ---
     bool containsPoint(Pt world_pos) const override {
         return world_pos.x >= position_.x && world_pos.x <= position_.x + size_.x &&
@@ -89,7 +85,6 @@ protected:
     Pt size_;
     std::string node_id_;
     std::vector<VisualPort> ports_;
-    bool visible_ = true;
     std::string name_;
     std::string type_name_;
     NodeContent node_content_;

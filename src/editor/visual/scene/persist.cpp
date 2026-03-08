@@ -102,10 +102,8 @@ std::string blueprint_to_json(const Blueprint& bp) {
             device["params"] = params;
         }
 
-        // Store blueprint_path for collapsed blueprint nodes
-        if (n.kind == NodeKind::Blueprint && !n.blueprint_path.empty()) {
-            device["blueprint_path"] = n.blueprint_path;
-        }
+        // [DEAD-g7h8] Removed dead code: was setting blueprint_path on Blueprint-kind nodes,
+        // but those are already skipped by `continue` at top of loop.
         
         // NOTE: Other UI params (label, min, max, unit) are stored in editor.nodes, NOT in device.params
         // NOTE: Domains are NOT saved to JSON - they are defined in component definitions
@@ -254,13 +252,6 @@ std::string blueprint_to_json(const Blueprint& bp) {
 std::string blueprint_to_editor_json(const Blueprint& bp) {
     json j = json::object();
 
-    // Build reverse lookup: node_id → group_id (for tagging devices with group membership)
-    std::map<std::string, std::string> node_to_group;
-    for (const auto& group : bp.collapsed_groups) {
-        for (const auto& nid : group.internal_node_ids)
-            node_to_group[nid] = group.id;
-    }
-
     // devices: flat list of ALL nodes including Blueprint kind
     json devices = json::array();
     std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs on save
@@ -276,10 +267,9 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             default: device["kind"] = "Node"; break;
         }
 
-        // group_id: which collapsed group this node belongs to (empty = top-level)
-        auto git = node_to_group.find(n.id);
-        if (git != node_to_group.end())
-            device["group_id"] = git->second;
+        // group_id: use the node's runtime group_id (single source of truth)
+        if (!n.group_id.empty())
+            device["group_id"] = n.group_id;
 
         // ports — detect InOut by checking if port appears in both inputs and outputs
         std::set<std::string> input_names, output_names;
@@ -430,29 +420,11 @@ static Node device_to_node(const json& d, int index) {
         n.collapsed = true;
     }
 
-    // Auto-generate node_content based on device type
-    if (n.type_name == "Voltmeter") {
-        n.node_content.type = NodeContentType::Gauge;
-        n.node_content.label = "";
-        n.node_content.value = 0.0f;
-        n.node_content.min = 0.0f;
-        n.node_content.max = 30.0f;
-        n.node_content.unit = "V";
-    } else if (n.type_name == "Switch") {
-        n.node_content.type = NodeContentType::Switch;
-        n.node_content.label = "ON";
-        n.node_content.state = false;
-    } else if (n.type_name == "HoldButton") {
-        n.node_content.type = NodeContentType::Switch;
-        n.node_content.label = "RELEASED";
-        n.node_content.state = false;
-    } else if (n.type_name == "IndicatorLight") {
-        n.node_content.type = NodeContentType::Text;
-        n.node_content.label = "OFF";
-    } else if (n.type_name == "DMR400") {
-        n.node_content.type = NodeContentType::Switch;
-        n.node_content.label = "ON";
-        n.node_content.state = false;
+    // [DRY-m3n4] Replaced 5 hardcoded type checks with registry-based content generation
+    {
+        static an24::ComponentRegistry s_registry = an24::load_component_registry();
+        const auto* def = s_registry.get(n.type_name);
+        if (def) n.node_content = create_node_content_from_def(def);
     }
 
     return n;
@@ -509,45 +481,9 @@ static Node device_instance_to_node(const an24::DeviceInstance& dev, int index =
     return n;
 }
 
-// Helper: create default node_content based on ComponentDefinition
+// [DRY-i9j0] Replaced duplicate — now delegates to create_node_content_from_def in node.h
 static NodeContent create_node_content(const an24::ComponentDefinition* def) {
-    using namespace an24;
-
-    NodeContent content;
-    content.type = NodeContentType::None;
-
-    if (!def) return content;
-
-    // Parse content type from component definition
-    std::string content_type_str = def->default_content_type;
-
-    if (content_type_str == "Gauge") {
-        content.type = NodeContentType::Gauge;
-        content.label = "V";
-        content.value = 0.0f;
-        content.min = 0.0f;
-        content.max = 30.0f;
-        content.unit = "V";
-    } else if (content_type_str == "Switch") {
-        content.type = NodeContentType::Switch;
-        content.label = "ON";
-        // Read default "closed" state from component definition
-        auto it = def->default_params.find("closed");
-        if (it != def->default_params.end()) {
-            content.state = (it->second == "true");
-        } else {
-            content.state = false;  // Default to false if not specified
-        }
-    } else if (content_type_str == "HoldButton") {
-        content.type = NodeContentType::Switch;  // Reuse Switch UI (button)
-        content.label = "RELEASED";
-        content.state = false;  // Default to released state
-    } else if (content_type_str == "Text") {
-        content.type = NodeContentType::Text;
-        content.label = "OFF";
-    }
-
-    return content;
+    return create_node_content_from_def(def);
 }
 
 // Разобрать "device.port" на component и port
@@ -800,8 +736,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         bp.nodes.push_back(std::move(n));
     }
 
-    // Resolve port types from component registry
-    an24::ComponentRegistry registry = an24::load_component_registry();
+    // [PERF-q7r8] Was reloading component registry from disk on every load — now cached as static
+    static an24::ComponentRegistry registry = an24::load_component_registry();
     for (auto& n : bp.nodes)
         apply_port_types_from_registry(n, registry);
 
@@ -899,7 +835,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         }
     }
 
-    bp.recompute_visibility();
+    bp.recompute_group_ids();
     return bp;
 }
 
@@ -1094,7 +1030,7 @@ static std::optional<Blueprint> load_legacy_format(const json& j, const std::str
         }
     }
 
-    bp.recompute_visibility();
+    bp.recompute_group_ids();
     return bp;
 }
 

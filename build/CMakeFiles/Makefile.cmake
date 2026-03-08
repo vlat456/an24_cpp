@@ -168,4 +168,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/editor_hierarchical_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_port_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_scene_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/multi_window_tests.dir/DependInfo.cmake"
   )

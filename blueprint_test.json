@@ -874,8 +874,8 @@
         }
       },
       "pos": {
-        "x": 480.0,
-        "y": 80.0
+        "x": 352.0,
+        "y": 176.0
       },
       "size": {
         "x": 32.0,
@@ -915,7 +915,7 @@
       },
       "pos": {
         "x": 480.0,
-        "y": 208.0
+        "y": 272.0
       },
       "size": {
         "x": 128.0,
@@ -942,8 +942,8 @@
         }
       },
       "pos": {
-        "x": 480.0,
-        "y": 320.0
+        "x": 704.0,
+        "y": 192.0
       },
       "size": {
         "x": 32.0,
@@ -972,30 +972,6 @@
       "size": {
         "x": 128.0,
         "y": 96.0
-      }
-    },
-    {
-      "classname": "ElectricHeater",
-      "group_id": "lamp_pass_through_3",
-      "kind": "Node",
-      "name": "electricheater_1",
-      "ports": {
-        "heat_out": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "power": {
-          "direction": "In",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 240.0,
-        "y": 128.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
       }
     }
   ],
@@ -1216,6 +1192,11 @@
       "to": "splitter_1.i"
     },
     {
+      "from": "lamp_pass_through_3:vin.port",
+      "routing_points": [],
+      "to": "lamp_pass_through_3:lamp.v_in"
+    },
+    {
       "from": "lamp_pass_through_3:lamp.v_out",
       "routing_points": [],
       "to": "lamp_pass_through_3:vout.port"
@@ -1229,16 +1210,6 @@
       "from": "lamp_pass_through_3.vout",
       "routing_points": [],
       "to": "dmr_vsu.v_gen_ref"
-    },
-    {
-      "from": "electricheater_1.heat_out",
-      "routing_points": [
-        {
-          "x": 448.0,
-          "y": 160.0
-        }
-      ],
-      "to": "lamp_pass_through_3:lamp.v_in"
     }
   ]
 }

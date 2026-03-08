@@ -1,0 +1,59 @@
+#pragma once
+
+#include "data/pt.h"
+#include <string>
+
+/// Mouse buttons
+enum class MouseButton {
+    Left,
+    Middle,
+    Right
+};
+
+/// Keyboard keys relevant to canvas interaction
+enum class Key {
+    Escape,
+    Delete,
+    S,
+    Z,
+    R,
+    Space,
+    LeftBracket,
+    RightBracket,
+};
+
+/// Modifier keys held during a mouse event
+struct Modifiers {
+    bool alt = false;
+    bool ctrl = false;   // Ctrl or Cmd on macOS
+};
+
+/// FSM states for canvas mouse interaction.
+/// Exactly one state is active per window at any time.
+enum class InputState {
+    Idle,                  ///< No active gesture
+    Panning,               ///< Left-drag on empty space
+    DraggingNode,          ///< Left-drag on a node
+    DraggingRoutingPoint,  ///< Left-drag on a wire routing point
+    CreatingWire,          ///< Left-drag from a port (new wire)
+    ReconnectingWire,      ///< Left-drag from existing wire end
+    MarqueeSelect,         ///< Alt+left-drag rectangle selection
+};
+
+/// Actions the canvas input wants the host (EditorApp) to perform.
+/// Returned from every input method; host checks and executes.
+struct InputResult {
+    bool rebuild_simulation = false;
+    bool show_context_menu = false;
+    Pt context_menu_pos;
+    std::string open_sub_window;   ///< non-empty = open this collapsed group
+
+    /// Combine results (logical OR of flags)
+    InputResult& operator|=(const InputResult& o) {
+        rebuild_simulation |= o.rebuild_simulation;
+        show_context_menu  |= o.show_context_menu;
+        if (!o.open_sub_window.empty()) open_sub_window = o.open_sub_window;
+        if (o.show_context_menu) context_menu_pos = o.context_menu_pos;
+        return *this;
+    }
+};

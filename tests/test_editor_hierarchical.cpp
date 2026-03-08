@@ -99,8 +99,8 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     group.internal_node_ids = {id + ":vin", id + ":lamp", id + ":vout"};
     bp.collapsed_groups.push_back(group);
 
-    // Recompute visibility (internal nodes hidden at top level)
-    bp.recompute_visibility();
+    // Recompute group_ids (internal nodes assigned to group)
+    bp.recompute_group_ids();
 }
 
 // Helper: build a fully-expanded simple_battery blueprint
@@ -193,7 +193,7 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     group.internal_node_ids = {id + ":gnd", id + ":vin", id + ":bat", id + ":vout"};
     bp.collapsed_groups.push_back(group);
 
-    bp.recompute_visibility();
+    bp.recompute_group_ids();
 }
 
 /// TDD Phase 5: Editor Hierarchical Blueprint Support
@@ -562,13 +562,13 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     EXPECT_EQ(lamp_node->kind, NodeKind::Blueprint);
     EXPECT_TRUE(lamp_node->collapsed);
 
-    // Collapsed node visible, internals hidden (recomputed on load)
-    EXPECT_TRUE(lamp_node->visible) << "Collapsed node should be visible at top level";
+    // Collapsed node has root group_id, internals have group_id='lamp1'
+    EXPECT_TRUE(lamp_node->group_id.empty()) << "Collapsed node should have root group_id";
 
     for (const auto& internal_id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
         Node* internal = bp.find_node(internal_id);
         ASSERT_NE(internal, nullptr) << "Internal node " << internal_id << " should exist";
-        EXPECT_FALSE(internal->visible) << "Internal node " << internal_id << " should be hidden";
+        EXPECT_EQ(internal->group_id, "lamp1") << "Internal node " << internal_id << " should have group_id='lamp1'";
     }
 }
 
@@ -821,166 +821,113 @@ TEST(VoltageFlow, MultipleRefNodes_AllFixed) {
 }
 
 // =============================================================================
-// Visibility-Based Blueprint Collapsing Tests
+// Group-Based Blueprint Collapsing Tests
 // =============================================================================
 
-TEST(Visibility, CollapsedNodeVisible_InternalsHidden_AfterInsertion) {
-    // This test simulates what add_blueprint() does — uses recompute_visibility
+TEST(GroupId, CollapsedNodeHasRootGroupId_InternalsHaveGroupGroupId) {
+    // This test verifies that recompute_group_ids assigns group_id correctly
     Blueprint bp;
     add_lamp_pass_through(bp, "lamp1");
 
-    // Verify visibility state (recompute_visibility was called by add_lamp_pass_through)
+    // Verify group_id state (recompute_group_ids was called by add_lamp_pass_through)
     EXPECT_EQ(bp.nodes.size(), 4) << "Should have 4 nodes (collapsed + 3 internals)";
 
-    int visible_count = 0;
-    int hidden_count = 0;
+    // Count nodes by group_id
+    int root_count = 0;
+    int group_count = 0;
     for (const auto& n : bp.nodes) {
-        if (n.visible) visible_count++;
-        else hidden_count++;
+        if (n.group_id.empty()) root_count++;
+        else if (n.group_id == "lamp1") group_count++;
     }
 
-    EXPECT_EQ(visible_count, 1) << "Only collapsed node should be visible";
-    EXPECT_EQ(hidden_count, 3) << "All 3 internal nodes should be hidden";
+    EXPECT_EQ(root_count, 1) << "Only collapsed node should have root group_id (empty string)";
+    EXPECT_EQ(group_count, 3) << "All 3 internal nodes should have group_id='lamp1'";
 
     Node* collapsed_node = bp.find_node("lamp1");
     ASSERT_NE(collapsed_node, nullptr);
-    EXPECT_TRUE(collapsed_node->visible) << "Collapsed node should be visible";
+    EXPECT_TRUE(collapsed_node->group_id.empty()) << "Collapsed node should have root group_id";
     EXPECT_EQ(collapsed_node->kind, NodeKind::Blueprint);
 
     for (const auto& internal_id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
         Node* internal = bp.find_node(internal_id);
         ASSERT_NE(internal, nullptr) << "Internal node " << internal_id << " should exist";
-        EXPECT_FALSE(internal->visible) << "Internal node " << internal_id << " should be hidden";
+        EXPECT_EQ(internal->group_id, "lamp1") << "Internal node " << internal_id << " should have group_id='lamp1'";
     }
 }
 
-TEST(Visibility, DrillDown_HidesCollapsed_ShowsInternals) {
-    // Use recompute_visibility with drill stack
+TEST(GroupId, GroupIdAssignmentsAre_Static_NotDrillBased) {
+    // Verify that group_id is a static assignment — recompute_group_ids()
+    // doesn't take a drill_stack parameter, it assigns group_id based on
+    // collapsed_groups membership, which is static.
     Blueprint bp;
     add_lamp_pass_through(bp, "lamp1");
 
-    // Initially: collapsed visible, internals hidden
-    EXPECT_TRUE(bp.find_node("lamp1")->visible);
-    EXPECT_FALSE(bp.find_node("lamp1:vin")->visible);
+    // Verify initial group_id assignments
+    EXPECT_TRUE(bp.find_node("lamp1")->group_id.empty());
+    EXPECT_EQ(bp.find_node("lamp1:vin")->group_id, "lamp1");
+    EXPECT_EQ(bp.find_node("lamp1:lamp")->group_id, "lamp1");
+    EXPECT_EQ(bp.find_node("lamp1:vout")->group_id, "lamp1");
 
-    // Drill into lamp1
-    bp.recompute_visibility({"lamp1"});
+    // Call recompute_group_ids again (no drill_stack parameter)
+    bp.recompute_group_ids();
 
-    // Collapsed node should be hidden
-    EXPECT_FALSE(bp.find_node("lamp1")->visible) << "Collapsed node should be hidden after drill-down";
+    // group_id assignments should remain unchanged (static)
+    EXPECT_TRUE(bp.find_node("lamp1")->group_id.empty()) << "Collapsed node still has root group_id";
+    EXPECT_EQ(bp.find_node("lamp1:vin")->group_id, "lamp1") << "Internal node group_id unchanged";
+    EXPECT_EQ(bp.find_node("lamp1:lamp")->group_id, "lamp1") << "Internal node group_id unchanged";
+    EXPECT_EQ(bp.find_node("lamp1:vout")->group_id, "lamp1") << "Internal node group_id unchanged";
 
-    // All internal nodes should be visible
-    int visible_count = 0;
+    // Count nodes by group_id after second recompute
+    int root_count = 0;
+    int group_count = 0;
     for (const auto& n : bp.nodes) {
-        if (n.visible) visible_count++;
+        if (n.group_id.empty()) root_count++;
+        else if (n.group_id == "lamp1") group_count++;
     }
-    EXPECT_EQ(visible_count, 3) << "All 3 internal nodes should be visible after drill-down";
-
-    for (const auto& id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
-        EXPECT_TRUE(bp.find_node(id)->visible) << id << " should be visible after drill-down";
-    }
-}
-
-TEST(Visibility, DrillOut_ShowsCollapsed_HidesInternals) {
-    // Use recompute_visibility with drill stack
-    Blueprint bp;
-    add_lamp_pass_through(bp, "lamp1");
-
-    // Drill in first
-    bp.recompute_visibility({"lamp1"});
-    EXPECT_FALSE(bp.find_node("lamp1")->visible);
-    EXPECT_TRUE(bp.find_node("lamp1:vin")->visible);
-
-    // Drill out (back to top level)
-    bp.recompute_visibility({});
-
-    // Collapsed node should be visible again
-    EXPECT_TRUE(bp.find_node("lamp1")->visible) << "Collapsed node should be visible after drill-out";
-
-    int visible_count = 0;
-    for (const auto& n : bp.nodes) {
-        if (n.visible) visible_count++;
-    }
-    EXPECT_EQ(visible_count, 1) << "Only collapsed node should be visible after drill-out";
-
-    for (const auto& id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
-        EXPECT_FALSE(bp.find_node(id)->visible) << id << " should be hidden after drill-out";
-    }
-}
-
-TEST(Visibility, Simulation_Works_WithVisibilityToggling) {
-    // Test that simulation works correctly regardless of visibility state
-    // Uses the always-flatten helper to match real editor behavior
-    Blueprint bp;
-    add_lamp_pass_through(bp, "lamp1");
-
-    // Build simulation (should work with ALL nodes regardless of visibility)
-    SimulationController sim;
-    sim.build(bp);
-
-    ASSERT_TRUE(sim.build_result.has_value()) << "Build should succeed with visibility state";
-    auto& result = *sim.build_result;
-
-    // Verify that only the 3 internal devices were created
-    // The collapsed Blueprint node is NOT a simulation device - it's just visual
-    EXPECT_EQ(result.devices.size(), 3) << "Simulation should only see the 3 internal devices (collapsed node is visual-only)";
-
-    // Verify port mapping exists for internal nodes (including ext alias ports)
-    EXPECT_TRUE(result.port_to_signal.count("lamp1:vin.port")) << "BlueprintInput port should be mapped";
-    EXPECT_TRUE(result.port_to_signal.count("lamp1:vin.ext")) << "BlueprintInput ext should be mapped";
-    EXPECT_TRUE(result.port_to_signal.count("lamp1:vout.port")) << "BlueprintOutput port should be mapped";
-    EXPECT_TRUE(result.port_to_signal.count("lamp1:vout.ext")) << "BlueprintOutput ext should be mapped";
-
-    // Verify ext↔port alias merged by union-find (same signal index)
-    EXPECT_EQ(result.port_to_signal["lamp1:vin.port"],
-              result.port_to_signal["lamp1:vin.ext"])
-        << "BlueprintInput ext and port should be aliased to same signal";
+    EXPECT_EQ(root_count, 1) << "Still 1 node at root level";
+    EXPECT_EQ(group_count, 3) << "Still 3 nodes in 'lamp1' group";
 }
 
 // =============================================================================
 // Regression Tests for Bug Fixes
 // =============================================================================
 
-// Bug 1: Save/load breaks visibility — visible must be COMPUTED, never persisted
-TEST(Regression, SaveLoad_VisibilityIsComputed_NotPersisted) {
+// Bug 1: Save/load must preserve group_id assignments
+TEST(Regression, SaveLoad_GroupIdIsPreserved) {
     Blueprint bp;
     add_lamp_pass_through(bp, "lamp1");
 
-    // Before save: collapsed node visible, internals hidden
-    EXPECT_TRUE(bp.find_node("lamp1")->visible);
-    EXPECT_FALSE(bp.find_node("lamp1:vin")->visible);
-    EXPECT_FALSE(bp.find_node("lamp1:lamp")->visible);
-    EXPECT_FALSE(bp.find_node("lamp1:vout")->visible);
+    // Before save: collapsed node has root group_id, internals have group_id='lamp1'
+    EXPECT_TRUE(bp.find_node("lamp1")->group_id.empty());
+    EXPECT_EQ(bp.find_node("lamp1:vin")->group_id, "lamp1");
+    EXPECT_EQ(bp.find_node("lamp1:lamp")->group_id, "lamp1");
+    EXPECT_EQ(bp.find_node("lamp1:vout")->group_id, "lamp1");
 
     // Save and reload
     std::string json_str = blueprint_to_json(bp);
     auto loaded = blueprint_from_json(json_str);
     ASSERT_TRUE(loaded.has_value());
 
-    // After load: visibility must be correctly recomputed
-    EXPECT_TRUE(loaded->find_node("lamp1")->visible)
-        << "Collapsed node must be visible after load (Bug 1 regression)";
-    EXPECT_FALSE(loaded->find_node("lamp1:vin")->visible)
-        << "Internal node must be hidden after load (Bug 1 regression)";
-    EXPECT_FALSE(loaded->find_node("lamp1:lamp")->visible)
-        << "Internal node must be hidden after load (Bug 1 regression)";
-    EXPECT_FALSE(loaded->find_node("lamp1:vout")->visible)
-        << "Internal node must be hidden after load (Bug 1 regression)";
+    // After load: group_id must be correctly preserved
+    EXPECT_TRUE(loaded->find_node("lamp1")->group_id.empty())
+        << "Collapsed node must have root group_id after load (Bug 1 regression)";
+    EXPECT_EQ(loaded->find_node("lamp1:vin")->group_id, "lamp1")
+        << "Internal node must have group_id='lamp1' after load (Bug 1 regression)";
+    EXPECT_EQ(loaded->find_node("lamp1:lamp")->group_id, "lamp1")
+        << "Internal node must have group_id='lamp1' after load (Bug 1 regression)";
+    EXPECT_EQ(loaded->find_node("lamp1:vout")->group_id, "lamp1")
+        << "Internal node must have group_id='lamp1' after load (Bug 1 regression)";
 
-    // Drill into and save/load again
-    loaded->recompute_visibility({"lamp1"});
-    EXPECT_FALSE(loaded->find_node("lamp1")->visible);
-    EXPECT_TRUE(loaded->find_node("lamp1:vin")->visible);
-
+    // Save and load again (no drill_stack concept anymore)
     std::string json2 = blueprint_to_json(*loaded);
     auto loaded2 = blueprint_from_json(json2);
     ASSERT_TRUE(loaded2.has_value());
 
-    // After second load: visibility resets to top-level view (no drill state persisted)
-    EXPECT_TRUE(loaded2->find_node("lamp1")->visible)
-        << "After reload, should be back to top-level view";
-    EXPECT_FALSE(loaded2->find_node("lamp1:vin")->visible)
-        << "After reload, internals should be hidden";
+    // group_id assignments should still be correct (static, not drill-dependent)
+    EXPECT_TRUE(loaded2->find_node("lamp1")->group_id.empty())
+        << "After second load, collapsed node still at root level";
+    EXPECT_EQ(loaded2->find_node("lamp1:vin")->group_id, "lamp1")
+        << "After second load, internal still in 'lamp1' group";
 }
 
 // Bug 2: No electricity through nested blueprints — wires must be rewritten
@@ -1065,8 +1012,8 @@ TEST(Regression, ExtAliasPort_MergedByUnionFind) {
         << "BlueprintOutput ext↔port must be same signal (Bug 4 regression)";
 }
 
-// N-level hierarchy: drill stack with multiple levels
-TEST(Regression, NLevelDrillStack_VisibilityCorrect) {
+// N-level hierarchy: group_id assignments with nested groups
+TEST(Regression, NLevelHierarchy_GroupIdAssignments) {
     Blueprint bp;
 
     // Top-level node
@@ -1095,31 +1042,32 @@ TEST(Regression, NLevelDrillStack_VisibilityCorrect) {
         }
     }
 
-    // Top level: A visible, A's internals hidden, top visible
-    bp.recompute_visibility({});
-    EXPECT_TRUE(bp.find_node("top")->visible);
-    EXPECT_TRUE(bp.find_node("A")->visible);
-    EXPECT_FALSE(bp.find_node("A:vin")->visible);
-    EXPECT_FALSE(bp.find_node("A:sub")->visible);
-    EXPECT_FALSE(bp.find_node("A:sub:vin")->visible);
+    // Recompute group_ids (static assignment based on collapsed_groups)
+    bp.recompute_group_ids();
 
-    // Drill into A: A hidden, A internals visible, A:sub visible (collapsed), A:sub internals hidden
-    bp.recompute_visibility({"A"});
-    EXPECT_TRUE(bp.find_node("top")->visible);
-    EXPECT_FALSE(bp.find_node("A")->visible) << "Expanded group node should be hidden";
-    EXPECT_TRUE(bp.find_node("A:vin")->visible) << "A's internal nodes should be visible";
-    EXPECT_TRUE(bp.find_node("A:sub")->visible) << "Nested collapsed blueprint should be visible";
-    EXPECT_FALSE(bp.find_node("A:sub:vin")->visible) << "Nested blueprint internals should be hidden";
+    // Top-level nodes: 'top' and 'A' have root group_id
+    EXPECT_TRUE(bp.find_node("top")->group_id.empty()) << "Top-level node has root group_id";
+    EXPECT_TRUE(bp.find_node("A")->group_id.empty()) << "Collapsed node 'A' has root group_id";
 
-    // Drill into A → A:sub: A:sub hidden, A:sub internals visible
-    bp.recompute_visibility({"A", "A:sub"});
-    EXPECT_TRUE(bp.find_node("top")->visible);
-    EXPECT_FALSE(bp.find_node("A")->visible);
-    EXPECT_TRUE(bp.find_node("A:vin")->visible);
-    EXPECT_FALSE(bp.find_node("A:sub")->visible) << "Doubly-expanded group should be hidden";
-    EXPECT_TRUE(bp.find_node("A:sub:vin")->visible) << "Deeply nested internals should be visible";
-    EXPECT_TRUE(bp.find_node("A:sub:lamp")->visible);
-    EXPECT_TRUE(bp.find_node("A:sub:vout")->visible);
+    // A's internal nodes are in group 'A'
+    EXPECT_EQ(bp.find_node("A:vin")->group_id, "A") << "A's internal node has group_id='A'";
+    EXPECT_EQ(bp.find_node("A:lamp")->group_id, "A") << "A's internal node has group_id='A'";
+    EXPECT_EQ(bp.find_node("A:vout")->group_id, "A") << "A's internal node has group_id='A'";
+
+    // A:sub is also in group 'A' (nested inside A)
+    EXPECT_EQ(bp.find_node("A:sub")->group_id, "A") << "Nested collapsed node is in A's group";
+
+    // A:sub's internal nodes are in group 'A:sub'
+    EXPECT_EQ(bp.find_node("A:sub:vin")->group_id, "A:sub") << "A:sub's internal node has group_id='A:sub'";
+    EXPECT_EQ(bp.find_node("A:sub:lamp")->group_id, "A:sub") << "A:sub's internal node has group_id='A:sub'";
+    EXPECT_EQ(bp.find_node("A:sub:vout")->group_id, "A:sub") << "A:sub's internal node has group_id='A:sub'";
+
+    // Verify group_id assignments are static (don't change with drill state)
+    bp.recompute_group_ids();
+    EXPECT_TRUE(bp.find_node("A")->group_id.empty()) << "A still has root group_id";
+    EXPECT_EQ(bp.find_node("A:vin")->group_id, "A") << "A:vin still in group 'A'";
+    EXPECT_EQ(bp.find_node("A:sub")->group_id, "A") << "A:sub still in group 'A'";
+    EXPECT_EQ(bp.find_node("A:sub:vin")->group_id, "A:sub") << "A:sub:vin still in group 'A:sub'";
 }
 
 // =============================================================================
@@ -1442,6 +1390,115 @@ TEST(BlueprintSignalFlow, SimpleBattery_VoltageAtRootLevel) {
 }
 
 // =============================================================================
+// Regression: nodes added to sub-blueprint must survive save/load
+// =============================================================================
+
+TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
+    // Simulate: user has lamp_pass_through, then adds a Resistor inside it
+    Blueprint bp;
+    add_lamp_pass_through(bp, "lpt");
+
+    // Simulate add_component("Resistor") inside sub-blueprint "lpt"
+    Node res;
+    res.id = "resistor_1";
+    res.name = "resistor_1";
+    res.type_name = "Resistor";
+    res.kind = NodeKind::Node;
+    res.pos = Pt(300, 100);
+    res.size = Pt(120, 80);
+    res.group_id = "lpt";  // added to sub-blueprint
+    res.inputs.push_back(::Port("v_in", PortSide::Input));
+    res.outputs.push_back(::Port("v_out", PortSide::Output));
+    bp.add_node(std::move(res));
+
+    // Keep collapsed_groups in sync (as the fixed add_component does)
+    for (auto& g : bp.collapsed_groups) {
+        if (g.id == "lpt") {
+            g.internal_node_ids.push_back("resistor_1");
+            break;
+        }
+    }
+
+    // Wire from lamp to resistor (inside sub-blueprint)
+    Wire w;
+    w.id = "added_wire";
+    w.start = WireEnd("lpt:lamp", "v_out", PortSide::Output);
+    w.end = WireEnd("resistor_1", "v_in", PortSide::Input);
+    w.routing_points = {Pt(250, 120)};
+    bp.add_wire(w);
+
+    // Save
+    std::string json_str = blueprint_to_editor_json(bp);
+    auto j = json::parse(json_str);
+
+    // Verify the added node has group_id in JSON
+    bool found_res_with_group = false;
+    for (const auto& d : j["devices"]) {
+        if (d["name"] == "resistor_1") {
+            ASSERT_TRUE(d.contains("group_id")) << "Added sub-node must have group_id in JSON";
+            EXPECT_EQ(d["group_id"].get<std::string>(), "lpt");
+            found_res_with_group = true;
+        }
+    }
+    EXPECT_TRUE(found_res_with_group) << "Added Resistor must be in saved devices";
+
+    // Verify the wire is saved
+    bool found_wire = false;
+    for (const auto& ws : j["wires"]) {
+        if (ws["from"] == "lpt:lamp.v_out" && ws["to"] == "resistor_1.v_in") {
+            found_wire = true;
+            EXPECT_EQ(ws["routing_points"].size(), 1u);
+        }
+    }
+    EXPECT_TRUE(found_wire) << "Wire inside sub-blueprint must be saved";
+
+    // Load
+    auto loaded = blueprint_from_json(json_str);
+    ASSERT_TRUE(loaded.has_value());
+
+    // Verify the added node roundtripped
+    auto* loaded_res = loaded->find_node("resistor_1");
+    ASSERT_NE(loaded_res, nullptr) << "Added Resistor must survive load";
+    EXPECT_EQ(loaded_res->type_name, "Resistor");
+    EXPECT_FLOAT_EQ(loaded_res->pos.x, 300.0f);
+    EXPECT_FLOAT_EQ(loaded_res->pos.y, 100.0f);
+
+    // Recompute group_ids from loaded collapsed_groups
+    loaded->recompute_group_ids();
+
+    // Verify group_id is correct after load
+    EXPECT_EQ(loaded_res->group_id, "lpt")
+        << "Added sub-node must have correct group_id after load";
+
+    // Verify the wire roundtripped with routing points
+    bool found_loaded_wire = false;
+    for (const auto& lw : loaded->wires) {
+        if (lw.start.node_id == "lpt:lamp" && lw.start.port_name == "v_out" &&
+            lw.end.node_id == "resistor_1" && lw.end.port_name == "v_in") {
+            found_loaded_wire = true;
+            EXPECT_EQ(lw.routing_points.size(), 1u)
+                << "Routing points must survive save/load";
+            if (!lw.routing_points.empty()) {
+                EXPECT_FLOAT_EQ(lw.routing_points[0].x, 250.0f);
+                EXPECT_FLOAT_EQ(lw.routing_points[0].y, 120.0f);
+            }
+        }
+    }
+    EXPECT_TRUE(found_loaded_wire) << "Wire inside sub-blueprint must survive load";
+
+    // Verify the resistor is in the collapsed group's internal_node_ids
+    bool found_in_group = false;
+    for (const auto& g : loaded->collapsed_groups) {
+        if (g.id == "lpt") {
+            for (const auto& nid : g.internal_node_ids) {
+                if (nid == "resistor_1") found_in_group = true;
+            }
+        }
+    }
+    EXPECT_TRUE(found_in_group) << "Added node must be in collapsed_group internal_node_ids after load";
+}
+
+// =============================================================================
 // Test: Persistence (Phase 5.3) - Editor format save/load
 // =============================================================================
 
@@ -1564,9 +1621,9 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     EXPECT_EQ(loaded->collapsed_groups[0].id, "lamp1");
     EXPECT_FALSE(loaded->collapsed_groups[0].internal_node_ids.empty());
 
-    // Visibility recomputed correctly
-    EXPECT_TRUE(loaded->find_node("lamp1")->visible);
-    EXPECT_FALSE(loaded->find_node("lamp1:lamp")->visible);
+    // group_id recomputed correctly
+    EXPECT_TRUE(loaded->find_node("lamp1")->group_id.empty());
+    EXPECT_EQ(loaded->find_node("lamp1:lamp")->group_id, "lamp1");
 
     // Viewport preserved
     EXPECT_FLOAT_EQ(loaded->pan.x, 50.0f);
@@ -1727,32 +1784,31 @@ TEST(BlueprintKind, KindDerivedFromClassname) {
 }
 
 // =============================================================================
-// Test: Hidden nodes should not produce content
+// Test: Grouped nodes have content, but are filtered by group_id at render time
 // =============================================================================
 
-TEST(BlueprintVisibility, HiddenNodeHasNoVisibleContent) {
+TEST(BlueprintVisibility, GroupedNodeHasContent_ButFilteredByGroupId) {
     Blueprint bp;
 
-    // Add a hidden IndicatorLight (simulates internal node of collapsed blueprint)
+    // Add an IndicatorLight with group_id (simulates internal node of collapsed blueprint)
     Node lamp;
     lamp.id = "internal_lamp";
     lamp.type_name = "IndicatorLight";
     lamp.kind = NodeKind::Node;
-    lamp.visible = false;  // Hidden behind collapsed blueprint
+    lamp.group_id = "some_group";  // Belongs to a group (will be filtered when rendering root view)
     lamp.node_content.type = NodeContentType::Text;
     lamp.node_content.label = "OFF";
     lamp.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(lamp));
 
-    // Verify the node IS hidden
+    // Verify the node has the assigned group_id
     auto* node = bp.find_node("internal_lamp");
     ASSERT_NE(node, nullptr);
-    EXPECT_FALSE(node->visible);
+    EXPECT_EQ(node->group_id, "some_group") << "Node should have group_id='some_group'";
 
-    // The visual node factory still creates a visual for it
+    // The visual node factory creates a visual for it (no visibility concept anymore)
     auto visual = VisualNodeFactory::create(*node);
-    EXPECT_FALSE(visual->isVisible()) << "Hidden node should have invisible visual";
-    // Content type is still Text internally (the rendering loop should check visibility)
+    // Content type is Text (the rendering loop filters by group_id, not by isVisible())
     EXPECT_EQ(visual->getContentType(), NodeContentType::Text);
 }
 

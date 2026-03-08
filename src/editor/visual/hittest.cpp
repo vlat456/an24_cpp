@@ -3,15 +3,15 @@
 #include "visual/node/node.h"
 
 // [h1a2b3c4] Primary overload: use VisualNodeCache for consistent hit testing
-HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp) {
+HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp,
+                   const std::string& group_id) {
     HitResult result;
     (void)vp;
 
-    // Сначала проверяем узлы через cache
+    // Check nodes belonging to this group
     for (size_t i = 0; i < bp.nodes.size(); i++) {
         const auto& n = bp.nodes[i];
-        // Skip hidden nodes (blueprint collapsing)
-        if (!n.visible) continue;
+        if (n.group_id != group_id) continue;
         auto* visual = cache.getOrCreate(n, bp.wires);
         if (visual->containsPoint(world_pos)) {
             result.type = HitType::Node;
@@ -20,19 +20,15 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
         }
     }
 
-    // Потом проверяем routing points (чтобы можно было их выбирать и dragить)
+    // Check routing points on wires belonging to this group
     constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
-        // Skip wires connected to hidden nodes (blueprint collapsing)
-        bool endpoints_visible = true;
-        for (const auto& n : bp.nodes) {
-            if ((n.id == w.start.node_id || n.id == w.end.node_id) && !n.visible) {
-                endpoints_visible = false;
-                break;
-            }
-        }
-        if (!endpoints_visible) continue;
+        // Skip wires whose endpoints are not in this group
+        const Node* sn = bp.find_node(w.start.node_id.c_str());
+        const Node* en = bp.find_node(w.end.node_id.c_str());
+        if (!sn || !en || sn->group_id != group_id || en->group_id != group_id) continue;
+
         for (size_t rp_idx = 0; rp_idx < w.routing_points.size(); rp_idx++) {
             const Pt& rp = w.routing_points[rp_idx];
             float dist = editor_math::distance(world_pos, rp);
@@ -45,25 +41,17 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, co
         }
     }
 
-    // [i2d4e6f8] Wire segment hit tolerance unified to 5.0f (was 20.0f for routing, 5.0f for final).
+    // [i2d4e6f8] Wire segment hit tolerance unified to 5.0f
     constexpr float WIRE_HIT_TOLERANCE = 5.0f;
 
-    // Потом проверяем провода
+    // Check wire segments
     for (size_t i = 0; i < bp.wires.size(); i++) {
         const auto& w = bp.wires[i];
 
-        const Node* start_node = nullptr;
-        const Node* end_node = nullptr;
-
-        for (const auto& n : bp.nodes) {
-            if (n.id == w.start.node_id) start_node = &n;
-            if (n.id == w.end.node_id) end_node = &n;
-        }
-
+        const Node* start_node = bp.find_node(w.start.node_id.c_str());
+        const Node* end_node = bp.find_node(w.end.node_id.c_str());
         if (!start_node || !end_node) continue;
-
-        // Skip wires connected to hidden nodes (blueprint collapsing)
-        if (!start_node->visible || !end_node->visible) continue;
+        if (start_node->group_id != group_id || end_node->group_id != group_id) continue;
 
         // [p1q2r3s4] Pass wire ID so Bus alias ports resolve to correct positions
         // (matching render.cpp which also passes w.id). Without wire_id, Bus nodes
@@ -104,20 +92,18 @@ namespace {
     constexpr float PORT_HIT_RADIUS = 10.0f;  // Радиус зоны клика порта
 }
 
-HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos) {
+HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
+                         const std::string& group_id) {
     HitResult result;
 
-    // Проверяем порты всех узлов
+    // Check ports of nodes belonging to this group
     for (size_t node_idx = 0; node_idx < bp.nodes.size(); node_idx++) {
         const auto& node = bp.nodes[node_idx];
+        if (node.group_id != group_id) continue;
 
         // Always call getOrCreate with wires to ensure BusVisualNode has dynamic ports
-        // This is important because Bus nodes create visual ports based on wire connections
         auto* visual = cache.getOrCreate(node, bp.wires);
         if (!visual) continue;
-
-        // Skip ports from hidden nodes (drilled-in blueprints)
-        if (!visual->isVisible()) continue;
 
         // Проверяем все порты
         for (size_t port_idx = 0; port_idx < visual->getPortCount(); port_idx++) {

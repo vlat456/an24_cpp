@@ -16,7 +16,8 @@ public:
                        Pt canvas_min, VisualNodeCache& cache,
                        Pt world_pos,
                        const an24::Simulator<an24::JIT_Solver>& sim,
-                       const std::vector<std::vector<Pt>>& polylines) const;
+                       const std::vector<std::vector<Pt>>& polylines,
+                       const std::string& group_id = "") const;
 
     /// Render a tooltip box.
     static void renderTooltip(IDrawList& dl, const TooltipInfo& tooltip);

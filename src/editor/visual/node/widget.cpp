@@ -228,24 +228,10 @@ Pt ContentWidget::getPreferredSize(IDrawList*) const {
     return Pt(0, 16.0f); // minimum preferred height
 }
 
-void ContentWidget::render(IDrawList* dl, Pt origin, float zoom) const {
-    if (label_.empty()) return;
-
-    float w = width_ * zoom;
-    float h = height_ * zoom;
-    float lm = left_margin_ * zoom;
-    float rm = right_margin_ * zoom;
-    float font = FONT_SIZE * zoom;
-
-    // Render label centered in available content area
-    float content_x = origin.x + lm;
-    float content_w = w - lm - rm;
-    if (content_w <= 0) return;
-
-    Pt text_size = dl->calc_text_size(label_.c_str(), font);
-    float tx = content_x + (content_w - text_size.x) / 2;
-    float ty = origin.y + (h - font) / 2;
-    dl->add_text(Pt(tx, ty), label_.c_str(), COLOR_TEXT_DIM, font);
+void ContentWidget::render(IDrawList* /*dl*/, Pt /*origin*/, float /*zoom*/) const {
+    // No-op: ContentWidget is a layout spacer only.
+    // All content rendering is done by the ImGui overlay in an24_editor.cpp,
+    // which reads live node_content values (not stale cached copies).
 }
 
 // ============================================================================

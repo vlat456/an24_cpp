@@ -8,13 +8,14 @@ TooltipInfo TooltipDetector::detect(const Blueprint& bp, const Viewport& vp,
                                     Pt canvas_min, VisualNodeCache& cache,
                                     Pt world_pos,
                                     const an24::Simulator<an24::JIT_Solver>& sim,
-                                    const std::vector<std::vector<Pt>>& polylines) const {
+                                    const std::vector<std::vector<Pt>>& polylines,
+                                    const std::string& group_id) const {
     constexpr float PORT_RADIUS = 8.0f;
     TooltipInfo result;
 
     // Check ports
     for (const auto& n : bp.nodes) {
-        if (!n.visible) continue;
+        if (n.group_id != group_id) continue;
         auto* vis = cache.getOrCreate(n, bp.wires);
         for (size_t pi = 0; pi < vis->getPortCount(); pi++) {
             auto* port = vis->getPort(pi);

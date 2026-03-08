@@ -1,9 +1,5 @@
 #include "app.h"
-#include "visual/hittest.h"
-#include "wires/hittest.h"
-#include "visual/trigonometry.h"
 #include "visual/node/node.h"
-#include "visual/scene/wire_manager.h"
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
@@ -15,369 +11,10 @@
 #include <fstream>
 #include <iostream>
 
-void EditorApp::on_mouse_down(Pt world_pos, MouseButton btn, Pt canvas_min, bool add_to_selection) {
-    (void)canvas_min;
-    last_mouse_pos = world_pos;  // Store last mouse position
-
-    if (btn == MouseButton::Left) {
-        // Сначала проверяем порты для создания проводов
-        HitResult port_hit = scene.hitTestPorts(world_pos);
-        if (port_hit.type == HitType::Port) {
-            // Try to detach an existing wire from this port (wire reconnection).
-            auto wire_match = wire_manager.findWireOnPort(port_hit);
-            if (wire_match) {
-                interaction.start_wire_reconnect(
-                    wire_match->wire_index, wire_match->detach_start,
-                    wire_match->anchor_pos, wire_match->fixed_side);
-                DEBUG_LOG("Started wire reconnection: wire={} detach_start={}",
-                         scene.wires()[wire_match->wire_index].id, wire_match->detach_start);
-                return;
-            }
-
-            // No existing wire on this port — start creating a new wire
-            interaction.start_wire_creation(
-                port_hit.port_node_id,
-                port_hit.port_name,
-                port_hit.port_side,
-                port_hit.port_position
-            );
-            DEBUG_LOG("Started wire creation from port: {}.{}", port_hit.port_node_id, port_hit.port_name);
-            return;
-        }
-
-        // Hit test - что под курсром? [h1a2b3c4] use cache
-        HitResult hit = scene.hitTest(world_pos);
-        DEBUG_LOG("Hit test at ({:.1f}, {:.1f}): type={}", world_pos.x, world_pos.y, (int)hit.type);
-
-        if (hit.type == HitType::Node) {
-            // Если не add_to_selection - очищаем предыдущее выделение
-            if (!add_to_selection) {
-                interaction.clear_selection();
-            }
-            // Выделяем узел и начинаем drag
-            interaction.add_node_selection(hit.node_index);
-            // drag_anchor = позиция первого выделенного узла (unsnapped accumulator)
-            // [h1a2b3c4] Use cache instead of VisualNodeFactory::create
-            auto* primary_visual = scene.cache().getOrCreate(scene.nodes()[hit.node_index], scene.wires());
-            Pt primary_pos = primary_visual->getPosition();
-            interaction.start_drag_node(primary_pos);
-            // Сохраняем смещения относительно anchor для каждого выделенного узла
-            interaction.drag_node_offsets.clear();
-            for (size_t idx : interaction.selected_nodes) {
-                if (idx < scene.nodes().size()) {
-                    auto* visual = scene.cache().getOrCreate(scene.nodes()[idx], scene.wires());
-                    interaction.drag_node_offsets.push_back(visual->getPosition() - primary_pos);
-                }
-            }
-        } else if (hit.type == HitType::RoutingPoint) {
-            // Выделяем routing point и начинаем drag
-            // [e5f6g7h8] Bounds-check indices before indexing
-            if (hit.wire_index < scene.wires().size() &&
-                hit.routing_point_index < scene.wires()[hit.wire_index].routing_points.size()) {
-                Pt rp_pos = scene.wires()[hit.wire_index].routing_points[hit.routing_point_index];
-                interaction.start_drag_routing_point(hit.wire_index, hit.routing_point_index, rp_pos);
-            }
-        } else if (hit.type == HitType::Wire) {
-            // Выделяем провод
-            interaction.selected_wire = hit.wire_index;
-            interaction.clear_drag();
-        } else {
-            // Клик в пустоту - panning (как в Rust)
-            interaction.clear_selection();
-            interaction.set_panning(true);
-        }
-    } else if (btn == MouseButton::Right) {
-        // Right click - show context menu
-        HitResult hit = scene.hitTest(world_pos);
-        if (hit.type == HitType::None) {
-            // Click on empty space - show add component menu
-            show_context_menu = true;
-            context_menu_pos = world_pos;
-        }
-        // For other hit types, we could show context menus later (delete, properties, etc.)
-    }
-}
-
-void EditorApp::on_mouse_up(MouseButton btn) {
-    if (btn == MouseButton::Left) {
-        // [m6i8j0k2] Handle wire reconnection
-        if (interaction.dragging == Dragging::ReconnectingWire) {
-            size_t wire_idx = interaction.get_reconnect_wire_index();
-            bool detach_start = interaction.get_reconnect_is_start();
-            PortSide fixed_side = interaction.get_reconnect_fixed_side();
-
-            HitResult port_hit = scene.hitTestPorts(last_mouse_pos);
-
-            fprintf(stderr, "[WIRE-RECONN] mouse_up: port_hit.type=%d wire_idx=%zu detach_start=%d fixed_side=%d\n",
-                    (int)port_hit.type, wire_idx, detach_start, (int)fixed_side);
-            if (port_hit.type == HitType::Port) {
-                fprintf(stderr, "[WIRE-RECONN]   hit port: %s.%s side=%d wire_id=%s\n",
-                        port_hit.port_node_id.c_str(), port_hit.port_name.c_str(),
-                        (int)port_hit.port_side, port_hit.port_wire_id.c_str());
-            }
-
-            bool reconnected = false;
-            if (port_hit.type == HitType::Port && wire_idx < scene.wires().size()) {
-                auto& wire = scene.wires()[wire_idx];
-
-                // [a1b2c3d4] Check if dropped back on the SAME port that was
-                // detached — if so, leave the wire completely unchanged.
-                const WireEnd& detached = detach_start ? wire.start : wire.end;
-                bool same_as_original;
-                if (!port_hit.port_wire_id.empty()) {
-                    // Bus alias port — compare wire ID
-                    same_as_original = (port_hit.port_node_id == detached.node_id &&
-                                        port_hit.port_wire_id == wire.id);
-                } else {
-                    same_as_original = (port_hit.port_node_id == detached.node_id &&
-                                        port_hit.port_name == detached.port_name);
-                }
-                if (same_as_original) {
-                    fprintf(stderr, "[WIRE-RECONN]   dropped back on original port — no change\n");
-                    interaction.clear_wire_reconnect();
-                    DEBUG_LOG("Wire {} dropped back on original port — no change", wire.id);
-                    return;
-                }
-
-                // The fixed end determines compatibility
-                const WireEnd& fixed = detach_start ? wire.end : wire.start;
-
-                bool same_port = WireManager::isSamePort(
-                    port_hit.port_node_id, port_hit.port_name,
-                    fixed.node_id, fixed.port_name);
-                bool compatible = !same_port &&
-                                  WireManager::canConnect(port_hit.port_side, fixed_side);
-                fprintf(stderr, "[WIRE-RECONN]   fixed=%s.%s same_port=%d compatible=%d (hit_side=%d fixed_side=%d)\n",
-                        fixed.node_id.c_str(), fixed.port_name.c_str(),
-                        same_port, compatible, (int)port_hit.port_side, (int)fixed_side);
-
-                if (compatible) {
-                    WireEnd new_end(port_hit.port_node_id.c_str(),
-                                   port_hit.port_name.c_str(),
-                                   port_hit.port_side);
-                    scene.reconnectWire(wire_idx, detach_start, new_end);
-                    rebuild_simulation();
-                    reconnected = true;
-                    DEBUG_LOG("Reconnected wire {} to {}.{}", wire.id,
-                             port_hit.port_node_id, port_hit.port_name);
-                }
-            }
-
-            if (!reconnected && wire_idx < scene.wireCount()) {
-                // Released on invalid target — delete the wire
-                fprintf(stderr, "[WIRE-RECONN]   NOT reconnected — deleting wire[%zu] id=%s\n",
-                        wire_idx, scene.wires()[wire_idx].id.c_str());
-                scene.removeWire(wire_idx);
-                rebuild_simulation();
-                DEBUG_LOG("Deleted wire during reconnection (no valid target)");
-            }
-
-            interaction.clear_wire_reconnect();
-            return;
-        }
-
-        // Handle wire creation
-        if (interaction.dragging == Dragging::CreatingWire) {
-            // Check if we're over a compatible port
-            HitResult port_hit = scene.hitTestPorts(last_mouse_pos);
-
-            if (port_hit.type == HitType::Port) {
-                // Get the wire start information
-                const std::string& start_node = interaction.get_wire_start_node();
-                const std::string& start_port = interaction.get_wire_start_port();
-                PortSide start_side = interaction.get_wire_start_side();
-
-                // Check compatibility using single source of truth
-                bool same_port = WireManager::isSamePort(
-                    port_hit.port_node_id, port_hit.port_name,
-                    start_node, start_port);
-                bool compatible = !same_port &&
-                                  WireManager::canConnect(port_hit.port_side, start_side);
-
-                fprintf(stderr, "[WIRE-CREATE] from %s.%s(side=%d) to %s.%s(side=%d): same_port=%d compatible=%d\n",
-                        start_node.c_str(), start_port.c_str(), (int)start_side,
-                        port_hit.port_node_id.c_str(), port_hit.port_name.c_str(), (int)port_hit.port_side,
-                        same_port, compatible);
-
-                if (compatible) {
-                    // Create the wire
-                    WireEnd start_end(start_node.c_str(), start_port.c_str(), start_side);
-                    WireEnd end_end(port_hit.port_node_id.c_str(),
-                                   port_hit.port_name.c_str(),
-                                   port_hit.port_side);
-
-                    // [f6g7h8i9] Use monotonic counter to avoid ID collision
-                    // when wires are deleted and re-created.
-                    Wire w = Wire::make(
-                        scene.nextWireId().c_str(),
-                        start_end,
-                        end_end
-                    );
-
-                    if (scene.addWire(std::move(w))) {
-                        rebuild_simulation();
-                        fprintf(stderr, "[WIRE-CREATE] SUCCESS: wire added\n");
-                    } else {
-                        fprintf(stderr, "[WIRE-CREATE] REJECTED by add_wire_validated\n");
-                    }
-                } else {
-                    fprintf(stderr, "[WIRE-CREATE] REJECTED: not compatible (same_port=%d sides: start=%d hit=%d)\n",
-                            same_port, (int)start_side, (int)port_hit.port_side);
-                }
-            }
-
-            // Always clear wire creation state
-            interaction.clear_wire_creation();
-            return;
-        }
-
-        // Если был marquee selection - применить его
-        if (interaction.marquee_selecting) {
-            // Marquee selection - выделить все узлы в прямоугольнике
-            float min_x = std::min(interaction.marquee_start.x, interaction.marquee_end.x);
-            float max_x = std::max(interaction.marquee_start.x, interaction.marquee_end.x);
-            float min_y = std::min(interaction.marquee_start.y, interaction.marquee_end.y);
-            float max_y = std::max(interaction.marquee_start.y, interaction.marquee_end.y);
-
-            for (size_t i = 0; i < scene.nodes().size(); i++) {
-                auto* visual = scene.cache().getOrCreate(scene.nodes()[i], scene.wires());
-                Pt pos = visual->getPosition();
-                Pt size = visual->getSize();
-                // Check if node center is in marquee
-                float cx = pos.x + size.x / 2;
-                float cy = pos.y + size.y / 2;
-                if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y) {
-                    interaction.add_node_selection(i);
-                }
-            }
-            interaction.marquee_selecting = false;
-        }
-
-        // Snap уже применяется в on_mouse_drag, не нужен на release
-        interaction.drag_node_offsets.clear();
-        interaction.set_panning(false);
-        interaction.end_drag();
-    }
-}
-
-void EditorApp::on_mouse_drag(Pt world_delta, Pt canvas_min) {
-    (void)canvas_min;
-
-    if (interaction.panning) {
-        // Update last mouse position during panning
-        last_mouse_pos = last_mouse_pos + world_delta;
-
-        // Панорамирование - обратный delta
-        scene.viewport().pan.x -= world_delta.x;
-        scene.viewport().pan.y -= world_delta.y;
-    } else if (interaction.dragging == Dragging::Node) {
-        // Accumulate unsnapped delta, then snap
-        interaction.update_drag_anchor(world_delta);
-        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.gridStep());
-        for (size_t i = 0; i < interaction.selected_nodes.size(); i++) {
-            size_t idx = interaction.selected_nodes[i];
-            if (idx < scene.nodes().size()) {
-                Pt offset = (i < interaction.drag_node_offsets.size())
-                    ? interaction.drag_node_offsets[i] : Pt(0.0f, 0.0f);
-                Pt new_pos = snapped + offset;
-                auto* visual = scene.cache().getOrCreate(scene.nodes()[idx], scene.wires());
-                visual->setPosition(new_pos);
-                scene.nodes()[idx].pos = new_pos;
-            }
-        }
-    } else if (interaction.dragging == Dragging::RoutingPoint) {
-        // Accumulate unsnapped delta, then snap
-        interaction.update_drag_anchor(world_delta);
-        Pt snapped = editor_math::snap_to_grid(interaction.drag_anchor, scene.gridStep());
-        size_t wire_idx = interaction.routing_point_wire;
-        size_t rp_idx = interaction.routing_point_index;
-        if (wire_idx < scene.wires().size()) {
-            auto& wire = scene.wires()[wire_idx];
-            if (rp_idx < wire.routing_points.size()) {
-                wire.routing_points[rp_idx] = snapped;
-            }
-        }
-    } else if (interaction.marquee_selecting) {
-        // Обновляем конец marquee
-        interaction.marquee_end = interaction.marquee_end + world_delta;
-    } else if (interaction.dragging == Dragging::CreatingWire ||
-               interaction.dragging == Dragging::ReconnectingWire) {
-        // Wire creation/reconnection - update last_mouse_pos
-        last_mouse_pos = last_mouse_pos + world_delta;
-    }
-}
-
-void EditorApp::on_scroll(float delta, Pt mouse_pos, Pt canvas_min) {
-    scene.viewport().zoom_at(delta, mouse_pos, canvas_min);
-}
-
-void EditorApp::on_key_down(Key key) {
-    if (key == Key::Escape) {
-        // Сброс выделения
-        interaction.clear_selection();
-    } else if (key == Key::Space) {
-        // Toggle simulation
-        if (simulation_running) {
-            stop_simulation();
-        } else {
-            start_simulation();
-        }
-    } else if (key == Key::Delete) {
-        // Удаление всех выделенных узлов (sorted descending for stable erase)
-        std::sort(interaction.selected_nodes.begin(), interaction.selected_nodes.end(), std::greater<size_t>());
-        scene.removeNodes(interaction.selected_nodes);
-        interaction.clear_selection();
-        rebuild_simulation();
-    } else if (key == Key::R) {
-        // R - route selected wire via A*
-        if (interaction.selected_wire.has_value()) {
-            size_t wire_idx = *interaction.selected_wire;
-            if (wire_manager.routeWire(wire_idx)) {
-                DEBUG_LOG("Rerouted wire {} with {} points",
-                         scene.wires()[wire_idx].id,
-                         scene.wires()[wire_idx].routing_points.size());
-            } else {
-                DEBUG_LOG("Could not find A* route for wire {}",
-                         wire_idx < scene.wireCount() ? scene.wires()[wire_idx].id : "?");
-            }
-        }
-    } else if (key == Key::RightBracket) {
-        // ] = increase grid size
-        scene.gridStepUp();
-        DEBUG_LOG("Grid step increased to {}", scene.viewport().grid_step);
-    } else if (key == Key::LeftBracket) {
-        // [ = decrease grid size
-        scene.gridStepDown();
-        DEBUG_LOG("Grid step decreased to {}", scene.viewport().grid_step);
-    }
-}
-
-void EditorApp::on_double_click(Pt world_pos) {
-    DEBUG_LOG("Double click at ({:.1f}, {:.1f})", world_pos.x, world_pos.y);
-
-    // 1. Check routing point hit — remove it
-    auto rp_hit = hit_test_routing_point(scene.blueprint(), world_pos);
-    if (rp_hit) {
-        DEBUG_LOG("Double click: delete routing point wire={} rp={}", rp_hit->wire_index, rp_hit->routing_point_index);
-        wire_manager.removeRoutingPoint(rp_hit->wire_index, rp_hit->routing_point_index);
-        return;
-    }
-
-    // 2. Check wire hit — add a routing point
-    HitResult hit = scene.hitTest(world_pos);
-    DEBUG_LOG("Double click: hit type={}", (int)hit.type);
-    if (hit.type == HitType::Wire) {
-        DEBUG_LOG("Double click: add routing point to wire {}", hit.wire_index);
-        wire_manager.addRoutingPoint(hit.wire_index, world_pos);
-    }
-}
-
 void EditorApp::update_node_content_from_simulation() {
     if (!simulation_running) return;
 
     for (auto& node : scene.nodes()) {
-        // Skip hidden nodes (blueprint collapsing) — no content updates needed
-        if (!node.visible) continue;
         // Update Voltmeter gauge voltage
         if (node.type_name == "Voltmeter") {
             float voltage = simulation.get_port_value(node.id, "v_in");
@@ -417,9 +54,6 @@ void EditorApp::reset_node_content() {
     using namespace an24;
 
     for (auto& node : scene.nodes()) {
-        // Skip hidden nodes (blueprint collapsing)
-        if (!node.visible) continue;
-
         const auto* def = component_registry.get(node.type_name);
         if (!def) continue;
 
@@ -452,48 +86,12 @@ void EditorApp::reset_node_content() {
     }
 }
 
-// Helper: create default node_content based on ComponentDefinition
+// [DRY-i9j0] Replaced duplicate — now delegates to create_node_content_from_def in node.h
 static NodeContent create_node_content(const an24::ComponentDefinition* def) {
-    using namespace an24;
-
-    NodeContent content;
-    content.type = NodeContentType::None;
-
-    if (!def) return content;
-
-    // Parse content type from component definition
-    std::string content_type_str = def->default_content_type;
-
-    if (content_type_str == "Gauge") {
-        content.type = NodeContentType::Gauge;
-        content.label = "V";
-        content.value = 0.0f;
-        content.min = 0.0f;
-        content.max = 30.0f;
-        content.unit = "V";
-    } else if (content_type_str == "Switch") {
-        content.type = NodeContentType::Switch;
-        content.label = "ON";
-        // Read default "closed" state from component definition
-        auto it = def->default_params.find("closed");
-        if (it != def->default_params.end()) {
-            content.state = (it->second == "true");
-        } else {
-            content.state = false;  // Default to false if not specified
-        }
-    } else if (content_type_str == "HoldButton") {
-        content.type = NodeContentType::Switch;  // Reuse Switch UI (button)
-        content.label = "RELEASED";
-        content.state = false;  // Default to released state
-    } else if (content_type_str == "Text") {
-        content.type = NodeContentType::Text;
-        content.label = "OFF";
-    }
-
-    return content;
+    return create_node_content_from_def(def);
 }
 
-void EditorApp::add_component(const std::string& classname, Pt world_pos) {
+void EditorApp::add_component(const std::string& classname, Pt world_pos, const std::string& group_id) {
     using namespace an24;
     
     // Check if component exists in registry
@@ -528,6 +126,7 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     node.name = unique_id;  // Use ID as display name for now
     node.type_name = classname;
     node.pos = snapped_pos;
+    node.group_id = group_id;
 
     // Set NodeKind based on classname
     if (classname == "Bus") {
@@ -560,12 +159,22 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos) {
     // Add node to scene
     scene.addNode(node);
 
+    // Keep collapsed_groups.internal_node_ids in sync
+    if (!group_id.empty()) {
+        for (auto& g : blueprint.collapsed_groups) {
+            if (g.id == group_id) {
+                g.internal_node_ids.push_back(unique_id);
+                break;
+            }
+        }
+    }
+
     // Rebuild simulation to include new component
     rebuild_simulation();
 
-    printf("Added component: %s (id=%s) at (%.1f, %.1f) with %zu inputs, %zu outputs\n",
+    printf("Added component: %s (id=%s) at (%.1f, %.1f) group=%s\n",
            classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
-           node.inputs.size(), node.outputs.size());
+           group_id.empty() ? "root" : group_id.c_str());
 }
 
 void EditorApp::scan_blueprints() {
@@ -637,7 +246,7 @@ void EditorApp::scan_blueprints() {
     spdlog::info("[editor] scanned {} blueprints from {}", blueprints.size(), blueprints_dir.string());
 }
 
-void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
+void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id) {
     using namespace an24;
 
     // Find blueprint info
@@ -761,8 +370,8 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
     collapsed_node.kind = NodeKind::Blueprint;
     collapsed_node.collapsed = true;
     collapsed_node.blueprint_path = info->path;
-    collapsed_node.visible = true;  // Visible in parent view
     collapsed_node.pos = snapped_pos;
+    collapsed_node.group_id = group_id;
 
     // Calculate size based on number of exposed ports
     size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
@@ -790,8 +399,11 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos) {
     collapsed_group.internal_node_ids = internal_node_ids;
     scene.blueprint().collapsed_groups.push_back(collapsed_group);
 
-    // Recompute visibility from collapsed_groups state
-    scene.blueprint().recompute_visibility(drill_stack_);
+    // Recompute group_ids from collapsed_groups state
+    scene.blueprint().recompute_group_ids();
+
+    // Auto-layout the internal nodes of this group
+    scene.blueprint().auto_layout_group(unique_id);
 
     // Clear visual cache to force rebuild
     scene.cache().clear();
@@ -828,10 +440,10 @@ void EditorApp::hold_button_release(const std::string& node_id) {
     signal_overrides[control_port] = 2.0f;
 }
 
-void EditorApp::drill_into(const std::string& collapsed_group_id) {
+void EditorApp::open_sub_window(const std::string& collapsed_group_id) {
     // Find the CollapsedGroup for this ID
     const CollapsedGroup* group = nullptr;
-    for (const auto& g : scene.blueprint().collapsed_groups) {
+    for (const auto& g : blueprint.collapsed_groups) {
         if (g.id == collapsed_group_id) {
             group = &g;
             break;
@@ -839,57 +451,16 @@ void EditorApp::drill_into(const std::string& collapsed_group_id) {
     }
 
     if (!group) {
-        spdlog::error("[editor] Cannot drill into: collapsed group '{}' not found", collapsed_group_id);
+        spdlog::error("[editor] Cannot open sub-window: collapsed group '{}' not found", collapsed_group_id);
         return;
     }
 
-    // Push onto drill stack (supports N-level hierarchy)
-    drill_stack_.push_back(collapsed_group_id);
+    // Open (or re-focus) a window for this group
+    auto* win = window_manager.open(collapsed_group_id, group->type_name + " [" + collapsed_group_id + "]");
 
-    // Recompute visibility from collapsed_groups + drill stack
-    scene.blueprint().recompute_visibility(drill_stack_);
-
-    // Clear visual cache to force rebuild
-    scene.cache().clear();
-
-    spdlog::info("[editor] Drilled into blueprint '{}' (depth={}, showing {} internal nodes)",
-                 group->id, drill_stack_.size(), group->internal_node_ids.size());
-}
-
-void EditorApp::drill_out() {
-    if (drill_stack_.empty()) {
-        spdlog::warn("[editor] Already at top-level view, cannot drill out");
-        return;
-    }
-
-    std::string leaving = drill_stack_.back();
-
-    // Find the CollapsedGroup we're leaving
-    const CollapsedGroup* group = nullptr;
-    for (const auto& g : scene.blueprint().collapsed_groups) {
-        if (g.id == leaving) {
-            group = &g;
-            break;
-        }
-    }
-
-    if (!group) {
-        spdlog::error("[editor] Cannot drill out: collapsed group '{}' not found", leaving);
-        drill_stack_.clear();
-        return;
-    }
-
-    // Pop from drill stack
-    drill_stack_.pop_back();
-
-    // Recompute visibility from collapsed_groups + drill stack
-    scene.blueprint().recompute_visibility(drill_stack_);
-
-    // Clear visual cache to force rebuild
-    scene.cache().clear();
-
-    spdlog::info("[editor] Drilled out from '{}' (depth={}, showing collapsed blueprint '{}')",
-                 leaving, drill_stack_.size(), group->id);
+    spdlog::info("[editor] Opened sub-window for '{}' ({} internal nodes)",
+                 collapsed_group_id, group->internal_node_ids.size());
+    (void)win;
 }
 
 void EditorApp::update_simulation_step() {

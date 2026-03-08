@@ -1038,61 +1038,64 @@ TEST(RenderTest, OneToOne_BusPort_CanHaveMultipleWires) {
 }
 
 // =============================================================================
-// Visibility Tests: Blueprint Collapsing
+// Group Filtering Tests: Blueprint Collapsing via group_id
 // =============================================================================
 
-TEST(RenderVisibility, HiddenNode_NotRendered) {
+TEST(RenderGroupFilter, NodeInDifferentGroup_NotRendered) {
     Blueprint bp;
 
-    // Visible node
+    // Root-level node (group_id = "")
     Node n1;
-    n1.id = "visible_node";
-    n1.name = "Visible";
+    n1.id = "root_node";
+    n1.name = "Root";
     n1.type_name = "Battery";
-    n1.visible = true;
+    n1.group_id = "";
     n1.at(0.0f, 0.0f).size_wh(120.0f, 80.0f);
     bp.add_node(std::move(n1));
 
-    // Hidden node (internal, from expanded blueprint)
+    // Internal node (group_id = "lamp1")
     Node n2;
-    n2.id = "hidden_node";
-    n2.name = "Hidden";
+    n2.id = "lamp1:internal";
+    n2.name = "Internal";
     n2.type_name = "IndicatorLight";
-    n2.visible = false;
+    n2.group_id = "lamp1";
     n2.at(200.0f, 0.0f).size_wh(120.0f, 80.0f);
     bp.add_node(std::move(n2));
 
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    // Render root group — internal node should not appear
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
+                    nullptr, std::nullopt, nullptr, "");
 
-    // Should render at least the visible node rect
-    EXPECT_TRUE(dl.had_rect()) << "Visible node should render a rect";
+    // Should render at least the root node rect
+    EXPECT_TRUE(dl.had_rect()) << "Root node should render a rect";
 }
 
-TEST(RenderVisibility, WireToHiddenNode_NotRendered) {
+TEST(RenderGroupFilter, WireCrossGroup_NotRendered) {
     Blueprint bp;
 
-    // Visible node
+    // Root-level node
     Node n1;
     n1.id = "n1";
     n1.name = "N1";
-    n1.visible = true;
+    n1.group_id = "";
     n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
     n1.output("out");
     bp.add_node(std::move(n1));
 
-    // Hidden node
+    // Node in different group
     Node n2;
     n2.id = "n2";
     n2.name = "N2";
-    n2.visible = false;
+    n2.group_id = "lamp1";
     n2.at(200.0f, 0.0f).size_wh(100.0f, 50.0f);
     n2.input("in");
     bp.add_node(std::move(n2));
 
-    // Wire from visible to hidden node
+    // Wire crosses groups
     Wire w;
     w.id = "w1";
     w.start.node_id = "n1";
@@ -1104,19 +1107,21 @@ TEST(RenderVisibility, WireToHiddenNode_NotRendered) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
+                    nullptr, std::nullopt, nullptr, "");
 
-    // Wire should NOT be rendered — endpoint is hidden
-    EXPECT_FALSE(dl.had_polyline()) << "Wire to hidden node should not render";
+    // Wire should NOT be rendered — endpoints are in different groups
+    EXPECT_FALSE(dl.had_polyline()) << "Wire crossing groups should not render";
 }
 
-TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
+TEST(RenderGroupFilter, WireSameGroup_Rendered) {
     Blueprint bp;
 
     Node n1;
     n1.id = "n1";
     n1.name = "N1";
-    n1.visible = true;
+    n1.group_id = "";
     n1.at(0.0f, 0.0f).size_wh(100.0f, 50.0f);
     n1.output("out");
     bp.add_node(std::move(n1));
@@ -1124,7 +1129,7 @@ TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
     Node n2;
     n2.id = "n2";
     n2.name = "N2";
-    n2.visible = true;
+    n2.group_id = "";
     n2.at(200.0f, 0.0f).size_wh(100.0f, 50.0f);
     n2.input("in");
     bp.add_node(std::move(n2));
@@ -1140,39 +1145,50 @@ TEST(RenderVisibility, WireBetweenVisibleNodes_Rendered) {
     MockDrawList dl;
     Viewport vp;
     VisualNodeCache cache;
-    BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
+                    nullptr, std::nullopt, nullptr, "");
 
-    EXPECT_TRUE(dl.had_polyline()) << "Wire between visible nodes should render";
+    EXPECT_TRUE(dl.had_polyline()) << "Wire within same group should render";
 }
 
-TEST(RenderVisibility, CacheSync_VisibilityUpdatesOnCacheHit) {
-    // Test that VisualNodeCache properly syncs visibility
+TEST(RenderGroupFilter, RenderSubgroup_ShowsOnlyGroupNodes) {
     Blueprint bp;
 
-    Node n;
-    n.id = "node1";
-    n.name = "Test";
-    n.type_name = "Battery";
-    n.visible = true;
-    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
-    bp.add_node(std::move(n));
+    // Root node
+    Node root;
+    root.id = "root";
+    root.name = "Root";
+    root.type_name = "Battery";
+    root.group_id = "";
+    root.at(0.0f, 0.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(root));
 
+    // Two internal nodes in "lamp1"
+    Node lamp_a;
+    lamp_a.id = "lamp1:a";
+    lamp_a.name = "A";
+    lamp_a.type_name = "Resistor";
+    lamp_a.group_id = "lamp1";
+    lamp_a.at(100.0f, 100.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(lamp_a));
+
+    Node lamp_b;
+    lamp_b.id = "lamp1:b";
+    lamp_b.name = "B";
+    lamp_b.type_name = "Load";
+    lamp_b.group_id = "lamp1";
+    lamp_b.at(300.0f, 100.0f).size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(lamp_b));
+
+    // Render "lamp1" group — root should not appear, lamp_a and lamp_b should
+    MockDrawList dl;
+    Viewport vp;
     VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
+                    nullptr, std::nullopt, nullptr, "lamp1");
 
-    // First call: creates visual node with visible=true
-    auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
-    ASSERT_NE(visual, nullptr);
-    EXPECT_TRUE(visual->isVisible()) << "Initial visibility should be true";
-
-    // Change visibility in data model (simulating drill_into)
-    bp.nodes[0].visible = false;
-
-    // Second call: should sync visibility from data model
-    visual = cache.getOrCreate(bp.nodes[0], bp.wires);
-    EXPECT_FALSE(visual->isVisible()) << "Cache should sync visibility from Node";
-
-    // Change back (simulating drill_out)
-    bp.nodes[0].visible = true;
-    visual = cache.getOrCreate(bp.nodes[0], bp.wires);
-    EXPECT_TRUE(visual->isVisible()) << "Cache should sync visibility back to true";
+    // At least 2 rects for the two internal nodes (body + ports)
+    EXPECT_GE(dl.rect_count(), 2u) << "Should render internal nodes of lamp1";
 }

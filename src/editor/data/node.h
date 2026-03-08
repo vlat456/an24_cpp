@@ -45,8 +45,9 @@ struct Node {
     bool collapsed = true;   ///< Show as single node (true) or expanded (false)
     std::string blueprint_path;  ///< Path to nested blueprint JSON (e.g., "blueprints/simple_battery.json")
 
-    // View-level visibility for blueprint collapsing
-    bool visible = true;      ///< Visibility flag (true = render this node, false = hidden)
+    /// Group membership: which collapsed group this node belongs to.
+    /// Empty string = root (top-level). "lamp1" = inside collapsed group "lamp1".
+    std::string group_id;
 
     Pt pos;                  ///< Позиция (верхний левый угол)
     Pt size;                 ///< Размеры (ширина × высота)
@@ -66,6 +67,7 @@ struct Node {
         , kind(NodeKind::Node)
         , collapsed(true)
         , blueprint_path()
+        , group_id()
         , pos(Pt::zero())
         , size(120.0f, 80.0f)
         , inputs()
@@ -131,5 +133,36 @@ inline Pt get_default_node_size(const std::string& type_name, const an24::Compon
 
     // Default fallback for regular nodes (components without default_size in JSON)
     return Pt(120, 80);
+}
+
+// [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp
+/// Create default NodeContent from a ComponentDefinition (single source of truth)
+inline NodeContent create_node_content_from_def(const an24::ComponentDefinition* def) {
+    NodeContent content;
+    content.type = NodeContentType::None;
+    if (!def) return content;
+
+    const std::string& ct = def->default_content_type;
+    if (ct == "Gauge") {
+        content.type = NodeContentType::Gauge;
+        content.label = "V";
+        content.value = 0.0f;
+        content.min = 0.0f;
+        content.max = 30.0f;
+        content.unit = "V";
+    } else if (ct == "Switch") {
+        content.type = NodeContentType::Switch;
+        content.label = "ON";
+        auto it = def->default_params.find("closed");
+        content.state = (it != def->default_params.end() && it->second == "true");
+    } else if (ct == "HoldButton") {
+        content.type = NodeContentType::Switch;
+        content.label = "RELEASED";
+        content.state = false;
+    } else if (ct == "Text") {
+        content.type = NodeContentType::Text;
+        content.label = "OFF";
+    }
+    return content;
 }
 

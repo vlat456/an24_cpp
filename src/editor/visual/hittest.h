@@ -30,11 +30,15 @@ struct HitResult {
     std::string port_name;           ///< Имя порта (logical, e.g. "v" for Bus)
     std::string port_wire_id;       ///< [g1h2i3j4] Wire ID for Bus alias ports (empty for normal ports)
     Pt port_position;               ///< Позиция порта
-    PortSide port_side;             ///< Сторона порта
+    PortSide port_side = PortSide::Input;  ///< [BUG-a1b2] Was uninitialized — UB on read when type != Port
 };
 
 /// Определить что находится в указанной точке (мировые координаты)
-HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp);
+/// group_id filters which nodes/wires are considered ("" = root level)
+HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp,
+                   const std::string& group_id = "");
 
 /// Hit test для портов
-HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos);
+/// group_id filters which nodes are considered ("" = root level)
+HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
+                         const std::string& group_id = "");

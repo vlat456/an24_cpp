@@ -3,28 +3,6 @@
 #include <set>
 #include <cstdio>
 
-static const char* port_type_cstr(an24::PortType t) {
-    switch (t) {
-        case an24::PortType::V: return "V";
-        case an24::PortType::I: return "I";
-        case an24::PortType::Bool: return "Bool";
-        case an24::PortType::RPM: return "RPM";
-        case an24::PortType::Temperature: return "Temp";
-        case an24::PortType::Pressure: return "Press";
-        case an24::PortType::Position: return "Pos";
-        default: return "Any";
-    }
-}
-
-static const char* port_side_cstr(PortSide s) {
-    switch (s) {
-        case PortSide::Input: return "In";
-        case PortSide::Output: return "Out";
-        case PortSide::InOut: return "InOut";
-        default: return "?";
-    }
-}
-
 /// Check if two port types are compatible for connection
 static bool are_ports_compatible(an24::PortType from_type, an24::PortType to_type) {
     // Any type is wildcard - compatible with everything
@@ -53,47 +31,25 @@ static an24::PortType find_port_type(const Node& node, const std::string& port_n
     return an24::PortType::Any;
 }
 
+// [SMELL-k1l2] Removed 17 fprintf debug lines — use spdlog for diagnostic logging instead
 bool Blueprint::add_wire_validated(Wire wire) {
-    fprintf(stderr, "[WIRE] add_wire_validated: %s.%s(%s) -> %s.%s(%s)\n",
-            wire.start.node_id.c_str(), wire.start.port_name.c_str(), port_side_cstr(wire.start.side),
-            wire.end.node_id.c_str(), wire.end.port_name.c_str(), port_side_cstr(wire.end.side));
-
     // Find the start and end nodes
     Node* start_node = nullptr;
     Node* end_node = nullptr;
 
     for (auto& n : nodes) {
-        if (n.id == wire.start.node_id) {
-            start_node = &n;
-        }
-        if (n.id == wire.end.node_id) {
-            end_node = &n;
-        }
+        if (n.id == wire.start.node_id) start_node = &n;
+        if (n.id == wire.end.node_id) end_node = &n;
     }
 
-    // If either node doesn't exist, don't add the wire
-    if (!start_node || !end_node) {
-        fprintf(stderr, "[WIRE]   REJECTED: node not found (start=%p end=%p)\n",
-                (void*)start_node, (void*)end_node);
-        return false;
-    }
-
-    fprintf(stderr, "[WIRE]   start_node: id=%s type=%s  end_node: id=%s type=%s\n",
-            start_node->id.c_str(), start_node->type_name.c_str(),
-            end_node->id.c_str(), end_node->type_name.c_str());
+    if (!start_node || !end_node) return false;
 
     // Get port types
     an24::PortType start_type = find_port_type(*start_node, wire.start.port_name);
     an24::PortType end_type = find_port_type(*end_node, wire.end.port_name);
 
-    fprintf(stderr, "[WIRE]   port types: start=%s end=%s\n",
-            port_type_cstr(start_type), port_type_cstr(end_type));
-
     // Check compatibility
-    if (!are_ports_compatible(start_type, end_type)) {
-        fprintf(stderr, "[WIRE]   REJECTED: port types incompatible\n");
-        return false;
-    }
+    if (!are_ports_compatible(start_type, end_type)) return false;
 
     // Check one-to-one connections (except for Bus/RefNode)
     bool start_allows_multiple = (start_node->type_name == "Bus" ||
@@ -101,54 +57,72 @@ bool Blueprint::add_wire_validated(Wire wire) {
     bool end_allows_multiple = (end_node->type_name == "Bus" ||
                                  end_node->type_name == "RefNode");
 
-    fprintf(stderr, "[WIRE]   allows_multiple: start=%d end=%d\n",
-            start_allows_multiple, end_allows_multiple);
-    fprintf(stderr, "[WIRE]   existing wires (%zu):\n", wires.size());
-    for (size_t i = 0; i < wires.size(); i++) {
-        fprintf(stderr, "[WIRE]     [%zu] %s: %s.%s(%s) -> %s.%s(%s)\n", i,
-                wires[i].id.c_str(),
-                wires[i].start.node_id.c_str(), wires[i].start.port_name.c_str(), port_side_cstr(wires[i].start.side),
-                wires[i].end.node_id.c_str(), wires[i].end.port_name.c_str(), port_side_cstr(wires[i].end.side));
-    }
-
     // Check if start port is already occupied
     if (!start_allows_multiple) {
         for (const auto& w : wires) {
-            if (w.start.node_id == wire.start.node_id &&
-                w.start.port_name == wire.start.port_name) {
-                fprintf(stderr, "[WIRE]   REJECTED: start port occupied by wire %s (w.start=%s.%s)\n",
-                        w.id.c_str(), w.start.node_id.c_str(), w.start.port_name.c_str());
+            if ((w.start.node_id == wire.start.node_id && w.start.port_name == wire.start.port_name) ||
+                (w.end.node_id == wire.start.node_id && w.end.port_name == wire.start.port_name))
                 return false;
-            }
-            if (w.end.node_id == wire.start.node_id &&
-                w.end.port_name == wire.start.port_name) {
-                fprintf(stderr, "[WIRE]   REJECTED: start port occupied by wire %s (w.end=%s.%s)\n",
-                        w.id.c_str(), w.end.node_id.c_str(), w.end.port_name.c_str());
-                return false;
-            }
         }
     }
 
     // Check if end port is already occupied
     if (!end_allows_multiple) {
         for (const auto& w : wires) {
-            if (w.end.node_id == wire.end.node_id &&
-                w.end.port_name == wire.end.port_name) {
-                fprintf(stderr, "[WIRE]   REJECTED: end port occupied by wire %s (w.end=%s.%s)\n",
-                        w.id.c_str(), w.end.node_id.c_str(), w.end.port_name.c_str());
+            if ((w.end.node_id == wire.end.node_id && w.end.port_name == wire.end.port_name) ||
+                (w.start.node_id == wire.end.node_id && w.start.port_name == wire.end.port_name))
                 return false;
-            }
-            if (w.start.node_id == wire.end.node_id &&
-                w.start.port_name == wire.end.port_name) {
-                fprintf(stderr, "[WIRE]   REJECTED: end port occupied by wire %s (w.start=%s.%s)\n",
-                        w.id.c_str(), w.start.node_id.c_str(), w.start.port_name.c_str());
-                return false;
-            }
         }
     }
 
-    // All checks passed - add the wire
-    fprintf(stderr, "[WIRE]   ACCEPTED\n");
     wires.push_back(std::move(wire));
     return true;
+}
+
+// ─── Auto-layout for a single group ───
+
+static constexpr float LAYOUT_GRID = 16.0f;
+static Pt layout_snap(Pt p) {
+    return Pt(std::round(p.x / LAYOUT_GRID) * LAYOUT_GRID,
+              std::round(p.y / LAYOUT_GRID) * LAYOUT_GRID);
+}
+
+void Blueprint::auto_layout_group(const std::string& group_id) {
+    // Collect indices of nodes in this group
+    std::vector<size_t> sources, buses, loads, grounds;
+    for (size_t i = 0; i < nodes.size(); i++) {
+        if (nodes[i].group_id != group_id) continue;
+        const auto& tn = nodes[i].type_name;
+        if (nodes[i].kind == NodeKind::Ref)
+            grounds.push_back(i);
+        else if (nodes[i].kind == NodeKind::Bus || tn == "Bus")
+            buses.push_back(i);
+        else if (tn == "Battery" || tn == "Generator")
+            sources.push_back(i);
+        else
+            loads.push_back(i);
+    }
+
+    if (sources.empty() && buses.empty() && loads.empty() && grounds.empty())
+        return;
+
+    constexpr float col_spacing = 200.0f;
+    constexpr float row_spacing = 120.0f;
+    constexpr float origin_x = 80.0f;
+    constexpr float origin_y = 80.0f;
+
+    float src_x = origin_x;
+    float bus_x = origin_x + col_spacing;
+    float load_x = origin_x + col_spacing * 2;
+
+    for (size_t i = 0; i < sources.size(); i++)
+        nodes[sources[i]].pos = layout_snap(Pt(src_x, origin_y + i * row_spacing));
+    for (size_t i = 0; i < buses.size(); i++)
+        nodes[buses[i]].pos = layout_snap(Pt(bus_x, origin_y + i * row_spacing));
+    for (size_t i = 0; i < loads.size(); i++)
+        nodes[loads[i]].pos = layout_snap(Pt(load_x, origin_y + i * row_spacing));
+
+    float ground_y = origin_y + std::max({sources.size(), buses.size(), loads.size(), size_t(1)}) * row_spacing;
+    for (size_t i = 0; i < grounds.size(); i++)
+        nodes[grounds[i]].pos = layout_snap(Pt(bus_x, ground_y + i * row_spacing));
 }

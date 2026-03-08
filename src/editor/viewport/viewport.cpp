@@ -1,4 +1,6 @@
 #include "viewport/viewport.h"
+#include <algorithm>
+#include <cmath>
 
 namespace {
 
@@ -12,10 +14,11 @@ constexpr float ZOOM_SPEED = 0.001f;
 
 } // namespace
 
+// [BUG-e5f6] Was 32.0f, mismatched Blueprint default of 16.0f — caused visual glitch on fresh start
 Viewport::Viewport()
     : pan(Pt::zero())
     , zoom(1.0f)
-    , grid_step(32.0f)
+    , grid_step(16.0f)
 {}
 
 Pt Viewport::screen_to_world(Pt screen, Pt canvas_min) const {
@@ -71,4 +74,24 @@ void Viewport::grid_step_down() {
 void Viewport::clamp_zoom() {
     if (zoom < ZOOM_MIN) zoom = ZOOM_MIN;
     if (zoom > ZOOM_MAX) zoom = ZOOM_MAX;
+}
+
+void Viewport::fit_content(Pt content_min, Pt content_max, float window_w, float window_h) {
+    float cw = content_max.x - content_min.x;
+    float ch = content_max.y - content_min.y;
+    if (cw < 1.0f) cw = 1.0f;
+    if (ch < 1.0f) ch = 1.0f;
+
+    constexpr float padding = 60.0f; // pixels of margin
+    float usable_w = std::max(window_w - 2 * padding, 1.0f);
+    float usable_h = std::max(window_h - 2 * padding, 1.0f);
+
+    zoom = std::min(usable_w / cw, usable_h / ch);
+    clamp_zoom();
+
+    // Center content: pan so that center of content maps to center of window
+    float cx = (content_min.x + content_max.x) * 0.5f;
+    float cy = (content_min.y + content_max.y) * 0.5f;
+    pan.x = cx - (window_w * 0.5f) / zoom;
+    pan.y = cy - (window_h * 0.5f) / zoom;
 }

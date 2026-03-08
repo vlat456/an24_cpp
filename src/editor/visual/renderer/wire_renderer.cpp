@@ -4,12 +4,20 @@
 #include "router/crossings.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
 
 void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                           Pt canvas_min, VisualNodeCache& cache,
                           const an24::Simulator<an24::JIT_Solver>* sim,
-                          std::optional<size_t> selected_wire) {
+                          std::optional<size_t> selected_wire,
+                          const std::string& group_id) {
     using namespace render_theme;
+
+    // [PERF-s1t2] Build node lookup map — was O(n) per wire, now O(1)
+    std::unordered_map<std::string, const Node*> node_map;
+    node_map.reserve(bp.nodes.size());
+    for (const auto& n : bp.nodes)
+        node_map[n.id] = &n;
 
     // Build polylines for all wires (for crossing detection + tooltip later)
     polylines_.clear();
@@ -18,20 +26,18 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
     for (size_t wire_idx = 0; wire_idx < bp.wires.size(); wire_idx++) {
         const auto& w = bp.wires[wire_idx];
 
-        const Node* start_node = nullptr;
-        const Node* end_node = nullptr;
-        for (const auto& n : bp.nodes) {
-            if (n.id == w.start.node_id) start_node = &n;
-            if (n.id == w.end.node_id) end_node = &n;
-        }
+        auto it_s = node_map.find(w.start.node_id);
+        auto it_e = node_map.find(w.end.node_id);
+        const Node* start_node = (it_s != node_map.end()) ? it_s->second : nullptr;
+        const Node* end_node   = (it_e != node_map.end()) ? it_e->second : nullptr;
 
         if (!start_node || !end_node) {
             polylines_.push_back({});
             continue;
         }
 
-        // Skip wires where either endpoint node is hidden (blueprint collapsing)
-        if (!start_node->visible || !end_node->visible) {
+        // Skip wires whose endpoints are not in this group
+        if (start_node->group_id != group_id || end_node->group_id != group_id) {
             polylines_.push_back({});
             continue;
         }

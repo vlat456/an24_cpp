@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <unordered_map>
 
 /// Collapsed blueprint group - editor-only metadata for visual hierarchy
 /// When a blueprint is expanded in the simulation, we still want to show it as collapsed
@@ -90,65 +91,34 @@ struct Blueprint {
         return nullptr;
     }
 
-    /// Recompute visibility of all nodes from collapsed_groups + drill stack.
-    /// Supports N-level deep hierarchical blueprints.
-    ///
-    /// `drill_stack` is the navigation path: empty = top-level,
-    /// ["A"] = drilled into A, ["A", "A:sub"] = drilled into sub inside A.
-    ///
-    /// Algorithm:
-    ///   1. Collect ALL internal node IDs across all groups → hidden by default.
-    ///   2. For each expanded (drilled-into) group, mark its internals as visible.
-    ///   3. For each non-expanded group, re-hide its internals (they're behind
-    ///      their own collapsed node). This handles sub-groups correctly:
-    ///      drilling into A shows A's children, but A:sub's children stay hidden
-    ///      behind the collapsed A:sub node.
-    ///   4. Blueprint collapsed nodes: visible unless drilled into.
-    void recompute_visibility(const std::vector<std::string>& drill_stack = {}) {
-        // Set of groups that are expanded (drilled into)
-        std::set<std::string> expanded(drill_stack.begin(), drill_stack.end());
-
-        // Collect all internal node IDs across all groups
-        std::set<std::string> all_internal;
-        for (const auto& g : collapsed_groups)
-            for (const auto& id : g.internal_node_ids)
-                all_internal.insert(id);
-
-        // Build the set of visible internal nodes:
-        // Start with internals of expanded groups, then subtract internals
-        // of non-expanded sub-groups (those remain collapsed).
-        std::set<std::string> visible_internals;
-        for (const auto& group_id : expanded) {
-            for (const auto& g : collapsed_groups) {
-                if (g.id == group_id) {
-                    for (const auto& id : g.internal_node_ids)
-                        visible_internals.insert(id);
-                    break;
-                }
-            }
-        }
-        // Remove internals of non-expanded groups (they're behind collapsed nodes)
+    /// Recompute group_id for all nodes from collapsed_groups.
+    /// Internal nodes of a collapsed group get group_id = group.id.
+    /// Top-level nodes (not in any group) get group_id = "".
+    /// Collapsed Blueprint nodes themselves get group_id = their parent group
+    /// (empty if top-level).
+    void recompute_group_ids() {
+        // Build reverse map: node_id → group_id
+        std::unordered_map<std::string, std::string> node_to_group;
         for (const auto& g : collapsed_groups) {
-            if (expanded.count(g.id) == 0) {
-                for (const auto& id : g.internal_node_ids)
-                    visible_internals.erase(id);
+            for (const auto& id : g.internal_node_ids) {
+                node_to_group[id] = g.id;
             }
         }
 
         for (auto& n : nodes) {
-            if (n.kind == NodeKind::Blueprint) {
-                // Collapsed Blueprint node: visible only when NOT drilled into
-                // AND either top-level or reachable (visible in parent group)
-                bool not_expanded = expanded.count(n.id) == 0;
-                bool is_reachable = !all_internal.count(n.id) || visible_internals.count(n.id) > 0;
-                n.visible = not_expanded && is_reachable;
-            } else if (all_internal.count(n.id)) {
-                // Internal node: visible only if exposed by drill stack
-                n.visible = visible_internals.count(n.id) > 0;
-            } else {
-                // Top-level regular node: always visible
-                n.visible = true;
+            auto it = node_to_group.find(n.id);
+            if (it != node_to_group.end()) {
+                n.group_id = it->second;
+            } else if (n.kind != NodeKind::Blueprint) {
+                // Non-blueprint nodes not in any group are top-level.
+                // Blueprint (collapsed) nodes keep their group_id as-is
+                // because it was set explicitly when added to a sub-window.
+                n.group_id = "";
             }
         }
     }
+
+    /// Auto-layout nodes belonging to a specific group_id.
+    /// Assigns positions using a simple topological column layout.
+    void auto_layout_group(const std::string& group_id);
 };
