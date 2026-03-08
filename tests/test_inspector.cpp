@@ -256,3 +256,216 @@ TEST(Inspector, SortMode_ByType) {
     EXPECT_EQ(tree[1].type_name, "Banana");
     EXPECT_EQ(tree[2].type_name, "Zebra");
 }
+
+// =============================================================================
+// Regression: Group filtering — inspector must only show nodes in its scene's group
+// =============================================================================
+
+TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
+    Blueprint bp;
+    // Root-level node
+    Node root_node;
+    root_node.id = "battery1";
+    root_node.name = "battery1";
+    root_node.type_name = "Battery";
+    root_node.kind = NodeKind::Node;
+    root_node.group_id = "";
+    Port ri{"v_in", PortSide::Input, an24::PortType::V};
+    Port ro{"v_out", PortSide::Output, an24::PortType::V};
+    root_node.inputs.push_back(ri);
+    root_node.outputs.push_back(ro);
+    bp.add_node(std::move(root_node));
+
+    // Collapsed blueprint node (visible at root level)
+    Node bp_node;
+    bp_node.id = "lamp1";
+    bp_node.name = "lamp1";
+    bp_node.type_name = "LampBlueprint";
+    bp_node.kind = NodeKind::Blueprint;
+    bp_node.group_id = "";
+    bp.add_node(std::move(bp_node));
+
+    // Internal node (hidden from root)
+    Node internal;
+    internal.id = "lamp1:led";
+    internal.name = "lamp1:led";
+    internal.type_name = "LED";
+    internal.kind = NodeKind::Node;
+    internal.group_id = "lamp1";
+    Port ii{"v_in", PortSide::Input, an24::PortType::V};
+    internal.inputs.push_back(ii);
+    bp.add_node(std::move(internal));
+
+    bp.rebuild_wire_index();
+
+    VisualScene scene(bp, "");  // root scene
+    Inspector inspector(scene);
+    inspector.buildDisplayTree();
+
+    // Root inspector should show battery1 + lamp1, NOT lamp1:led
+    ASSERT_EQ(inspector.displayTree().size(), 2u);
+    for (const auto& dn : inspector.displayTree()) {
+        EXPECT_NE(dn.name, "lamp1:led") << "Internal node leaked into root inspector";
+    }
+}
+
+TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
+    Blueprint bp;
+    // Root-level node
+    Node root_node;
+    root_node.id = "battery1";
+    root_node.name = "battery1";
+    root_node.type_name = "Battery";
+    root_node.kind = NodeKind::Node;
+    root_node.group_id = "";
+    bp.add_node(std::move(root_node));
+
+    // Internal nodes belonging to "lamp1" group
+    Node led;
+    led.id = "lamp1:led";
+    led.name = "lamp1:led";
+    led.type_name = "LED";
+    led.kind = NodeKind::Node;
+    led.group_id = "lamp1";
+    Port li{"v_in", PortSide::Input, an24::PortType::V};
+    led.inputs.push_back(li);
+    bp.add_node(std::move(led));
+
+    Node res;
+    res.id = "lamp1:res";
+    res.name = "lamp1:res";
+    res.type_name = "Resistor";
+    res.kind = NodeKind::Node;
+    res.group_id = "lamp1";
+    Port ri2{"v_in", PortSide::Input, an24::PortType::V};
+    Port ro2{"v_out", PortSide::Output, an24::PortType::V};
+    res.inputs.push_back(ri2);
+    res.outputs.push_back(ro2);
+    bp.add_node(std::move(res));
+
+    bp.rebuild_wire_index();
+
+    // Sub-blueprint scene for "lamp1" group
+    VisualScene sub_scene(bp, "lamp1");
+    Inspector sub_inspector(sub_scene);
+    sub_inspector.buildDisplayTree();
+
+    // Should show only lamp1:led and lamp1:res, NOT battery1
+    ASSERT_EQ(sub_inspector.displayTree().size(), 2u);
+    for (const auto& dn : sub_inspector.displayTree()) {
+        EXPECT_NE(dn.name, "battery1") << "Root node leaked into sub-inspector";
+    }
+}
+
+TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
+    Blueprint bp;
+    // Root node
+    Node bat;
+    bat.id = "bat";
+    bat.name = "bat";
+    bat.type_name = "Battery";
+    bat.kind = NodeKind::Node;
+    bat.group_id = "";
+    Port bo{"v_out", PortSide::Output, an24::PortType::V};
+    bat.outputs.push_back(bo);
+    bp.add_node(std::move(bat));
+
+    // Root node lamp (collapsed)
+    Node lamp;
+    lamp.id = "lamp1";
+    lamp.name = "lamp1";
+    lamp.type_name = "Lamp";
+    lamp.kind = NodeKind::Blueprint;
+    lamp.group_id = "";
+    Port lvi{"v_in", PortSide::Input, an24::PortType::V};
+    lamp.inputs.push_back(lvi);
+    bp.add_node(std::move(lamp));
+
+    // Internal nodes
+    Node iled;
+    iled.id = "lamp1:led";
+    iled.name = "lamp1:led";
+    iled.type_name = "LED";
+    iled.kind = NodeKind::Node;
+    iled.group_id = "lamp1";
+    Port iledi{"v_in", PortSide::Input, an24::PortType::V};
+    Port iledo{"v_out", PortSide::Output, an24::PortType::V};
+    iled.inputs.push_back(iledi);
+    iled.outputs.push_back(iledo);
+    bp.add_node(std::move(iled));
+
+    Node ires;
+    ires.id = "lamp1:res";
+    ires.name = "lamp1:res";
+    ires.type_name = "Resistor";
+    ires.kind = NodeKind::Node;
+    ires.group_id = "lamp1";
+    Port iresi{"v_in", PortSide::Input, an24::PortType::V};
+    ires.inputs.push_back(iresi);
+    bp.add_node(std::move(ires));
+
+    // Root wire: bat -> lamp1
+    Wire rw;
+    rw.start = WireEnd("bat", "v_out", PortSide::Output);
+    rw.end = WireEnd("lamp1", "v_in", PortSide::Input);
+    bp.add_wire(rw);
+
+    // Internal wire: lamp1:led -> lamp1:res
+    Wire iw;
+    iw.start = WireEnd("lamp1:led", "v_out", PortSide::Output);
+    iw.end = WireEnd("lamp1:res", "v_in", PortSide::Input);
+    bp.add_wire(iw);
+
+    bp.rebuild_wire_index();
+
+    // Root inspector: bat should have 1 connection (root wire), not 2
+    VisualScene root_scene(bp, "");
+    Inspector root_inspector(root_scene);
+    root_inspector.buildDisplayTree();
+
+    const auto& root_tree = root_inspector.displayTree();
+    auto bat_it = std::find_if(root_tree.begin(), root_tree.end(),
+        [](const DisplayNode& n) { return n.name == "bat"; });
+    ASSERT_NE(bat_it, root_tree.end());
+    EXPECT_EQ(bat_it->connection_count, 1u) << "Root wire count contaminated by internal wires";
+
+    // Sub inspector: lamp1:led should have 1 connection (internal wire)
+    VisualScene sub_scene(bp, "lamp1");
+    Inspector sub_inspector(sub_scene);
+    sub_inspector.buildDisplayTree();
+
+    const auto& sub_tree = sub_inspector.displayTree();
+    auto led_it = std::find_if(sub_tree.begin(), sub_tree.end(),
+        [](const DisplayNode& n) { return n.name == "lamp1:led"; });
+    ASSERT_NE(led_it, sub_tree.end());
+    EXPECT_EQ(led_it->connection_count, 1u);
+}
+
+TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
+    InspectorTestScene ts;
+    ts.addNode("battery", "Battery");
+    ts.addNode("lamp1", "Lamp");
+    ts.addNode("lamp2", "Lamp");
+    ts.addWire("battery", "v_out", "lamp1", "v_in");
+    ts.addWire("battery", "v_out", "lamp2", "v_in");
+    ts.rebuild();
+
+    Inspector inspector(ts.scene);
+    inspector.buildDisplayTree();
+
+    const auto& tree = inspector.displayTree();
+    auto battery_it = std::find_if(tree.begin(), tree.end(),
+        [](const DisplayNode& n) { return n.name == "battery"; });
+    ASSERT_NE(battery_it, tree.end());
+
+    // Find v_out port — should show both connections
+    auto v_out_it = std::find_if(battery_it->ports.begin(), battery_it->ports.end(),
+        [](const DisplayPort& p) { return p.name == "v_out"; });
+    ASSERT_NE(v_out_it, battery_it->ports.end());
+    EXPECT_NE(v_out_it->connection, "[not connected]");
+    // Should contain both lamp1 and lamp2
+    EXPECT_NE(v_out_it->connection.find("lamp1"), std::string::npos)
+        << "Missing lamp1 in fan-out: " << v_out_it->connection;
+    EXPECT_NE(v_out_it->connection.find("lamp2"), std::string::npos)
+        << "Missing lamp2 in fan-out: " << v_out_it->connection;
+}

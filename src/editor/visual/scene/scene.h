@@ -95,16 +95,8 @@ public:
 
     void removeNode(size_t index) {
         if (index >= bp_->nodes.size()) return;
-        const auto& nid = bp_->nodes[index].id;
-        // Remove connected wires (reverse to keep indices valid)
-        for (int i = static_cast<int>(bp_->wires.size()) - 1; i >= 0; --i) {
-            const auto& w = bp_->wires[static_cast<size_t>(i)];
-            if (w.start.node_id == nid || w.end.node_id == nid)
-                bp_->wires.erase(bp_->wires.begin() + i);
-        }
-        bp_->nodes.erase(bp_->nodes.begin() + static_cast<long>(index));
-        bp_->rebuild_wire_index();
-        cache_.clear();
+        // Delegate to removeNodes for consistent recursive cleanup
+        removeNodes({index});
     }
 
     [[nodiscard]] bool addWire(Wire wire) {
@@ -123,23 +115,49 @@ public:
     }
 
     /// Remove multiple nodes by index (indices must be sorted descending).
-    /// Connected wires and collapsed_groups.internal_node_ids are cleaned automatically.
+    /// Connected wires and collapsed_groups are cleaned automatically.
+    /// If any deleted node is a sub-blueprint (NodeKind::Blueprint), its internal
+    /// nodes, wires, and CollapsedGroup entries are recursively removed.
     void removeNodes(const std::vector<size_t>& sorted_desc_indices) {
-        // [PERF-u3v4] Was O(n*m) nested loop — now uses unordered_set for O(1) lookup
+        // Collect initial set of deleted IDs
         std::unordered_set<std::string> deleted_ids;
+        std::unordered_set<std::string> deleted_group_ids;
         for (size_t idx : sorted_desc_indices) {
             if (idx < bp_->nodes.size()) {
-                deleted_ids.insert(bp_->nodes[idx].id);
-                bp_->nodes.erase(bp_->nodes.begin() + static_cast<long>(idx));
+                const auto& node = bp_->nodes[idx];
+                deleted_ids.insert(node.id);
+                // If this is a sub-blueprint, recursively collect its internals
+                if (node.kind == NodeKind::Blueprint) {
+                    bp_->collect_group_internals(node.id, deleted_ids, deleted_group_ids);
+                }
             }
         }
+
+        // Erase nodes (iterate reverse to preserve indices)
+        // We must collect indices for ALL nodes to delete (original + internals)
+        for (int i = static_cast<int>(bp_->nodes.size()) - 1; i >= 0; --i) {
+            if (deleted_ids.count(bp_->nodes[static_cast<size_t>(i)].id)) {
+                bp_->nodes.erase(bp_->nodes.begin() + i);
+            }
+        }
+
+        // Remove wires connected to any deleted node
         bp_->wires.erase(
             std::remove_if(bp_->wires.begin(), bp_->wires.end(),
                 [&deleted_ids](const Wire& w) {
                     return deleted_ids.count(w.start.node_id) || deleted_ids.count(w.end.node_id);
                 }),
             bp_->wires.end());
-        // Clean collapsed_groups.internal_node_ids
+
+        // Remove CollapsedGroup entries for deleted groups
+        bp_->collapsed_groups.erase(
+            std::remove_if(bp_->collapsed_groups.begin(), bp_->collapsed_groups.end(),
+                [&deleted_ids, &deleted_group_ids](const CollapsedGroup& g) {
+                    return deleted_group_ids.count(g.id) || deleted_ids.count(g.id);
+                }),
+            bp_->collapsed_groups.end());
+
+        // Clean remaining collapsed_groups.internal_node_ids
         for (auto& g : bp_->collapsed_groups) {
             g.internal_node_ids.erase(
                 std::remove_if(g.internal_node_ids.begin(), g.internal_node_ids.end(),

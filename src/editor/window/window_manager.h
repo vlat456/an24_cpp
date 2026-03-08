@@ -58,6 +58,21 @@ public:
             windows_.end());
     }
 
+    /// Close sub-windows whose group_id no longer exists in collapsed_groups.
+    /// Call after deleting sub-blueprint nodes.
+    void removeOrphanedWindows() {
+        std::unordered_set<std::string> live_groups;
+        for (const auto& g : bp_.collapsed_groups) {
+            live_groups.insert(g.id);
+        }
+        windows_.erase(
+            std::remove_if(windows_.begin(), windows_.end(),
+                [&live_groups](const std::unique_ptr<BlueprintWindow>& w) {
+                    return !w->group_id.empty() && !live_groups.count(w->group_id);
+                }),
+            windows_.end());
+    }
+
     /// Find window by group_id (nullptr if not found).
     BlueprintWindow* find(const std::string& group_id) {
         for (auto& w : windows_) {

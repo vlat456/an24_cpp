@@ -601,6 +601,45 @@ pd_tests/fast:
 .PHONY : pd_tests/fast
 
 #=============================================================================
+# Target rules for targets named voltage_subtract_tests
+
+# Build rule for target.
+voltage_subtract_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 voltage_subtract_tests
+.PHONY : voltage_subtract_tests
+
+# fast build rule for target.
+voltage_subtract_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/build
+.PHONY : voltage_subtract_tests/fast
+
+#=============================================================================
+# Target rules for targets named logic_gates_tests
+
+# Build rule for target.
+logic_gates_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 logic_gates_tests
+.PHONY : logic_gates_tests
+
+# fast build rule for target.
+logic_gates_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
+.PHONY : logic_gates_tests/fast
+
+#=============================================================================
+# Target rules for targets named v_to_bool_tests
+
+# Build rule for target.
+v_to_bool_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 v_to_bool_tests
+.PHONY : v_to_bool_tests
+
+# fast build rule for target.
+v_to_bool_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/build
+.PHONY : v_to_bool_tests/fast
+
+#=============================================================================
 # Target rules for targets named pi_p_tests
 
 # Build rule for target.
@@ -813,6 +852,7 @@ help:
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
+	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
@@ -826,8 +866,10 @@ help:
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... spdlog"
+	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
+	@echo "... voltage_subtract_tests"
 .PHONY : help
 
 

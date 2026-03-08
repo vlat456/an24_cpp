@@ -24,8 +24,12 @@ namespace an24 {
 // Port names enum (for constexpr Provider pattern)
 // Used by AOT components to get compile-time port indices
 enum class PortNames : uint32_t {
+    A,
+    B,
     Va,
     Vb,
+    Vin,
+    Vo,
     ac_out,
     brightness,
     control,
@@ -70,6 +74,8 @@ enum class PortNames : uint32_t {
 // Component type enumeration
 enum class ComponentType {
     AGK47,
+    AND,
+    Any_V_to_Bool,
     Battery,
     BlueprintInput,
     BlueprintOutput,
@@ -89,10 +95,14 @@ enum class ComponentType {
     LerpNode,
     Load,
     Merger,
+    NAND,
+    NOT,
+    OR,
     P,
     PD,
     PI,
     PID,
+    Positive_V_to_Bool,
     RU19A,
     RUG82,
     Radiator,
@@ -104,11 +114,15 @@ enum class ComponentType {
     Switch,
     TempSensor,
     Transformer,
-    Voltmeter
+    VoltageSubtract,
+    Voltmeter,
+    XOR
 };
 
 // Port count for each component
 constexpr size_t AGK47_PORT_COUNT = 1;
+constexpr size_t AND_PORT_COUNT = 3;
+constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
@@ -128,10 +142,14 @@ constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
 constexpr size_t Merger_PORT_COUNT = 3;
+constexpr size_t NAND_PORT_COUNT = 3;
+constexpr size_t NOT_PORT_COUNT = 2;
+constexpr size_t OR_PORT_COUNT = 3;
 constexpr size_t P_PORT_COUNT = 3;
 constexpr size_t PD_PORT_COUNT = 3;
 constexpr size_t PI_PORT_COUNT = 3;
 constexpr size_t PID_PORT_COUNT = 3;
+constexpr size_t Positive_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t RU19A_PORT_COUNT = 5;
 constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
@@ -143,11 +161,22 @@ constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
+constexpr size_t VoltageSubtract_PORT_COUNT = 3;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
+constexpr size_t XOR_PORT_COUNT = 3;
 
 // Port names for each component (in field declaration order)
 constexpr const char* AGK47_PORTS[] = {
     "input"
+};
+constexpr const char* AND_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
+constexpr const char* Any_V_to_Bool_PORTS[] = {
+    "Vin",
+    "o"
 };
 constexpr const char* Battery_PORTS[] = {
     "v_in",
@@ -230,6 +259,20 @@ constexpr const char* Merger_PORTS[] = {
     "i2",
     "o"
 };
+constexpr const char* NAND_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
+constexpr const char* NOT_PORTS[] = {
+    "A",
+    "o"
+};
+constexpr const char* OR_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
 constexpr const char* P_PORTS[] = {
     "feedback",
     "output",
@@ -249,6 +292,10 @@ constexpr const char* PID_PORTS[] = {
     "feedback",
     "output",
     "setpoint"
+};
+constexpr const char* Positive_V_to_Bool_PORTS[] = {
+    "Vin",
+    "o"
 };
 constexpr const char* RU19A_PORTS[] = {
     "k_mod",
@@ -301,14 +348,26 @@ constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
 };
+constexpr const char* VoltageSubtract_PORTS[] = {
+    "Va",
+    "Vb",
+    "Vo"
+};
 constexpr const char* Voltmeter_PORTS[] = {
     "v_in"
+};
+constexpr const char* XOR_PORTS[] = {
+    "A",
+    "B",
+    "o"
 };
 
 // Get port names for a component type
 inline std::vector<std::string> get_component_ports(const std::string& classname) {
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
         {"AGK47", {"input"}},
+        {"AND", {"A", "B", "o"}},
+        {"Any_V_to_Bool", {"Vin", "o"}},
         {"Battery", {"v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
@@ -328,10 +387,14 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
         {"Merger", {"i1", "i2", "o"}},
+        {"NAND", {"A", "B", "o"}},
+        {"NOT", {"A", "o"}},
+        {"OR", {"A", "B", "o"}},
         {"P", {"feedback", "output", "setpoint"}},
         {"PD", {"feedback", "output", "setpoint"}},
         {"PI", {"feedback", "output", "setpoint"}},
         {"PID", {"feedback", "output", "setpoint"}},
+        {"Positive_V_to_Bool", {"Vin", "o"}},
         {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_start"}},
         {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
@@ -343,7 +406,9 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
         {"Transformer", {"primary", "secondary"}},
+        {"VoltageSubtract", {"Va", "Vb", "Vo"}},
         {"Voltmeter", {"v_in"}},
+        {"XOR", {"A", "B", "o"}},
     };
 
     auto it = registry.find(classname);
@@ -357,6 +422,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
 // Enables type-safe storage of any component type without virtual calls
 using ComponentVariant = std::variant<
     AGK47<JitProvider>,
+    AND<JitProvider>,
+    Any_V_to_Bool<JitProvider>,
     Battery<JitProvider>,
     BlueprintInput<JitProvider>,
     BlueprintOutput<JitProvider>,
@@ -376,10 +443,14 @@ using ComponentVariant = std::variant<
     LerpNode<JitProvider>,
     Load<JitProvider>,
     Merger<JitProvider>,
+    NAND<JitProvider>,
+    NOT<JitProvider>,
+    OR<JitProvider>,
     P<JitProvider>,
     PD<JitProvider>,
     PI<JitProvider>,
     PID<JitProvider>,
+    Positive_V_to_Bool<JitProvider>,
     RU19A<JitProvider>,
     RUG82<JitProvider>,
     Radiator<JitProvider>,
@@ -391,7 +462,9 @@ using ComponentVariant = std::variant<
     Switch<JitProvider>,
     TempSensor<JitProvider>,
     Transformer<JitProvider>,
-    Voltmeter<JitProvider>
+    VoltageSubtract<JitProvider>,
+    Voltmeter<JitProvider>,
+    XOR<JitProvider>
 >;
 
 // Visitor helper for calling solve_electrical on component variant

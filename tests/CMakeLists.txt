@@ -473,6 +473,54 @@ target_link_libraries(pd_tests PRIVATE
 )
 gtest_discover_tests(pd_tests)
 
+# VoltageSubtract tests
+add_executable(voltage_subtract_tests
+    test_voltage_subtract.cpp
+)
+target_include_directories(voltage_subtract_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(voltage_subtract_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(voltage_subtract_tests)
+
+# Logic gates tests
+add_executable(logic_gates_tests
+    test_logic_gates.cpp
+)
+target_include_directories(logic_gates_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(logic_gates_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(logic_gates_tests)
+
+# V-to-Bool converter tests
+add_executable(v_to_bool_tests
+    test_v_to_bool.cpp
+)
+target_include_directories(v_to_bool_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(v_to_bool_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(v_to_bool_tests)
+
 # PI and P controller tests
 add_executable(pi_p_tests
     test_pi_p.cpp

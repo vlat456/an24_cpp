@@ -654,4 +654,109 @@ public:
     void pre_load();
 };
 
+/// VoltageSubtract - voltage subtractor (Vo = Va - Vb)
+template <typename Provider = JitProvider>
+class VoltageSubtract {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+
+    VoltageSubtract() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+};
+
+/// AND - logical AND gate (o = A && B)
+template <typename Provider = JitProvider>
+class AND {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    AND() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// OR - logical OR gate (o = A || B)
+template <typename Provider = JitProvider>
+class OR {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    OR() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// XOR - logical XOR gate (o = A != B)
+template <typename Provider = JitProvider>
+class XOR {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    XOR() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// NOT - logical NOT gate (o = !A)
+template <typename Provider = JitProvider>
+class NOT {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    NOT() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// NAND - logical NAND gate (o = !(A && B))
+template <typename Provider = JitProvider>
+class NAND {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    NAND() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// Any_V_to_Bool - convert any non-zero voltage to TRUE (including negative)
+template <typename Provider = JitProvider>
+class Any_V_to_Bool {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Any_V_to_Bool() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// Positive_V_to_Bool - convert positive voltage to TRUE (v > 0)
+template <typename Provider = JitProvider>
+class Positive_V_to_Bool {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Positive_V_to_Bool() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
 } // namespace an24

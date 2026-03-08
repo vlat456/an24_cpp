@@ -45,6 +45,14 @@ template class Bus<JitProvider>;
 template class BlueprintInput<JitProvider>;
 template class BlueprintOutput<JitProvider>;
 template class RefNode<JitProvider>;
+template class VoltageSubtract<JitProvider>;
+template class AND<JitProvider>;
+template class OR<JitProvider>;
+template class XOR<JitProvider>;
+template class NOT<JitProvider>;
+template class NAND<JitProvider>;
+template class Any_V_to_Bool<JitProvider>;
+template class Positive_V_to_Bool<JitProvider>;
 
 } // namespace an24
 

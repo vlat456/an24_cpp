@@ -325,6 +325,46 @@ ComponentVariant create_component_variant(
         comp.value = get_float(dev, "value", 0.0f);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "VoltageSubtract") {
+        VoltageSubtract<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AND") {
+        AND<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "OR") {
+        OR<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "XOR") {
+        XOR<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "NOT") {
+        NOT<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "NAND") {
+        NAND<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Any_V_to_Bool") {
+        Any_V_to_Bool<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Positive_V_to_Bool") {
+        Positive_V_to_Bool<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "PID") {
         PID<JitProvider> comp;
         setup_component_ports(comp, dev, result);

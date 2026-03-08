@@ -438,6 +438,48 @@ pd_tests/fast:
 .PHONY : pd_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/voltage_subtract_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/voltage_subtract_tests.dir/rule
+.PHONY : tests/CMakeFiles/voltage_subtract_tests.dir/rule
+
+# Convenience name for target.
+voltage_subtract_tests: tests/CMakeFiles/voltage_subtract_tests.dir/rule
+.PHONY : voltage_subtract_tests
+
+# fast build rule for target.
+voltage_subtract_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/build
+.PHONY : voltage_subtract_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/logic_gates_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logic_gates_tests.dir/rule
+.PHONY : tests/CMakeFiles/logic_gates_tests.dir/rule
+
+# Convenience name for target.
+logic_gates_tests: tests/CMakeFiles/logic_gates_tests.dir/rule
+.PHONY : logic_gates_tests
+
+# fast build rule for target.
+logic_gates_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
+.PHONY : logic_gates_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/v_to_bool_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/v_to_bool_tests.dir/rule
+.PHONY : tests/CMakeFiles/v_to_bool_tests.dir/rule
+
+# Convenience name for target.
+v_to_bool_tests: tests/CMakeFiles/v_to_bool_tests.dir/rule
+.PHONY : v_to_bool_tests
+
+# fast build rule for target.
+v_to_bool_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/build
+.PHONY : v_to_bool_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/pi_p_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_p_tests.dir/rule
 .PHONY : tests/CMakeFiles/pi_p_tests.dir/rule
@@ -1984,6 +2026,30 @@ test_lamp_passthrough_jit.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
 .PHONY : test_lamp_passthrough_jit.cpp.s
 
+test_logic_gates.o: test_logic_gates.cpp.o
+.PHONY : test_logic_gates.o
+
+# target to build an object file
+test_logic_gates.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.o
+.PHONY : test_logic_gates.cpp.o
+
+test_logic_gates.i: test_logic_gates.cpp.i
+.PHONY : test_logic_gates.i
+
+# target to preprocess a source file
+test_logic_gates.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.i
+.PHONY : test_logic_gates.cpp.i
+
+test_logic_gates.s: test_logic_gates.cpp.s
+.PHONY : test_logic_gates.s
+
+# target to generate assembly for a file
+test_logic_gates.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.s
+.PHONY : test_logic_gates.cpp.s
+
 test_logical_solver.o: test_logical_solver.cpp.o
 .PHONY : test_logical_solver.o
 
@@ -2272,6 +2338,30 @@ test_simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
 .PHONY : test_simulation.cpp.s
 
+test_v_to_bool.o: test_v_to_bool.cpp.o
+.PHONY : test_v_to_bool.o
+
+# target to build an object file
+test_v_to_bool.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/test_v_to_bool.cpp.o
+.PHONY : test_v_to_bool.cpp.o
+
+test_v_to_bool.i: test_v_to_bool.cpp.i
+.PHONY : test_v_to_bool.i
+
+# target to preprocess a source file
+test_v_to_bool.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/test_v_to_bool.cpp.i
+.PHONY : test_v_to_bool.cpp.i
+
+test_v_to_bool.s: test_v_to_bool.cpp.s
+.PHONY : test_v_to_bool.s
+
+# target to generate assembly for a file
+test_v_to_bool.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/test_v_to_bool.cpp.s
+.PHONY : test_v_to_bool.cpp.s
+
 test_viewport.o: test_viewport.cpp.o
 .PHONY : test_viewport.o
 
@@ -2344,6 +2434,30 @@ test_visual_scene.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/test_visual_scene.cpp.s
 .PHONY : test_visual_scene.cpp.s
 
+test_voltage_subtract.o: test_voltage_subtract.cpp.o
+.PHONY : test_voltage_subtract.o
+
+# target to build an object file
+test_voltage_subtract.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.o
+.PHONY : test_voltage_subtract.cpp.o
+
+test_voltage_subtract.i: test_voltage_subtract.cpp.i
+.PHONY : test_voltage_subtract.i
+
+# target to preprocess a source file
+test_voltage_subtract.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.i
+.PHONY : test_voltage_subtract.cpp.i
+
+test_voltage_subtract.s: test_voltage_subtract.cpp.s
+.PHONY : test_voltage_subtract.s
+
+# target to generate assembly for a file
+test_voltage_subtract.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.s
+.PHONY : test_voltage_subtract.cpp.s
+
 test_widget.o: test_widget.cpp.o
 .PHONY : test_widget.o
 
@@ -2400,6 +2514,7 @@ help:
 	@echo "... inspector_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
+	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... multi_window_tests"
 	@echo "... node_deletion_tests"
@@ -2411,8 +2526,10 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
+	@echo "... voltage_subtract_tests"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
@@ -2521,6 +2638,9 @@ help:
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
+	@echo "... test_logic_gates.o"
+	@echo "... test_logic_gates.i"
+	@echo "... test_logic_gates.s"
 	@echo "... test_logical_solver.o"
 	@echo "... test_logical_solver.i"
 	@echo "... test_logical_solver.s"
@@ -2557,6 +2677,9 @@ help:
 	@echo "... test_simulation.o"
 	@echo "... test_simulation.i"
 	@echo "... test_simulation.s"
+	@echo "... test_v_to_bool.o"
+	@echo "... test_v_to_bool.i"
+	@echo "... test_v_to_bool.s"
 	@echo "... test_viewport.o"
 	@echo "... test_viewport.i"
 	@echo "... test_viewport.s"
@@ -2566,6 +2689,9 @@ help:
 	@echo "... test_visual_scene.o"
 	@echo "... test_visual_scene.i"
 	@echo "... test_visual_scene.s"
+	@echo "... test_voltage_subtract.o"
+	@echo "... test_voltage_subtract.i"
+	@echo "... test_voltage_subtract.s"
 	@echo "... test_widget.o"
 	@echo "... test_widget.i"
 	@echo "... test_widget.s"

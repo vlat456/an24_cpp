@@ -1,0 +1,21 @@
+{
+  "classname": "NOT",
+  "description": "Logical NOT gate: output = !A (inverter)",
+  "default_ports": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "default_params": {},
+  "default_domains": [
+    "Logical"
+  ],
+  "default_priority": "med",
+  "default_critical": false,
+  "default_size": {"x": 2, "y": 2}
+}

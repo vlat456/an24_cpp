@@ -1,0 +1,25 @@
+{
+  "classname": "VoltageSubtract",
+  "description": "Voltage subtractor: Vo = Va - Vb (output can be negative)",
+  "default_ports": {
+    "Va": {
+      "direction": "In",
+      "type": "V"
+    },
+    "Vb": {
+      "direction": "In",
+      "type": "V"
+    },
+    "Vo": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "default_params": {},
+  "default_domains": [
+    "Electrical"
+  ],
+  "default_priority": "med",
+  "default_critical": false,
+  "default_size": {"x": 2, "y": 2}
+}

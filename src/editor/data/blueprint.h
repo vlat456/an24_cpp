@@ -128,6 +128,28 @@ struct Blueprint {
         }
     }
 
+    /// Collect all node IDs that belong to a collapsed group (recursively).
+    /// If a group contains sub-blueprint nodes, their internal nodes are included too.
+    /// Also collects the group IDs themselves (for CollapsedGroup cleanup).
+    void collect_group_internals(const std::string& group_id,
+                                 std::unordered_set<std::string>& out_node_ids,
+                                 std::unordered_set<std::string>& out_group_ids) const {
+        // Find the CollapsedGroup for this group_id
+        for (const auto& g : collapsed_groups) {
+            if (g.id != group_id) continue;
+            out_group_ids.insert(g.id);
+            for (const auto& nid : g.internal_node_ids) {
+                out_node_ids.insert(nid);
+                // If this internal node is itself a Blueprint, recurse
+                const Node* n = find_node(nid.c_str());
+                if (n && n->kind == NodeKind::Blueprint) {
+                    collect_group_internals(nid, out_node_ids, out_group_ids);
+                }
+            }
+            break;
+        }
+    }
+
     /// Auto-layout nodes belonging to a specific group_id.
     /// Assigns positions using a simple topological column layout.
     void auto_layout_group(const std::string& group_id);

@@ -2,6 +2,7 @@
 #include "components/port_registry.h"
 #include "../state.h"
 #include <cmath>
+#include <cstring>
 
 namespace an24 {
 
@@ -962,6 +963,93 @@ void Comparator<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/
     output_state = set || (output_state && keep);
 
     st.across[provider.get(PortNames::o)] = output_state ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void VoltageSubtract<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // Minimal conductance on output so SOR "sees" the node
+    float g = 1e-6f;
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::Vo), g);
+}
+
+template <typename Provider>
+void VoltageSubtract<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+    float Va = st.across[provider.get(PortNames::Va)];
+    float Vb = st.across[provider.get(PortNames::Vb)];
+    float Vo = Va - Vb;
+    st.across[provider.get(PortNames::Vo)] = Vo;
+}
+
+// =============================================================================
+// Logic Gates
+// =============================================================================
+
+template <typename Provider>
+void AND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    // Treat > 0.5V as TRUE, else FALSE
+    bool a = (A > 0.5f);
+    bool b = (B > 0.5f);
+    bool result = a && b;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void OR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    bool a = (A > 0.5f);
+    bool b = (B > 0.5f);
+    bool result = a || b;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void XOR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    bool a = (A > 0.5f);
+    bool b = (B > 0.5f);
+    bool result = a != b;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void NOT<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    bool a = (A > 0.5f);
+    bool result = !a;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void NAND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    bool a = (A > 0.5f);
+    bool b = (B > 0.5f);
+    bool result = !(a && b);
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void Any_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float vin = st.across[provider.get(PortNames::Vin)];
+    // Convert any non-zero voltage to TRUE (including negative) using bit trick
+    uint32_t b;
+    std::memcpy(&b, &vin, sizeof(b));
+    bool result = (b + b) != 0;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void Positive_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float vin = st.across[provider.get(PortNames::Vin)];
+    // Convert positive voltage to TRUE (v > 0)
+    bool result = vin > 0.0f;
+    st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 
 } // namespace an24

@@ -127,7 +127,10 @@ struct EditorApp {
 
     /// Handle InputResult from any window's CanvasInput
     void apply_input_result(const InputResult& r, const std::string& group_id = "") {
-        if (r.rebuild_simulation) rebuild_simulation();
+        if (r.rebuild_simulation) {
+            rebuild_simulation();
+            window_manager.removeOrphanedWindows();
+        }
         if (r.show_context_menu) {
             show_context_menu = true;
             context_menu_pos = r.context_menu_pos;

@@ -455,12 +455,52 @@ int main(int argc, char** argv) {
         };
 
         // ================================================================
-        // Root canvas — full-screen behind everything
+        // Inspector (docked left panel) + Root canvas
         // ================================================================
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         float menu_height = ImGui::GetFrameHeight();
-        ImGui::SetNextWindowPos(ImVec2(0, menu_height));
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y - menu_height));
+        float available_h = io.DisplaySize.y - menu_height;
+        static float inspector_width = 280.0f;
+        const float splitter_thickness = 4.0f;
+        const float min_inspector_w = 150.0f;
+        const float max_inspector_w = io.DisplaySize.x * 0.5f;
+        float canvas_x = 0.0f;
+
+        // Left panel: Inspector
+        if (app.show_inspector) {
+            ImGui::SetNextWindowPos(ImVec2(0, menu_height));
+            ImGui::SetNextWindowSize(ImVec2(inspector_width, available_h));
+            ImGui::Begin("Inspector", &app.show_inspector,
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoCollapse);
+            app.inspector.render();
+            ImGui::End();
+
+            // Splitter (invisible draggable button between inspector and canvas)
+            ImGui::SetNextWindowPos(ImVec2(inspector_width, menu_height));
+            ImGui::SetNextWindowSize(ImVec2(splitter_thickness, available_h));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(splitter_thickness, splitter_thickness));
+            ImGui::Begin("##Splitter", nullptr,
+                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
+            ImGui::InvisibleButton("##splitter_btn", ImVec2(splitter_thickness, available_h));
+            if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            if (ImGui::IsItemActive()) {
+                inspector_width += io.MouseDelta.x;
+                if (inspector_width < min_inspector_w) inspector_width = min_inspector_w;
+                if (inspector_width > max_inspector_w) inspector_width = max_inspector_w;
+            }
+            ImGui::End();
+            ImGui::PopStyleVar(2);
+
+            canvas_x = inspector_width + splitter_thickness;
+        }
+
+        // Root canvas (fills remaining space to the right)
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::SetNextWindowPos(ImVec2(canvas_x, menu_height));
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - canvas_x, available_h));
         ImGui::Begin("Canvas", nullptr,
             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
@@ -619,16 +659,6 @@ int main(int argc, char** argv) {
 
         // Properties window
         app.properties_window.render();
-
-        // Inspector window (component tree with port connections)
-        if (app.show_inspector) {
-            ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowPos(ImVec2(10, 50), ImGuiCond_FirstUseEver);
-            if (ImGui::Begin("Inspector", &app.show_inspector)) {
-                app.inspector.render();
-            }
-            ImGui::End();
-        }
 
         // Рендер
         ImGui::Render();

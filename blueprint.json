@@ -1,11 +1,6 @@
 {
   "collapsed_groups": [
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
-      "id": "lamp_pass_through_1",
-      "type_name": "lamp_pass_through"
-    },
-    {
       "blueprint_path": "blueprints/simple_battery.json",
       "id": "simple_battery_1",
       "type_name": "simple_battery"
@@ -22,28 +17,6 @@
     }
   ],
   "devices": [
-    {
-      "classname": "RefNode",
-      "kind": "Ref",
-      "name": "gnd",
-      "params": {
-        "value": "0"
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 320.0,
-        "y": 720.0
-      },
-      "size": {
-        "x": 48.0,
-        "y": 48.0
-      }
-    },
     {
       "classname": "Battery",
       "kind": "Node",
@@ -68,7 +41,7 @@
       },
       "pos": {
         "x": 96.0,
-        "y": 80.0
+        "y": 112.0
       },
       "size": {
         "x": 128.0,
@@ -87,7 +60,7 @@
       },
       "pos": {
         "x": 320.0,
-        "y": 80.0
+        "y": -80.0
       },
       "size": {
         "x": 112.0,
@@ -133,32 +106,6 @@
       }
     },
     {
-      "classname": "RUG82",
-      "kind": "Node",
-      "name": "rug_vsu",
-      "params": {
-        "v_target": "28.5"
-      },
-      "ports": {
-        "k_mod": {
-          "direction": "Out",
-          "type": "V"
-        },
-        "v_gen": {
-          "direction": "In",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 560.0,
-        "y": 240.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
       "classname": "DMR400",
       "kind": "Node",
       "name": "dmr_vsu",
@@ -181,7 +128,7 @@
         }
       },
       "pos": {
-        "x": 672.0,
+        "x": 656.0,
         "y": 384.0
       },
       "size": {
@@ -203,6 +150,7 @@
       "name": "light_1",
       "params": {
         "color": "white",
+        "conductance": "1.0",
         "max_brightness": "100.0"
       },
       "ports": {
@@ -220,8 +168,8 @@
         }
       },
       "pos": {
-        "x": 560.0,
-        "y": 512.0
+        "x": 640.0,
+        "y": 496.0
       },
       "size": {
         "x": 128.0,
@@ -247,8 +195,8 @@
         }
       },
       "pos": {
-        "x": 1120.0,
-        "y": 304.0
+        "x": 1136.0,
+        "y": 352.0
       },
       "size": {
         "x": 128.0,
@@ -273,7 +221,7 @@
         }
       },
       "pos": {
-        "x": 928.0,
+        "x": 944.0,
         "y": 352.0
       },
       "size": {
@@ -301,7 +249,7 @@
       },
       "pos": {
         "x": 1136.0,
-        "y": 80.0
+        "y": 96.0
       },
       "size": {
         "x": 128.0,
@@ -326,8 +274,8 @@
         }
       },
       "pos": {
-        "x": 848.0,
-        "y": 80.0
+        "x": 944.0,
+        "y": 96.0
       },
       "size": {
         "x": 128.0,
@@ -353,151 +301,12 @@
         }
       },
       "pos": {
-        "x": 864.0,
-        "y": 176.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
-      "classname": "HoldButton",
-      "content": {
-        "label": "RELEASED",
-        "max": 1.0,
-        "min": 0.0,
-        "state": false,
-        "type": 2,
-        "unit": "",
-        "value": 0.0
-      },
-      "kind": "Node",
-      "name": "holdbutton_1",
-      "params": {
-        "idle": "0.0"
-      },
-      "ports": {
-        "control": {
-          "direction": "In",
-          "type": "Temperature"
-        },
-        "state": {
-          "direction": "Out",
-          "type": "Bool"
-        },
-        "v_in": {
-          "direction": "In",
-          "type": "V"
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 352.0,
-        "y": 288.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
-      "classname": "BlueprintInput",
-      "group_id": "lamp_pass_through_1",
-      "kind": "Node",
-      "name": "lamp_pass_through_1:vin",
-      "params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "Out",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 208.0,
+        "x": 1136.0,
         "y": 224.0
       },
       "size": {
-        "x": 32.0,
-        "y": 32.0
-      }
-    },
-    {
-      "classname": "IndicatorLight",
-      "content": {
-        "label": "OFF",
-        "max": 1.0,
-        "min": 0.0,
-        "type": 4,
-        "unit": "",
-        "value": 0.0
-      },
-      "group_id": "lamp_pass_through_1",
-      "kind": "Node",
-      "name": "lamp_pass_through_1:lamp",
-      "params": {
-        "color": "red",
-        "max_brightness": "50.0"
-      },
-      "ports": {
-        "brightness": {
-          "direction": "Out",
-          "type": "I"
-        },
-        "v_in": {
-          "direction": "In",
-          "type": "V"
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 592.0,
-        "y": 192.0
-      },
-      "size": {
         "x": 128.0,
         "y": 80.0
-      }
-    },
-    {
-      "classname": "BlueprintOutput",
-      "group_id": "lamp_pass_through_1",
-      "kind": "Node",
-      "name": "lamp_pass_through_1:vout",
-      "params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "In",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 784.0,
-        "y": 272.0
-      },
-      "size": {
-        "x": 32.0,
-        "y": 32.0
       }
     },
     {
@@ -654,6 +463,7 @@
       "name": "lamp_pass_through_2:lamp",
       "params": {
         "color": "red",
+        "conductance": "1.0",
         "max_brightness": "100.0"
       },
       "ports": {
@@ -750,6 +560,7 @@
       "name": "lamp_pass_through_3:lamp",
       "params": {
         "color": "red",
+        "conductance": "1.0",
         "max_brightness": "100.0"
       },
       "ports": {
@@ -804,8 +615,33 @@
       }
     },
     {
+      "classname": "RUG82",
+      "kind": "Node",
+      "name": "rug82_1",
+      "params": {
+        "v_target": "28.5"
+      },
+      "ports": {
+        "k_mod": {
+          "direction": "Out",
+          "type": "V"
+        },
+        "v_gen": {
+          "direction": "In",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 576.0,
+        "y": 240.0
+      },
+      "size": {
+        "x": 128.0,
+        "y": 80.0
+      }
+    },
+    {
       "classname": "Splitter",
-      "group_id": "lamp_pass_through_1",
       "kind": "Node",
       "name": "splitter_2",
       "ports": {
@@ -823,8 +659,8 @@
         }
       },
       "pos": {
-        "x": 464.0,
-        "y": 192.0
+        "x": 592.0,
+        "y": -80.0
       },
       "size": {
         "x": 64.0,
@@ -832,187 +668,108 @@
       }
     },
     {
-      "classname": "Splitter",
-      "kind": "Node",
-      "name": "splitter_1",
+      "classname": "Bus",
+      "kind": "Bus",
+      "name": "bus_1",
       "ports": {
-        "i": {
-          "direction": "In",
-          "type": "Any"
-        },
-        "o1": {
+        "v": {
+          "direction": "InOut",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 192.0,
+        "y": 592.0
+      },
+      "size": {
+        "x": 48.0,
+        "y": 48.0
+      }
+    },
+    {
+      "classname": "RefNode",
+      "kind": "Ref",
+      "name": "refnode_1",
+      "params": {
+        "value": "0.0"
+      },
+      "ports": {
+        "v": {
           "direction": "Out",
-          "type": "Any"
-        },
-        "o2": {
-          "direction": "Out",
-          "type": "Any"
+          "type": "V"
         }
       },
       "pos": {
         "x": 208.0,
-        "y": 304.0
+        "y": 784.0
       },
       "size": {
-        "x": 64.0,
-        "y": 64.0
+        "x": 48.0,
+        "y": 48.0
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
-      "classname": "lamp_pass_through",
-      "kind": "Blueprint",
-      "name": "lamp_pass_through_1",
+      "classname": "HoldButton",
+      "content": {
+        "label": "RELEASED",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 2,
+        "unit": "",
+        "value": 0.0
+      },
+      "kind": "Node",
+      "name": "holdbutton_1",
+      "params": {
+        "idle": "0.0"
+      },
       "ports": {
-        "vin": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
           "direction": "In",
           "type": "V"
         },
-        "vout": {
+        "v_out": {
           "direction": "Out",
           "type": "V"
         }
       },
       "pos": {
-        "x": 400.0,
-        "y": 480.0
+        "x": 368.0,
+        "y": 304.0
       },
       "size": {
         "x": 128.0,
-        "y": 96.0
+        "y": 80.0
       }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -90.763427734375,
-      "y": -78.92074584960938
+      "x": -189.41192626953125,
+      "y": -203.53065490722656
     },
-    "zoom": 0.8529712557792664
+    "zoom": 0.6638935208320618
   },
   "wires": [
     {
-      "from": "gnd.v",
-      "routing_points": [
-        {
-          "x": 336.0,
-          "y": 704.0
-        },
-        {
-          "x": 336.0,
-          "y": 192.0
-        },
-        {
-          "x": 48.0,
-          "y": 192.0
-        },
-        {
-          "x": 48.0,
-          "y": 128.0
-        },
-        {
-          "x": 64.0,
-          "y": 128.0
-        }
-      ],
-      "to": "bat_main_1.v_in"
-    },
-    {
-      "from": "gnd.v",
-      "routing_points": [
-        {
-          "x": 336.0,
-          "y": 704.0
-        },
-        {
-          "x": 336.0,
-          "y": 672.0
-        },
-        {
-          "x": 720.0,
-          "y": 672.0
-        },
-        {
-          "x": 720.0,
-          "y": 592.0
-        },
-        {
-          "x": 704.0,
-          "y": 592.0
-        }
-      ],
-      "to": "light_1.v_out"
-    },
-    {
       "from": "main_bus.v",
-      "routing_points": [],
+      "routing_points": [
+        {
+          "x": 336.0,
+          "y": 432.0
+        }
+      ],
       "to": "dmr_vsu.v_in"
-    },
-    {
-      "from": "dmr_vsu.v_out",
-      "routing_points": [],
-      "to": "main_bus.v"
-    },
-    {
-      "from": "vsu_1.v_bus",
-      "routing_points": [
-        {
-          "x": 704.0,
-          "y": 96.0
-        },
-        {
-          "x": 752.0,
-          "y": 96.0
-        },
-        {
-          "x": 752.0,
-          "y": 208.0
-        },
-        {
-          "x": 528.0,
-          "y": 208.0
-        },
-        {
-          "x": 528.0,
-          "y": 288.0
-        },
-        {
-          "x": 544.0,
-          "y": 288.0
-        }
-      ],
-      "to": "rug_vsu.v_gen"
-    },
-    {
-      "from": "rug_vsu.k_mod",
-      "routing_points": [
-        {
-          "x": 704.0,
-          "y": 288.0
-        },
-        {
-          "x": 784.0,
-          "y": 288.0
-        },
-        {
-          "x": 784.0,
-          "y": 48.0
-        },
-        {
-          "x": 496.0,
-          "y": 48.0
-        },
-        {
-          "x": 496.0,
-          "y": 128.0
-        },
-        {
-          "x": 544.0,
-          "y": 128.0
-        }
-      ],
-      "to": "vsu_1.k_mod"
     },
     {
       "from": "lerpnode_1.output",
@@ -1031,13 +788,17 @@
     },
     {
       "from": "vsu_1.rpm_out",
-      "routing_points": [],
+      "routing_points": [
+        {
+          "x": 896.0,
+          "y": 112.0
+        },
+        {
+          "x": 896.0,
+          "y": 256.0
+        }
+      ],
       "to": "voltmeter_3.v_in"
-    },
-    {
-      "from": "vsu_1.v_start",
-      "routing_points": [],
-      "to": "holdbutton_1.v_out"
     },
     {
       "from": "simple_battery_1:bat.v_out",
@@ -1075,78 +836,229 @@
       "to": "lamp_pass_through_3:vout.port"
     },
     {
-      "from": "lamp_pass_through_1:vin.port",
-      "routing_points": [],
-      "to": "splitter_2.i"
-    },
-    {
-      "from": "splitter_1.o2",
+      "from": "dmr_vsu.v_out",
       "routing_points": [
         {
-          "x": 320.0,
-          "y": 352.0
+          "x": 848.0,
+          "y": 432.0
+        },
+        {
+          "x": 848.0,
+          "y": 192.0
+        },
+        {
+          "x": 352.0,
+          "y": 192.0
         }
       ],
-      "to": "holdbutton_1.v_in"
+      "to": "main_bus.v"
     },
     {
-      "from": "lamp_pass_through_1:lamp.v_out",
-      "routing_points": [],
-      "to": "lamp_pass_through_1:vout.port"
-    },
-    {
-      "from": "splitter_1.o1",
+      "from": "dmr_vsu.lamp",
       "routing_points": [
         {
-          "x": 304.0,
-          "y": 336.0
+          "x": 816.0,
+          "y": 416.0
         },
         {
-          "x": 304.0,
-          "y": 512.0
+          "x": 816.0,
+          "y": 480.0
+        },
+        {
+          "x": 624.0,
+          "y": 480.0
+        },
+        {
+          "x": 624.0,
+          "y": 528.0
         }
       ],
-      "to": "lamp_pass_through_1.vin"
-    },
-    {
-      "from": "splitter_1.i",
-      "routing_points": [
-        {
-          "x": 192.0,
-          "y": 336.0
-        },
-        {
-          "x": 16.0,
-          "y": 336.0
-        },
-        {
-          "x": 16.0,
-          "y": 48.0
-        },
-        {
-          "x": 256.0,
-          "y": 48.0
-        },
-        {
-          "x": 256.0,
-          "y": 112.0
-        },
-        {
-          "x": 240.0,
-          "y": 112.0
-        }
-      ],
-      "to": "bat_main_1.v_out"
-    },
-    {
-      "from": "lamp_pass_through_1.vout",
-      "routing_points": [],
       "to": "light_1.v_in"
     },
     {
+      "from": "rug82_1.k_mod",
+      "routing_points": [
+        {
+          "x": 768.0,
+          "y": 272.0
+        },
+        {
+          "x": 768.0,
+          "y": 208.0
+        },
+        {
+          "x": 544.0,
+          "y": 208.0
+        },
+        {
+          "x": 544.0,
+          "y": 112.0
+        }
+      ],
+      "to": "vsu_1.k_mod"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [
+        {
+          "x": 368.0,
+          "y": 272.0
+        }
+      ],
+      "to": "rug82_1.v_gen"
+    },
+    {
+      "from": "splitter_2.o1",
+      "routing_points": [
+        {
+          "x": 864.0,
+          "y": -32.0
+        },
+        {
+          "x": 864.0,
+          "y": 368.0
+        },
+        {
+          "x": 624.0,
+          "y": 368.0
+        },
+        {
+          "x": 624.0,
+          "y": 416.0
+        }
+      ],
+      "to": "dmr_vsu.v_gen_ref"
+    },
+    {
+      "from": "vsu_1.v_bus",
+      "routing_points": [
+        {
+          "x": 736.0,
+          "y": 144.0
+        },
+        {
+          "x": 736.0,
+          "y": 16.0
+        },
+        {
+          "x": 544.0,
+          "y": 16.0
+        },
+        {
+          "x": 544.0,
+          "y": -48.0
+        }
+      ],
+      "to": "splitter_2.i"
+    },
+    {
       "from": "splitter_2.o2",
+      "routing_points": [
+        {
+          "x": 704.0,
+          "y": -48.0
+        },
+        {
+          "x": 704.0,
+          "y": -112.0
+        },
+        {
+          "x": 496.0,
+          "y": -112.0
+        },
+        {
+          "x": 496.0,
+          "y": 64.0
+        },
+        {
+          "x": 384.0,
+          "y": 64.0
+        }
+      ],
+      "to": "main_bus.v"
+    },
+    {
+      "from": "light_1.v_out",
+      "routing_points": [
+        {
+          "x": 848.0,
+          "y": 544.0
+        },
+        {
+          "x": 848.0,
+          "y": 672.0
+        },
+        {
+          "x": 208.0,
+          "y": 672.0
+        }
+      ],
+      "to": "bus_1.v"
+    },
+    {
+      "from": "bus_1.v",
+      "routing_points": [
+        {
+          "x": 224.0,
+          "y": 688.0
+        },
+        {
+          "x": 64.0,
+          "y": 688.0
+        },
+        {
+          "x": 64.0,
+          "y": 144.0
+        }
+      ],
+      "to": "bat_main_1.v_in"
+    },
+    {
+      "from": "bat_main_1.v_out",
+      "routing_points": [
+        {
+          "x": 400.0,
+          "y": 144.0
+        }
+      ],
+      "to": "main_bus.v"
+    },
+    {
+      "from": "refnode_1.v",
       "routing_points": [],
-      "to": "lamp_pass_through_1:lamp.v_in"
+      "to": "bus_1.v"
+    },
+    {
+      "from": "holdbutton_1.v_out",
+      "routing_points": [
+        {
+          "x": 512.0,
+          "y": 336.0
+        },
+        {
+          "x": 512.0,
+          "y": 128.0
+        }
+      ],
+      "to": "vsu_1.v_start"
+    },
+    {
+      "from": "holdbutton_1.v_in",
+      "routing_points": [
+        {
+          "x": 352.0,
+          "y": 352.0
+        },
+        {
+          "x": 352.0,
+          "y": 240.0
+        },
+        {
+          "x": 416.0,
+          "y": 240.0
+        }
+      ],
+      "to": "main_bus.v"
     }
   ]
 }

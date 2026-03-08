@@ -4,6 +4,7 @@
 #include "editor/visual/scene/persist.h"
 #include "editor/input/canvas_input.h"
 #include "editor/visual/scene/wire_manager.h"
+#include "editor/window/window_manager.h"
 
 // ============================================================================
 // Node Deletion Tests (TDD)
@@ -305,4 +306,216 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     // internal_node_ids cleaned
     auto& ids = bp.collapsed_groups[0].internal_node_ids;
     EXPECT_EQ(std::count(ids.begin(), ids.end(), "lamp1:a"), 0);
+}
+
+// ============================================================================
+// Recursive sub-blueprint deletion regression tests
+// ============================================================================
+
+// Helper: build blueprint with sub-blueprint "lamp1" containing 2 internal nodes + 1 wire
+static Blueprint make_bp_with_sub_blueprint() {
+    Blueprint bp;
+
+    // Root-level nodes
+    Node bat; bat.id = "bat"; bat.type_name = "Battery"; bat.at(0, 0).size_wh(120, 80);
+    bat.output("v_out");
+    bp.add_node(std::move(bat));
+
+    // Collapsed blueprint node
+    Node lamp; lamp.id = "lamp1"; lamp.type_name = "lamp"; lamp.kind = NodeKind::Blueprint;
+    lamp.at(200, 0).size_wh(120, 80);
+    lamp.input("vin").output("vout");
+    bp.add_node(std::move(lamp));
+
+    // Internal nodes of lamp1
+    Node led; led.id = "lamp1:led"; led.type_name = "IndicatorLight"; led.group_id = "lamp1";
+    led.at(0, 0).size_wh(80, 60); led.input("in").output("out");
+    bp.add_node(std::move(led));
+
+    Node res; res.id = "lamp1:res"; res.type_name = "Resistor"; res.group_id = "lamp1";
+    res.at(200, 0).size_wh(80, 60); res.input("in").output("out");
+    bp.add_node(std::move(res));
+
+    // External wire: bat -> lamp1
+    bp.add_wire(Wire::make("ext_w", wire_output("bat", "v_out"), wire_input("lamp1", "vin")));
+    // Internal wire: led -> res
+    bp.add_wire(Wire::make("int_w", wire_output("lamp1:led", "out"), wire_input("lamp1:res", "in")));
+
+    CollapsedGroup g("lamp1", "blueprints/lamp.json", "lamp");
+    g.internal_node_ids = {"lamp1:led", "lamp1:res"};
+    bp.collapsed_groups.push_back(g);
+
+    return bp;
+}
+
+// ---- 13. Deleting sub-blueprint removes internal nodes ----
+
+TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
+    Blueprint bp = make_bp_with_sub_blueprint();
+    VisualScene scene(bp);
+
+    // Find lamp1 index
+    size_t lamp_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+    ASSERT_NE(lamp_idx, SIZE_MAX);
+
+    scene.removeNodes({lamp_idx});
+
+    // lamp1 node gone
+    EXPECT_EQ(bp.find_node("lamp1"), nullptr);
+    // Internal nodes gone
+    EXPECT_EQ(bp.find_node("lamp1:led"), nullptr);
+    EXPECT_EQ(bp.find_node("lamp1:res"), nullptr);
+    // Only "bat" remains
+    EXPECT_EQ(bp.nodes.size(), 1u);
+    EXPECT_EQ(bp.nodes[0].id, "bat");
+}
+
+// ---- 14. Deleting sub-blueprint removes internal wires ----
+
+TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
+    Blueprint bp = make_bp_with_sub_blueprint();
+    VisualScene scene(bp);
+
+    size_t lamp_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+    ASSERT_NE(lamp_idx, SIZE_MAX);
+
+    scene.removeNodes({lamp_idx});
+
+    // Both ext_w (bat->lamp1) and int_w (led->res) should be gone
+    EXPECT_EQ(bp.wires.size(), 0u);
+    EXPECT_EQ(bp.wire_index_.size(), 0u);
+}
+
+// ---- 15. Deleting sub-blueprint removes CollapsedGroup entry ----
+
+TEST(NodeDeletion, DeleteSubBlueprint_RemovesCollapsedGroup) {
+    Blueprint bp = make_bp_with_sub_blueprint();
+    VisualScene scene(bp);
+
+    size_t lamp_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+    ASSERT_NE(lamp_idx, SIZE_MAX);
+
+    scene.removeNodes({lamp_idx});
+
+    EXPECT_EQ(bp.collapsed_groups.size(), 0u)
+        << "CollapsedGroup for deleted sub-blueprint should be removed";
+}
+
+// ---- 16. Recursive: sub-sub-blueprint deletion ----
+
+TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
+    Blueprint bp;
+
+    // Root node
+    Node root; root.id = "top"; root.at(0, 0).size_wh(120, 80); root.output("out");
+    bp.add_node(std::move(root));
+
+    // Level 1: sub-blueprint "sys1"
+    Node sys1; sys1.id = "sys1"; sys1.kind = NodeKind::Blueprint;
+    sys1.at(200, 0).size_wh(120, 80); sys1.input("in");
+    bp.add_node(std::move(sys1));
+
+    // Level 2: inside sys1, another sub-blueprint "sys1:sub2"
+    Node sub2; sub2.id = "sys1:sub2"; sub2.kind = NodeKind::Blueprint;
+    sub2.group_id = "sys1";
+    sub2.at(0, 0).size_wh(100, 60); sub2.input("in");
+    bp.add_node(std::move(sub2));
+
+    // Level 3: inside sys1:sub2, a leaf node
+    Node leaf; leaf.id = "sys1:sub2:leaf"; leaf.type_name = "Resistor";
+    leaf.group_id = "sys1:sub2";
+    leaf.at(0, 0).size_wh(80, 60); leaf.input("in");
+    bp.add_node(std::move(leaf));
+
+    // Wires at each level
+    bp.add_wire(Wire::make("w0", wire_output("top", "out"), wire_input("sys1", "in")));
+    bp.add_wire(Wire::make("w1", wire_output("sys1", "in"), wire_input("sys1:sub2", "in")));
+    bp.add_wire(Wire::make("w2", wire_output("sys1:sub2", "in"), wire_input("sys1:sub2:leaf", "in")));
+
+    // Collapsed groups
+    CollapsedGroup g1("sys1", "blueprints/sys1.json", "sys1");
+    g1.internal_node_ids = {"sys1:sub2"};
+    bp.collapsed_groups.push_back(g1);
+
+    CollapsedGroup g2("sys1:sub2", "blueprints/sub2.json", "sub2");
+    g2.internal_node_ids = {"sys1:sub2:leaf"};
+    bp.collapsed_groups.push_back(g2);
+
+    ASSERT_EQ(bp.nodes.size(), 4u);
+    ASSERT_EQ(bp.wires.size(), 3u);
+    ASSERT_EQ(bp.collapsed_groups.size(), 2u);
+
+    VisualScene scene(bp);
+
+    // Delete sys1 — should cascade to sys1:sub2 and sys1:sub2:leaf
+    size_t sys1_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "sys1") { sys1_idx = i; break; }
+    ASSERT_NE(sys1_idx, SIZE_MAX);
+
+    scene.removeNodes({sys1_idx});
+
+    // Only "top" remains
+    EXPECT_EQ(bp.nodes.size(), 1u);
+    EXPECT_EQ(bp.nodes[0].id, "top");
+    // All wires gone
+    EXPECT_EQ(bp.wires.size(), 0u);
+    // All collapsed groups gone
+    EXPECT_EQ(bp.collapsed_groups.size(), 0u);
+}
+
+// ---- 17. WindowManager removes orphaned sub-windows ----
+
+TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
+    Blueprint bp = make_bp_with_sub_blueprint();
+    WindowManager wm(bp);
+    EXPECT_EQ(wm.count(), 1u);  // root only
+
+    // Open sub-window for lamp1
+    wm.open("lamp1", "lamp [lamp1]");
+    EXPECT_EQ(wm.count(), 2u);
+
+    // Delete lamp1 via root scene
+    VisualScene scene(bp);
+    size_t lamp_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+    ASSERT_NE(lamp_idx, SIZE_MAX);
+
+    scene.removeNodes({lamp_idx});
+    wm.removeOrphanedWindows();
+
+    EXPECT_EQ(wm.count(), 1u) << "Sub-window for deleted group should be closed";
+    EXPECT_EQ(wm.find("lamp1"), nullptr);
+}
+
+// ---- 18. Deleting regular node does NOT trigger recursive cleanup ----
+
+TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
+    Blueprint bp = make_bp_with_sub_blueprint();
+    VisualScene scene(bp);
+
+    // Delete "bat" (regular node, not a Blueprint)
+    size_t bat_idx = SIZE_MAX;
+    for (size_t i = 0; i < bp.nodes.size(); ++i)
+        if (bp.nodes[i].id == "bat") { bat_idx = i; break; }
+    ASSERT_NE(bat_idx, SIZE_MAX);
+
+    scene.removeNodes({bat_idx});
+
+    // bat gone, ext_w gone, but lamp1 and internals survive
+    EXPECT_EQ(bp.find_node("bat"), nullptr);
+    EXPECT_NE(bp.find_node("lamp1"), nullptr);
+    EXPECT_NE(bp.find_node("lamp1:led"), nullptr);
+    EXPECT_NE(bp.find_node("lamp1:res"), nullptr);
+    EXPECT_EQ(bp.collapsed_groups.size(), 1u);
+    // Only internal wire survives
+    EXPECT_EQ(bp.wires.size(), 1u);
+    EXPECT_EQ(bp.wires[0].id, "int_w");
 }
