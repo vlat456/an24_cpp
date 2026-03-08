@@ -329,6 +329,7 @@ using ComponentVariant = std::variant<
     Relay<JitProvider>,
     Resistor<JitProvider>,
     SolenoidValve<JitProvider>,
+    Merger<JitProvider>,
     Splitter<JitProvider>,
     Switch<JitProvider>,
     TempSensor<JitProvider>,

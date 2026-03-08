@@ -198,6 +198,11 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "Merger") {
+        Merger<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "IndicatorLight") {
         IndicatorLight<JitProvider> comp;
         setup_component_ports(comp, dev, result);

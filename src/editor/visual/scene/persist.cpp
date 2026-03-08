@@ -445,12 +445,20 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             continue;
         }
 
-        // Kind
+        // BUGFIX [c3d4e5] Kind inference: derive from classname for component nodes,
+        // only trust explicit "Blueprint" from JSON (can't be inferred from classname).
+        // Old code trusted JSON kind verbatim, so RefNodes from expanded blueprints
+        // would persist as kind:"Node" forever after one bad save.
         std::string kind_str = d.value("kind", "Node");
-        if (kind_str == "Bus") n.kind = NodeKind::Bus;
-        else if (kind_str == "Ref") n.kind = NodeKind::Ref;
-        else if (kind_str == "Blueprint") n.kind = NodeKind::Blueprint;
-        else n.kind = NodeKind::Node;
+        if (kind_str == "Blueprint") {
+            n.kind = NodeKind::Blueprint;
+        } else if (n.type_name == "Bus") {
+            n.kind = NodeKind::Bus;
+        } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
+            n.kind = NodeKind::Ref;
+        } else {
+            n.kind = NodeKind::Node;
+        }
 
         // Ports
         if (d.contains("ports") && d["ports"].is_object()) {

@@ -22,6 +22,7 @@ template class Transformer<JitProvider>;
 template class Inverter<JitProvider>;
 template class LerpNode<JitProvider>;
 template class Splitter<JitProvider>;
+template class Merger<JitProvider>;
 template class IndicatorLight<JitProvider>;
 template class Voltmeter<JitProvider>;
 template class HighPowerLoad<JitProvider>;

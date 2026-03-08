@@ -290,6 +290,22 @@ public:
     void solve_thermal(an24::SimulationState& st, float dt);
 };
 
+/// Merger - 2-to-1 signal merger (inverse of Splitter)
+template <typename Provider = JitProvider>
+class Merger {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+
+    Merger() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_mechanical(an24::SimulationState& st, float dt);
+    void solve_hydraulic(an24::SimulationState& st, float dt);
+    void solve_thermal(an24::SimulationState& st, float dt);
+};
+
 /// IndicatorLight - aircraft indicator light
 template <typename Provider = JitProvider>
 class IndicatorLight {

@@ -1308,4 +1308,103 @@ TEST(BlueprintTest, AddWire_ReversedDirectionIsUnique) {
     EXPECT_EQ(bp.wires.size(), 2);
 }
 
+// =============================================================================
+// BUGFIX [c3d4e5] Kind inference from classname — RefNode gets kind=Ref on load
+// =============================================================================
+
+TEST(PersistTest, KindInference_RefNodeGetsRefKind) {
+    // JSON with RefNode classname but kind="Node" (corrupted save from old code)
+    const char* json = R"({
+        "devices": [
+            {"name": "gnd", "classname": "RefNode", "kind": "Node",
+             "ports": {"v": {"direction": "Out", "type": "V"}},
+             "params": {"value": "0.0"},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->nodes.size(), 1);
+    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Ref)
+        << "RefNode classname must produce kind=Ref regardless of JSON kind field";
+}
+
+TEST(PersistTest, KindInference_BusGetsCorrectKind) {
+    const char* json = R"({
+        "devices": [
+            {"name": "bus1", "classname": "Bus", "kind": "Node",
+             "ports": {"v": {"direction": "InOut", "type": "V"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->nodes.size(), 1);
+    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Bus)
+        << "Bus classname must produce kind=Bus regardless of JSON kind field";
+}
+
+TEST(PersistTest, KindInference_BlueprintKindPreserved) {
+    const char* json = R"({
+        "devices": [
+            {"name": "lamp1", "classname": "lamp_pass_through", "kind": "Blueprint",
+             "ports": {"vin": {"direction": "In", "type": "V"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 128, "y": 96}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->nodes.size(), 1);
+    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Blueprint)
+        << "Explicit Blueprint kind must be preserved (can't be inferred from classname)";
+}
+
+TEST(PersistTest, KindInference_Roundtrip_RefNodePreservesKind) {
+    Blueprint bp;
+    Node gnd;
+    gnd.id = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.kind = NodeKind::Ref;
+    gnd.output("v");
+    gnd.at(0, 0);
+    bp.add_node(std::move(gnd));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
+        << "RefNode kind must survive save/load roundtrip";
+}
+
+TEST(PersistTest, KindInference_CorruptedRefNodeFixedOnRoundtrip) {
+    // Simulate corrupted blueprint: RefNode with kind=Node
+    Blueprint bp;
+    Node gnd;
+    gnd.id = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.kind = NodeKind::Node; // intentionally wrong
+    gnd.output("v");
+    gnd.at(0, 0);
+    bp.nodes.push_back(std::move(gnd)); // bypass add_node to keep wrong kind
+
+    // Save preserves wrong kind (because it reads from node.kind)
+    std::string json = blueprint_to_editor_json(bp);
+    // But load should fix it based on classname
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
+        << "Load must fix corrupted RefNode kind based on classname";
+}
+
 

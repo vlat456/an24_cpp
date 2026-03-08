@@ -367,6 +367,22 @@ template <typename Provider>
 void Splitter<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {}
 
 // =============================================================================
+// Merger (inverse of Splitter — 2-to-1, pure alias, no stamping)
+// =============================================================================
+
+template <typename Provider>
+void Merger<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {}
+
+template <typename Provider>
+void Merger<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {}
+
+template <typename Provider>
+void Merger<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {}
+
+template <typename Provider>
+void Merger<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {}
+
+// =============================================================================
 // IndicatorLight
 // =============================================================================
 

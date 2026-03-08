@@ -337,3 +337,177 @@ TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
     // Time should not advance
     EXPECT_EQ(sim.get_time(), 0.0f);
 }
+
+// =============================================================================
+// Merger component: 2-to-1 signal merger (inverse of Splitter)
+// =============================================================================
+
+/// Helper: circuit with Merger joining two sources into one load
+static Blueprint create_merger_circuit() {
+    Blueprint bp;
+    bp.grid_step = 16.0f;
+
+    // Ground
+    Node gnd;
+    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
+    gnd.output("v"); gnd.at(0, 0);
+    bp.add_node(std::move(gnd));
+
+    // Battery
+    Node bat;
+    bat.id = "bat"; bat.type_name = "Battery"; bat.kind = NodeKind::Node;
+    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    bp.add_node(std::move(bat));
+
+    // Splitter: battery → 2 branches
+    Node spl;
+    spl.id = "spl"; spl.type_name = "Splitter"; spl.kind = NodeKind::Node;
+    spl.input("i"); spl.output("o1"); spl.output("o2"); spl.at(250, 0);
+    bp.add_node(std::move(spl));
+
+    // Merger: 2 inputs → 1 output
+    Node mrg;
+    mrg.id = "mrg"; mrg.type_name = "Merger"; mrg.kind = NodeKind::Node;
+    mrg.input("i1"); mrg.input("i2"); mrg.output("o"); mrg.at(400, 0);
+    bp.add_node(std::move(mrg));
+
+    // Load
+    Node res;
+    res.id = "res"; res.type_name = "Resistor"; res.kind = NodeKind::Node;
+    res.input("v_in"); res.output("v_out"); res.at(550, 0);
+    bp.add_node(std::move(res));
+
+    // Wires: gnd → bat.v_in, bat.v_out → spl.i
+    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
+    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("spl", "i", PortSide::Input);
+    Wire w3; w3.start = WireEnd("spl", "o1", PortSide::Output); w3.end = WireEnd("mrg", "i1", PortSide::Input);
+    Wire w4; w4.start = WireEnd("spl", "o2", PortSide::Output); w4.end = WireEnd("mrg", "i2", PortSide::Input);
+    Wire w5; w5.start = WireEnd("mrg", "o", PortSide::Output); w5.end = WireEnd("res", "v_in", PortSide::Input);
+    Wire w6; w6.start = WireEnd("res", "v_out", PortSide::Output); w6.end = WireEnd("gnd", "v", PortSide::Input);
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+    bp.add_wire(std::move(w3));
+    bp.add_wire(std::move(w4));
+    bp.add_wire(std::move(w5));
+    bp.add_wire(std::move(w6));
+
+    return bp;
+}
+
+TEST(SimulationTest, Merger_CircuitConverges) {
+    Blueprint bp = create_merger_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    float v_bat = sim.get_wire_voltage("bat.v_out");
+    float v_gnd = sim.get_wire_voltage("gnd.v");
+
+    EXPECT_GT(v_bat, 5.0f) << "Battery output should converge to positive voltage";
+    EXPECT_LT(v_bat, 50.0f) << "Battery output should be reasonable";
+    EXPECT_NEAR(v_gnd, 0.0f, 0.01f) << "Ground should stay at 0V";
+    EXPECT_FALSE(std::isnan(v_bat)) << "No NaN in merger circuit";
+}
+
+TEST(SimulationTest, Merger_AllPortsSameSignal) {
+    // Merger aliases i1, i2 to o — all should be the same voltage
+    Blueprint bp = create_merger_circuit();
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    float v_i1 = sim.get_wire_voltage("mrg.i1");
+    float v_i2 = sim.get_wire_voltage("mrg.i2");
+    float v_o = sim.get_wire_voltage("mrg.o");
+
+    EXPECT_FLOAT_EQ(v_i1, v_o) << "Merger i1 and o must be same signal";
+    EXPECT_FLOAT_EQ(v_i2, v_o) << "Merger i2 and o must be same signal";
+}
+
+// =============================================================================
+// NaN regression: floating chain endpoint diverges with SOR omega=1.8
+// =============================================================================
+
+TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
+    // Reproduces the user's bug: battery → lamps → dangling (no ground on output)
+    // This circuit has a floating endpoint but should NOT produce NaN
+    // (parasitic conductance and clamping should prevent it)
+    Blueprint bp;
+    bp.grid_step = 16.0f;
+
+    Node gnd; gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
+    gnd.output("v"); gnd.at(0, 0);
+    bp.add_node(std::move(gnd));
+
+    Node bat; bat.id = "bat"; bat.type_name = "Battery";
+    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    bp.add_node(std::move(bat));
+
+    Node lamp; lamp.id = "lamp"; lamp.type_name = "IndicatorLight";
+    lamp.input("v_in"); lamp.output("v_out"); lamp.output("brightness"); lamp.at(300, 0);
+    bp.add_node(std::move(lamp));
+
+    // gnd → bat.v_in, bat.v_out → lamp.v_in, lamp.v_out → DANGLING
+    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
+    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("lamp", "v_in", PortSide::Input);
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+    // NO wire from lamp.v_out to ground — intentionally floating
+
+    SimulationController sim;
+    sim.build(bp);
+
+    // Run for 2 simulated seconds (120 steps at 60Hz)
+    for (int i = 0; i < 120; i++) {
+        sim.step(0.016f);
+        float v = sim.get_wire_voltage("bat.v_out");
+        ASSERT_FALSE(std::isnan(v)) << "NaN at step " << i << " — floating chain diverged";
+        ASSERT_FALSE(std::isinf(v)) << "Inf at step " << i << " — floating chain diverged";
+    }
+}
+
+TEST(SimulationTest, TwoRefNodes_CircuitStable) {
+    // Two separate RefNodes (one for battery, one for load) with a complete loop
+    Blueprint bp;
+    bp.grid_step = 16.0f;
+
+    Node gnd1; gnd1.id = "gnd1"; gnd1.type_name = "RefNode"; gnd1.kind = NodeKind::Ref;
+    gnd1.output("v"); gnd1.at(0, 0);
+    bp.add_node(std::move(gnd1));
+
+    Node gnd2; gnd2.id = "gnd2"; gnd2.type_name = "RefNode"; gnd2.kind = NodeKind::Ref;
+    gnd2.output("v"); gnd2.at(600, 0);
+    bp.add_node(std::move(gnd2));
+
+    Node bat; bat.id = "bat"; bat.type_name = "Battery";
+    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    bp.add_node(std::move(bat));
+
+    Node res; res.id = "res"; res.type_name = "Resistor";
+    res.input("v_in"); res.output("v_out"); res.at(300, 0);
+    bp.add_node(std::move(res));
+
+    // gnd1 → bat.v_in, bat.v_out → res.v_in, res.v_out → gnd2
+    Wire w1; w1.start = WireEnd("gnd1", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
+    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("res", "v_in", PortSide::Input);
+    Wire w3; w3.start = WireEnd("res", "v_out", PortSide::Output); w3.end = WireEnd("gnd2", "v", PortSide::Input);
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+    bp.add_wire(std::move(w3));
+
+    SimulationController sim;
+    sim.build(bp);
+
+    for (int i = 0; i < 200; i++) {
+        sim.step(0.016f);
+        float v = sim.get_wire_voltage("bat.v_out");
+        ASSERT_FALSE(std::isnan(v)) << "NaN at step " << i;
+        ASSERT_FALSE(std::isinf(v)) << "Inf at step " << i;
+    }
+
+    float v_bat = sim.get_wire_voltage("bat.v_out");
+    EXPECT_GT(v_bat, 5.0f) << "Battery should produce voltage with two separate RefNodes";
+    EXPECT_LT(v_bat, 50.0f) << "Voltage should be reasonable";
+}
