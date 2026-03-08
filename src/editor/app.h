@@ -143,10 +143,5 @@ struct EditorApp {
     /// Open a sub-window for a collapsed group (replaces drill_into).
     void open_sub_window(const std::string& collapsed_group_id);
 
-    /// Get current drill depth name (empty = top-level, non-empty = deepest drilled group)
-    std::string get_current_view() const {
-        return scene.groupId();
-    }
-
 private:
 };

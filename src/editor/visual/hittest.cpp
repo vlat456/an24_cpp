@@ -116,7 +116,7 @@ HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_p
                 result.type = HitType::Port;
                 result.node_index = node_idx;
                 result.port_index = port_idx;
-                result.is_input = false;  // [l5h7i9j1] Placeholder; actual side determined below via port_side
+                // BUGFIX [c5a1d8] Removed dead is_input field
                 result.port_node_id = node.id;
                 // Use logicalName() to get the target port ("v" for aliases, name for normal ports)
                 result.port_name = port->logicalName();

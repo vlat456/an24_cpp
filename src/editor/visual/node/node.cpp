@@ -13,19 +13,25 @@
 namespace {
 
 constexpr float PORT_RADIUS = 6.0f;
-constexpr float GRID_STEP = 16.0f;
+
+// BUGFIX [8d4e6a] Removed hardcoded GRID_STEP=16 snap in VisualNode constructor.
+// Node positions are already snapped by callers (CanvasInput, add_component, persist loader).
+// Re-snapping here to 16px silently moved nodes placed on 4/8/12px grids.
+// Port position snapping still uses 16px (internal layout, not user-facing).
+
+constexpr float PORT_LAYOUT_GRID = 16.0f;
 
 Pt snap_to_grid(Pt pos) {
     return Pt(
-        std::round(pos.x / GRID_STEP) * GRID_STEP,
-        std::round(pos.y / GRID_STEP) * GRID_STEP
+        std::round(pos.x / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID,
+        std::round(pos.y / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID
     );
 }
 
 Pt snap_size_to_grid(Pt size) {
     return Pt(
-        std::ceil(size.x / GRID_STEP) * GRID_STEP,
-        std::ceil(size.y / GRID_STEP) * GRID_STEP
+        std::ceil(size.x / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID,
+        std::ceil(size.y / PORT_LAYOUT_GRID) * PORT_LAYOUT_GRID
     );
 }
 
@@ -36,7 +42,7 @@ Pt snap_size_to_grid(Pt size) {
 // ============================================================================
 
 VisualNode::VisualNode(const Node& node)
-    : position_(snap_to_grid(node.pos))
+    : position_(node.pos)  // BUGFIX [8d4e6a] Use position as-is (already snapped by caller)
     , size_(snap_size_to_grid(node.size))
     , node_id_(node.id)
     , ports_()
@@ -299,9 +305,9 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
 Pt BusVisualNode::calculateBusSize(size_t port_count) const {
     Pt size;
     if (orientation_ == BusOrientation::Horizontal) {
-        size = Pt((port_count + 2) * GRID_STEP, GRID_STEP * 2);
+        size = Pt((port_count + 2) * PORT_LAYOUT_GRID, PORT_LAYOUT_GRID * 2);
     } else {
-        size = Pt(GRID_STEP * 2, (port_count + 2) * GRID_STEP);
+        size = Pt(PORT_LAYOUT_GRID * 2, (port_count + 2) * PORT_LAYOUT_GRID);
     }
     return snap_size_to_grid(size);
 }
@@ -312,7 +318,7 @@ Pt BusVisualNode::calculatePortPosition(size_t index) const {
     }
 
     bool ports_on_bottom = (size_.x > size_.y);
-    float step = GRID_STEP;
+    float step = PORT_LAYOUT_GRID;
 
     if (ports_on_bottom) {
         float x = position_.x + step * (index + 1);

@@ -62,11 +62,7 @@ inline Pt grid_to_world(GridPt grid, float step) {
     return Pt(grid.x * step, grid.y * step);
 }
 
-/// 4 соседа (up, down, left, right)
-inline std::array<GridPt, 4> grid_neighbors(GridPt pt) {
-    return {GridPt{pt.x, pt.y + 1}, GridPt{pt.x, pt.y - 1},
-            GridPt{pt.x + 1, pt.y}, GridPt{pt.x - 1, pt.y}};
-}
+// BUGFIX [71ef3b] Removed dead grid_neighbors() and state_new() — unused by A* implementation
 
 /// State = (grid position, direction) - для turn penalty
 struct State {
@@ -77,10 +73,6 @@ struct State {
         return pt == other.pt && dir == other.dir;
     }
 };
-
-inline State state_new(GridPt pt, Dir dir) {
-    return State{pt, dir};
-}
 
 /// Hash для State
 struct StateHash {

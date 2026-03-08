@@ -6,15 +6,15 @@
 #include <optional>
 #include <string>
 
-using namespace an24;
+// BUGFIX [a4f9c3] Removed file-scope 'using namespace an24' — pollutes all includers
 
 /// SimulationController - wraps JIT solver for real-time editor simulation
 struct SimulationController {
     /// Build result from JIT solver
-    std::optional<BuildResult> build_result;
+    std::optional<an24::BuildResult> build_result;
 
     /// Simulation state (voltages, currents)
-    SimulationState state;
+    an24::SimulationState state;
 
     /// Is simulation running?
     bool running = false;

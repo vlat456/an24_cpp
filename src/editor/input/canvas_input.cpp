@@ -278,7 +278,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     Pt world = scene_.viewport().screen_to_world(screen_pos, canvas_min);
 
     // 1. Routing-point removal
-    auto rp_hit = hit_test_routing_point(scene_.blueprint(), world);
+    // BUGFIX [3f7b9c] Pass group_id to filter routing points to current group
+    auto rp_hit = hit_test_routing_point(scene_.blueprint(), world, scene_.groupId());
     if (rp_hit) {
         wire_mgr_.removeRoutingPoint(rp_hit->wire_index, rp_hit->routing_point_index);
         return result;

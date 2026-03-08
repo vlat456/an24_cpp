@@ -86,11 +86,6 @@ void EditorApp::reset_node_content() {
     }
 }
 
-// [DRY-i9j0] Replaced duplicate — now delegates to create_node_content_from_def in node.h
-static NodeContent create_node_content(const an24::ComponentDefinition* def) {
-    return create_node_content_from_def(def);
-}
-
 void EditorApp::add_component(const std::string& classname, Pt world_pos, const std::string& group_id) {
     using namespace an24;
     
@@ -153,8 +148,8 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
         }
     }
 
-    // Create node_content from component definition (no more hardcoded component lists!)
-    node.node_content = create_node_content(def);
+    // BUGFIX [dc3a7f] Removed dead create_node_content wrapper, call factory directly
+    node.node_content = create_node_content_from_def(def);
 
     // Add node to scene
     scene.addNode(node);
@@ -333,7 +328,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         // Create node_content from ComponentDefinition
         const auto* def = component_registry.get(dev.classname);
         if (def) {
-            node.node_content = create_node_content(def);
+            node.node_content = create_node_content_from_def(def);
         }
 
         scene.blueprint().add_node(node);

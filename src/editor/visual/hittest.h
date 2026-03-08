@@ -22,7 +22,7 @@ struct HitResult {
     size_t node_index = 0;          ///< Индекс узла
     size_t wire_index = 0;          ///< Индекс провода
     size_t port_index = 0;          ///< Индекс порта
-    bool is_input = false;          ///< Входной/выходной порт
+    // BUGFIX [c5a1d8] Removed dead 'is_input' field — port_side is the source of truth
     size_t routing_point_index = 0; ///< Индекс точки изгиба (для HitType::RoutingPoint)
 
     // Данные для порта (заполняются когда type == Port)
