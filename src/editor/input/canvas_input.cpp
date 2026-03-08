@@ -314,7 +314,9 @@ InputResult CanvasInput::on_key(Key key) {
             clear_selection();
             break;
 
-        case Key::Delete: {
+        case Key::Delete:
+        case Key::Backspace: {
+            if (selected_nodes_.empty()) break;
             std::sort(selected_nodes_.begin(), selected_nodes_.end(), std::greater<size_t>());
             scene_.removeNodes(selected_nodes_);
             clear_selection();

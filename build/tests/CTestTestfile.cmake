@@ -25,4 +25,5 @@ include("/Users/vladimir/an24_cpp/build/tests/lamp_passthrough_jit_test[1]_inclu
 include("/Users/vladimir/an24_cpp/build/tests/editor_hierarchical_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/visual_port_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/visual_scene_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/node_deletion_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/multi_window_tests[1]_include.cmake")

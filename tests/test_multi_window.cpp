@@ -360,12 +360,12 @@ TEST(WireDeselect, ClickEmptySpaceDeselectsWire) {
     Blueprint bp;
     Node n1; n1.id = "a"; n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(Port("v_out", PortSide::Output));
+    n1.outputs.push_back(Port("v_out", PortSide::Output, an24::PortType::V));
     bp.add_node(std::move(n1));
 
     Node n2; n2.id = "b"; n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(Port("v_in", PortSide::Input));
+    n2.inputs.push_back(Port("v_in", PortSide::Input, an24::PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;
@@ -416,12 +416,12 @@ TEST(WireDeselect, ClickNodeDeselectsWire) {
     Blueprint bp;
     Node n1; n1.id = "a"; n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(Port("v_out", PortSide::Output));
+    n1.outputs.push_back(Port("v_out", PortSide::Output, an24::PortType::V));
     bp.add_node(std::move(n1));
 
     Node n2; n2.id = "b"; n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(Port("v_in", PortSide::Input));
+    n2.inputs.push_back(Port("v_in", PortSide::Input, an24::PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;

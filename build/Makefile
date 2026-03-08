@@ -627,6 +627,19 @@ visual_scene_tests/fast:
 .PHONY : visual_scene_tests/fast
 
 #=============================================================================
+# Target rules for targets named node_deletion_tests
+
+# Build rule for target.
+node_deletion_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 node_deletion_tests
+.PHONY : node_deletion_tests
+
+# fast build rule for target.
+node_deletion_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/build
+.PHONY : node_deletion_tests/fast
+
+#=============================================================================
 # Target rules for targets named multi_window_tests
 
 # Build rule for target.
@@ -682,6 +695,7 @@ help:
 	@echo "... logical_solver_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
+	@echo "... node_deletion_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
 	@echo "... provider_pattern_tests"

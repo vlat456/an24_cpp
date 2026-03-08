@@ -15,8 +15,8 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
                 "priority": "high",
                 "critical": true,
                 "ports": {
-                    "v_in": {"direction": "In"},
-                    "v_out": {"direction": "Out"}
+                    "v_in": {"direction": "In", "type": "V"},
+                    "v_out": {"direction": "Out", "type": "V"}
                 },
                 "params": {
                     "v_nominal": "24.0",
@@ -27,7 +27,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
                 "name": "load1",
                 "classname": "Load",
                 "ports": {
-                    "input": {"direction": "In"}
+                    "input": {"direction": "In", "type": "V"}
                 },
                 "params": {
                     "conductance": "0.1"
@@ -68,16 +68,16 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
                 "name": "bat1",
                 "classname": "Battery",
                 "ports": {
-                    "v_in": {"direction": "In"},
-                    "v_out": {"direction": "Out"}
+                    "v_in": {"direction": "In", "type": "V"},
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             },
             {
                 "name": "inertia1",
                 "classname": "InertiaNode",
                 "ports": {
-                    "input": {"direction": "In"},
-                    "output": {"direction": "Out"}
+                    "input": {"direction": "In", "type": "RPM"},
+                    "output": {"direction": "Out", "type": "RPM"}
                 }
             }
         ],
@@ -104,7 +104,7 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
                 "name": "gnd",
                 "classname": "RefNode",
                 "ports": {
-                    "v": {"direction": "Out"}
+                    "v": {"direction": "Out", "type": "V"}
                 },
                 "params": {
                     "value": "0.0"
@@ -114,8 +114,8 @@ TEST(EditorComponentVariant, RefNodeFixedVoltage) {
                 "name": "bat1",
                 "classname": "Battery",
                 "ports": {
-                    "v_in": {"direction": "In"},
-                    "v_out": {"direction": "Out"}
+                    "v_in": {"direction": "In", "type": "V"},
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             }
         ],
@@ -178,8 +178,8 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
                 "name": "bat1",
                 "classname": "Battery",
                 "ports": {
-                    "v_in": {"direction": "In"},
-                    "v_out": {"direction": "Out"}
+                    "v_in": {"direction": "In", "type": "V"},
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             }
         ],

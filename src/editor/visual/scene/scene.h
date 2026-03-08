@@ -118,7 +118,7 @@ public:
     }
 
     /// Remove multiple nodes by index (indices must be sorted descending).
-    /// Connected wires are removed automatically.
+    /// Connected wires and collapsed_groups.internal_node_ids are cleaned automatically.
     void removeNodes(const std::vector<size_t>& sorted_desc_indices) {
         // [PERF-u3v4] Was O(n*m) nested loop — now uses unordered_set for O(1) lookup
         std::unordered_set<std::string> deleted_ids;
@@ -134,6 +134,13 @@ public:
                     return deleted_ids.count(w.start.node_id) || deleted_ids.count(w.end.node_id);
                 }),
             bp_->wires.end());
+        // Clean collapsed_groups.internal_node_ids
+        for (auto& g : bp_->collapsed_groups) {
+            g.internal_node_ids.erase(
+                std::remove_if(g.internal_node_ids.begin(), g.internal_node_ids.end(),
+                    [&deleted_ids](const std::string& id) { return deleted_ids.count(id); }),
+                g.internal_node_ids.end());
+        }
         cache_.clear();
     }
 

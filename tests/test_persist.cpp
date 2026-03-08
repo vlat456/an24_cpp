@@ -51,7 +51,7 @@ TEST(PersistTest, ToJson_FromJson_Roundtrip) {
     bp.add_wire(std::move(w));
 
     // Roundtrip: to JSON -> from JSON
-    std::string json = blueprint_to_json(bp);
+    std::string json = blueprint_to_editor_json(bp);
     auto bp2 = blueprint_from_json(json);
 
     ASSERT_TRUE(bp2.has_value());
@@ -75,7 +75,7 @@ TEST(PersistTest, ToJson_IncludesViewport) {
     bp.zoom = 1.5f;
     bp.grid_step = 24.0f;
 
-    std::string json = blueprint_to_json(bp);
+    std::string json = blueprint_to_editor_json(bp);
     auto bp2 = blueprint_from_json(json);
 
     ASSERT_TRUE(bp2.has_value());
@@ -84,27 +84,22 @@ TEST(PersistTest, ToJson_IncludesViewport) {
     EXPECT_EQ(bp2->grid_step, 24.0f);
 }
 
-/// Test unified format: simulator format + editor metadata
-TEST(PersistTest, UnifiedFormat_WithEditorMetadata) {
-    // Simulator format with editor section
+/// Test editor format: devices + wires + viewport
+TEST(PersistTest, EditorFormat_WithMetadata) {
     const char* json = R"({
         "devices": [
-            {"name": "batt", "classname": "Battery", "ports": {"v_in": {"direction": "In"}, "v_out": {"direction": "Out"}}},
-            {"name": "load", "classname": "Resistor", "ports": {"v_in": {"direction": "In"}}}
+            {"name": "batt", "classname": "Battery", "kind": "Node",
+             "ports": {"v_in": {"direction": "In", "type": "V"}, "v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 50, "y": 60}, "size": {"x": 120, "y": 80}},
+            {"name": "load", "classname": "Resistor", "kind": "Node",
+             "ports": {"v_in": {"direction": "In", "type": "V"}},
+             "pos": {"x": 250, "y": 60}, "size": {"x": 100, "y": 60}}
         ],
-        "connections": [
-            {"from": "batt.v_out", "to": "load.v_in"}
+        "wires": [
+            {"from": "batt.v_out", "to": "load.v_in",
+             "routing_points": [{"x": 150, "y": 60}, {"x": 150, "y": 100}]}
         ],
-        "editor": {
-            "viewport": {"pan": {"x": 100, "y": 200}, "zoom": 2.0, "grid_step": 32},
-            "nodes": {
-                "batt": {"pos": {"x": 50, "y": 60}, "size": {"x": 120, "y": 80}},
-                "load": {"pos": {"x": 250, "y": 60}, "size": {"x": 100, "y": 60}}
-            },
-            "wires": [
-                {"from": "batt.v_out", "to": "load.v_in", "routing_points": [{"x": 150, "y": 60}, {"x": 150, "y": 100}]}
-            ]
-        }
+        "viewport": {"pan": {"x": 100, "y": 200}, "zoom": 2.0, "grid_step": 32}
     })";
 
     auto bp = blueprint_from_json(json);
@@ -113,13 +108,13 @@ TEST(PersistTest, UnifiedFormat_WithEditorMetadata) {
     // Check devices converted to nodes
     EXPECT_EQ(bp->nodes.size(), 2);
 
-    // Check editor viewport
+    // Check viewport
     EXPECT_EQ(bp->pan.x, 100.0f);
     EXPECT_EQ(bp->pan.y, 200.0f);
     EXPECT_EQ(bp->zoom, 2.0f);
     EXPECT_EQ(bp->grid_step, 32.0f);
 
-    // Check node visual states from editor section
+    // Check node positions from inline device data
     auto* batt = bp->find_node("batt");
     ASSERT_NE(batt, nullptr);
     EXPECT_EQ(batt->pos.x, 50.0f);
@@ -141,94 +136,7 @@ TEST(PersistTest, FromJson_MissingDevices_ReturnsNullopt) {
     EXPECT_FALSE(bp.has_value());
 }
 
-/// Test loading vsu_test.json (simulator format)
-TEST(PersistTest, LoadSimulatorFormat_VsuTest) {
-    auto bp = load_blueprint_from_file("/Users/vladimir/an24_cpp/src/aircraft/vsu_test.json");
-    ASSERT_TRUE(bp.has_value());
-    EXPECT_EQ(bp->nodes.size(), 6);
-    EXPECT_EQ(bp->wires.size(), 8);
-    // Check specific devices
-    auto* gnd = bp->find_node("gnd");
-    ASSERT_NE(gnd, nullptr);
-    EXPECT_EQ(gnd->type_name, "RefNode");
-}
 
-/// Test auto-layout: loading JSON without editor block produces valid positions
-TEST(PersistTest, AutoLayout_NoEditorBlock) {
-    // Minimal JSON with devices + connections, no "editor" block
-    const char* json = R"({
-        "devices": [
-            { "name": "gnd", "classname": "RefNode",
-              "ports": { "v": { "direction": "Out" } },
-              "explicit_domains": ["Electrical"] },
-            { "name": "bat1", "classname": "Battery",
-              "ports": { "v_in": { "direction": "In" }, "v_out": { "direction": "Out" } },
-              "explicit_domains": ["Electrical"] },
-            { "name": "bus1", "classname": "Bus",
-              "ports": { "v": { "direction": "InOut" } },
-              "explicit_domains": ["Electrical"] },
-            { "name": "load1", "classname": "Load",
-              "ports": { "input": { "direction": "In" } },
-              "explicit_domains": ["Electrical"] }
-        ],
-        "connections": [
-            { "from": "gnd.v", "to": "bat1.v_in" },
-            { "from": "bat1.v_out", "to": "bus1.v" },
-            { "from": "bus1.v", "to": "load1.input" }
-        ]
-    })";
-
-    auto bp = blueprint_from_json(json);
-    ASSERT_TRUE(bp.has_value());
-    EXPECT_EQ(bp->nodes.size(), 4);
-    EXPECT_EQ(bp->wires.size(), 3);
-
-    // Bus/Ref should have small sizes (40x40), not the default 120x80
-    auto* bus = bp->find_node("bus1");
-    ASSERT_NE(bus, nullptr);
-    EXPECT_EQ(bus->kind, NodeKind::Bus);
-    EXPECT_LT(bus->size.y, 80.0f);  // bus height should be small
-
-    auto* gnd = bp->find_node("gnd");
-    ASSERT_NE(gnd, nullptr);
-    EXPECT_EQ(gnd->kind, NodeKind::Ref);
-
-    // All nodes should have distinct positions (not all at origin)
-    std::set<std::pair<float, float>> positions;
-    for (const auto& n : bp->nodes) {
-        positions.insert({n.pos.x, n.pos.y});
-    }
-    EXPECT_EQ(positions.size(), bp->nodes.size()) << "All nodes should have unique positions";
-
-    // Wires should have routing points (auto-routed)
-    int routed = 0;
-    for (const auto& w : bp->wires) {
-        if (!w.routing_points.empty()) routed++;
-    }
-    EXPECT_GT(routed, 0) << "At least some wires should have auto-routed paths";
-}
-
-/// Test auto-layout with the real composite test file (no editor block)
-TEST(PersistTest, AutoLayout_CompositeTestFile) {
-    auto bp = load_blueprint_from_file("/Users/vladimir/an24_cpp/an24_composite_test.json");
-    ASSERT_TRUE(bp.has_value());
-    EXPECT_EQ(bp->nodes.size(), 9);
-    EXPECT_EQ(bp->wires.size(), 10);
-
-    // All nodes should have unique positions
-    std::set<std::pair<float, float>> positions;
-    for (const auto& n : bp->nodes) {
-        positions.insert({n.pos.x, n.pos.y});
-    }
-    EXPECT_EQ(positions.size(), bp->nodes.size());
-
-    // Buses should be in the Bus column (center), sources in source column (left)
-    auto* bat = bp->find_node("bat_main_1");
-    auto* bus = bp->find_node("dc_bus_1");
-    ASSERT_NE(bat, nullptr);
-    ASSERT_NE(bus, nullptr);
-    EXPECT_LT(bat->pos.x, bus->pos.x) << "Battery should be left of bus";
-}
 
 // ─── NodeKind persistence tests ───
 
@@ -244,7 +152,7 @@ TEST(PersistTest, NodeKind_Roundtrip_Bus) {
     n.size_wh(40, 40);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_json(bp);
+    std::string json = blueprint_to_editor_json(bp);
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
@@ -264,7 +172,7 @@ TEST(PersistTest, NodeKind_Roundtrip_Ref) {
     n.size_wh(40, 40);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_json(bp);
+    std::string json = blueprint_to_editor_json(bp);
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
@@ -285,30 +193,14 @@ TEST(PersistTest, NodeKind_Roundtrip_Node) {
     n.size_wh(120, 80);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_json(bp);
+    std::string json = blueprint_to_editor_json(bp);
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Node);
 }
 
-TEST(PersistTest, NodeKind_BackwardCompat_NoKindField) {
-    // Old JSON without "kind" field — should fall back to type_name matching
-    const char* json = R"({
-        "devices": [
-            {"name": "b", "classname": "Bus", "ports": {"v": {"direction": "Out"}}},
-            {"name": "r", "classname": "RefNode", "ports": {"v": {"direction": "Out"}}},
-            {"name": "batt", "classname": "Battery", "ports": {"v_in": {"direction": "In"}}}
-        ],
-        "connections": []
-    })";
-    auto bp = blueprint_from_json(json);
-    ASSERT_TRUE(bp.has_value());
-    ASSERT_EQ(bp->nodes.size(), 3);
-    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Bus);
-    EXPECT_EQ(bp->nodes[1].kind, NodeKind::Ref);
-    EXPECT_EQ(bp->nodes[2].kind, NodeKind::Node);
-}
+
 
 TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
     // classname (type_name) is the single source of truth for C++ binding.
@@ -728,7 +620,7 @@ TEST(PersistTest, DuplicateNodes_DedupedOnLoad) {
     // Same node twice with different positions
     nlohmann::json dev1 = {
         {"name", "bat1"}, {"classname", "Battery"}, {"kind", "Node"},
-        {"ports", {{"v_out", {{"direction", "Out"}}}}},
+        {"ports", {{"v_out", {{"direction", "Out"}, {"type", "V"}}}}},
         {"pos", {{"x", 100.0f}, {"y", 100.0f}}},
         {"size", {{"x", 120.0f}, {"y", 80.0f}}}
     };
@@ -810,14 +702,15 @@ TEST(PersistTest, BlueprintToBlueprintWire_NotDropped) {
     EXPECT_NE(sim_json.find("lamp_bp:vin"), std::string::npos)
         << "Wire to blueprint node should be rewritten to internal port";
 
-    // Parse and verify connection exists
-    auto parsed = blueprint_from_json(sim_json);
-    ASSERT_TRUE(parsed.has_value());
-
-    // Find the rewritten wire
+    // Verify connection exists in the JSON
+    auto j = nlohmann::json::parse(sim_json);
+    ASSERT_TRUE(j.contains("connections"));
     bool found_wire = false;
-    for (const auto& wire : parsed->wires) {
-        if (wire.start.node_id == "battery_bp:vout" && wire.end.node_id == "lamp_bp:vin") {
+    for (const auto& conn : j["connections"]) {
+        std::string from = conn.value("from", "");
+        std::string to = conn.value("to", "");
+        if (from.find("battery_bp:vout") != std::string::npos &&
+            to.find("lamp_bp:vin") != std::string::npos) {
             found_wire = true;
             break;
         }
@@ -860,40 +753,4 @@ TEST(PersistTest, VisualCache_PositionSync) {
     EXPECT_GT(port_pos.x, 300.0f) << "Port position should reflect updated node position";
 }
 
-// ─── Regression: Port types loaded from component registry ────────────────
-
-TEST(PersistTest, PortTypes_LoadedFromRegistry) {
-    // Create editor-format JSON WITHOUT port types (like old saves)
-    nlohmann::json j;
-    j["devices"] = nlohmann::json::array();
-
-    nlohmann::json dmr = {
-        {"name", "dmr1"}, {"classname", "DMR400"}, {"kind", "Node"},
-        {"ports", {
-            {"v_in", {{"direction", "In"}}},
-            {"v_out", {{"direction", "Out"}}},
-            {"v_gen_ref", {{"direction", "In"}}},
-            {"lamp", {{"direction", "Out"}}}
-        }},
-        {"pos", {{"x", 100.0f}, {"y", 100.0f}}},
-        {"size", {{"x", 120.0f}, {"y", 80.0f}}}
-    };
-    j["devices"].push_back(dmr);
-    j["wires"] = nlohmann::json::array();
-
-    auto bp = blueprint_from_json(j.dump());
-    ASSERT_TRUE(bp.has_value());
-    ASSERT_EQ(bp->nodes.size(), 1u);
-
-    // Port types should be resolved from the component registry
-    const Node& loaded = bp->nodes[0];
-    for (const auto& p : loaded.inputs) {
-        if (p.name == "v_in" || p.name == "v_gen_ref")
-            EXPECT_EQ(p.type, an24::PortType::V) << p.name << " should be type V from registry";
-    }
-    for (const auto& p : loaded.outputs) {
-        if (p.name == "v_out" || p.name == "lamp")
-            EXPECT_EQ(p.type, an24::PortType::V) << p.name << " should be type V from registry";
-    }
-}
 

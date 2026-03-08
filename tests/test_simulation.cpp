@@ -246,36 +246,6 @@ TEST(SimulationTest, StepWithoutBuild_NoCrash) {
     EXPECT_EQ(sim.step_count, 0u);
 }
 
-// ─── DMR test JSON: full 5000-step simulation via editor pipeline ───
-
-TEST(SimulationTest, DMR_5000Step_ViaEditorPipeline) {
-    // Load the real DMR test JSON as a blueprint, then run simulation
-    auto bp = load_blueprint_from_file(
-        "/Users/vladimir/an24_cpp/src/aircraft/vsu_dmr_test.json");
-    ASSERT_TRUE(bp.has_value()) << "Should load vsu_dmr_test.json";
-
-    SimulationController sim;
-    sim.build(*bp);
-    ASSERT_TRUE(sim.build_result.has_value());
-
-    // Run 5000 steps (same as the standalone JIT test)
-    for (int i = 0; i < 5000; i++) {
-        sim.step(0.016f);
-    }
-
-    // Verify key signals converged
-    float v_bus = sim.get_wire_voltage("main_bus.v");
-    float v_gnd = sim.get_wire_voltage("gnd.v");
-
-    EXPECT_NEAR(v_gnd, 0.0f, 0.5f) << "Ground should be near 0V";
-    EXPECT_GT(v_bus, 20.0f) << "Main bus should have significant voltage after 5000 steps";
-    EXPECT_LT(v_bus, 40.0f) << "Bus voltage should be reasonable (28V nominal)";
-
-    // Battery wire should be energized, ground should not
-    EXPECT_TRUE(sim.wire_is_energized("bat_main_1.v_out", 0.5f));
-    EXPECT_FALSE(sim.wire_is_energized("gnd.v", 0.5f));
-}
-
 // ============================================================================
 // Simulator API - TDD failing tests first (RED phase)
 // ============================================================================

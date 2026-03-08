@@ -547,7 +547,7 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     original.add_node(std::move(gnd));
 
     // Save and reload
-    std::string json_str = blueprint_to_json(original);
+    std::string json_str = blueprint_to_editor_json(original);
     auto loaded = blueprint_from_json(json_str);
     ASSERT_TRUE(loaded.has_value()) << "Should parse blueprint successfully";
 
@@ -597,7 +597,7 @@ TEST(Persistence, RoundTrip_SaveLoad_PreservesCollapsedBlueprint) {
     original.add_wire(wire1);
 
     // Save and reload
-    std::string json_str = blueprint_to_json(original);
+    std::string json_str = blueprint_to_editor_json(original);
     auto loaded = blueprint_from_json(json_str);
     ASSERT_TRUE(loaded.has_value()) << "Failed to load blueprint from JSON";
 
@@ -904,7 +904,7 @@ TEST(Regression, SaveLoad_GroupIdIsPreserved) {
     EXPECT_EQ(bp.find_node("lamp1:vout")->group_id, "lamp1");
 
     // Save and reload
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = blueprint_to_editor_json(bp);
     auto loaded = blueprint_from_json(json_str);
     ASSERT_TRUE(loaded.has_value());
 
@@ -919,7 +919,7 @@ TEST(Regression, SaveLoad_GroupIdIsPreserved) {
         << "Internal node must have group_id='lamp1' after load (Bug 1 regression)";
 
     // Save and load again (no drill_stack concept anymore)
-    std::string json2 = blueprint_to_json(*loaded);
+    std::string json2 = blueprint_to_editor_json(*loaded);
     auto loaded2 = blueprint_from_json(json2);
     ASSERT_TRUE(loaded2.has_value());
 
@@ -1407,8 +1407,8 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     res.pos = Pt(300, 100);
     res.size = Pt(120, 80);
     res.group_id = "lpt";  // added to sub-blueprint
-    res.inputs.push_back(::Port("v_in", PortSide::Input));
-    res.outputs.push_back(::Port("v_out", PortSide::Output));
+    res.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
+    res.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
     bp.add_node(std::move(res));
 
     // Keep collapsed_groups in sync (as the fixed add_component does)
@@ -1515,7 +1515,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     gnd.kind = NodeKind::Ref;
     gnd.pos = Pt(100, 400);
     gnd.size = Pt(48, 32);
-    gnd.outputs.push_back(::Port("v", PortSide::Output));
+    gnd.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
     original.add_node(std::move(gnd));
 
     Node bat;
@@ -1525,8 +1525,8 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     bat.kind = NodeKind::Node;
     bat.pos = Pt(100, 100);
     bat.size = Pt(120, 80);
-    bat.inputs.push_back(::Port("v_in", PortSide::Input));
-    bat.outputs.push_back(::Port("v_out", PortSide::Output));
+    bat.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
+    bat.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
     original.add_node(std::move(bat));
 
     // Add lamp_pass_through blueprint (creates lamp1 + internals)
@@ -1661,49 +1661,7 @@ TEST(EditorPersistence, BlueprintNodeHasNoContent) {
     EXPECT_EQ(bp_copy.kind, NodeKind::Blueprint);  // sanity
 }
 
-// Regression: legacy format (connections + editor section) still loads correctly
-TEST(EditorPersistence, LegacyFormatBackwardCompat) {
-    // Use blueprint_to_json (simulator format) and verify it loads
-    Blueprint original;
 
-    Node gnd;
-    gnd.id = "gnd";
-    gnd.name = "gnd";
-    gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
-    gnd.pos = Pt(100, 200);
-    gnd.outputs.push_back(::Port("v", PortSide::Output));
-    original.add_node(std::move(gnd));
-
-    Node res;
-    res.id = "res";
-    res.name = "res";
-    res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
-    res.pos = Pt(300, 200);
-    res.inputs.push_back(::Port("v_in", PortSide::Input));
-    res.outputs.push_back(::Port("v_out", PortSide::Output));
-    original.add_node(std::move(res));
-
-    Wire w;
-    w.id = "wire_0";
-    w.start = WireEnd("gnd", "v", PortSide::Output);
-    w.end = WireEnd("res", "v_in", PortSide::Input);
-    original.add_wire(w);
-
-    // Serialize with legacy format (blueprint_to_json)
-    std::string json_str = blueprint_to_json(original);
-
-    // Verify it has "connections" not "wires"
-    auto j = json::parse(json_str);
-    EXPECT_TRUE(j.contains("connections"));
-
-    // Load with blueprint_from_json (should use legacy path)
-    auto loaded = blueprint_from_json(json_str);
-    ASSERT_TRUE(loaded.has_value());
-    EXPECT_EQ(loaded->nodes.size(), 2u);
-    EXPECT_EQ(loaded->wires.size(), 1u);
-}
 
 // =============================================================================
 // Test: SOR stability with Simulator<JIT_Solver> (matches editor path)

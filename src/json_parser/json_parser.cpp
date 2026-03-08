@@ -88,6 +88,8 @@ static Port parse_port(const json& j) {
         }
         if (j.contains("type")) {
             port.type = parse_port_type(j["type"].get<std::string>());
+        } else {
+            throw std::runtime_error("Port definition missing required 'type' field");
         }
         if (j.contains("alias")) {
             port.alias = j["alias"].get<std::string>();

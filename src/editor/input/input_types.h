@@ -14,6 +14,7 @@ enum class MouseButton {
 enum class Key {
     Escape,
     Delete,
+    Backspace,
     S,
     Z,
     R,

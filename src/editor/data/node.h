@@ -88,14 +88,14 @@ struct Node {
     }
 
     /// fluent: добавить входной порт
-    Node& input(const char* name_) {
-        inputs.emplace_back(name_, PortSide::Input);
+    Node& input(const char* name_, an24::PortType type = an24::PortType::V) {
+        inputs.emplace_back(name_, PortSide::Input, type);
         return *this;
     }
 
     /// fluent: добавить выходной порт
-    Node& output(const char* name_) {
-        outputs.emplace_back(name_, PortSide::Output);
+    Node& output(const char* name_, an24::PortType type = an24::PortType::V) {
+        outputs.emplace_back(name_, PortSide::Output, type);
         return *this;
     }
 

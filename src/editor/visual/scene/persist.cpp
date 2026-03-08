@@ -24,8 +24,10 @@ static std::string port_type_str(an24::PortType t) {
         case an24::PortType::Temperature: return "Temperature";
         case an24::PortType::Pressure: return "Pressure";
         case an24::PortType::Position: return "Position";
-        default: return "Any";
+        case an24::PortType::Any: return "Any";
     }
+    spdlog::error("Unknown PortType enum value: {}", static_cast<int>(t));
+    std::abort();
 }
 
 static an24::PortType parse_port_type_str(const std::string& s) {
@@ -36,7 +38,9 @@ static an24::PortType parse_port_type_str(const std::string& s) {
     if (s == "Temperature") return an24::PortType::Temperature;
     if (s == "Pressure") return an24::PortType::Pressure;
     if (s == "Position") return an24::PortType::Position;
-    return an24::PortType::Any;
+    if (s == "Any") return an24::PortType::Any;
+    spdlog::error("Unknown port type string: '{}'", s);
+    std::abort();
 }
 
 // Публичные функции
@@ -78,10 +82,10 @@ std::string blueprint_to_json(const Blueprint& bp) {
         // ports
         json ports = json::object();
         for (const auto& p : n.inputs) {
-            ports[p.name] = {{"direction", "In"}};
+            ports[p.name] = {{"direction", "In"}, {"type", port_type_str(p.type)}};
         }
         for (const auto& p : n.outputs) {
-            ports[p.name] = {{"direction", "Out"}};
+            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
         }
         device["ports"] = ports;
         
@@ -171,9 +175,9 @@ std::string blueprint_to_json(const Blueprint& bp) {
             device["blueprint_path"] = n.blueprint_path;
         json ports = json::object();
         for (const auto& p : n.inputs)
-            ports[p.name] = {{"direction", "In"}};
+            ports[p.name] = {{"direction", "In"}, {"type", port_type_str(p.type)}};
         for (const auto& p : n.outputs)
-            ports[p.name] = {{"direction", "Out"}};
+            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
         device["ports"] = ports;
         editor_devices.push_back(device);
     }
@@ -325,8 +329,11 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
     j["devices"] = devices;
 
     // wires: flat list, original form, no rewriting
+    // Skip stale wires referencing nodes that don't exist
     json wires = json::array();
     for (const auto& w : bp.wires) {
+        if (!emitted_ids.count(w.start.node_id) || !emitted_ids.count(w.end.node_id))
+            continue;
         json wire = json::object();
         wire["from"] = w.start.node_id + "." + w.start.port_name;
         wire["to"] = w.end.node_id + "." + w.end.port_name;
@@ -676,8 +683,12 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             for (auto& [port_name, port_info] : d["ports"].items()) {
                 Port p;
                 p.name = port_name;
-                if (port_info.contains("type"))
+                if (port_info.contains("type")) {
                     p.type = parse_port_type_str(port_info["type"].get<std::string>());
+                } else {
+                    spdlog::error("Port '{}' on device '{}' missing 'type' field in JSON", port_name, n.id);
+                    std::abort();
+                }
                 std::string dir = port_info.value("direction", "In");
                 if (dir == "Out" || dir == "InOut") {
                     p.side = PortSide::Output;
@@ -839,201 +850,6 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     return bp;
 }
 
-// ─── Load: legacy format (connections + editor section) ────────────────────
-
-static std::optional<Blueprint> load_legacy_format(const json& j, const std::string& json_str) {
-    // Use parse_json to get ComponentRegistry merge
-    an24::ParserContext ctx = an24::parse_json(json_str);
-
-    Blueprint bp;
-    std::map<std::string, size_t> device_indices;
-
-    int idx = 0;
-    size_t dev_idx = 0;
-    for (const auto& dev : ctx.devices) {
-        Node n = device_instance_to_node(dev, idx, &ctx.registry);
-
-        if (j["devices"][dev_idx].contains("kind")) {
-            std::string kind_str = j["devices"][dev_idx]["kind"].get<std::string>();
-            if (kind_str == "Bus") n.kind = NodeKind::Bus;
-            else if (kind_str == "Ref") n.kind = NodeKind::Ref;
-            else if (kind_str == "Blueprint") n.kind = NodeKind::Blueprint;
-            else n.kind = NodeKind::Node;
-            n.size = get_default_node_size(n.type_name, &ctx.registry);
-        }
-
-        if (n.kind == NodeKind::Blueprint && j["devices"][dev_idx].contains("blueprint_path")) {
-            n.blueprint_path = j["devices"][dev_idx]["blueprint_path"].get<std::string>();
-            n.collapsed = true;
-        }
-
-        const auto* def = ctx.registry.get(dev.classname);
-        if (def) n.node_content = create_node_content(def);
-
-        device_indices[n.id] = bp.nodes.size();
-        bp.nodes.push_back(n);
-        idx++;
-        dev_idx++;
-    }
-
-    // Load wires from connections
-    if (j.contains("connections") && j["connections"].is_array()) {
-        for (const auto& conn : j["connections"]) {
-            std::string from = conn.value("from", "");
-            std::string to = conn.value("to", "");
-            std::string from_device, from_port, to_device, to_port;
-
-            if (parse_port_ref(from, from_device, from_port) &&
-                parse_port_ref(to, to_device, to_port)) {
-                auto it_from = device_indices.find(from_device);
-                auto it_to = device_indices.find(to_device);
-                if (it_from != device_indices.end() && it_to != device_indices.end()) {
-                    Wire w;
-                    w.id = from + "→" + to;
-                    w.start.node_id = from_device;
-                    w.start.port_name = from_port;
-                    w.end.node_id = to_device;
-                    w.end.port_name = to_port;
-                    bp.wires.push_back(w);
-                }
-            }
-        }
-    }
-
-    // Apply editor metadata if present
-    if (j.contains("editor")) {
-        const auto& editor = j["editor"];
-
-        // Blueprint nodes from editor section
-        if (editor.contains("blueprint_nodes") && editor["blueprint_nodes"].is_array()) {
-            for (const auto& bpn : editor["blueprint_nodes"]) {
-                Node n;
-                n.id = bpn.value("name", "");
-                n.name = n.id;
-                n.type_name = bpn.value("type_name", "");
-                n.kind = NodeKind::Blueprint;
-                n.collapsed = true;
-                if (bpn.contains("blueprint_path"))
-                    n.blueprint_path = bpn["blueprint_path"].get<std::string>();
-                if (bpn.contains("ports") && bpn["ports"].is_object()) {
-                    for (auto& [port_name, port_info] : bpn["ports"].items()) {
-                        std::string dir = port_info.value("direction", "In");
-                        if (dir == "In")
-                            n.inputs.emplace_back(port_name.c_str(), PortSide::Input);
-                        else
-                            n.outputs.emplace_back(port_name.c_str(), PortSide::Output);
-                    }
-                }
-                device_indices[n.id] = bp.nodes.size();
-                bp.nodes.push_back(std::move(n));
-            }
-        }
-
-        // Viewport
-        if (editor.contains("viewport")) {
-            const auto& vp = editor["viewport"];
-            if (vp.contains("pan")) {
-                bp.pan.x = vp["pan"].value("x", 0.0f);
-                bp.pan.y = vp["pan"].value("y", 0.0f);
-            }
-            bp.zoom = vp.value("zoom", 1.0f);
-            bp.grid_step = vp.value("grid_step", 16.0f);
-        }
-
-        // Position/size/content from editor.nodes
-        if (editor.contains("nodes") && editor["nodes"].is_object()) {
-            for (auto& [node_id, ns] : editor["nodes"].items()) {
-                for (auto& n : bp.nodes) {
-                    if (n.id != node_id) continue;
-                    if (ns.contains("pos")) {
-                        n.pos.x = ns["pos"].value("x", n.pos.x);
-                        n.pos.y = ns["pos"].value("y", n.pos.y);
-                    }
-                    if (ns.contains("size")) {
-                        n.size.x = ns["size"].value("x", n.size.x);
-                        n.size.y = ns["size"].value("y", n.size.y);
-                    }
-                    if (ns.contains("content")) {
-                        const auto& c = ns["content"];
-                        if (c.contains("type"))
-                            n.node_content.type = static_cast<NodeContentType>(c["type"].get<int>());
-                        if (c.contains("label"))
-                            n.node_content.label = c["label"].get<std::string>();
-                        if (c.contains("value"))
-                            n.node_content.value = c["value"].get<float>();
-                        if (c.contains("min"))
-                            n.node_content.min = c["min"].get<float>();
-                        if (c.contains("max"))
-                            n.node_content.max = c["max"].get<float>();
-                        if (c.contains("unit"))
-                            n.node_content.unit = c["unit"].get<std::string>();
-                        if (c.contains("state"))
-                            n.node_content.state = c["state"].get<bool>();
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Wire routing points (match by from/to)
-        if (editor.contains("wires") && editor["wires"].is_array()) {
-            for (const auto& ws : editor["wires"]) {
-                std::string from = ws.value("from", "");
-                std::string to = ws.value("to", "");
-                for (auto& w : bp.wires) {
-                    if ((w.start.node_id + "." + w.start.port_name) == from &&
-                        (w.end.node_id + "." + w.end.port_name) == to) {
-                        if (ws.contains("routing_points") && ws["routing_points"].is_array()) {
-                            w.routing_points.clear();
-                            for (const auto& pj : ws["routing_points"])
-                                w.routing_points.push_back(Pt(pj.value("x", 0.0f), pj.value("y", 0.0f)));
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Collapsed groups
-        if (editor.contains("collapsed_groups") && editor["collapsed_groups"].is_array()) {
-            std::set<std::string> loaded_group_ids;
-            for (const auto& gj : editor["collapsed_groups"]) {
-                CollapsedGroup group;
-                group.id = gj.value("id", "");
-                if (!loaded_group_ids.insert(group.id).second) continue;
-                group.blueprint_path = gj.value("blueprint_path", "");
-                group.type_name = gj.value("type_name", "");
-                if (gj.contains("pos")) {
-                    group.pos.x = gj["pos"].value("x", 0.0f);
-                    group.pos.y = gj["pos"].value("y", 0.0f);
-                }
-                if (gj.contains("size")) {
-                    group.size.x = gj["size"].value("x", 120.0f);
-                    group.size.y = gj["size"].value("y", 80.0f);
-                }
-                if (gj.contains("internal_node_ids") && gj["internal_node_ids"].is_array()) {
-                    for (const auto& nid : gj["internal_node_ids"])
-                        group.internal_node_ids.push_back(nid.get<std::string>());
-                }
-                bp.collapsed_groups.push_back(group);
-            }
-        }
-    } else {
-        auto_layout(bp);
-    }
-
-    bp.next_wire_id = static_cast<int>(bp.wires.size());
-    for (const auto& w : bp.wires) {
-        if (w.id.compare(0, 5, "wire_") == 0) {
-            int num = std::atoi(w.id.c_str() + 5);
-            if (num >= bp.next_wire_id) bp.next_wire_id = num + 1;
-        }
-    }
-
-    bp.recompute_group_ids();
-    return bp;
-}
-
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
     try {
         json j = json::parse(json_str);
@@ -1041,14 +857,12 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
         if (!j.contains("devices") || !j["devices"].is_array())
             return std::nullopt;
 
-        // Detect format: new editor format has top-level "wires", old has "connections"+"editor"
-        bool is_editor_format = j.contains("wires") && j["wires"].is_array();
-
-        if (is_editor_format) {
-            return load_editor_format(j);
-        } else {
-            return load_legacy_format(j, json_str);
+        if (!j.contains("wires") || !j["wires"].is_array()) {
+            spdlog::error("blueprint_from_json: missing 'wires' array (legacy format no longer supported)");
+            return std::nullopt;
         }
+
+        return load_editor_format(j);
     } catch (const std::exception& e) {
         spdlog::error("blueprint_from_json failed: {}", e.what());
         return std::nullopt;

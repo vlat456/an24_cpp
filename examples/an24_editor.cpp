@@ -214,17 +214,7 @@ int main(int argc, char** argv) {
                 if (app.simulation_running) app.stop_simulation();
                 else app.start_simulation();
             }
-            // Per-window keys operate on root window's input
-            if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-                app.apply_input_result(app.input.on_key(Key::Escape));
-            if (ImGui::IsKeyPressed(ImGuiKey_Delete))
-                app.apply_input_result(app.input.on_key(Key::Delete));
-            if (ImGui::IsKeyPressed(ImGuiKey_R))
-                app.apply_input_result(app.input.on_key(Key::R));
-            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket))
-                app.apply_input_result(app.input.on_key(Key::LeftBracket));
-            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket))
-                app.apply_input_result(app.input.on_key(Key::RightBracket));
+            // Per-window keys are dispatched inside process_window (below)
         }
 
         // Обновление симуляции каждый кадр
@@ -284,6 +274,13 @@ int main(int argc, char** argv) {
                 }
                 if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
                     app.scene.viewport().zoom = 1.0f;
+                }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit")) {
+                bool has_sel = !app.input.selected_nodes().empty();
+                if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
+                    app.apply_input_result(app.input.on_key(Key::Delete));
                 }
                 ImGui::EndMenu();
             }
@@ -435,6 +432,22 @@ int main(int argc, char** argv) {
             // Left release
             if (ImGui::IsMouseReleased(0))
                 app.apply_input_result(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
+
+            // Keyboard (per-window: Delete/Backspace, Escape, R, brackets)
+            if (!io.WantCaptureKeyboard) {
+                if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+                    app.apply_input_result(win.input.on_key(Key::Escape), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_Delete))
+                    app.apply_input_result(win.input.on_key(Key::Delete), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_Backspace))
+                    app.apply_input_result(win.input.on_key(Key::Backspace), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_R))
+                    app.apply_input_result(win.input.on_key(Key::R), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket))
+                    app.apply_input_result(win.input.on_key(Key::LeftBracket), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_RightBracket))
+                    app.apply_input_result(win.input.on_key(Key::RightBracket), win.group_id);
+            }
         };
 
         // ================================================================
@@ -478,7 +491,7 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            // Toolbar: Fit View + Auto Layout
+            // Toolbar: Fit View + Auto Layout + Delete
             if (ImGui::Button("Fit View")) {
                 Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
                 for (const auto& node : app.blueprint.nodes) {
@@ -510,6 +523,15 @@ int main(int argc, char** argv) {
                     ImVec2 ws = ImGui::GetContentRegionAvail();
                     win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
                 }
+            }
+            ImGui::SameLine();
+            {
+                bool has_sel = !win.input.selected_nodes().empty();
+                if (!has_sel) ImGui::BeginDisabled();
+                if (ImGui::Button("Delete")) {
+                    app.apply_input_result(win.input.on_key(Key::Delete), win.group_id);
+                }
+                if (!has_sel) ImGui::EndDisabled();
             }
 
             // InvisibleButton captures mouse input in content area

@@ -143,13 +143,13 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     // Add ports from component definition
     for (const auto& [port_name, port_def] : def->default_ports) {
         if (port_def.direction == PortDirection::In) {
-            node.inputs.emplace_back(port_name.c_str(), PortSide::Input);
+            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
-            node.outputs.emplace_back(port_name.c_str(), PortSide::Output);
+            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port_def.type);
         } else if (port_def.direction == PortDirection::InOut) {
             // InOut ports go to both inputs and outputs
-            node.inputs.emplace_back(port_name.c_str(), PortSide::InOut);
-            node.outputs.emplace_back(port_name.c_str(), PortSide::InOut);
+            node.inputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
+            node.outputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
         }
     }
 

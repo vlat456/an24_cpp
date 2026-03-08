@@ -31,7 +31,8 @@
       },
       "ports": {
         "v": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -57,10 +58,12 @@
       },
       "ports": {
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -78,7 +81,8 @@
       "name": "main_bus",
       "ports": {
         "v": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -99,19 +103,24 @@
       },
       "ports": {
         "k_mod": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "rpm_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "RPM"
         },
         "t4_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Temperature"
         },
         "v_bus": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         },
         "v_start": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         }
       },
       "pos": {
@@ -132,10 +141,12 @@
       },
       "ports": {
         "k_mod": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         },
         "v_gen": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         }
       },
       "pos": {
@@ -153,16 +164,20 @@
       "name": "dmr_vsu",
       "ports": {
         "lamp": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         },
         "v_gen_ref": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -192,13 +207,16 @@
       },
       "ports": {
         "brightness": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "I"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -224,7 +242,8 @@
       "name": "voltmeter_1",
       "ports": {
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         }
       },
       "pos": {
@@ -245,39 +264,17 @@
       },
       "ports": {
         "input": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "output": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
-        "x": 896.0,
-        "y": 304.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
-      "classname": "Transformer",
-      "kind": "Node",
-      "name": "transformer_1",
-      "params": {
-        "ratio": "1.0"
-      },
-      "ports": {
-        "primary": {
-          "direction": "In"
-        },
-        "secondary": {
-          "direction": "Out"
-        }
-      },
-      "pos": {
-        "x": 992.0,
-        "y": 592.0
+        "x": 928.0,
+        "y": 352.0
       },
       "size": {
         "x": 128.0,
@@ -298,7 +295,8 @@
       "name": "voltmeter_2",
       "ports": {
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         }
       },
       "pos": {
@@ -319,10 +317,12 @@
       },
       "ports": {
         "input": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "output": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
@@ -348,11 +348,12 @@
       "name": "voltmeter_3",
       "ports": {
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         }
       },
       "pos": {
-        "x": 912.0,
+        "x": 864.0,
         "y": 176.0
       },
       "size": {
@@ -378,16 +379,20 @@
       },
       "ports": {
         "control": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Temperature"
         },
         "state": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Bool"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -405,13 +410,16 @@
       "name": "splitter_1",
       "ports": {
         "i": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "o1": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         },
         "o2": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
@@ -434,15 +442,17 @@
       },
       "ports": {
         "ext": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "port": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
-        "x": 416.0,
-        "y": 496.0
+        "x": 320.0,
+        "y": 160.0
       },
       "size": {
         "x": 32.0,
@@ -468,18 +478,21 @@
       },
       "ports": {
         "brightness": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "I"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
-        "x": 416.0,
-        "y": 496.0
+        "x": 480.0,
+        "y": 208.0
       },
       "size": {
         "x": 128.0,
@@ -497,15 +510,17 @@
       },
       "ports": {
         "ext": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         },
         "port": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         }
       },
       "pos": {
-        "x": 416.0,
-        "y": 496.0
+        "x": 688.0,
+        "y": 288.0
       },
       "size": {
         "x": 32.0,
@@ -522,7 +537,8 @@
       },
       "ports": {
         "v": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -549,10 +565,12 @@
       },
       "ports": {
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -575,10 +593,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         },
         "port": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         }
       },
       "pos": {
@@ -601,10 +621,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "port": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
@@ -614,28 +636,6 @@
       "size": {
         "x": 32.0,
         "y": 32.0
-      }
-    },
-    {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
-      "classname": "lamp_pass_through",
-      "kind": "Blueprint",
-      "name": "lamp_pass_through_1",
-      "ports": {
-        "vin": {
-          "direction": "In"
-        },
-        "vout": {
-          "direction": "Out"
-        }
-      },
-      "pos": {
-        "x": 128.0,
-        "y": 528.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 96.0
       }
     },
     {
@@ -649,10 +649,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "port": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
@@ -683,13 +685,16 @@
       },
       "ports": {
         "brightness": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "I"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -712,10 +717,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         },
         "port": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         }
       },
       "pos": {
@@ -725,71 +732,6 @@
       "size": {
         "x": 32.0,
         "y": 32.0
-      }
-    },
-    {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
-      "classname": "lamp_pass_through",
-      "kind": "Blueprint",
-      "name": "lamp_pass_through_2",
-      "ports": {
-        "vin": {
-          "direction": "In"
-        },
-        "vout": {
-          "direction": "Out"
-        }
-      },
-      "pos": {
-        "x": 752.0,
-        "y": 608.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 96.0
-      }
-    },
-    {
-      "blueprint_path": "blueprints/simple_battery.json",
-      "classname": "simple_battery",
-      "kind": "Blueprint",
-      "name": "simple_battery_1",
-      "ports": {
-        "vin": {
-          "direction": "In"
-        },
-        "vout": {
-          "direction": "Out"
-        }
-      },
-      "pos": {
-        "x": 96.0,
-        "y": 352.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 96.0
-      }
-    },
-    {
-      "classname": "RefNode",
-      "kind": "Ref",
-      "name": "refnode_1",
-      "params": {
-        "value": "0.0"
-      },
-      "ports": {
-        "v": {
-          "direction": "Out"
-        }
-      },
-      "pos": {
-        "x": 64.0,
-        "y": 480.0
-      },
-      "size": {
-        "x": 48.0,
-        "y": 48.0
       }
     },
     {
@@ -803,10 +745,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         },
         "port": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         }
       },
       "pos": {
@@ -837,13 +781,16 @@
       },
       "ports": {
         "brightness": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "I"
         },
         "v_in": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "v_out": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
@@ -866,10 +813,12 @@
       },
       "ports": {
         "ext": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "Any"
         },
         "port": {
-          "direction": "In"
+          "direction": "In",
+          "type": "Any"
         }
       },
       "pos": {
@@ -885,22 +834,76 @@
       "blueprint_path": "blueprints/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "kind": "Blueprint",
-      "name": "lamp_pass_through_3",
+      "name": "lamp_pass_through_1",
       "ports": {
         "vin": {
-          "direction": "In"
+          "direction": "In",
+          "type": "V"
         },
         "vout": {
-          "direction": "Out"
+          "direction": "Out",
+          "type": "V"
         }
       },
       "pos": {
         "x": 352.0,
-        "y": 416.0
+        "y": 432.0
       },
       "size": {
         "x": 128.0,
         "y": 96.0
+      }
+    },
+    {
+      "classname": "ElectricHeater",
+      "group_id": "lamp_pass_through_1",
+      "kind": "Node",
+      "name": "electricheater_1",
+      "ports": {
+        "heat_out": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "power": {
+          "direction": "In",
+          "type": "Any"
+        }
+      },
+      "pos": {
+        "x": 480.0,
+        "y": 80.0
+      },
+      "size": {
+        "x": 128.0,
+        "y": 80.0
+      }
+    },
+    {
+      "classname": "Splitter",
+      "group_id": "lamp_pass_through_1",
+      "kind": "Node",
+      "name": "splitter_2",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o1": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "o2": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      },
+      "pos": {
+        "x": 400.0,
+        "y": 112.0
+      },
+      "size": {
+        "x": 64.0,
+        "y": 64.0
       }
     }
   ],
@@ -1131,14 +1134,24 @@
       "to": "lamp_pass_through_3:vout.port"
     },
     {
-      "from": "simple_battery_1.vout",
+      "from": "splitter_2.o1",
       "routing_points": [],
-      "to": "lamp_pass_through_3.vin"
+      "to": "lamp_pass_through_1:lamp.v_in"
     },
     {
-      "from": "lamp_pass_through_3.vout",
+      "from": "lamp_pass_through_1:lamp.v_out",
       "routing_points": [],
-      "to": "dmr_vsu.v_gen_ref"
+      "to": "lamp_pass_through_1:vout.port"
+    },
+    {
+      "from": "splitter_2.o2",
+      "routing_points": [],
+      "to": "electricheater_1.power"
+    },
+    {
+      "from": "lamp_pass_through_1:vin.port",
+      "routing_points": [],
+      "to": "splitter_2.i"
     }
   ]
 }

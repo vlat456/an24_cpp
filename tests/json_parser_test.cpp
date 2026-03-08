@@ -470,9 +470,8 @@ TEST(JsonParserTest, Regression_PortTypeMerge_ComponentDefinitionTypesCopied) {
         << "t4_out type should be Temperature (from ComponentDefinition)";
 }
 
-TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithoutType) {
-    // Regression test: if a device has inline port definition without type,
-    // the type should be copied from ComponentDefinition.
+TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithType) {
+    // Inline port definition must include type field.
 
     std::string json = R"({
         "templates": {},
@@ -481,7 +480,7 @@ TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithoutType) {
                 "name": "bat",
                 "classname": "Battery",
                 "ports": {
-                    "v_out": {"direction": "Out"}
+                    "v_out": {"direction": "Out", "type": "V"}
                 }
             }
         ],
@@ -492,12 +491,8 @@ TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithoutType) {
     ASSERT_EQ(ctx.devices.size(), 1);
     const auto& bat = ctx.devices[0];
 
-    // Port should exist (from inline definition)
     EXPECT_EQ(bat.ports.count("v_out"), 1);
-
-    // But type should come from ComponentDefinition (Battery.json)
-    EXPECT_EQ(bat.ports.at("v_out").type, PortType::V)
-        << "Port type should be copied from ComponentDefinition even for inline ports";
+    EXPECT_EQ(bat.ports.at("v_out").type, PortType::V);
 }
 
 TEST(JsonParserTest, Regression_LerpNodeAnyType_CanConnectToAnything) {
