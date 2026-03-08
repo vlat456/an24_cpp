@@ -72,7 +72,7 @@ void SimulationController::step(float dt) {
     // Data-oriented multi-domain solving with zero branching
     // Components are pre-sorted by domain, so we just iterate the relevant vectors
 
-    // Electrical/Logical: every step (60 Hz)
+    // Electrical: every step (60 Hz)
     for (auto* variant : build_result->domain_components.electrical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_electrical(state, dt); }) {
@@ -88,13 +88,23 @@ void SimulationController::step(float dt) {
         state.across.data(), state.through.data(),
         state.inv_conductance.data(), state.across.size(), omega);
 
-    // Post-step (update device state)
+    // Post-step (update device state after SOR)
     for (auto& [name, variant] : build_result->devices) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.post_step(state, dt); }) {
                 comp.post_step(state, dt);
             }
         }, variant);
+    }
+
+    // Logical: after SOR so logical components read converged electrical values
+    // and their outputs are final (SOR does not touch them)
+    for (auto* variant : build_result->domain_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state, dt); }) {
+                comp.solve_logical(state, dt);
+            }
+        }, *variant);
     }
 
     time += dt;

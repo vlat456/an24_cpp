@@ -473,21 +473,21 @@ target_link_libraries(pd_tests PRIVATE
 )
 gtest_discover_tests(pd_tests)
 
-# VoltageSubtract tests
-add_executable(voltage_subtract_tests
-    test_voltage_subtract.cpp
+# Subtract tests
+add_executable(subtract_tests
+    test_subtract.cpp
 )
-target_include_directories(voltage_subtract_tests PRIVATE
+target_include_directories(subtract_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
-target_link_libraries(voltage_subtract_tests PRIVATE
+target_link_libraries(subtract_tests PRIVATE
     jit_solver
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(voltage_subtract_tests)
+gtest_discover_tests(subtract_tests)
 
 # Logic gates tests
 add_executable(logic_gates_tests
@@ -504,6 +504,55 @@ target_link_libraries(logic_gates_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(logic_gates_tests)
+
+# Port mapping regression tests (catches missing ports in string_to_port_name)
+add_executable(port_map_regression_tests
+    test_port_map_regression.cpp
+)
+target_include_directories(port_map_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(port_map_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(port_map_regression_tests)
+
+# AND gate debug integration test
+add_executable(and_gate_debug_tests
+    test_and_gate_debug.cpp
+)
+target_include_directories(and_gate_debug_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(and_gate_debug_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(and_gate_debug_tests)
+
+# Codegen identifier sanitization regression tests
+add_executable(codegen_sanitize_tests
+    test_codegen_sanitize.cpp
+)
+target_include_directories(codegen_sanitize_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(codegen_sanitize_tests PRIVATE
+    an24_codegen
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(codegen_sanitize_tests)
 
 # V-to-Bool converter tests
 add_executable(v_to_bool_tests

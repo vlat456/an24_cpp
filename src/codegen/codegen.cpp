@@ -87,6 +87,23 @@ std::string format_value(const std::string& value, const std::string& type) {
 
 // Get domain from device
 std::string get_device_domain(const DeviceInstance& dev) {
+    // Build domain string from the parsed domains vector (populated from JSON "default_domains")
+    if (!dev.domains.empty()) {
+        std::string result;
+        for (auto d : dev.domains) {
+            if (!result.empty()) result += "|";
+            switch (d) {
+                case Domain::Electrical: result += "Electrical"; break;
+                case Domain::Logical:    result += "Logical"; break;
+                case Domain::Mechanical: result += "Mechanical"; break;
+                case Domain::Hydraulic:  result += "Hydraulic"; break;
+                case Domain::Thermal:    result += "Thermal"; break;
+                default: break;
+            }
+        }
+        if (!result.empty()) return result;
+    }
+    // Fallback to params["domain"] for backward compat
     auto it = dev.params.find("domain");
     if (it != dev.params.end()) {
         return it->second;
@@ -242,7 +259,7 @@ std::string CodeGen::generate_header(
     // Zero-cost abstraction: provider.get(PortNames::v_in) compiles to a constant
     for (const auto& dev : devices) {
         std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
-        oss << "    " << dev.classname << "<" << aot_type << "> " << dev.name << ";\n";
+        oss << "    " << dev.classname << "<" << aot_type << "> " << sanitize_name(dev.name) << ";\n";
     }
     oss << "\n";
 
@@ -257,7 +274,7 @@ std::string CodeGen::generate_header(
             }
             std::string port_key = dev.name + "." + port_name;
             uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
-            oss << "    static constexpr uint32_t " << dev.name << "_" << port_name << "_idx = " << sig << ";\n";
+            oss << "    static constexpr uint32_t " << sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
         }
     }
     oss << "\n";
@@ -351,7 +368,7 @@ std::string CodeGen::generate_source(
             if (param_name == "inv_internal_r" || param_name == "inv_capacity") continue;
 
             std::string type = infer_type(value);
-            oss << "    " << dev.name << "." << param_name << " = " << format_value(value, type) << ";\n";
+            oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
     }
     oss << "}\n\n";
@@ -361,7 +378,7 @@ std::string CodeGen::generate_source(
     for (const auto& dev : devices) {
         if (dev.classname == "Battery") {
             if (dev.params.count("internal_r")) {
-                oss << "    " << dev.name << ".inv_internal_r = 1.0f / " << dev.name << ".internal_r;\n";
+                oss << "    " << sanitize_name(dev.name) << ".inv_internal_r = 1.0f / " << sanitize_name(dev.name) << ".internal_r;\n";
             }
         }
     }
@@ -450,24 +467,10 @@ std::string CodeGen::generate_source(
                 // Call component method (compiler will inline with -O3 -ffast-math)
                 // Bus/RefNode are no-ops, others have solve_electrical()
                 if (dev_it->classname == "Bus" || dev_it->classname == "RefNode" || dev_it->classname == "Voltmeter") {
-                    oss << "    // " << dev_name << " (no-op)\n";
+                    oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
                 } else {
-                    oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
                 }
-            }
-        }
-
-        // Logical (every step) - boolean logic operations
-        auto log_it = step_devices.find({step, "logical"});
-        if (log_it != step_devices.end()) {
-            for (const auto& dev_name : log_it->second) {
-                // Find device
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-
-                // Call component method (compiler will inline with -O3)
-                oss << "    " << dev_name << ".solve_logical(*st, dt);\n";
             }
         }
 
@@ -476,7 +479,7 @@ std::string CodeGen::generate_source(
             auto mech_it = step_devices.find({step, "mechanical"});
             if (mech_it != step_devices.end()) {
                 for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << dev_name << ".solve_mechanical(*st, acc_mechanical_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
                 }
                 oss << "    acc_mechanical_ = 0.0f;\n";
             }
@@ -487,7 +490,7 @@ std::string CodeGen::generate_source(
             auto hyd_it = step_devices.find({step, "hydraulic"});
             if (hyd_it != step_devices.end()) {
                 for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << dev_name << ".solve_hydraulic(*st, acc_hydraulic_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
                 }
                 oss << "    acc_hydraulic_ = 0.0f;\n";
             }
@@ -498,7 +501,7 @@ std::string CodeGen::generate_source(
             auto therm_it = step_devices.find({step, "thermal"});
             if (therm_it != step_devices.end()) {
                 for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << dev_name << ".solve_thermal(*st, acc_thermal_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
                 }
                 oss << "    acc_thermal_ = 0.0f;\n";
             }
@@ -509,22 +512,43 @@ std::string CodeGen::generate_source(
         oss << "    st->precompute_inv_conductance();\n";
         oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, SOR::OMEGA);\n";
 
+        // Post-step: update device state after SOR convergence
+        // Must run before logical so logical components see updated state
+        // (e.g., HoldButton.state is set in post_step, read by AND gate)
+        {
+            static const std::unordered_set<std::string> has_post_step = {
+                "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
+                "PID", "PD", "PI", "P"
+            };
+            for (const auto& dev : devices) {
+                if (has_post_step.count(dev.classname)) {
+                    oss << "    " << sanitize_name(dev.name) << ".post_step(*st, dt);\n";
+                }
+            }
+        }
+
+        // Logical: AFTER SOR + post_step so logical gates read converged values
+        // and their outputs are final (SOR does not overwrite them)
+        auto log_it = step_devices.find({step, "logical"});
+        if (log_it != step_devices.end()) {
+            for (const auto& dev_name : log_it->second) {
+                auto dev_it = std::find_if(devices.begin(), devices.end(),
+                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
+                if (dev_it == devices.end()) continue;
+                oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
+            }
+        }
+
         oss << "}\n\n";
     }
 
-    // Post-step - call post_step on components that have it
-    // Only these classes define post_step: Switch, Relay, HoldButton, GS24, LerpNode, DMR400, RU19A, PID, PD, PI, P
-    static const std::unordered_set<std::string> has_post_step = {
-        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-        "PID", "PD", "PI", "P"
-    };
+    // Post-step is now integrated into each step_N() method
+    // (runs after SOR, before logical — correct execution order)
+    // This method is kept empty for backward compatibility with test harnesses
     oss << "void Systems::post_step(void* state, float dt) {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    for (const auto& dev : devices) {
-        if (has_post_step.count(dev.classname)) {
-            oss << "    " << dev.name << ".post_step(*st, dt);\n";
-        }
-    }
+    oss << "    // No-op: post_step is now inlined into step_N() functions\n";
+    oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
+    oss << "    (void)state; (void)dt;\n";
     oss << "}\n\n";
 
     // Convergence check - optimized with sparse sampling
@@ -678,6 +702,7 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
+    oss << "#include <optional>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n";
     oss << "\n";
@@ -740,6 +765,22 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "\n";
 
     // Generate helper function to get ports by classname
+    oss << "// Get port names for a component type\n";
+
+    // Generate string_to_port_name lookup (auto-generated, never hand-maintain!)
+    oss << "// Convert port name string to PortNames enum\n";
+    oss << "// Auto-generated from components/*.json — never maintain by hand!\n";
+    oss << "inline std::optional<PortNames> string_to_port_name(const std::string& name) {\n";
+    oss << "    static const std::unordered_map<std::string, PortNames> map = {\n";
+    for (const auto& port_name : all_port_names) {
+        oss << "        {\"" << port_name << "\", PortNames::" << port_name << "},\n";
+    }
+    oss << "    };\n";
+    oss << "    auto it = map.find(name);\n";
+    oss << "    if (it != map.end()) return it->second;\n";
+    oss << "    return std::nullopt;\n";
+    oss << "}\n\n";
+
     oss << "// Get port names for a component type\n";
     oss << "inline std::vector<std::string> get_component_ports(const std::string& classname) {\n";
     oss << "    static const std::unordered_map<std::string, std::vector<std::string>> registry = {\n";

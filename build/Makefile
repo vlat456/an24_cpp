@@ -601,17 +601,17 @@ pd_tests/fast:
 .PHONY : pd_tests/fast
 
 #=============================================================================
-# Target rules for targets named voltage_subtract_tests
+# Target rules for targets named subtract_tests
 
 # Build rule for target.
-voltage_subtract_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 voltage_subtract_tests
-.PHONY : voltage_subtract_tests
+subtract_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 subtract_tests
+.PHONY : subtract_tests
 
 # fast build rule for target.
-voltage_subtract_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/build
-.PHONY : voltage_subtract_tests/fast
+subtract_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
+.PHONY : subtract_tests/fast
 
 #=============================================================================
 # Target rules for targets named logic_gates_tests
@@ -625,6 +625,45 @@ logic_gates_tests: cmake_check_build_system
 logic_gates_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
 .PHONY : logic_gates_tests/fast
+
+#=============================================================================
+# Target rules for targets named port_map_regression_tests
+
+# Build rule for target.
+port_map_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 port_map_regression_tests
+.PHONY : port_map_regression_tests
+
+# fast build rule for target.
+port_map_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/build
+.PHONY : port_map_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named and_gate_debug_tests
+
+# Build rule for target.
+and_gate_debug_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 and_gate_debug_tests
+.PHONY : and_gate_debug_tests
+
+# fast build rule for target.
+and_gate_debug_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/build
+.PHONY : and_gate_debug_tests/fast
+
+#=============================================================================
+# Target rules for targets named codegen_sanitize_tests
+
+# Build rule for target.
+codegen_sanitize_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen_sanitize_tests
+.PHONY : codegen_sanitize_tests
+
+# fast build rule for target.
+codegen_sanitize_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/build
+.PHONY : codegen_sanitize_tests/fast
 
 #=============================================================================
 # Target rules for targets named v_to_bool_tests
@@ -823,12 +862,14 @@ help:
 	@echo "... test"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... and_gate_debug_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
 	@echo "... codegen_accumulator_tests"
+	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
 	@echo "... context_menu_tests"
 	@echo "... dt_regression_tests"
@@ -862,14 +903,15 @@ help:
 	@echo "... pi_p_tests"
 	@echo "... pid_tests"
 	@echo "... port_macro_tests"
+	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... spdlog"
+	@echo "... subtract_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
-	@echo "... voltage_subtract_tests"
 .PHONY : help
 
 

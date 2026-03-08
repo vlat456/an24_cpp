@@ -148,19 +148,11 @@ void Simulator<SolverTag>::step(float dt) {
     // Data-oriented multi-domain solving with zero branching
     // Components are pre-sorted by domain, so we just iterate the relevant vectors
 
-    // Electrical/Logical: every step
+    // Electrical: every step
     for (auto* variant : build_result_->domain_components.electrical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_electrical(state_, dt); }) {
                 comp.solve_electrical(state_, dt);
-            }
-        }, *variant);
-    }
-
-    for (auto* variant : build_result_->domain_components.logical) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_logical(state_, dt); }) {
-                comp.solve_logical(state_, dt);
             }
         }, *variant);
     }
@@ -219,6 +211,16 @@ void Simulator<SolverTag>::step(float dt) {
                 comp.post_step(state_, dt);
             }
         }, variant);
+    }
+
+    // Logical: after SOR+post_step so logical components read converged
+    // electrical values and their outputs are final (SOR does not touch them)
+    for (auto* variant : build_result_->domain_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state_, dt); }) {
+                comp.solve_logical(state_, dt);
+            }
+        }, *variant);
     }
 
     // DEBUG: Log every 60 steps

@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <optional>
 #include <vector>
 #include <variant>
 
@@ -29,7 +30,6 @@ enum class PortNames : uint32_t {
     Va,
     Vb,
     Vin,
-    Vo,
     ac_out,
     brightness,
     control,
@@ -111,10 +111,10 @@ enum class ComponentType {
     Resistor,
     SolenoidValve,
     Splitter,
+    Subtract,
     Switch,
     TempSensor,
     Transformer,
-    VoltageSubtract,
     Voltmeter,
     XOR
 };
@@ -158,10 +158,10 @@ constexpr size_t Relay_PORT_COUNT = 3;
 constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
+constexpr size_t Subtract_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
-constexpr size_t VoltageSubtract_PORT_COUNT = 3;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
 
@@ -334,6 +334,11 @@ constexpr const char* Splitter_PORTS[] = {
     "o1",
     "o2"
 };
+constexpr const char* Subtract_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
 constexpr const char* Switch_PORTS[] = {
     "control",
     "state",
@@ -348,11 +353,6 @@ constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
 };
-constexpr const char* VoltageSubtract_PORTS[] = {
-    "Va",
-    "Vb",
-    "Vo"
-};
 constexpr const char* Voltmeter_PORTS[] = {
     "v_in"
 };
@@ -361,6 +361,61 @@ constexpr const char* XOR_PORTS[] = {
     "B",
     "o"
 };
+
+// Get port names for a component type
+// Convert port name string to PortNames enum
+// Auto-generated from components/*.json — never maintain by hand!
+inline std::optional<PortNames> string_to_port_name(const std::string& name) {
+    static const std::unordered_map<std::string, PortNames> map = {
+        {"A", PortNames::A},
+        {"B", PortNames::B},
+        {"Va", PortNames::Va},
+        {"Vb", PortNames::Vb},
+        {"Vin", PortNames::Vin},
+        {"ac_out", PortNames::ac_out},
+        {"brightness", PortNames::brightness},
+        {"control", PortNames::control},
+        {"ctrl", PortNames::ctrl},
+        {"dc_in", PortNames::dc_in},
+        {"ext", PortNames::ext},
+        {"feedback", PortNames::feedback},
+        {"flow_in", PortNames::flow_in},
+        {"flow_out", PortNames::flow_out},
+        {"heat_in", PortNames::heat_in},
+        {"heat_out", PortNames::heat_out},
+        {"i", PortNames::i},
+        {"i1", PortNames::i1},
+        {"i2", PortNames::i2},
+        {"input", PortNames::input},
+        {"k_mod", PortNames::k_mod},
+        {"lamp", PortNames::lamp},
+        {"o", PortNames::o},
+        {"o1", PortNames::o1},
+        {"o2", PortNames::o2},
+        {"output", PortNames::output},
+        {"p_out", PortNames::p_out},
+        {"port", PortNames::port},
+        {"power", PortNames::power},
+        {"primary", PortNames::primary},
+        {"rpm_out", PortNames::rpm_out},
+        {"secondary", PortNames::secondary},
+        {"setpoint", PortNames::setpoint},
+        {"state", PortNames::state},
+        {"t4_out", PortNames::t4_out},
+        {"temp_in", PortNames::temp_in},
+        {"temp_out", PortNames::temp_out},
+        {"v", PortNames::v},
+        {"v_bus", PortNames::v_bus},
+        {"v_gen", PortNames::v_gen},
+        {"v_gen_ref", PortNames::v_gen_ref},
+        {"v_in", PortNames::v_in},
+        {"v_out", PortNames::v_out},
+        {"v_start", PortNames::v_start},
+    };
+    auto it = map.find(name);
+    if (it != map.end()) return it->second;
+    return std::nullopt;
+}
 
 // Get port names for a component type
 inline std::vector<std::string> get_component_ports(const std::string& classname) {
@@ -403,10 +458,10 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Resistor", {"v_in", "v_out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
+        {"Subtract", {"A", "B", "o"}},
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
         {"Transformer", {"primary", "secondary"}},
-        {"VoltageSubtract", {"Va", "Vb", "Vo"}},
         {"Voltmeter", {"v_in"}},
         {"XOR", {"A", "B", "o"}},
     };
@@ -459,10 +514,10 @@ using ComponentVariant = std::variant<
     Resistor<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
+    Subtract<JitProvider>,
     Switch<JitProvider>,
     TempSensor<JitProvider>,
     Transformer<JitProvider>,
-    VoltageSubtract<JitProvider>,
     Voltmeter<JitProvider>,
     XOR<JitProvider>
 >;

@@ -817,15 +817,33 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.o -c /Users/vladimir/an24_cpp/tests/test_voltage_subtract.cpp",
-  "file": "/Users/vladimir/an24_cpp/tests/test_voltage_subtract.cpp",
-  "output": "tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.o"
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/subtract_tests.dir/test_subtract.cpp.o -c /Users/vladimir/an24_cpp/tests/test_subtract.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_subtract.cpp",
+  "output": "tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.o -c /Users/vladimir/an24_cpp/tests/test_logic_gates.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_logic_gates.cpp",
   "output": "tests/CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_port_map_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_port_map_regression.cpp",
+  "output": "tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.o -c /Users/vladimir/an24_cpp/tests/test_and_gate_debug.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_and_gate_debug.cpp",
+  "output": "tests/CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.o -c /Users/vladimir/an24_cpp/tests/test_codegen_sanitize.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_codegen_sanitize.cpp",
+  "output": "tests/CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

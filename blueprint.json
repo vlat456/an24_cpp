@@ -750,15 +750,65 @@
         "x": 128.0,
         "y": 80.0
       }
+    },
+    {
+      "classname": "Positive_V_to_Bool",
+      "kind": "Node",
+      "name": "positive_v_to_bool_1",
+      "ports": {
+        "Vin": {
+          "direction": "In",
+          "type": "V"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Bool"
+        }
+      },
+      "pos": {
+        "x": 208.0,
+        "y": -16.0
+      },
+      "size": {
+        "x": 48.0,
+        "y": 48.0
+      }
+    },
+    {
+      "classname": "AND",
+      "kind": "Node",
+      "name": "and_1",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Bool"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Bool"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Bool"
+        }
+      },
+      "pos": {
+        "x": 1024.0,
+        "y": -112.0
+      },
+      "size": {
+        "x": 48.0,
+        "y": 48.0
+      }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -189.41192626953125,
-      "y": -203.53065490722656
+      "x": 7.290802001953125,
+      "y": -151.21424865722656
     },
-    "zoom": 0.6638935208320618
+    "zoom": 0.9067842960357666
   },
   "wires": [
     {
@@ -1059,6 +1109,21 @@
         }
       ],
       "to": "main_bus.v"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [],
+      "to": "positive_v_to_bool_1.Vin"
+    },
+    {
+      "from": "positive_v_to_bool_1.o",
+      "routing_points": [],
+      "to": "and_1.A"
+    },
+    {
+      "from": "holdbutton_1.state",
+      "routing_points": [],
+      "to": "and_1.B"
     }
   ]
 }

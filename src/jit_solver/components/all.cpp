@@ -966,19 +966,10 @@ void Comparator<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/
 }
 
 template <typename Provider>
-void VoltageSubtract<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
-    // Minimal conductance on output so SOR "sees" the node
-    float g = 1e-6f;
-    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                          provider.get(PortNames::Vo), g);
-}
-
-template <typename Provider>
-void VoltageSubtract<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
-    float Va = st.across[provider.get(PortNames::Va)];
-    float Vb = st.across[provider.get(PortNames::Vb)];
-    float Vo = Va - Vb;
-    st.across[provider.get(PortNames::Vo)] = Vo;
+void Subtract<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = A - B;
 }
 
 // =============================================================================

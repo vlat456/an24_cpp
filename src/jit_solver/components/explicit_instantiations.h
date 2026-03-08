@@ -45,7 +45,7 @@ template class Bus<JitProvider>;
 template class BlueprintInput<JitProvider>;
 template class BlueprintOutput<JitProvider>;
 template class RefNode<JitProvider>;
-template class VoltageSubtract<JitProvider>;
+template class Subtract<JitProvider>;
 template class AND<JitProvider>;
 template class OR<JitProvider>;
 template class XOR<JitProvider>;

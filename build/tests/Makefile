@@ -438,18 +438,18 @@ pd_tests/fast:
 .PHONY : pd_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/voltage_subtract_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/voltage_subtract_tests.dir/rule
-.PHONY : tests/CMakeFiles/voltage_subtract_tests.dir/rule
+tests/CMakeFiles/subtract_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/subtract_tests.dir/rule
+.PHONY : tests/CMakeFiles/subtract_tests.dir/rule
 
 # Convenience name for target.
-voltage_subtract_tests: tests/CMakeFiles/voltage_subtract_tests.dir/rule
-.PHONY : voltage_subtract_tests
+subtract_tests: tests/CMakeFiles/subtract_tests.dir/rule
+.PHONY : subtract_tests
 
 # fast build rule for target.
-voltage_subtract_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/build
-.PHONY : voltage_subtract_tests/fast
+subtract_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
+.PHONY : subtract_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/logic_gates_tests.dir/rule:
@@ -464,6 +464,48 @@ logic_gates_tests: tests/CMakeFiles/logic_gates_tests.dir/rule
 logic_gates_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
 .PHONY : logic_gates_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/port_map_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_map_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/port_map_regression_tests.dir/rule
+
+# Convenience name for target.
+port_map_regression_tests: tests/CMakeFiles/port_map_regression_tests.dir/rule
+.PHONY : port_map_regression_tests
+
+# fast build rule for target.
+port_map_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/build
+.PHONY : port_map_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/and_gate_debug_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/and_gate_debug_tests.dir/rule
+.PHONY : tests/CMakeFiles/and_gate_debug_tests.dir/rule
+
+# Convenience name for target.
+and_gate_debug_tests: tests/CMakeFiles/and_gate_debug_tests.dir/rule
+.PHONY : and_gate_debug_tests
+
+# fast build rule for target.
+and_gate_debug_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/build
+.PHONY : and_gate_debug_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/codegen_sanitize_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/codegen_sanitize_tests.dir/rule
+.PHONY : tests/CMakeFiles/codegen_sanitize_tests.dir/rule
+
+# Convenience name for target.
+codegen_sanitize_tests: tests/CMakeFiles/codegen_sanitize_tests.dir/rule
+.PHONY : codegen_sanitize_tests
+
+# fast build rule for target.
+codegen_sanitize_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/build
+.PHONY : codegen_sanitize_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/v_to_bool_tests.dir/rule:
@@ -1762,6 +1804,30 @@ provider_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.s
 .PHONY : provider_test.cpp.s
 
+test_and_gate_debug.o: test_and_gate_debug.cpp.o
+.PHONY : test_and_gate_debug.o
+
+# target to build an object file
+test_and_gate_debug.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.o
+.PHONY : test_and_gate_debug.cpp.o
+
+test_and_gate_debug.i: test_and_gate_debug.cpp.i
+.PHONY : test_and_gate_debug.i
+
+# target to preprocess a source file
+test_and_gate_debug.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.i
+.PHONY : test_and_gate_debug.cpp.i
+
+test_and_gate_debug.s: test_and_gate_debug.cpp.s
+.PHONY : test_and_gate_debug.s
+
+# target to generate assembly for a file
+test_and_gate_debug.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.s
+.PHONY : test_and_gate_debug.cpp.s
+
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
 
@@ -1857,6 +1923,30 @@ test_codegen_accumulator.s: test_codegen_accumulator.cpp.s
 test_codegen_accumulator.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/test_codegen_accumulator.cpp.s
 .PHONY : test_codegen_accumulator.cpp.s
+
+test_codegen_sanitize.o: test_codegen_sanitize.cpp.o
+.PHONY : test_codegen_sanitize.o
+
+# target to build an object file
+test_codegen_sanitize.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.o
+.PHONY : test_codegen_sanitize.cpp.o
+
+test_codegen_sanitize.i: test_codegen_sanitize.cpp.i
+.PHONY : test_codegen_sanitize.i
+
+# target to preprocess a source file
+test_codegen_sanitize.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.i
+.PHONY : test_codegen_sanitize.cpp.i
+
+test_codegen_sanitize.s: test_codegen_sanitize.cpp.s
+.PHONY : test_codegen_sanitize.s
+
+# target to generate assembly for a file
+test_codegen_sanitize.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.s
+.PHONY : test_codegen_sanitize.cpp.s
 
 test_context_menu.o: test_context_menu.cpp.o
 .PHONY : test_context_menu.o
@@ -2242,6 +2332,30 @@ test_pid.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/test_pid.cpp.s
 .PHONY : test_pid.cpp.s
 
+test_port_map_regression.o: test_port_map_regression.cpp.o
+.PHONY : test_port_map_regression.o
+
+# target to build an object file
+test_port_map_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.o
+.PHONY : test_port_map_regression.cpp.o
+
+test_port_map_regression.i: test_port_map_regression.cpp.i
+.PHONY : test_port_map_regression.i
+
+# target to preprocess a source file
+test_port_map_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.i
+.PHONY : test_port_map_regression.cpp.i
+
+test_port_map_regression.s: test_port_map_regression.cpp.s
+.PHONY : test_port_map_regression.s
+
+# target to generate assembly for a file
+test_port_map_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.s
+.PHONY : test_port_map_regression.cpp.s
+
 test_properties_window.o: test_properties_window.cpp.o
 .PHONY : test_properties_window.o
 
@@ -2337,6 +2451,30 @@ test_simulation.s: test_simulation.cpp.s
 test_simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
 .PHONY : test_simulation.cpp.s
+
+test_subtract.o: test_subtract.cpp.o
+.PHONY : test_subtract.o
+
+# target to build an object file
+test_subtract.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.o
+.PHONY : test_subtract.cpp.o
+
+test_subtract.i: test_subtract.cpp.i
+.PHONY : test_subtract.i
+
+# target to preprocess a source file
+test_subtract.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.i
+.PHONY : test_subtract.cpp.i
+
+test_subtract.s: test_subtract.cpp.s
+.PHONY : test_subtract.s
+
+# target to generate assembly for a file
+test_subtract.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.s
+.PHONY : test_subtract.cpp.s
 
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
@@ -2434,30 +2572,6 @@ test_visual_scene.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/test_visual_scene.cpp.s
 .PHONY : test_visual_scene.cpp.s
 
-test_voltage_subtract.o: test_voltage_subtract.cpp.o
-.PHONY : test_voltage_subtract.o
-
-# target to build an object file
-test_voltage_subtract.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.o
-.PHONY : test_voltage_subtract.cpp.o
-
-test_voltage_subtract.i: test_voltage_subtract.cpp.i
-.PHONY : test_voltage_subtract.i
-
-# target to preprocess a source file
-test_voltage_subtract.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.i
-.PHONY : test_voltage_subtract.cpp.i
-
-test_voltage_subtract.s: test_voltage_subtract.cpp.s
-.PHONY : test_voltage_subtract.s
-
-# target to generate assembly for a file
-test_voltage_subtract.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/voltage_subtract_tests.dir/build.make tests/CMakeFiles/voltage_subtract_tests.dir/test_voltage_subtract.cpp.s
-.PHONY : test_voltage_subtract.cpp.s
-
 test_widget.o: test_widget.cpp.o
 .PHONY : test_widget.o
 
@@ -2495,10 +2609,12 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... and_gate_debug_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
 	@echo "... codegen_accumulator_tests"
+	@echo "... codegen_sanitize_tests"
 	@echo "... context_menu_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
@@ -2523,13 +2639,14 @@ help:
 	@echo "... pi_p_tests"
 	@echo "... pid_tests"
 	@echo "... port_macro_tests"
+	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... subtract_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
-	@echo "... voltage_subtract_tests"
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
@@ -2605,6 +2722,9 @@ help:
 	@echo "... provider_test.o"
 	@echo "... provider_test.i"
 	@echo "... provider_test.s"
+	@echo "... test_and_gate_debug.o"
+	@echo "... test_and_gate_debug.i"
+	@echo "... test_and_gate_debug.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"
@@ -2617,6 +2737,9 @@ help:
 	@echo "... test_codegen_accumulator.o"
 	@echo "... test_codegen_accumulator.i"
 	@echo "... test_codegen_accumulator.s"
+	@echo "... test_codegen_sanitize.o"
+	@echo "... test_codegen_sanitize.i"
+	@echo "... test_codegen_sanitize.s"
 	@echo "... test_context_menu.o"
 	@echo "... test_context_menu.i"
 	@echo "... test_context_menu.s"
@@ -2665,6 +2788,9 @@ help:
 	@echo "... test_pid.o"
 	@echo "... test_pid.i"
 	@echo "... test_pid.s"
+	@echo "... test_port_map_regression.o"
+	@echo "... test_port_map_regression.i"
+	@echo "... test_port_map_regression.s"
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"
@@ -2677,6 +2803,9 @@ help:
 	@echo "... test_simulation.o"
 	@echo "... test_simulation.i"
 	@echo "... test_simulation.s"
+	@echo "... test_subtract.o"
+	@echo "... test_subtract.i"
+	@echo "... test_subtract.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"
@@ -2689,9 +2818,6 @@ help:
 	@echo "... test_visual_scene.o"
 	@echo "... test_visual_scene.i"
 	@echo "... test_visual_scene.s"
-	@echo "... test_voltage_subtract.o"
-	@echo "... test_voltage_subtract.i"
-	@echo "... test_voltage_subtract.s"
 	@echo "... test_widget.o"
 	@echo "... test_widget.i"
 	@echo "... test_widget.s"

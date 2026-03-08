@@ -654,18 +654,17 @@ public:
     void pre_load();
 };
 
-/// VoltageSubtract - voltage subtractor (Vo = Va - Vb)
+/// Subtract - subtractor (o = A - B)
 template <typename Provider = JitProvider>
-class VoltageSubtract {
+class Subtract {
 public:
-    static constexpr Domain domain = Domain::Electrical;
+    static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
 
-    VoltageSubtract() = default;
+    Subtract() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_logical(an24::SimulationState& st, float dt);
 };
 
 /// AND - logical AND gate (o = A && B)

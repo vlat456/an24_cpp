@@ -2,6 +2,7 @@
 #include "scheduling.h"
 #include "state.h"
 #include "components/all.h"
+#include "components/port_registry.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <map>
@@ -12,53 +13,8 @@ namespace an24 {
 
 namespace {
 
-/// Convert string port name to PortNames enum (returns nullopt for unknown ports)
-std::optional<PortNames> string_to_port_name(const std::string& port_name) {
-    static const std::unordered_map<std::string, PortNames> port_map = {
-        {"Va", PortNames::Va},
-        {"Vb", PortNames::Vb},
-        {"ac_out", PortNames::ac_out},
-        {"brightness", PortNames::brightness},
-        {"control", PortNames::control},
-        {"ctrl", PortNames::ctrl},
-        {"dc_in", PortNames::dc_in},
-        {"flow_in", PortNames::flow_in},
-        {"flow_out", PortNames::flow_out},
-        {"heat_in", PortNames::heat_in},
-        {"heat_out", PortNames::heat_out},
-        {"i", PortNames::i},
-        {"input", PortNames::input},
-        {"k_mod", PortNames::k_mod},
-        {"lamp", PortNames::lamp},
-        {"o", PortNames::o},
-        {"o1", PortNames::o1},
-        {"o2", PortNames::o2},
-        {"output", PortNames::output},
-        {"port", PortNames::port},
-        {"p_out", PortNames::p_out},
-        {"power", PortNames::power},
-        {"primary", PortNames::primary},
-        {"rpm_out", PortNames::rpm_out},
-        {"secondary", PortNames::secondary},
-        {"state", PortNames::state},
-        {"t4_out", PortNames::t4_out},
-        {"temp_in", PortNames::temp_in},
-        {"temp_out", PortNames::temp_out},
-        {"v", PortNames::v},
-        {"v_bus", PortNames::v_bus},
-        {"v_gen", PortNames::v_gen},
-        {"v_gen_ref", PortNames::v_gen_ref},
-        {"v_in", PortNames::v_in},
-        {"v_out", PortNames::v_out},
-        {"v_start", PortNames::v_start}
-    };
-
-    auto it = port_map.find(port_name);
-    if (it != port_map.end()) {
-        return it->second;
-    }
-    return std::nullopt;
-}
+// string_to_port_name is now auto-generated in port_registry.h
+// If a new component's port is missing, re-run codegen.
 
 /// Setup port indices for a component from port_to_signal mapping.
 /// Ports not in the PortNames enum are silently skipped — this allows
@@ -72,6 +28,11 @@ void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult
             auto port_enum = string_to_port_name(port_name);
             if (port_enum) {
                 comp.provider.set(*port_enum, it->second);
+            } else {
+                spdlog::critical("[build] FATAL: unknown port name '{}' on device '{}'. "
+                    "Re-run codegen to update port_registry.h!",
+                    port_name, dev.name);
+                std::abort();
             }
         }
     }
@@ -325,8 +286,8 @@ ComponentVariant create_component_variant(
         comp.value = get_float(dev, "value", 0.0f);
         return ComponentVariant(std::move(comp));
     }
-    else if (dev.classname == "VoltageSubtract") {
-        VoltageSubtract<JitProvider> comp;
+    else if (dev.classname == "Subtract") {
+        Subtract<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
