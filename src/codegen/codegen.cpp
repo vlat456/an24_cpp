@@ -513,9 +513,10 @@ std::string CodeGen::generate_source(
     }
 
     // Post-step - call post_step on components that have it
-    // Only these classes define post_step: Switch, Relay, HoldButton, GS24, LerpNode, DMR400, RU19A
+    // Only these classes define post_step: Switch, Relay, HoldButton, GS24, LerpNode, DMR400, RU19A, PID, PD, PI, P
     static const std::unordered_set<std::string> has_post_step = {
-        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A"
+        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
+        "PID", "PD", "PI", "P"
     };
     oss << "void Systems::post_step(void* state, float dt) {\n";
     oss << "    auto* st = static_cast<SimulationState*>(state);\n";

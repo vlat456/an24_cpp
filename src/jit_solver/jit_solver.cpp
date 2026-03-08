@@ -325,6 +325,44 @@ ComponentVariant create_component_variant(
         comp.value = get_float(dev, "value", 0.0f);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "PID") {
+        PID<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.Kp = get_float(dev, "Kp", 1.0f);
+        comp.Ki = get_float(dev, "Ki", 0.0f);
+        comp.Kd = get_float(dev, "Kd", 0.0f);
+        comp.output_min = get_float(dev, "output_min", -1000.0f);
+        comp.output_max = get_float(dev, "output_max", 1000.0f);
+        comp.filter_alpha = get_float(dev, "filter_alpha", 0.2f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "PI") {
+        PI<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.Kp = get_float(dev, "Kp", 1.0f);
+        comp.Ki = get_float(dev, "Ki", 0.0f);
+        comp.output_min = get_float(dev, "output_min", -1000.0f);
+        comp.output_max = get_float(dev, "output_max", 1000.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "PD") {
+        PD<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.Kp = get_float(dev, "Kp", 1.0f);
+        comp.Kd = get_float(dev, "Kd", 0.0f);
+        comp.output_min = get_float(dev, "output_min", -1000.0f);
+        comp.output_max = get_float(dev, "output_max", 1000.0f);
+        comp.filter_alpha = get_float(dev, "filter_alpha", 0.2f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "P") {
+        P<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.Kp = get_float(dev, "Kp", 1.0f);
+        comp.output_min = get_float(dev, "output_min", -1000.0f);
+        comp.output_max = get_float(dev, "output_max", 1000.0f);
+        return ComponentVariant(std::move(comp));
+    }
     else {
         throw std::runtime_error("Unknown component type: " + dev.classname);
     }

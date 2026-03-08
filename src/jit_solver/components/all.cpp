@@ -351,6 +351,149 @@ void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
 }
 
 // =============================================================================
+// PID
+// =============================================================================
+
+template <typename Provider>
+void PID<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // High-impedance output: the PID drives the output directly in post_step
+    // Small conductance keeps the node well-conditioned in the MNA matrix
+    st.conductance[provider.get(PortNames::output)] += 1e-6f;
+}
+
+template <typename Provider>
+void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
+    float setpoint = st.across[provider.get(PortNames::setpoint)];
+    float feedback = st.across[provider.get(PortNames::feedback)];
+
+    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
+    float inv_dt  = 1.0f / safe_dt;
+
+    // Error
+    float error = setpoint - feedback;
+
+    // P term
+    float p_term = Kp * error;
+
+    // I term with clamping anti-windup
+    integral += error * safe_dt;
+    float i_term = std::clamp(Ki * integral, output_min - p_term, output_max - p_term);
+
+    // D term: first-order low-pass filter on raw derivative
+    float d_raw = (error - last_error) * inv_dt;
+    d_filtered  += filter_alpha * (d_raw - d_filtered);
+    float d_term  = Kd * d_filtered;
+
+    // Output saturation
+    float output = std::clamp(p_term + i_term + d_term, output_min, output_max);
+
+    st.across[provider.get(PortNames::output)] = output;
+    last_error = error;
+}
+
+// =============================================================================
+// PD - Proportional-Derivative controller
+// =============================================================================
+
+template <typename Provider>
+void PD<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // High-impedance output: the PD drives the output directly in post_step
+    // Small conductance keeps the node well-conditioned in the MNA matrix
+    st.conductance[provider.get(PortNames::output)] += 1e-6f;
+}
+
+template <typename Provider>
+void PD<Provider>::post_step(an24::SimulationState& st, float dt) {
+    float setpoint = st.across[provider.get(PortNames::setpoint)];
+    float feedback = st.across[provider.get(PortNames::feedback)];
+
+    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
+    float inv_dt  = 1.0f / safe_dt;
+
+    // Error
+    float error = setpoint - feedback;
+
+    // P term
+    float p_term = Kp * error;
+
+    // D term: first-order low-pass filter on raw derivative
+    float d_raw = (error - last_error) * inv_dt;
+    d_filtered  += filter_alpha * (d_raw - d_filtered);
+    float d_term  = Kd * d_filtered;
+
+    // Output saturation (no integral windup concern)
+    float output = std::clamp(p_term + d_term, output_min, output_max);
+
+    st.across[provider.get(PortNames::output)] = output;
+    last_error = error;
+}
+
+// =============================================================================
+// PI - Proportional-Integral controller
+// =============================================================================
+
+template <typename Provider>
+void PI<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // High-impedance output: the PI drives the output directly in post_step
+    // Small conductance keeps the node well-conditioned in the MNA matrix
+    st.conductance[provider.get(PortNames::output)] += 1e-6f;
+}
+
+template <typename Provider>
+void PI<Provider>::post_step(an24::SimulationState& st, float dt) {
+    float setpoint = st.across[provider.get(PortNames::setpoint)];
+    float feedback = st.across[provider.get(PortNames::feedback)];
+
+    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
+
+    // Error
+    float error = setpoint - feedback;
+
+    // P term
+    float p_term = Kp * error;
+
+    // I term with clamping anti-windup
+    integral += error * safe_dt;
+    float i_term = std::clamp(Ki * integral, output_min - p_term, output_max - p_term);
+
+    // Output saturation
+    float output = std::clamp(p_term + i_term, output_min, output_max);
+
+    st.across[provider.get(PortNames::output)] = output;
+}
+
+// =============================================================================
+// P - Proportional controller
+// =============================================================================
+
+template <typename Provider>
+void P<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // High-impedance output: the P controller drives the output directly in post_step
+    // Small conductance keeps the node well-conditioned in the MNA matrix
+    st.conductance[provider.get(PortNames::output)] += 1e-6f;
+}
+
+template <typename Provider>
+void P<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+    float setpoint = st.across[provider.get(PortNames::setpoint)];
+    float feedback = st.across[provider.get(PortNames::feedback)];
+
+    // Error
+    float error = setpoint - feedback;
+
+    // P term (no integral, no derivative)
+    float p_term = Kp * error;
+
+    // Output saturation
+    float output = std::clamp(p_term, output_min, output_max);
+
+    st.across[provider.get(PortNames::output)] = output;
+}
+
+// =============================================================================
 // Splitter
 // =============================================================================
 

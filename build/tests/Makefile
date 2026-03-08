@@ -410,6 +410,48 @@ provider_pattern_tests/fast:
 .PHONY : provider_pattern_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/pid_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/rule
+.PHONY : tests/CMakeFiles/pid_tests.dir/rule
+
+# Convenience name for target.
+pid_tests: tests/CMakeFiles/pid_tests.dir/rule
+.PHONY : pid_tests
+
+# fast build rule for target.
+pid_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
+.PHONY : pid_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pd_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pd_tests.dir/rule
+.PHONY : tests/CMakeFiles/pd_tests.dir/rule
+
+# Convenience name for target.
+pd_tests: tests/CMakeFiles/pd_tests.dir/rule
+.PHONY : pd_tests
+
+# fast build rule for target.
+pd_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/build
+.PHONY : pd_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pi_p_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_p_tests.dir/rule
+.PHONY : tests/CMakeFiles/pi_p_tests.dir/rule
+
+# Convenience name for target.
+pi_p_tests: tests/CMakeFiles/pi_p_tests.dir/rule
+.PHONY : pi_p_tests
+
+# fast build rule for target.
+pi_p_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/build
+.PHONY : pi_p_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
 .PHONY : tests/CMakeFiles/lamp_passthrough_jit_test.dir/rule
@@ -1934,6 +1976,30 @@ test_params_integrity.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/test_params_integrity.cpp.s
 .PHONY : test_params_integrity.cpp.s
 
+test_pd.o: test_pd.cpp.o
+.PHONY : test_pd.o
+
+# target to build an object file
+test_pd.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/test_pd.cpp.o
+.PHONY : test_pd.cpp.o
+
+test_pd.i: test_pd.cpp.i
+.PHONY : test_pd.i
+
+# target to preprocess a source file
+test_pd.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/test_pd.cpp.i
+.PHONY : test_pd.cpp.i
+
+test_pd.s: test_pd.cpp.s
+.PHONY : test_pd.s
+
+# target to generate assembly for a file
+test_pd.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/test_pd.cpp.s
+.PHONY : test_pd.cpp.s
+
 test_persist.o: test_persist.cpp.o
 .PHONY : test_persist.o
 
@@ -1957,6 +2023,54 @@ test_persist.s: test_persist.cpp.s
 test_persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/test_persist.cpp.s
 .PHONY : test_persist.cpp.s
+
+test_pi_p.o: test_pi_p.cpp.o
+.PHONY : test_pi_p.o
+
+# target to build an object file
+test_pi_p.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/test_pi_p.cpp.o
+.PHONY : test_pi_p.cpp.o
+
+test_pi_p.i: test_pi_p.cpp.i
+.PHONY : test_pi_p.i
+
+# target to preprocess a source file
+test_pi_p.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/test_pi_p.cpp.i
+.PHONY : test_pi_p.cpp.i
+
+test_pi_p.s: test_pi_p.cpp.s
+.PHONY : test_pi_p.s
+
+# target to generate assembly for a file
+test_pi_p.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/test_pi_p.cpp.s
+.PHONY : test_pi_p.cpp.s
+
+test_pid.o: test_pid.cpp.o
+.PHONY : test_pid.o
+
+# target to build an object file
+test_pid.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/test_pid.cpp.o
+.PHONY : test_pid.cpp.o
+
+test_pid.i: test_pid.cpp.i
+.PHONY : test_pid.i
+
+# target to preprocess a source file
+test_pid.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/test_pid.cpp.i
+.PHONY : test_pid.cpp.i
+
+test_pid.s: test_pid.cpp.s
+.PHONY : test_pid.s
+
+# target to generate assembly for a file
+test_pid.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/test_pid.cpp.s
+.PHONY : test_pid.cpp.s
 
 test_properties_window.o: test_properties_window.cpp.o
 .PHONY : test_properties_window.o
@@ -2185,6 +2299,9 @@ help:
 	@echo "... multi_window_tests"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"
+	@echo "... pd_tests"
+	@echo "... pi_p_tests"
+	@echo "... pid_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
@@ -2305,9 +2422,18 @@ help:
 	@echo "... test_params_integrity.o"
 	@echo "... test_params_integrity.i"
 	@echo "... test_params_integrity.s"
+	@echo "... test_pd.o"
+	@echo "... test_pd.i"
+	@echo "... test_pd.s"
 	@echo "... test_persist.o"
 	@echo "... test_persist.i"
 	@echo "... test_persist.s"
+	@echo "... test_pi_p.o"
+	@echo "... test_pi_p.i"
+	@echo "... test_pi_p.s"
+	@echo "... test_pid.o"
+	@echo "... test_pid.i"
+	@echo "... test_pid.s"
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"

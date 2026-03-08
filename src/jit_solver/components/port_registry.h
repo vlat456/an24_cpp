@@ -31,11 +31,15 @@ enum class PortNames : uint32_t {
     control,
     ctrl,
     dc_in,
+    ext,
+    feedback,
     flow_in,
     flow_out,
     heat_in,
     heat_out,
     i,
+    i1,
+    i2,
     input,
     k_mod,
     lamp,
@@ -49,6 +53,7 @@ enum class PortNames : uint32_t {
     primary,
     rpm_out,
     secondary,
+    setpoint,
     state,
     t4_out,
     temp_in,
@@ -67,6 +72,7 @@ enum class ComponentType {
     AGK47,
     Battery,
     BlueprintInput,
+    BlueprintOutput,
     Bus,
     Comparator,
     DMR400,
@@ -82,6 +88,11 @@ enum class ComponentType {
     Inverter,
     LerpNode,
     Load,
+    Merger,
+    P,
+    PD,
+    PI,
+    PID,
     RU19A,
     RUG82,
     Radiator,
@@ -99,7 +110,8 @@ enum class ComponentType {
 // Port count for each component
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t Battery_PORT_COUNT = 2;
-constexpr size_t BlueprintInput_PORT_COUNT = 1;
+constexpr size_t BlueprintInput_PORT_COUNT = 2;
+constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
@@ -115,6 +127,11 @@ constexpr size_t InertiaNode_PORT_COUNT = 2;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
+constexpr size_t Merger_PORT_COUNT = 3;
+constexpr size_t P_PORT_COUNT = 3;
+constexpr size_t PD_PORT_COUNT = 3;
+constexpr size_t PI_PORT_COUNT = 3;
+constexpr size_t PID_PORT_COUNT = 3;
 constexpr size_t RU19A_PORT_COUNT = 5;
 constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
@@ -137,6 +154,11 @@ constexpr const char* Battery_PORTS[] = {
     "v_out"
 };
 constexpr const char* BlueprintInput_PORTS[] = {
+    "ext",
+    "port"
+};
+constexpr const char* BlueprintOutput_PORTS[] = {
+    "ext",
     "port"
 };
 constexpr const char* Bus_PORTS[] = {
@@ -203,6 +225,31 @@ constexpr const char* LerpNode_PORTS[] = {
 constexpr const char* Load_PORTS[] = {
     "input"
 };
+constexpr const char* Merger_PORTS[] = {
+    "i1",
+    "i2",
+    "o"
+};
+constexpr const char* P_PORTS[] = {
+    "feedback",
+    "output",
+    "setpoint"
+};
+constexpr const char* PD_PORTS[] = {
+    "feedback",
+    "output",
+    "setpoint"
+};
+constexpr const char* PI_PORTS[] = {
+    "feedback",
+    "output",
+    "setpoint"
+};
+constexpr const char* PID_PORTS[] = {
+    "feedback",
+    "output",
+    "setpoint"
+};
 constexpr const char* RU19A_PORTS[] = {
     "k_mod",
     "rpm_out",
@@ -263,7 +310,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
         {"AGK47", {"input"}},
         {"Battery", {"v_in", "v_out"}},
-        {"BlueprintInput", {"port"}},
+        {"BlueprintInput", {"ext", "port"}},
+        {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
@@ -279,6 +327,11 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Inverter", {"ac_out", "dc_in"}},
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
+        {"Merger", {"i1", "i2", "o"}},
+        {"P", {"feedback", "output", "setpoint"}},
+        {"PD", {"feedback", "output", "setpoint"}},
+        {"PI", {"feedback", "output", "setpoint"}},
+        {"PID", {"feedback", "output", "setpoint"}},
         {"RU19A", {"k_mod", "rpm_out", "t4_out", "v_bus", "v_start"}},
         {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
@@ -322,6 +375,11 @@ using ComponentVariant = std::variant<
     Inverter<JitProvider>,
     LerpNode<JitProvider>,
     Load<JitProvider>,
+    Merger<JitProvider>,
+    P<JitProvider>,
+    PD<JitProvider>,
+    PI<JitProvider>,
+    PID<JitProvider>,
     RU19A<JitProvider>,
     RUG82<JitProvider>,
     Radiator<JitProvider>,
@@ -329,7 +387,6 @@ using ComponentVariant = std::variant<
     Relay<JitProvider>,
     Resistor<JitProvider>,
     SolenoidValve<JitProvider>,
-    Merger<JitProvider>,
     Splitter<JitProvider>,
     Switch<JitProvider>,
     TempSensor<JitProvider>,

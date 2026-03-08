@@ -274,6 +274,94 @@ public:
     void post_step(an24::SimulationState& st, float dt);
 };
 
+/// PID - Proportional-Integral-Derivative controller
+template <typename Provider = JitProvider>
+class PID {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+    float Kp = 1.0f;
+    float Ki = 0.0f;
+    float Kd = 0.0f;
+    float output_min = -1000.0f;
+    float output_max = 1000.0f;
+    float filter_alpha = 0.2f;
+
+    // State variables (minimal footprint: 3 floats)
+    float integral = 0.0f;
+    float last_error = 0.0f;
+    float d_filtered = 0.0f;
+
+    PID() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+};
+
+/// PD - Proportional-Derivative controller
+template <typename Provider = JitProvider>
+class PD {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+    float Kp = 1.0f;
+    float Kd = 0.0f;
+    float output_min = -1000.0f;
+    float output_max = 1000.0f;
+    float filter_alpha = 0.2f;
+
+    // State variables (minimal footprint: 2 floats, no integral)
+    float last_error = 0.0f;
+    float d_filtered = 0.0f;
+
+    PD() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+};
+
+/// PI - Proportional-Integral controller
+template <typename Provider = JitProvider>
+class PI {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+    float Kp = 1.0f;
+    float Ki = 0.0f;
+    float output_min = -1000.0f;
+    float output_max = 1000.0f;
+
+    // State variables (minimal footprint: 1 float, no derivative)
+    float integral = 0.0f;
+
+    PI() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+};
+
+/// P - Proportional controller
+template <typename Provider = JitProvider>
+class P {
+public:
+    static constexpr Domain domain = Domain::Electrical;
+
+    Provider provider;
+    float Kp = 1.0f;
+    float output_min = -1000.0f;
+    float output_max = 1000.0f;
+
+    // No state variables (pure memoryless function)
+
+    P() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+};
+
 /// Splitter - 1-to-2 signal splitter
 template <typename Provider = JitProvider>
 class Splitter {

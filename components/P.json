@@ -1,0 +1,28 @@
+{
+  "classname": "P",
+  "description": "P controller with proportional term only",
+  "default_ports": {
+    "feedback": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "setpoint": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "default_params": {
+    "Kp": "1.0",
+    "output_min": "-1000.0",
+    "output_max": "1000.0"
+  },
+  "default_domains": [
+    "Electrical"
+  ],
+  "default_priority": "med",
+  "default_critical": false
+}

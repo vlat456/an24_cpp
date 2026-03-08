@@ -575,6 +575,45 @@ provider_pattern_tests/fast:
 .PHONY : provider_pattern_tests/fast
 
 #=============================================================================
+# Target rules for targets named pid_tests
+
+# Build rule for target.
+pid_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pid_tests
+.PHONY : pid_tests
+
+# fast build rule for target.
+pid_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pid_tests.dir/build.make tests/CMakeFiles/pid_tests.dir/build
+.PHONY : pid_tests/fast
+
+#=============================================================================
+# Target rules for targets named pd_tests
+
+# Build rule for target.
+pd_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pd_tests
+.PHONY : pd_tests
+
+# fast build rule for target.
+pd_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pd_tests.dir/build.make tests/CMakeFiles/pd_tests.dir/build
+.PHONY : pd_tests/fast
+
+#=============================================================================
+# Target rules for targets named pi_p_tests
+
+# Build rule for target.
+pi_p_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pi_p_tests
+.PHONY : pi_p_tests
+
+# fast build rule for target.
+pi_p_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/build
+.PHONY : pi_p_tests/fast
+
+#=============================================================================
 # Target rules for targets named lamp_passthrough_jit_test
 
 # Build rule for target.
@@ -765,6 +804,9 @@ help:
 	@echo "... nfd"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"
+	@echo "... pd_tests"
+	@echo "... pi_p_tests"
+	@echo "... pid_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"

@@ -441,6 +441,54 @@ target_link_libraries(provider_pattern_tests PRIVATE
 )
 gtest_discover_tests(provider_pattern_tests)
 
+# PID controller unit tests
+add_executable(pid_tests
+    test_pid.cpp
+)
+target_include_directories(pid_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(pid_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(pid_tests)
+
+# PD controller tests
+add_executable(pd_tests
+    test_pd.cpp
+)
+target_include_directories(pd_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(pd_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(pd_tests)
+
+# PI and P controller tests
+add_executable(pi_p_tests
+    test_pi_p.cpp
+)
+target_include_directories(pi_p_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(pi_p_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(pi_p_tests)
+
 # JIT integration test: Battery -> IndicatorLight voltage flow
 add_executable(lamp_passthrough_jit_test
     test_lamp_passthrough_jit.cpp
