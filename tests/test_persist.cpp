@@ -889,4 +889,423 @@ TEST(PersistTest, AutoLayout_BlueprintInputLeftOutputRight) {
     EXPECT_LT(load_x, vout_x) << "BlueprintOutput must be to the right of loads";
 }
 
+// =============================================================================
+// Unit tests for Blueprint::add_wire() runtime dedup [e4a1b7]
+// =============================================================================
+
+TEST(BlueprintTest, AddWire_ReturnsIndexOnSuccess) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w;
+    w.id = "w1";
+    w.start = WireEnd("a", "v_out", PortSide::Output);
+    w.end = WireEnd("b", "v_in", PortSide::Input);
+
+    size_t idx = bp.add_wire(std::move(w));
+    EXPECT_EQ(idx, 0) << "First wire should be at index 0";
+    EXPECT_EQ(bp.wires.size(), 1);
+}
+
+TEST(BlueprintTest, AddWire_RejectsDuplicate) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w1; w1.id = "w1";
+    w1.start = WireEnd("a", "v_out", PortSide::Output);
+    w1.end = WireEnd("b", "v_in", PortSide::Input);
+
+    Wire w2; w2.id = "w2";
+    w2.start = WireEnd("a", "v_out", PortSide::Output);
+    w2.end = WireEnd("b", "v_in", PortSide::Input);
+
+    size_t idx1 = bp.add_wire(std::move(w1));
+    size_t idx2 = bp.add_wire(std::move(w2));
+
+    EXPECT_EQ(idx1, 0);
+    EXPECT_EQ(idx2, SIZE_MAX) << "Duplicate wire must be rejected with SIZE_MAX";
+    EXPECT_EQ(bp.wires.size(), 1) << "Only one wire should exist after dedup";
+}
+
+TEST(BlueprintTest, AddWire_AllowsDifferentConnections) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.output("i_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.input("i_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w1; w1.id = "w1";
+    w1.start = WireEnd("a", "v_out", PortSide::Output);
+    w1.end = WireEnd("b", "v_in", PortSide::Input);
+
+    Wire w2; w2.id = "w2";
+    w2.start = WireEnd("a", "i_out", PortSide::Output);
+    w2.end = WireEnd("b", "i_in", PortSide::Input);
+
+    size_t idx1 = bp.add_wire(std::move(w1));
+    size_t idx2 = bp.add_wire(std::move(w2));
+
+    EXPECT_EQ(idx1, 0);
+    EXPECT_EQ(idx2, 1) << "Different connections must be accepted";
+    EXPECT_EQ(bp.wires.size(), 2);
+}
+
+TEST(BlueprintTest, AddWire_RejectsTripleDuplicate) {
+    Blueprint bp;
+    Node a; a.id = "x"; a.type_name = "Battery"; a.output("out"); a.at(0, 0);
+    Node b; b.id = "y"; b.type_name = "Resistor"; b.input("in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    for (int i = 0; i < 3; i++) {
+        Wire w; w.id = "w" + std::to_string(i);
+        w.start = WireEnd("x", "out", PortSide::Output);
+        w.end = WireEnd("y", "in", PortSide::Input);
+        bp.add_wire(std::move(w));
+    }
+    EXPECT_EQ(bp.wires.size(), 1) << "3 identical add_wire calls must produce exactly 1 wire";
+}
+
+// =============================================================================
+// Unit tests for Blueprint::add_node() dedup
+// =============================================================================
+
+TEST(BlueprintTest, AddNode_ReturnsExistingIndexOnDuplicate) {
+    Blueprint bp;
+    Node a; a.id = "bat1"; a.type_name = "Battery"; a.at(0, 0);
+    Node a2; a2.id = "bat1"; a2.type_name = "Battery"; a2.at(500, 500);
+
+    size_t idx1 = bp.add_node(std::move(a));
+    size_t idx2 = bp.add_node(std::move(a2));
+
+    EXPECT_EQ(idx1, 0);
+    EXPECT_EQ(idx2, 0) << "Duplicate node ID must return existing index";
+    EXPECT_EQ(bp.nodes.size(), 1) << "Only one node should exist";
+    EXPECT_EQ(bp.nodes[0].pos.x, 0.0f) << "Original node should be preserved";
+}
+
+// =============================================================================
+// sim-format blueprint_to_json() dedup tests [e4a1b7]
+// =============================================================================
+
+TEST(PersistTest, SimFormat_DedupsConnections) {
+    Blueprint bp;
+
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    // Force duplicate wires by directly pushing (bypass add_wire dedup)
+    Wire w1; w1.id = "w1";
+    w1.start = WireEnd("a", "v_out", PortSide::Output);
+    w1.end = WireEnd("b", "v_in", PortSide::Input);
+    bp.wires.push_back(w1);
+    bp.wires.push_back(w1); // exact duplicate
+    bp.wires.push_back(w1); // triple
+
+    std::string json_str = blueprint_to_json(bp);
+    auto j = nlohmann::json::parse(json_str);
+
+    ASSERT_TRUE(j.contains("connections"));
+    EXPECT_EQ(j["connections"].size(), 1)
+        << "blueprint_to_json must dedup connections (had 3 identical wires)";
+}
+
+TEST(PersistTest, SimFormat_DedupsNodes) {
+    Blueprint bp;
+
+    Node a; a.id = "dup"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node a2; a2.id = "dup"; a2.type_name = "Battery"; a2.output("v_out"); a2.at(100, 0);
+    // Force duplicate by pushing directly
+    bp.nodes.push_back(std::move(a));
+    bp.nodes.push_back(std::move(a2));
+
+    std::string json_str = blueprint_to_json(bp);
+    auto j = nlohmann::json::parse(json_str);
+
+    ASSERT_TRUE(j.contains("devices"));
+    EXPECT_EQ(j["devices"].size(), 1)
+        << "blueprint_to_json must dedup devices with same ID";
+}
+
+// =============================================================================
+// Editor save dedup: blueprint_to_editor_json() preserves first wire's routing
+// =============================================================================
+
+TEST(PersistTest, EditorSave_PreservesFirstWireRoutingOnDedup) {
+    Blueprint bp;
+
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    // First wire has routing points
+    Wire w1; w1.id = "w1";
+    w1.start = WireEnd("a", "v_out", PortSide::Output);
+    w1.end = WireEnd("b", "v_in", PortSide::Input);
+    w1.routing_points.push_back(Pt(100, 50));
+    w1.routing_points.push_back(Pt(150, 50));
+
+    // Duplicate without routing points
+    Wire w2; w2.id = "w2";
+    w2.start = WireEnd("a", "v_out", PortSide::Output);
+    w2.end = WireEnd("b", "v_in", PortSide::Input);
+
+    bp.wires.push_back(std::move(w1));
+    bp.wires.push_back(std::move(w2));
+
+    std::string json_str = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json_str);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->wires.size(), 1);
+    EXPECT_EQ(bp2->wires[0].routing_points.size(), 2)
+        << "Dedup on save must keep first wire (which has routing points)";
+}
+
+// =============================================================================
+// Editor save dedup: collapsed_groups dedup
+// =============================================================================
+
+TEST(PersistTest, EditorSave_DedupsCollapsedGroups) {
+    Blueprint bp;
+
+    CollapsedGroup g1("lamp1", "blueprints/lamp.json", "LampCircuit");
+    CollapsedGroup g2("lamp1", "blueprints/lamp.json", "LampCircuit"); // exact dup
+
+    bp.collapsed_groups.push_back(g1);
+    bp.collapsed_groups.push_back(g2);
+
+    std::string json_str = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json_str);
+
+    ASSERT_TRUE(j.contains("collapsed_groups"));
+    EXPECT_EQ(j["collapsed_groups"].size(), 1)
+        << "Duplicate collapsed_groups must be deduped on save";
+}
+
+// =============================================================================
+// Roundtrip stability: save→load→save produces same output
+// =============================================================================
+
+TEST(PersistTest, Roundtrip_SaveLoadSave_Stable) {
+    Blueprint bp;
+
+    Node a; a.id = "bat1"; a.type_name = "Battery"; a.output("v_out"); a.at(80, 80);
+    Node b; b.id = "r1"; b.type_name = "Resistor"; b.input("v_in"); b.at(280, 80);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w; w.id = "w1";
+    w.start = WireEnd("bat1", "v_out", PortSide::Output);
+    w.end = WireEnd("r1", "v_in", PortSide::Input);
+    w.routing_points.push_back(Pt(180, 40));
+    bp.add_wire(std::move(w));
+
+    // Save → load → save → load
+    std::string json1 = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json1);
+    ASSERT_TRUE(bp2.has_value());
+
+    std::string json2 = blueprint_to_editor_json(*bp2);
+    auto bp3 = blueprint_from_json(json2);
+    ASSERT_TRUE(bp3.has_value());
+
+    // After two roundtrips, counts must remain stable
+    EXPECT_EQ(bp2->nodes.size(), bp3->nodes.size())
+        << "Node count must not change across roundtrips";
+    EXPECT_EQ(bp2->wires.size(), bp3->wires.size())
+        << "Wire count must not change across roundtrips";
+    EXPECT_EQ(bp2->wires.size(), 1) << "Must have exactly 1 wire";
+    EXPECT_EQ(bp3->wires[0].routing_points.size(), 1) << "Routing points preserved";
+}
+
+TEST(PersistTest, Roundtrip_DuplicatesDoNotAccumulate) {
+    // Start with duplicates forced in — after roundtrip they should collapse to 1
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    // Force 5 duplicate wires
+    for (int i = 0; i < 5; i++) {
+        Wire w; w.id = "w" + std::to_string(i);
+        w.start = WireEnd("a", "v_out", PortSide::Output);
+        w.end = WireEnd("b", "v_in", PortSide::Input);
+        bp.wires.push_back(std::move(w)); // bypass dedup
+    }
+
+    // Roundtrip 3 times
+    for (int round = 0; round < 3; round++) {
+        std::string json = blueprint_to_editor_json(bp);
+        auto loaded = blueprint_from_json(json);
+        ASSERT_TRUE(loaded.has_value()) << "Roundtrip " << round << " failed to parse";
+        bp = std::move(*loaded);
+    }
+
+    EXPECT_EQ(bp.wires.size(), 1)
+        << "After 3 roundtrips, 5 duplicate wires must collapse to exactly 1";
+}
+
+// =============================================================================
+// Auto-layout edge cases [a2d7c5]
+// =============================================================================
+
+TEST(BlueprintTest, AutoLayout_OnlyBlueprintInputOutput) {
+    Blueprint bp;
+
+    Node vin;  vin.id = "g1:in";  vin.type_name = "BlueprintInput";  vin.group_id = "g1";
+    Node vout; vout.id = "g1:out"; vout.type_name = "BlueprintOutput"; vout.group_id = "g1";
+    bp.add_node(std::move(vin));
+    bp.add_node(std::move(vout));
+
+    bp.auto_layout_group("g1");
+
+    float in_x  = bp.find_node("g1:in")->pos.x;
+    float out_x = bp.find_node("g1:out")->pos.x;
+
+    EXPECT_LT(in_x, out_x) << "BlueprintInput must be left of BlueprintOutput even with no other nodes";
+}
+
+TEST(BlueprintTest, AutoLayout_GroundsPlacedBelowAllColumns) {
+    Blueprint bp;
+
+    Node bat; bat.id = "g1:bat"; bat.type_name = "Battery"; bat.group_id = "g1";
+    Node r1;  r1.id = "g1:r1";  r1.type_name = "Resistor"; r1.group_id = "g1";
+    Node r2;  r2.id = "g1:r2";  r2.type_name = "Resistor"; r2.group_id = "g1";
+    Node gnd; gnd.id = "g1:gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref; gnd.group_id = "g1";
+
+    bp.add_node(std::move(bat));
+    bp.add_node(std::move(r1));
+    bp.add_node(std::move(r2));
+    bp.add_node(std::move(gnd));
+
+    bp.auto_layout_group("g1");
+
+    float gnd_y = bp.find_node("g1:gnd")->pos.y;
+    float bat_y = bp.find_node("g1:bat")->pos.y;
+    float r1_y  = bp.find_node("g1:r1")->pos.y;
+    float r2_y  = bp.find_node("g1:r2")->pos.y;
+
+    EXPECT_GT(gnd_y, bat_y)  << "Ground must be below sources";
+    EXPECT_GT(gnd_y, r1_y)   << "Ground must be below loads";
+    EXPECT_GT(gnd_y, r2_y)   << "Ground must be below all loads";
+}
+
+TEST(BlueprintTest, AutoLayout_EmptyGroupIsNoop) {
+    Blueprint bp;
+    Node bat; bat.id = "bat1"; bat.type_name = "Battery"; bat.group_id = "other";
+    bat.at(42, 42);
+    bp.add_node(std::move(bat));
+
+    bp.auto_layout_group("nonexistent");
+
+    // Node in different group should be untouched
+    EXPECT_EQ(bp.find_node("bat1")->pos.x, 42.0f);
+    EXPECT_EQ(bp.find_node("bat1")->pos.y, 42.0f);
+}
+
+TEST(BlueprintTest, AutoLayout_BusColumnBetweenSourcesAndLoads) {
+    Blueprint bp;
+
+    Node bat;  bat.id = "g:bat";  bat.type_name = "Battery";  bat.group_id = "g";
+    Node bus;  bus.id = "g:bus";  bus.type_name = "Bus"; bus.kind = NodeKind::Bus; bus.group_id = "g";
+    Node load; load.id = "g:load"; load.type_name = "Resistor"; load.group_id = "g";
+
+    bp.add_node(std::move(bat));
+    bp.add_node(std::move(bus));
+    bp.add_node(std::move(load));
+
+    bp.auto_layout_group("g");
+
+    float bat_x  = bp.find_node("g:bat")->pos.x;
+    float bus_x  = bp.find_node("g:bus")->pos.x;
+    float load_x = bp.find_node("g:load")->pos.x;
+
+    EXPECT_LT(bat_x, bus_x)   << "Sources must be left of buses";
+    EXPECT_LT(bus_x, load_x)  << "Buses must be left of loads";
+}
+
+TEST(BlueprintTest, AutoLayout_MultipleRowsPerColumn) {
+    Blueprint bp;
+
+    // 3 loads in same group should be stacked vertically
+    Node r1; r1.id = "g:r1"; r1.type_name = "Resistor"; r1.group_id = "g";
+    Node r2; r2.id = "g:r2"; r2.type_name = "Resistor"; r2.group_id = "g";
+    Node r3; r3.id = "g:r3"; r3.type_name = "Resistor"; r3.group_id = "g";
+
+    bp.add_node(std::move(r1));
+    bp.add_node(std::move(r2));
+    bp.add_node(std::move(r3));
+
+    bp.auto_layout_group("g");
+
+    float y1 = bp.find_node("g:r1")->pos.y;
+    float y2 = bp.find_node("g:r2")->pos.y;
+    float y3 = bp.find_node("g:r3")->pos.y;
+
+    // Same column (x), different rows (y)
+    EXPECT_EQ(bp.find_node("g:r1")->pos.x, bp.find_node("g:r2")->pos.x);
+    EXPECT_LT(y1, y2) << "Second load must be below first";
+    EXPECT_LT(y2, y3) << "Third load must be below second";
+}
+
+// =============================================================================
+// BUGFIX [d9c3f2] save_blueprint_to_file edge cases
+// =============================================================================
+
+TEST(PersistTest, SaveRejectsNestedBlueprintDirectory) {
+    Blueprint bp;
+    // Nested path should also be rejected
+    bool ok = save_blueprint_to_file(bp, "/some/path/blueprints/nested/test.json");
+    EXPECT_FALSE(ok) << "Must reject any path with 'blueprints' segment";
+}
+
+TEST(PersistTest, SaveAllowsNonBlueprintDirectory) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    bp.add_node(std::move(a));
+
+    // Save to /tmp — should succeed (path doesn't contain "blueprints")
+    bool ok = save_blueprint_to_file(bp, "/tmp/an24_test_persist_output.json");
+    EXPECT_TRUE(ok) << "Saving to non-blueprints path must succeed";
+
+    // Clean up
+    std::remove("/tmp/an24_test_persist_output.json");
+}
+
+// =============================================================================
+// Wire dedup: reversed direction is NOT a duplicate
+// =============================================================================
+
+TEST(BlueprintTest, AddWire_ReversedDirectionIsUnique) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("p"); a.input("p"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.output("p"); b.input("p"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w1; w1.id = "w1";
+    w1.start = WireEnd("a", "p", PortSide::Output);
+    w1.end = WireEnd("b", "p", PortSide::Input);
+
+    Wire w2; w2.id = "w2";
+    w2.start = WireEnd("b", "p", PortSide::Output);
+    w2.end = WireEnd("a", "p", PortSide::Input);
+
+    size_t idx1 = bp.add_wire(std::move(w1));
+    size_t idx2 = bp.add_wire(std::move(w2));
+
+    EXPECT_NE(idx2, SIZE_MAX) << "Reversed wire (b→a) is not a duplicate of (a→b)";
+    EXPECT_EQ(bp.wires.size(), 2);
+}
+
 
