@@ -88,12 +88,17 @@ static Pt layout_snap(Pt p) {
 }
 
 void Blueprint::auto_layout_group(const std::string& group_id) {
-    // Collect indices of nodes in this group
-    std::vector<size_t> sources, buses, loads, grounds;
+    // BUGFIX [a2d7c5] BlueprintInput → leftmost column, BlueprintOutput → rightmost
+    // Collect indices of nodes in this group by role
+    std::vector<size_t> bp_inputs, sources, buses, loads, grounds, bp_outputs;
     for (size_t i = 0; i < nodes.size(); i++) {
         if (nodes[i].group_id != group_id) continue;
         const auto& tn = nodes[i].type_name;
-        if (nodes[i].kind == NodeKind::Ref)
+        if (tn == "BlueprintInput")
+            bp_inputs.push_back(i);
+        else if (tn == "BlueprintOutput")
+            bp_outputs.push_back(i);
+        else if (nodes[i].kind == NodeKind::Ref)
             grounds.push_back(i);
         else if (nodes[i].kind == NodeKind::Bus || tn == "Bus")
             buses.push_back(i);
@@ -103,7 +108,8 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
             loads.push_back(i);
     }
 
-    if (sources.empty() && buses.empty() && loads.empty() && grounds.empty())
+    if (bp_inputs.empty() && sources.empty() && buses.empty() &&
+        loads.empty() && grounds.empty() && bp_outputs.empty())
         return;
 
     constexpr float col_spacing = 200.0f;
@@ -111,18 +117,28 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
     constexpr float origin_x = 80.0f;
     constexpr float origin_y = 80.0f;
 
-    float src_x = origin_x;
-    float bus_x = origin_x + col_spacing;
-    float load_x = origin_x + col_spacing * 2;
+    // Columns left→right: BlueprintInput | Sources | Buses | Loads | BlueprintOutput
+    float col = origin_x;
+    float bpi_x = col;   if (!bp_inputs.empty())  col += col_spacing;
+    float src_x = col;   if (!sources.empty())    col += col_spacing;
+    float bus_x = col;   if (!buses.empty())      col += col_spacing;
+    float load_x = col;  if (!loads.empty())      col += col_spacing;
+    float bpo_x = col;
 
+    for (size_t i = 0; i < bp_inputs.size(); i++)
+        nodes[bp_inputs[i]].pos = layout_snap(Pt(bpi_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < sources.size(); i++)
         nodes[sources[i]].pos = layout_snap(Pt(src_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < buses.size(); i++)
         nodes[buses[i]].pos = layout_snap(Pt(bus_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < loads.size(); i++)
         nodes[loads[i]].pos = layout_snap(Pt(load_x, origin_y + i * row_spacing));
+    for (size_t i = 0; i < bp_outputs.size(); i++)
+        nodes[bp_outputs[i]].pos = layout_snap(Pt(bpo_x, origin_y + i * row_spacing));
 
-    float ground_y = origin_y + std::max({sources.size(), buses.size(), loads.size(), size_t(1)}) * row_spacing;
+    size_t max_rows = std::max({bp_inputs.size(), sources.size(), buses.size(),
+                                loads.size(), bp_outputs.size(), size_t(1)});
+    float ground_y = origin_y + max_rows * row_spacing;
     for (size_t i = 0; i < grounds.size(); i++)
         nodes[grounds[i]].pos = layout_snap(Pt(bus_x, ground_y + i * row_spacing));
 }

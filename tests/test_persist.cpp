@@ -753,4 +753,140 @@ TEST(PersistTest, VisualCache_PositionSync) {
     EXPECT_GT(port_pos.x, 300.0f) << "Port position should reflect updated node position";
 }
 
+// =============================================================================
+// BUGFIX [e4a1b7] Dedup guard regression tests
+// =============================================================================
+
+TEST(PersistTest, DedupGuard_DuplicateWiresDroppedOnLoad) {
+    const char* json = R"({
+        "devices": [
+            {"name": "a", "classname": "Battery", "kind": "Node",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 120, "y": 80}},
+            {"name": "b", "classname": "Resistor", "kind": "Node",
+             "ports": {"v_in": {"direction": "In", "type": "V"}},
+             "pos": {"x": 200, "y": 0}, "size": {"x": 120, "y": 80}}
+        ],
+        "wires": [
+            {"from": "a.v_out", "to": "b.v_in", "routing_points": []},
+            {"from": "a.v_out", "to": "b.v_in", "routing_points": []},
+            {"from": "a.v_out", "to": "b.v_in", "routing_points": []},
+            {"from": "a.v_out", "to": "b.v_in", "routing_points": []}
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    EXPECT_EQ(bp->wires.size(), 1)
+        << "Duplicate wires must be deduped on load (had 4 identical wires)";
+}
+
+TEST(PersistTest, DedupGuard_DuplicateNodesDroppedOnLoad) {
+    const char* json = R"({
+        "devices": [
+            {"name": "x", "classname": "Battery", "kind": "Node",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 120, "y": 80}},
+            {"name": "x", "classname": "Battery", "kind": "Node",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 100, "y": 0}, "size": {"x": 120, "y": 80}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    EXPECT_EQ(bp->nodes.size(), 1)
+        << "Duplicate node IDs must be deduped on load";
+}
+
+TEST(PersistTest, DedupGuard_DuplicateRoutingPointsDroppedOnLoad) {
+    const char* json = R"({
+        "devices": [
+            {"name": "a", "classname": "Battery", "kind": "Node",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 120, "y": 80}},
+            {"name": "b", "classname": "Resistor", "kind": "Node",
+             "ports": {"v_in": {"direction": "In", "type": "V"}},
+             "pos": {"x": 200, "y": 0}, "size": {"x": 120, "y": 80}}
+        ],
+        "wires": [
+            {"from": "a.v_out", "to": "b.v_in",
+             "routing_points": [{"x": 100, "y": 50}, {"x": 100, "y": 50}, {"x": 150, "y": 50}]}
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_EQ(bp->wires.size(), 1);
+    EXPECT_EQ(bp->wires[0].routing_points.size(), 2)
+        << "Duplicate routing points must be deduped on load";
+}
+
+TEST(PersistTest, DedupGuard_SaveDedupsWires) {
+    Blueprint bp;
+
+    Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
+    Node b; b.id = "b"; b.type_name = "Resistor"; b.input("v_in"); b.at(200, 0);
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    Wire w1; w1.id = "w1"; w1.start = WireEnd("a", "v_out", PortSide::Output); w1.end = WireEnd("b", "v_in", PortSide::Input);
+    Wire w2; w2.id = "w2"; w2.start = WireEnd("a", "v_out", PortSide::Output); w2.end = WireEnd("b", "v_in", PortSide::Input);
+    Wire w3; w3.id = "w3"; w3.start = WireEnd("a", "v_out", PortSide::Output); w3.end = WireEnd("b", "v_in", PortSide::Input);
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+    bp.add_wire(std::move(w3));
+
+    // Save and reload — duplicates must be gone
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    EXPECT_EQ(bp2->wires.size(), 1)
+        << "Roundtrip must produce exactly 1 wire (dedup on save + load)";
+}
+
+// =============================================================================
+// BUGFIX [d9c3f2] save_blueprint_to_file rejects blueprints/ directory
+// =============================================================================
+
+TEST(PersistTest, SaveRejectsBluprintDirectory) {
+    Blueprint bp;
+    // Should refuse to write to blueprints/ directory
+    bool ok = save_blueprint_to_file(bp, "blueprints/test_output.json");
+    EXPECT_FALSE(ok) << "save_blueprint_to_file must refuse to write into blueprints/ dir";
+}
+
+// =============================================================================
+// BUGFIX [a2d7c5] Auto-layout: BlueprintInput left, BlueprintOutput right
+// =============================================================================
+
+TEST(PersistTest, AutoLayout_BlueprintInputLeftOutputRight) {
+    Blueprint bp;
+
+    Node vin;  vin.id = "g1:vin";  vin.type_name = "BlueprintInput";  vin.group_id = "g1";
+    Node vout; vout.id = "g1:vout"; vout.type_name = "BlueprintOutput"; vout.group_id = "g1";
+    Node bat;  bat.id = "g1:bat";  bat.type_name = "Battery";          bat.group_id = "g1";
+    Node load; load.id = "g1:r1";  load.type_name = "Resistor";        load.group_id = "g1";
+
+    bp.add_node(std::move(vin));
+    bp.add_node(std::move(vout));
+    bp.add_node(std::move(bat));
+    bp.add_node(std::move(load));
+
+    bp.auto_layout_group("g1");
+
+    float vin_x  = bp.find_node("g1:vin")->pos.x;
+    float vout_x = bp.find_node("g1:vout")->pos.x;
+    float bat_x  = bp.find_node("g1:bat")->pos.x;
+    float load_x = bp.find_node("g1:r1")->pos.x;
+
+    EXPECT_LT(vin_x, bat_x)   << "BlueprintInput must be to the left of sources";
+    EXPECT_LT(bat_x, load_x)  << "Sources must be to the left of loads";
+    EXPECT_LT(load_x, vout_x) << "BlueprintOutput must be to the right of loads";
+}
+
 

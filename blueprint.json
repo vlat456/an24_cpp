@@ -67,7 +67,7 @@
         }
       },
       "pos": {
-        "x": 80.0,
+        "x": 96.0,
         "y": 80.0
       },
       "size": {
@@ -182,7 +182,7 @@
       },
       "pos": {
         "x": 672.0,
-        "y": 448.0
+        "y": 384.0
       },
       "size": {
         "x": 128.0,
@@ -221,7 +221,7 @@
       },
       "pos": {
         "x": 560.0,
-        "y": 560.0
+        "y": 512.0
       },
       "size": {
         "x": 128.0,
@@ -405,33 +405,6 @@
       }
     },
     {
-      "classname": "Splitter",
-      "kind": "Node",
-      "name": "splitter_1",
-      "ports": {
-        "i": {
-          "direction": "In",
-          "type": "Any"
-        },
-        "o1": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "o2": {
-          "direction": "Out",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 208.0,
-        "y": 224.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
       "classname": "BlueprintInput",
       "group_id": "lamp_pass_through_1",
       "kind": "Node",
@@ -451,8 +424,8 @@
         }
       },
       "pos": {
-        "x": 320.0,
-        "y": 160.0
+        "x": 208.0,
+        "y": 224.0
       },
       "size": {
         "x": 32.0,
@@ -491,8 +464,8 @@
         }
       },
       "pos": {
-        "x": 480.0,
-        "y": 208.0
+        "x": 592.0,
+        "y": 192.0
       },
       "size": {
         "x": 128.0,
@@ -519,8 +492,8 @@
         }
       },
       "pos": {
-        "x": 688.0,
-        "y": 288.0
+        "x": 784.0,
+        "y": 272.0
       },
       "size": {
         "x": 32.0,
@@ -831,54 +804,6 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
-      "classname": "lamp_pass_through",
-      "kind": "Blueprint",
-      "name": "lamp_pass_through_1",
-      "ports": {
-        "vin": {
-          "direction": "In",
-          "type": "V"
-        },
-        "vout": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 352.0,
-        "y": 432.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 96.0
-      }
-    },
-    {
-      "classname": "ElectricHeater",
-      "group_id": "lamp_pass_through_1",
-      "kind": "Node",
-      "name": "electricheater_1",
-      "ports": {
-        "heat_out": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "power": {
-          "direction": "In",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 480.0,
-        "y": 80.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
       "classname": "Splitter",
       "group_id": "lamp_pass_through_1",
       "kind": "Node",
@@ -898,22 +823,73 @@
         }
       },
       "pos": {
-        "x": 400.0,
-        "y": 112.0
+        "x": 464.0,
+        "y": 192.0
       },
       "size": {
         "x": 64.0,
         "y": 64.0
+      }
+    },
+    {
+      "classname": "Splitter",
+      "kind": "Node",
+      "name": "splitter_1",
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o1": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "o2": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      },
+      "pos": {
+        "x": 208.0,
+        "y": 304.0
+      },
+      "size": {
+        "x": 64.0,
+        "y": 64.0
+      }
+    },
+    {
+      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "classname": "lamp_pass_through",
+      "kind": "Blueprint",
+      "name": "lamp_pass_through_1",
+      "ports": {
+        "vin": {
+          "direction": "In",
+          "type": "V"
+        },
+        "vout": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 400.0,
+        "y": 480.0
+      },
+      "size": {
+        "x": 128.0,
+        "y": 96.0
       }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": 14.0,
-      "y": 42.0
+      "x": -90.763427734375,
+      "y": -78.92074584960938
     },
-    "zoom": 1.0
+    "zoom": 0.8529712557792664
   },
   "wires": [
     {
@@ -967,11 +943,6 @@
         }
       ],
       "to": "light_1.v_out"
-    },
-    {
-      "from": "splitter_1.o2",
-      "routing_points": [],
-      "to": "main_bus.v"
     },
     {
       "from": "main_bus.v",
@@ -1069,29 +1040,9 @@
       "to": "holdbutton_1.v_out"
     },
     {
-      "from": "holdbutton_1.v_in",
-      "routing_points": [],
-      "to": "splitter_1.o1"
-    },
-    {
-      "from": "lamp_pass_through_1:lamp.v_out",
-      "routing_points": [],
-      "to": "lamp_pass_through_1:vout.port"
-    },
-    {
       "from": "simple_battery_1:bat.v_out",
       "routing_points": [],
       "to": "simple_battery_1:vout.port"
-    },
-    {
-      "from": "lamp_pass_through_1:lamp.v_out",
-      "routing_points": [],
-      "to": "lamp_pass_through_1:vout.port"
-    },
-    {
-      "from": "lamp_pass_through_1:vout.ext",
-      "routing_points": [],
-      "to": "light_1.v_in"
     },
     {
       "from": "lamp_pass_through_2:vin.port",
@@ -1119,11 +1070,6 @@
       "to": "simple_battery_1:vin.port"
     },
     {
-      "from": "bat_main_1.v_out",
-      "routing_points": [],
-      "to": "splitter_1.i"
-    },
-    {
       "from": "lamp_pass_through_3:vin.port",
       "routing_points": [],
       "to": "lamp_pass_through_3:lamp.v_in"
@@ -1134,9 +1080,19 @@
       "to": "lamp_pass_through_3:vout.port"
     },
     {
-      "from": "splitter_2.o1",
+      "from": "lamp_pass_through_1:vin.port",
       "routing_points": [],
-      "to": "lamp_pass_through_1:lamp.v_in"
+      "to": "splitter_2.i"
+    },
+    {
+      "from": "splitter_1.o2",
+      "routing_points": [
+        {
+          "x": 320.0,
+          "y": 352.0
+        }
+      ],
+      "to": "holdbutton_1.v_in"
     },
     {
       "from": "lamp_pass_through_1:lamp.v_out",
@@ -1144,14 +1100,53 @@
       "to": "lamp_pass_through_1:vout.port"
     },
     {
-      "from": "splitter_2.o2",
-      "routing_points": [],
-      "to": "electricheater_1.power"
+      "from": "splitter_1.o1",
+      "routing_points": [
+        {
+          "x": 304.0,
+          "y": 336.0
+        },
+        {
+          "x": 304.0,
+          "y": 512.0
+        }
+      ],
+      "to": "lamp_pass_through_1.vin"
     },
     {
-      "from": "lamp_pass_through_1:vin.port",
+      "from": "splitter_1.i",
+      "routing_points": [
+        {
+          "x": 192.0,
+          "y": 336.0
+        },
+        {
+          "x": 16.0,
+          "y": 336.0
+        },
+        {
+          "x": 16.0,
+          "y": 48.0
+        },
+        {
+          "x": 256.0,
+          "y": 48.0
+        },
+        {
+          "x": 256.0,
+          "y": 112.0
+        },
+        {
+          "x": 240.0,
+          "y": 112.0
+        }
+      ],
+      "to": "bat_main_1.v_out"
+    },
+    {
+      "from": "lamp_pass_through_1.vout",
       "routing_points": [],
-      "to": "splitter_2.i"
+      "to": "light_1.v_in"
     }
   ]
 }

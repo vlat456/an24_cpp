@@ -62,8 +62,11 @@ std::string blueprint_to_json(const Blueprint& bp) {
         // The actual internal devices already exist in the flat blueprint.
         if (n.kind == NodeKind::Blueprint) continue;
 
-        // Skip duplicate node IDs (malformed saves may contain duplicates)
-        if (!emitted_ids.insert(n.id).second) continue;
+        // BUGFIX [e4a1b7] Skip duplicate node IDs
+        if (!emitted_ids.insert(n.id).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on sim export", n.id);
+            continue;
+        }
 
         json device = json::object();
         device["name"] = n.id;
@@ -131,7 +134,9 @@ std::string blueprint_to_json(const Blueprint& bp) {
     }
 
     // connections (simulator format)
+    // BUGFIX [e4a1b7] Dedup connections in simulator format too
     json connections = json::array();
+    std::set<std::string> emitted_conn_keys;
     for (const auto& w : bp.wires) {
         std::string from_node = w.start.node_id;
         std::string from_port = w.start.port_name;
@@ -146,14 +151,18 @@ std::string blueprint_to_json(const Blueprint& bp) {
         bool end_is_bp = blueprint_node_ids.count(to_node) > 0;
 
         if (start_is_bp) {
-            // "lamp1.vout" → "lamp1:vout.ext"
             from_node = from_node + ":" + from_port;
             from_port = "ext";
         }
         if (end_is_bp) {
-            // "lamp1.vin" → "lamp1:vin.ext"
             to_node = to_node + ":" + to_port;
             to_port = "ext";
+        }
+
+        std::string key = from_node + "." + from_port + "→" + to_node + "." + to_port;
+        if (!emitted_conn_keys.insert(key).second) {
+            spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
+            continue;
         }
 
         json conn = json::object();
@@ -268,7 +277,10 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
     json devices = json::array();
     std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs on save
     for (const auto& n : bp.nodes) {
-        if (!emitted_ids.insert(n.id).second) continue;
+        if (!emitted_ids.insert(n.id).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on editor save", n.id);
+            continue;
+        }
         json device = json::object();
         device["name"] = n.id;
         device["classname"] = n.type_name;
@@ -337,11 +349,18 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
     j["devices"] = devices;
 
     // wires: flat list, original form, no rewriting
-    // Skip stale wires referencing nodes that don't exist
+    // BUGFIX [e4a1b7] Dedup wires on save — prevents accumulation of duplicate connections
     json wires = json::array();
+    std::set<std::string> emitted_wire_keys;
     for (const auto& w : bp.wires) {
         if (!emitted_ids.count(w.start.node_id) || !emitted_ids.count(w.end.node_id))
             continue;
+        std::string key = w.start.node_id + "." + w.start.port_name + "→" +
+                          w.end.node_id + "." + w.end.port_name;
+        if (!emitted_wire_keys.insert(key).second) {
+            spdlog::warn("[dedup] Duplicate wire on save: {}", key);
+            continue;
+        }
         json wire = json::object();
         wire["from"] = w.start.node_id + "." + w.start.port_name;
         wire["to"] = w.end.node_id + "." + w.end.port_name;
@@ -420,8 +439,11 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         n.name = n.id;
         n.type_name = d.value("classname", "");
 
-        // Skip duplicate node IDs (malformed saves may contain duplicates)
-        if (!loaded_ids.insert(n.id).second) continue;
+        // BUGFIX [e4a1b7] Skip duplicate node IDs (malformed saves may contain duplicates)
+        if (!loaded_ids.insert(n.id).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' found on load — skipping", n.id);
+            continue;
+        }
 
         // Kind
         std::string kind_str = d.value("kind", "Node");
@@ -504,7 +526,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     for (auto& n : bp.nodes)
         apply_port_types_from_registry(n, registry);
 
-    // Load wires (flat, original form)
+    // BUGFIX [e4a1b7] Load wires with dedup — reject duplicate connections on load
+    std::set<std::string> loaded_wire_keys;
     for (const auto& ws : j["wires"]) {
         std::string from = ws.value("from", "");
         std::string to = ws.value("to", "");
@@ -514,16 +537,28 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             !parse_port_ref(to, to_device, to_port))
             continue;
 
+        std::string key = from + "→" + to;
+        if (!loaded_wire_keys.insert(key).second) {
+            spdlog::warn("[dedup] Duplicate wire on load: {} → {}", from, to);
+            continue;
+        }
+
         Wire w;
-        w.id = from + "→" + to;
+        w.id = key;
         w.start.node_id = from_device;
         w.start.port_name = from_port;
         w.end.node_id = to_device;
         w.end.port_name = to_port;
 
         if (ws.contains("routing_points") && ws["routing_points"].is_array()) {
+            std::set<std::pair<float,float>> seen_rps;
             for (const auto& pj : ws["routing_points"]) {
-                w.routing_points.push_back(Pt(pj.value("x", 0.0f), pj.value("y", 0.0f)));
+                float rx = pj.value("x", 0.0f), ry = pj.value("y", 0.0f);
+                if (!seen_rps.insert({rx, ry}).second) {
+                    spdlog::warn("[dedup] Duplicate routing point ({},{}) in wire {}", rx, ry, key);
+                    continue;
+                }
+                w.routing_points.push_back(Pt(rx, ry));
             }
         }
 
@@ -622,6 +657,16 @@ std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
 }
 
 bool save_blueprint_to_file(const Blueprint& bp, const char* path) {
+    // BUGFIX [d9c3f2] Protect embedded blueprint originals from accidental overwrite
+    namespace fs = std::filesystem;
+    fs::path save_path = fs::weakly_canonical(fs::path(path));
+    // Reject saving into any directory named "blueprints" to protect originals
+    for (auto it = save_path.begin(); it != save_path.end(); ++it) {
+        if (*it == "blueprints") {
+            spdlog::error("Refusing to save into blueprints/ directory: {}", path);
+            return false;
+        }
+    }
     std::string json_str = blueprint_to_editor_json(bp);
     std::ofstream file(path);
     if (!file.is_open()) {
