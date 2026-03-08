@@ -30,7 +30,9 @@ static std::string port_type_str(an24::PortType t) {
     std::abort();
 }
 
-static an24::PortType parse_port_type_str(const std::string& s) {
+// BUGFIX [e2c8d4] Return optional instead of aborting on unknown port type.
+// A single malformed blueprint file should not crash the entire application.
+static std::optional<an24::PortType> parse_port_type_str(const std::string& s) {
     if (s == "V") return an24::PortType::V;
     if (s == "I") return an24::PortType::I;
     if (s == "Bool") return an24::PortType::Bool;
@@ -40,7 +42,7 @@ static an24::PortType parse_port_type_str(const std::string& s) {
     if (s == "Position") return an24::PortType::Position;
     if (s == "Any") return an24::PortType::Any;
     spdlog::error("Unknown port type string: '{}'", s);
-    std::abort();
+    return std::nullopt;
 }
 
 // Публичные функции
@@ -466,10 +468,18 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
                 Port p;
                 p.name = port_name;
                 if (port_info.contains("type")) {
-                    p.type = parse_port_type_str(port_info["type"].get<std::string>());
+                    auto pt = parse_port_type_str(port_info["type"].get<std::string>());
+                    if (!pt) {
+                        spdlog::warn("Port '{}' on device '{}': unknown type '{}', defaulting to Any",
+                                     port_name, n.id, port_info["type"].get<std::string>());
+                        p.type = an24::PortType::Any;
+                    } else {
+                        p.type = *pt;
+                    }
                 } else {
-                    spdlog::error("Port '{}' on device '{}' missing 'type' field in JSON", port_name, n.id);
-                    std::abort();
+                    spdlog::warn("Port '{}' on device '{}' missing 'type' field in JSON, defaulting to Any",
+                                 port_name, n.id);
+                    p.type = an24::PortType::Any;
                 }
                 std::string dir = port_info.value("direction", "In");
                 if (dir == "Out" || dir == "InOut") {

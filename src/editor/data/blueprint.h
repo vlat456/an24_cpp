@@ -71,7 +71,7 @@ struct Blueprint {
 
     /// Добавить провод с проверкой совместимости типов портов
     /// Возвращает true если провод добавлен, false если типы несовместимы
-    bool add_wire_validated(Wire wire);
+    [[nodiscard]] bool add_wire_validated(Wire wire);
 
     /// Найти узел по ID
     Node* find_node(const char* id) {

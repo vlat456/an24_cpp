@@ -50,39 +50,16 @@ void EditorApp::update_node_content_from_simulation() {
 }
 
 // Reset node_content to default values (used when simulation stops)
+// BUGFIX [f7a3b1] Generic reset: re-derive from ComponentDefinition defaults.
+// Old code had a hardcoded type list (Voltmeter, IndicatorLight, DMR400, Switch, HoldButton);
+// any new component type added to the simulation would NOT have its visual state reset.
 void EditorApp::reset_node_content() {
     using namespace an24;
 
     for (auto& node : scene.nodes()) {
         const auto* def = component_registry.get(node.type_name);
         if (!def) continue;
-
-        // Reset IndicatorLight to OFF
-        if (node.type_name == "IndicatorLight") {
-            node.node_content.label = "OFF";
-        }
-        // Reset Voltmeter gauge to 0
-        else if (node.type_name == "Voltmeter") {
-            node.node_content.value = 0.0f;
-        }
-        // Reset DMR400 to disconnected state
-        else if (node.type_name == "DMR400") {
-            node.node_content.state = false;
-        }
-        // Reset Switch to default closed state
-        else if (node.type_name == "Switch") {
-            auto it = def->default_params.find("closed");
-            if (it != def->default_params.end()) {
-                node.node_content.state = (it->second == "true");
-            } else {
-                node.node_content.state = false;
-            }
-        }
-        // Reset HoldButton to RELEASED
-        else if (node.type_name == "HoldButton") {
-            node.node_content.label = "RELEASED";
-            node.node_content.state = false;
-        }
+        node.node_content = create_node_content_from_def(def);
     }
 }
 

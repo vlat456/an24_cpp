@@ -1407,4 +1407,96 @@ TEST(PersistTest, KindInference_CorruptedRefNodeFixedOnRoundtrip) {
         << "Load must fix corrupted RefNode kind based on classname";
 }
 
+// =============================================================================
+// BUGFIX [e2c8d4] Unknown/missing port type should not crash
+// =============================================================================
+
+TEST(PersistTest, UnknownPortType_DoesNotCrash) {
+    // Port has an unrecognized type string — should default to Any, not abort
+    const char* json = R"({
+        "devices": [
+            {"name": "dev1", "classname": "Battery", "kind": "Node",
+             "ports": {"x": {"direction": "Out", "type": "FutureType"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value()) << "Unknown port type must not crash; should default to Any";
+    ASSERT_EQ(bp->nodes.size(), 1);
+    ASSERT_EQ(bp->nodes[0].outputs.size(), 1);
+    EXPECT_EQ(bp->nodes[0].outputs[0].type, an24::PortType::Any);
+}
+
+TEST(PersistTest, MissingPortType_DoesNotCrash) {
+    // Port has no "type" field at all — should default to Any, not abort
+    const char* json = R"({
+        "devices": [
+            {"name": "dev1", "classname": "Battery", "kind": "Node",
+             "ports": {"x": {"direction": "In"}},
+             "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
+        ],
+        "wires": [],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp = blueprint_from_json(json);
+    ASSERT_TRUE(bp.has_value()) << "Missing port type must not crash; should default to Any";
+    ASSERT_EQ(bp->nodes.size(), 1);
+    ASSERT_EQ(bp->nodes[0].inputs.size(), 1);
+    EXPECT_EQ(bp->nodes[0].inputs[0].type, an24::PortType::Any);
+}
+
+// =============================================================================
+// BUGFIX [f7a3b1] reset_node_content generic test via create_node_content_from_def
+// =============================================================================
+
+TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
+    // Verify that create_node_content_from_def produces correct defaults
+    // for all known content types (this is what reset_node_content now uses).
+
+    // Gauge type (e.g., Voltmeter)
+    an24::ComponentDefinition gauge_def;
+    gauge_def.default_content_type = "Gauge";
+    NodeContent gc = create_node_content_from_def(&gauge_def);
+    EXPECT_EQ(gc.type, NodeContentType::Gauge);
+    EXPECT_EQ(gc.value, 0.0f);
+
+    // Switch type
+    an24::ComponentDefinition switch_def;
+    switch_def.default_content_type = "Switch";
+    switch_def.default_params["closed"] = "true";
+    NodeContent sc = create_node_content_from_def(&switch_def);
+    EXPECT_EQ(sc.type, NodeContentType::Switch);
+    EXPECT_TRUE(sc.state) << "Switch with closed=true should default to state=true";
+
+    // HoldButton type
+    an24::ComponentDefinition hb_def;
+    hb_def.default_content_type = "HoldButton";
+    NodeContent hc = create_node_content_from_def(&hb_def);
+    EXPECT_EQ(hc.type, NodeContentType::Switch);
+    EXPECT_EQ(hc.label, "RELEASED");
+    EXPECT_FALSE(hc.state);
+
+    // Text type (e.g., IndicatorLight)
+    an24::ComponentDefinition text_def;
+    text_def.default_content_type = "Text";
+    NodeContent tc = create_node_content_from_def(&text_def);
+    EXPECT_EQ(tc.type, NodeContentType::Text);
+    EXPECT_EQ(tc.label, "OFF");
+
+    // Unknown type
+    an24::ComponentDefinition unk_def;
+    unk_def.default_content_type = "WeirdFutureType";
+    NodeContent uc = create_node_content_from_def(&unk_def);
+    EXPECT_EQ(uc.type, NodeContentType::None)
+        << "Unknown content type should produce None (safe default)";
+
+    // Null def
+    NodeContent nc = create_node_content_from_def(nullptr);
+    EXPECT_EQ(nc.type, NodeContentType::None);
+}
+
 

@@ -78,6 +78,7 @@ target_include_directories(editor_data_tests PRIVATE
 )
 target_link_libraries(editor_data_tests PRIVATE
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(editor_data_tests)

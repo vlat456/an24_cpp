@@ -104,7 +104,7 @@ public:
         cache_.clear();
     }
 
-    bool addWire(Wire wire) {
+    [[nodiscard]] bool addWire(Wire wire) {
         bool ok = bp_->add_wire_validated(std::move(wire));
         if (ok) cache_.onWireAdded(bp_->wires.back(), bp_->nodes);
         return ok;

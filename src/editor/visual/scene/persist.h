@@ -14,7 +14,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp);
 std::optional<Blueprint> blueprint_from_json(const std::string& json);
 
 /// Сохранение в файл (uses editor format)
-bool save_blueprint_to_file(const Blueprint& bp, const char* path);
+[[nodiscard]] bool save_blueprint_to_file(const Blueprint& bp, const char* path);
 
 /// Загрузка из файла
-std::optional<Blueprint> load_blueprint_from_file(const char* path);
+[[nodiscard]] std::optional<Blueprint> load_blueprint_from_file(const char* path);
