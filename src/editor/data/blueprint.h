@@ -66,12 +66,8 @@ struct Blueprint {
         return idx;
     }
 
-    /// Добавить провод
-    size_t add_wire(Wire wire) {
-        size_t idx = wires.size();
-        wires.push_back(std::move(wire));
-        return idx;
-    }
+    /// Добавить провод (with runtime dedup guard)
+    size_t add_wire(Wire wire);
 
     /// Добавить провод с проверкой совместимости типов портов
     /// Возвращает true если провод добавлен, false если типы несовместимы
