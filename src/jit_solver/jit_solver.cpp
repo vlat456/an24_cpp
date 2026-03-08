@@ -207,6 +207,7 @@ ComponentVariant create_component_variant(
         IndicatorLight<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.max_brightness = get_float(dev, "max_brightness", 100.0f);
+        comp.conductance = get_float(dev, "conductance", 1.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Voltmeter") {

@@ -163,7 +163,10 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         }
     } else if (btn == MouseButton::Right) {
         HitResult hit = scene_.hitTest(world);
-        if (hit.type == HitType::None) {
+        if (hit.type == HitType::Node) {
+            result.show_node_context_menu = true;
+            result.context_menu_node_index = hit.node_index;
+        } else if (hit.type == HitType::None) {
             result.show_context_menu = true;
             result.context_menu_pos = world;
         }

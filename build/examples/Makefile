@@ -855,6 +855,30 @@ __/src/editor/visual/scene/wire_manager.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/wire_manager.cpp.s
 .PHONY : __/src/editor/visual/scene/wire_manager.cpp.s
 
+__/src/editor/window/properties_window.o: __/src/editor/window/properties_window.cpp.o
+.PHONY : __/src/editor/window/properties_window.o
+
+# target to build an object file
+__/src/editor/window/properties_window.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window/properties_window.cpp.o
+.PHONY : __/src/editor/window/properties_window.cpp.o
+
+__/src/editor/window/properties_window.i: __/src/editor/window/properties_window.cpp.i
+.PHONY : __/src/editor/window/properties_window.i
+
+# target to preprocess a source file
+__/src/editor/window/properties_window.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window/properties_window.cpp.i
+.PHONY : __/src/editor/window/properties_window.cpp.i
+
+__/src/editor/window/properties_window.s: __/src/editor/window/properties_window.cpp.s
+.PHONY : __/src/editor/window/properties_window.s
+
+# target to generate assembly for a file
+__/src/editor/window/properties_window.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window/properties_window.cpp.s
+.PHONY : __/src/editor/window/properties_window.cpp.s
+
 __/src/editor/wires/hittest.o: __/src/editor/wires/hittest.cpp.o
 .PHONY : __/src/editor/wires/hittest.o
 
@@ -1069,6 +1093,9 @@ help:
 	@echo "... __/src/editor/visual/scene/wire_manager.o"
 	@echo "... __/src/editor/visual/scene/wire_manager.i"
 	@echo "... __/src/editor/visual/scene/wire_manager.s"
+	@echo "... __/src/editor/window/properties_window.o"
+	@echo "... __/src/editor/window/properties_window.i"
+	@echo "... __/src/editor/window/properties_window.s"
 	@echo "... __/src/editor/wires/hittest.o"
 	@echo "... __/src/editor/wires/hittest.i"
 	@echo "... __/src/editor/wires/hittest.s"

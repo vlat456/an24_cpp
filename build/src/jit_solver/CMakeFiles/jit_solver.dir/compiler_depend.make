@@ -1248,6 +1248,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: /Users/vladimir/an24_
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
@@ -1698,6 +1699,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Users/vladimir/an24_cpp/src/editor/data/wire.h \
   /Users/vladimir/an24_cpp/src/editor/visual/scene/persist.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
@@ -2546,6 +2548,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/systems.h
@@ -2564,6 +2567,8 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 /Users/vladimir/an24_cpp/src/editor/data/node.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp:
+
+/Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h:
 
 _deps/spdlog-src/include/spdlog/version.h:
 

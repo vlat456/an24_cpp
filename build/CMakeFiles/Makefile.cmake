@@ -170,4 +170,9 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/visual_scene_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/node_deletion_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/multi_window_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/params_integrity_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/context_menu_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/properties_window_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/dt_regression_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/codegen_accumulator_tests.dir/DependInfo.cmake"
   )

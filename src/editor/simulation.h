@@ -3,6 +3,7 @@
 #include "data/blueprint.h"
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include <optional>
 #include <string>
 
@@ -26,10 +27,7 @@ struct SimulationController {
     uint64_t step_count = 0;
 
     /// SOR over-relaxation factor
-    float omega = 1.8f;
-
-    /// Time step (60 Hz)
-    float dt = 0.016f;
+    float omega = SOR::OMEGA;
 
     /// Build simulation from blueprint
     void build(const Blueprint& bp);

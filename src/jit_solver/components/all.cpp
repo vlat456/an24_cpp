@@ -392,7 +392,7 @@ void IndicatorLight<Provider>::solve_electrical(an24::SimulationState& st, float
     float v_out = st.across[provider.get(PortNames::v_out)];
     float v_diff = v_in - v_out;
 
-    float g = 0.35f;
+    float g = conductance;
     float i = v_diff * g;
 
     st.through[provider.get(PortNames::v_out)] += i;

@@ -652,6 +652,71 @@ multi_window_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/build
 .PHONY : multi_window_tests/fast
 
+#=============================================================================
+# Target rules for targets named params_integrity_tests
+
+# Build rule for target.
+params_integrity_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 params_integrity_tests
+.PHONY : params_integrity_tests
+
+# fast build rule for target.
+params_integrity_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/build
+.PHONY : params_integrity_tests/fast
+
+#=============================================================================
+# Target rules for targets named context_menu_tests
+
+# Build rule for target.
+context_menu_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 context_menu_tests
+.PHONY : context_menu_tests
+
+# fast build rule for target.
+context_menu_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/build
+.PHONY : context_menu_tests/fast
+
+#=============================================================================
+# Target rules for targets named properties_window_tests
+
+# Build rule for target.
+properties_window_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 properties_window_tests
+.PHONY : properties_window_tests
+
+# fast build rule for target.
+properties_window_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/build
+.PHONY : properties_window_tests/fast
+
+#=============================================================================
+# Target rules for targets named dt_regression_tests
+
+# Build rule for target.
+dt_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 dt_regression_tests
+.PHONY : dt_regression_tests
+
+# fast build rule for target.
+dt_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/build
+.PHONY : dt_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named codegen_accumulator_tests
+
+# Build rule for target.
+codegen_accumulator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen_accumulator_tests
+.PHONY : codegen_accumulator_tests
+
+# fast build rule for target.
+codegen_accumulator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/build
+.PHONY : codegen_accumulator_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -672,7 +737,10 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_test"
+	@echo "... context_menu_tests"
+	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_hierarchical_tests"
@@ -696,8 +764,10 @@ help:
 	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... node_deletion_tests"
+	@echo "... params_integrity_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_registry_tests"
+	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... spdlog"
 	@echo "... visual_port_tests"

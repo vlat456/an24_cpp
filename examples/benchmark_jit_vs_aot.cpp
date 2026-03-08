@@ -51,33 +51,34 @@ BenchmarkResult benchmark_jit(const std::string& json_file, uint64_t iterations)
     // Run simulation
     auto sim_start = std::chrono::high_resolution_clock::now();
 
+    const float dt = 1.0f / 60.0f;
     for (uint64_t step = 0; step < iterations; ++step) {
-        // Electrical/Logical: every step (60 Hz)
+        // Electrical/Logical: every step
         for (auto* variant : build_result.domain_components.electrical) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_electrical(state, 0.0f); }) {
-                    comp.solve_electrical(state, 0.016f);
+                if constexpr (requires { comp.solve_electrical(state, dt); }) {
+                    comp.solve_electrical(state, dt);
                 }
             }, *variant);
         }
 
-        // Mechanical: every 3rd step (20 Hz)
+        // Mechanical: every 3rd step — accumulated dt = dt * 3
         if ((step % 3) == 0) {
             for (auto* variant : build_result.domain_components.mechanical) {
                 std::visit([&](auto& comp) {
-                    if constexpr (requires { comp.solve_mechanical(state, 0.016f); }) {
-                        comp.solve_mechanical(state, 0.016f * 3.0f);
+                    if constexpr (requires { comp.solve_mechanical(state, dt); }) {
+                        comp.solve_mechanical(state, dt * 3.0f);
                     }
                 }, *variant);
             }
         }
 
-        // Thermal: every 60th step (1 Hz)
+        // Thermal: every 60th step — accumulated dt = dt * 60
         if (step == 0) {
             for (auto* variant : build_result.domain_components.thermal) {
                 std::visit([&](auto& comp) {
-                    if constexpr (requires { comp.solve_thermal(state, 0.016f); }) {
-                        comp.solve_thermal(state, 0.016f * 60.0f);
+                    if constexpr (requires { comp.solve_thermal(state, dt); }) {
+                        comp.solve_thermal(state, dt * 60.0f);
                     }
                 }, *variant);
             }

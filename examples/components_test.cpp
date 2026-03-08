@@ -1,5 +1,6 @@
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <iomanip>
@@ -78,7 +79,7 @@ static SimState build_state(
 }
 
 static void run_simulation(SimState& sim, Systems& systems, int steps = 100) {
-    const float omega = 1.5f;
+    const float omega = SOR::OMEGA;
 
     for (int step = 0; step < steps; ++step) {
         sim.state.clear_through();

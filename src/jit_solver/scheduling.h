@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include "../json_parser/json_parser.h"
+#include "SOR_constants.h"
 
 namespace an24 {
 
@@ -20,16 +21,16 @@ inline Domain parse_domain(const std::string& domain_str) {
 /// Check if component should run on given step for its domain
 inline bool should_run_on_step(Domain domain, int step) {
     if (has_domain(domain, Domain::Electrical) || has_domain(domain, Domain::Logical)) {
-        return true;  // Every step (60 Hz)
+        return true;  // Every step
     }
     if (has_domain(domain, Domain::Mechanical)) {
-        return (step % 3) == 0;  // Every 3rd step (20 Hz)
+        return (step % DomainSchedule::MECHANICAL_PERIOD) == 0;
     }
     if (has_domain(domain, Domain::Hydraulic)) {
-        return (step % 12) == 0;  // Every 12th step (5 Hz)
+        return (step % DomainSchedule::HYDRAULIC_PERIOD) == 0;
     }
     if (has_domain(domain, Domain::Thermal)) {
-        return (step % 60) == 0;  // Every 60th step (1 Hz)
+        return (step % DomainSchedule::THERMAL_PERIOD) == 0;
     }
     return true;
 }

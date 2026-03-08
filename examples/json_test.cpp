@@ -1,6 +1,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <fstream>
@@ -112,8 +113,8 @@ int main(int argc, char** argv) {
 
     // Run simulation with SOR
     std::cout << "\n=== Running Simulation (5000 cycles) ===\n";
-    const float omega = 1.8f;  // SOR over-relaxation
-    const float dt = 0.016f;   // 60 Hz time step
+    const float omega = SOR::OMEGA;
+    const float dt = 1.0f / 60.0f;
     for (int step = 0; step < 5000; ++step) {
         state.clear_through();
         result.systems.solve_step(state, step, dt);

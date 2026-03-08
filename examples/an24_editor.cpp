@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
         }
 
         // Обновление симуляции каждый кадр
-        app.update_simulation_step();
+        app.update_simulation_step(io.DeltaTime);
 
         // Обновление node_content на основе значений симуляции
         app.update_node_content_from_simulation();
@@ -600,6 +600,21 @@ int main(int argc, char** argv) {
 
             ImGui::EndPopup();
         }
+
+        // Node context menu (right-click on node)
+        if (app.show_node_context_menu) {
+            ImGui::OpenPopup("NodeContextMenu");
+            app.show_node_context_menu = false;
+        }
+        if (ImGui::BeginPopup("NodeContextMenu")) {
+            if (ImGui::MenuItem("Properties")) {
+                app.open_properties_for_node(app.context_menu_node_index);
+            }
+            ImGui::EndPopup();
+        }
+
+        // Properties window
+        app.properties_window.render();
 
         // Рендер
         ImGui::Render();

@@ -2,6 +2,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -173,7 +174,7 @@ static SimulationState run_simulation(
 
         for (size_t i = 0; i < state.across.size(); ++i) {
             if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-                state.across[i] += state.through[i] * state.inv_conductance[i] * 1.3f;
+                state.across[i] += state.through[i] * state.inv_conductance[i] * SOR::OMEGA;
             }
         }
     }

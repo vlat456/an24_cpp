@@ -63,6 +63,14 @@ void EditorApp::reset_node_content() {
     }
 }
 
+void EditorApp::open_properties_for_node(size_t node_index) {
+    if (node_index >= blueprint.nodes.size()) return;
+    Node& node = blueprint.nodes[node_index];
+    properties_window.open(node, [this](const std::string&) {
+        rebuild_simulation();
+    });
+}
+
 void EditorApp::add_component(const std::string& classname, Pt world_pos, const std::string& group_id) {
     using namespace an24;
     
@@ -124,6 +132,9 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
             node.outputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
         }
     }
+
+    // Copy default params from component definition
+    node.params = def->default_params;
 
     // BUGFIX [dc3a7f] Removed dead create_node_content wrapper, call factory directly
     node.node_content = create_node_content_from_def(def);
@@ -435,7 +446,7 @@ void EditorApp::open_sub_window(const std::string& collapsed_group_id) {
     (void)win;
 }
 
-void EditorApp::update_simulation_step() {
+void EditorApp::update_simulation_step(float dt) {
     if (!simulation_running) return;
 
     // Send control=1.0V for all currently held HoldButtons
@@ -448,7 +459,6 @@ void EditorApp::update_simulation_step() {
     simulation.apply_overrides(signal_overrides);
 
     // Run simulation step
-    constexpr float dt = 0.016f;  // 60 Hz
     simulation.step(dt);
 
     // Clear overrides map (signals stay as set by components)

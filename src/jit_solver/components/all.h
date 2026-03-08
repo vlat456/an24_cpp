@@ -314,6 +314,7 @@ public:
 
     Provider provider;
     float max_brightness = 100.0f;
+    float conductance = 1.0f;  // low resistance pass-through indicator
     std::string color = "white";
 
     IndicatorLight() = default;

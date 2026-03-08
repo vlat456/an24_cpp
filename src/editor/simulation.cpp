@@ -84,11 +84,9 @@ void SimulationController::step(float dt) {
     state.precompute_inv_conductance();
 
     // SOR solver (electrical network relaxation)
-    for (size_t i = 0; i < state.across.size(); ++i) {
-        if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-            state.across[i] += state.through[i] * state.inv_conductance[i] * 1.8f;
-        }
-    }
+    solve_sor_iteration(
+        state.across.data(), state.through.data(),
+        state.inv_conductance.data(), state.across.size(), omega);
 
     // Post-step (update device state)
     for (auto& [name, variant] : build_result->devices) {

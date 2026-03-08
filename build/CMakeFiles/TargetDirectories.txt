@@ -119,6 +119,11 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_scene_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_deletion_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_window_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/params_integrity_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/context_menu_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

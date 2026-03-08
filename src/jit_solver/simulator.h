@@ -3,6 +3,7 @@
 #include "jit_solver.h"
 #include "state.h"
 #include "systems.h"
+#include "SOR_constants.h"
 #include "../editor/data/blueprint.h"
 #include <optional>
 #include <unordered_map>
@@ -84,8 +85,13 @@ private:
     /// Integer step counter
     uint64_t step_count_ = 0;
 
-    /// SOR over-relaxation factor (1.0 = Gauss-Seidel, 1.2-1.5 = stable for aircraft systems)
-    float omega_ = 1.3f;
+    /// SOR over-relaxation factor
+    float omega_ = SOR::OMEGA;
+
+    /// Time accumulators for sub-rate domains (FPS-independent physics)
+    float accumulator_mechanical_ = 0.0f;
+    float accumulator_hydraulic_ = 0.0f;
+    float accumulator_thermal_ = 0.0f;
 };
 
 // Type alias for backward compatibility

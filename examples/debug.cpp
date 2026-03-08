@@ -1,5 +1,6 @@
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <iomanip>
@@ -105,7 +106,7 @@ int main() {
     std::cout << "\n";
 
     // SOR iterations
-    const float omega = 1.5f;
+    const float omega = SOR::OMEGA;
     for (int iter = 0; iter < 10; ++iter) {
         for (size_t i = 0; i < state.across.size(); ++i) {
             if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {

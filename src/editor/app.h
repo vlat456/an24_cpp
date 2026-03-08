@@ -8,6 +8,7 @@
 #include "visual/scene/scene.h"
 #include "visual/scene/wire_manager.h"
 #include "window/window_manager.h"
+#include "window/properties_window.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
@@ -45,6 +46,13 @@ struct EditorApp {
     bool show_context_menu = false;
     Pt context_menu_pos;
     std::string context_menu_group_id;
+
+    /// Node context menu state (right-click on node)
+    bool show_node_context_menu = false;
+    size_t context_menu_node_index = 0;
+
+    /// Properties window
+    PropertiesWindow properties_window;
 
     /// Manual signal overrides (for button clicks, etc.)
     /// Maps "node_id.port_name" -> voltage value (temporary, cleared after use)
@@ -95,9 +103,8 @@ struct EditorApp {
     }
 
     /// Обновить симуляцию на один шаг
-    void update_simulation() {
+    void update_simulation(float dt) {
         if (simulation_running) {
-            constexpr float dt = 0.016f;  // 60 Hz
             simulation.step(dt);
         }
     }
@@ -109,7 +116,7 @@ struct EditorApp {
     void reset_node_content();
 
     /// Обновить симуляцию (apply overrides, step, clear overrides)
-    void update_simulation_step();
+    void update_simulation_step(float dt);
 
     /// Handle InputResult from any window's CanvasInput
     void apply_input_result(const InputResult& r, const std::string& group_id = "") {
@@ -118,6 +125,10 @@ struct EditorApp {
             show_context_menu = true;
             context_menu_pos = r.context_menu_pos;
             context_menu_group_id = group_id;
+        }
+        if (r.show_node_context_menu) {
+            show_node_context_menu = true;
+            context_menu_node_index = r.context_menu_node_index;
         }
         if (!r.open_sub_window.empty()) open_sub_window(r.open_sub_window);
     }
@@ -142,6 +153,9 @@ struct EditorApp {
 
     /// Open a sub-window for a collapsed group (replaces drill_into).
     void open_sub_window(const std::string& collapsed_group_id);
+
+    /// Open properties window for a specific node
+    void open_properties_for_node(size_t node_index);
 
 private:
 };

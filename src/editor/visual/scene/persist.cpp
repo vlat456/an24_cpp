@@ -428,6 +428,17 @@ static void apply_port_types_from_registry(Node& n, const an24::ComponentRegistr
     }
 }
 
+/// Fill missing params from component definition defaults (same merge as merge_device_instance)
+static void apply_params_from_registry(Node& n, const an24::ComponentRegistry& registry) {
+    const auto* def = registry.get(n.type_name);
+    if (!def) return;
+    for (const auto& [key, value] : def->default_params) {
+        if (n.params.find(key) == n.params.end()) {
+            n.params[key] = value;
+        }
+    }
+}
+
 // ─── Load: new editor format (flat devices + wires + collapsed_groups) ─────
 
 static std::optional<Blueprint> load_editor_format(const json& j) {
@@ -541,8 +552,10 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
 
     // [PERF-q7r8] Was reloading component registry from disk on every load — now cached as static
     static an24::ComponentRegistry registry = an24::load_component_registry();
-    for (auto& n : bp.nodes)
+    for (auto& n : bp.nodes) {
         apply_port_types_from_registry(n, registry);
+        apply_params_from_registry(n, registry);
+    }
 
     // BUGFIX [e4a1b7] Load wires with dedup — reject duplicate connections on load
     std::set<std::string> loaded_wire_keys;

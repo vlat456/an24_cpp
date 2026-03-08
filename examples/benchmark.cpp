@@ -1,6 +1,7 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 #include <iostream>
 #include <fstream>
@@ -94,8 +95,8 @@ int main(int argc, char** argv) {
     // Benchmark parameters
     const uint32_t warmup_steps = 100;
     const uint32_t bench_steps = 10000;
-    const float omega = 1.8f;
-    const float dt = 0.016f;
+    const float omega = SOR::OMEGA;
+    const float dt = 1.0f / 60.0f;
 
     std::cout << "=== Warmup (" << warmup_steps << " steps) ===\n";
     for (uint32_t step = 0; step < warmup_steps; ++step) {

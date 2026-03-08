@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
+#include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 
 using namespace an24;
@@ -85,7 +86,7 @@ TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
     }
 
     // Run simulation
-    float dt = 0.016f;  // 60 Hz
+    float dt = 1.0f / 60.0f;
     for (int step = 0; step < 100; ++step) {
         state.clear_through();
 
@@ -102,7 +103,7 @@ TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
         // SOR update
         for (size_t i = 0; i < state.across.size(); ++i) {
             if (!state.signal_types[i].is_fixed && state.inv_conductance[i] > 0.0f) {
-                state.across[i] += state.through[i] * state.inv_conductance[i] * 1.8f;
+                state.across[i] += state.through[i] * state.inv_conductance[i] * SOR::OMEGA;
             }
         }
 

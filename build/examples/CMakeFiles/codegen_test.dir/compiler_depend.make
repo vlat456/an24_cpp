@@ -469,6 +469,7 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/codegen/codegen.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
@@ -487,6 +488,8 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
 /Users/vladimir/an24_cpp/src/jit_solver/state.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/component.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h:
 

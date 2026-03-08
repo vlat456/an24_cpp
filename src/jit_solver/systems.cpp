@@ -1,5 +1,6 @@
 #include "systems.h"
 #include "state.h"
+#include "SOR_constants.h"
 #include "../json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 
@@ -41,19 +42,19 @@ void Systems::add_electrical(std::unique_ptr<Component> comp) {
 
 void Systems::add_hydraulic(size_t bucket, std::unique_ptr<Component> comp) {
     Component* raw_ptr = comp.get();
-    hydraulic[bucket % 12].push_back(raw_ptr);
+    hydraulic[bucket % DomainSchedule::HYDRAULIC_PERIOD].push_back(raw_ptr);
     all_components.push_back(std::move(comp));
 }
 
 void Systems::add_mechanical(size_t bucket, std::unique_ptr<Component> comp) {
     Component* raw_ptr = comp.get();
-    mechanical[bucket % 3].push_back(raw_ptr);
+    mechanical[bucket % DomainSchedule::MECHANICAL_PERIOD].push_back(raw_ptr);
     all_components.push_back(std::move(comp));
 }
 
 void Systems::add_thermal(size_t bucket, std::unique_ptr<Component> comp) {
     Component* raw_ptr = comp.get();
-    thermal[bucket % 60].push_back(raw_ptr);
+    thermal[bucket % DomainSchedule::THERMAL_PERIOD].push_back(raw_ptr);
     all_components.push_back(std::move(comp));
 }
 
@@ -78,8 +79,8 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
     }
 
     // Mechanical: every 3rd step - use accumulated time, then reset
-    if (step % 3 == 0) {
-        size_t bucket = (step / 3) % 3;
+    if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
+        size_t bucket = (step / DomainSchedule::MECHANICAL_PERIOD) % DomainSchedule::MECHANICAL_PERIOD;
         for (auto& comp : mechanical[bucket]) {
             comp->solve_mechanical(state, accumulator_mechanical);
         }
@@ -87,8 +88,8 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
     }
 
     // Hydraulic: every 12th step - use accumulated time, then reset
-    if (step % 12 == 0) {
-        size_t bucket = (step / 12) % 12;
+    if (step % DomainSchedule::HYDRAULIC_PERIOD == 0) {
+        size_t bucket = (step / DomainSchedule::HYDRAULIC_PERIOD) % DomainSchedule::HYDRAULIC_PERIOD;
         for (auto& comp : hydraulic[bucket]) {
             comp->solve_hydraulic(state, accumulator_hydraulic);
         }
@@ -96,7 +97,7 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
     }
 
     // Thermal: every 60th step - use accumulated time, then reset
-    if (step % 60 == 0) {
+    if (step % DomainSchedule::THERMAL_PERIOD == 0) {
         for (auto& bucket : thermal) {
             for (auto& comp : bucket) {
                 comp->solve_thermal(state, accumulator_thermal);

@@ -47,6 +47,8 @@ struct InputResult {
     bool rebuild_simulation = false;
     bool show_context_menu = false;
     Pt context_menu_pos;
+    bool show_node_context_menu = false;    ///< Right-click on node
+    size_t context_menu_node_index = 0;     ///< Which node was right-clicked
     std::string open_sub_window;   ///< non-empty = open this collapsed group
 
     /// Combine results (logical OR of flags)
@@ -55,6 +57,10 @@ struct InputResult {
         show_context_menu  |= o.show_context_menu;
         if (!o.open_sub_window.empty()) open_sub_window = o.open_sub_window;
         if (o.show_context_menu) context_menu_pos = o.context_menu_pos;
+        if (o.show_node_context_menu) {
+            show_node_context_menu = true;
+            context_menu_node_index = o.context_menu_node_index;
+        }
         return *this;
     }
 };

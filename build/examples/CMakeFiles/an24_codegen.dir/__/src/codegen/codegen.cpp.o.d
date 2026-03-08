@@ -404,6 +404,7 @@ examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__node_handle \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/optional \
+  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/fstream \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__locale \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/mutex \

@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "jit_solver/SOR_constants.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -167,6 +168,7 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"jit_solver/state.h\"\n";
+    oss << "#include \"jit_solver/SOR_constants.h\"\n";
     oss << "#include \"jit_solver/components/all.h\"\n";
     oss << "#include \"jit_solver/components/port_registry.h\"\n\n";
     oss << "// Compiler hints for optimization\n";
@@ -260,6 +262,13 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
+    // Domain scheduling accumulators (FPS-independent sub-rate domains)
+    oss << "    // Domain scheduling accumulators — accumulate dt each step,\n";
+    oss << "    // pass accumulated value when sub-rate domain fires, then reset.\n";
+    oss << "    float acc_mechanical_ = 0.0f;\n";
+    oss << "    float acc_hydraulic_  = 0.0f;\n";
+    oss << "    float acc_thermal_    = 0.0f;\n\n";
+
     // Pre-allocated convergence buffer pointer (set at init)
     oss << "    float* convergence_buffer = nullptr;\n\n";
 
@@ -273,8 +282,8 @@ std::string CodeGen::generate_header(
     oss << "    /// Main solve step with jump table dispatch (ECS-like)\n";
     oss << "    void solve_step(void* state, uint32_t step, float dt);\n\n";
 
-    // Generate 60 step methods
-    for (int step = 0; step < 60; ++step) {
+    // Generate CYCLE_LENGTH step methods
+    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
         oss << "    AOT_INLINE void step_" << step << "(void* state, float dt);\n";
     }
     oss << "\n";
@@ -361,22 +370,26 @@ std::string CodeGen::generate_source(
     // Jump table dispatch - COMPUTED GOTO (faster than switch, branchless)
     // Uses GCC/Clang labels-as-values extension
     oss << "void Systems::solve_step(void* state, uint32_t step, float dt) {\n";
+    oss << "    // Accumulate dt for sub-rate domain scheduling\n";
+    oss << "    acc_mechanical_ += dt;\n";
+    oss << "    acc_hydraulic_  += dt;\n";
+    oss << "    acc_thermal_    += dt;\n\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
-    oss << "    static const void* dispatch_table[60] = {\n";
-    for (int i = 0; i < 60; ++i) {
-        oss << "        &&step_" << i << (i < 59 ? ",\n" : "\n");
+    oss << "    static const void* dispatch_table[" << DomainSchedule::CYCLE_LENGTH << "] = {\n";
+    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+        oss << "        &&step_" << i << (i < DomainSchedule::CYCLE_LENGTH - 1 ? ",\n" : "\n");
     }
     oss << "    };\n\n";
-    oss << "    // Direct jump - no bounds check needed (step % 60 is always 0-59)\n";
-    oss << "    goto *dispatch_table[step % 60];\n\n";
-    for (int i = 0; i < 60; ++i) {
+    oss << "    // Direct jump - no bounds check needed (step % " << DomainSchedule::CYCLE_LENGTH << " is always 0-" << DomainSchedule::CYCLE_LENGTH - 1 << ")\n";
+    oss << "    goto *dispatch_table[step % " << DomainSchedule::CYCLE_LENGTH << "];\n\n";
+    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
         oss << "    step_" << i << ":\n";
         oss << "        step_" << i << "(state, dt);\n";
         oss << "        return;\n\n";
     }
     oss << "}\n\n";
 
-    // Generate 60 step methods with domain scheduling
+    // Generate CYCLE_LENGTH step methods with domain scheduling
     // Group devices by domain and step
     std::map<std::pair<int, std::string>, std::vector<std::string>> step_devices;
 
@@ -385,40 +398,42 @@ std::string CodeGen::generate_source(
 
         // Electrical: every step (0, 1, 2, ...)
         if (domain.find("Electrical") != std::string::npos) {
-            for (int step = 0; step < 60; ++step) {
+            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
                 step_devices[{step, "electrical"}].push_back(dev.name);
             }
         }
 
         // Mechanical: step (0, 3, 6, ...)
         if (domain.find("Mechanical") != std::string::npos) {
-            for (int step = 0; step < 60; step += 3) {
+            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::MECHANICAL_PERIOD) {
                 step_devices[{step, "mechanical"}].push_back(dev.name);
             }
         }
 
         // Hydraulic: every 12th step (0, 12, 24, ...)
         if (domain.find("Hydraulic") != std::string::npos) {
-            for (int step = 0; step < 60; step += 12) {
+            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::HYDRAULIC_PERIOD) {
                 step_devices[{step, "hydraulic"}].push_back(dev.name);
             }
         }
 
-        // Thermal: every 60th step (only step 0)
+        // Thermal: every THERMAL_PERIOD-th step (only step 0 when period == cycle length)
         if (domain.find("Thermal") != std::string::npos) {
-            step_devices[{0, "thermal"}].push_back(dev.name);
+            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::THERMAL_PERIOD) {
+                step_devices[{step, "thermal"}].push_back(dev.name);
+            }
         }
 
         // Logical: every step (0, 1, 2, ...) - 60Hz boolean logic
         if (domain.find("Logical") != std::string::npos) {
-            for (int step = 0; step < 60; ++step) {
+            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
                 step_devices[{step, "logical"}].push_back(dev.name);
             }
         }
     }
 
     // Generate each step method
-    for (int step = 0; step < 60; ++step) {
+    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
         oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         oss << "    st->clear_through();\n";
@@ -456,40 +471,43 @@ std::string CodeGen::generate_source(
             }
         }
 
-        // Mechanical (every 3rd)
-        if (step % 3 == 0) {
+        // Mechanical (every MECHANICAL_PERIOD-th)
+        if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
             auto mech_it = step_devices.find({step, "mechanical"});
             if (mech_it != step_devices.end()) {
                 for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << dev_name << ".solve_mechanical(*st, dt * 3.0f);\n";
+                    oss << "    " << dev_name << ".solve_mechanical(*st, acc_mechanical_);\n";
                 }
+                oss << "    acc_mechanical_ = 0.0f;\n";
             }
         }
 
-        // Hydraulic (every 12th)
-        if (step % 12 == 0) {
+        // Hydraulic (every HYDRAULIC_PERIOD-th)
+        if (step % DomainSchedule::HYDRAULIC_PERIOD == 0) {
             auto hyd_it = step_devices.find({step, "hydraulic"});
             if (hyd_it != step_devices.end()) {
                 for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << dev_name << ".solve_hydraulic(*st, dt * 12.0f);\n";
+                    oss << "    " << dev_name << ".solve_hydraulic(*st, acc_hydraulic_);\n";
                 }
+                oss << "    acc_hydraulic_ = 0.0f;\n";
             }
         }
 
-        // Thermal (step 0 only)
-        if (step == 0) {
+        // Thermal (every THERMAL_PERIOD-th)
+        if (step % DomainSchedule::THERMAL_PERIOD == 0) {
             auto therm_it = step_devices.find({step, "thermal"});
             if (therm_it != step_devices.end()) {
                 for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << dev_name << ".solve_thermal(*st, dt * 60.0f);\n";
+                    oss << "    " << dev_name << ".solve_thermal(*st, acc_thermal_);\n";
                 }
+                oss << "    acc_thermal_ = 0.0f;\n";
             }
         }
 
         // SOR solver - single iteration per step (real-time approximation)
         // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
         oss << "    st->precompute_inv_conductance();\n";
-        oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, 1.3f);\n";
+        oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, SOR::OMEGA);\n";
 
         oss << "}\n\n";
     }
@@ -576,8 +594,8 @@ void CodeGen::write_files(
     sfile.close();
 
     std::cerr << "[codegen] Done! Generated ECS-like code with:\n";
-    std::cerr << "[codegen]   - Jump table dispatch (60 cases)\n";
-    std::cerr << "[codegen]   - Domain scheduling (60 step methods)\n";
+    std::cerr << "[codegen]   - Jump table dispatch (" << DomainSchedule::CYCLE_LENGTH << " cases)\n";
+    std::cerr << "[codegen]   - Domain scheduling (" << DomainSchedule::CYCLE_LENGTH << " step methods)\n";
     std::cerr << "[codegen]   - __restrict pointers (no aliasing)\n";
     std::cerr << "[codegen]   - AOT_INLINE + AOT_LIKELY/AOT_UNLIKELY\n";
     std::cerr << "[codegen]   - Sparse convergence check\n";

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/state.h"
+#include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
 #include "json_parser/json_parser.h"
 
@@ -37,7 +38,7 @@ static SimulationState run_sor(
     BuildResult& result,
     const std::vector<DeviceInstance>& devices,
     int steps = 100,
-    float omega = 1.5f
+    float omega = SOR::OMEGA
 ) {
     SimulationState state;
 

@@ -616,3 +616,129 @@ target_link_libraries(multi_window_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(multi_window_tests)
+
+# Params integrity tests (Phase 0: data integrity for Properties Window)
+add_executable(params_integrity_tests
+    test_params_integrity.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+)
+target_compile_definitions(params_integrity_tests PRIVATE EDITOR_TESTING)
+target_include_directories(params_integrity_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(params_integrity_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(params_integrity_tests)
+
+# Context menu tests (Phase 1: right-click on node)
+add_executable(context_menu_tests
+    test_context_menu.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+)
+target_compile_definitions(context_menu_tests PRIVATE EDITOR_TESTING)
+target_include_directories(context_menu_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(context_menu_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(context_menu_tests)
+
+# Properties window tests (Phase 2: PropertiesWindow logic)
+add_executable(properties_window_tests
+    test_properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+)
+target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)
+target_include_directories(properties_window_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(properties_window_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(properties_window_tests)
+
+# DT regression tests — FPS-independent physics, SOR constants, accumulator correctness
+add_executable(dt_regression_tests
+    test_dt_regression.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(dt_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(dt_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(dt_regression_tests)
+
+# Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
+add_executable(codegen_accumulator_tests
+    test_codegen_accumulator.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+)
+target_include_directories(codegen_accumulator_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(codegen_accumulator_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+    spdlog::spdlog
+)
+gtest_discover_tests(codegen_accumulator_tests)

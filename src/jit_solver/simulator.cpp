@@ -21,10 +21,16 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     , time_(other.time_)
     , step_count_(other.step_count_)
     , omega_(other.omega_)
+    , accumulator_mechanical_(other.accumulator_mechanical_)
+    , accumulator_hydraulic_(other.accumulator_hydraulic_)
+    , accumulator_thermal_(other.accumulator_thermal_)
 {
     other.running_ = false;
     other.time_ = 0.0f;
     other.step_count_ = 0;
+    other.accumulator_mechanical_ = 0.0f;
+    other.accumulator_hydraulic_ = 0.0f;
+    other.accumulator_thermal_ = 0.0f;
 }
 
 template<typename SolverTag>
@@ -39,10 +45,16 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         time_ = other.time_;
         step_count_ = other.step_count_;
         omega_ = other.omega_;
+        accumulator_mechanical_ = other.accumulator_mechanical_;
+        accumulator_hydraulic_ = other.accumulator_hydraulic_;
+        accumulator_thermal_ = other.accumulator_thermal_;
 
         other.running_ = false;
         other.time_ = 0.0f;
         other.step_count_ = 0;
+        other.accumulator_mechanical_ = 0.0f;
+        other.accumulator_hydraulic_ = 0.0f;
+        other.accumulator_thermal_ = 0.0f;
     }
     return *this;
 }
@@ -91,9 +103,12 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
     // Cache blueprint for potential rebuilds
     cached_blueprint_ = bp;
 
-    // Reset time and step count
+    // Reset time, step count, and accumulators
     time_ = 0.0f;
     step_count_ = 0;
+    accumulator_mechanical_ = 0.0f;
+    accumulator_hydraulic_ = 0.0f;
+    accumulator_thermal_ = 0.0f;
 
     // Mark as running
     running_ = true;
@@ -111,6 +126,9 @@ void Simulator<SolverTag>::stop() {
     // Reset time
     time_ = 0.0f;
     step_count_ = 0;
+    accumulator_mechanical_ = 0.0f;
+    accumulator_hydraulic_ = 0.0f;
+    accumulator_thermal_ = 0.0f;
 
     // Mark as not running
     running_ = false;
@@ -122,10 +140,15 @@ void Simulator<SolverTag>::step(float dt) {
 
     state_.clear_through();
 
+    // Accumulate dt for sub-rate domains (FPS-independent physics)
+    accumulator_mechanical_ += dt;
+    accumulator_hydraulic_ += dt;
+    accumulator_thermal_ += dt;
+
     // Data-oriented multi-domain solving with zero branching
     // Components are pre-sorted by domain, so we just iterate the relevant vectors
 
-    // Electrical/Logical: every step (60 Hz)
+    // Electrical/Logical: every step
     for (auto* variant : build_result_->domain_components.electrical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_electrical(state_, dt); }) {
@@ -142,37 +165,40 @@ void Simulator<SolverTag>::step(float dt) {
         }, *variant);
     }
 
-    // Mechanical: every 3rd step (20 Hz)
-    if ((step_count_ % 3) == 0) {
+    // Mechanical: every 3rd step — use accumulated dt, then reset
+    if ((step_count_ % DomainSchedule::MECHANICAL_PERIOD) == 0) {
         for (auto* variant : build_result_->domain_components.mechanical) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_mechanical(state_, dt); }) {
-                    comp.solve_mechanical(state_, dt);
+                if constexpr (requires { comp.solve_mechanical(state_, accumulator_mechanical_); }) {
+                    comp.solve_mechanical(state_, accumulator_mechanical_);
                 }
             }, *variant);
         }
+        accumulator_mechanical_ = 0.0f;
     }
 
-    // Hydraulic: every 12th step (5 Hz)
-    if ((step_count_ % 12) == 0) {
+    // Hydraulic: every 12th step — use accumulated dt, then reset
+    if ((step_count_ % DomainSchedule::HYDRAULIC_PERIOD) == 0) {
         for (auto* variant : build_result_->domain_components.hydraulic) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_hydraulic(state_, dt); }) {
-                    comp.solve_hydraulic(state_, dt);
+                if constexpr (requires { comp.solve_hydraulic(state_, accumulator_hydraulic_); }) {
+                    comp.solve_hydraulic(state_, accumulator_hydraulic_);
                 }
             }, *variant);
         }
+        accumulator_hydraulic_ = 0.0f;
     }
 
-    // Thermal: every 60th step (1 Hz)
-    if ((step_count_ % 60) == 0) {
+    // Thermal: every 60th step — use accumulated dt, then reset
+    if ((step_count_ % DomainSchedule::THERMAL_PERIOD) == 0) {
         for (auto* variant : build_result_->domain_components.thermal) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_thermal(state_, dt); }) {
-                    comp.solve_thermal(state_, dt);
+                if constexpr (requires { comp.solve_thermal(state_, accumulator_thermal_); }) {
+                    comp.solve_thermal(state_, accumulator_thermal_);
                 }
             }, *variant);
         }
+        accumulator_thermal_ = 0.0f;
     }
 
     // SOR solver - single iteration per step (real-time approximation)

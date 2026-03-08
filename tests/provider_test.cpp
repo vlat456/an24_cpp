@@ -137,13 +137,27 @@ void test_comparator_aot() {
     std::cout << "  Output = " << st.across[2] << "V (expected 1.0V)\n";
     assert(st.across[2] == 1.0f);
 
-    // Test case 2: Va < Vb (with hysteresis)
+    // Test case 2: Va < Vb — output must turn OFF (diff = -5.0 < Voff = -0.1)
     st.across[0] = 0.0f; // Va
     st.across[1] = 5.0f; // Vb
     comp.solve_logical(st, 0.001f);
 
     std::cout << "  Test 2: Va=0V, Vb=5V (after turn-on)\n";
-    std::cout << "  Output = " << st.across[2] << "V (expected 1.0V - hysteresis)\n";
+    std::cout << "  Output = " << st.across[2] << "V (expected 0.0V — diff below Voff)\n";
+    assert(st.across[2] == 0.0f);
+
+    // Test case 3: Hysteresis band — Va=4.95, Vb=0 (diff=4.95, in band [Voff=-0.1, Von=0.1])
+    // First re-arm: set output ON
+    st.across[0] = 5.0f; st.across[1] = 0.0f;
+    comp.solve_logical(st, 0.001f);
+    assert(st.across[2] == 1.0f);  // ON
+
+    // Now drop into hysteresis keep band: diff=0.05, which is > Voff(-0.1) but < Von(0.1)
+    st.across[0] = 0.05f; st.across[1] = 0.0f;
+    comp.solve_logical(st, 0.001f);
+
+    std::cout << "  Test 3: Va=0.05V, Vb=0V (hysteresis keep band)\n";
+    std::cout << "  Output = " << st.across[2] << "V (expected 1.0V — in keep band)\n";
     assert(st.across[2] == 1.0f);
 
     std::cout << "✅ Comparator AotProvider test passed!\n\n";

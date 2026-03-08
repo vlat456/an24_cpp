@@ -27,7 +27,7 @@
       "kind": "Ref",
       "name": "gnd",
       "params": {
-        "value": "0.0"
+        "value": "0"
       },
       "ports": {
         "v": {
@@ -447,7 +447,7 @@
       "name": "lamp_pass_through_1:lamp",
       "params": {
         "color": "red",
-        "max_brightness": "100.0"
+        "max_brightness": "50.0"
       },
       "ports": {
         "brightness": {
@@ -503,7 +503,7 @@
     {
       "classname": "RefNode",
       "group_id": "simple_battery_1",
-      "kind": "Node",
+      "kind": "Ref",
       "name": "simple_battery_1:gnd",
       "params": {
         "value": "0.0"
@@ -1060,11 +1060,6 @@
       "to": "simple_battery_1:bat.v_in"
     },
     {
-      "from": "simple_battery_1:bat.v_out",
-      "routing_points": [],
-      "to": "simple_battery_1:vout.port"
-    },
-    {
       "from": "simple_battery_1:gnd.v",
       "routing_points": [],
       "to": "simple_battery_1:vin.port"
@@ -1147,6 +1142,11 @@
       "from": "lamp_pass_through_1.vout",
       "routing_points": [],
       "to": "light_1.v_in"
+    },
+    {
+      "from": "splitter_2.o2",
+      "routing_points": [],
+      "to": "lamp_pass_through_1:lamp.v_in"
     }
   ]
 }
