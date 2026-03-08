@@ -167,6 +167,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/pid_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pd_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pi_p_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/inspector_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/lamp_passthrough_jit_test.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_hierarchical_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_port_tests.dir/DependInfo.cmake"

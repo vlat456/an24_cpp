@@ -614,6 +614,19 @@ pi_p_tests/fast:
 .PHONY : pi_p_tests/fast
 
 #=============================================================================
+# Target rules for targets named inspector_tests
+
+# Build rule for target.
+inspector_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inspector_tests
+.PHONY : inspector_tests
+
+# fast build rule for target.
+inspector_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/build
+.PHONY : inspector_tests/fast
+
+#=============================================================================
 # Target rules for targets named lamp_passthrough_jit_test
 
 # Build rule for target.
@@ -795,6 +808,7 @@ help:
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... hello_world"
+	@echo "... inspector_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"

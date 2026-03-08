@@ -264,6 +264,10 @@ int main(int argc, char** argv) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
+                if (ImGui::MenuItem("Inspector", nullptr, app.show_inspector)) {
+                    app.show_inspector = !app.show_inspector;
+                }
+                ImGui::Separator();
                 if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
                     app.scene.viewport().zoom *= 1.1f;
                     app.scene.viewport().clamp_zoom(); // [d4e5f6g7]
@@ -615,6 +619,16 @@ int main(int argc, char** argv) {
 
         // Properties window
         app.properties_window.render();
+
+        // Inspector window (component tree with port connections)
+        if (app.show_inspector) {
+            ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowPos(ImVec2(10, 50), ImGuiCond_FirstUseEver);
+            if (ImGui::Begin("Inspector", &app.show_inspector)) {
+                app.inspector.render();
+            }
+            ImGui::End();
+        }
 
         // Рендер
         ImGui::Render();

@@ -489,6 +489,36 @@ target_link_libraries(pi_p_tests PRIVATE
 )
 gtest_discover_tests(pi_p_tests)
 
+# Inspector tests
+add_executable(inspector_tests
+    test_inspector.cpp
+    ../src/editor/visual/inspector/inspector_core.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+)
+target_include_directories(inspector_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(inspector_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(inspector_tests)
+
 # JIT integration test: Battery -> IndicatorLight voltage flow
 add_executable(lamp_passthrough_jit_test
     test_lamp_passthrough_jit.cpp
@@ -670,6 +700,7 @@ add_executable(params_integrity_tests
     test_params_integrity.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp

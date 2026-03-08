@@ -615,6 +615,54 @@ __/src/editor/visual/hittest.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest.cpp.s
 .PHONY : __/src/editor/visual/hittest.cpp.s
 
+__/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/inspector_core.cpp.o
+.PHONY : __/src/editor/visual/inspector/inspector_core.o
+
+# target to build an object file
+__/src/editor/visual/inspector/inspector_core.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_core.cpp.o
+.PHONY : __/src/editor/visual/inspector/inspector_core.cpp.o
+
+__/src/editor/visual/inspector/inspector_core.i: __/src/editor/visual/inspector/inspector_core.cpp.i
+.PHONY : __/src/editor/visual/inspector/inspector_core.i
+
+# target to preprocess a source file
+__/src/editor/visual/inspector/inspector_core.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_core.cpp.i
+.PHONY : __/src/editor/visual/inspector/inspector_core.cpp.i
+
+__/src/editor/visual/inspector/inspector_core.s: __/src/editor/visual/inspector/inspector_core.cpp.s
+.PHONY : __/src/editor/visual/inspector/inspector_core.s
+
+# target to generate assembly for a file
+__/src/editor/visual/inspector/inspector_core.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_core.cpp.s
+.PHONY : __/src/editor/visual/inspector/inspector_core.cpp.s
+
+__/src/editor/visual/inspector/inspector_render.o: __/src/editor/visual/inspector/inspector_render.cpp.o
+.PHONY : __/src/editor/visual/inspector/inspector_render.o
+
+# target to build an object file
+__/src/editor/visual/inspector/inspector_render.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_render.cpp.o
+.PHONY : __/src/editor/visual/inspector/inspector_render.cpp.o
+
+__/src/editor/visual/inspector/inspector_render.i: __/src/editor/visual/inspector/inspector_render.cpp.i
+.PHONY : __/src/editor/visual/inspector/inspector_render.i
+
+# target to preprocess a source file
+__/src/editor/visual/inspector/inspector_render.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_render.cpp.i
+.PHONY : __/src/editor/visual/inspector/inspector_render.cpp.i
+
+__/src/editor/visual/inspector/inspector_render.s: __/src/editor/visual/inspector/inspector_render.cpp.s
+.PHONY : __/src/editor/visual/inspector/inspector_render.s
+
+# target to generate assembly for a file
+__/src/editor/visual/inspector/inspector_render.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_render.cpp.s
+.PHONY : __/src/editor/visual/inspector/inspector_render.cpp.s
+
 __/src/editor/visual/node/node.o: __/src/editor/visual/node/node.cpp.o
 .PHONY : __/src/editor/visual/node/node.o
 
@@ -1063,6 +1111,12 @@ help:
 	@echo "... __/src/editor/visual/hittest.o"
 	@echo "... __/src/editor/visual/hittest.i"
 	@echo "... __/src/editor/visual/hittest.s"
+	@echo "... __/src/editor/visual/inspector/inspector_core.o"
+	@echo "... __/src/editor/visual/inspector/inspector_core.i"
+	@echo "... __/src/editor/visual/inspector/inspector_core.s"
+	@echo "... __/src/editor/visual/inspector/inspector_render.o"
+	@echo "... __/src/editor/visual/inspector/inspector_render.i"
+	@echo "... __/src/editor/visual/inspector/inspector_render.s"
 	@echo "... __/src/editor/visual/node/node.o"
 	@echo "... __/src/editor/visual/node/node.i"
 	@echo "... __/src/editor/visual/node/node.s"

@@ -9,6 +9,7 @@
 #include "visual/scene/wire_manager.h"
 #include "window/window_manager.h"
 #include "window/properties_window.h"
+#include "visual/inspector/inspector.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <optional>
@@ -54,6 +55,10 @@ struct EditorApp {
     /// Properties window
     PropertiesWindow properties_window;
 
+    /// Inspector window (component tree with port connections)
+    Inspector inspector;
+    bool show_inspector = true;  // Show/hide inspector window
+
     /// Manual signal overrides (for button clicks, etc.)
     /// Maps "node_id.port_name" -> voltage value (temporary, cleared after use)
     std::unordered_map<std::string, float> signal_overrides;
@@ -61,7 +66,9 @@ struct EditorApp {
     /// HoldButtons currently being held (mouse is down on them)
     std::unordered_set<std::string> held_buttons;
 
-    EditorApp() {
+    EditorApp()
+        : inspector(window_manager.root().scene)  // Inspector needs scene reference
+    {
         // Load component registry at startup
         component_registry = an24::load_component_registry();
 

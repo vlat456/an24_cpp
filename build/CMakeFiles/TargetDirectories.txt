@@ -116,6 +116,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pid_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pd_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pi_p_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/inspector_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lamp_passthrough_jit_test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_hierarchical_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_port_tests.dir
