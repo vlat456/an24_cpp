@@ -19,14 +19,25 @@ public:
         std::string text;
         uint32_t color;
     };
+    struct RectFilledEntry {
+        Pt min;
+        Pt max;
+        uint32_t color;
+    };
     std::vector<TextEntry> texts_;
     std::vector<uint32_t> polyline_colors_;
     std::vector<uint32_t> circle_colors_;
     std::vector<uint32_t> rect_filled_colors_;
+    std::vector<RectFilledEntry> rect_filled_entries_;
 
     void add_line(Pt, Pt, uint32_t, float) override { had_line_ = true; }
     void add_rect(Pt, Pt, uint32_t, float) override { had_rect_ = true; rect_count_++; }
-    void add_rect_filled(Pt, Pt, uint32_t color) override { had_rect_ = true; rect_count_++; rect_filled_colors_.push_back(color); }
+    void add_rect_filled(Pt min, Pt max, uint32_t color) override {
+        had_rect_ = true;
+        rect_count_++;
+        rect_filled_colors_.push_back(color);
+        rect_filled_entries_.push_back({min, max, color});
+    }
     void add_circle(Pt, float, uint32_t color, int) override {
         had_circle_ = true;
         circle_colors_.push_back(color);

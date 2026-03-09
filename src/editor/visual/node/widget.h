@@ -93,11 +93,11 @@ public:
     void render(IDrawList* dl, Pt origin, float zoom) const override;
 
     static constexpr float HEIGHT = 24.0f; // 20 visual + 4 spacing
+    static constexpr float VISUAL_HEIGHT = 20.0f;
 
 private:
     std::string name_;
     uint32_t fill_color_;
-    static constexpr float VISUAL_HEIGHT = 20.0f;
     static constexpr float FONT_SIZE = 12.0f;
     static constexpr float PADDING = 5.0f;
 };

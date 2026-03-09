@@ -902,6 +902,7 @@ examples/CMakeFiles/bench_vsu_aot.dir/clean:
 
 # All Build rule for target.
 examples/CMakeFiles/an24_editor.dir/all: _deps/spdlog-build/CMakeFiles/spdlog.dir/all
+examples/CMakeFiles/an24_editor.dir/all: _deps/nfde-build/src/CMakeFiles/nfd.dir/all
 examples/CMakeFiles/an24_editor.dir/all: src/jit_solver/CMakeFiles/jit_solver.dir/all
 examples/CMakeFiles/an24_editor.dir/all: src/json_parser/CMakeFiles/json_parser.dir/all
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/depend
@@ -911,7 +912,7 @@ examples/CMakeFiles/an24_editor.dir/all: src/json_parser/CMakeFiles/json_parser.
 
 # Build rule for subdir invocation for target.
 examples/CMakeFiles/an24_editor.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 13
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 14
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/an24_editor.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/vladimir/an24_cpp/build/CMakeFiles 0
 .PHONY : examples/CMakeFiles/an24_editor.dir/rule

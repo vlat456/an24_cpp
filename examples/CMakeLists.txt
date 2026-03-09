@@ -149,7 +149,7 @@ target_link_libraries(an24_editor PRIVATE
     "-framework AppKit"
     "-framework UniformTypeIdentifiers"
     spdlog::spdlog
-    ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
+    nfd
     jit_solver
     json_parser
 )

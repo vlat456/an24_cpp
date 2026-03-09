@@ -9,6 +9,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/async.cpp.o: _deps/spdlog-src/src/a
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -440,6 +441,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/bundled_fmtlib_format.cpp.o: _deps/
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -891,6 +893,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/cfg.cpp.o: _deps/spdlog-src/src/cfg
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__xlocale.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -1370,6 +1373,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/color_sinks.cpp.o: _deps/spdlog-src
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -1805,6 +1809,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/file_sinks.cpp.o: _deps/spdlog-src/
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -2236,6 +2241,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/spdlog.cpp.o: _deps/spdlog-src/src/
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -2720,6 +2726,7 @@ _deps/spdlog-build/CMakeFiles/spdlog.dir/src/stdout_sinks.cpp.o: _deps/spdlog-sr
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/___wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctype.h \
@@ -3303,6 +3310,8 @@ _deps/spdlog-src/include/spdlog/async_logger.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_ptrdiff_t.h:
 
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_nullptr_t.h:
+
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stdarg_va_copy.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/compare:
@@ -3477,8 +3486,6 @@ _deps/spdlog-src/include/spdlog/common.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostream_iterator.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iter_move.h:
@@ -3534,8 +3541,6 @@ _deps/spdlog-src/include/spdlog/sinks/ansicolor_sink-inl.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/mem_fn.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/invoke.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_nullptr_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/hash.h:
 
@@ -3734,14 +3739,6 @@ _deps/spdlog-src/include/spdlog/sinks/sink-inl.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_once_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max_element.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_suseconds_t.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wchar.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__thread/poll_with_backoff.h:
 
@@ -3953,10 +3950,6 @@ _deps/spdlog-src/include/spdlog/details/log_msg-inl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/qos.h:
 
-_deps/spdlog-src/include/spdlog/details/periodic_worker-inl.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/endian.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/pthread_impl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_off_t.h:
@@ -4041,6 +4034,12 @@ _deps/spdlog-src/include/spdlog/details/backtracer-inl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_time.h:
 
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_suseconds_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/max.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wchar.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sched.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h:
@@ -4056,6 +4055,12 @@ _deps/spdlog-src/include/spdlog/details/backtracer-inl.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__function_like.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint32_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/machine/_structs.h:
 
@@ -4095,14 +4100,6 @@ _deps/spdlog-src/include/spdlog/details/file_helper-inl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_mcontext.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/_OSByteOrder.h:
-
-_deps/spdlog-src/include/spdlog/sinks/stdout_sinks.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
-
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
@@ -4125,15 +4122,11 @@ _deps/spdlog-src/include/spdlog/logger-inl.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find_if.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/equal.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint32_t.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/erase_if_container.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_stdlib.h:
 
@@ -4145,9 +4138,7 @@ _deps/spdlog-src/include/spdlog/logger-inl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint64_t.h:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/reverse_copy.h:
-
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint16_t.h:
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/_OSByteOrder.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/unique_ptr.h:
 
@@ -4195,6 +4186,10 @@ _deps/spdlog-src/include/spdlog/logger-inl.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/syslimits.h:
 
+_deps/spdlog-src/include/spdlog/details/periodic_worker-inl.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/endian.h:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
@@ -4224,3 +4219,17 @@ _deps/spdlog-src/include/spdlog/details/os.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/_ctype.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_heap_until.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/reverse_copy.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint16_t.h:
+
+_deps/spdlog-src/include/spdlog/sinks/stdout_sinks.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h:

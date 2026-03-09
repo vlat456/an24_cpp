@@ -1190,3 +1190,49 @@ TEST(RenderGroupFilter, RenderSubgroup_ShowsOnlyGroupNodes) {
     // At least 2 rects for the two internal nodes (body + ports)
     EXPECT_GE(dl.rect_count(), 2u) << "Should render internal nodes of lamp1";
 }
+
+// ============================================================================
+// Regression Test: No gap between header and body in VisualNode
+// ============================================================================
+
+TEST(RenderRegressionTest, HeaderBody_NoGap) {
+    // BUGFIX [header-gap-fix] Body background should start at VISUAL_HEIGHT (20px)
+    // not at HEIGHT (24px) to avoid 4px gap between header and content
+    Node n;
+    n.id = "test";
+    n.name = "Battery";
+    n.type_name = "Battery";
+    n.input("v_in");
+    n.output("v_out");
+    n.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
+
+    VisualNode visual(n);
+    VisualNodeCache cache;
+    cache.getOrCreate(n);
+
+    MockDrawList dl;
+    Viewport vp;
+    Pt canvas_min(0.0f, 0.0f);
+
+    visual.render(&dl, vp, canvas_min, false);
+
+    // Find the body background rect_filled (COLOR_BODY_FILL)
+    bool body_found = false;
+    Pt body_min;
+    for (const auto& entry : dl.rect_filled_entries_) {
+        if (entry.color == render_theme::COLOR_BODY_FILL) {
+            body_min = entry.min;
+            body_found = true;
+            break;
+        }
+    }
+
+    ASSERT_TRUE(body_found) << "Should have body background rect";
+
+    // Body should start at VISUAL_HEIGHT (20px) not HEIGHT (24px)
+    // Node is at (100, 50), so body should start at screen Y = 50 + VISUAL_HEIGHT
+    float expected_body_y = 50.0f + HeaderWidget::VISUAL_HEIGHT;
+    EXPECT_FLOAT_EQ(body_min.y, expected_body_y)
+        << "Body background should start at VISUAL_HEIGHT after node position, "
+        << "not at HEIGHT (this would create a 4px gap)";
+}

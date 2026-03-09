@@ -183,17 +183,15 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt screen_max = vp.world_to_screen(
         Pt(position_.x + size_.x, position_.y + size_.y), canvas_min);
 
-    float header_h = HeaderWidget::HEIGHT * vp.zoom;
+    // BUGFIX [header-gap-fix] Use VISUAL_HEIGHT not HEIGHT to avoid gap
+    // HeaderWidget reserves HEIGHT=24px but only renders VISUAL_HEIGHT=20px
+    float header_visual_h = HeaderWidget::VISUAL_HEIGHT * vp.zoom;
 
     // Body background (below header) - use custom color if set
     uint32_t body_fill = custom_color_.has_value()
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BODY_FILL;
-    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_h), screen_max, body_fill);
-
-    // Border
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
+    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_visual_h), screen_max, body_fill);
 
     // Update VoltmeterWidget value before rendering
     if (node_content_.type == NodeContentType::Gauge) {
@@ -208,6 +206,10 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 
     // Render all widgets (header, port rows, content, type name)
     layout_.render(dl, screen_min, vp.zoom);
+
+    // Border (render LAST for highest z-index, so selection is visible above header)
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
+    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 }
 
 Bounds VisualNode::getContentBounds() const {
@@ -404,8 +406,6 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BUS_FILL;
     dl->add_rect_filled(bus_min, bus_max, fill);
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(bus_min, bus_max, border_color, 1.0f);
 
     Pt text_pos(bus_min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
@@ -416,6 +416,10 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
         uint32_t port_color = render_theme::get_port_color(port.type());
         dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
     }
+
+    // Border (render LAST for highest z-index, so selection is visible above content)
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
+    dl->add_rect(bus_min, bus_max, border_color, 1.0f);
 }
 
 // ============================================================================
@@ -466,8 +470,6 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BUS_FILL;
     dl->add_rect_filled(screen_min, screen_max, fill);
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
@@ -477,6 +479,10 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     uint32_t port_color = render_theme::get_port_color(ports_[0].type());
     dl->add_circle_filled(port_pos, editor_constants::PORT_RADIUS * vp.zoom, port_color, 8);
+
+    // Border (render LAST for highest z-index, so selection is visible above content)
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
+    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 }
 
 // ============================================================================
