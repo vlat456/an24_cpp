@@ -201,7 +201,26 @@ TEST(PersistTest, NodeKind_Roundtrip_Node) {
     EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Node);
 }
 
+TEST(PersistTest, NodeKind_Roundtrip_InternalCPP) {
+    Blueprint bp;
+    Node n;
+    n.id = "bat1";
+    n.name = "Battery";
+    n.type_name = "Battery";
+    n.kind = NodeKind::InternalCPP;
+    n.input("v_in");
+    n.output("v_out");
+    n.at(200, 200);
+    n.size_wh(120, 80);
+    bp.add_node(std::move(n));
 
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    ASSERT_EQ(bp2->nodes.size(), 1);
+    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::InternalCPP)
+        << "InternalCPP kind should roundtrip through JSON";
+}
 
 TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
     // classname (type_name) is the single source of truth for C++ binding.

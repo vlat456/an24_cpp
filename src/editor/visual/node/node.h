@@ -161,6 +161,13 @@ public:
                     bp_node.node_content = NodeContent{};
                     return std::make_unique<VisualNode>(bp_node);
                 }
+            case NodeKind::InternalCPP:
+                {
+                    // Same visual as Blueprint but not expandable
+                    Node cpp_node = node;
+                    cpp_node.node_content = NodeContent{};
+                    return std::make_unique<VisualNode>(cpp_node);
+                }
             case NodeKind::Node:
             default:
                 return std::make_unique<VisualNode>(node);

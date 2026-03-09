@@ -8,10 +8,11 @@
 
 /// Вид узла (для рендеринга)
 enum class NodeKind {
-    Node,       ///< Обычный компонент (батарея, насос, etc.)
-    Bus,        ///< Шина/мультиплексор - маленький квадрат
-    Ref,        ///< Reference node (ground, voltage source)
-    Blueprint   ///< Свернутый nested blueprint (collapsed node)
+    Node,        ///< Обычный компонент (батарея, насос, etc.)
+    Bus,         ///< Шина/мультиплексор - маленький квадрат
+    Ref,         ///< Reference node (ground, voltage source)
+    Blueprint,   ///< Свернутый nested blueprint (collapsed node, double-clickable)
+    InternalCPP  ///< Leaf C++ component (визуально как Blueprint, но не expandable)
 };
 
 /// Тип содержимого узла (пока простой enum)

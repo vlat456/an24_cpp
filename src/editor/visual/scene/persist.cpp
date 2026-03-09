@@ -79,6 +79,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
             case NodeKind::Bus: device["kind"] = "Bus"; break;
             case NodeKind::Ref: device["kind"] = "Ref"; break;
             case NodeKind::Blueprint: device["kind"] = "Blueprint"; break;
+            case NodeKind::InternalCPP: device["kind"] = "InternalCPP"; break;
             default: device["kind"] = "Node"; break;
         }
         device["priority"] = "med";
@@ -290,6 +291,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             case NodeKind::Bus: device["kind"] = "Bus"; break;
             case NodeKind::Ref: device["kind"] = "Ref"; break;
             case NodeKind::Blueprint: device["kind"] = "Blueprint"; break;
+            case NodeKind::InternalCPP: device["kind"] = "InternalCPP"; break;
             default: device["kind"] = "Node"; break;
         }
 
@@ -465,6 +467,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         std::string kind_str = d.value("kind", "Node");
         if (kind_str == "Blueprint") {
             n.kind = NodeKind::Blueprint;
+        } else if (kind_str == "InternalCPP") {
+            n.kind = NodeKind::InternalCPP;
         } else if (n.type_name == "Bus") {
             n.kind = NodeKind::Bus;
         } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
