@@ -19,8 +19,8 @@ TEST(ParamsIntegrity, AddComponentPopulatesDefaultParams) {
     EditorApp app;
 
     // Battery has 6 default params in components/Battery.json
-    ASSERT_TRUE(app.component_registry.has("Battery"));
-    const auto* def = app.component_registry.get("Battery");
+    ASSERT_TRUE(app.type_registry.has("Battery"));
+    const auto* def = app.type_registry.get("Battery");
     ASSERT_NE(def, nullptr);
     ASSERT_FALSE(def->params.empty());
 
@@ -44,7 +44,7 @@ TEST(ParamsIntegrity, AddComponentPopulatesLerpNodeParams) {
     EditorApp app;
 
     // LerpNode has 1 default param: factor=0.05
-    ASSERT_TRUE(app.component_registry.has("LerpNode"));
+    ASSERT_TRUE(app.type_registry.has("LerpNode"));
 
     app.add_component("LerpNode", Pt(200, 200));
 

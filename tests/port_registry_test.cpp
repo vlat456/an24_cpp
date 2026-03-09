@@ -8,7 +8,7 @@
 
 TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
     // Load RU19A definition from registry
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/components/RU19A.json");
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/RU19A.json");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;
@@ -33,7 +33,7 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
 }
 
 TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/components/DMR400.json");
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/DMR400.json");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;

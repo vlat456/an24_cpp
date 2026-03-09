@@ -606,12 +606,12 @@ int main(int argc, char** argv) {
             // Components submenu
             if (ImGui::BeginMenu("Components")) {
                 // Get sorted list of component classnames
-                auto classnames = app.component_registry.list_classnames();
+                auto classnames = app.type_registry.list_classnames();
                 std::sort(classnames.begin(), classnames.end());
 
                 // Show menu items for each component
                 for (const auto& classname : classnames) {
-                    const auto* def = app.component_registry.get(classname);
+                    const auto* def = app.type_registry.get(classname);
                     if (def && ImGui::MenuItem(classname.c_str())) {
                         // Add component to blueprint at context_menu_pos
                         app.add_component(classname, app.context_menu_pos, app.context_menu_group_id);

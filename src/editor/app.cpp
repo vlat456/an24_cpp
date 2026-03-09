@@ -57,7 +57,7 @@ void EditorApp::reset_node_content() {
     using namespace an24;
 
     for (auto& node : scene.nodes()) {
-        const auto* def = component_registry.get(node.type_name);
+        const auto* def = type_registry.get(node.type_name);
         if (!def) continue;
         node.node_content = create_node_content_from_def(def);
     }
@@ -75,12 +75,12 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     using namespace an24;
     
     // Check if component exists in registry
-    if (!component_registry.has(classname)) {
+    if (!type_registry.has(classname)) {
         printf("Error: Unknown component classname '%s'\n", classname.c_str());
         return;
     }
     
-    const auto* def = component_registry.get(classname);
+    const auto* def = type_registry.get(classname);
     if (!def) {
         printf("Error: Component definition not found for '%s'\n", classname.c_str());
         return;
@@ -118,7 +118,7 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     }
 
     // Get size from component definition (single source of truth)
-    node.size = get_default_node_size(classname, &component_registry);
+    node.size = get_default_node_size(classname, &type_registry);
     
     // Add ports from component definition
     for (const auto& [port_name, port_def] : def->ports) {
@@ -298,7 +298,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
             node.kind = NodeKind::Node;
         }
         node.pos = snapped_pos;  // All start at same position (will be auto-layout)
-        node.size = get_default_node_size(dev.classname, &component_registry);
+        node.size = get_default_node_size(dev.classname, &type_registry);
 
         // Add ports from DeviceInstance
         for (const auto& [port_name, port] : dev.ports) {
@@ -314,7 +314,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         node.params = dev.params;
 
         // Create node_content from TypeDefinition
-        const auto* def = component_registry.get(dev.classname);
+        const auto* def = type_registry.get(dev.classname);
         if (def) {
             node.node_content = create_node_content_from_def(def);
         }

@@ -274,7 +274,7 @@ TEST(PersistTest, GetDefaultNodeSize_WithRegistry) {
     def.classname = "TestComponent";
     def.size = {2, 3};  // 2x3 grid units = 40x60 pixels
 
-    registry.components["TestComponent"] = def;
+    registry.types["TestComponent"] = def;
 
     Pt size = get_default_node_size("TestComponent", &registry);
     EXPECT_FLOAT_EQ(size.x, 40.0f);  // 2 * 20
@@ -310,7 +310,7 @@ TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
     def.classname = "TestComponent";
     def.size = {1, 1};  // 1x1 grid unit
 
-    registry.components["TestComponent"] = def;
+    registry.types["TestComponent"] = def;
 
     Pt size = get_default_node_size("TestComponent", &registry);
     EXPECT_FLOAT_EQ(size.x, 20.0f) << "1 grid unit should be 20 pixels";
