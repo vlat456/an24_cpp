@@ -163,63 +163,21 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
 }
 
 void EditorApp::scan_blueprints() {
-    namespace fs = std::filesystem;
-
-    // Try to find blueprints/ directory (same resolution logic as parse_json)
-    std::vector<fs::path> try_paths = {
-        "blueprints/",
-        "../blueprints/",
-        "../../blueprints/",
-    };
-
-    fs::path blueprints_dir;
-    bool found = false;
-    for (const auto& path : try_paths) {
-        if (fs::is_directory(path)) {
-            blueprints_dir = path;
-            found = true;
-            break;
-        }
-    }
-
-    if (!found) {
-        spdlog::warn("[editor] blueprints/ directory not found");
-        return;
-    }
-
-    // Scan for .json files
     blueprints.clear();
-    for (const auto& entry : fs::directory_iterator(blueprints_dir)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".json") {
-            std::string blueprint_name = entry.path().stem().string();
-            std::string blueprint_path = entry.path().string();
 
-            // Try to load blueprint and extract exposed ports
-            try {
-                std::ifstream file(entry.path());
-                if (!file.is_open()) continue;
+    // Scan TypeRegistry for cpp_class=false types (blueprint types)
+    for (const auto& [classname, def] : type_registry.types) {
+        if (def.cpp_class) continue;  // skip C++ leaf types
 
-                std::string content((std::istreambuf_iterator<char>(file)),
-                                    std::istreambuf_iterator<char>());
-                file.close();
+        BlueprintInfo info;
+        info.name = classname;
+        info.path = "";  // no file path needed, data is in TypeRegistry
+        info.exposed_ports = def.ports;
 
-                an24::ParserContext ctx = an24::parse_json(content);
-                auto exposed_ports = an24::extract_exposed_ports(ctx);
+        blueprints.push_back(std::move(info));
 
-                BlueprintInfo info;
-                info.name = blueprint_name;
-                info.path = blueprint_path;
-                info.exposed_ports = exposed_ports;
-
-                blueprints.push_back(std::move(info));
-
-                spdlog::info("[editor] discovered blueprint: {} ({} exposed ports)",
-                           blueprint_name, exposed_ports.size());
-            } catch (const std::exception& e) {
-                spdlog::warn("[editor] failed to load blueprint {}: {}",
-                           blueprint_name, e.what());
-            }
-        }
+        spdlog::info("[editor] discovered blueprint type: {} ({} exposed ports)",
+                   classname, def.ports.size());
     }
 
     // Sort alphabetically
@@ -228,7 +186,7 @@ void EditorApp::scan_blueprints() {
                   return a.name < b.name;
               });
 
-    spdlog::info("[editor] scanned {} blueprints from {}", blueprints.size(), blueprints_dir.string());
+    spdlog::info("[editor] scanned {} blueprint types from TypeRegistry", blueprints.size());
 }
 
 void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id) {
@@ -262,23 +220,36 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
 
     // IMMEDIATELY EXPAND the nested blueprint (always-flatten architecture)
-    // Load the nested blueprint JSON file
-    std::ifstream blueprint_file(info->path);
-    if (!blueprint_file.is_open()) {
-        spdlog::error("[editor] failed to open blueprint: {}", info->path);
+    // Get blueprint definition from TypeRegistry
+    const auto* bp_def = type_registry.get(blueprint_name);
+    if (!bp_def || bp_def->cpp_class) {
+        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
         return;
     }
 
-    std::string content((std::istreambuf_iterator<char>(blueprint_file)),
-                        std::istreambuf_iterator<char>());
+    // Build JSON from TypeDefinition and parse (handles recursive expansion)
+    nlohmann::json nested_json;
+    nested_json["devices"] = nlohmann::json::array();
+    for (const auto& inner_dev : bp_def->devices) {
+        nlohmann::json dev_j;
+        dev_j["name"] = inner_dev.name;
+        dev_j["classname"] = inner_dev.classname;
+        if (!inner_dev.params.empty()) {
+            dev_j["params"] = inner_dev.params;
+        }
+        nested_json["devices"].push_back(dev_j);
+    }
+    nested_json["connections"] = nlohmann::json::array();
+    for (const auto& conn : bp_def->connections) {
+        nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
+    }
 
-    // Parse nested blueprint (this will expand any nested blueprints recursively)
     an24::ParserContext nested_ctx;
     try {
-        nested_ctx = an24::parse_json(content);
+        nested_ctx = an24::parse_json(nested_json.dump());
     } catch (const std::exception& e) {
         spdlog::error("[editor] failed to parse blueprint {}: {}",
-                     info->path, e.what());
+                     blueprint_name, e.what());
         return;
     }
 
@@ -359,7 +330,6 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_node.type_name = blueprint_name;
     collapsed_node.kind = NodeKind::Blueprint;
     collapsed_node.collapsed = true;
-    collapsed_node.blueprint_path = info->path;
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
 
@@ -382,7 +352,6 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     // Create CollapsedGroup for editor-only visual collapsing
     CollapsedGroup collapsed_group;
     collapsed_group.id = unique_id;
-    collapsed_group.blueprint_path = info->path;
     collapsed_group.type_name = blueprint_name;
     collapsed_group.pos = snapped_pos;
     collapsed_group.size = Pt(120.0f, height);

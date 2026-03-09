@@ -302,51 +302,6 @@ ParserContext parse_json(const std::string& json_text) {
     for (const auto& raw_dev : raw_devices) {
         // Check if component exists in registry
         if (!ctx.registry.has(raw_dev.classname)) {
-            // Phase 2: Fallback to blueprint loading (always expand, never keep collapsed)
-            std::string blueprint_path = "blueprints/" + raw_dev.classname + ".json";
-
-            // Try to find blueprint file (same logic as component registry)
-            std::filesystem::path blueprint_fs_path(blueprint_path);
-            if (!std::filesystem::exists(blueprint_fs_path) && blueprint_fs_path.is_relative()) {
-                std::vector<std::filesystem::path> try_paths = {
-                    blueprint_fs_path,
-                    "../" / blueprint_fs_path,
-                    "../../" / blueprint_fs_path,
-                    "../../../" / blueprint_fs_path,
-                };
-                for (const auto& path : try_paths) {
-                    if (std::filesystem::exists(path)) {
-                        blueprint_fs_path = path;
-                        break;
-                    }
-                }
-            }
-
-            if (std::filesystem::exists(blueprint_fs_path)) {
-                spdlog::info("[json_parser] Loading nested blueprint '{}' from {}",
-                           raw_dev.classname, blueprint_fs_path.string());
-
-                // Load nested blueprint file
-                std::ifstream blueprint_file(blueprint_fs_path);
-                if (!blueprint_file.is_open()) {
-                    throw std::runtime_error("Failed to open blueprint: " + blueprint_fs_path.string());
-                }
-
-                std::string blueprint_json((std::istreambuf_iterator<char>(blueprint_file)),
-                                           std::istreambuf_iterator<char>());
-
-                // Recursively parse nested blueprint (DRY - same code path!)
-                ParserContext nested = parse_json(blueprint_json);
-
-                // Merge nested blueprint with prefix
-                merge_nested_blueprint(ctx, nested, raw_dev.name);
-
-                spdlog::info("[json_parser] Merged nested blueprint '{}' as device '{}'",
-                           raw_dev.classname, raw_dev.name);
-                continue;  // Skip normal device processing
-            }
-
-            // Not in registry and no blueprint found - error!
             spdlog::error("[json_parser] Unknown component classname '{}' in device '{}'",
                          raw_dev.classname, raw_dev.name);
             throw std::runtime_error("Unknown component classname: " + raw_dev.classname);

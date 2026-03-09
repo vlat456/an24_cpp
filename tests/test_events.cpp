@@ -253,11 +253,11 @@ TEST(EventsTest, AddComponent_CppClassTrue_InternalCPP) {
 // Phase 4: cpp_class=false → NodeKind::Blueprint
 TEST(EventsTest, AddComponent_CppClassFalse_Blueprint) {
     EditorApp app;
-    // SimpleBattery is cpp_class=false in library/
-    ASSERT_TRUE(app.type_registry.has("SimpleBattery"));
-    EXPECT_FALSE(app.type_registry.get("SimpleBattery")->cpp_class);
+    // simple_battery is cpp_class=false in library/
+    ASSERT_TRUE(app.type_registry.has("simple_battery"));
+    EXPECT_FALSE(app.type_registry.get("simple_battery")->cpp_class);
 
-    app.add_component("SimpleBattery", Pt(200, 200));
+    app.add_component("simple_battery", Pt(200, 200));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Blueprint)
         << "cpp_class=false types must get NodeKind::Blueprint";
