@@ -223,6 +223,9 @@ struct ParserContext {
 /// Parse JSON text into a ParserContext
 ParserContext parse_json(const std::string& json_text);
 
+/// Parse JSON text with explicit library directory (for testing)
+ParserContext parse_json(const std::string& json_text, const std::string& library_dir);
+
 /// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
 /// For Editor: displays exposed ports on collapsed nested blueprint nodes
 /// Returns map: exposed_port_name -> Port metadata

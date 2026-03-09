@@ -332,3 +332,104 @@ TEST(BlueprintLoading, ExpandBlueprintFromTypeRegistry) {
         EXPECT_NE(dev.name, "sb") << "Blueprint 'sb' should be expanded, not kept as device";
     }
 }
+
+// =============================================================================
+// Cycle Detection: self-referencing blueprints must throw, not stack-overflow
+// =============================================================================
+
+TEST(BlueprintCycleDetection, DirectSelfReference_Throws) {
+    // Create a temporary library directory with a self-referencing blueprint:
+    // "SelfRef" contains a device of classname "SelfRef" → direct cycle
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_cycle_test_direct";
+    fs::create_directories(tmp_dir);
+
+    // Write a self-referencing blueprint
+    {
+        nlohmann::json self_ref;
+        self_ref["classname"] = "SelfRef";
+        self_ref["cpp_class"] = false;
+        self_ref["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        self_ref["domains"] = {"Electrical"};
+        self_ref["devices"] = {{{"name", "inner"}, {"classname", "SelfRef"}}};
+        self_ref["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "SelfRef.json") << self_ref.dump(2);
+    }
+    // Also need a RefNode so the registry has basic types — copy from real library
+    // Actually, we only need the self-referencing type. The expansion will look it up
+    // in the registry loaded from tmp_dir.
+
+    // Build a root circuit that uses SelfRef
+    nlohmann::json root;
+    root["devices"] = {{{"name", "x"}, {"classname", "SelfRef"}}};
+    root["connections"] = nlohmann::json::array();
+
+    // Should throw with cycle detection error, NOT stack-overflow
+    EXPECT_THROW(parse_json(root.dump(), tmp_dir.string()), std::runtime_error);
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+TEST(BlueprintCycleDetection, IndirectCycle_Throws) {
+    // A contains B, B contains A → indirect cycle
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_cycle_test_indirect";
+    fs::create_directories(tmp_dir);
+
+    // Write type A that contains B
+    {
+        nlohmann::json type_a;
+        type_a["classname"] = "CycleA";
+        type_a["cpp_class"] = false;
+        type_a["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        type_a["domains"] = {"Electrical"};
+        type_a["devices"] = {{{"name", "b"}, {"classname", "CycleB"}}};
+        type_a["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "CycleA.json") << type_a.dump(2);
+    }
+    // Write type B that contains A
+    {
+        nlohmann::json type_b;
+        type_b["classname"] = "CycleB";
+        type_b["cpp_class"] = false;
+        type_b["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        type_b["domains"] = {"Electrical"};
+        type_b["devices"] = {{{"name", "a"}, {"classname", "CycleA"}}};
+        type_b["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "CycleB.json") << type_b.dump(2);
+    }
+
+    nlohmann::json root;
+    root["devices"] = {{{"name", "x"}, {"classname", "CycleA"}}};
+    root["connections"] = nlohmann::json::array();
+
+    EXPECT_THROW(parse_json(root.dump(), tmp_dir.string()), std::runtime_error);
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+TEST(BlueprintCycleDetection, ValidNesting_NoCycle) {
+    // A contains B, B contains C++ leaf → NOT a cycle, should work fine
+    // Uses the real library: simple_battery contains Battery (cpp_class=true)
+    nlohmann::json root;
+    root["devices"] = {
+        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
+        {{"name", "sb"}, {"classname", "simple_battery"}}
+    };
+    root["connections"] = {
+        {{"from", "gnd.v"}, {"to", "sb.vin"}}
+    };
+
+    // Should NOT throw — this is valid nesting with no cycles
+    ParserContext ctx;
+    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
+
+    // Verify it expanded
+    bool found_sb_bat = false;
+    for (const auto& dev : ctx.devices) {
+        if (dev.name == "sb:bat") found_sb_bat = true;
+    }
+    EXPECT_TRUE(found_sb_bat);
+}

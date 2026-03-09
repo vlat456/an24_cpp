@@ -1,37 +1,37 @@
 {
   "collapsed_groups": [
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "id": "lamp_pass_through_1",
       "type_name": "lamp_pass_through"
     },
     {
-      "blueprint_path": "blueprints/simple_battery.json",
+      "blueprint_path": "library/simple_battery.json",
       "id": "simple_battery_1",
       "type_name": "simple_battery"
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "id": "lamp_pass_through_2",
       "type_name": "lamp_pass_through"
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "id": "lamp_pass_through_3",
       "type_name": "lamp_pass_through"
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "id": "lamp_pass_through_4",
       "type_name": "lamp_pass_through"
     },
     {
-      "blueprint_path": "blueprints/simple_battery.json",
+      "blueprint_path": "library/simple_battery.json",
       "id": "simple_battery_2",
       "type_name": "simple_battery"
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "id": "lamp_pass_through_5",
       "type_name": "lamp_pass_through"
     }
@@ -680,7 +680,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "kind": "Blueprint",
       "name": "lamp_pass_through_1",
@@ -800,7 +800,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "kind": "Blueprint",
       "name": "lamp_pass_through_2",
@@ -824,7 +824,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/simple_battery.json",
+      "blueprint_path": "library/simple_battery.json",
       "classname": "simple_battery",
       "kind": "Blueprint",
       "name": "simple_battery_1",
@@ -966,7 +966,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "kind": "Blueprint",
       "name": "lamp_pass_through_3",
@@ -1086,7 +1086,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "group_id": "lamp_pass_through_3",
       "kind": "Blueprint",
@@ -1269,7 +1269,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/simple_battery.json",
+      "blueprint_path": "library/simple_battery.json",
       "classname": "simple_battery",
       "kind": "Blueprint",
       "name": "simple_battery_2",
@@ -1389,7 +1389,7 @@
       }
     },
     {
-      "blueprint_path": "blueprints/lamp_pass_through.json",
+      "blueprint_path": "library/lamp_pass_through.json",
       "classname": "lamp_pass_through",
       "kind": "Blueprint",
       "name": "lamp_pass_through_5",

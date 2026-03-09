@@ -267,15 +267,16 @@ std::unordered_map<std::string, Port> extract_exposed_ports(
     return exposed;
 }
 
-ParserContext parse_json(const std::string& json_text) {
+static ParserContext parse_json_impl(const std::string& json_text,
+                                     TypeRegistry& registry,
+                                     std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
 
     auto j = json::parse(json_text);
     ParserContext ctx;
 
-    // Load type registry
-    ctx.registry = load_type_registry();
-    spdlog::info("[json_parser] Loaded {} type definitions", ctx.registry.types.size());
+    // Share registry (already loaded by caller)
+    ctx.registry = registry;
 
     // Parse templates
     if (j.contains("templates")) {
@@ -317,6 +318,12 @@ ParserContext parse_json(const std::string& json_text) {
 
         // Blueprint types (cpp_class=false): expand from TypeDefinition
         if (!def->cpp_class && !def->devices.empty()) {
+            // Cycle detection: if we're already expanding this classname, it's a cycle
+            if (expanding.count(raw_dev.classname)) {
+                throw std::runtime_error("Blueprint cycle detected: '" + raw_dev.classname +
+                    "' is already being expanded (circular dependency)");
+            }
+
             spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from TypeRegistry",
                         raw_dev.classname, raw_dev.name);
 
@@ -338,7 +345,9 @@ ParserContext parse_json(const std::string& json_text) {
                 nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
             }
 
-            ParserContext nested = parse_json(nested_json.dump());
+            // Track this classname as being expanded, then recurse
+            expanding.insert(raw_dev.classname);
+            ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
             merge_nested_blueprint(ctx, nested, raw_dev.name);
 
             spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
@@ -481,6 +490,18 @@ ParserContext parse_json(const std::string& json_text) {
         ctx.templates.size(), ctx.devices.size(), ctx.connections.size());
 
     return ctx;
+}
+
+ParserContext parse_json(const std::string& json_text) {
+    auto registry = load_type_registry();
+    spdlog::info("[json_parser] Loaded {} type definitions", registry.types.size());
+    return parse_json_impl(json_text, registry, {});
+}
+
+ParserContext parse_json(const std::string& json_text, const std::string& library_dir) {
+    auto registry = load_type_registry(library_dir);
+    spdlog::info("[json_parser] Loaded {} type definitions from '{}'", registry.types.size(), library_dir);
+    return parse_json_impl(json_text, registry, {});
 }
 
 // Serialization helpers
