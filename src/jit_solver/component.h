@@ -59,7 +59,7 @@ public:
 //   };
 //
 // The macro generates uint32_t fields with _idx suffix for each port.
-// This matches the port names in components/*.json registry.
+// This matches the port names in library/*.json registry.
 // Supports 1-32 ports.
 // ============================================================================
 

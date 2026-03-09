@@ -624,7 +624,7 @@ int main(int argc, char** argv) {
             if (ImGui::BeginMenu("Blueprints")) {
                 if (app.blueprints.empty()) {
                     ImGui::TextDisabled("No blueprints found");
-                    ImGui::TextDisabled("(blueprints/ directory)");
+                    ImGui::TextDisabled("(library/ directory)");
                 } else {
                     for (const auto& bp_info : app.blueprints) {
                         // Show blueprint name with exposed port count

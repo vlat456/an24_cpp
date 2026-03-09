@@ -44,7 +44,7 @@ struct Node {
 
     // Phase 5.1: Hierarchical blueprint support
     bool collapsed = true;   ///< Show as single node (true) or expanded (false)
-    std::string blueprint_path;  ///< Path to nested blueprint JSON (e.g., "blueprints/simple_battery.json")
+    std::string blueprint_path;  ///< Classname of nested blueprint type (e.g., "simple_battery")
 
     /// Group membership: which collapsed group this node belongs to.
     /// Empty string = root (top-level). "lamp1" = inside collapsed group "lamp1".

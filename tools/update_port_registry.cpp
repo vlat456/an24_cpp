@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main() {
-    std::string components_dir = "/Users/vladimir/an24_cpp/components";
+    std::string components_dir = "/Users/vladimir/an24_cpp/library";
     std::string port_registry_path = "src/jit_solver/components/port_registry.h";
 
     std::cout << "Generating port registry from " << components_dir << "...\n";

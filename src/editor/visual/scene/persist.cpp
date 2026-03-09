@@ -698,10 +698,10 @@ bool save_blueprint_to_file(const Blueprint& bp, const char* path) {
     // BUGFIX [d9c3f2] Protect embedded blueprint originals from accidental overwrite
     namespace fs = std::filesystem;
     fs::path save_path = fs::weakly_canonical(fs::path(path));
-    // Reject saving into any directory named "blueprints" to protect originals
+    // Reject saving into any directory named "library" to protect type definitions
     for (auto it = save_path.begin(); it != save_path.end(); ++it) {
-        if (*it == "blueprints") {
-            spdlog::error("Refusing to save into blueprints/ directory: {}", path);
+        if (*it == "library") {
+            spdlog::error("Refusing to save into library/ directory: {}", path);
             return false;
         }
     }

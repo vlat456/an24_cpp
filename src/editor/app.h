@@ -38,7 +38,7 @@ struct EditorApp {
     /// Blueprint metadata for context menu
     struct BlueprintInfo {
         std::string name;              // Blueprint filename without .json (e.g., "simple_battery")
-        std::string path;              // Full path to blueprint file (e.g., "blueprints/simple_battery.json")
+        std::string path;              // Unused (kept for compatibility)
         std::unordered_map<std::string, an24::Port> exposed_ports;  // Exposed ports from blueprint
     };
     std::vector<BlueprintInfo> blueprints;  // Discovered blueprints at startup
@@ -72,7 +72,7 @@ struct EditorApp {
         // Load type registry at startup
         type_registry = an24::load_type_registry();
 
-        // Scan blueprints/ directory for nested blueprints
+        // Scan library/ for nested blueprints (cpp_class=false types)
         scan_blueprints();
     }
 
@@ -146,7 +146,7 @@ struct EditorApp {
     /// Добавить компонент на схему (group_id = which sub-blueprint to add to)
     void add_component(const std::string& classname, Pt world_pos, const std::string& group_id = "");
 
-    /// Scan blueprints/ directory and populate blueprints vector
+    /// Scan TypeRegistry for blueprint types and populate blueprints vector
     void scan_blueprints();
 
     /// Добавить вложенный блюпринт на схему (collapsed node)

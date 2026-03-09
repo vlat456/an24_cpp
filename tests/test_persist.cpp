@@ -870,14 +870,14 @@ TEST(PersistTest, DedupGuard_SaveDedupsWires) {
 }
 
 // =============================================================================
-// BUGFIX [d9c3f2] save_blueprint_to_file rejects blueprints/ directory
+// BUGFIX [d9c3f2] save_blueprint_to_file rejects library/ directory
 // =============================================================================
 
 TEST(PersistTest, SaveRejectsBluprintDirectory) {
     Blueprint bp;
-    // Should refuse to write to blueprints/ directory
-    bool ok = save_blueprint_to_file(bp, "blueprints/test_output.json");
-    EXPECT_FALSE(ok) << "save_blueprint_to_file must refuse to write into blueprints/ dir";
+    // Should refuse to write to library/ directory
+    bool ok = save_blueprint_to_file(bp, "library/test_output.json");
+    EXPECT_FALSE(ok) << "save_blueprint_to_file must refuse to write into library/ dir";
 }
 
 // =============================================================================
@@ -1285,8 +1285,8 @@ TEST(BlueprintTest, AutoLayout_MultipleRowsPerColumn) {
 TEST(PersistTest, SaveRejectsNestedBlueprintDirectory) {
     Blueprint bp;
     // Nested path should also be rejected
-    bool ok = save_blueprint_to_file(bp, "/some/path/blueprints/nested/test.json");
-    EXPECT_FALSE(ok) << "Must reject any path with 'blueprints' segment";
+    bool ok = save_blueprint_to_file(bp, "/some/path/library/nested/test.json");
+    EXPECT_FALSE(ok) << "Must reject any path with 'library' segment";
 }
 
 TEST(PersistTest, SaveAllowsNonBlueprintDirectory) {
@@ -1294,7 +1294,7 @@ TEST(PersistTest, SaveAllowsNonBlueprintDirectory) {
     Node a; a.id = "a"; a.type_name = "Battery"; a.output("v_out"); a.at(0, 0);
     bp.add_node(std::move(a));
 
-    // Save to /tmp — should succeed (path doesn't contain "blueprints")
+    // Save to /tmp — should succeed (path doesn't contain "library")
     bool ok = save_blueprint_to_file(bp, "/tmp/an24_test_persist_output.json");
     EXPECT_TRUE(ok) << "Saving to non-blueprints path must succeed";
 

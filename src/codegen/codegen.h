@@ -35,7 +35,7 @@ public:
         uint32_t signal_count
     );
 
-    /// Generate port registry header from components/*.json
+    /// Generate port registry header from library/*.json
     static void generate_port_registry(const std::string& components_dir, const std::string& output_path);
 };
 

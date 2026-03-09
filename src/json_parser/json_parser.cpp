@@ -129,7 +129,7 @@ static DeviceInstance parse_device(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in component definitions (components/*.json). Users cannot override domains.
+    // in type definitions (library/*.json). Users cannot override domains.
 
     return dev;
 }
@@ -194,7 +194,7 @@ static SystemTemplate parse_template(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in component definitions (components/*.json).
+    // in type definitions (library/*.json).
 
     return tpl;
 }
@@ -522,7 +522,7 @@ static json device_to_json(const DeviceInstance& dev) {
     }
 
     // NOTE: Domains are NOT serialized to JSON - they are defined exclusively
-    // in component definitions (components/*.json).
+    // in type definitions (library/*.json).
 
     return j;
 }
