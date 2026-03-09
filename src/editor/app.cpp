@@ -85,6 +85,12 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
         printf("Error: Component definition not found for '%s'\n", classname.c_str());
         return;
     }
+
+    // Blueprint types go through add_blueprint (expanded + collapsed node)
+    if (!def->cpp_class && !def->devices.empty()) {
+        add_blueprint(classname, world_pos, group_id);
+        return;
+    }
     
     // Generate unique ID
     int counter = 1;
@@ -108,16 +114,9 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     node.pos = snapped_pos;
     node.group_id = group_id;
 
-    // Set NodeKind based on classname and cpp_class flag
-    if (classname == "Bus") {
-        node.kind = NodeKind::Bus;
-    } else if (classname == "RefNode") {
-        node.kind = NodeKind::Ref;
-    } else if (def->cpp_class) {
-        node.kind = NodeKind::InternalCPP;
-    } else {
-        node.kind = NodeKind::Blueprint;
-    }
+    // Set render_hint and expandable from TypeDefinition
+    node.render_hint = def->render_hint;
+    node.expandable = !def->cpp_class && !def->devices.empty();
 
     // Get size from component definition (single source of truth)
     node.size = get_default_node_size(classname, &type_registry);
@@ -162,47 +161,13 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
            group_id.empty() ? "root" : group_id.c_str());
 }
 
-void EditorApp::scan_blueprints() {
-    blueprints.clear();
-
-    // Scan TypeRegistry for cpp_class=false types (blueprint types)
-    for (const auto& [classname, def] : type_registry.types) {
-        if (def.cpp_class) continue;  // skip C++ leaf types
-
-        BlueprintInfo info;
-        info.name = classname;
-        info.path = "";  // no file path needed, data is in TypeRegistry
-        info.exposed_ports = def.ports;
-
-        blueprints.push_back(std::move(info));
-
-        spdlog::info("[editor] discovered blueprint type: {} ({} exposed ports)",
-                   classname, def.ports.size());
-    }
-
-    // Sort alphabetically
-    std::sort(blueprints.begin(), blueprints.end(),
-              [](const BlueprintInfo& a, const BlueprintInfo& b) {
-                  return a.name < b.name;
-              });
-
-    spdlog::info("[editor] scanned {} blueprint types from TypeRegistry", blueprints.size());
-}
-
 void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id) {
     using namespace an24;
 
-    // Find blueprint info
-    const BlueprintInfo* info = nullptr;
-    for (const auto& bp : blueprints) {
-        if (bp.name == blueprint_name) {
-            info = &bp;
-            break;
-        }
-    }
-
-    if (!info) {
-        spdlog::error("[editor] blueprint not found: {}", blueprint_name);
+    // Get blueprint definition from TypeRegistry
+    const auto* bp_def = type_registry.get(blueprint_name);
+    if (!bp_def || bp_def->cpp_class) {
+        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
         return;
     }
 
@@ -220,13 +185,6 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
 
     // IMMEDIATELY EXPAND the nested blueprint (always-flatten architecture)
-    // Get blueprint definition from TypeRegistry
-    const auto* bp_def = type_registry.get(blueprint_name);
-    if (!bp_def || bp_def->cpp_class) {
-        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
-        return;
-    }
-
     // Build JSON from TypeDefinition and parse (handles recursive expansion)
     nlohmann::json nested_json;
     nested_json["devices"] = nlohmann::json::array();
@@ -262,18 +220,11 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         node.id = prefix + ":" + dev.name;
         node.name = node.id;
         node.type_name = dev.classname;
-        // Derive kind from classname and type registry
-        if (dev.classname == "Bus") {
-            node.kind = NodeKind::Bus;
-        } else if (dev.classname == "RefNode") {
-            node.kind = NodeKind::Ref;
-        } else {
-            const auto* inner_def = type_registry.get(dev.classname);
-            if (inner_def && !inner_def->cpp_class) {
-                node.kind = NodeKind::Blueprint;
-            } else {
-                node.kind = NodeKind::InternalCPP;
-            }
+        // Derive render_hint and expandable from type registry
+        const auto* inner_def = type_registry.get(dev.classname);
+        if (inner_def) {
+            node.render_hint = inner_def->render_hint;
+            node.expandable = !inner_def->cpp_class && !inner_def->devices.empty();
         }
         node.pos = snapped_pos;  // All start at same position (will be auto-layout)
         node.size = get_default_node_size(dev.classname, &type_registry);
@@ -328,18 +279,18 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_node.id = unique_id;
     collapsed_node.name = unique_id;
     collapsed_node.type_name = blueprint_name;
-    collapsed_node.kind = NodeKind::Blueprint;
+    collapsed_node.expandable = true;
     collapsed_node.collapsed = true;
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
 
     // Calculate size based on number of exposed ports
-    size_t num_ports = std::max(info->exposed_ports.size(), size_t(1));
+    size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
     collapsed_node.size = Pt(120.0f, height);
 
-    // Add exposed ports from BlueprintInfo
-    for (const auto& [port_name, port] : info->exposed_ports) {
+    // Add exposed ports from TypeDefinition
+    for (const auto& [port_name, port] : bp_def->ports) {
         if (port.direction == PortDirection::In) {
             collapsed_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
         } else {

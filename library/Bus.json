@@ -10,10 +10,9 @@
     }
   },
   "params": {},
-  "domains": [
-    "Electrical"
-  ],
+  "domains": ["Electrical"],
   "priority": "high",
   "critical": true,
-  "size": {"x": 2, "y": 2}
+  "render_hint": "bus",
+  "size": { "x": 2, "y": 2 }
 }

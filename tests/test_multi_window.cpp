@@ -219,7 +219,7 @@ TEST(AutoLayoutGroup, LayoutsNodesInGroup) {
 
     // Root node
     Node root; root.id = "r1"; root.at(0, 0).size_wh(120, 80);
-    root.type_name = "RefNode"; root.kind = NodeKind::Ref;
+    root.type_name = "RefNode"; root.render_hint = "ref";
     bp.add_node(std::move(root));
 
     // Internal nodes all at same position (simulates add_blueprint behavior)
@@ -280,12 +280,11 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
 
     // Root-level battery
     Node battery; battery.id = "bat1"; battery.at(0, 0).size_wh(100, 60);
-    battery.kind = NodeKind::Node;
     bp.add_node(std::move(battery));
 
     // Collapsed group "vsu1" at root level
     Node vsu_collapsed; vsu_collapsed.id = "vsu1"; vsu_collapsed.at(200, 0).size_wh(120, 80);
-    vsu_collapsed.kind = NodeKind::Blueprint;
+    vsu_collapsed.expandable = true;
     vsu_collapsed.collapsed = true;
     bp.add_node(std::move(vsu_collapsed));
 
@@ -302,7 +301,7 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
 
     // Now add a nested blueprint INSIDE vsu1's sub-window
     Node nested; nested.id = "nested1"; nested.at(300, 0).size_wh(120, 80);
-    nested.kind = NodeKind::Blueprint;
+    nested.expandable = true;
     nested.collapsed = true;
     nested.group_id = "vsu1";  // Placed inside vsu1's sub-window
     bp.add_node(std::move(nested));
@@ -332,7 +331,7 @@ TEST(RecomputeGroupIds, TopLevelCollapsedNodeStaysRoot) {
     Blueprint bp;
 
     Node collapsed; collapsed.id = "bp1"; collapsed.at(0, 0).size_wh(120, 80);
-    collapsed.kind = NodeKind::Blueprint;
+    collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.group_id = "";  // top-level
     bp.add_node(std::move(collapsed));

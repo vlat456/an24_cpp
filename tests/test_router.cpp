@@ -570,7 +570,7 @@ TEST(RouterTest, PortDepartureOutput) {
 TEST(RouterTest, PortDepartureRef) {
     Node n;
     n.id = "ref";
-    n.kind = NodeKind::Ref;
+    n.render_hint = "ref";
     n.pos = Pt(100, 100);
     n.size = Pt(120, 80);
     n.output("v");
@@ -583,7 +583,7 @@ TEST(RouterTest, PortDepartureRef) {
 TEST(RouterTest, PortDepartureBus) {
     Node n;
     n.id = "bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.pos = Pt(100, 100);
     n.size = Pt(120, 80);
     n.output("v");

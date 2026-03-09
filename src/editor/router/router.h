@@ -96,11 +96,11 @@ struct PortDir { int dx, dy; };
 
 inline PortDir get_port_departure(const Node& node, const char* port_name) {
     // Bus: no preferred direction
-    if (node.kind == NodeKind::Bus) {
+    if (node.render_hint == "bus") {
         return {0, 0};
     }
     // Ref: port is on top → wire departs upward (negative Y)
-    if (node.kind == NodeKind::Ref) {
+    if (node.render_hint == "ref") {
         return {0, -1};
     }
     // Normal node: inputs on left face → depart left, outputs on right face → depart right

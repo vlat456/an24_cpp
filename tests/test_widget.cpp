@@ -520,7 +520,7 @@ TEST(IDrawableTest, BusNodeIsDrawable) {
     n.id = "bus1";
     n.name = "Bus";
     n.type_name = "bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(0, 0).size_wh(64, 32);
 
     BusVisualNode visual(n);
@@ -537,7 +537,7 @@ TEST(IDrawableTest, RefNodeIsDrawable) {
     n.id = "ref1";
     n.name = "GND";
     n.type_name = "refnode";
-    n.kind = NodeKind::Ref;
+    n.render_hint = "ref";
     n.at(0, 0).size_wh(48, 32);
 
     RefVisualNode visual(n);
@@ -592,7 +592,7 @@ TEST(ISelectableTest, BusNodeSelectable) {
     Node n;
     n.id = "bus1";
     n.name = "Bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(0, 0).size_wh(64, 32);
 
     BusVisualNode visual(n);
@@ -685,7 +685,7 @@ TEST(IPersistableTest, BusNodeHasId) {
     Node n;
     n.id = "bus_7";
     n.name = "Bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(0, 0).size_wh(64, 32);
 
     BusVisualNode visual(n);
@@ -698,7 +698,7 @@ TEST(IPersistableTest, RefNodeHasId) {
     Node n;
     n.id = "gnd_1";
     n.name = "GND";
-    n.kind = NodeKind::Ref;
+    n.render_hint = "ref";
     n.at(0, 0).size_wh(48, 32);
 
     RefVisualNode visual(n);
@@ -752,7 +752,7 @@ TEST(ContentAccessTest, BusNodeContentDefaultsToNone) {
     Node n;
     n.id = "bus1";
     n.name = "Bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(0, 0).size_wh(64, 32);
 
     BusVisualNode visual(n);
@@ -832,7 +832,7 @@ TEST(VisualNodeTest, SetSize_SnapsToGrid) {
 
 TEST(VisualNodeTest, SetSize_BusAcceptsExternal) {
     Node n;
-    n.id = "bus1"; n.name = "bus"; n.kind = NodeKind::Bus;
+    n.id = "bus1"; n.name = "bus"; n.render_hint = "bus";
     n.at(0, 0).size_wh(80, 32);
     n.input("v"); n.output("v");
 
@@ -876,7 +876,7 @@ TEST(VisualNodeTest, ContentBounds_SymmetricMargins) {
 
 TEST(VisualNodeTest, BusPortOrder_AliasFirst_VLast) {
     Node bus;
-    bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
 
@@ -907,7 +907,7 @@ TEST(VisualNodeTest, BusPortOrder_AliasFirst_VLast) {
 
 TEST(VisualNodeTest, BusPortOrder_NoWires_SingleVPort) {
     Node bus;
-    bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
 
@@ -931,7 +931,7 @@ TEST(RefNodeGridTest, PortPosition_IsGridAligned) {
     float positions[] = {0.0f, 16.0f, 32.0f, 48.0f, 64.0f, 128.0f};
     for (float px : positions) {
         Node n;
-        n.id = "ref1"; n.name = "GND"; n.kind = NodeKind::Ref;
+        n.id = "ref1"; n.name = "GND"; n.render_hint = "ref";
         n.at(px, px).size_wh(40, 40);
         n.output("v");
         RefVisualNode visual(n);
@@ -950,7 +950,6 @@ TEST(StandardNodeGridTest, PortPositions_AreGridAligned) {
     constexpr float GRID = 16.0f;
 
     Node n;
-    n.id = "gen"; n.name = "Gen"; n.kind = NodeKind::Node;
     n.at(64.0f, 64.0f).size_wh(120, 80);
     n.input("a"); n.input("b");
     n.output("c"); n.output("d");
@@ -971,7 +970,7 @@ TEST(BusNodeGridTest, PortPositions_AreGridAligned) {
     constexpr float GRID = 16.0f;
 
     Node n;
-    n.id = "bus1"; n.name = "bus"; n.kind = NodeKind::Bus;
+    n.id = "bus1"; n.name = "bus"; n.render_hint = "bus";
     n.at(48.0f, 48.0f).size_wh(80, 32);
     n.input("v"); n.output("v");
 

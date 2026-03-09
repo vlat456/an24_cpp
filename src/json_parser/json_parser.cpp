@@ -685,6 +685,11 @@ static TypeDefinition parse_type_definition(const json& j) {
         def.content_type = j["content_type"].get<std::string>();
     }
 
+    // Parse render hint (visual style: "bus", "ref", or empty)
+    if (j.contains("render_hint")) {
+        def.render_hint = j["render_hint"].get<std::string>();
+    }
+
     // Parse size {x, y} in grid units
     if (j.contains("size") && j["size"].is_object()) {
         auto size_obj = j["size"];
@@ -740,9 +745,9 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
         return registry;
     }
 
-    // Scan for *.json files
+    // Scan for *.json files recursively
     size_t loaded_count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(library_path)) {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(library_path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
             try {
                 // Read and parse JSON file
@@ -760,12 +765,21 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     continue;
                 }
 
+                // Compute category from relative directory path
+                auto relative_dir = std::filesystem::relative(entry.path().parent_path(), library_path);
+                std::string category = relative_dir.generic_string();
+                if (category == ".") category = "";
+
                 // Add to registry
                 registry.types[def.classname] = def;
+                if (!category.empty()) {
+                    registry.categories[def.classname] = category;
+                }
                 loaded_count++;
 
-                spdlog::debug("[json_parser] Loaded type definition: '{}' from {}",
-                             def.classname, entry.path().filename().string());
+                spdlog::debug("[json_parser] Loaded type definition: '{}' from {} (category: {})",
+                             def.classname, entry.path().filename().string(),
+                             category.empty() ? "root" : category);
             }
             catch (const std::exception& e) {
                 spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
@@ -828,6 +842,41 @@ DeviceInstance merge_device_instance(
     }
 
     return merged;
+}
+
+// Build menu tree from directory hierarchy (categories map)
+MenuTree TypeRegistry::build_menu_tree() const {
+    MenuTree root;
+    for (const auto& [classname, _] : types) {
+        MenuTree* node = &root;
+
+        auto cat_it = categories.find(classname);
+        if (cat_it != categories.end() && !cat_it->second.empty()) {
+            const std::string& cat = cat_it->second;
+            size_t start = 0;
+            while (start < cat.size()) {
+                size_t slash = cat.find('/', start);
+                std::string segment = (slash == std::string::npos)
+                    ? cat.substr(start)
+                    : cat.substr(start, slash - start);
+                node = &node->children[segment];
+                start = (slash == std::string::npos) ? cat.size() : slash + 1;
+            }
+        }
+
+        node->entries.push_back(classname);
+    }
+
+    // Sort entries at every level
+    std::function<void(MenuTree&)> sort_tree = [&](MenuTree& t) {
+        std::sort(t.entries.begin(), t.entries.end());
+        for (auto& [_, child] : t.children) {
+            sort_tree(child);
+        }
+    };
+    sort_tree(root);
+
+    return root;
 }
 
 // Validate instance against type definition

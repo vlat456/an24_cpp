@@ -25,9 +25,9 @@ std::vector<Pt> WireManager::wirePolyline(const Wire& wire) const {
 
 std::optional<WirePortMatch> WireManager::findWireOnPort(const HitResult& port_hit) const {
     // Determine if the port belongs to a Bus node (for special matching).
-    NodeKind port_node_kind = NodeKind::Node;
+    bool is_bus = false;
     const Node* hit_node = scene_.findNode(port_hit.port_node_id.c_str());
-    if (hit_node) port_node_kind = hit_node->kind;
+    if (hit_node) is_bus = (hit_node->render_hint == "bus");
 
     const auto& wires = scene_.wires();
     for (size_t wi = 0; wi < wires.size(); wi++) {
@@ -41,7 +41,7 @@ std::optional<WirePortMatch> WireManager::findWireOnPort(const HitResult& port_h
                            w.start.node_id == port_hit.port_node_id);
             match_end   = (w.id == port_hit.port_wire_id &&
                            w.end.node_id == port_hit.port_node_id);
-        } else if (port_node_kind != NodeKind::Bus) {
+        } else if (!is_bus) {
             match_start = (w.start.node_id == port_hit.port_node_id &&
                            w.start.port_name == port_hit.port_name);
             match_end   = (w.end.node_id == port_hit.port_node_id &&

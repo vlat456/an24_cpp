@@ -8,11 +8,7 @@
 #include <map>
 #include <set>
 #include <unordered_set>
-#include <filesystem>
 
-// Use nlohmann::json - will be available when linked with json_parser
-// This is a simple inline JSON parser for port registry generation
-#include <nlohmann/json.hpp>
 
 namespace an24 {
 
@@ -626,12 +622,9 @@ void CodeGen::write_files(
     std::cerr << "[codegen]   - Sparse convergence check\n";
 }
 
-void CodeGen::generate_port_registry(const std::string& components_dir, const std::string& output_path) {
-    using json = nlohmann::json;
+void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
+    std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
 
-    std::cerr << "[codegen] Generating port registry from " << components_dir << "\n";
-
-    // Structure to hold component port information
     struct ComponentPorts {
         std::string classname;
         std::vector<std::string> ports;
@@ -639,44 +632,16 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
 
     std::vector<ComponentPorts> all_components;
 
-    // Scan library directory for JSON files (unified format)
-    for (const auto& entry : std::filesystem::directory_iterator(components_dir)) {
-        if (entry.path().extension() != ".json") continue;
+    for (const auto& [name, def] : registry.types) {
+        if (!def.cpp_class) continue;
 
-        std::ifstream file(entry.path());
-        if (!file.is_open()) {
-            std::cerr << "[codegen] Warning: could not open " << entry.path() << "\n";
-            continue;
+        ComponentPorts comp;
+        comp.classname = def.classname;
+        for (const auto& [port_name, _] : def.ports) {
+            comp.ports.push_back(port_name);
         }
-
-        try {
-            json json;
-            file >> json;
-
-            if (!json.contains("classname") || !json.contains("ports")) {
-                continue;
-            }
-
-            // Skip blueprint types — only C++ components have port registries
-            if (json.contains("cpp_class") && json["cpp_class"] == false) {
-                continue;
-            }
-
-            ComponentPorts comp;
-            comp.classname = json["classname"];
-
-            // Collect all port names
-            for (const auto& [port_name, _] : json["ports"].items()) {
-                comp.ports.push_back(port_name);
-            }
-
-            // Sort ports for consistency
-            std::sort(comp.ports.begin(), comp.ports.end());
-
-            all_components.push_back(comp);
-        } catch (const std::exception& e) {
-            std::cerr << "[codegen] Error parsing " << entry.path() << ": " << e.what() << "\n";
-        }
+        std::sort(comp.ports.begin(), comp.ports.end());
+        all_components.push_back(std::move(comp));
     }
 
     // Sort components by classname

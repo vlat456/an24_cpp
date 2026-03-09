@@ -14,7 +14,6 @@ static Blueprint make_single_node_bp() {
     Node n;
     n.id = "bat1";
     n.type_name = "Battery";
-    n.kind = NodeKind::Node;
     n.at(0, 0).size_wh(120, 80);
     n.input("v_in");
     n.output("v_out");

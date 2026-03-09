@@ -150,28 +150,19 @@ class VisualNodeFactory {
 public:
     static std::unique_ptr<VisualNode> create(const Node& node,
                                                const std::vector<Wire>& wires = {}) {
-        switch (node.kind) {
-            case NodeKind::Bus:
-                return std::make_unique<BusVisualNode>(node, BusOrientation::Horizontal, wires);
-            case NodeKind::Ref:
-                return std::make_unique<RefVisualNode>(node);
-            case NodeKind::Blueprint:
-                {
-                    Node bp_node = node;
-                    bp_node.node_content = NodeContent{};
-                    return std::make_unique<VisualNode>(bp_node);
-                }
-            case NodeKind::InternalCPP:
-                {
-                    // Same visual as Blueprint but not expandable
-                    Node cpp_node = node;
-                    cpp_node.node_content = NodeContent{};
-                    return std::make_unique<VisualNode>(cpp_node);
-                }
-            case NodeKind::Node:
-            default:
-                return std::make_unique<VisualNode>(node);
+        if (node.render_hint == "bus") {
+            return std::make_unique<BusVisualNode>(node, BusOrientation::Horizontal, wires);
         }
+        if (node.render_hint == "ref") {
+            return std::make_unique<RefVisualNode>(node);
+        }
+        if (node.expandable) {
+            // Expandable (collapsed blueprint) — strip content
+            Node bp_node = node;
+            bp_node.node_content = NodeContent{};
+            return std::make_unique<VisualNode>(bp_node);
+        }
+        return std::make_unique<VisualNode>(node);
     }
 };
 

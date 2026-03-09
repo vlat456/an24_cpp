@@ -119,9 +119,9 @@ struct Blueprint {
             auto it = node_to_group.find(n.id);
             if (it != node_to_group.end()) {
                 n.group_id = it->second;
-            } else if (n.kind != NodeKind::Blueprint) {
-                // Non-blueprint nodes not in any group are top-level.
-                // Blueprint (collapsed) nodes keep their group_id as-is
+            } else if (!n.expandable) {
+                // Non-expandable nodes not in any group are top-level.
+                // Expandable (collapsed) nodes keep their group_id as-is
                 // because it was set explicitly when added to a sub-window.
                 n.group_id = "";
             }
@@ -142,7 +142,7 @@ struct Blueprint {
                 out_node_ids.insert(nid);
                 // If this internal node is itself a Blueprint, recurse
                 const Node* n = find_node(nid.c_str());
-                if (n && n->kind == NodeKind::Blueprint) {
+                if (n && n->expandable) {
                     collect_group_internals(nid, out_node_ids, out_group_ids);
                 }
             }

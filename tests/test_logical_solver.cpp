@@ -162,7 +162,6 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     comp.id = "comp1";
     comp.name = "Comparator";
     comp.type_name = "Comparator";
-    comp.kind = NodeKind::Node;
     comp.at(0, 0);
     comp.input("Va");
     comp.input("Vb");
@@ -220,7 +219,6 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     comp.id = "comp1";
     comp.name = "Comparator";
     comp.type_name = "Comparator";
-    comp.kind = NodeKind::Node;
     comp.at(0, 0);
     comp.input("Va");
     comp.input("Vb");

@@ -20,7 +20,6 @@ struct InspectorTestScene {
         n.id = id;
         n.name = id;
         n.type_name = type;
-        n.kind = NodeKind::Node;
         n.pos = pos;
         n.size = Pt(120, 80);
 
@@ -268,7 +267,6 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     root_node.id = "battery1";
     root_node.name = "battery1";
     root_node.type_name = "Battery";
-    root_node.kind = NodeKind::Node;
     root_node.group_id = "";
     Port ri{"v_in", PortSide::Input, an24::PortType::V};
     Port ro{"v_out", PortSide::Output, an24::PortType::V};
@@ -281,7 +279,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     bp_node.id = "lamp1";
     bp_node.name = "lamp1";
     bp_node.type_name = "LampBlueprint";
-    bp_node.kind = NodeKind::Blueprint;
+    bp_node.expandable = true;
     bp_node.group_id = "";
     bp.add_node(std::move(bp_node));
 
@@ -290,7 +288,6 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     internal.id = "lamp1:led";
     internal.name = "lamp1:led";
     internal.type_name = "LED";
-    internal.kind = NodeKind::Node;
     internal.group_id = "lamp1";
     Port ii{"v_in", PortSide::Input, an24::PortType::V};
     internal.inputs.push_back(ii);
@@ -316,7 +313,6 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     root_node.id = "battery1";
     root_node.name = "battery1";
     root_node.type_name = "Battery";
-    root_node.kind = NodeKind::Node;
     root_node.group_id = "";
     bp.add_node(std::move(root_node));
 
@@ -325,7 +321,6 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     led.id = "lamp1:led";
     led.name = "lamp1:led";
     led.type_name = "LED";
-    led.kind = NodeKind::Node;
     led.group_id = "lamp1";
     Port li{"v_in", PortSide::Input, an24::PortType::V};
     led.inputs.push_back(li);
@@ -335,7 +330,6 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     res.id = "lamp1:res";
     res.name = "lamp1:res";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
     res.group_id = "lamp1";
     Port ri2{"v_in", PortSide::Input, an24::PortType::V};
     Port ro2{"v_out", PortSide::Output, an24::PortType::V};
@@ -364,7 +358,6 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     bat.id = "bat";
     bat.name = "bat";
     bat.type_name = "Battery";
-    bat.kind = NodeKind::Node;
     bat.group_id = "";
     Port bo{"v_out", PortSide::Output, an24::PortType::V};
     bat.outputs.push_back(bo);
@@ -375,7 +368,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     lamp.id = "lamp1";
     lamp.name = "lamp1";
     lamp.type_name = "Lamp";
-    lamp.kind = NodeKind::Blueprint;
+    lamp.expandable = true;
     lamp.group_id = "";
     Port lvi{"v_in", PortSide::Input, an24::PortType::V};
     lamp.inputs.push_back(lvi);
@@ -386,7 +379,6 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     iled.id = "lamp1:led";
     iled.name = "lamp1:led";
     iled.type_name = "LED";
-    iled.kind = NodeKind::Node;
     iled.group_id = "lamp1";
     Port iledi{"v_in", PortSide::Input, an24::PortType::V};
     Port iledo{"v_out", PortSide::Output, an24::PortType::V};
@@ -398,7 +390,6 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     ires.id = "lamp1:res";
     ires.name = "lamp1:res";
     ires.type_name = "Resistor";
-    ires.kind = NodeKind::Node;
     ires.group_id = "lamp1";
     Port iresi{"v_in", PortSide::Input, an24::PortType::V};
     ires.inputs.push_back(iresi);

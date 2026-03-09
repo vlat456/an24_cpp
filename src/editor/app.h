@@ -35,14 +35,6 @@ struct EditorApp {
     /// Type registry (loaded from library/*.json)
     an24::TypeRegistry type_registry;
 
-    /// Blueprint metadata for context menu
-    struct BlueprintInfo {
-        std::string name;              // Blueprint filename without .json (e.g., "simple_battery")
-        std::string path;              // Unused (kept for compatibility)
-        std::unordered_map<std::string, an24::Port> exposed_ports;  // Exposed ports from blueprint
-    };
-    std::vector<BlueprintInfo> blueprints;  // Discovered blueprints at startup
-
     /// Context menu state (tracks which window triggered it)
     bool show_context_menu = false;
     Pt context_menu_pos;
@@ -71,9 +63,6 @@ struct EditorApp {
     {
         // Load type registry at startup
         type_registry = an24::load_type_registry();
-
-        // Scan library/ for nested blueprints (cpp_class=false types)
-        scan_blueprints();
     }
 
     /// Создать новую схему
@@ -145,9 +134,6 @@ struct EditorApp {
 
     /// Добавить компонент на схему (group_id = which sub-blueprint to add to)
     void add_component(const std::string& classname, Pt world_pos, const std::string& group_id = "");
-
-    /// Scan TypeRegistry for blueprint types and populate blueprints vector
-    void scan_blueprints();
 
     /// Добавить вложенный блюпринт на схему (collapsed node)
     void add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id = "");

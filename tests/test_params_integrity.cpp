@@ -150,7 +150,6 @@ TEST(ParamsIntegrity, SavedParamsRoundtrip) {
     n.id = "batt1";
     n.name = "batt1";
     n.type_name = "Battery";
-    n.kind = NodeKind::Node;
     n.pos = Pt(100, 100);
     n.size = Pt(120, 80);
     n.input("v_in");
@@ -216,7 +215,7 @@ TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
 }
 
 // =============================================================================
-// Phase 4: add_component() uses cpp_class to set NodeKind
+// Phase 4: add_component() uses cpp_class to set expandable
 // =============================================================================
 
 TEST(ParamsIntegrity, AddComponent_CppClassTrue_GetsInternalCPP) {
@@ -227,8 +226,8 @@ TEST(ParamsIntegrity, AddComponent_CppClassTrue_GetsInternalCPP) {
 
     app.add_component("Battery", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::InternalCPP)
-        << "cpp_class=true components must get NodeKind::InternalCPP";
+    EXPECT_FALSE(app.blueprint.nodes[0].expandable)
+        << "cpp_class=true components must not be expandable";
 }
 
 TEST(ParamsIntegrity, AddComponent_CppClassFalse_GetsBlueprint) {
@@ -238,21 +237,30 @@ TEST(ParamsIntegrity, AddComponent_CppClassFalse_GetsBlueprint) {
     EXPECT_FALSE(app.type_registry.get("simple_battery")->cpp_class);
 
     app.add_component("simple_battery", Pt(200, 200));
-    ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Blueprint)
-        << "cpp_class=false types must get NodeKind::Blueprint";
+    // Blueprint expansion: internal devices + 1 collapsed node
+    ASSERT_GE(app.blueprint.nodes.size(), 2u);
+    // Find the collapsed node (type_name matches the blueprint)
+    bool found_collapsed = false;
+    for (const auto& n : app.blueprint.nodes) {
+        if (n.type_name == "simple_battery" && n.expandable) {
+            found_collapsed = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_collapsed)
+        << "cpp_class=false types must create an expandable collapsed node";
 }
 
 TEST(ParamsIntegrity, AddComponent_BusStillGetsBusKind) {
     EditorApp app;
     app.add_component("Bus", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Bus);
+    EXPECT_EQ(app.blueprint.nodes[0].render_hint, "bus");
 }
 
 TEST(ParamsIntegrity, AddComponent_RefNodeStillGetsRefKind) {
     EditorApp app;
     app.add_component("RefNode", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Ref);
+    EXPECT_EQ(app.blueprint.nodes[0].render_hint, "ref");
 }

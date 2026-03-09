@@ -6,15 +6,6 @@
 #include <vector>
 #include <unordered_map>
 
-/// Вид узла (для рендеринга)
-enum class NodeKind {
-    Node,        ///< Обычный компонент (батарея, насос, etc.)
-    Bus,         ///< Шина/мультиплексор - маленький квадрат
-    Ref,         ///< Reference node (ground, voltage source)
-    Blueprint,   ///< Свернутый nested blueprint (collapsed node, double-clickable)
-    InternalCPP  ///< Leaf C++ component (визуально как Blueprint, но не expandable)
-};
-
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
     None,
@@ -40,7 +31,8 @@ struct Node {
     std::string id;          ///< Уникальный ID
     std::string name;        ///< Отображаемое имя
     std::string type_name;   ///< Тип (Battery, Pump, Bus, etc.)
-    NodeKind kind = NodeKind::Node;  ///< Вид узла для рендеринга
+    std::string render_hint; ///< Visual hint for rendering ("bus", "ref", or empty)
+    bool expandable = false; ///< True if node has sub-graph (double-clickable)
 
     // Phase 5.1: Hierarchical blueprint support
     bool collapsed = true;   ///< Show as single node (true) or expanded (false)
@@ -65,7 +57,8 @@ struct Node {
         : id()
         , name()
         , type_name()
-        , kind(NodeKind::Node)
+        , render_hint()
+        , expandable(false)
         , collapsed(true)
         , blueprint_path()
         , group_id()

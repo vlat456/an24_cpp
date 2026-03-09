@@ -1,6 +1,8 @@
 #include "json_parser.h"
 #include <gtest/gtest.h>
 #include <sstream>
+#include <filesystem>
+#include <fstream>
 
 using namespace an24;
 
@@ -603,4 +605,161 @@ TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
     // Should NOT throw - RefNode ports allow multiple connections
     auto ctx = parse_json(json);
     EXPECT_EQ(ctx.connections.size(), 2);
+}
+
+// =============================================================================
+// Recursive library loading + MenuTree
+// =============================================================================
+
+static const char* minimal_json(const char* classname) {
+    // Returns a static buffer — only safe for one call at a time
+    static char buf[256];
+    snprintf(buf, sizeof(buf),
+        R"({"classname": "%s", "cpp_class": true, "ports": {}, "params": {}})",
+        classname);
+    return buf;
+}
+
+TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_lib_hierarchy";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp / "electrical");
+
+    std::ofstream(tmp / "Battery.json") << minimal_json("Battery");
+    std::ofstream(tmp / "electrical" / "Resistor.json") << minimal_json("Resistor");
+
+    auto registry = load_type_registry(tmp.string());
+
+    ASSERT_TRUE(registry.has("Battery"));
+    ASSERT_TRUE(registry.has("Resistor"));
+
+    // Root-level file has no category entry
+    EXPECT_EQ(registry.categories.count("Battery"), 0u);
+    // Subdir file gets category from directory path
+    ASSERT_EQ(registry.categories.count("Resistor"), 1u);
+    EXPECT_EQ(registry.categories.at("Resistor"), "electrical");
+
+    fs::remove_all(tmp);
+}
+
+TEST(TypeRegistry, LoadRecursive_DeepNesting) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_lib_deep";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp / "electrical" / "generators");
+
+    std::ofstream(tmp / "electrical" / "generators" / "GS24.json") << minimal_json("GS24");
+
+    auto registry = load_type_registry(tmp.string());
+
+    ASSERT_TRUE(registry.has("GS24"));
+    ASSERT_EQ(registry.categories.count("GS24"), 1u);
+    EXPECT_EQ(registry.categories.at("GS24"), "electrical/generators");
+
+    fs::remove_all(tmp);
+}
+
+TEST(TypeRegistry, BuildMenuTree_FlatLibrary) {
+    TypeRegistry reg;
+
+    TypeDefinition bat; bat.classname = "Battery";
+    TypeDefinition res; res.classname = "Resistor";
+    reg.types["Battery"] = bat;
+    reg.types["Resistor"] = res;
+    // No categories — all root level
+
+    auto tree = reg.build_menu_tree();
+
+    EXPECT_EQ(tree.entries.size(), 2u);
+    EXPECT_TRUE(tree.children.empty());
+}
+
+TEST(TypeRegistry, BuildMenuTree_WithSubdirs) {
+    TypeRegistry reg;
+
+    TypeDefinition bat; bat.classname = "Battery";
+    reg.types["Battery"] = bat;
+
+    TypeDefinition res; res.classname = "Resistor";
+    reg.types["Resistor"] = res;
+    reg.categories["Resistor"] = "electrical";
+
+    TypeDefinition gs; gs.classname = "GS24";
+    reg.types["GS24"] = gs;
+    reg.categories["GS24"] = "electrical/generators";
+
+    TypeDefinition and_gate; and_gate.classname = "AND";
+    reg.types["AND"] = and_gate;
+    reg.categories["AND"] = "logic";
+
+    auto tree = reg.build_menu_tree();
+
+    // Root: "Battery" + 2 subfolders
+    EXPECT_EQ(tree.entries.size(), 1u);
+    EXPECT_EQ(tree.children.size(), 2u);
+
+    // electrical: "Resistor" + 1 subfolder
+    ASSERT_TRUE(tree.children.count("electrical"));
+    const auto& elec = tree.children.at("electrical");
+    EXPECT_EQ(elec.entries.size(), 1u);
+    EXPECT_EQ(elec.children.size(), 1u);
+
+    // electrical/generators: "GS24"
+    ASSERT_TRUE(elec.children.count("generators"));
+    const auto& gens = elec.children.at("generators");
+    EXPECT_EQ(gens.entries.size(), 1u);
+    EXPECT_TRUE(gens.children.empty());
+
+    // logic: "AND"
+    ASSERT_TRUE(tree.children.count("logic"));
+    EXPECT_EQ(tree.children.at("logic").entries.size(), 1u);
+}
+
+TEST(TypeRegistry, BuildMenuTree_EntriesAreSorted) {
+    TypeRegistry reg;
+
+    for (const auto& name : {"Zebra", "Alpha", "Middle"}) {
+        TypeDefinition d; d.classname = name;
+        reg.types[name] = d;
+    }
+
+    auto tree = reg.build_menu_tree();
+
+    ASSERT_EQ(tree.entries.size(), 3u);
+    EXPECT_EQ(tree.entries[0], "Alpha");
+    EXPECT_EQ(tree.entries[1], "Middle");
+    EXPECT_EQ(tree.entries[2], "Zebra");
+}
+
+TEST(TypeRegistry, BuildMenuTree_BlueprintsInSameTree) {
+    TypeRegistry reg;
+
+    TypeDefinition bat; bat.classname = "Battery"; bat.cpp_class = true;
+    reg.types["Battery"] = bat;
+    reg.categories["Battery"] = "electrical";
+
+    TypeDefinition lamp; lamp.classname = "LampPassThrough"; lamp.cpp_class = false;
+    reg.types["LampPassThrough"] = lamp;
+    reg.categories["LampPassThrough"] = "electrical";
+
+    auto tree = reg.build_menu_tree();
+
+    ASSERT_TRUE(tree.children.count("electrical"));
+    EXPECT_EQ(tree.children.at("electrical").entries.size(), 2u);
+}
+
+TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
+    TypeRegistry reg;
+
+    TypeDefinition bat; bat.classname = "Battery";
+    reg.types["Battery"] = bat;
+    reg.categories["Battery"] = "electrical";
+
+    TypeDefinition and_gate; and_gate.classname = "AND";
+    reg.types["AND"] = and_gate;
+    reg.categories["AND"] = "logic";
+
+    auto names = reg.list_classnames();
+    EXPECT_EQ(names.size(), 2u);
 }

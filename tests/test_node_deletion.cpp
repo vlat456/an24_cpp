@@ -93,7 +93,7 @@ TEST(NodeDeletion, RemoveNode_UnrelatedWiresSurvive) {
 
 TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
     Blueprint bp;
-    Node root; root.id = "lamp1"; root.kind = NodeKind::Blueprint;
+    Node root; root.id = "lamp1"; root.expandable = true;
     root.at(0, 0).size_wh(120, 80);
     bp.add_node(std::move(root));
 
@@ -265,7 +265,7 @@ TEST(NodeDeletion, Persist_StaleWiresCleanedOnSave) {
 TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     Blueprint bp;
     // Root node (collapsed blueprint)
-    Node root; root.id = "lamp1"; root.kind = NodeKind::Blueprint;
+    Node root; root.id = "lamp1"; root.expandable = true;
     root.at(0, 0).size_wh(120, 80);
     bp.add_node(std::move(root));
 
@@ -322,7 +322,7 @@ static Blueprint make_bp_with_sub_blueprint() {
     bp.add_node(std::move(bat));
 
     // Collapsed blueprint node
-    Node lamp; lamp.id = "lamp1"; lamp.type_name = "lamp"; lamp.kind = NodeKind::Blueprint;
+    Node lamp; lamp.id = "lamp1"; lamp.type_name = "lamp"; lamp.expandable = true;
     lamp.at(200, 0).size_wh(120, 80);
     lamp.input("vin").output("vout");
     bp.add_node(std::move(lamp));
@@ -417,12 +417,12 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
     bp.add_node(std::move(root));
 
     // Level 1: sub-blueprint "sys1"
-    Node sys1; sys1.id = "sys1"; sys1.kind = NodeKind::Blueprint;
+    Node sys1; sys1.id = "sys1"; sys1.expandable = true;
     sys1.at(200, 0).size_wh(120, 80); sys1.input("in");
     bp.add_node(std::move(sys1));
 
     // Level 2: inside sys1, another sub-blueprint "sys1:sub2"
-    Node sub2; sub2.id = "sys1:sub2"; sub2.kind = NodeKind::Blueprint;
+    Node sub2; sub2.id = "sys1:sub2"; sub2.expandable = true;
     sub2.group_id = "sys1";
     sub2.at(0, 0).size_wh(100, 60); sub2.input("in");
     bp.add_node(std::move(sub2));

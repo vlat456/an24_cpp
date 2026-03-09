@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
@@ -78,15 +79,23 @@ struct TypeDefinition {
     std::string priority = "med";     // Priority
     bool critical = false;            // Critical flag
     std::string content_type = "None"; // UI content type (None, Gauge, Switch, Text)
+    std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
 };
 
+/// Tree structure mirroring library/ subdirectory hierarchy for menu building.
+struct MenuTree {
+    std::vector<std::string> entries;                        // Classnames at this level (sorted)
+    std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
+};
+
 /// Type registry - holds all type definitions loaded from library/
 struct TypeRegistry {
     std::unordered_map<std::string, TypeDefinition> types;
+    std::unordered_map<std::string, std::string> categories;  // classname → relative subdir path (e.g., "electrical")
 
     /// Get type definition by classname
     const TypeDefinition* get(const std::string& classname) const {
@@ -111,6 +120,9 @@ struct TypeRegistry {
         }
         return names;
     }
+
+    /// Build a menu tree from directory hierarchy
+    MenuTree build_menu_tree() const;
 
     /// Validate instance against definition
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;

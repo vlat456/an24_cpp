@@ -139,15 +139,15 @@ TEST(PersistTest, FromJson_MissingDevices_ReturnsNullopt) {
 
 
 
-// ─── NodeKind persistence tests ───
+// ─── render_hint / expandable persistence tests ───
 
-TEST(PersistTest, NodeKind_Roundtrip_Bus) {
+TEST(PersistTest, RenderHint_Roundtrip_Bus) {
     Blueprint bp;
     Node n;
     n.id = "mybus";
     n.name = "Custom Bus";
     n.type_name = "Bus"; // Not "Bus" — user-chosen type name
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.output("v");
     n.at(100, 100);
     n.size_wh(40, 40);
@@ -157,17 +157,17 @@ TEST(PersistTest, NodeKind_Roundtrip_Bus) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Bus)
-        << "Kind should be preserved via 'kind' field, not derived from type_name";
+    EXPECT_EQ(bp2->nodes[0].render_hint, "bus")
+        << "render_hint should roundtrip through JSON";
 }
 
-TEST(PersistTest, NodeKind_Roundtrip_Ref) {
+TEST(PersistTest, RenderHint_Roundtrip_Ref) {
     Blueprint bp;
     Node n;
     n.id = "myref";
     n.name = "Custom Ref";
     n.type_name = "RefNode"; // Not "RefNode" — user-chosen type name
-    n.kind = NodeKind::Ref;
+    n.render_hint = "ref";
     n.output("v");
     n.at(50, 50);
     n.size_wh(40, 40);
@@ -177,17 +177,16 @@ TEST(PersistTest, NodeKind_Roundtrip_Ref) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
-        << "Kind should be preserved via 'kind' field, not derived from type_name";
+    EXPECT_EQ(bp2->nodes[0].render_hint, "ref")
+        << "render_hint should roundtrip through JSON";
 }
 
-TEST(PersistTest, NodeKind_Roundtrip_Node) {
+TEST(PersistTest, RenderHint_Roundtrip_Default) {
     Blueprint bp;
     Node n;
     n.id = "comp1";
     n.name = "Some Component";
     n.type_name = "Battery";
-    n.kind = NodeKind::Node;
     n.input("v_in");
     n.output("v_out");
     n.at(200, 200);
@@ -198,16 +197,15 @@ TEST(PersistTest, NodeKind_Roundtrip_Node) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Node);
+    EXPECT_TRUE(bp2->nodes[0].render_hint.empty());
 }
 
-TEST(PersistTest, NodeKind_Roundtrip_InternalCPP) {
+TEST(PersistTest, Expandable_Roundtrip_False) {
     Blueprint bp;
     Node n;
     n.id = "bat1";
     n.name = "Battery";
     n.type_name = "Battery";
-    n.kind = NodeKind::InternalCPP;
     n.input("v_in");
     n.output("v_out");
     n.at(200, 200);
@@ -218,20 +216,19 @@ TEST(PersistTest, NodeKind_Roundtrip_InternalCPP) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::InternalCPP)
-        << "InternalCPP kind should roundtrip through JSON";
+    EXPECT_FALSE(bp2->nodes[0].expandable)
+        << "expandable=false should roundtrip through JSON";
 }
 
 TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
     // classname (type_name) is the single source of truth for C++ binding.
     // A node with type_name="RefNode" should get value=0.0 fallback
-    // regardless of its NodeKind (kind is for visual only).
+    // regardless of render_hint (render_hint is for visual only).
     Blueprint bp;
     Node n;
     n.id = "gnd";
     n.name = "Ground";
     n.type_name = "RefNode";
-    n.kind = NodeKind::Node;  // kind doesn't matter — classname does
     n.output("v");
     bp.add_node(std::move(n));
 
@@ -353,7 +350,7 @@ TEST(PersistTest, BusVisualNode_InitialSizeFromTypeDefinition) {
     n.id = "bus1";
     n.name = "Test Bus";
     n.type_name = "Bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(100, 100);
     n.size = get_default_node_size("Bus", &registry);
     n.output("v");
@@ -375,7 +372,7 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
     bus_node.id = "bus1";
     bus_node.name = "Test Bus";
     bus_node.type_name = "Bus";
-    bus_node.kind = NodeKind::Bus;
+    bus_node.render_hint = "bus";
     bus_node.at(100, 100);
     bus_node.size = get_default_node_size("Bus", &registry);
     bus_node.output("v");
@@ -385,7 +382,6 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
     other_node.id = "other";
     other_node.name = "Other";
     other_node.type_name = "Battery";
-    other_node.kind = NodeKind::Node;
     other_node.at(200, 100);
     other_node.output("v_out");
 
@@ -422,7 +418,7 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
     bus_node.id = "bus1";
     bus_node.name = "Test Bus";
     bus_node.type_name = "Bus";
-    bus_node.kind = NodeKind::Bus;
+    bus_node.render_hint = "bus";
     bus_node.at(100, 100);
     bus_node.size = get_default_node_size("Bus", &registry);
     bus_node.output("v");
@@ -432,14 +428,12 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
     other1.id = "other1";
     other1.name = "Other1";
     other1.type_name = "Battery";
-    other1.kind = NodeKind::Node;
     other1.at(200, 100);
     other1.output("v_out");
 
     other2.id = "other2";
     other2.name = "Other2";
     other2.type_name = "Battery";
-    other2.kind = NodeKind::Node;
     other2.at(300, 100);
     other2.output("v_out");
 
@@ -486,7 +480,7 @@ TEST(PersistTest, BusVisualNode_SizeIsGridSnapped) {
     n.id = "bus1";
     n.name = "Test Bus";
     n.type_name = "Bus";
-    n.kind = NodeKind::Bus;
+    n.render_hint = "bus";
     n.at(100, 100);
     n.size = get_default_node_size("Bus", &registry);
     n.output("v");
@@ -523,7 +517,7 @@ TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
     bus.id = "main_bus";
     bus.name = "main_bus";
     bus.type_name = "Bus";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(100.0f, 100.0f);
     // Bus port is InOut with type V
     Port bus_port;
@@ -588,7 +582,7 @@ TEST(PersistTest, InOutPort_AllowsWireFromBothDirections) {
     bus.id = "bus1";
     bus.name = "bus1";
     bus.type_name = "Bus";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     Port bus_port;
     bus_port.name = "v";
     bus_port.side = PortSide::InOut;
@@ -674,7 +668,7 @@ TEST(PersistTest, BlueprintToBlueprintWire_NotDropped) {
     bp1.id = "battery_bp";
     bp1.name = "battery_bp";
     bp1.type_name = "simple_battery";
-    bp1.kind = NodeKind::Blueprint;
+    bp1.expandable = true;
     bp1.blueprint_path = "blueprints/simple_battery.json";
     bp1.output("vout");
     bp.add_node(std::move(bp1));
@@ -692,7 +686,7 @@ TEST(PersistTest, BlueprintToBlueprintWire_NotDropped) {
     bp2.id = "lamp_bp";
     bp2.name = "lamp_bp";
     bp2.type_name = "lamp_pass_through";
-    bp2.kind = NodeKind::Blueprint;
+    bp2.expandable = true;
     bp2.blueprint_path = "blueprints/lamp_pass_through.json";
     bp2.input("vin");
     bp.add_node(std::move(bp2));
@@ -745,7 +739,6 @@ TEST(PersistTest, VisualCache_PositionSync) {
     n.id = "test_node";
     n.name = "test_node";
     n.type_name = "Battery";
-    n.kind = NodeKind::Node;
     n.at(96.0f, 192.0f);  // grid-aligned (16px grid)
     n.input("v_in");
     n.output("v_out");
@@ -1201,7 +1194,7 @@ TEST(BlueprintTest, AutoLayout_GroundsPlacedBelowAllColumns) {
     Node bat; bat.id = "g1:bat"; bat.type_name = "Battery"; bat.group_id = "g1";
     Node r1;  r1.id = "g1:r1";  r1.type_name = "Resistor"; r1.group_id = "g1";
     Node r2;  r2.id = "g1:r2";  r2.type_name = "Resistor"; r2.group_id = "g1";
-    Node gnd; gnd.id = "g1:gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref; gnd.group_id = "g1";
+    Node gnd; gnd.id = "g1:gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref"; gnd.group_id = "g1";
 
     bp.add_node(std::move(bat));
     bp.add_node(std::move(r1));
@@ -1237,7 +1230,7 @@ TEST(BlueprintTest, AutoLayout_BusColumnBetweenSourcesAndLoads) {
     Blueprint bp;
 
     Node bat;  bat.id = "g:bat";  bat.type_name = "Battery";  bat.group_id = "g";
-    Node bus;  bus.id = "g:bus";  bus.type_name = "Bus"; bus.kind = NodeKind::Bus; bus.group_id = "g";
+    Node bus;  bus.id = "g:bus";  bus.type_name = "Bus"; bus.render_hint = "bus"; bus.group_id = "g";
     Node load; load.id = "g:load"; load.type_name = "Resistor"; load.group_id = "g";
 
     bp.add_node(std::move(bat));
@@ -1329,14 +1322,13 @@ TEST(BlueprintTest, AddWire_ReversedDirectionIsUnique) {
 }
 
 // =============================================================================
-// BUGFIX [c3d4e5] Kind inference from classname — RefNode gets kind=Ref on load
+// render_hint / expandable — persistence tests
 // =============================================================================
 
-TEST(PersistTest, KindInference_RefNodeGetsRefKind) {
-    // JSON with RefNode classname but kind="Node" (corrupted save from old code)
+TEST(PersistTest, RenderHint_RefNode) {
     const char* json = R"({
         "devices": [
-            {"name": "gnd", "classname": "RefNode", "kind": "Node",
+            {"name": "gnd", "classname": "RefNode", "render_hint": "ref",
              "ports": {"v": {"direction": "Out", "type": "V"}},
              "params": {"value": "0.0"},
              "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
@@ -1348,14 +1340,13 @@ TEST(PersistTest, KindInference_RefNodeGetsRefKind) {
     auto bp = blueprint_from_json(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
-    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Ref)
-        << "RefNode classname must produce kind=Ref regardless of JSON kind field";
+    EXPECT_EQ(bp->nodes[0].render_hint, "ref");
 }
 
-TEST(PersistTest, KindInference_BusGetsCorrectKind) {
+TEST(PersistTest, RenderHint_Bus) {
     const char* json = R"({
         "devices": [
-            {"name": "bus1", "classname": "Bus", "kind": "Node",
+            {"name": "bus1", "classname": "Bus", "render_hint": "bus",
              "ports": {"v": {"direction": "InOut", "type": "V"}},
              "pos": {"x": 0, "y": 0}, "size": {"x": 48, "y": 48}}
         ],
@@ -1366,14 +1357,13 @@ TEST(PersistTest, KindInference_BusGetsCorrectKind) {
     auto bp = blueprint_from_json(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
-    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Bus)
-        << "Bus classname must produce kind=Bus regardless of JSON kind field";
+    EXPECT_EQ(bp->nodes[0].render_hint, "bus");
 }
 
-TEST(PersistTest, KindInference_BlueprintKindPreserved) {
+TEST(PersistTest, Expandable_Blueprint) {
     const char* json = R"({
         "devices": [
-            {"name": "lamp1", "classname": "lamp_pass_through", "kind": "Blueprint",
+            {"name": "lamp1", "classname": "lamp_pass_through", "expandable": true,
              "ports": {"vin": {"direction": "In", "type": "V"}},
              "pos": {"x": 0, "y": 0}, "size": {"x": 128, "y": 96}}
         ],
@@ -1384,16 +1374,15 @@ TEST(PersistTest, KindInference_BlueprintKindPreserved) {
     auto bp = blueprint_from_json(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
-    EXPECT_EQ(bp->nodes[0].kind, NodeKind::Blueprint)
-        << "Explicit Blueprint kind must be preserved (can't be inferred from classname)";
+    EXPECT_TRUE(bp->nodes[0].expandable);
 }
 
-TEST(PersistTest, KindInference_Roundtrip_RefNodePreservesKind) {
+TEST(PersistTest, RenderHint_Roundtrip_RefNode) {
     Blueprint bp;
     Node gnd;
     gnd.id = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(0, 0);
     bp.add_node(std::move(gnd));
@@ -1402,29 +1391,25 @@ TEST(PersistTest, KindInference_Roundtrip_RefNodePreservesKind) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
+    EXPECT_EQ(bp2->nodes[0].render_hint, "ref")
         << "RefNode kind must survive save/load roundtrip";
 }
 
-TEST(PersistTest, KindInference_CorruptedRefNodeFixedOnRoundtrip) {
-    // Simulate corrupted blueprint: RefNode with kind=Node
+TEST(PersistTest, RenderHint_Roundtrip_DefaultIsEmpty) {
     Blueprint bp;
     Node gnd;
     gnd.id = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Node; // intentionally wrong
     gnd.output("v");
     gnd.at(0, 0);
-    bp.nodes.push_back(std::move(gnd)); // bypass add_node to keep wrong kind
+    bp.nodes.push_back(std::move(gnd));
 
-    // Save preserves wrong kind (because it reads from node.kind)
     std::string json = blueprint_to_editor_json(bp);
-    // But load should fix it based on classname
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].kind, NodeKind::Ref)
-        << "Load must fix corrupted RefNode kind based on classname";
+    EXPECT_EQ(bp2->nodes[0].render_hint, "")
+        << "Node with no render_hint set should roundtrip as empty";
 }
 
 // =============================================================================
@@ -1629,7 +1614,7 @@ TEST(WireDedup, Scene_ReconnectWire_UpdatesIndex) {
 // =============================================================================
 
 TEST(BusInvariant, Construction_PortsEqualWiresPlusOne) {
-    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.render_hint = "bus";
     bus.at(0, 0).size_wh(128, 32);
     bus.input("v"); bus.output("v");
 
@@ -1646,7 +1631,7 @@ TEST(BusInvariant, Construction_PortsEqualWiresPlusOne) {
 }
 
 TEST(BusInvariant, ConnectWire_AddsPort) {
-    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.render_hint = "bus";
     bus.at(0, 0).size_wh(128, 32);
     bus.input("v"); bus.output("v");
 
@@ -1659,7 +1644,7 @@ TEST(BusInvariant, ConnectWire_AddsPort) {
 }
 
 TEST(BusInvariant, DisconnectWire_RemovesPort) {
-    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.render_hint = "bus";
     bus.at(0, 0).size_wh(128, 32);
     bus.input("v"); bus.output("v");
 
@@ -1675,7 +1660,7 @@ TEST(BusInvariant, DisconnectWire_RemovesPort) {
 }
 
 TEST(BusInvariant, Construction_FiltersUnrelatedWires) {
-    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.type_name = "Bus"; bus.render_hint = "bus";
     bus.at(0, 0).size_wh(128, 32);
     bus.input("v"); bus.output("v");
 

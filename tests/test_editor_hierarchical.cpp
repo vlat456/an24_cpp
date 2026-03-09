@@ -35,7 +35,7 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     collapsed.id = id;
     collapsed.name = id;
     collapsed.type_name = "lamp_pass_through";
-    collapsed.kind = NodeKind::Blueprint;
+    collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.blueprint_path = "blueprints/lamp_pass_through.json";
     collapsed.pos = pos;
@@ -113,7 +113,7 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     collapsed.id = id;
     collapsed.name = id;
     collapsed.type_name = "simple_battery";
-    collapsed.kind = NodeKind::Blueprint;
+    collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.blueprint_path = "blueprints/simple_battery.json";
     collapsed.pos = pos;
@@ -127,7 +127,7 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     gnd.id = id + ":gnd";
     gnd.name = gnd.id;
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.pos = pos;
     gnd.size = Pt(40.0f, 40.0f);
     gnd.output("v");
@@ -516,7 +516,7 @@ TEST(Persistence, CollapsedState_SavesToJson) {
     auto& bp_nodes = j["editor"]["blueprint_nodes"];
     EXPECT_EQ(bp_nodes.size(), 1u) << "Should have 1 blueprint node";
     EXPECT_EQ(bp_nodes[0]["name"], "lamp1");
-    EXPECT_EQ(bp_nodes[0]["kind"], "Blueprint");
+    EXPECT_TRUE(bp_nodes[0].value("expandable", false));
 
     // Connections should include rewritten wires to internal nodes
     ASSERT_TRUE(j.contains("connections"));
@@ -534,7 +534,7 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     gnd.id = "gnd";
     gnd.name = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.params["value"] = "0.0";
     gnd.pos = Pt(50.0f, 100.0f);
     gnd.size = Pt(80.0f, 60.0f);
@@ -554,7 +554,7 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     // Find the lamp1 collapsed node
     Node* lamp_node = bp.find_node("lamp1");
     ASSERT_NE(lamp_node, nullptr) << "Should find lamp1 collapsed node";
-    EXPECT_EQ(lamp_node->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(lamp_node->expandable);
     EXPECT_TRUE(lamp_node->collapsed);
 
     // Collapsed node has root group_id, internals have group_id='lamp1'
@@ -575,7 +575,7 @@ TEST(Persistence, RoundTrip_SaveLoad_PreservesCollapsedBlueprint) {
     source.id = "source";
     source.name = "source";
     source.type_name = "RefNode";
-    source.kind = NodeKind::Ref;
+    source.render_hint = "ref";
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
@@ -600,7 +600,7 @@ TEST(Persistence, RoundTrip_SaveLoad_PreservesCollapsedBlueprint) {
     auto lamp_node = std::find_if(loaded->nodes.begin(), loaded->nodes.end(),
         [](const Node& n) { return n.id == "lamp1"; });
     ASSERT_NE(lamp_node, loaded->nodes.end()) << "lamp1 collapsed node should exist";
-    EXPECT_EQ(lamp_node->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(lamp_node->expandable);
     EXPECT_TRUE(lamp_node->collapsed);
 
     // Verify simulation works after round-trip
@@ -637,7 +637,7 @@ TEST(VoltageFlow, CollapsedBlueprint_PassesVoltage) {
     source.id = "source";
     source.name = "source";
     source.type_name = "RefNode";
-    source.kind = NodeKind::Ref;
+    source.render_hint = "ref";
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
@@ -693,7 +693,7 @@ TEST(VoltageFlow, NestedBlueprintWithBattery) {
     gnd.id = "gnd";
     gnd.name = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.pos = Pt(50.0f, 200.0f);
     gnd.size = Pt(80.0f, 60.0f);
     gnd.params["value"] = "0.0";
@@ -742,7 +742,7 @@ TEST(VoltageFlow, RefNode_NonZeroValue_IsFixedSignal) {
     ref28.id = "ref28";
     ref28.name = "ref28";
     ref28.type_name = "RefNode";
-    ref28.kind = NodeKind::Ref;
+    ref28.render_hint = "ref";
     ref28.pos = Pt(50.0f, 100.0f);
     ref28.size = Pt(80.0f, 60.0f);
     ref28.params["value"] = "28.0";
@@ -784,7 +784,7 @@ TEST(VoltageFlow, MultipleRefNodes_AllFixed) {
         n.id = id;
         n.name = id;
         n.type_name = "RefNode";
-        n.kind = NodeKind::Ref;
+        n.render_hint = "ref";
         n.pos = Pt(50.0f, 100.0f);
         n.size = Pt(80.0f, 60.0f);
         n.params["value"] = value;
@@ -846,7 +846,7 @@ TEST(GroupId, CollapsedNodeHasRootGroupId_InternalsHaveGroupGroupId) {
     Node* collapsed_node = bp.find_node("lamp1");
     ASSERT_NE(collapsed_node, nullptr);
     EXPECT_TRUE(collapsed_node->group_id.empty()) << "Collapsed node should have root group_id";
-    EXPECT_EQ(collapsed_node->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(collapsed_node->expandable);
 
     for (const auto& internal_id : {"lamp1:vin", "lamp1:lamp", "lamp1:vout"}) {
         Node* internal = bp.find_node(internal_id);
@@ -938,7 +938,7 @@ TEST(Regression, WireRewriting_ExternalWiresToBlueprintNode) {
     source.id = "source";
     source.name = "source";
     source.type_name = "RefNode";
-    source.kind = NodeKind::Ref;
+    source.render_hint = "ref";
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
@@ -979,7 +979,7 @@ TEST(Regression, BlueprintNode_HasNoContent) {
     collapsed.id = "bp1";
     collapsed.name = "bp1";
     collapsed.type_name = "my_blueprint";
-    collapsed.kind = NodeKind::Blueprint;
+    collapsed.expandable = true;
     collapsed.collapsed = true;
 
     EXPECT_EQ(collapsed.node_content.type, NodeContentType::None)
@@ -1021,7 +1021,7 @@ TEST(Regression, NLevelHierarchy_GroupIdAssignments) {
     top.id = "top";
     top.name = "top";
     top.type_name = "RefNode";
-    top.kind = NodeKind::Ref;
+    top.render_hint = "ref";
     top.pos = Pt(0.0f, 0.0f);
     top.size = Pt(80.0f, 60.0f);
     bp.add_node(std::move(top));
@@ -1082,7 +1082,7 @@ TEST(BlueprintSignalFlow, LampPassThrough_VoltageFlows) {
     Node gnd;
     gnd.id = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(0, 0).size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -1281,7 +1281,7 @@ TEST(BlueprintSignalFlow, SimpleBattery_VoltageAtRootLevel) {
     Node gnd;
     gnd.id = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(0, 0).size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -1405,7 +1405,6 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     res.id = "resistor_1";
     res.name = "resistor_1";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
     res.pos = Pt(300, 100);
     res.size = Pt(120, 80);
     res.group_id = "lpt";  // added to sub-blueprint
@@ -1514,7 +1513,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     gnd.id = "gnd";
     gnd.name = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.pos = Pt(100, 400);
     gnd.size = Pt(48, 32);
     gnd.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
@@ -1524,7 +1523,6 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     bat.id = "bat";
     bat.name = "bat";
     bat.type_name = "Battery";
-    bat.kind = NodeKind::Node;
     bat.pos = Pt(100, 100);
     bat.size = Pt(120, 80);
     bat.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
@@ -1564,14 +1562,14 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     EXPECT_FALSE(j.contains("connections")) << "Editor format should not have 'connections'";
     EXPECT_FALSE(j.contains("editor")) << "Editor format should not have nested 'editor' section";
 
-    // Verify all nodes present (including Blueprint kind)
+    // Verify all nodes present (including expandable nodes)
     EXPECT_EQ(j["devices"].size(), original.nodes.size());
 
-    // Verify Blueprint node is in devices with kind + group_id
+    // Verify expandable node is in devices with expandable flag + group_id
     bool found_blueprint = false;
     bool found_internal_with_group = false;
     for (const auto& d : j["devices"]) {
-        if (d["name"] == "lamp1" && d["kind"] == "Blueprint") {
+        if (d["name"] == "lamp1" && d.value("expandable", false)) {
             found_blueprint = true;
             EXPECT_EQ(d["pos"]["x"].get<float>(), original.find_node("lamp1")->pos.x);
         }
@@ -1579,7 +1577,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
             found_internal_with_group = true;
         }
     }
-    EXPECT_TRUE(found_blueprint) << "Blueprint kind node must be in devices array";
+    EXPECT_TRUE(found_blueprint) << "Expandable node must be in devices array";
     EXPECT_TRUE(found_internal_with_group) << "Internal nodes must have group_id";
 
     // Verify wires are in original form (not rewritten)
@@ -1603,7 +1601,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     // Positions preserved
     auto* lamp1 = loaded->find_node("lamp1");
     ASSERT_NE(lamp1, nullptr);
-    EXPECT_EQ(lamp1->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(lamp1->expandable);
     EXPECT_FLOAT_EQ(lamp1->pos.x, original.find_node("lamp1")->pos.x);
     EXPECT_FLOAT_EQ(lamp1->pos.y, original.find_node("lamp1")->pos.y);
 
@@ -1646,7 +1644,7 @@ TEST(EditorPersistence, BlueprintNodeHasNoContent) {
     // The Blueprint collapsed node must NOT have content
     auto* collapsed = bp.find_node("lpt");
     ASSERT_NE(collapsed, nullptr);
-    EXPECT_EQ(collapsed->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(collapsed->expandable);
 
     // VisualNodeFactory should strip content from Blueprint nodes
     auto visual = VisualNodeFactory::create(*collapsed);
@@ -1660,7 +1658,7 @@ TEST(EditorPersistence, BlueprintNodeHasNoContent) {
     auto visual2 = VisualNodeFactory::create(bp_copy);
     // The visual was created — if it rendered "SHOULD_NOT_APPEAR" that's the bug
     // We verify by checking the factory strips content for Blueprint kind
-    EXPECT_EQ(bp_copy.kind, NodeKind::Blueprint);  // sanity
+    EXPECT_TRUE(bp_copy.expandable);  // sanity
 }
 
 
@@ -1682,7 +1680,7 @@ TEST(BlueprintSignalFlow, SimpleBattery_SOR_Stability_JIT) {
     bp.add_node(std::move(res));
 
     Node gnd;
-    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
+    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref";
     gnd.output("v"); gnd.at(0, 0).size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
     gnd.node_content.value = 0.0f;
@@ -1728,18 +1726,18 @@ TEST(BlueprintKind, KindDerivedFromClassname) {
     // Collapsed Blueprint node
     auto* collapsed = bp.find_node("sb");
     ASSERT_NE(collapsed, nullptr);
-    EXPECT_EQ(collapsed->kind, NodeKind::Blueprint);
+    EXPECT_TRUE(collapsed->expandable);
 
     // Internal RefNode should have correct kind
     auto* gnd_node = bp.find_node("sb:gnd");
     ASSERT_NE(gnd_node, nullptr);
-    EXPECT_EQ(gnd_node->kind, NodeKind::Ref);
+    EXPECT_EQ(gnd_node->render_hint, "ref");
     EXPECT_EQ(gnd_node->type_name, "RefNode");
 
     // Internal Battery should have Node kind
     auto* bat_node = bp.find_node("sb:bat");
     ASSERT_NE(bat_node, nullptr);
-    EXPECT_EQ(bat_node->kind, NodeKind::Node);
+    EXPECT_TRUE(bat_node->render_hint.empty());
     EXPECT_EQ(bat_node->type_name, "Battery");
 }
 
@@ -1754,7 +1752,6 @@ TEST(BlueprintVisibility, GroupedNodeHasContent_ButFilteredByGroupId) {
     Node lamp;
     lamp.id = "internal_lamp";
     lamp.type_name = "IndicatorLight";
-    lamp.kind = NodeKind::Node;
     lamp.group_id = "some_group";  // Belongs to a group (will be filtered when rendering root view)
     lamp.node_content.type = NodeContentType::Text;
     lamp.node_content.label = "OFF";

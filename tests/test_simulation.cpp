@@ -18,7 +18,7 @@ static Blueprint create_simple_circuit() {
     gnd.id = "gnd";
     gnd.name = "Ground";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
@@ -31,7 +31,6 @@ static Blueprint create_simple_circuit() {
     batt.id = "bat";
     batt.name = "Battery";
     batt.type_name = "Battery";
-    batt.kind = NodeKind::Node;
     batt.input("v_in");
     batt.output("v_out");
     batt.at(80, 80);
@@ -43,7 +42,6 @@ static Blueprint create_simple_circuit() {
     res.id = "res";
     res.name = "Resistor";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
     res.input("v_in");
     res.output("v_out");
     res.at(320, 80);
@@ -349,31 +347,31 @@ static Blueprint create_merger_circuit() {
 
     // Ground
     Node gnd;
-    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
+    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref";
     gnd.output("v"); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
     // Battery
     Node bat;
-    bat.id = "bat"; bat.type_name = "Battery"; bat.kind = NodeKind::Node;
+    bat.id = "bat"; bat.type_name = "Battery";
     bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
     // Splitter: battery → 2 branches
     Node spl;
-    spl.id = "spl"; spl.type_name = "Splitter"; spl.kind = NodeKind::Node;
+    spl.id = "spl"; spl.type_name = "Splitter";
     spl.input("i"); spl.output("o1"); spl.output("o2"); spl.at(250, 0);
     bp.add_node(std::move(spl));
 
     // Merger: 2 inputs → 1 output
     Node mrg;
-    mrg.id = "mrg"; mrg.type_name = "Merger"; mrg.kind = NodeKind::Node;
+    mrg.id = "mrg"; mrg.type_name = "Merger";
     mrg.input("i1"); mrg.input("i2"); mrg.output("o"); mrg.at(400, 0);
     bp.add_node(std::move(mrg));
 
     // Load
     Node res;
-    res.id = "res"; res.type_name = "Resistor"; res.kind = NodeKind::Node;
+    res.id = "res"; res.type_name = "Resistor";
     res.input("v_in"); res.output("v_out"); res.at(550, 0);
     bp.add_node(std::move(res));
 
@@ -437,7 +435,7 @@ TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd; gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
+    Node gnd; gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref";
     gnd.output("v"); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
@@ -473,11 +471,11 @@ TEST(SimulationTest, TwoRefNodes_CircuitStable) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd1; gnd1.id = "gnd1"; gnd1.type_name = "RefNode"; gnd1.kind = NodeKind::Ref;
+    Node gnd1; gnd1.id = "gnd1"; gnd1.type_name = "RefNode"; gnd1.render_hint = "ref";
     gnd1.output("v"); gnd1.at(0, 0);
     bp.add_node(std::move(gnd1));
 
-    Node gnd2; gnd2.id = "gnd2"; gnd2.type_name = "RefNode"; gnd2.kind = NodeKind::Ref;
+    Node gnd2; gnd2.id = "gnd2"; gnd2.type_name = "RefNode"; gnd2.render_hint = "ref";
     gnd2.output("v"); gnd2.at(600, 0);
     bp.add_node(std::move(gnd2));
 

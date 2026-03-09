@@ -42,6 +42,7 @@
 
 #include <cstdio>
 #include <algorithm>
+#include <functional>
 
 // Обертка IDrawList для imgui
 class ImGuiDrawList : public IDrawList {
@@ -603,44 +604,23 @@ int main(int argc, char** argv) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Add Component");
             ImGui::Separator();
 
-            // Components submenu
-            if (ImGui::BeginMenu("Components")) {
-                // Get sorted list of component classnames
-                auto classnames = app.type_registry.list_classnames();
-                std::sort(classnames.begin(), classnames.end());
-
-                // Show menu items for each component
-                for (const auto& classname : classnames) {
-                    const auto* def = app.type_registry.get(classname);
-                    if (def && ImGui::MenuItem(classname.c_str())) {
-                        // Add component to blueprint at context_menu_pos
+            // Render hierarchical menu from library/ directory structure
+            auto menu_tree = app.type_registry.build_menu_tree();
+            std::function<void(const an24::MenuTree&)> render_menu;
+            render_menu = [&](const an24::MenuTree& tree) {
+                for (const auto& [folder, subtree] : tree.children) {
+                    if (ImGui::BeginMenu(folder.c_str())) {
+                        render_menu(subtree);
+                        ImGui::EndMenu();
+                    }
+                }
+                for (const auto& classname : tree.entries) {
+                    if (ImGui::MenuItem(classname.c_str())) {
                         app.add_component(classname, app.context_menu_pos, app.context_menu_group_id);
                     }
                 }
-                ImGui::EndMenu();
-            }
-
-            // Blueprints submenu (nested blueprints)
-            if (ImGui::BeginMenu("Blueprints")) {
-                if (app.blueprints.empty()) {
-                    ImGui::TextDisabled("No blueprints found");
-                    ImGui::TextDisabled("(library/ directory)");
-                } else {
-                    for (const auto& bp_info : app.blueprints) {
-                        // Show blueprint name with exposed port count
-                        std::string label = bp_info.name;
-                        if (!bp_info.exposed_ports.empty()) {
-                            label += " (" + std::to_string(bp_info.exposed_ports.size()) + " ports)";
-                        }
-
-                        if (ImGui::MenuItem(label.c_str())) {
-                            // Add collapsed blueprint node to blueprint at context_menu_pos
-                            app.add_blueprint(bp_info.name, app.context_menu_pos, app.context_menu_group_id);
-                        }
-                    }
-                }
-                ImGui::EndMenu();
-            }
+            };
+            render_menu(menu_tree);
 
             ImGui::EndPopup();
         }

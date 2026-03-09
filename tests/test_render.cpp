@@ -90,7 +90,7 @@ static Blueprint create_render_circuit() {
     Node gnd;
     gnd.id = "gnd";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
@@ -101,7 +101,6 @@ static Blueprint create_render_circuit() {
     Node batt;
     batt.id = "bat";
     batt.type_name = "Battery";
-    batt.kind = NodeKind::Node;
     batt.input("v_in");
     batt.output("v_out");
     batt.at(80, 80);
@@ -111,7 +110,6 @@ static Blueprint create_render_circuit() {
     Node res;
     res.id = "res";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
     res.input("v_in");
     res.output("v_out");
     res.at(320, 80);
@@ -992,7 +990,7 @@ TEST(RenderTest, OneToOne_BusPort_CanHaveMultipleWires) {
     Node bus;
     bus.id = "bus";
     bus.type_name = "Bus";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(100, 100);
     bus.size_wh(40, 40);
     // Bus doesn't have explicit ports in editor nodes

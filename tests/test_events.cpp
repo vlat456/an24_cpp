@@ -194,7 +194,7 @@ TEST(EventsTest, AddComponent_BusSize_a1b2) {
     app.add_component("Bus", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& n = app.blueprint.nodes[0];
-    EXPECT_EQ(n.kind, NodeKind::Bus);
+    EXPECT_EQ(n.render_hint, "bus");
     EXPECT_FLOAT_EQ(n.size.x, 40.0f) << "[a1b2] Bus size.x should be 40";
     EXPECT_FLOAT_EQ(n.size.y, 40.0f) << "[a1b2] Bus size.y should be 40";
 }
@@ -204,7 +204,7 @@ TEST(EventsTest, AddComponent_RefNodeSize_a1b2) {
     app.add_component("RefNode", Pt(200, 200));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& n = app.blueprint.nodes[0];
-    EXPECT_EQ(n.kind, NodeKind::Ref);
+    EXPECT_EQ(n.render_hint, "ref");
     EXPECT_FLOAT_EQ(n.size.x, 40.0f) << "[a1b2] RefNode size.x should be 40";
     EXPECT_FLOAT_EQ(n.size.y, 40.0f) << "[a1b2] RefNode size.y should be 40";
 }
@@ -214,7 +214,7 @@ TEST(EventsTest, AddComponent_StandardNodeSize_a1b2) {
     app.add_component("Battery", Pt(300, 300));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& n = app.blueprint.nodes[0];
-    EXPECT_EQ(n.kind, NodeKind::InternalCPP);
+    EXPECT_FALSE(n.expandable);
     EXPECT_FLOAT_EQ(n.size.x, 120.0f);
     EXPECT_FLOAT_EQ(n.size.y, 80.0f);
 }
@@ -237,7 +237,7 @@ TEST(EventsTest, AddComponent_IndicatorLightHasTextContent_c3d4) {
     EXPECT_EQ(nc.type, NodeContentType::Text) << "[c3d4] IndicatorLight should have Text content";
 }
 
-// Phase 4: cpp_class=true → NodeKind::InternalCPP
+// Phase 4: cpp_class=true → not expandable
 TEST(EventsTest, AddComponent_CppClassTrue_InternalCPP) {
     EditorApp app;
     // Battery is cpp_class=true in library/
@@ -246,11 +246,11 @@ TEST(EventsTest, AddComponent_CppClassTrue_InternalCPP) {
 
     app.add_component("Battery", Pt(100, 100));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::InternalCPP)
-        << "cpp_class=true components must get NodeKind::InternalCPP";
+    EXPECT_FALSE(app.blueprint.nodes[0].expandable)
+        << "cpp_class=true components must not be expandable";
 }
 
-// Phase 4: cpp_class=false → NodeKind::Blueprint
+// Phase 4: cpp_class=false → expandable
 TEST(EventsTest, AddComponent_CppClassFalse_Blueprint) {
     EditorApp app;
     // simple_battery is cpp_class=false in library/
@@ -259,8 +259,8 @@ TEST(EventsTest, AddComponent_CppClassFalse_Blueprint) {
 
     app.add_component("simple_battery", Pt(200, 200));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
-    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Blueprint)
-        << "cpp_class=false types must get NodeKind::Blueprint";
+    EXPECT_TRUE(app.blueprint.nodes[0].expandable)
+        << "cpp_class=false types must be expandable";
 }
 
 // add_component: ports loaded from TypeRegistry
@@ -573,7 +573,7 @@ TEST(BusDisconnectTest, DisconnectsCorrectWireByAlias) {
     app.blueprint.grid_step = 16.0f;
 
     // Bus node
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     app.blueprint.add_node(std::move(bus));
@@ -719,7 +719,7 @@ TEST(ReconnectTest, DropOnSamePort_BusAlias_KeepsWireUnchanged) {
     EditorApp app;
     app.blueprint.grid_step = 16.0f;
 
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     app.blueprint.add_node(std::move(bus));
@@ -758,7 +758,7 @@ TEST(BusNewPortTest, ClickUnassignedV_StartsWireCreation_NotReconnection) {
     EditorApp app;
     app.blueprint.grid_step = 16.0f;
 
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     app.blueprint.add_node(std::move(bus));
@@ -798,12 +798,12 @@ TEST(RefBusConnectionTest, RefNode_ConnectsTo_Bus) {
     EditorApp app;
     app.blueprint.grid_step = 16.0f;
 
-    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.kind = NodeKind::Ref;
+    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.render_hint = "ref";
     ref.at(0, 0).size_wh(40, 40);
     ref.output("v");
     app.blueprint.add_node(std::move(ref));
 
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     app.blueprint.add_node(std::move(bus));
@@ -831,12 +831,12 @@ TEST(RefBusConnectionTest, Bus_ConnectsTo_RefNode) {
     EditorApp app;
     app.blueprint.grid_step = 16.0f;
 
-    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.kind = NodeKind::Ref;
+    Node ref; ref.id = "ref1"; ref.name = "GND"; ref.render_hint = "ref";
     ref.at(0, 0).size_wh(40, 40);
     ref.output("v");
     app.blueprint.add_node(std::move(ref));
 
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     app.blueprint.add_node(std::move(bus));

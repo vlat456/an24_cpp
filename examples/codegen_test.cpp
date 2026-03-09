@@ -16,9 +16,9 @@ int main(int argc, char** argv) {
     std::string out_dir = argv[2];
 
     // Generate port registry from library/
-    std::string components_dir = "/Users/vladimir/an24_cpp/library";
+    auto registry = load_type_registry("library");
     std::string port_registry_path = "src/jit_solver/components/port_registry.h";
-    CodeGen::generate_port_registry(components_dir, port_registry_path);
+    CodeGen::generate_port_registry(registry, port_registry_path);
 
     // Load JSON
     std::ifstream file(json_file);

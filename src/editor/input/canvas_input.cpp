@@ -292,7 +292,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     HitResult hit = scene_.hitTest(world);
     if (hit.type == HitType::Node) {
         const auto& node = scene_.nodes()[hit.node_index];
-        if (node.kind == NodeKind::Blueprint) {
+        if (node.expandable) {
             result.open_sub_window = node.id;
             return result;
         }

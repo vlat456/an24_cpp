@@ -60,9 +60,9 @@ std::string blueprint_to_json(const Blueprint& bp) {
     json devices = json::array();
     std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs
     for (const auto& n : bp.nodes) {
-        // Skip collapsed Blueprint nodes — they are visual-only wrappers.
+        // Skip expandable (collapsed) nodes — they are visual-only wrappers.
         // The actual internal devices already exist in the flat blueprint.
-        if (n.kind == NodeKind::Blueprint) continue;
+        if (n.expandable) continue;
 
         // BUGFIX [e4a1b7] Skip duplicate node IDs
         if (!emitted_ids.insert(n.id).second) {
@@ -74,14 +74,11 @@ std::string blueprint_to_json(const Blueprint& bp) {
         device["name"] = n.id;
         device["template_name"] = "";
         device["classname"] = n.type_name;
-        // Store NodeKind explicitly so it roundtrips correctly
-        switch (n.kind) {
-            case NodeKind::Bus: device["kind"] = "Bus"; break;
-            case NodeKind::Ref: device["kind"] = "Ref"; break;
-            case NodeKind::Blueprint: device["kind"] = "Blueprint"; break;
-            case NodeKind::InternalCPP: device["kind"] = "InternalCPP"; break;
-            default: device["kind"] = "Node"; break;
-        }
+        // Store render_hint and expandable so they roundtrip correctly
+        if (!n.render_hint.empty())
+            device["render_hint"] = n.render_hint;
+        if (n.expandable)
+            device["expandable"] = true;
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
@@ -129,10 +126,10 @@ std::string blueprint_to_json(const Blueprint& bp) {
     }
     j["devices"] = devices;
 
-    // Build set of Blueprint node IDs for quick lookup
+    // Build set of expandable node IDs for quick lookup
     std::set<std::string> blueprint_node_ids;
     for (const auto& n : bp.nodes) {
-        if (n.kind == NodeKind::Blueprint)
+        if (n.expandable)
             blueprint_node_ids.insert(n.id);
     }
 
@@ -183,13 +180,13 @@ std::string blueprint_to_json(const Blueprint& bp) {
         {"grid_step", bp.grid_step}
     };
 
-    // editor.devices: collapsed Blueprint nodes (visual-only, not in simulator devices)
+    // editor.devices: expandable nodes (visual-only, not in simulator devices)
     json editor_devices = json::array();
     for (const auto& n : bp.nodes) {
-        if (n.kind != NodeKind::Blueprint) continue;
+        if (!n.expandable) continue;
         json device = json::object();
         device["name"] = n.id;
-        device["kind"] = "Blueprint";
+        device["expandable"] = true;
         device["type_name"] = n.type_name;
         if (!n.blueprint_path.empty())
             device["blueprint_path"] = n.blueprint_path;
@@ -287,13 +284,10 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
         json device = json::object();
         device["name"] = n.id;
         device["classname"] = n.type_name;
-        switch (n.kind) {
-            case NodeKind::Bus: device["kind"] = "Bus"; break;
-            case NodeKind::Ref: device["kind"] = "Ref"; break;
-            case NodeKind::Blueprint: device["kind"] = "Blueprint"; break;
-            case NodeKind::InternalCPP: device["kind"] = "InternalCPP"; break;
-            default: device["kind"] = "Node"; break;
-        }
+        if (!n.render_hint.empty())
+            device["render_hint"] = n.render_hint;
+        if (n.expandable)
+            device["expandable"] = true;
 
         // group_id: use the node's runtime group_id (single source of truth)
         if (!n.group_id.empty())
@@ -320,7 +314,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             for (const auto& [key, value] : n.params)
                 params[key] = value;
             device["params"] = params;
-        } else if (n.kind == NodeKind::Ref) {
+        } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
             json params = json::object();
             float value = (n.node_content.type == NodeContentType::Value) ? n.node_content.value : 0.0f;
             params["value"] = (value == 0.0f) ? "0.0" : std::to_string(value);
@@ -460,22 +454,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             continue;
         }
 
-        // BUGFIX [c3d4e5] Kind inference: derive from classname for component nodes,
-        // only trust explicit "Blueprint" from JSON (can't be inferred from classname).
-        // Old code trusted JSON kind verbatim, so RefNodes from expanded blueprints
-        // would persist as kind:"Node" forever after one bad save.
-        std::string kind_str = d.value("kind", "Node");
-        if (kind_str == "Blueprint") {
-            n.kind = NodeKind::Blueprint;
-        } else if (kind_str == "InternalCPP") {
-            n.kind = NodeKind::InternalCPP;
-        } else if (n.type_name == "Bus") {
-            n.kind = NodeKind::Bus;
-        } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
-            n.kind = NodeKind::Ref;
-        } else {
-            n.kind = NodeKind::Node;
-        }
+        n.render_hint = d.value("render_hint", "");
+        n.expandable = d.value("expandable", false);
 
         // Ports
         if (d.contains("ports") && d["ports"].is_object()) {
@@ -518,7 +498,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         // Blueprint path
         if (d.contains("blueprint_path")) {
             n.blueprint_path = d["blueprint_path"].get<std::string>();
-            if (n.kind == NodeKind::Blueprint)
+            if (n.expandable)
                 n.collapsed = true;
         }
 
@@ -638,9 +618,9 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
                     group.internal_node_ids.push_back(nid.get<std::string>());
             }
 
-            // Get pos/size from the Blueprint kind node (single source of truth)
+            // Get pos/size from the expandable node (single source of truth)
             for (const auto& n : bp.nodes) {
-                if (n.id == group.id && n.kind == NodeKind::Blueprint) {
+                if (n.id == group.id && n.expandable) {
                     group.pos = n.pos;
                     group.size = n.size;
                     break;

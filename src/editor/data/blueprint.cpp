@@ -115,9 +115,9 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
             bp_inputs.push_back(i);
         else if (tn == "BlueprintOutput")
             bp_outputs.push_back(i);
-        else if (nodes[i].kind == NodeKind::Ref)
+        else if (nodes[i].render_hint == "ref")
             grounds.push_back(i);
-        else if (nodes[i].kind == NodeKind::Bus || tn == "Bus")
+        else if (nodes[i].render_hint == "bus" || tn == "Bus")
             buses.push_back(i);
         else if (tn == "Battery" || tn == "Generator")
             sources.push_back(i);

@@ -11,10 +11,9 @@
   "params": {
     "value": "0.0"
   },
-  "domains": [
-    "Electrical"
-  ],
+  "domains": ["Electrical"],
   "priority": "med",
   "critical": false,
-  "size": {"x": 2, "y": 2}
+  "render_hint": "ref",
+  "size": { "x": 2, "y": 2 }
 }

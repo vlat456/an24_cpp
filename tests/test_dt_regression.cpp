@@ -20,7 +20,7 @@ static Blueprint make_battery_circuit() {
     gnd.id = "gnd";
     gnd.name = "Ground";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
@@ -32,7 +32,6 @@ static Blueprint make_battery_circuit() {
     batt.id = "bat";
     batt.name = "Battery";
     batt.type_name = "Battery";
-    batt.kind = NodeKind::Node;
     batt.input("v_in");
     batt.output("v_out");
     batt.at(80, 80);
@@ -43,7 +42,6 @@ static Blueprint make_battery_circuit() {
     res.id = "res";
     res.name = "Resistor";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
     res.input("v_in");
     res.output("v_out");
     res.at(320, 80);
@@ -231,7 +229,7 @@ TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
 
     Node gnd;
     gnd.id = "gnd"; gnd.name = "GND"; gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
+    gnd.render_hint = "ref";
     gnd.output("v");
     gnd.at(0, 0); gnd.size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -240,7 +238,6 @@ TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
 
     Node comp;
     comp.id = "comp1"; comp.name = "Comparator"; comp.type_name = "Comparator";
-    comp.kind = NodeKind::Node;
     comp.input("Va"); comp.input("Vb"); comp.output("o");
     comp.at(100, 0); comp.size_wh(120, 80);
     bp.add_node(std::move(comp));

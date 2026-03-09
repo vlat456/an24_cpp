@@ -116,7 +116,7 @@ public:
 
     /// Remove multiple nodes by index (indices must be sorted descending).
     /// Connected wires and collapsed_groups are cleaned automatically.
-    /// If any deleted node is a sub-blueprint (NodeKind::Blueprint), its internal
+    /// If any deleted node is a sub-blueprint (expandable), its internal
     /// nodes, wires, and CollapsedGroup entries are recursively removed.
     void removeNodes(const std::vector<size_t>& sorted_desc_indices) {
         // Collect initial set of deleted IDs
@@ -127,7 +127,7 @@ public:
                 const auto& node = bp_->nodes[idx];
                 deleted_ids.insert(node.id);
                 // If this is a sub-blueprint, recursively collect its internals
-                if (node.kind == NodeKind::Blueprint) {
+                if (node.expandable) {
                     bp_->collect_group_internals(node.id, deleted_ids, deleted_group_ids);
                 }
             }

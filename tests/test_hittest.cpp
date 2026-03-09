@@ -135,7 +135,7 @@ TEST(PortAliasTest, BusWithWire_ShouldCreateMultipleVisualPorts) {
     Blueprint bp;
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(100.0f, 100.0f);
     bus.size_wh(40.0f, 40.0f);
     bus.input("v").output("v");  // InOut port
@@ -159,7 +159,7 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
     Blueprint bp;
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(100.0f, 100.0f);
     bus.size_wh(40.0f, 40.0f);
     bus.input("v").output("v");
@@ -200,7 +200,7 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
 TEST(RegressionBusPort, SetSizeDoesNotCorruptPortPositions) {
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(96.0f, 96.0f);
     bus.size_wh(40.0f, 40.0f);  // node.size from add_component
     bus.input("v").output("v");
@@ -229,7 +229,7 @@ TEST(RegressionBusPort, CachedAndFreshVisualsAgreeOnPortPosition) {
     Blueprint bp;
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(96.0f, 96.0f);
     bus.size_wh(40.0f, 40.0f);
     bus.input("v").output("v");
@@ -256,7 +256,7 @@ TEST(RegressionBusPort, HitTestFindsPortAfterSetSize) {
     Blueprint bp;
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(96.0f, 96.0f);
     bus.size_wh(40.0f, 40.0f);
     bus.input("v").output("v");
@@ -283,7 +283,7 @@ TEST(RegressionBusPort, HitTestFindsPortAfterSetSize) {
 TEST(RegressionRefPort, RefNodeUsesActualPortName) {
     Node ref;
     ref.id = "gnd_1";
-    ref.kind = NodeKind::Ref;
+    ref.render_hint = "ref";
     ref.at(96.0f, 96.0f);
     ref.size_wh(40.0f, 40.0f);
     ref.output("v");
@@ -301,7 +301,7 @@ TEST(RegressionRefPort, HitTestReturnsCorrectPortName) {
     Blueprint bp;
     Node ref;
     ref.id = "gnd_1";
-    ref.kind = NodeKind::Ref;
+    ref.render_hint = "ref";
     ref.at(96.0f, 96.0f);
     ref.size_wh(40.0f, 40.0f);
     ref.output("v");
@@ -321,7 +321,7 @@ TEST(RegressionRefPort, HitTestReturnsCorrectPortName) {
 TEST(RegressionBusPort, ConnectWireUpdatesWiresList) {
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(96.0f, 96.0f);
     bus.input("v").output("v");
 
@@ -341,7 +341,7 @@ TEST(RegressionBusPort, ConnectWireUpdatesWiresList) {
 TEST(RegressionBusPort, GetPortPositionWireIdCorrectIndex) {
     Node bus;
     bus.id = "bus_1";
-    bus.kind = NodeKind::Bus;
+    bus.render_hint = "bus";
     bus.at(96.0f, 96.0f);
     bus.input("v").output("v");
 
@@ -430,7 +430,7 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
     Blueprint bp;
 
     // Bus node with logical port "v"
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     bp.add_node(std::move(bus));
@@ -474,7 +474,7 @@ TEST(HitTest, PortHit_BusAlias_ReturnsCorrectWireId) {
     Blueprint bp;
 
     // Bus node with two wires connected
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     bp.add_node(std::move(bus));
@@ -508,7 +508,7 @@ TEST(HitTest, PortHit_BusAlias_ReturnsCorrectWireId) {
 TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
     Blueprint bp;
 
-    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.kind = NodeKind::Bus;
+    Node bus; bus.id = "bus1"; bus.name = "bus"; bus.render_hint = "bus";
     bus.at(200, 100).size_wh(80, 32);
     bus.input("v"); bus.output("v");
     bp.add_node(std::move(bus));
@@ -639,7 +639,7 @@ TEST(HitTestGroupFilter, DrillInOut_GroupSwitching) {
     collapsed.id = "lamp1";
     collapsed.at(100.0f, 50.0f).size_wh(120.0f, 80.0f);
     collapsed.group_id = "";
-    collapsed.kind = NodeKind::Blueprint;
+    collapsed.expandable = true;
     bp.add_node(std::move(collapsed));
 
     // Internal node - in "lamp1" group
