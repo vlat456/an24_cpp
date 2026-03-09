@@ -360,6 +360,37 @@ ParserContext parse_json(const std::string& json_text) {
             throw std::runtime_error("Component definition not found: " + raw_dev.classname);
         }
 
+        // Blueprint types (cpp_class=false): expand from TypeDefinition
+        if (!def->cpp_class && !def->devices.empty()) {
+            spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from TypeRegistry",
+                        raw_dev.classname, raw_dev.name);
+
+            // Build a ParserContext from the TypeDefinition's devices/connections
+            // and recursively process them (handles nested blueprints)
+            nlohmann::json nested_json;
+            nested_json["devices"] = nlohmann::json::array();
+            for (const auto& inner_dev : def->devices) {
+                nlohmann::json dev_j;
+                dev_j["name"] = inner_dev.name;
+                dev_j["classname"] = inner_dev.classname;
+                if (!inner_dev.params.empty()) {
+                    dev_j["params"] = inner_dev.params;
+                }
+                nested_json["devices"].push_back(dev_j);
+            }
+            nested_json["connections"] = nlohmann::json::array();
+            for (const auto& conn : def->connections) {
+                nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
+            }
+
+            ParserContext nested = parse_json(nested_json.dump());
+            merge_nested_blueprint(ctx, nested, raw_dev.name);
+
+            spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
+                        raw_dev.classname, raw_dev.name, nested.devices.size());
+            continue;
+        }
+
         // Merge instance with definition
         DeviceInstance merged = merge_device_instance(raw_dev, *def);
 

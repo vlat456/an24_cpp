@@ -356,3 +356,50 @@ TEST(ExtractExposedPorts, DefaultValues) {
     EXPECT_EQ(exposed["in"].type, PortType::V);
     EXPECT_EQ(exposed["out"].type, PortType::V);
 }
+
+// =============================================================================
+// Phase 5: parse_json() expands cpp_class=false types from TypeRegistry
+// =============================================================================
+
+TEST(BlueprintLoading, ExpandBlueprintFromTypeRegistry) {
+    // SimpleBattery is cpp_class=false in library/ and has devices/connections
+    TypeRegistry reg = load_type_registry("library/");
+    ASSERT_TRUE(reg.has("SimpleBattery"));
+    const auto* def = reg.get("SimpleBattery");
+    ASSERT_FALSE(def->cpp_class);
+    ASSERT_FALSE(def->devices.empty());
+
+    // Use SimpleBattery in a root circuit — it should be expanded from TypeRegistry
+    nlohmann::json root;
+    root["devices"] = {
+        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
+        {{"name", "sb"}, {"classname", "SimpleBattery"}},
+        {{"name", "load"}, {"classname", "Resistor"}, {"params", {{"conductance", "0.1"}}}}
+    };
+    root["connections"] = {
+        {{"from", "gnd.v"}, {"to", "sb.vin"}},
+        {{"from", "sb.vout"}, {"to", "load.v_in"}},
+        {{"from", "load.v_out"}, {"to", "gnd.v"}}
+    };
+
+    ParserContext ctx;
+    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
+
+    // SimpleBattery should be expanded: its internal devices have "sb:" prefix
+    bool has_sb_bat = false, has_sb_gnd = false, has_sb_vin = false, has_sb_vout = false;
+    for (const auto& dev : ctx.devices) {
+        if (dev.name == "sb:bat") has_sb_bat = true;
+        if (dev.name == "sb:gnd") has_sb_gnd = true;
+        if (dev.name == "sb:vin") has_sb_vin = true;
+        if (dev.name == "sb:vout") has_sb_vout = true;
+    }
+    EXPECT_TRUE(has_sb_bat) << "Should have expanded 'sb:bat'";
+    EXPECT_TRUE(has_sb_gnd) << "Should have expanded 'sb:gnd'";
+    EXPECT_TRUE(has_sb_vin) << "Should have expanded 'sb:vin'";
+    EXPECT_TRUE(has_sb_vout) << "Should have expanded 'sb:vout'";
+
+    // No device named "sb" alone (it was expanded)
+    for (const auto& dev : ctx.devices) {
+        EXPECT_NE(dev.name, "sb") << "Blueprint 'sb' should be expanded, not kept as device";
+    }
+}
