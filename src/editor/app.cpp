@@ -70,6 +70,28 @@ void EditorApp::open_properties_for_node(size_t node_index) {
     });
 }
 
+void EditorApp::open_color_picker_for_node(size_t node_index) {
+    if (node_index >= blueprint.nodes.size()) return;
+    color_picker_node_index = node_index;
+    color_picker_group_id = node_context_menu_group_id;
+    show_color_picker = true;
+
+    // Pre-fill with existing custom color or theme default
+    const Node& node = blueprint.nodes[node_index];
+    if (node.color.has_value()) {
+        color_picker_rgba[0] = node.color->r;
+        color_picker_rgba[1] = node.color->g;
+        color_picker_rgba[2] = node.color->b;
+        color_picker_rgba[3] = node.color->a;
+    } else {
+        // Use body fill default as starting color (COLOR_BODY_FILL = 0xFF303040)
+        color_picker_rgba[0] = 0.19f;  // 0x40/255 ≈ 0.19
+        color_picker_rgba[1] = 0.19f;
+        color_picker_rgba[2] = 0.25f;  // 0x30/255 ≈ 0.25
+        color_picker_rgba[3] = 1.0f;
+    }
+}
+
 void EditorApp::add_component(const std::string& classname, Pt world_pos, const std::string& group_id) {
     using namespace an24;
     

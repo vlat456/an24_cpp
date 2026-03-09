@@ -342,6 +342,16 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             device["content"] = content;
         }
 
+        // Per-node custom color (optional)
+        if (n.color.has_value()) {
+            device["color"] = {
+                {"r", n.color->r},
+                {"g", n.color->g},
+                {"b", n.color->b},
+                {"a", n.color->a}
+            };
+        }
+
         devices.push_back(device);
     }
     j["devices"] = devices;
@@ -529,6 +539,16 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
                 n.node_content.unit = c["unit"].get<std::string>();
             if (c.contains("state"))
                 n.node_content.state = c["state"].get<bool>();
+        }
+
+        // Per-node custom color (optional)
+        if (d.contains("color") && d["color"].is_object()) {
+            NodeColor c;
+            c.r = d["color"].value("r", 0.5f);
+            c.g = d["color"].value("g", 0.5f);
+            c.b = d["color"].value("b", 0.5f);
+            c.a = d["color"].value("a", 1.0f);
+            n.color = c;
         }
 
         bp.nodes.push_back(std::move(n));

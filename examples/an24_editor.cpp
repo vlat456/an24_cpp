@@ -631,8 +631,54 @@ int main(int argc, char** argv) {
             app.show_node_context_menu = false;
         }
         if (ImGui::BeginPopup("NodeContextMenu")) {
+            if (ImGui::MenuItem("Color...")) {
+                app.open_color_picker_for_node(app.context_menu_node_index);
+            }
             if (ImGui::MenuItem("Properties")) {
                 app.open_properties_for_node(app.context_menu_node_index);
+            }
+            ImGui::EndPopup();
+        }
+
+        // Color picker dialog
+        if (app.show_color_picker) {
+            ImGui::OpenPopup("Node Color");
+        }
+        if (ImGui::BeginPopupModal("Node Color", &app.show_color_picker, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::ColorPicker4("##picker", app.color_picker_rgba,
+                ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayRGB);
+
+            // Find the correct window's scene for visual cache update
+            auto* target_win = app.window_manager.find(app.color_picker_group_id);
+            VisualScene* target_scene = target_win ? &target_win->scene : &app.scene;
+
+            if (ImGui::Button("Apply")) {
+                Node& node = app.blueprint.nodes[app.color_picker_node_index];
+                node.color = NodeColor{
+                    app.color_picker_rgba[0],
+                    app.color_picker_rgba[1],
+                    app.color_picker_rgba[2],
+                    app.color_picker_rgba[3]
+                };
+                // Update VisualNode in the correct window's cache
+                auto* vn = target_scene->getVisualNode(app.color_picker_node_index);
+                if (vn) vn->setCustomColor(node.color);
+                app.show_color_picker = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Reset")) {
+                Node& node = app.blueprint.nodes[app.color_picker_node_index];
+                node.color = std::nullopt;
+                auto* vn = target_scene->getVisualNode(app.color_picker_node_index);
+                if (vn) vn->setCustomColor(std::nullopt);
+                app.show_color_picker = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                app.show_color_picker = false;
+                ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }

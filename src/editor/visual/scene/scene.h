@@ -221,6 +221,10 @@ public:
         return cache_.get(node_id);
     }
 
+    VisualNode* getVisualNode(size_t index) {
+        return (index < bp_->nodes.size()) ? cache_.getOrCreate(bp_->nodes[index], bp_->wires) : nullptr;
+    }
+
     void clearCache() { cache_.clear(); }
 
     void reset() {

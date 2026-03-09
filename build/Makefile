@@ -899,6 +899,19 @@ codegen_accumulator_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/build
 .PHONY : codegen_accumulator_tests/fast
 
+#=============================================================================
+# Target rules for targets named node_color_tests
+
+# Build rule for target.
+node_color_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 node_color_tests
+.PHONY : node_color_tests
+
+# fast build rule for target.
+node_color_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/build
+.PHONY : node_color_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -953,6 +966,7 @@ help:
 	@echo "... lut_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
+	@echo "... node_color_tests"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"
 	@echo "... pd_tests"

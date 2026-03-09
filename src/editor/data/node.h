@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <optional>
 
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
@@ -24,6 +25,23 @@ struct NodeContent {
     float max = 1.0f;
     std::string unit;
     bool state = false;
+};
+
+/// Optional per-node custom color (RGBA, 0.0–1.0)
+struct NodeColor {
+    float r = 0.5f, g = 0.5f, b = 0.5f, a = 1.0f;
+
+    /// Convert to ImGui uint32 ABGR format (0xAABBGGRR)
+    uint32_t to_uint32() const {
+        auto clamp01 = [](float v) -> float {
+            return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+        };
+        uint8_t ri = static_cast<uint8_t>(clamp01(r) * 255.0f + 0.5f);
+        uint8_t gi = static_cast<uint8_t>(clamp01(g) * 255.0f + 0.5f);
+        uint8_t bi = static_cast<uint8_t>(clamp01(b) * 255.0f + 0.5f);
+        uint8_t ai = static_cast<uint8_t>(clamp01(a) * 255.0f + 0.5f);
+        return (uint32_t(ai) << 24) | (uint32_t(bi) << 16) | (uint32_t(gi) << 8) | uint32_t(ri);
+    }
 };
 
 /// Узел в схеме - компонент (батарея, насос, и т.д.)
@@ -52,6 +70,7 @@ struct Node {
     std::unordered_map<std::string, std::string> params;
 
     NodeContent node_content;  ///< Содержимое для отображения
+    std::optional<NodeColor> color;   ///< Per-node custom color (nullopt = use theme default)
 
     Node()
         : id()

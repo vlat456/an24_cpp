@@ -22,10 +22,11 @@ public:
     std::vector<TextEntry> texts_;
     std::vector<uint32_t> polyline_colors_;
     std::vector<uint32_t> circle_colors_;
+    std::vector<uint32_t> rect_filled_colors_;
 
     void add_line(Pt, Pt, uint32_t, float) override { had_line_ = true; }
     void add_rect(Pt, Pt, uint32_t, float) override { had_rect_ = true; rect_count_++; }
-    void add_rect_filled(Pt, Pt, uint32_t) override { had_rect_ = true; rect_count_++; }
+    void add_rect_filled(Pt, Pt, uint32_t color) override { had_rect_ = true; rect_count_++; rect_filled_colors_.push_back(color); }
     void add_circle(Pt, float, uint32_t color, int) override {
         had_circle_ = true;
         circle_colors_.push_back(color);
@@ -57,6 +58,10 @@ public:
     }
     bool has_circle_with_color(uint32_t color) const {
         for (auto c : circle_colors_) if (c == color) return true;
+        return false;
+    }
+    bool has_rect_filled_with_color(uint32_t color) const {
+        for (auto c : rect_filled_colors_) if (c == color) return true;
         return false;
     }
 };

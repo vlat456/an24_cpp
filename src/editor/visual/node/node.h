@@ -76,6 +76,10 @@ public:
     // --- Layout access for testing ---
     const ColumnLayout& getLayout() const { return layout_; }
 
+    // --- Per-node custom color ---
+    const std::optional<NodeColor>& customColor() const { return custom_color_; }
+    void setCustomColor(std::optional<NodeColor> c) { custom_color_ = std::move(c); }
+
     // --- IDrawable ---
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
@@ -90,6 +94,7 @@ protected:
     NodeContent node_content_;
     ColumnLayout layout_;
     std::vector<PortRowWidget*> port_rows_;
+    std::optional<NodeColor> custom_color_;
 
     void buildLayout(const Node& node);
     void buildPorts(const Node& node);

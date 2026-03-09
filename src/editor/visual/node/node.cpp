@@ -47,6 +47,7 @@ VisualNode::VisualNode(const Node& node)
     , name_(node.name)
     , type_name_(node.type_name)
     , node_content_(node.node_content)
+    , custom_color_(node.color)
 {
     buildLayout(node);
 
@@ -184,8 +185,11 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 
     float header_h = HeaderWidget::HEIGHT * vp.zoom;
 
-    // Body background (below header)
-    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_h), screen_max, render_theme::COLOR_BODY_FILL);
+    // Body background (below header) - use custom color if set
+    uint32_t body_fill = custom_color_.has_value()
+        ? custom_color_->to_uint32()
+        : render_theme::COLOR_BODY_FILL;
+    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_h), screen_max, body_fill);
 
     // Border
     uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
@@ -396,7 +400,10 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt bus_min(screen_center.x - bus_w / 2, screen_center.y - bus_h / 2);
     Pt bus_max(screen_center.x + bus_w / 2, screen_center.y + bus_h / 2);
 
-    dl->add_rect_filled(bus_min, bus_max, render_theme::COLOR_BUS_FILL);
+    uint32_t fill = custom_color_.has_value()
+        ? custom_color_->to_uint32()
+        : render_theme::COLOR_BUS_FILL;
+    dl->add_rect_filled(bus_min, bus_max, fill);
     uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
     dl->add_rect(bus_min, bus_max, border_color, 1.0f);
 
@@ -455,7 +462,10 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt screen_center((screen_min.x + screen_max.x) / 2,
                      (screen_min.y + screen_max.y) / 2);
 
-    dl->add_rect_filled(screen_min, screen_max, render_theme::COLOR_BUS_FILL);
+    uint32_t fill = custom_color_.has_value()
+        ? custom_color_->to_uint32()
+        : render_theme::COLOR_BUS_FILL;
+    dl->add_rect_filled(screen_min, screen_max, fill);
     uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
     dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 

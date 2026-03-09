@@ -43,6 +43,13 @@ struct EditorApp {
     /// Node context menu state (right-click on node)
     bool show_node_context_menu = false;
     size_t context_menu_node_index = 0;
+    std::string node_context_menu_group_id;  ///< Which window the right-click came from
+
+    /// Color picker state
+    bool show_color_picker = false;
+    size_t color_picker_node_index = 0;
+    std::string color_picker_group_id;  ///< Which window the color picker targets
+    float color_picker_rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
     /// Properties window
     PropertiesWindow properties_window;
@@ -128,6 +135,7 @@ struct EditorApp {
         if (r.show_node_context_menu) {
             show_node_context_menu = true;
             context_menu_node_index = r.context_menu_node_index;
+            node_context_menu_group_id = group_id;
         }
         if (!r.open_sub_window.empty()) open_sub_window(r.open_sub_window);
     }
@@ -152,6 +160,9 @@ struct EditorApp {
 
     /// Open properties window for a specific node
     void open_properties_for_node(size_t node_index);
+
+    /// Open color picker for a specific node
+    void open_color_picker_for_node(size_t node_index);
 
 private:
 };

@@ -987,3 +987,32 @@ target_link_libraries(codegen_accumulator_tests PRIVATE
     spdlog::spdlog
 )
 gtest_discover_tests(codegen_accumulator_tests)
+
+# Node color tests (Phase 1: data model, persistence, visual node)
+add_executable(node_color_tests
+    test_node_color.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(node_color_tests PRIVATE EDITOR_TESTING)
+target_include_directories(node_color_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(node_color_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(node_color_tests)
