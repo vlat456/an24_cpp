@@ -387,30 +387,46 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         auto& wire = scene_.wires()[reconnect_wire_idx_];
         const WireEnd& detached = reconnect_detach_start_ ? wire.start : wire.end;
 
-        // Dropped back on same port?
-        bool same_as_original;
-        if (!port_hit.port_wire_id.empty())
-            same_as_original = (port_hit.port_node_id == detached.node_id &&
-                                port_hit.port_wire_id == wire.id);
-        else
-            same_as_original = (port_hit.port_node_id == detached.node_id &&
-                                port_hit.port_name == detached.port_name);
+        // NEW: Try port swap first (for BusVisualNode)
+        // If dragging a wire end within the same bus node, swap ports instead of reconnecting.
+        // Use wire.id (the wire being dragged), NOT detached.port_name ("v") — bus wires all
+        // connect to the logical "v" port, but each has a unique wire ID that identifies its
+        // alias port slot. Passing "v" as wire_id_b would fail to find a matching wire.
+        if (port_hit.port_node_id == detached.node_id) {
+            if (scene_.swapWirePortsOnBus(port_hit.port_node_id, port_hit.port_wire_id, wire.id)) {
+                // Port swap successful! No wire reconnection needed.
+                reconnected = true;
+                result.rebuild_simulation = true;
+            }
+        }
 
-        if (same_as_original)
-            return result;  // no change
+        // Fallback: standard wire reconnection if swap not handled
+        if (!reconnected) {
+            // Dropped back on same port?
+            bool same_as_original;
+            if (!port_hit.port_wire_id.empty())
+                same_as_original = (port_hit.port_node_id == detached.node_id &&
+                                    port_hit.port_wire_id == wire.id);
+            else
+                same_as_original = (port_hit.port_node_id == detached.node_id &&
+                                    port_hit.port_name == detached.port_name);
 
-        const WireEnd& fixed = reconnect_detach_start_ ? wire.end : wire.start;
-        bool same_port = WireManager::isSamePort(
-            port_hit.port_node_id, port_hit.port_name,
-            fixed.node_id, fixed.port_name);
-        bool compatible = !same_port &&
-                          WireManager::canConnect(port_hit.port_side, reconnect_fixed_side_);
+            if (same_as_original)
+                return result;  // no change
 
-        if (compatible) {
-            WireEnd new_end(port_hit.port_node_id.c_str(), port_hit.port_name.c_str(), port_hit.port_side);
-            scene_.reconnectWire(reconnect_wire_idx_, reconnect_detach_start_, new_end);
-            result.rebuild_simulation = true;
-            reconnected = true;
+            const WireEnd& fixed = reconnect_detach_start_ ? wire.end : wire.start;
+            bool same_port = WireManager::isSamePort(
+                port_hit.port_node_id, port_hit.port_name,
+                fixed.node_id, fixed.port_name);
+            bool compatible = !same_port &&
+                              WireManager::canConnect(port_hit.port_side, reconnect_fixed_side_);
+
+            if (compatible) {
+                WireEnd new_end(port_hit.port_node_id.c_str(), port_hit.port_name.c_str(), port_hit.port_side);
+                scene_.reconnectWire(reconnect_wire_idx_, reconnect_detach_start_, new_end);
+                result.rebuild_simulation = true;
+                reconnected = true;
+            }
         }
     }
 

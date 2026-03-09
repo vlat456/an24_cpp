@@ -2166,6 +2166,30 @@ test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
 
+test_bus_port_swap.o: test_bus_port_swap.cpp.o
+.PHONY : test_bus_port_swap.o
+
+# target to build an object file
+test_bus_port_swap.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_bus_port_swap.cpp.o
+.PHONY : test_bus_port_swap.cpp.o
+
+test_bus_port_swap.i: test_bus_port_swap.cpp.i
+.PHONY : test_bus_port_swap.i
+
+# target to preprocess a source file
+test_bus_port_swap.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_bus_port_swap.cpp.i
+.PHONY : test_bus_port_swap.cpp.i
+
+test_bus_port_swap.s: test_bus_port_swap.cpp.s
+.PHONY : test_bus_port_swap.s
+
+# target to generate assembly for a file
+test_bus_port_swap.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_bus_port_swap.cpp.s
+.PHONY : test_bus_port_swap.cpp.s
+
 test_codegen_accumulator.o: test_codegen_accumulator.cpp.o
 .PHONY : test_codegen_accumulator.o
 
@@ -3157,6 +3181,9 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
+	@echo "... test_bus_port_swap.o"
+	@echo "... test_bus_port_swap.i"
+	@echo "... test_bus_port_swap.s"
 	@echo "... test_codegen_accumulator.o"
 	@echo "... test_codegen_accumulator.i"
 	@echo "... test_codegen_accumulator.s"

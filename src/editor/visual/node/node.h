@@ -67,6 +67,16 @@ public:
     virtual void disconnectWire(const Wire& wire);
     virtual void recalculatePorts();
 
+    /// Handle port swap within this node (e.g., BusVisualNode port reordering).
+    /// Returns true if swap was handled, false to use default wire reconnection.
+    /// Default implementation: no swapping (returns false).
+    virtual bool handlePortSwap(const std::string& port_a,
+                               const std::string& port_b) {
+        (void)port_a;
+        (void)port_b;
+        return false;
+    }
+
     // --- Content access ---
     NodeContentType getContentType() const { return node_content_.type; }
     const NodeContent& getNodeContent() const { return node_content_; }
@@ -128,6 +138,15 @@ public:
     void connectWire(const Wire& wire) override;
     void disconnectWire(const Wire& wire) override;
     void recalculatePorts() override;
+
+    bool handlePortSwap(const std::string& port_a,
+                       const std::string& port_b) override;
+
+    /// Swap two alias ports by their wire IDs.
+    /// Updates internal wires_ ordering and redistributes ports.
+    /// Public for testing purposes (tests swap behavior directly).
+    bool swapAliasPorts(const std::string& wire_id_a,
+                       const std::string& wire_id_b);
 
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;

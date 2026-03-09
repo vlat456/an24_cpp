@@ -82,3 +82,135 @@ TEST(ContextMenu, RightClickOnSecondNode_ReportsCorrectIndex) {
     EXPECT_EQ(result.context_menu_node_index, 1u)
         << "Should identify second node (index 1)";
 }
+
+// =============================================================================
+// Bus port swap integration tests (VisualScene::swapWirePortsOnBus)
+// These verify the full scene-level swap: visual port order + wire re-routing
+// =============================================================================
+
+// Helper: build a blueprint with a bus and two source nodes connected to it.
+// Returns the blueprint; caller binds the scene.
+static Blueprint make_bus_with_two_wires() {
+    Blueprint bp;
+
+    // Source node A at (0, 0)
+    Node na;
+    na.id = "node_a";
+    na.type_name = "Battery";
+    na.at(0, 100).size_wh(80, 48);
+    na.output("out");
+    bp.add_node(std::move(na));
+
+    // Source node B at (0, 200)
+    Node nb;
+    nb.id = "node_b";
+    nb.type_name = "Battery";
+    nb.at(0, 200).size_wh(80, 48);
+    nb.output("out");
+    bp.add_node(std::move(nb));
+
+    // Bus at (320, 96) — horizontal, sized for 2 wires + 1 logical port.
+    // Positions are exact multiples of PORT_LAYOUT_GRID=16 so snap_to_grid is a no-op.
+    Node bus;
+    bus.id = "bus1";
+    bus.name = "Bus";
+    bus.type_name = "Bus";
+    bus.render_hint = "bus";
+    bus.at(320, 96).size_wh(80, 32);
+    bus.input("v");
+    bus.output("v");
+    bp.add_node(std::move(bus));
+
+    // Wire 1: node_a.out → bus1.v
+    Wire w1 = Wire::make("wire_1", wire_output("node_a", "out"), wire_input("bus1", "v"));
+    bp.add_wire(std::move(w1));
+
+    // Wire 2: node_b.out → bus1.v
+    Wire w2 = Wire::make("wire_2", wire_output("node_b", "out"), wire_input("bus1", "v"));
+    bp.add_wire(std::move(w2));
+
+    return bp;
+}
+
+// After swapWirePortsOnBus, the two alias ports should have exchanged positions:
+// wire_1 now lives at slot 1 and wire_2 at slot 0.
+TEST(SwapWirePortsOnBus, SwapSucceeds_PortPositionsExchanged) {
+    Blueprint bp = make_bus_with_two_wires();
+    VisualScene scene(bp);
+
+    // Force the bus visual node into cache by accessing it
+    const Node* bus_node = bp.find_node("bus1");
+    ASSERT_NE(bus_node, nullptr);
+    auto* bus_vis = scene.cache().getOrCreate(*bus_node, bp.wires);
+    ASSERT_NE(bus_vis, nullptr);
+
+    // Record alias port positions BEFORE swap
+    Pt pos_wire1_before = scene.portPosition(*bus_node, "v", "wire_1");
+    Pt pos_wire2_before = scene.portPosition(*bus_node, "v", "wire_2");
+
+    // Ports should start at different positions
+    EXPECT_NE(pos_wire1_before.x, pos_wire2_before.x);
+
+    // Perform swap using correct wire IDs (not port names like "v")
+    bool ok = scene.swapWirePortsOnBus("bus1", "wire_2", "wire_1");
+    EXPECT_TRUE(ok) << "swapWirePortsOnBus should succeed with valid wire IDs";
+
+    // After swap: wire_1 should be at slot 1 (old slot of wire_2) and vice versa
+    Pt pos_wire1_after = scene.portPosition(*bus_node, "v", "wire_1");
+    Pt pos_wire2_after = scene.portPosition(*bus_node, "v", "wire_2");
+
+    EXPECT_FLOAT_EQ(pos_wire1_after.x, pos_wire2_before.x)
+        << "wire_1 should now occupy wire_2's old slot";
+    EXPECT_FLOAT_EQ(pos_wire1_after.y, pos_wire2_before.y);
+    EXPECT_FLOAT_EQ(pos_wire2_after.x, pos_wire1_before.x)
+        << "wire_2 should now occupy wire_1's old slot";
+    EXPECT_FLOAT_EQ(pos_wire2_after.y, pos_wire1_before.y);
+}
+
+// Passing the logical port name "v" as wire_id_b (the old broken argument) must fail.
+// This regression test documents the root cause and guards against reintroducing the bug.
+TEST(SwapWirePortsOnBus, PassingLogicalPortName_ReturnsFalse) {
+    Blueprint bp = make_bus_with_two_wires();
+    VisualScene scene(bp);
+
+    // Warm up cache
+    const Node* bus_node = bp.find_node("bus1");
+    ASSERT_NE(bus_node, nullptr);
+    scene.cache().getOrCreate(*bus_node, bp.wires);
+
+    // "v" is a port name, not a wire ID — no wire has id="v"
+    bool ok = scene.swapWirePortsOnBus("bus1", "wire_2", "v");
+    EXPECT_FALSE(ok)
+        << "swapWirePortsOnBus must return false when wire_id_b is 'v' (a port name, not a wire ID)";
+}
+
+// After a successful swap, routing points are preserved on each wire.
+// Since wires are swapped in bp_->wires, indices swap too.
+TEST(SwapWirePortsOnBus, AfterSwap_RoutingPointsPreserved) {
+    Blueprint bp = make_bus_with_two_wires();
+    VisualScene scene(bp);
+
+    // Pre-seed hand-crafted routing points
+    bp.wires[0].routing_points.push_back(Pt(99, 99));  // wire_1
+    bp.wires[1].routing_points.push_back(Pt(88, 88));  // wire_2
+
+    const Node* bus_node = bp.find_node("bus1");
+    ASSERT_NE(bus_node, nullptr);
+    scene.cache().getOrCreate(*bus_node, bp.wires);
+
+    bool ok = scene.swapWirePortsOnBus("bus1", "wire_2", "wire_1");
+    ASSERT_TRUE(ok);
+
+    // Wires swapped in bp_->wires: [0] is now wire_2, [1] is now wire_1
+    EXPECT_EQ(bp.wires[0].id, "wire_2");
+    EXPECT_EQ(bp.wires[1].id, "wire_1");
+
+    // Routing points travel with their wire — preserved, just at swapped index
+    ASSERT_EQ(bp.wires[0].routing_points.size(), 1u);
+    EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].x, 88);
+    EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].y, 88);
+
+    ASSERT_EQ(bp.wires[1].routing_points.size(), 1u);
+    EXPECT_FLOAT_EQ(bp.wires[1].routing_points[0].x, 99);
+    EXPECT_FLOAT_EQ(bp.wires[1].routing_points[0].y, 99);
+}

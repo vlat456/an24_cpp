@@ -182,6 +182,31 @@ public:
         cache_.clear();
     }
 
+    /// Swap port connections for two wires attached to the same bus.
+    /// Preserves existing routing points — only the endpoint (resolved every
+    /// frame via resolveWirePort) moves to the new port slot.
+    bool swapWirePortsOnBus(const std::string& bus_node_id,
+                           const std::string& wire_id_a,
+                           const std::string& wire_id_b) {
+        // Find wire indices in bp_->wires (authoritative storage)
+        size_t idx_a = SIZE_MAX, idx_b = SIZE_MAX;
+        for (size_t i = 0; i < bp_->wires.size(); ++i) {
+            if (bp_->wires[i].id == wire_id_a) idx_a = i;
+            if (bp_->wires[i].id == wire_id_b) idx_b = i;
+        }
+        if (idx_a == SIZE_MAX || idx_b == SIZE_MAX) return false;
+
+        // Swap visual port ordering on the bus node.
+        auto* bus_vis = cache_.get(bus_node_id);
+        if (!bus_vis) return false;
+        if (!bus_vis->handlePortSwap(wire_id_a, wire_id_b))
+            return false;
+
+        // Swap in blueprint so the order persists across save/load.
+        std::swap(bp_->wires[idx_a], bp_->wires[idx_b]);
+        return true;
+    }
+
     /// Move a node to new_pos, updating both the data and the visual.
     void moveNode(size_t index, Pt new_pos) {
         if (index >= bp_->nodes.size()) return;

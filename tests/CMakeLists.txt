@@ -297,6 +297,7 @@ gtest_discover_tests(editor_router_tests)
 # Widget & Layout tests
 add_executable(editor_widget_tests
     test_widget.cpp
+    test_bus_port_swap.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp

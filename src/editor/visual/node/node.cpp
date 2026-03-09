@@ -452,6 +452,40 @@ void BusVisualNode::recalculatePorts() {
     distributePortsInRow(wires_);
 }
 
+bool BusVisualNode::handlePortSwap(const std::string& port_a,
+                                  const std::string& port_b) {
+    // Both must be alias ports (non-empty wire IDs)
+    if (port_a.empty() || port_b.empty())
+        return false;
+
+    return swapAliasPorts(port_a, port_b);
+}
+
+bool BusVisualNode::swapAliasPorts(const std::string& wire_id_a,
+                                   const std::string& wire_id_b) {
+    // Find indices in wires_ vector
+    size_t idx_a = SIZE_MAX, idx_b = SIZE_MAX;
+    for (size_t i = 0; i < wires_.size(); i++) {
+        if (wires_[i].id == wire_id_a) idx_a = i;
+        if (wires_[i].id == wire_id_b) idx_b = i;
+    }
+
+    // Validation: both must exist and be different
+    if (idx_a == SIZE_MAX || idx_b == SIZE_MAX || idx_a == idx_b)
+        return false;
+
+    // Swap in wires_ vector (this is the authoritative ordering!)
+    std::swap(wires_[idx_a], wires_[idx_b]);
+
+    // Redistribute ports to reflect new ordering
+    distributePortsInRow(wires_);
+
+    // Update node size if port count changed
+    size_ = calculateBusSize(ports_.size());
+
+    return true;
+}
+
 void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                           bool is_selected) const {
     Pt screen_min = vp.world_to_screen(position_, canvas_min);
