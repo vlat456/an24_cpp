@@ -24,6 +24,14 @@ constexpr float LAYOUT_ORIGIN_Y    = 80.0f;
 // ---- Port rendering ----
 constexpr float PORT_RADIUS    = 6.0f;
 constexpr float PORT_HIT_RADIUS = 10.0f;
+constexpr float PORT_LABEL_GAP = 3.0f;
+constexpr float PORT_LABEL_FONT_SIZE = 9.0f;
+constexpr float PORT_ROW_HEIGHT = 16.0f;
+constexpr uint32_t PORT_LABEL_COLOR = 0xFFAAAAAA;
+constexpr float PORT_MIN_GAP = 20.0f;  // Minimum gap between left/right labels
+
+// ---- Node sizing ----
+constexpr float MIN_NODE_WIDTH = 80.0f;
 
 // ---- Zoom bounds ----
 constexpr float ZOOM_MIN   = 0.25f;

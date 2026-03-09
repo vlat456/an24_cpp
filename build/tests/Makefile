@@ -773,6 +773,34 @@ node_color_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/build
 .PHONY : node_color_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/node_autosize_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/node_autosize_tests.dir/rule
+.PHONY : tests/CMakeFiles/node_autosize_tests.dir/rule
+
+# Convenience name for target.
+node_autosize_tests: tests/CMakeFiles/node_autosize_tests.dir/rule
+.PHONY : node_autosize_tests
+
+# fast build rule for target.
+node_autosize_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/build
+.PHONY : node_autosize_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/layout_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/layout_tests.dir/rule
+.PHONY : tests/CMakeFiles/layout_tests.dir/rule
+
+# Convenience name for target.
+layout_tests: tests/CMakeFiles/layout_tests.dir/rule
+.PHONY : layout_tests
+
+# fast build rule for target.
+layout_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/build
+.PHONY : layout_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -848,6 +876,7 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
 
 __/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
@@ -874,6 +903,7 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
 
 __/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
@@ -900,6 +930,7 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
 __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
@@ -1009,6 +1040,7 @@ __/src/editor/viewport/viewport.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/viewport/viewport.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.cpp.o
 
 __/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
@@ -1031,6 +1063,7 @@ __/src/editor/viewport/viewport.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/viewport/viewport.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/viewport/viewport.cpp.i
 .PHONY : __/src/editor/viewport/viewport.cpp.i
 
 __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
@@ -1053,6 +1086,7 @@ __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/viewport/viewport.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
 
 __/src/editor/visual/hittest.o: __/src/editor/visual/hittest.cpp.o
@@ -1121,6 +1155,75 @@ __/src/editor/visual/inspector/inspector_core.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/inspector/inspector_core.cpp.s
 .PHONY : __/src/editor/visual/inspector/inspector_core.cpp.s
 
+__/src/editor/visual/node/layout.o: __/src/editor/visual/node/layout.cpp.o
+.PHONY : __/src/editor/visual/node/layout.o
+
+# target to build an object file
+__/src/editor/visual/node/layout.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/layout.cpp.o
+.PHONY : __/src/editor/visual/node/layout.cpp.o
+
+__/src/editor/visual/node/layout.i: __/src/editor/visual/node/layout.cpp.i
+.PHONY : __/src/editor/visual/node/layout.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/layout.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/layout.cpp.i
+.PHONY : __/src/editor/visual/node/layout.cpp.i
+
+__/src/editor/visual/node/layout.s: __/src/editor/visual/node/layout.cpp.s
+.PHONY : __/src/editor/visual/node/layout.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/layout.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/layout.cpp.s
+.PHONY : __/src/editor/visual/node/layout.cpp.s
+
 __/src/editor/visual/node/node.o: __/src/editor/visual/node/node.cpp.o
 .PHONY : __/src/editor/visual/node/node.o
 
@@ -1140,6 +1243,7 @@ __/src/editor/visual/node/node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/node.cpp.o
 .PHONY : __/src/editor/visual/node/node.cpp.o
 
 __/src/editor/visual/node/node.i: __/src/editor/visual/node/node.cpp.i
@@ -1161,6 +1265,7 @@ __/src/editor/visual/node/node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/node.cpp.i
 .PHONY : __/src/editor/visual/node/node.cpp.i
 
 __/src/editor/visual/node/node.s: __/src/editor/visual/node/node.cpp.s
@@ -1182,6 +1287,7 @@ __/src/editor/visual/node/node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/node.cpp.s
 .PHONY : __/src/editor/visual/node/node.cpp.s
 
 __/src/editor/visual/node/widget.o: __/src/editor/visual/node/widget.cpp.o
@@ -1203,6 +1309,8 @@ __/src/editor/visual/node/widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/widget.cpp.o
 .PHONY : __/src/editor/visual/node/widget.cpp.o
 
 __/src/editor/visual/node/widget.i: __/src/editor/visual/node/widget.cpp.i
@@ -1224,6 +1332,8 @@ __/src/editor/visual/node/widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/widget.cpp.i
 .PHONY : __/src/editor/visual/node/widget.cpp.i
 
 __/src/editor/visual/node/widget.s: __/src/editor/visual/node/widget.cpp.s
@@ -1245,6 +1355,8 @@ __/src/editor/visual/node/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/node/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/node/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/widget.cpp.s
 .PHONY : __/src/editor/visual/node/widget.cpp.s
 
 __/src/editor/visual/port/port.o: __/src/editor/visual/port/port.cpp.o
@@ -1266,6 +1378,7 @@ __/src/editor/visual/port/port.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/port/port.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/port/port.cpp.o
 .PHONY : __/src/editor/visual/port/port.cpp.o
 
 __/src/editor/visual/port/port.i: __/src/editor/visual/port/port.cpp.i
@@ -1287,6 +1400,7 @@ __/src/editor/visual/port/port.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/port/port.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/port/port.cpp.i
 .PHONY : __/src/editor/visual/port/port.cpp.i
 
 __/src/editor/visual/port/port.s: __/src/editor/visual/port/port.cpp.s
@@ -1308,6 +1422,7 @@ __/src/editor/visual/port/port.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/port/port.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/port/port.cpp.s
 .PHONY : __/src/editor/visual/port/port.cpp.s
 
 __/src/editor/visual/renderer/blueprint_renderer.o: __/src/editor/visual/renderer/blueprint_renderer.cpp.o
@@ -1329,6 +1444,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/blueprint_renderer.cpp.o
 
 __/src/editor/visual/renderer/blueprint_renderer.i: __/src/editor/visual/renderer/blueprint_renderer.cpp.i
@@ -1350,6 +1466,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 .PHONY : __/src/editor/visual/renderer/blueprint_renderer.cpp.i
 
 __/src/editor/visual/renderer/blueprint_renderer.s: __/src/editor/visual/renderer/blueprint_renderer.cpp.s
@@ -1371,6 +1488,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/blueprint_renderer.cpp.s
 
 __/src/editor/visual/renderer/grid_renderer.o: __/src/editor/visual/renderer/grid_renderer.cpp.o
@@ -1392,6 +1510,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/grid_renderer.cpp.o
 
 __/src/editor/visual/renderer/grid_renderer.i: __/src/editor/visual/renderer/grid_renderer.cpp.i
@@ -1413,6 +1532,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 .PHONY : __/src/editor/visual/renderer/grid_renderer.cpp.i
 
 __/src/editor/visual/renderer/grid_renderer.s: __/src/editor/visual/renderer/grid_renderer.cpp.s
@@ -1434,6 +1554,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/grid_renderer.cpp.s
 
 __/src/editor/visual/renderer/node_renderer.o: __/src/editor/visual/renderer/node_renderer.cpp.o
@@ -1455,6 +1576,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/node_renderer.cpp.o
 
 __/src/editor/visual/renderer/node_renderer.i: __/src/editor/visual/renderer/node_renderer.cpp.i
@@ -1476,6 +1598,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 .PHONY : __/src/editor/visual/renderer/node_renderer.cpp.i
 
 __/src/editor/visual/renderer/node_renderer.s: __/src/editor/visual/renderer/node_renderer.cpp.s
@@ -1497,6 +1620,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/node_renderer.cpp.s
 
 __/src/editor/visual/renderer/tooltip_detector.o: __/src/editor/visual/renderer/tooltip_detector.cpp.o
@@ -1518,6 +1642,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 .PHONY : __/src/editor/visual/renderer/tooltip_detector.cpp.o
 
 __/src/editor/visual/renderer/tooltip_detector.i: __/src/editor/visual/renderer/tooltip_detector.cpp.i
@@ -1539,6 +1664,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 .PHONY : __/src/editor/visual/renderer/tooltip_detector.cpp.i
 
 __/src/editor/visual/renderer/tooltip_detector.s: __/src/editor/visual/renderer/tooltip_detector.cpp.s
@@ -1560,6 +1686,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 .PHONY : __/src/editor/visual/renderer/tooltip_detector.cpp.s
 
 __/src/editor/visual/renderer/wire_renderer.o: __/src/editor/visual/renderer/wire_renderer.cpp.o
@@ -1581,6 +1708,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/wire_renderer.cpp.o
 
 __/src/editor/visual/renderer/wire_renderer.i: __/src/editor/visual/renderer/wire_renderer.cpp.i
@@ -1602,6 +1730,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 .PHONY : __/src/editor/visual/renderer/wire_renderer.cpp.i
 
 __/src/editor/visual/renderer/wire_renderer.s: __/src/editor/visual/renderer/wire_renderer.cpp.s
@@ -1623,6 +1752,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/wire_renderer.cpp.s
 
 __/src/editor/visual/scene/persist.o: __/src/editor/visual/scene/persist.cpp.o
@@ -1647,6 +1777,7 @@ __/src/editor/visual/scene/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/scene/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 .PHONY : __/src/editor/visual/scene/persist.cpp.o
 
 __/src/editor/visual/scene/persist.i: __/src/editor/visual/scene/persist.cpp.i
@@ -1671,6 +1802,7 @@ __/src/editor/visual/scene/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/scene/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 .PHONY : __/src/editor/visual/scene/persist.cpp.i
 
 __/src/editor/visual/scene/persist.s: __/src/editor/visual/scene/persist.cpp.s
@@ -1695,6 +1827,7 @@ __/src/editor/visual/scene/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/__/src/editor/visual/scene/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 .PHONY : __/src/editor/visual/scene/persist.cpp.s
 
 __/src/editor/visual/scene/wire_manager.o: __/src/editor/visual/scene/wire_manager.cpp.o
@@ -2273,6 +2406,30 @@ test_lamp_passthrough_jit.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
 .PHONY : test_lamp_passthrough_jit.cpp.s
 
+test_layout.o: test_layout.cpp.o
+.PHONY : test_layout.o
+
+# target to build an object file
+test_layout.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/test_layout.cpp.o
+.PHONY : test_layout.cpp.o
+
+test_layout.i: test_layout.cpp.i
+.PHONY : test_layout.i
+
+# target to preprocess a source file
+test_layout.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/test_layout.cpp.i
+.PHONY : test_layout.cpp.i
+
+test_layout.s: test_layout.cpp.s
+.PHONY : test_layout.s
+
+# target to generate assembly for a file
+test_layout.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/test_layout.cpp.s
+.PHONY : test_layout.cpp.s
+
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
 
@@ -2392,6 +2549,30 @@ test_multi_window.s: test_multi_window.cpp.s
 test_multi_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/test_multi_window.cpp.s
 .PHONY : test_multi_window.cpp.s
+
+test_node_autosize.o: test_node_autosize.cpp.o
+.PHONY : test_node_autosize.o
+
+# target to build an object file
+test_node_autosize.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/test_node_autosize.cpp.o
+.PHONY : test_node_autosize.cpp.o
+
+test_node_autosize.i: test_node_autosize.cpp.i
+.PHONY : test_node_autosize.i
+
+# target to preprocess a source file
+test_node_autosize.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/test_node_autosize.cpp.i
+.PHONY : test_node_autosize.cpp.i
+
+test_node_autosize.s: test_node_autosize.cpp.s
+.PHONY : test_node_autosize.s
+
+# target to generate assembly for a file
+test_node_autosize.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/test_node_autosize.cpp.s
+.PHONY : test_node_autosize.cpp.s
 
 test_node_color.o: test_node_color.cpp.o
 .PHONY : test_node_color.o
@@ -2861,11 +3042,13 @@ help:
 	@echo "... inspector_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
+	@echo "... layout_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
 	@echo "... multi_window_tests"
+	@echo "... node_autosize_tests"
 	@echo "... node_color_tests"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"
@@ -2905,6 +3088,9 @@ help:
 	@echo "... __/src/editor/visual/inspector/inspector_core.o"
 	@echo "... __/src/editor/visual/inspector/inspector_core.i"
 	@echo "... __/src/editor/visual/inspector/inspector_core.s"
+	@echo "... __/src/editor/visual/node/layout.o"
+	@echo "... __/src/editor/visual/node/layout.i"
+	@echo "... __/src/editor/visual/node/layout.s"
 	@echo "... __/src/editor/visual/node/node.o"
 	@echo "... __/src/editor/visual/node/node.i"
 	@echo "... __/src/editor/visual/node/node.s"
@@ -3001,6 +3187,9 @@ help:
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
+	@echo "... test_layout.o"
+	@echo "... test_layout.i"
+	@echo "... test_layout.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"
@@ -3016,6 +3205,9 @@ help:
 	@echo "... test_multi_window.o"
 	@echo "... test_multi_window.i"
 	@echo "... test_multi_window.s"
+	@echo "... test_node_autosize.o"
+	@echo "... test_node_autosize.i"
+	@echo "... test_node_autosize.s"
 	@echo "... test_node_color.o"
 	@echo "... test_node_color.i"
 	@echo "... test_node_color.s"

@@ -334,7 +334,9 @@ int main(int argc, char** argv) {
 
                 auto* visual = win.scene.cache().getOrCreate(node, app.blueprint.wires);
                 visual->setPosition(node.pos);
-                visual->setSize(node.size);
+                // Sync data model FROM auto-sized visual (not the other way around).
+                // VisualNode constructor computes correct size via layout preferred size;
+                // overwriting with stale Node.size would clip content (gauges, ports, etc).
                 node.size = visual->getSize();
 
                 Pt screen_min = win.scene.viewport().world_to_screen(visual->getPosition(), cmin);

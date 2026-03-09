@@ -47,3 +47,5 @@ include("/Users/vladimir/an24_cpp/build/tests/properties_window_tests[1]_include
 include("/Users/vladimir/an24_cpp/build/tests/dt_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/codegen_accumulator_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/node_color_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/node_autosize_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/layout_tests[1]_include.cmake")

@@ -912,6 +912,32 @@ node_color_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_color_tests.dir/build.make tests/CMakeFiles/node_color_tests.dir/build
 .PHONY : node_color_tests/fast
 
+#=============================================================================
+# Target rules for targets named node_autosize_tests
+
+# Build rule for target.
+node_autosize_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 node_autosize_tests
+.PHONY : node_autosize_tests
+
+# fast build rule for target.
+node_autosize_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_autosize_tests.dir/build.make tests/CMakeFiles/node_autosize_tests.dir/build
+.PHONY : node_autosize_tests/fast
+
+#=============================================================================
+# Target rules for targets named layout_tests
+
+# Build rule for target.
+layout_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 layout_tests
+.PHONY : layout_tests
+
+# fast build rule for target.
+layout_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/build
+.PHONY : layout_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -960,12 +986,14 @@ help:
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
+	@echo "... layout_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
+	@echo "... node_autosize_tests"
 	@echo "... node_color_tests"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"

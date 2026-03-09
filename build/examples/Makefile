@@ -663,6 +663,30 @@ __/src/editor/visual/inspector/inspector_render.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_render.cpp.s
 .PHONY : __/src/editor/visual/inspector/inspector_render.cpp.s
 
+__/src/editor/visual/node/layout.o: __/src/editor/visual/node/layout.cpp.o
+.PHONY : __/src/editor/visual/node/layout.o
+
+# target to build an object file
+__/src/editor/visual/node/layout.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.o
+.PHONY : __/src/editor/visual/node/layout.cpp.o
+
+__/src/editor/visual/node/layout.i: __/src/editor/visual/node/layout.cpp.i
+.PHONY : __/src/editor/visual/node/layout.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/layout.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.i
+.PHONY : __/src/editor/visual/node/layout.cpp.i
+
+__/src/editor/visual/node/layout.s: __/src/editor/visual/node/layout.cpp.s
+.PHONY : __/src/editor/visual/node/layout.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/layout.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.s
+.PHONY : __/src/editor/visual/node/layout.cpp.s
+
 __/src/editor/visual/node/node.o: __/src/editor/visual/node/node.cpp.o
 .PHONY : __/src/editor/visual/node/node.o
 
@@ -1117,6 +1141,9 @@ help:
 	@echo "... __/src/editor/visual/inspector/inspector_render.o"
 	@echo "... __/src/editor/visual/inspector/inspector_render.i"
 	@echo "... __/src/editor/visual/inspector/inspector_render.s"
+	@echo "... __/src/editor/visual/node/layout.o"
+	@echo "... __/src/editor/visual/node/layout.i"
+	@echo "... __/src/editor/visual/node/layout.s"
 	@echo "... __/src/editor/visual/node/node.o"
 	@echo "... __/src/editor/visual/node/node.i"
 	@echo "... __/src/editor/visual/node/node.s"

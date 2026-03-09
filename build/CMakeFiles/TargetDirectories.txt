@@ -139,6 +139,8 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_color_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_autosize_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/layout_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

@@ -5,7 +5,7 @@
 #include "data/node.h"
 #include "data/wire.h"
 #include "visual/port/port.h"
-#include "visual/node/widget.h"
+#include "visual/node/layout.h"
 #include "viewport/viewport.h"
 #include "json_parser/json_parser.h"
 #include <vector>
@@ -22,7 +22,7 @@ struct IDrawList;
 // ============================================================================
 // VisualNode — visual representation of a circuit node
 // ============================================================================
-// Concrete class with ColumnLayout-based rendering.
+// Concrete class with Column-based rendering.
 // Subclasses (BusVisualNode, RefVisualNode) override render() and port management.
 //
 // Port positions are stored in VisualPort::worldPosition().
@@ -74,7 +74,7 @@ public:
     virtual void updateNodeContent(const NodeContent& content) { node_content_ = content; }
 
     // --- Layout access for testing ---
-    const ColumnLayout& getLayout() const { return layout_; }
+    const Column& getLayout() const { return layout_; }
 
     // --- Per-node custom color ---
     const std::optional<NodeColor>& customColor() const { return custom_color_; }
@@ -92,9 +92,17 @@ protected:
     std::string name_;
     std::string type_name_;
     NodeContent node_content_;
-    ColumnLayout layout_;
-    std::vector<PortRowWidget*> port_rows_;
+    Column layout_;
     std::optional<NodeColor> custom_color_;
+    Widget* content_widget_ = nullptr;
+
+    struct PortSlot {
+        Widget* row_container;  // Container wrapping the port Row
+        std::string name;
+        bool is_left;
+        an24::PortType type;
+    };
+    std::vector<PortSlot> port_slots_;
 
     void buildLayout(const Node& node);
     void buildPorts(const Node& node);

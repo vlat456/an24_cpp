@@ -62,6 +62,7 @@ struct Node {
 
     Pt pos;                  ///< Позиция (верхний левый угол)
     Pt size;                 ///< Размеры (ширина × высота)
+    bool size_explicitly_set = false;  ///< True if size was set via size_wh() (not from JSON default)
 
     std::vector<Port> inputs;    ///< Входные порты
     std::vector<Port> outputs;   ///< Выходные порты
@@ -97,6 +98,7 @@ struct Node {
     /// fluent: задать размеры
     Node& size_wh(float w, float h) {
         size = Pt(w, h);
+        size_explicitly_set = true;  // Mark as explicitly set by user
         return *this;
     }
 

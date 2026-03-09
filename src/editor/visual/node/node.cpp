@@ -3,6 +3,7 @@
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
 #include "layout_constants.h"
+#include <spdlog/spdlog.h>
 #include <cassert>
 #include <algorithm>
 #include <cmath>
@@ -41,7 +42,7 @@ Pt snap_size_to_grid(Pt size) {
 
 VisualNode::VisualNode(const Node& node)
     : position_(node.pos)  // BUGFIX [8d4e6a] Use position as-is (already snapped by caller)
-    , size_(snap_size_to_grid(node.size))
+    , size_(node.size)
     , node_id_(node.id)
     , ports_()
     , name_(node.name)
@@ -51,10 +52,52 @@ VisualNode::VisualNode(const Node& node)
 {
     buildLayout(node);
 
-    // Auto-size node to fit all widgets
+    // Auto-size node to fit all widgets (BOTH width AND height)
     Pt preferred = layout_.getPreferredSize(nullptr);
-    if (preferred.y > size_.y) {
-        size_ = snap_size_to_grid(Pt(size_.x, preferred.y));
+    preferred.x = std::max(preferred.x, editor_constants::MIN_NODE_WIDTH);
+
+    // Use size_explicitly_set flag to determine if user intended this size
+    bool has_explicit_width = node.size_explicitly_set;
+    bool has_explicit_height = node.size_explicitly_set;
+
+    // Debug: log auto-size decisions for gauge nodes
+    if (node.node_content.type == NodeContentType::Gauge) {
+        spdlog::info("[autosize] GAUGE Node '{}': JSON size={:.1f}x{:.1f}, explicit={}/{}, preferred={:.1f}x{:.1f}",
+                     node.name, node.size.x, node.size.y,
+                     has_explicit_width, has_explicit_height, preferred.x, preferred.y);
+    }
+
+    // Auto-size logic:
+    // 1. If no explicit size → auto-size BOTH dimensions to preferred (with grid snap)
+    // 2. If explicit size but smaller than preferred → use explicit (with warning), no snap
+    // 3. If explicit size and larger than preferred → use explicit as-is, no snap
+
+    if (!has_explicit_width && !has_explicit_height) {
+        // No explicit size at all: auto-size both dimensions with grid snap
+        size_ = snap_size_to_grid(preferred);
+        spdlog::debug("[autosize] Node '{}' auto-sized to {:.1f}x{:.1f}",
+                      node.name, size_.x, size_.y);
+    } else {
+        // At least one dimension is explicit
+        if (!has_explicit_width) {
+            size_.x = snap_size_to_grid(Pt(preferred.x, 0)).x;
+        } else if (node.size.x < preferred.x) {
+            spdlog::warn("[autosize] Node '{}' explicit width {:.1f}px is too small "
+                         "(minimum required: {:.1f}px). Content may be clipped.",
+                         node.name, node.size.x, preferred.x);
+        } else {
+            size_.x = node.size.x;
+        }
+
+        if (!has_explicit_height) {
+            size_.y = snap_size_to_grid(Pt(0, preferred.y)).y;
+        } else if (node.size.y < preferred.y) {
+            spdlog::warn("[autosize] Node '{}' explicit height {:.1f}px is too small "
+                         "(minimum required: {:.1f}px). Content may be clipped.",
+                         node.name, node.size.y, preferred.y);
+        } else {
+            size_.y = node.size.y;
+        }
     }
 
     // Recalculate layout with final size
@@ -80,58 +123,109 @@ void VisualNode::setSize(Pt size) {
 
 void VisualNode::buildLayout(const Node& node) {
     // Header
-    layout_.addWidget(std::make_unique<HeaderWidget>(name_, render_theme::COLOR_BUS_FILL));
+    layout_.addChild(std::make_unique<HeaderWidget>(name_, render_theme::COLOR_BUS_FILL));
 
     // Port rows: pair inputs and outputs
     size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
-    port_rows_.clear();
+    port_slots_.clear();
     for (size_t i = 0; i < max_ports; i++) {
-        std::string left = (i < node.inputs.size()) ? node.inputs[i].name : "";
-        std::string right = (i < node.outputs.size()) ? node.outputs[i].name : "";
+        std::string left_name = (i < node.inputs.size()) ? node.inputs[i].name : "";
+        std::string right_name = (i < node.outputs.size()) ? node.outputs[i].name : "";
         an24::PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : an24::PortType::Any;
         an24::PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : an24::PortType::Any;
-        auto row = std::make_unique<PortRowWidget>(left, right, left_type, right_type);
-        port_rows_.push_back(static_cast<PortRowWidget*>(
-            layout_.addWidget(std::move(row))));
+
+        auto row = std::make_unique<Row>();
+
+        if (!left_name.empty()) {
+            uint32_t left_color = render_theme::get_port_color(left_type);
+            row->addChild(std::make_unique<Container>(
+                std::make_unique<Circle>(editor_constants::PORT_RADIUS, left_color),
+                Edges{-editor_constants::PORT_RADIUS, 0, editor_constants::PORT_LABEL_GAP, 0}
+            ));
+            row->addChild(std::make_unique<Label>(left_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
+        }
+
+        // Flexible gap between left and right labels
+        if (!left_name.empty() && !right_name.empty()) {
+            float half_gap = editor_constants::PORT_MIN_GAP / 2.0f;
+            auto gap = std::make_unique<Container>(
+                std::make_unique<Spacer>(),
+                Edges{half_gap, 0, half_gap, 0}
+            );
+            gap->setFlexible(true);
+            row->addChild(std::move(gap));
+        } else {
+            row->addChild(std::make_unique<Spacer>());
+        }
+
+        if (!right_name.empty()) {
+            row->addChild(std::make_unique<Label>(right_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
+            uint32_t right_color = render_theme::get_port_color(right_type);
+            row->addChild(std::make_unique<Container>(
+                std::make_unique<Circle>(editor_constants::PORT_RADIUS, right_color),
+                Edges{editor_constants::PORT_LABEL_GAP, 0, -editor_constants::PORT_RADIUS, 0}
+            ));
+        }
+
+        // Wrap row in padding container to achieve PORT_ROW_HEIGHT
+        float inner_h = editor_constants::PORT_RADIUS * 2.0f;
+        float pad = (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f;
+        auto row_container = std::make_unique<Container>(
+            std::move(row),
+            Edges{0, pad, 0, pad}
+        );
+
+        auto* container_ptr = layout_.addChild(std::move(row_container));
+
+        if (!left_name.empty()) {
+            port_slots_.push_back({container_ptr, left_name, true, left_type});
+        }
+        if (!right_name.empty()) {
+            port_slots_.push_back({container_ptr, right_name, false, right_type});
+        }
     }
 
     // Content area (flexible, takes remaining space)
     if (node_content_.type != NodeContentType::None) {
         if (node_content_.type == NodeContentType::Gauge) {
-            layout_.addWidget(std::make_unique<VoltmeterWidget>(
+            layout_.addChild(std::make_unique<VoltmeterWidget>(
                 node_content_.value,
                 node_content_.min,
                 node_content_.max,
                 node_content_.unit
             ));
         } else {
-            float left_margin = editor_constants::PORT_RADIUS + 3.0f;
-            float right_margin = editor_constants::PORT_RADIUS + 3.0f;
-            for (const auto& p : node.inputs) {
-                float lw = p.name.length() * 9.0f * 0.6f + editor_constants::PORT_RADIUS + 3.0f;
-                left_margin = std::max(left_margin, lw);
+            // Content area: sized by label text, with margins to avoid overlapping port circles
+            float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
+            std::unique_ptr<Widget> content_inner;
+            if (!node_content_.label.empty()) {
+                // Use a Label for sizing (text gets overdrawn by ImGui overlay)
+                content_inner = std::make_unique<Label>(node_content_.label, 10.0f, 0x00000000);
+            } else {
+                content_inner = std::make_unique<Spacer>();
             }
-            for (const auto& p : node.outputs) {
-                float lw = p.name.length() * 9.0f * 0.6f + editor_constants::PORT_RADIUS + 3.0f;
-                right_margin = std::max(right_margin, lw);
-            }
-            layout_.addWidget(std::make_unique<ContentWidget>(
-                node_content_.label, node_content_.value, left_margin, right_margin));
+            auto content_container = std::make_unique<Container>(
+                std::move(content_inner),
+                Edges{margin, 0, margin, 0}
+            );
+            content_container->setFlexible(true);
+            content_widget_ = layout_.addChild(std::move(content_container));
         }
     }
 
     // Type name at bottom
-    layout_.addWidget(std::make_unique<TypeNameWidget>(type_name_));
+    layout_.addChild(std::make_unique<TypeNameWidget>(type_name_));
 }
 
 void VisualNode::buildPorts(const Node& node) {
     ports_.clear();
     for (const auto& p : node.inputs) {
         VisualPort vp(p.name, PortSide::Input, p.type);
-        for (const auto* row : port_rows_) {
-            if (row->leftPortName() == p.name) {
-                Pt local = row->leftPortCenter();
-                vp.setWorldPosition(Pt(position_.x + local.x, position_.y + local.y));
+        for (const auto& slot : port_slots_) {
+            if (slot.is_left && slot.name == p.name) {
+                float port_y = position_.y + slot.row_container->y() + slot.row_container->height() / 2;
+                float port_x = position_.x;
+                vp.setWorldPosition(Pt(port_x, port_y));
                 break;
             }
         }
@@ -139,10 +233,11 @@ void VisualNode::buildPorts(const Node& node) {
     }
     for (const auto& p : node.outputs) {
         VisualPort vp(p.name, PortSide::Output, p.type);
-        for (const auto* row : port_rows_) {
-            if (row->rightPortName() == p.name) {
-                Pt local = row->rightPortCenter();
-                vp.setWorldPosition(Pt(position_.x + local.x, position_.y + local.y));
+        for (const auto& slot : port_slots_) {
+            if (!slot.is_left && slot.name == p.name) {
+                float port_y = position_.y + slot.row_container->y() + slot.row_container->height() / 2;
+                float port_x = position_.x + size_.x;
+                vp.setWorldPosition(Pt(port_x, port_y));
                 break;
             }
         }
@@ -213,51 +308,19 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 }
 
 Bounds VisualNode::getContentBounds() const {
-    const ContentWidget* content_widget = nullptr;
-    float max_left_edge = 0.0f;
-    float max_right_edge = 0.0f;
-    float content_height = 0.0f;
-    bool found_any_port_row = false;
+    if (!content_widget_) return {};
 
-    for (size_t i = 0; i < layout_.childCount(); i++) {
-        auto* w = layout_.child(i);
-        if (auto* cw = dynamic_cast<const ContentWidget*>(w)) {
-            content_widget = cw;
-            content_height = cw->height();
-        }
-        if (auto* pr = dynamic_cast<const PortRowWidget*>(w)) {
-            found_any_port_row = true;
-            Bounds pb = pr->contentBounds();
-            if (pb.x > max_left_edge) max_left_edge = pb.x;
-            if (pb.x + pb.w > max_right_edge) max_right_edge = pb.x + pb.w;
-        }
-    }
+    // content_widget_ is a Container with margins around a Spacer.
+    // The Container's child (the Spacer) has the actual content area.
+    auto* container = dynamic_cast<const Container*>(content_widget_);
+    if (!container || !container->child()) return {};
 
-    if (!content_widget) {
-        return {};
-    }
-
-    if (found_any_port_row && max_right_edge > max_left_edge) {
-        // [x8y9z0a1] Use symmetric margins for horizontal centering
-        float left_margin  = max_left_edge;
-        float right_margin = content_widget->width() - max_right_edge;
-        float symmetric_margin = std::max(left_margin, right_margin);
-        float content_w = content_widget->width() - 2.0f * symmetric_margin;
-
-        return {
-            content_widget->x() + symmetric_margin,
-            content_widget->y(),
-            std::max(0.0f, content_w),
-            content_height
-        };
-    }
-
-    Bounds content_area = content_widget->getContentArea();
+    const Widget* spacer = container->child();
     return {
-        content_widget->x() + content_area.x,
-        content_widget->y() + content_area.y,
-        content_area.w,
-        content_area.h
+        content_widget_->x() + spacer->x(),
+        content_widget_->y() + spacer->y(),
+        spacer->width(),
+        spacer->height()
     };
 }
 

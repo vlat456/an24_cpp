@@ -90,6 +90,7 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -151,6 +152,7 @@ add_executable(editor_render_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -182,6 +184,7 @@ add_executable(editor_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -268,6 +271,7 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -296,6 +300,7 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -642,6 +647,7 @@ add_executable(inspector_tests
     ../src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
@@ -690,6 +696,7 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -724,6 +731,7 @@ add_executable(visual_port_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
@@ -756,6 +764,7 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -790,6 +799,7 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -824,6 +834,7 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -861,6 +872,7 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -914,6 +926,7 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -995,6 +1008,7 @@ add_executable(node_color_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -1016,3 +1030,52 @@ target_link_libraries(node_color_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(node_color_tests)
+
+# Node auto-size tests (TDD - dynamic resize based on ports + content)
+add_executable(node_autosize_tests
+    test_node_autosize.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(node_autosize_tests PRIVATE EDITOR_TESTING)
+target_include_directories(node_autosize_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(node_autosize_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(node_autosize_tests)
+
+# Layout primitives tests (TDD - Column/Row/Container/Label/Circle/Spacer)
+add_executable(layout_tests
+    test_layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+)
+target_compile_definitions(layout_tests PRIVATE EDITOR_TESTING)
+target_include_directories(layout_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(layout_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(layout_tests)

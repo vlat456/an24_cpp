@@ -114,6 +114,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp

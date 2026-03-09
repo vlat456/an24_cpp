@@ -190,4 +190,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/dt_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_accumulator_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/node_color_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/node_autosize_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/layout_tests.dir/DependInfo.cmake"
   )

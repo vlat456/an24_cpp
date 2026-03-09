@@ -5,7 +5,6 @@
 #include <memory>
 #include <string>
 #include <cstdint>
-#include "json_parser/json_parser.h"
 
 struct IDrawList;
 
@@ -61,27 +60,6 @@ protected:
 };
 
 // ============================================================================
-// ColumnLayout - Stacks children vertically
-// ============================================================================
-// Fixed children get their preferred height.
-// Flexible children share remaining vertical space equally.
-
-class ColumnLayout : public Widget {
-public:
-    Widget* addWidget(std::unique_ptr<Widget> child);
-
-    Pt getPreferredSize(IDrawList* dl) const override;
-    void layout(float available_width, float available_height) override;
-    void render(IDrawList* dl, Pt origin, float zoom) const override;
-
-    size_t childCount() const { return children_.size(); }
-    Widget* child(size_t i) const;
-
-private:
-    std::vector<std::unique_ptr<Widget>> children_;
-};
-
-// ============================================================================
 // HeaderWidget - Node name in a colored header bar
 // ============================================================================
 
@@ -100,6 +78,11 @@ private:
     uint32_t fill_color_;
     static constexpr float FONT_SIZE = 12.0f;
     static constexpr float PADDING = 5.0f;
+
+    static float estimateTextWidth(const std::string& text) {
+        if (text.empty()) return 0;
+        return text.length() * FONT_SIZE * 0.6f;
+    }
 };
 
 // ============================================================================
@@ -121,87 +104,6 @@ private:
 };
 
 // ============================================================================
-// PortRowWidget - One row: circle-label-[space]-label-circle
-// ============================================================================
-// Port circles centered at node edges: left at x=0, right at x=node_width.
-// Labels adjacent to circles on interior side.
-// Free space in the middle for content.
-
-class PortRowWidget : public Widget {
-public:
-    PortRowWidget(const std::string& left_port = "",
-                  const std::string& right_port = "",
-                  an24::PortType left_type = an24::PortType::Any,
-                  an24::PortType right_type = an24::PortType::Any);
-
-    Pt getPreferredSize(IDrawList* dl) const override;
-    void layout(float available_width, float available_height) override;
-    void render(IDrawList* dl, Pt origin, float zoom) const override;
-
-    const std::string& leftPortName() const { return left_port_; }
-    const std::string& rightPortName() const { return right_port_; }
-
-    // Port circle center in local node coordinates
-    Pt leftPortCenter() const;
-    Pt rightPortCenter() const;
-
-    // Content area bounds (local coords, for future ImGui content)
-    Bounds contentBounds() const { return content_bounds_; }
-
-    static constexpr float PORT_RADIUS = 6.0f;
-    static constexpr float LABEL_GAP = 3.0f;
-    static constexpr float LABEL_FONT_SIZE = 9.0f;
-    static constexpr float ROW_HEIGHT = 16.0f;
-
-private:
-    std::string left_port_;
-    std::string right_port_;
-    an24::PortType left_type_ = an24::PortType::Any;
-    an24::PortType right_type_ = an24::PortType::Any;
-    float left_label_width_ = 0;
-    float right_label_width_ = 0;
-    Bounds content_bounds_ = {};
-
-    static float estimateLabelWidth(const std::string& label);
-
-    static constexpr uint32_t COLOR_PORT_INPUT = 0xFFDCDCB4;
-    static constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;
-    static constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
-};
-
-// ============================================================================
-// ContentWidget - Flexible content placeholder (gauge, switch, value)
-// ============================================================================
-
-class ContentWidget : public Widget {
-public:
-    ContentWidget(const std::string& label = "", float value = 0.0f,
-                  float left_margin = 0.0f, float right_margin = 0.0f);
-
-    Pt getPreferredSize(IDrawList* dl) const override;
-    void render(IDrawList* dl, Pt origin, float zoom) const override;
-
-    // Get the actual content area bounds (excluding margins)
-    Bounds getContentArea() const {
-        return {
-            left_margin_,
-            0,
-            std::max(0.0f, width_ - left_margin_ - right_margin_),
-            height_
-        };
-    }
-
-private:
-    std::string label_;
-    float value_;
-    float left_margin_;
-    float right_margin_;
-    static constexpr float FONT_SIZE = 10.0f;
-    static constexpr uint32_t COLOR_TEXT = 0xFFFFFFFF;
-    static constexpr uint32_t COLOR_TEXT_DIM = 0xFFAAAAAA;
-};
-
-// ============================================================================
 // VoltmeterWidget - Visual steam gauge (analog voltmeter)
 // ============================================================================
 
@@ -220,19 +122,13 @@ public:
     static constexpr float NEEDLE_LENGTH = 32.0f;
 
 private:
-    // BUGFIX [9t3r5e8u] mutable field for value caching in const render()
-    // This is acceptable because render() needs to update internal state while remaining const.
-    // Alternative: redesign to separate model (VisualNode) from view (render) state.
     mutable float value_;
     float min_val_;
     float max_val_;
     std::string unit_;
 
-    // Gauge angles in degrees (standard math: 0° = right, CCW positive).
-    // Rendered with Y-flip (cy - sin) so CW on screen = negative sweep.
-    // Start at bottom-left (210°), sweep CW 240° to bottom-right (330°).
     static constexpr float START_ANGLE = 210.0f;
-    static constexpr float SWEEP_ANGLE = -240.0f;  // negative = CW on screen
+    static constexpr float SWEEP_ANGLE = -240.0f;
 
     static constexpr uint32_t COLOR_GAUGE_BG = 0xFF2A2A2A;
     static constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF4A4A4A;
