@@ -108,13 +108,15 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     node.pos = snapped_pos;
     node.group_id = group_id;
 
-    // Set NodeKind based on classname
+    // Set NodeKind based on classname and cpp_class flag
     if (classname == "Bus") {
         node.kind = NodeKind::Bus;
     } else if (classname == "RefNode") {
         node.kind = NodeKind::Ref;
+    } else if (def->cpp_class) {
+        node.kind = NodeKind::InternalCPP;
     } else {
-        node.kind = NodeKind::Node;
+        node.kind = NodeKind::Blueprint;
     }
 
     // Get size from component definition (single source of truth)
@@ -289,13 +291,18 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         node.id = prefix + ":" + dev.name;
         node.name = node.id;
         node.type_name = dev.classname;
-        // Derive kind from classname (kind is visual, classname is C++ binding)
+        // Derive kind from classname and type registry
         if (dev.classname == "Bus") {
             node.kind = NodeKind::Bus;
         } else if (dev.classname == "RefNode") {
             node.kind = NodeKind::Ref;
         } else {
-            node.kind = NodeKind::Node;
+            const auto* inner_def = type_registry.get(dev.classname);
+            if (inner_def && !inner_def->cpp_class) {
+                node.kind = NodeKind::Blueprint;
+            } else {
+                node.kind = NodeKind::InternalCPP;
+            }
         }
         node.pos = snapped_pos;  // All start at same position (will be auto-layout)
         node.size = get_default_node_size(dev.classname, &type_registry);

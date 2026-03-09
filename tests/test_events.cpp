@@ -214,7 +214,7 @@ TEST(EventsTest, AddComponent_StandardNodeSize_a1b2) {
     app.add_component("Battery", Pt(300, 300));
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& n = app.blueprint.nodes[0];
-    EXPECT_EQ(n.kind, NodeKind::Node);
+    EXPECT_EQ(n.kind, NodeKind::InternalCPP);
     EXPECT_FLOAT_EQ(n.size.x, 120.0f);
     EXPECT_FLOAT_EQ(n.size.y, 80.0f);
 }
@@ -235,6 +235,32 @@ TEST(EventsTest, AddComponent_IndicatorLightHasTextContent_c3d4) {
     ASSERT_EQ(app.blueprint.nodes.size(), 1);
     const auto& nc = app.blueprint.nodes[0].node_content;
     EXPECT_EQ(nc.type, NodeContentType::Text) << "[c3d4] IndicatorLight should have Text content";
+}
+
+// Phase 4: cpp_class=true → NodeKind::InternalCPP
+TEST(EventsTest, AddComponent_CppClassTrue_InternalCPP) {
+    EditorApp app;
+    // Battery is cpp_class=true in library/
+    ASSERT_TRUE(app.type_registry.has("Battery"));
+    EXPECT_TRUE(app.type_registry.get("Battery")->cpp_class);
+
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::InternalCPP)
+        << "cpp_class=true components must get NodeKind::InternalCPP";
+}
+
+// Phase 4: cpp_class=false → NodeKind::Blueprint
+TEST(EventsTest, AddComponent_CppClassFalse_Blueprint) {
+    EditorApp app;
+    // SimpleBattery is cpp_class=false in library/
+    ASSERT_TRUE(app.type_registry.has("SimpleBattery"));
+    EXPECT_FALSE(app.type_registry.get("SimpleBattery")->cpp_class);
+
+    app.add_component("SimpleBattery", Pt(200, 200));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Blueprint)
+        << "cpp_class=false types must get NodeKind::Blueprint";
 }
 
 // add_component: ports loaded from TypeRegistry

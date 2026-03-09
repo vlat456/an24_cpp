@@ -214,3 +214,45 @@ TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
         EXPECT_TRUE(bp->nodes[0].params.empty());
     }
 }
+
+// =============================================================================
+// Phase 4: add_component() uses cpp_class to set NodeKind
+// =============================================================================
+
+TEST(ParamsIntegrity, AddComponent_CppClassTrue_GetsInternalCPP) {
+    EditorApp app;
+    // Battery is cpp_class=true in library/
+    ASSERT_TRUE(app.type_registry.has("Battery"));
+    EXPECT_TRUE(app.type_registry.get("Battery")->cpp_class);
+
+    app.add_component("Battery", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::InternalCPP)
+        << "cpp_class=true components must get NodeKind::InternalCPP";
+}
+
+TEST(ParamsIntegrity, AddComponent_CppClassFalse_GetsBlueprint) {
+    EditorApp app;
+    // SimpleBattery is cpp_class=false in library/
+    ASSERT_TRUE(app.type_registry.has("SimpleBattery"));
+    EXPECT_FALSE(app.type_registry.get("SimpleBattery")->cpp_class);
+
+    app.add_component("SimpleBattery", Pt(200, 200));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Blueprint)
+        << "cpp_class=false types must get NodeKind::Blueprint";
+}
+
+TEST(ParamsIntegrity, AddComponent_BusStillGetsBusKind) {
+    EditorApp app;
+    app.add_component("Bus", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Bus);
+}
+
+TEST(ParamsIntegrity, AddComponent_RefNodeStillGetsRefKind) {
+    EditorApp app;
+    app.add_component("RefNode", Pt(100, 100));
+    ASSERT_EQ(app.blueprint.nodes.size(), 1);
+    EXPECT_EQ(app.blueprint.nodes[0].kind, NodeKind::Ref);
+}
