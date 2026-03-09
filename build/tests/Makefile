@@ -522,6 +522,20 @@ v_to_bool_tests/fast:
 .PHONY : v_to_bool_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/arithmetic_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/arithmetic_tests.dir/rule
+.PHONY : tests/CMakeFiles/arithmetic_tests.dir/rule
+
+# Convenience name for target.
+arithmetic_tests: tests/CMakeFiles/arithmetic_tests.dir/rule
+.PHONY : arithmetic_tests
+
+# fast build rule for target.
+arithmetic_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
+.PHONY : arithmetic_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/pi_p_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_p_tests.dir/rule
 .PHONY : tests/CMakeFiles/pi_p_tests.dir/rule
@@ -1828,6 +1842,30 @@ test_and_gate_debug.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/test_and_gate_debug.cpp.s
 .PHONY : test_and_gate_debug.cpp.s
 
+test_arithmetic.o: test_arithmetic.cpp.o
+.PHONY : test_arithmetic.o
+
+# target to build an object file
+test_arithmetic.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.o
+.PHONY : test_arithmetic.cpp.o
+
+test_arithmetic.i: test_arithmetic.cpp.i
+.PHONY : test_arithmetic.i
+
+# target to preprocess a source file
+test_arithmetic.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.i
+.PHONY : test_arithmetic.cpp.i
+
+test_arithmetic.s: test_arithmetic.cpp.s
+.PHONY : test_arithmetic.s
+
+# target to generate assembly for a file
+test_arithmetic.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.s
+.PHONY : test_arithmetic.cpp.s
+
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
 
@@ -2610,6 +2648,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... and_gate_debug_tests"
+	@echo "... arithmetic_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
@@ -2725,6 +2764,9 @@ help:
 	@echo "... test_and_gate_debug.o"
 	@echo "... test_and_gate_debug.i"
 	@echo "... test_and_gate_debug.s"
+	@echo "... test_arithmetic.o"
+	@echo "... test_arithmetic.i"
+	@echo "... test_arithmetic.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"

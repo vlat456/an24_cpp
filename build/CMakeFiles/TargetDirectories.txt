@@ -121,6 +121,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/and_gate_debug_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_sanitize_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/v_to_bool_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/arithmetic_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pi_p_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/inspector_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lamp_passthrough_jit_test.dir

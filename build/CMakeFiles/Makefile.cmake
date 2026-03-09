@@ -172,6 +172,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/and_gate_debug_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_sanitize_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/v_to_bool_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/arithmetic_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pi_p_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/inspector_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/lamp_passthrough_jit_test.dir/DependInfo.cmake"

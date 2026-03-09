@@ -29,6 +29,7 @@ include("/Users/vladimir/an24_cpp/build/tests/port_map_regression_tests[1]_inclu
 include("/Users/vladimir/an24_cpp/build/tests/and_gate_debug_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/codegen_sanitize_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/v_to_bool_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/arithmetic_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/pi_p_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/inspector_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/lamp_passthrough_jit_test[1]_include.cmake")

@@ -570,6 +570,22 @@ target_link_libraries(v_to_bool_tests PRIVATE
 )
 gtest_discover_tests(v_to_bool_tests)
 
+# Arithmetic operations tests
+add_executable(arithmetic_tests
+    test_arithmetic.cpp
+)
+target_include_directories(arithmetic_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(arithmetic_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(arithmetic_tests)
+
 # PI and P controller tests
 add_executable(pi_p_tests
     test_pi_p.cpp

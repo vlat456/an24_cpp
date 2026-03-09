@@ -291,6 +291,21 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "Multiply") {
+        Multiply<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Divide") {
+        Divide<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Add") {
+        Add<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "AND") {
         AND<JitProvider> comp;
         setup_component_ports(comp, dev, result);

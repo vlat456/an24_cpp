@@ -75,6 +75,7 @@ enum class PortNames : uint32_t {
 enum class ComponentType {
     AGK47,
     AND,
+    Add,
     Any_V_to_Bool,
     Battery,
     BlueprintInput,
@@ -82,6 +83,7 @@ enum class ComponentType {
     Bus,
     Comparator,
     DMR400,
+    Divide,
     ElectricHeater,
     ElectricPump,
     GS24,
@@ -95,6 +97,7 @@ enum class ComponentType {
     LerpNode,
     Load,
     Merger,
+    Multiply,
     NAND,
     NOT,
     OR,
@@ -122,6 +125,7 @@ enum class ComponentType {
 // Port count for each component
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t AND_PORT_COUNT = 3;
+constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
@@ -129,6 +133,7 @@ constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
+constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 2;
 constexpr size_t GS24_PORT_COUNT = 3;
@@ -142,6 +147,7 @@ constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
 constexpr size_t Merger_PORT_COUNT = 3;
+constexpr size_t Multiply_PORT_COUNT = 3;
 constexpr size_t NAND_PORT_COUNT = 3;
 constexpr size_t NOT_PORT_COUNT = 2;
 constexpr size_t OR_PORT_COUNT = 3;
@@ -170,6 +176,11 @@ constexpr const char* AGK47_PORTS[] = {
     "input"
 };
 constexpr const char* AND_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
+constexpr const char* Add_PORTS[] = {
     "A",
     "B",
     "o"
@@ -203,6 +214,11 @@ constexpr const char* DMR400_PORTS[] = {
     "v_gen_ref",
     "v_in",
     "v_out"
+};
+constexpr const char* Divide_PORTS[] = {
+    "A",
+    "B",
+    "o"
 };
 constexpr const char* ElectricHeater_PORTS[] = {
     "heat_out",
@@ -257,6 +273,11 @@ constexpr const char* Load_PORTS[] = {
 constexpr const char* Merger_PORTS[] = {
     "i1",
     "i2",
+    "o"
+};
+constexpr const char* Multiply_PORTS[] = {
+    "A",
+    "B",
     "o"
 };
 constexpr const char* NAND_PORTS[] = {
@@ -422,6 +443,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
         {"AGK47", {"input"}},
         {"AND", {"A", "B", "o"}},
+        {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"Battery", {"v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
@@ -429,6 +451,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Bus", {"v"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
+        {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_out", "v_in"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},
@@ -442,6 +465,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
         {"Merger", {"i1", "i2", "o"}},
+        {"Multiply", {"A", "B", "o"}},
         {"NAND", {"A", "B", "o"}},
         {"NOT", {"A", "o"}},
         {"OR", {"A", "B", "o"}},
@@ -478,6 +502,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
 using ComponentVariant = std::variant<
     AGK47<JitProvider>,
     AND<JitProvider>,
+    Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
     Battery<JitProvider>,
     BlueprintInput<JitProvider>,
@@ -485,6 +510,7 @@ using ComponentVariant = std::variant<
     Bus<JitProvider>,
     Comparator<JitProvider>,
     DMR400<JitProvider>,
+    Divide<JitProvider>,
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
     GS24<JitProvider>,
@@ -498,6 +524,7 @@ using ComponentVariant = std::variant<
     LerpNode<JitProvider>,
     Load<JitProvider>,
     Merger<JitProvider>,
+    Multiply<JitProvider>,
     NAND<JitProvider>,
     NOT<JitProvider>,
     OR<JitProvider>,

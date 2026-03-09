@@ -972,6 +972,28 @@ void Subtract<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) 
     st.across[provider.get(PortNames::o)] = A - B;
 }
 
+template <typename Provider>
+void Multiply<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = A * B;
+}
+
+template <typename Provider>
+void Divide<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    // Guard against division by zero
+    st.across[provider.get(PortNames::o)] = (B != 0.0f) ? (A / B) : 0.0f;
+}
+
+template <typename Provider>
+void Add<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = A + B;
+}
+
 // =============================================================================
 // Logic Gates
 // =============================================================================

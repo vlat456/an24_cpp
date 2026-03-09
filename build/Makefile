@@ -679,6 +679,19 @@ v_to_bool_tests/fast:
 .PHONY : v_to_bool_tests/fast
 
 #=============================================================================
+# Target rules for targets named arithmetic_tests
+
+# Build rule for target.
+arithmetic_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 arithmetic_tests
+.PHONY : arithmetic_tests
+
+# fast build rule for target.
+arithmetic_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
+.PHONY : arithmetic_tests/fast
+
+#=============================================================================
 # Target rules for targets named pi_p_tests
 
 # Build rule for target.
@@ -863,6 +876,7 @@ help:
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
+	@echo "... arithmetic_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"

@@ -667,6 +667,45 @@ public:
     void solve_logical(an24::SimulationState& st, float dt);
 };
 
+/// Multiply - multiplier (o = A * B)
+template <typename Provider = JitProvider>
+class Multiply {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Multiply() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// Divide - divider (o = A / B, returns 0 if B is 0)
+template <typename Provider = JitProvider>
+class Divide {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Divide() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
+/// Add - adder (o = A + B)
+template <typename Provider = JitProvider>
+class Add {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Add() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+};
+
 /// AND - logical AND gate (o = A && B)
 template <typename Provider = JitProvider>
 class AND {
