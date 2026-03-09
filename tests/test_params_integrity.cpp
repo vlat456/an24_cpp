@@ -183,7 +183,7 @@ TEST(ParamsIntegrity, SavedParamsRoundtrip) {
 }
 
 TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
-    // If a component type has no default_params, node.params should remain empty
+    // If a component type has no params, node.params should remain empty
     // (e.g., Bus has no params)
     const char* json_str = R"({
         "devices": [

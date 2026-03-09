@@ -948,7 +948,7 @@ void Radiator<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) 
 
 template <typename Provider>
 void Comparator<Provider>::pre_load() {
-    // Parameters are set by factory from JSON default_params
+    // Parameters are set by factory from JSON params
 }
 
 template <typename Provider>

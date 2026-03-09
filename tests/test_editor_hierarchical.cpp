@@ -319,38 +319,33 @@ TEST(CollapsedNode, VisualIndicator_IconOrBadge) {
 // =============================================================================
 
 TEST(ExposedPorts, LoadFromBlueprint_ExtractExposedPorts) {
-    // FAIL: Need to integrate extract_exposed_ports with editor
-    // This test verifies we can load blueprint and extract exposed ports
+    // Verify we can extract exposed ports from a blueprint TypeDefinition
+    auto registry = an24::load_type_registry();
+    const auto* def = registry.get("simple_battery");
+    ASSERT_NE(def, nullptr) << "simple_battery should be in TypeRegistry";
+    ASSERT_FALSE(def->cpp_class) << "simple_battery should be a blueprint";
 
-    std::string blueprint_path = "blueprints/simple_battery.json";
-
-    // Try to find blueprint (same path resolution as parse_json)
-    std::filesystem::path fs_path(blueprint_path);
-    if (!std::filesystem::exists(fs_path) && fs_path.is_relative()) {
-        std::vector<std::filesystem::path> try_paths = {
-            fs_path,
-            "../" / fs_path,
-            "../../" / fs_path,
-        };
-        for (const auto& path : try_paths) {
-            if (std::filesystem::exists(path)) {
-                fs_path = path;
-                break;
-            }
+    // Build JSON from TypeDefinition's devices/connections and parse
+    nlohmann::json bp_json;
+    nlohmann::json devices_arr = nlohmann::json::array();
+    for (const auto& dev : def->devices) {
+        nlohmann::json d;
+        d["name"] = dev.name;
+        d["classname"] = dev.classname;
+        if (!dev.params.empty()) {
+            d["params"] = dev.params;
         }
+        devices_arr.push_back(d);
     }
+    bp_json["devices"] = devices_arr;
 
-    ASSERT_TRUE(std::filesystem::exists(fs_path))
-        << "Test blueprint should exist at: " << blueprint_path;
+    nlohmann::json conns_arr = nlohmann::json::array();
+    for (const auto& conn : def->connections) {
+        conns_arr.push_back({{"from", conn.from}, {"to", conn.to}});
+    }
+    bp_json["connections"] = conns_arr;
 
-    // Load blueprint
-    std::ifstream file(fs_path);
-    ASSERT_TRUE(file.is_open()) << "Blueprint file should be readable";
-
-    std::string content((std::istreambuf_iterator<char>(file)),
-                        std::istreambuf_iterator<char>());
-
-    ParserContext ctx = parse_json(content);
+    ParserContext ctx = parse_json(bp_json.dump());
     auto exposed_ports = extract_exposed_ports(ctx);
 
     // Should have 2 exposed ports: vin (In), vout (Out)
@@ -370,37 +365,36 @@ TEST(ExposedPorts, LoadFromBlueprint_ExtractExposedPorts) {
 }
 
 TEST(ExposedPorts, PopulateNodePorts_FromExposedPorts) {
-    // FAIL: Need to convert exposed ports to Node::inputs/outputs
-    // This test verifies the conversion logic
+    // Verify conversion of exposed ports to Node::inputs/outputs
 
-    // Simulate loading nested blueprint
     std::string classname = "simple_battery";
-    std::string blueprint_path = "blueprints/" + classname + ".json";
 
-    // Find blueprint
-    std::filesystem::path fs_path(blueprint_path);
-    if (!std::filesystem::exists(fs_path) && fs_path.is_relative()) {
-        std::vector<std::filesystem::path> try_paths = {
-            fs_path,
-            "../" / fs_path,
-            "../../" / fs_path,
-        };
-        for (const auto& path : try_paths) {
-            if (std::filesystem::exists(path)) {
-                fs_path = path;
-                break;
-            }
+    // Load from TypeRegistry
+    auto registry = an24::load_type_registry();
+    const auto* def = registry.get(classname);
+    ASSERT_NE(def, nullptr) << "simple_battery should be in TypeRegistry";
+
+    // Build JSON from TypeDefinition and parse
+    nlohmann::json bp_json;
+    nlohmann::json devices_arr = nlohmann::json::array();
+    for (const auto& dev : def->devices) {
+        nlohmann::json d;
+        d["name"] = dev.name;
+        d["classname"] = dev.classname;
+        if (!dev.params.empty()) {
+            d["params"] = dev.params;
         }
+        devices_arr.push_back(d);
     }
+    bp_json["devices"] = devices_arr;
 
-    ASSERT_TRUE(std::filesystem::exists(fs_path)) << "Test blueprint should exist";
+    nlohmann::json conns_arr = nlohmann::json::array();
+    for (const auto& conn : def->connections) {
+        conns_arr.push_back({{"from", conn.from}, {"to", conn.to}});
+    }
+    bp_json["connections"] = conns_arr;
 
-    // Load and extract
-    std::ifstream file(fs_path);
-    std::string content((std::istreambuf_iterator<char>(file)),
-                        std::istreambuf_iterator<char>());
-
-    ParserContext nested_ctx = parse_json(content);
+    ParserContext nested_ctx = parse_json(bp_json.dump());
     auto exposed_ports = extract_exposed_ports(nested_ctx);
 
     // Create node from exposed ports

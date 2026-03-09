@@ -87,7 +87,7 @@ std::string format_value(const std::string& value, const std::string& type) {
 
 // Get domain from device
 std::string get_device_domain(const DeviceInstance& dev) {
-    // Build domain string from the parsed domains vector (populated from JSON "default_domains")
+    // Build domain string from the parsed domains vector (populated from JSON "domains")
     if (!dev.domains.empty()) {
         std::string result;
         for (auto d : dev.domains) {
