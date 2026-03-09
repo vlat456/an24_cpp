@@ -36,6 +36,10 @@ struct SimulationState {
     /// Signal metadata (for diagnostics, not used in hot path!)
     std::vector<SignalType> signal_types;
 
+    /// LUT table arena - all breakpoint tables concatenated (cache-friendly)
+    alignas(64) std::vector<float> lut_keys;
+    alignas(64) std::vector<float> lut_values;
+
     /// Dynamic signals count - signals [0..count) are dynamic
     /// Signals [count..size) are fixed - iterate only up to count!
     uint32_t dynamic_signals_count = 0;

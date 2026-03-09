@@ -34,4 +34,7 @@ private:
 
     void applyAndClose();
     void cancelAndClose();
+
+    /// Render an ImGui table editor for a LUT "table" param
+    void renderTableParam(const std::string& key);
 };

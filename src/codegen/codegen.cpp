@@ -354,8 +354,43 @@ std::string CodeGen::generate_source(
 
     // Port indices are now static constexpr - no runtime initialization needed!
 
+    // Collect LUT tables for arena generation
+    struct LutEntry { std::string dev_name; std::vector<float> keys; std::vector<float> values; };
+    std::vector<LutEntry> lut_entries;
+    uint32_t lut_arena_offset = 0;
+
     // Generate parameter assignments
     for (const auto& dev : devices) {
+        // LUT: parse table param into arena, emit offset/size instead
+        if (dev.classname == "LUT") {
+            auto it = dev.params.find("table");
+            if (it != dev.params.end()) {
+                LutEntry entry;
+                entry.dev_name = sanitize_name(dev.name);
+                // Inline parse (same format as LUT::parse_table)
+                std::string tbl = it->second;
+                size_t pos = 0;
+                while (pos < tbl.size()) {
+                    while (pos < tbl.size() && (tbl[pos] == ' ' || tbl[pos] == ';')) ++pos;
+                    if (pos >= tbl.size()) break;
+                    size_t colon = tbl.find(':', pos);
+                    if (colon == std::string::npos) break;
+                    size_t end = tbl.find(';', colon + 1);
+                    if (end == std::string::npos) end = tbl.size();
+                    try {
+                        entry.keys.push_back(std::stof(tbl.substr(pos, colon - pos)));
+                        entry.values.push_back(std::stof(tbl.substr(colon + 1, end - colon - 1)));
+                    } catch (...) { break; }
+                    pos = end;
+                }
+                oss << "    " << entry.dev_name << ".table_offset = " << lut_arena_offset << ";\n";
+                oss << "    " << entry.dev_name << ".table_size = " << entry.keys.size() << ";\n";
+                lut_arena_offset += static_cast<uint32_t>(entry.keys.size());
+                lut_entries.push_back(std::move(entry));
+            }
+            continue;  // skip generic param loop for LUT
+        }
+
         for (const auto& param : dev.params) {
             const std::string& param_name = param.first;
             const std::string& value = param.second;
@@ -369,7 +404,7 @@ std::string CodeGen::generate_source(
     }
     oss << "}\n\n";
 
-    // Pre-load
+    // Pre-load: initialize LUT arena in SimulationState
     oss << "void Systems::pre_load() {\n";
     for (const auto& dev : devices) {
         if (dev.classname == "Battery") {
@@ -377,6 +412,32 @@ std::string CodeGen::generate_source(
                 oss << "    " << sanitize_name(dev.name) << ".inv_internal_r = 1.0f / " << sanitize_name(dev.name) << ".internal_r;\n";
             }
         }
+    }
+    // Emit LUT arena initialization
+    if (!lut_entries.empty()) {
+        oss << "    // LUT arena: all breakpoint tables concatenated (" << lut_arena_offset << " floats total)\n";
+        oss << "    static const float lut_keys_data[] = {";
+        bool first_k = true;
+        for (const auto& e : lut_entries) {
+            for (float k : e.keys) {
+                if (!first_k) oss << ", ";
+                oss << k << "f";
+                first_k = false;
+            }
+        }
+        oss << "};\n";
+        oss << "    static const float lut_vals_data[] = {";
+        bool first_v = true;
+        for (const auto& e : lut_entries) {
+            for (float v : e.values) {
+                if (!first_v) oss << ", ";
+                oss << v << "f";
+                first_v = false;
+            }
+        }
+        oss << "};\n";
+        oss << "    g_state->lut_keys.assign(lut_keys_data, lut_keys_data + " << lut_arena_offset << ");\n";
+        oss << "    g_state->lut_values.assign(lut_vals_data, lut_vals_data + " << lut_arena_offset << ");\n";
     }
     oss << "}\n\n";
 

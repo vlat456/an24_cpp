@@ -466,6 +466,34 @@ logic_gates_tests/fast:
 .PHONY : logic_gates_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/lut_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lut_tests.dir/rule
+.PHONY : tests/CMakeFiles/lut_tests.dir/rule
+
+# Convenience name for target.
+lut_tests: tests/CMakeFiles/lut_tests.dir/rule
+.PHONY : lut_tests
+
+# fast build rule for target.
+lut_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
+.PHONY : lut_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/lut_codegen_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/lut_codegen_tests.dir/rule
+.PHONY : tests/CMakeFiles/lut_codegen_tests.dir/rule
+
+# Convenience name for target.
+lut_codegen_tests: tests/CMakeFiles/lut_codegen_tests.dir/rule
+.PHONY : lut_codegen_tests
+
+# fast build rule for target.
+lut_codegen_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/build
+.PHONY : lut_codegen_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/port_map_regression_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_map_regression_tests.dir/rule
 .PHONY : tests/CMakeFiles/port_map_regression_tests.dir/rule
@@ -736,6 +764,7 @@ __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 
 # target to build an object file
 __/src/codegen/codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.cpp.o
 
@@ -744,6 +773,7 @@ __/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
 
 # target to preprocess a source file
 __/src/codegen/codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
 .PHONY : __/src/codegen/codegen.cpp.i
 
@@ -752,6 +782,7 @@ __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
 
 # target to generate assembly for a file
 __/src/codegen/codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
 
@@ -2243,6 +2274,54 @@ test_logical_solver.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/test_logical_solver.cpp.s
 .PHONY : test_logical_solver.cpp.s
 
+test_lut.o: test_lut.cpp.o
+.PHONY : test_lut.o
+
+# target to build an object file
+test_lut.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/test_lut.cpp.o
+.PHONY : test_lut.cpp.o
+
+test_lut.i: test_lut.cpp.i
+.PHONY : test_lut.i
+
+# target to preprocess a source file
+test_lut.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/test_lut.cpp.i
+.PHONY : test_lut.cpp.i
+
+test_lut.s: test_lut.cpp.s
+.PHONY : test_lut.s
+
+# target to generate assembly for a file
+test_lut.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/test_lut.cpp.s
+.PHONY : test_lut.cpp.s
+
+test_lut_codegen.o: test_lut_codegen.cpp.o
+.PHONY : test_lut_codegen.o
+
+# target to build an object file
+test_lut_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.o
+.PHONY : test_lut_codegen.cpp.o
+
+test_lut_codegen.i: test_lut_codegen.cpp.i
+.PHONY : test_lut_codegen.i
+
+# target to preprocess a source file
+test_lut_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.i
+.PHONY : test_lut_codegen.cpp.i
+
+test_lut_codegen.s: test_lut_codegen.cpp.s
+.PHONY : test_lut_codegen.s
+
+# target to generate assembly for a file
+test_lut_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.s
+.PHONY : test_lut_codegen.cpp.s
+
 test_multi_window.o: test_multi_window.cpp.o
 .PHONY : test_multi_window.o
 
@@ -2713,6 +2792,8 @@ help:
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
+	@echo "... lut_codegen_tests"
+	@echo "... lut_tests"
 	@echo "... multi_window_tests"
 	@echo "... node_deletion_tests"
 	@echo "... params_integrity_tests"
@@ -2854,6 +2935,12 @@ help:
 	@echo "... test_logical_solver.o"
 	@echo "... test_logical_solver.i"
 	@echo "... test_logical_solver.s"
+	@echo "... test_lut.o"
+	@echo "... test_lut.i"
+	@echo "... test_lut.s"
+	@echo "... test_lut_codegen.o"
+	@echo "... test_lut_codegen.i"
+	@echo "... test_lut_codegen.s"
 	@echo "... test_multi_window.o"
 	@echo "... test_multi_window.i"
 	@echo "... test_multi_window.s"

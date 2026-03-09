@@ -72,7 +72,7 @@ auto get_string = [](const DeviceInstance& dev, const std::string& key, const st
 /// Factory function - creates a ComponentVariant from DeviceInstance
 ComponentVariant create_component_variant(
     const DeviceInstance& dev,
-    const BuildResult& result
+    BuildResult& result
 ) {
     if (dev.classname == "Battery") {
         Battery<JitProvider> comp;
@@ -377,6 +377,19 @@ ComponentVariant create_component_variant(
         comp.Kp = get_float(dev, "Kp", 1.0f);
         comp.output_min = get_float(dev, "output_min", -1000.0f);
         comp.output_max = get_float(dev, "output_max", 1000.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "LUT") {
+        LUT<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        std::string table_str = get_string(dev, "table", "");
+        std::vector<float> keys, values;
+        if (LUT<JitProvider>::parse_table(table_str, keys, values)) {
+            comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
+            comp.table_size   = static_cast<uint16_t>(keys.size());
+            result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
+            result.lut_values.insert(result.lut_values.end(), values.begin(), values.end());
+        }
         return ComponentVariant(std::move(comp));
     }
     else {

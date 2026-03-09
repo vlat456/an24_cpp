@@ -100,6 +100,10 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
         }
     }
 
+    // Move LUT arena from build result to simulation state
+    state_.lut_keys = std::move(build_result_->lut_keys);
+    state_.lut_values = std::move(build_result_->lut_values);
+
     // Cache blueprint for potential rebuilds
     cached_blueprint_ = bp;
 

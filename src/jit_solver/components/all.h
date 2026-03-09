@@ -797,4 +797,29 @@ public:
     void solve_logical(an24::SimulationState& st, float dt);
 };
 
+/// LUT - Lookup table with linear interpolation.
+/// Table data lives in SimulationState arena (cache-friendly, contiguous).
+/// Component holds only offset+size into the shared arena.
+template <typename Provider = JitProvider>
+class LUT {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+    uint32_t table_offset = 0;  ///< Index into st.lut_keys / st.lut_values
+    uint16_t table_size   = 0;  ///< Number of breakpoints
+
+    LUT() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+
+    /// Parse "k1:v1; k2:v2; ..." table string into keys/values vectors
+    static bool parse_table(const std::string& table_str,
+                            std::vector<float>& keys,
+                            std::vector<float>& values);
+
+private:
+    static float interpolate(float x, const float* keys, const float* vals, uint16_t size);
+};
+
 } // namespace an24

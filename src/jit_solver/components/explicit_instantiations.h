@@ -56,6 +56,7 @@ template class NOT<JitProvider>;
 template class NAND<JitProvider>;
 template class Any_V_to_Bool<JitProvider>;
 template class Positive_V_to_Bool<JitProvider>;
+template class LUT<JitProvider>;
 
 } // namespace an24
 

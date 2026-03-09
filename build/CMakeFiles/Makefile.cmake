@@ -168,6 +168,8 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/pd_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/subtract_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logic_gates_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/lut_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/lut_codegen_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_map_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/and_gate_debug_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_sanitize_tests.dir/DependInfo.cmake"

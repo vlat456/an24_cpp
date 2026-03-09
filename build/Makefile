@@ -627,6 +627,32 @@ logic_gates_tests/fast:
 .PHONY : logic_gates_tests/fast
 
 #=============================================================================
+# Target rules for targets named lut_tests
+
+# Build rule for target.
+lut_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lut_tests
+.PHONY : lut_tests
+
+# fast build rule for target.
+lut_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
+.PHONY : lut_tests/fast
+
+#=============================================================================
+# Target rules for targets named lut_codegen_tests
+
+# Build rule for target.
+lut_codegen_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lut_codegen_tests
+.PHONY : lut_codegen_tests
+
+# fast build rule for target.
+lut_codegen_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/build
+.PHONY : lut_codegen_tests/fast
+
+#=============================================================================
 # Target rules for targets named port_map_regression_tests
 
 # Build rule for target.
@@ -923,6 +949,8 @@ help:
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
+	@echo "... lut_codegen_tests"
+	@echo "... lut_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... node_deletion_tests"

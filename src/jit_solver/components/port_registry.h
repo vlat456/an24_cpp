@@ -94,6 +94,7 @@ enum class ComponentType {
     IndicatorLight,
     InertiaNode,
     Inverter,
+    LUT,
     LerpNode,
     Load,
     Merger,
@@ -144,6 +145,7 @@ constexpr size_t HoldButton_PORT_COUNT = 4;
 constexpr size_t IndicatorLight_PORT_COUNT = 3;
 constexpr size_t InertiaNode_PORT_COUNT = 2;
 constexpr size_t Inverter_PORT_COUNT = 2;
+constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
 constexpr size_t Merger_PORT_COUNT = 3;
@@ -262,6 +264,10 @@ constexpr const char* InertiaNode_PORTS[] = {
 constexpr const char* Inverter_PORTS[] = {
     "ac_out",
     "dc_in"
+};
+constexpr const char* LUT_PORTS[] = {
+    "input",
+    "output"
 };
 constexpr const char* LerpNode_PORTS[] = {
     "input",
@@ -462,6 +468,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"IndicatorLight", {"brightness", "v_in", "v_out"}},
         {"InertiaNode", {"input", "output"}},
         {"Inverter", {"ac_out", "dc_in"}},
+        {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
         {"Merger", {"i1", "i2", "o"}},
@@ -521,6 +528,7 @@ using ComponentVariant = std::variant<
     IndicatorLight<JitProvider>,
     InertiaNode<JitProvider>,
     Inverter<JitProvider>,
+    LUT<JitProvider>,
     LerpNode<JitProvider>,
     Load<JitProvider>,
     Merger<JitProvider>,

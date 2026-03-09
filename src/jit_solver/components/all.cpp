@@ -1065,6 +1065,79 @@ void Positive_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, floa
     st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 
+// =============================================================================
+// LUT - Lookup table with linear interpolation (arena-based)
+// =============================================================================
+
+template <typename Provider>
+float LUT<Provider>::interpolate(float x, const float* keys, const float* vals, uint16_t size) {
+    if (size == 0) return 0.0f;
+    if (size == 1) return vals[0];
+
+    // Branchless linear scan: accumulate the index of the last key <= x.
+    // For typical LUT sizes (5-30 entries) this is faster than binary search
+    // because it avoids branch mispredictions and is auto-vectorizable.
+    uint16_t lo = 0;
+    for (uint16_t i = 1; i < size; ++i) {
+        lo += (keys[i] <= x);  // branchless: 0 or 1
+    }
+
+    // Clamp to valid interval [0, size-2]
+    uint16_t hi = lo + 1;
+    if (hi >= size) { lo = size - 2; hi = size - 1; }
+
+    // Branchless lerp: when x <= keys[0], lo==0 and t<=0 → clamps to vals[0]
+    float denom = keys[hi] - keys[lo];
+    float t = (denom > 0.0f) ? (x - keys[lo]) / denom : 0.0f;
+    // Clamp t to [0,1] for edge cases (x < keys[0] or x > keys[size-1])
+    t = t < 0.0f ? 0.0f : (t > 1.0f ? 1.0f : t);
+    return vals[lo] + t * (vals[hi] - vals[lo]);
+}
+
+template <typename Provider>
+void LUT<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float x = st.across[provider.get(PortNames::input)];
+    const float* keys = st.lut_keys.data() + table_offset;
+    const float* vals = st.lut_values.data() + table_offset;
+    st.across[provider.get(PortNames::output)] = interpolate(x, keys, vals, table_size);
+}
+
+template <typename Provider>
+bool LUT<Provider>::parse_table(const std::string& table_str,
+                                std::vector<float>& keys,
+                                std::vector<float>& values) {
+    keys.clear();
+    values.clear();
+    if (table_str.empty()) return false;
+
+    size_t pos = 0;
+    while (pos < table_str.size()) {
+        // Skip whitespace and semicolons
+        while (pos < table_str.size() && (table_str[pos] == ' ' || table_str[pos] == ';'))
+            ++pos;
+        if (pos >= table_str.size()) break;
+
+        // Find colon separator
+        size_t colon = table_str.find(':', pos);
+        if (colon == std::string::npos) break;
+
+        // Find end of value (next semicolon or end)
+        size_t end = table_str.find(';', colon + 1);
+        if (end == std::string::npos) end = table_str.size();
+
+        try {
+            float k = std::stof(table_str.substr(pos, colon - pos));
+            float v = std::stof(table_str.substr(colon + 1, end - colon - 1));
+            keys.push_back(k);
+            values.push_back(v);
+        } catch (...) {
+            break;
+        }
+        pos = end;
+    }
+    return !keys.empty();
+}
+
 } // namespace an24
 
 // =============================================================================

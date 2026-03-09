@@ -505,6 +505,40 @@ target_link_libraries(logic_gates_tests PRIVATE
 )
 gtest_discover_tests(logic_gates_tests)
 
+# LUT (Lookup Table) tests
+add_executable(lut_tests
+    test_lut.cpp
+)
+target_include_directories(lut_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(lut_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(lut_tests)
+
+# LUT codegen tests (AOT code generation for LUT arena)
+add_executable(lut_codegen_tests
+    test_lut_codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+)
+target_include_directories(lut_codegen_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(lut_codegen_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+    spdlog::spdlog
+)
+gtest_discover_tests(lut_codegen_tests)
+
 # Port mapping regression tests (catches missing ports in string_to_port_name)
 add_executable(port_map_regression_tests
     test_port_map_regression.cpp
