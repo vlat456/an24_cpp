@@ -50,7 +50,7 @@ void EditorApp::update_node_content_from_simulation() {
 }
 
 // Reset node_content to default values (used when simulation stops)
-// BUGFIX [f7a3b1] Generic reset: re-derive from ComponentDefinition defaults.
+// BUGFIX [f7a3b1] Generic reset: re-derive from TypeDefinition defaults.
 // Old code had a hardcoded type list (Voltmeter, IndicatorLight, DMR400, Switch, HoldButton);
 // any new component type added to the simulation would NOT have its visual state reset.
 void EditorApp::reset_node_content() {
@@ -121,7 +121,7 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     node.size = get_default_node_size(classname, &component_registry);
     
     // Add ports from component definition
-    for (const auto& [port_name, port_def] : def->default_ports) {
+    for (const auto& [port_name, port_def] : def->ports) {
         if (port_def.direction == PortDirection::In) {
             node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
@@ -134,7 +134,7 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     }
 
     // Copy default params from component definition
-    node.params = def->default_params;
+    node.params = def->params;
 
     // BUGFIX [dc3a7f] Removed dead create_node_content wrapper, call factory directly
     node.node_content = create_node_content_from_def(def);
@@ -313,7 +313,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         // Add params from DeviceInstance
         node.params = dev.params;
 
-        // Create node_content from ComponentDefinition
+        // Create node_content from TypeDefinition
         const auto* def = component_registry.get(dev.classname);
         if (def) {
             node.node_content = create_node_content_from_def(def);

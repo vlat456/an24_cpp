@@ -67,27 +67,31 @@ struct Connection {
     std::string to;    // "device.port"
 };
 
-/// Component definition (default ports, params, domains for a component class)
-struct ComponentDefinition {
-    std::string classname;                    // C++ class name (e.g., "Battery")
+/// Type definition (ports, params, domains for a component class or blueprint)
+struct TypeDefinition {
+    std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
     std::string description;                  // Human-readable description
-    std::unordered_map<std::string, Port> default_ports;  // Default port definitions
-    std::unordered_map<std::string, std::string> default_params;  // Default parameter values
-    std::optional<std::vector<Domain>> default_domains;    // Default domains
-    std::string default_priority = "med";     // Default priority
-    bool default_critical = false;            // Default critical flag
-    std::string default_content_type = "None"; // Default UI content type (None, Gauge, Switch, Text)
-    std::optional<std::pair<float, float>> default_size;  // Default size in grid units {width, height}
+    bool cpp_class = true;                    // true = C++ component, false = blueprint
+    std::unordered_map<std::string, Port> ports;  // Port definitions
+    std::unordered_map<std::string, std::string> params;  // Default parameter values
+    std::optional<std::vector<Domain>> domains;    // Domains
+    std::string priority = "med";     // Priority
+    bool critical = false;            // Critical flag
+    std::string content_type = "None"; // UI content type (None, Gauge, Switch, Text)
+    std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
+    // For blueprints only: internal devices and connections
+    std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
+    std::vector<Connection> connections;  // Internal connections (for blueprints)
 };
 
-/// Component registry - holds all component definitions loaded from components/
-struct ComponentRegistry {
-    std::unordered_map<std::string, ComponentDefinition> components;
+/// Type registry - holds all type definitions loaded from library/
+struct TypeRegistry {
+    std::unordered_map<std::string, TypeDefinition> types;
 
-    /// Get component definition by classname
-    const ComponentDefinition* get(const std::string& classname) const {
-        auto it = components.find(classname);
-        if (it != components.end()) {
+    /// Get type definition by classname
+    const TypeDefinition* get(const std::string& classname) const {
+        auto it = types.find(classname);
+        if (it != types.end()) {
             return &it->second;
         }
         return nullptr;
@@ -95,14 +99,14 @@ struct ComponentRegistry {
 
     /// Check if classname exists
     bool has(const std::string& classname) const {
-        return components.count(classname) > 0;
+        return types.count(classname) > 0;
     }
 
     /// Get all registered classnames
     std::vector<std::string> list_classnames() const {
         std::vector<std::string> names;
-        names.reserve(components.size());
-        for (const auto& [name, _] : components) {
+        names.reserve(types.size());
+        for (const auto& [name, _] : types) {
             names.push_back(name);
         }
         return names;
@@ -167,7 +171,7 @@ struct DeviceInstance {
         if (domains.empty()) {
             throw std::runtime_error(
                 "Device '" + name + "' (" + classname + ") has no domains. "
-                "Component definition should have default_domains.");
+                "Type definition should have domains.");
         }
         return domains;
     }
@@ -191,7 +195,7 @@ struct SystemTemplate {
 
 /// Compilation context - holds all parsed data
 struct ParserContext {
-    ComponentRegistry registry;               // Component registry
+    TypeRegistry registry;               // Type registry
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
@@ -227,13 +231,13 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const ParserContext&
 /// Serialize a ParserContext to pretty-printed JSON
 std::string serialize_json(const ParserContext& ctx);
 
-/// Load component registry from components/ directory
-ComponentRegistry load_component_registry(const std::string& components_dir = "components/");
+/// Load type registry from library/ directory
+TypeRegistry load_type_registry(const std::string& library_dir = "library/");
 
-/// Merge device instance with component definition defaults
+/// Merge device instance with type definition defaults
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const ComponentDefinition& definition
+    const TypeDefinition& definition
 );
 
 } // namespace an24

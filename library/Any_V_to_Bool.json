@@ -1,0 +1,22 @@
+{
+  "classname": "Any_V_to_Bool",
+  "description": "Convert any non-zero voltage to TRUE (including negative)",
+  "cpp_class": true,
+  "ports": {
+    "Vin": {
+      "direction": "In",
+      "type": "V"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "params": {},
+  "domains": [
+    "Logical"
+  ],
+  "priority": "med",
+  "critical": false,
+  "size": {"x": 2, "y": 2}
+}

@@ -1,0 +1,27 @@
+{
+  "classname": "Relay",
+  "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
+  "cpp_class": true,
+  "ports": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    },
+    "control": {
+      "direction": "In",
+      "type": "Bool"
+    }
+  },
+  "params": {
+    "closed": "false"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

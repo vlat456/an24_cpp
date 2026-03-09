@@ -1,0 +1,25 @@
+{
+  "classname": "Generator",
+  "description": "Voltage generator source with internal resistance. Similar to Battery but typically driven by mechanical power (engine/APU).",
+  "cpp_class": true,
+  "ports": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "params": {
+    "v_nominal": "28.5",
+    "internal_r": "0.005"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high",
+  "critical": false,
+  "content_type": "Gauge"
+}

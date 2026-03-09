@@ -1,0 +1,23 @@
+{
+  "classname": "TempSensor",
+  "description": "Temperature sensor with sensitivity",
+  "cpp_class": true,
+  "ports": {
+    "temp_in": {
+      "direction": "In",
+      "type": "I"
+    },
+    "temp_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "params": {
+    "sensitivity": "1.0"
+  },
+  "domains": [
+    "Thermal"
+  ],
+  "priority": "med",
+  "critical": false
+}

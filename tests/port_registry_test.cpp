@@ -21,7 +21,7 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
 
     // Get actual ports from registry
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["default_ports"].items()) {
+    for (auto& [port_name, _] : registry["ports"].items()) {
         actual_ports.push_back(port_name);
     }
 
@@ -44,7 +44,7 @@ TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
     };
 
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["default_ports"].items()) {
+    for (auto& [port_name, _] : registry["ports"].items()) {
         actual_ports.push_back(port_name);
     }
 
@@ -82,17 +82,17 @@ TEST(PortRegistryTest, RU19A_PortOffsets_AreCorrect) {
     EXPECT_NE(content.find("v_bus"), std::string::npos);
 }
 
-// Test component count
-TEST(PortRegistryTest, AllComponentsInRegistry) {
-    // Count JSON files in components/
+// Test type count
+TEST(PortRegistryTest, AllTypesInRegistry) {
+    // Count JSON files in library/
     int json_count = 0;
-    std::string components_dir = std::string(TEST_DATA_DIR) + "/components";
-    for (const auto& entry : std::filesystem::directory_iterator(components_dir)) {
+    std::string library_dir = std::string(TEST_DATA_DIR) + "/library";
+    for (const auto& entry : std::filesystem::directory_iterator(library_dir)) {
         if (entry.path().extension() == ".json") {
             json_count++;
         }
     }
 
-    // Expect at least 26 components
-    EXPECT_GE(json_count, 26);
+    // Expect at least 45 component types + 2 blueprint types = 47
+    EXPECT_GE(json_count, 47);
 }

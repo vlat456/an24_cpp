@@ -1,0 +1,23 @@
+{
+  "classname": "HighPowerLoad",
+  "description": "Constant power load (adjusts conductance based on voltage)",
+  "cpp_class": true,
+  "ports": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "params": {
+    "power_draw": "500.0"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

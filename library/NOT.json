@@ -1,0 +1,22 @@
+{
+  "classname": "NOT",
+  "description": "Logical NOT gate: output = !A (inverter)",
+  "cpp_class": true,
+  "ports": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "params": {},
+  "domains": [
+    "Logical"
+  ],
+  "priority": "med",
+  "critical": false,
+  "size": {"x": 2, "y": 2}
+}

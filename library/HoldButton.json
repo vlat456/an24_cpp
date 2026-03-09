@@ -1,0 +1,32 @@
+{
+  "classname": "HoldButton",
+  "description": "Hold-to-operate button with press/release detection. When pressed, passes through voltage from v_in to v_out (like Switch). State output: 1.0V = pressed, 0.0V = released/idle.",
+  "cpp_class": true,
+  "ports": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    },
+    "control": {
+      "direction": "In",
+      "type": "Temperature"
+    },
+    "state": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "params": {
+    "idle": "0.0"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false,
+  "content_type": "HoldButton"
+}

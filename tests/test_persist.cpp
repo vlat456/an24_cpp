@@ -229,7 +229,7 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
 TEST(PersistTest, GetDefaultNodeSize_Bus_Returns40x40) {
     // Bus has default_size {2, 2} in JSON = 40x40 pixels
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("Bus", &registry);
     EXPECT_FLOAT_EQ(size.x, 40.0f);
@@ -239,7 +239,7 @@ TEST(PersistTest, GetDefaultNodeSize_Bus_Returns40x40) {
 TEST(PersistTest, GetDefaultNodeSize_RefNode_Returns40x40) {
     // RefNode has default_size {2, 2} in JSON = 40x40 pixels
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("RefNode", &registry);
     EXPECT_FLOAT_EQ(size.x, 40.0f);
@@ -249,7 +249,7 @@ TEST(PersistTest, GetDefaultNodeSize_RefNode_Returns40x40) {
 TEST(PersistTest, GetDefaultNodeSize_Ref_Alias_Returns40x40) {
     // Ref (alias for RefNode) - uses same size through registry
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("RefNode", &registry);
     EXPECT_FLOAT_EQ(size.x, 40.0f);
@@ -267,12 +267,12 @@ TEST(PersistTest, GetDefaultNodeSize_WithRegistry) {
     // Test that default_size from component registry is used correctly
     using namespace an24;
 
-    ComponentRegistry registry;
+    TypeRegistry registry;
 
     // Create a mock component definition with default_size
-    ComponentDefinition def;
+    TypeDefinition def;
     def.classname = "TestComponent";
-    def.default_size = {2, 3};  // 2x3 grid units = 40x60 pixels
+    def.size = {2, 3};  // 2x3 grid units = 40x60 pixels
 
     registry.components["TestComponent"] = def;
 
@@ -287,13 +287,13 @@ TEST(PersistTest, GetDefaultNodeSize_Splitter_Returns60x60) {
     using namespace an24;
 
     // Load real component registry
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     const auto* split_def = registry.get("Splitter");
     ASSERT_NE(split_def, nullptr) << "Splitter component should exist in registry";
-    ASSERT_TRUE(split_def->default_size.has_value()) << "Splitter should have default_size defined";
-    EXPECT_EQ(split_def->default_size->first, 3);
-    EXPECT_EQ(split_def->default_size->second, 3);
+    ASSERT_TRUE(split_def->size.has_value()) << "Splitter should have default_size defined";
+    EXPECT_EQ(split_def->size->first, 3);
+    EXPECT_EQ(split_def->size->second, 3);
 
     Pt size = get_default_node_size("Splitter", &registry);
     EXPECT_FLOAT_EQ(size.x, 60.0f) << "Splitter width should be 3 grid units (60px)";
@@ -304,11 +304,11 @@ TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
     // Test that grid unit conversion is correct: 1 unit = 20 pixels
     using namespace an24;
 
-    ComponentRegistry registry;
+    TypeRegistry registry;
 
-    ComponentDefinition def;
+    TypeDefinition def;
     def.classname = "TestComponent";
-    def.default_size = {1, 1};  // 1x1 grid unit
+    def.size = {1, 1};  // 1x1 grid unit
 
     registry.components["TestComponent"] = def;
 
@@ -324,11 +324,11 @@ TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
 // Tests for BusVisualNode dynamic resizing
 // =============================================================================
 
-TEST(PersistTest, BusVisualNode_InitialSizeFromComponentDefinition) {
+TEST(PersistTest, BusVisualNode_InitialSizeFromTypeDefinition) {
     // Bus has default_size {2, 2} in JSON = 40x40 pixels
     // Visual grid snapping (16px) snaps 40px up to 48px (3 * 16)
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     Node n;
     n.id = "bus1";
@@ -349,7 +349,7 @@ TEST(PersistTest, BusVisualNode_InitialSizeFromComponentDefinition) {
 TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
     // Bus should resize when a wire is connected (port count increases)
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     // Create bus node
     Node bus_node;
@@ -396,7 +396,7 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
 TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
     // Bus should resize when a wire is disconnected (port count decreases)
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     // Create bus node
     Node bus_node;
@@ -461,7 +461,7 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
 TEST(PersistTest, BusVisualNode_SizeIsGridSnapped) {
     // Bus size should always be a multiple of GRID_STEP (16px)
     using namespace an24;
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     Node n;
     n.id = "bus1";
@@ -1459,38 +1459,38 @@ TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
     // for all known content types (this is what reset_node_content now uses).
 
     // Gauge type (e.g., Voltmeter)
-    an24::ComponentDefinition gauge_def;
-    gauge_def.default_content_type = "Gauge";
+    an24::TypeDefinition gauge_def;
+    gauge_def.content_type = "Gauge";
     NodeContent gc = create_node_content_from_def(&gauge_def);
     EXPECT_EQ(gc.type, NodeContentType::Gauge);
     EXPECT_EQ(gc.value, 0.0f);
 
     // Switch type
-    an24::ComponentDefinition switch_def;
-    switch_def.default_content_type = "Switch";
-    switch_def.default_params["closed"] = "true";
+    an24::TypeDefinition switch_def;
+    switch_def.content_type = "Switch";
+    switch_def.params["closed"] = "true";
     NodeContent sc = create_node_content_from_def(&switch_def);
     EXPECT_EQ(sc.type, NodeContentType::Switch);
     EXPECT_TRUE(sc.state) << "Switch with closed=true should default to state=true";
 
     // HoldButton type
-    an24::ComponentDefinition hb_def;
-    hb_def.default_content_type = "HoldButton";
+    an24::TypeDefinition hb_def;
+    hb_def.content_type = "HoldButton";
     NodeContent hc = create_node_content_from_def(&hb_def);
     EXPECT_EQ(hc.type, NodeContentType::Switch);
     EXPECT_EQ(hc.label, "RELEASED");
     EXPECT_FALSE(hc.state);
 
     // Text type (e.g., IndicatorLight)
-    an24::ComponentDefinition text_def;
-    text_def.default_content_type = "Text";
+    an24::TypeDefinition text_def;
+    text_def.content_type = "Text";
     NodeContent tc = create_node_content_from_def(&text_def);
     EXPECT_EQ(tc.type, NodeContentType::Text);
     EXPECT_EQ(tc.label, "OFF");
 
     // Unknown type
-    an24::ComponentDefinition unk_def;
-    unk_def.default_content_type = "WeirdFutureType";
+    an24::TypeDefinition unk_def;
+    unk_def.content_type = "WeirdFutureType";
     NodeContent uc = create_node_content_from_def(&unk_def);
     EXPECT_EQ(uc.type, NodeContentType::None)
         << "Unknown content type should produce None (safe default)";

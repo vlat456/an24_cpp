@@ -1,0 +1,31 @@
+{
+  "classname": "PD",
+  "description": "PD controller with proportional and derivative terms (no integral)",
+  "cpp_class": true,
+  "ports": {
+    "feedback": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "setpoint": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "params": {
+    "Kp": "1.0",
+    "Kd": "0.0",
+    "output_min": "-1000.0",
+    "output_max": "1000.0",
+    "filter_alpha": "0.2"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

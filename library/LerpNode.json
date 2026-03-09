@@ -1,0 +1,23 @@
+{
+  "classname": "LerpNode",
+  "description": "Linear interpolation node (first-order filter) for sensor simulation",
+  "cpp_class": true,
+  "ports": {
+    "input": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "params": {
+    "factor": "0.05"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

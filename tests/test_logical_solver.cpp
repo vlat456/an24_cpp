@@ -28,15 +28,15 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
 
     // Try to load component registry (which will parse domains)
     // If "Logical" domain doesn't parse, this will fail
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     // Verify that we loaded at least the Comparator component
     const auto* comp = registry.get("Comparator");
     if (comp) {
-        ASSERT_TRUE(comp->default_domains.has_value())
+        ASSERT_TRUE(comp->domains.has_value())
             << "Comparator should have default domains defined";
 
-        auto& domains = comp->default_domains.value();
+        auto& domains = comp->domains.value();
         bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
         EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
     } else {
@@ -49,11 +49,11 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
 // Tests for Comparator Component Definition
 // =============================================================================
 
-TEST(LogicalSolverTest, Comparator_ComponentDefinitionExists) {
+TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     // Component should be in registry with correct structure
     using namespace an24;
 
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {
@@ -66,30 +66,30 @@ TEST(LogicalSolverTest, Comparator_ComponentDefinitionExists) {
     EXPECT_FALSE(comp->description.empty()) << "Comparator should have a description";
 
     // Check ports exist (Von and Voff are parameters, not ports!)
-    EXPECT_TRUE(comp->default_ports.contains("Va")) << "Should have Va input";
-    EXPECT_TRUE(comp->default_ports.contains("Vb")) << "Should have Vb input";
-    EXPECT_TRUE(comp->default_ports.contains("o")) << "Should have o output";
+    EXPECT_TRUE(comp->ports.contains("Va")) << "Should have Va input";
+    EXPECT_TRUE(comp->ports.contains("Vb")) << "Should have Vb input";
+    EXPECT_TRUE(comp->ports.contains("o")) << "Should have o output";
 
     // Check port directions
-    EXPECT_EQ(comp->default_ports.at("Va").direction, PortDirection::In);
-    EXPECT_EQ(comp->default_ports.at("Vb").direction, PortDirection::In);
-    EXPECT_EQ(comp->default_ports.at("o").direction, PortDirection::Out);
+    EXPECT_EQ(comp->ports.at("Va").direction, PortDirection::In);
+    EXPECT_EQ(comp->ports.at("Vb").direction, PortDirection::In);
+    EXPECT_EQ(comp->ports.at("o").direction, PortDirection::Out);
 
     // Check port types (Va, Vb should be Voltage; o should be Bool)
-    EXPECT_EQ(comp->default_ports.at("Va").type, PortType::V);
-    EXPECT_EQ(comp->default_ports.at("Vb").type, PortType::V);
-    EXPECT_EQ(comp->default_ports.at("o").type, PortType::Bool);
+    EXPECT_EQ(comp->ports.at("Va").type, PortType::V);
+    EXPECT_EQ(comp->ports.at("Vb").type, PortType::V);
+    EXPECT_EQ(comp->ports.at("o").type, PortType::Bool);
 
     // Check parameters
-    EXPECT_TRUE(comp->default_params.contains("Von")) << "Should have Von parameter";
-    EXPECT_TRUE(comp->default_params.contains("Voff")) << "Should have Voff parameter";
+    EXPECT_TRUE(comp->params.contains("Von")) << "Should have Von parameter";
+    EXPECT_TRUE(comp->params.contains("Voff")) << "Should have Voff parameter";
 }
 
 TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
     // Comparator should be registered in Logical domain
     using namespace an24;
 
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {
@@ -97,10 +97,10 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
         return;
     }
 
-    ASSERT_TRUE(comp->default_domains.has_value())
+    ASSERT_TRUE(comp->domains.has_value())
         << "Comparator should have default domains defined";
 
-    auto& domains = comp->default_domains.value();
+    auto& domains = comp->domains.value();
     bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
     EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
 }

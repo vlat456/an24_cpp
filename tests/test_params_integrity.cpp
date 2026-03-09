@@ -22,7 +22,7 @@ TEST(ParamsIntegrity, AddComponentPopulatesDefaultParams) {
     ASSERT_TRUE(app.component_registry.has("Battery"));
     const auto* def = app.component_registry.get("Battery");
     ASSERT_NE(def, nullptr);
-    ASSERT_FALSE(def->default_params.empty());
+    ASSERT_FALSE(def->params.empty());
 
     app.add_component("Battery", Pt(100, 100));
 
@@ -31,7 +31,7 @@ TEST(ParamsIntegrity, AddComponentPopulatesDefaultParams) {
     const Node& node = app.blueprint.nodes[0];
 
     // Node params must contain ALL default params
-    for (const auto& [key, value] : def->default_params) {
+    for (const auto& [key, value] : def->params) {
         EXPECT_TRUE(node.params.count(key) > 0)
             << "Missing param '" << key << "' in node.params after add_component()";
         EXPECT_EQ(node.params.at(key), value)
@@ -92,11 +92,11 @@ TEST(ParamsIntegrity, LoadedBlueprintHasFullParams) {
     const Node& node = bp->nodes[0];
 
     // After loading, params should be filled from registry defaults
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
     const auto* def = registry.get("Battery");
     ASSERT_NE(def, nullptr);
 
-    for (const auto& [key, value] : def->default_params) {
+    for (const auto& [key, value] : def->params) {
         EXPECT_TRUE(node.params.count(key) > 0)
             << "Missing param '" << key << "' after load (no params in JSON)";
         EXPECT_EQ(node.params.at(key), value)
@@ -205,12 +205,12 @@ TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
 
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
     const auto* def = registry.get("Bus");
     ASSERT_NE(def, nullptr);
 
     // Bus has no default params
-    if (def->default_params.empty()) {
+    if (def->params.empty()) {
         EXPECT_TRUE(bp->nodes[0].params.empty());
     }
 }

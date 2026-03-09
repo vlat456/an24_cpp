@@ -1,0 +1,18 @@
+{
+  "classname": "Voltmeter",
+  "description": "Analog voltmeter gauge for measuring voltage",
+  "cpp_class": true,
+  "ports": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    }
+  },
+  "params": {},
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "low",
+  "critical": false,
+  "content_type": "Gauge"
+}

@@ -1,0 +1,23 @@
+{
+  "classname": "Transformer",
+  "description": "AC transformer with voltage ratio",
+  "cpp_class": true,
+  "ports": {
+    "primary": {
+      "direction": "In",
+      "type": "I"
+    },
+    "secondary": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "params": {
+    "ratio": "1.0"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

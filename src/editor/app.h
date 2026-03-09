@@ -32,8 +32,8 @@ struct EditorApp {
     an24::Simulator<an24::JIT_Solver> simulation;
     bool simulation_running = false;
 
-    /// Component registry (loaded from components/*.json)
-    an24::ComponentRegistry component_registry;
+    /// Type registry (loaded from library/*.json)
+    an24::TypeRegistry type_registry;
 
     /// Blueprint metadata for context menu
     struct BlueprintInfo {
@@ -69,8 +69,8 @@ struct EditorApp {
     EditorApp()
         : inspector(window_manager.root().scene)  // Inspector needs scene reference
     {
-        // Load component registry at startup
-        component_registry = an24::load_component_registry();
+        // Load type registry at startup
+        type_registry = an24::load_type_registry();
 
         // Scan blueprints/ directory for nested blueprints
         scan_blueprints();

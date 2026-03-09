@@ -1,0 +1,24 @@
+{
+  "classname": "Divide",
+  "description": "Divider: o = A / B (returns 0 if B is 0)",
+  "cpp_class": true,
+  "ports": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "params": {},
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false,
+  "size": { "x": 2, "y": 2 }
+}

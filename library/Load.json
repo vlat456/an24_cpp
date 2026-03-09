@@ -1,0 +1,19 @@
+{
+  "classname": "Load",
+  "description": "Generic electrical load with conductance",
+  "cpp_class": true,
+  "ports": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    }
+  },
+  "params": {
+    "conductance": "0.1"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

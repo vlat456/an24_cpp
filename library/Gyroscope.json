@@ -1,0 +1,19 @@
+{
+  "classname": "Gyroscope",
+  "description": "Gyroscope sensor (power-only load)",
+  "cpp_class": true,
+  "ports": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    }
+  },
+  "params": {
+    "conductance": "0.035"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "med",
+  "critical": false
+}

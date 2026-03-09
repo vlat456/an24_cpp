@@ -437,8 +437,8 @@ TEST(JsonParserTest, PortTypeSerialization_RoundTrip) {
 // Regression Tests
 // ============================================================================
 
-TEST(JsonParserTest, Regression_PortTypeMerge_ComponentDefinitionTypesCopied) {
-    // Regression test for bug where port types from ComponentDefinition
+TEST(JsonParserTest, Regression_PortTypeMerge_TypeDefinitionTypesCopied) {
+    // Regression test for bug where port types from TypeDefinition
     // were not being copied to DeviceInstance when ports already existed.
 
     std::string json = R"({
@@ -456,18 +456,18 @@ TEST(JsonParserTest, Regression_PortTypeMerge_ComponentDefinitionTypesCopied) {
     ASSERT_EQ(ctx.devices.size(), 1);
     const auto& apu = ctx.devices[0];
 
-    // Verify that port types from ComponentDefinition were copied
+    // Verify that port types from TypeDefinition were copied
     EXPECT_EQ(apu.ports.count("v_bus"), 1) << "v_bus port should exist";
     EXPECT_EQ(apu.ports.at("v_bus").type, PortType::V)
-        << "v_bus type should be V (from ComponentDefinition)";
+        << "v_bus type should be V (from TypeDefinition)";
 
     EXPECT_EQ(apu.ports.count("rpm_out"), 1) << "rpm_out port should exist";
     EXPECT_EQ(apu.ports.at("rpm_out").type, PortType::RPM)
-        << "rpm_out type should be RPM (from ComponentDefinition)";
+        << "rpm_out type should be RPM (from TypeDefinition)";
 
     EXPECT_EQ(apu.ports.count("t4_out"), 1) << "t4_out port should exist";
     EXPECT_EQ(apu.ports.at("t4_out").type, PortType::Temperature)
-        << "t4_out type should be Temperature (from ComponentDefinition)";
+        << "t4_out type should be Temperature (from TypeDefinition)";
 }
 
 TEST(JsonParserTest, Regression_PortTypeMerge_InlinePortWithType) {

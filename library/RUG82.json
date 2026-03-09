@@ -1,0 +1,23 @@
+{
+  "classname": "RUG82",
+  "description": "RUG82 Voltage Regulator with PI controller for maintaining 28.5V on bus",
+  "cpp_class": true,
+  "ports": {
+    "v_gen": {
+      "direction": "In",
+      "type": "V"
+    },
+    "k_mod": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "params": {
+    "v_target": "28.5"
+  },
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high",
+  "critical": false
+}

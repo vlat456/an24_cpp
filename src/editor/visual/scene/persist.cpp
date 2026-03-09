@@ -415,24 +415,24 @@ static bool parse_port_ref(const std::string& ref, std::string& device, std::str
 
 // ─── Apply port types from component registry ──────────────────────────────
 
-static void apply_port_types_from_registry(Node& n, const an24::ComponentRegistry& registry) {
+static void apply_port_types_from_registry(Node& n, const an24::TypeRegistry& registry) {
     const auto* def = registry.get(n.type_name);
     if (!def) return;
     for (auto& p : n.inputs) {
-        auto it = def->default_ports.find(p.name);
-        if (it != def->default_ports.end()) p.type = it->second.type;
+        auto it = def->ports.find(p.name);
+        if (it != def->ports.end()) p.type = it->second.type;
     }
     for (auto& p : n.outputs) {
-        auto it = def->default_ports.find(p.name);
-        if (it != def->default_ports.end()) p.type = it->second.type;
+        auto it = def->ports.find(p.name);
+        if (it != def->ports.end()) p.type = it->second.type;
     }
 }
 
 /// Fill missing params from component definition defaults (same merge as merge_device_instance)
-static void apply_params_from_registry(Node& n, const an24::ComponentRegistry& registry) {
+static void apply_params_from_registry(Node& n, const an24::TypeRegistry& registry) {
     const auto* def = registry.get(n.type_name);
     if (!def) return;
-    for (const auto& [key, value] : def->default_params) {
+    for (const auto& [key, value] : def->params) {
         if (n.params.find(key) == n.params.end()) {
             n.params[key] = value;
         }
@@ -551,7 +551,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     }
 
     // [PERF-q7r8] Was reloading component registry from disk on every load — now cached as static
-    static an24::ComponentRegistry registry = an24::load_component_registry();
+    static an24::TypeRegistry registry = an24::load_type_registry();
     for (auto& n : bp.nodes) {
         apply_port_types_from_registry(n, registry);
         apply_params_from_registry(n, registry);

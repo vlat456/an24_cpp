@@ -237,7 +237,7 @@ TEST(EventsTest, AddComponent_IndicatorLightHasTextContent_c3d4) {
     EXPECT_EQ(nc.type, NodeContentType::Text) << "[c3d4] IndicatorLight should have Text content";
 }
 
-// add_component: ports loaded from ComponentRegistry
+// add_component: ports loaded from TypeRegistry
 TEST(EventsTest, AddComponent_PortsLoadedFromRegistry) {
     EditorApp app;
     app.add_component("Battery", Pt(100, 100));

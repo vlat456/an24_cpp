@@ -1,0 +1,24 @@
+{
+  "classname": "InertiaNode",
+  "description": "Mechanical inertia simulation node",
+  "cpp_class": true,
+  "ports": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "params": {
+    "mass": "1.0",
+    "damping": "0.5"
+  },
+  "domains": [
+    "Mechanical"
+  ],
+  "priority": "med",
+  "critical": false
+}

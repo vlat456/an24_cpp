@@ -273,9 +273,9 @@ ParserContext parse_json(const std::string& json_text) {
     auto j = json::parse(json_text);
     ParserContext ctx;
 
-    // Load component registry
-    ctx.registry = load_component_registry();
-    spdlog::info("[json_parser] Loaded {} component definitions", ctx.registry.components.size());
+    // Load type registry
+    ctx.registry = load_type_registry();
+    spdlog::info("[json_parser] Loaded {} type definitions", ctx.registry.types.size());
 
     // Parse templates
     if (j.contains("templates")) {
@@ -628,101 +628,114 @@ std::string serialize_json(const ParserContext& ctx) {
     return j.dump(2);  // Pretty print with 2-space indent
 }
 
-// Helper: parse ComponentDefinition from JSON
-static ComponentDefinition parse_component_definition(const json& j) {
-    ComponentDefinition def;
+// Helper: parse TypeDefinition from JSON
+static TypeDefinition parse_type_definition(const json& j) {
+    TypeDefinition def;
 
     if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
-    else throw std::runtime_error("Component definition missing 'classname' field");
+    else throw std::runtime_error("Type definition missing 'classname' field");
 
     if (j.contains("description")) def.description = j["description"].get<std::string>();
+    if (j.contains("cpp_class")) def.cpp_class = j["cpp_class"].get<bool>();
 
-    // Parse default ports
-    if (j.contains("default_ports")) {
-        for (auto& [port_name, port_val] : j["default_ports"].items()) {
-            def.default_ports[port_name] = parse_port(port_val);
+    // Parse ports
+    if (j.contains("ports")) {
+        for (auto& [port_name, port_val] : j["ports"].items()) {
+            def.ports[port_name] = parse_port(port_val);
         }
     }
 
-    // Parse default params
-    if (j.contains("default_params")) {
-        for (auto& [key, val] : j["default_params"].items()) {
-            def.default_params[key] = val.get<std::string>();
+    // Parse params
+    if (j.contains("params")) {
+        for (auto& [key, val] : j["params"].items()) {
+            def.params[key] = val.get<std::string>();
         }
     }
 
-    // Parse default domains
-    if (j.contains("default_domains") && j["default_domains"].is_array()) {
+    // Parse domains
+    if (j.contains("domains") && j["domains"].is_array()) {
         std::vector<Domain> domains;
-        for (const auto& d : j["default_domains"]) {
+        for (const auto& d : j["domains"]) {
             domains.push_back(parse_domain(d.get<std::string>()));
         }
         if (!domains.empty()) {
-            def.default_domains = domains;
+            def.domains = domains;
         }
     }
 
-    // Parse default priority
-    if (j.contains("default_priority")) {
-        def.default_priority = j["default_priority"].get<std::string>();
+    // Parse priority
+    if (j.contains("priority")) {
+        def.priority = j["priority"].get<std::string>();
     }
 
-    // Parse default critical
-    if (j.contains("default_critical")) {
-        def.default_critical = j["default_critical"].get<bool>();
+    // Parse critical
+    if (j.contains("critical")) {
+        def.critical = j["critical"].get<bool>();
     }
 
-    // Parse default content type
-    if (j.contains("default_content_type")) {
-        def.default_content_type = j["default_content_type"].get<std::string>();
+    // Parse content type
+    if (j.contains("content_type")) {
+        def.content_type = j["content_type"].get<std::string>();
     }
 
-    // Parse default size {x, y} in grid units
-    if (j.contains("default_size") && j["default_size"].is_object()) {
-        auto size_obj = j["default_size"];
+    // Parse size {x, y} in grid units
+    if (j.contains("size") && j["size"].is_object()) {
+        auto size_obj = j["size"];
         if (size_obj.contains("x") && size_obj.contains("y")) {
             float x = size_obj["x"].get<float>();
             float y = size_obj["y"].get<float>();
-            def.default_size = {x, y};
+            def.size = {x, y};
+        }
+    }
+
+    // For blueprints: parse devices and connections
+    if (j.contains("devices") && j["devices"].is_array()) {
+        for (const auto& dev_j : j["devices"]) {
+            def.devices.push_back(parse_device(dev_j));
+        }
+    }
+    if (j.contains("connections") && j["connections"].is_array()) {
+        for (const auto& conn_j : j["connections"]) {
+            def.connections.push_back(parse_connection(conn_j));
         }
     }
 
     return def;
 }
 
-// Load component registry from components/ directory
-ComponentRegistry load_component_registry(const std::string& components_dir) {
-    ComponentRegistry registry;
+// Load type registry from library/ directory
+TypeRegistry load_type_registry(const std::string& library_dir) {
+    TypeRegistry registry;
 
-    std::filesystem::path components_path(components_dir);
+    std::filesystem::path library_path(library_dir);
 
     // If relative path doesn't exist, try relative to source directory
-    if (!std::filesystem::exists(components_path) && components_path.is_relative()) {
+    if (!std::filesystem::exists(library_path) && library_path.is_relative()) {
         // Try common locations relative to current working directory
         std::vector<std::filesystem::path> try_paths = {
-            components_path,  // As provided
-            "../" / components_path,  // Parent directory
-            "../../" / components_path,  // Two levels up
-            "../../../" / components_path,  // Three levels up (for build/tests)
+            library_path,  // As provided
+            "../" / library_path,  // Parent directory
+            "../../" / library_path,  // Two levels up
+            "../../../" / library_path,  // Three levels up (for build/tests)
         };
 
         for (const auto& path : try_paths) {
             if (std::filesystem::exists(path)) {
-                components_path = path;
+                library_path = path;
                 break;
             }
         }
     }
 
     // Check if directory exists
-    if (!std::filesystem::exists(components_path)) {
-        spdlog::warn("[json_parser] Components directory '{}' does not exist, using empty registry", components_dir);
+    if (!std::filesystem::exists(library_path)) {
+        spdlog::warn("[json_parser] Library directory '{}' does not exist, using empty registry", library_dir);
         return registry;
     }
 
     // Scan for *.json files
     size_t loaded_count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(components_path)) {
+    for (const auto& entry : std::filesystem::directory_iterator(library_path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".json") {
             try {
                 // Read and parse JSON file
@@ -730,8 +743,8 @@ ComponentRegistry load_component_registry(const std::string& components_dir) {
                 json j;
                 file >> j;
 
-                // Parse component definition
-                ComponentDefinition def = parse_component_definition(j);
+                // Parse type definition
+                TypeDefinition def = parse_type_definition(j);
 
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {
@@ -741,21 +754,21 @@ ComponentRegistry load_component_registry(const std::string& components_dir) {
                 }
 
                 // Add to registry
-                registry.components[def.classname] = def;
+                registry.types[def.classname] = def;
                 loaded_count++;
 
-                spdlog::debug("[json_parser] Loaded component definition: '{}' from {}",
+                spdlog::debug("[json_parser] Loaded type definition: '{}' from {}",
                              def.classname, entry.path().filename().string());
             }
             catch (const std::exception& e) {
-                spdlog::error("[json_parser] Failed to parse component definition '{}': {}",
+                spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
                              entry.path().string(), e.what());
             }
         }
     }
 
-    spdlog::info("[json_parser] Loaded {} component definitions from '{}'",
-                 loaded_count, components_dir);
+    spdlog::info("[json_parser] Loaded {} type definitions from '{}'",
+                 loaded_count, library_dir);
 
     return registry;
 }
@@ -763,20 +776,20 @@ ComponentRegistry load_component_registry(const std::string& components_dir) {
 // Merge device instance with component definition defaults
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const ComponentDefinition& definition
+    const TypeDefinition& definition
 ) {
     DeviceInstance merged = instance;
 
     // Merge ports: instance overrides, defaults fill gaps
     if (merged.ports.empty()) {
-        merged.ports = definition.default_ports;
+        merged.ports = definition.ports;
     } else {
-        for (const auto& [port_name, port] : definition.default_ports) {
+        for (const auto& [port_name, port] : definition.ports) {
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
                 // Port exists in instance - always copy type and alias from definition
-                // This ensures port types from component definitions are always used
+                // This ensures port types from type definitions are always used
                 merged.ports[port_name].type = port.type;
                 merged.ports[port_name].alias = port.alias;
             }
@@ -784,34 +797,34 @@ DeviceInstance merge_device_instance(
     }
 
     // Merge params: instance overrides, defaults fill gaps
-    for (const auto& [param_name, param_value] : definition.default_params) {
+    for (const auto& [param_name, param_value] : definition.params) {
         if (!merged.params.count(param_name)) {
             merged.params[param_name] = param_value;
         }
     }
 
-    // Copy domains from component definition (NOT user-configurable)
-    if (definition.default_domains.has_value()) {
-        merged.domains = *definition.default_domains;
+    // Copy domains from type definition (NOT user-configurable)
+    if (definition.domains.has_value()) {
+        merged.domains = *definition.domains;
     } else {
         merged.domains = {Domain::Electrical};  // Default fallback
     }
 
     // Merge priority: instance overrides default (only if instance has default priority)
-    if (merged.priority == "med" && definition.default_priority != "med") {
-        merged.priority = definition.default_priority;
+    if (merged.priority == "med" && definition.priority != "med") {
+        merged.priority = definition.priority;
     }
 
     // Merge critical: instance overrides default
-    if (!merged.critical && definition.default_critical) {
+    if (!merged.critical && definition.critical) {
         merged.critical = true;
     }
 
     return merged;
 }
 
-// Validate instance against component definition
-std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInstance& instance) const {
+// Validate instance against type definition
+std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance& instance) const {
     // Check classname exists
     if (!has(instance.classname)) {
         return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
@@ -819,17 +832,17 @@ std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInst
 
     const auto* def = get(instance.classname);
     if (!def) {
-        return "Component definition not found for '" + instance.classname + "'";
+        return "Type definition not found for '" + instance.classname + "'";
     }
 
     // Validate instance ports are known in definition
     for (const auto& [port_name, port] : instance.ports) {
-        if (!def->default_ports.count(port_name)) {
+        if (!def->ports.count(port_name)) {
             return "Unknown port '" + port_name + "' in device '" + instance.name +
                    "' of type '" + instance.classname + "'. Valid ports: " +
                    [&]() {
                        std::string valid_ports;
-                       for (const auto& [name, _] : def->default_ports) {
+                       for (const auto& [name, _] : def->ports) {
                            if (!valid_ports.empty()) valid_ports += ", ";
                            valid_ports += name;
                        }

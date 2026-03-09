@@ -334,7 +334,7 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 }
 
 TEST(ExtractExposedPorts, DefaultValues) {
-    // BlueprintInput/BlueprintOutput without explicit params use ComponentRegistry defaults
+    // BlueprintInput/BlueprintOutput without explicit params use TypeRegistry defaults
     nlohmann::json bp;
     bp["devices"] = nlohmann::json::array({
         {{"name", "in"}, {"classname", "BlueprintInput"}},  // No params - uses component defaults

@@ -111,38 +111,38 @@ struct Node {
 // =============================================================================
 
 namespace an24 {
-struct ComponentDefinition;
-struct ComponentRegistry;
+struct TypeDefinition;
+struct TypeRegistry;
 }  // namespace an24
 
-/// Get default node size from component definition (single source of truth)
+/// Get default node size from type definition (single source of truth)
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
-/// @param registry Component registry to look up default_size from JSON definitions
+/// @param registry Type registry to look up size from JSON definitions
 /// @return Default size in pixels
-inline Pt get_default_node_size(const std::string& type_name, const an24::ComponentRegistry* registry) {
+inline Pt get_default_node_size(const std::string& type_name, const an24::TypeRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
-    // Try to get default_size from component definition
+    // Try to get size from type definition
     if (registry) {
         const auto* def = registry->get(type_name);
-        if (def && def->default_size.has_value()) {
-            return Pt(def->default_size->first * GRID_UNIT,
-                     def->default_size->second * GRID_UNIT);
+        if (def && def->size.has_value()) {
+            return Pt(def->size->first * GRID_UNIT,
+                     def->size->second * GRID_UNIT);
         }
     }
 
-    // Default fallback for regular nodes (components without default_size in JSON)
+    // Default fallback for regular nodes (types without size in JSON)
     return Pt(120, 80);
 }
 
 // [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp
-/// Create default NodeContent from a ComponentDefinition (single source of truth)
-inline NodeContent create_node_content_from_def(const an24::ComponentDefinition* def) {
+/// Create default NodeContent from a TypeDefinition (single source of truth)
+inline NodeContent create_node_content_from_def(const an24::TypeDefinition* def) {
     NodeContent content;
     content.type = NodeContentType::None;
     if (!def) return content;
 
-    const std::string& ct = def->default_content_type;
+    const std::string& ct = def->content_type;
     if (ct == "Gauge") {
         content.type = NodeContentType::Gauge;
         content.label = "V";
@@ -153,8 +153,8 @@ inline NodeContent create_node_content_from_def(const an24::ComponentDefinition*
     } else if (ct == "Switch") {
         content.type = NodeContentType::Switch;
         content.label = "ON";
-        auto it = def->default_params.find("closed");
-        content.state = (it != def->default_params.end() && it->second == "true");
+        auto it = def->params.find("closed");
+        content.state = (it != def->params.end() && it->second == "true");
     } else if (ct == "HoldButton") {
         content.type = NodeContentType::Switch;
         content.label = "RELEASED";

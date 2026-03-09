@@ -1,0 +1,26 @@
+{
+  "classname": "XOR",
+  "description": "Logical XOR gate: output = A != B (exclusive OR)",
+  "cpp_class": true,
+  "ports": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "params": {},
+  "domains": [
+    "Logical"
+  ],
+  "priority": "med",
+  "critical": false,
+  "size": {"x": 2, "y": 2}
+}
