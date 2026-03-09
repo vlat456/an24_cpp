@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 /// Central registry of grid and layout constants used across the editor.
 /// [2.3] Eliminates magic numbers scattered in layout code.
 
@@ -32,6 +34,9 @@ constexpr float PORT_MIN_GAP = 20.0f;  // Minimum gap between left/right labels
 
 // ---- Node sizing ----
 constexpr float MIN_NODE_WIDTH = 80.0f;
+
+// ---- Node rendering ----
+constexpr float NODE_ROUNDING = 6.0f;  // Rounded corners for nodes
 
 // ---- Zoom bounds ----
 constexpr float ZOOM_MIN   = 0.25f;

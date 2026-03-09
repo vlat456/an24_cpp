@@ -146,7 +146,10 @@ TEST(VisualScene, Render_DoesNotCrash) {
     struct StubDL : IDrawList {
         void add_line(Pt, Pt, uint32_t, float) override {}
         void add_rect(Pt, Pt, uint32_t, float) override {}
+        void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float = 1.0f) override {}
         void add_rect_filled(Pt, Pt, uint32_t) override {}
+        void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) override {}
+        void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) override {}
         void add_circle(Pt, float, uint32_t, int) override {}
         void add_circle_filled(Pt, float, uint32_t, int) override {}
         void add_text(Pt, const char*, uint32_t, float) override {}

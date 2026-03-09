@@ -519,6 +519,30 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
+__/src/editor/imgui_theme.o: __/src/editor/imgui_theme.cpp.o
+.PHONY : __/src/editor/imgui_theme.o
+
+# target to build an object file
+__/src/editor/imgui_theme.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/imgui_theme.cpp.o
+.PHONY : __/src/editor/imgui_theme.cpp.o
+
+__/src/editor/imgui_theme.i: __/src/editor/imgui_theme.cpp.i
+.PHONY : __/src/editor/imgui_theme.i
+
+# target to preprocess a source file
+__/src/editor/imgui_theme.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/imgui_theme.cpp.i
+.PHONY : __/src/editor/imgui_theme.cpp.i
+
+__/src/editor/imgui_theme.s: __/src/editor/imgui_theme.cpp.s
+.PHONY : __/src/editor/imgui_theme.s
+
+# target to generate assembly for a file
+__/src/editor/imgui_theme.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/imgui_theme.cpp.s
+.PHONY : __/src/editor/imgui_theme.cpp.s
+
 __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
 .PHONY : __/src/editor/input/canvas_input.o
 
@@ -1123,6 +1147,9 @@ help:
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/imgui_theme.o"
+	@echo "... __/src/editor/imgui_theme.i"
+	@echo "... __/src/editor/imgui_theme.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"

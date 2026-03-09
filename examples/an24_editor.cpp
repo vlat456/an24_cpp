@@ -22,6 +22,7 @@
 #include "editor/visual/scene/persist.h"
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
+#include "editor/imgui_theme.h"
 #include "debug.h"
 
 // DEBUG: включить для отладки событий мыши
@@ -69,10 +70,28 @@ public:
         dl->AddRect(ImVec2(min.x, min.y), ImVec2(max.x, max.y), c, 0, 0, thickness);
     }
 
+    void add_rect_with_rounding_corners(Pt min, Pt max, uint32_t color, float rounding, int corners, float thickness = 1.0f) override {
+        ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                           (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        dl->AddRect(ImVec2(min.x, min.y), ImVec2(max.x, max.y), c, rounding, corners, thickness);
+    }
+
     void add_rect_filled(Pt min, Pt max, uint32_t color) override {
         ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
                            (color >> 16) & 0xFF, (color >> 24) & 0xFF);
         dl->AddRectFilled(ImVec2(min.x, min.y), ImVec2(max.x, max.y), c);
+    }
+
+    void add_rect_filled_with_rounding(Pt min, Pt max, uint32_t color, float rounding) override {
+        ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                           (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        dl->AddRectFilled(ImVec2(min.x, min.y), ImVec2(max.x, max.y), c, rounding, ImDrawFlags_RoundCornersAll);
+    }
+
+    void add_rect_filled_with_rounding_corners(Pt min, Pt max, uint32_t color, float rounding, int corners) override {
+        ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
+                           (color >> 16) & 0xFF, (color >> 24) & 0xFF);
+        dl->AddRectFilled(ImVec2(min.x, min.y), ImVec2(max.x, max.y), c, rounding, corners);
     }
 
     void add_circle(Pt center, float radius, uint32_t color, int segments = 12) override {
@@ -173,7 +192,10 @@ int main(int argc, char** argv) {
     (void)io;
     io.IniFilename = nullptr; // Не сохраняем imgui.ini
 
-    ImGui::StyleColorsDark();
+    // === MODERN THEME WITH ROBOTO FONT ===
+    ImGuiTheme::LoadRobotoWithCyrillic(18.0f);  // Load Roboto with Russian support
+    ImGuiTheme::ApplyModernDarkTheme();           // Apply modern dark theme
+    // ============================================
 
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);

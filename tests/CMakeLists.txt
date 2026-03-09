@@ -281,6 +281,7 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
+target_compile_definitions(editor_router_tests PRIVATE EDITOR_TESTING)
 target_include_directories(editor_router_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
@@ -661,6 +662,7 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
 )
+target_compile_definitions(inspector_tests PRIVATE EDITOR_TESTING)
 target_include_directories(inspector_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/json_parser

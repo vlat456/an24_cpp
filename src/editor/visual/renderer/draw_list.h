@@ -12,7 +12,10 @@ struct IDrawList {
 
     virtual void add_line(Pt a, Pt b, uint32_t color, float thickness = 1.0f) = 0;
     virtual void add_rect(Pt min, Pt max, uint32_t color, float thickness = 1.0f) = 0;
+    virtual void add_rect_with_rounding_corners(Pt min, Pt max, uint32_t color, float rounding, int corners, float thickness = 1.0f) = 0;
     virtual void add_rect_filled(Pt min, Pt max, uint32_t color) = 0;
+    virtual void add_rect_filled_with_rounding(Pt min, Pt max, uint32_t color, float rounding) = 0;
+    virtual void add_rect_filled_with_rounding_corners(Pt min, Pt max, uint32_t color, float rounding, int corners) = 0;
     virtual void add_circle(Pt center, float radius, uint32_t color, int segments = 12) = 0;
     virtual void add_circle_filled(Pt center, float radius, uint32_t color, int segments = 12) = 0;
     virtual void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) = 0;

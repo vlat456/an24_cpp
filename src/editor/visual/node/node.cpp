@@ -9,6 +9,19 @@
 #include <cmath>
 #include <cstdio>
 
+// ImGui corner rounding flags - include from ImGui if available, otherwise define locally
+#ifndef EDITOR_TESTING
+// For editor builds, include ImGui which defines these flags
+#include <imgui.h>
+#else
+// For test builds, define the flags we need locally
+namespace {
+    constexpr int ImDrawFlags_RoundCornersTop     = 0x30;  // TopLeft | TopRight (16 | 32)
+    constexpr int ImDrawFlags_RoundCornersBottom  = 0xC0;  // BottomLeft | BottomRight (64 | 128)
+    constexpr int ImDrawFlags_RoundCornersAll     = 0xF0;  // All corners
+}
+#endif
+
 // ============================================================================
 // Constants
 // ============================================================================
@@ -278,33 +291,22 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt screen_max = vp.world_to_screen(
         Pt(position_.x + size_.x, position_.y + size_.y), canvas_min);
 
-    // BUGFIX [header-gap-fix] Use VISUAL_HEIGHT not HEIGHT to avoid gap
-    // HeaderWidget reserves HEIGHT=24px but only renders VISUAL_HEIGHT=20px
-    float header_visual_h = HeaderWidget::VISUAL_HEIGHT * vp.zoom;
+    float rounding = editor_constants::NODE_ROUNDING * vp.zoom;
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
 
-    // Body background (below header) - use custom color if set
-    uint32_t body_fill = custom_color_.has_value()
+    // === BACKGROUND: Full node with all corners rounded ===
+    uint32_t fill = custom_color_.has_value()
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BODY_FILL;
-    dl->add_rect_filled(Pt(screen_min.x, screen_min.y + header_visual_h), screen_max, body_fill);
+    dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
-    // Update VoltmeterWidget value before rendering
-    if (node_content_.type == NodeContentType::Gauge) {
-        for (size_t i = 0; i < layout_.childCount(); i++) {
-            auto* w = layout_.child(i);
-            if (auto* vw = dynamic_cast<VoltmeterWidget*>(w)) {
-                vw->setValue(node_content_.value);
-                break;
-            }
-        }
-    }
-
-    // Render all widgets (header, port rows, content, type name)
+    // === Render all content ===
     layout_.render(dl, screen_min, vp.zoom);
 
-    // Border (render LAST for highest z-index, so selection is visible above header)
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
+    // === BORDER: Full outline with all corners rounded ===
+    dl->add_rect_with_rounding_corners(
+        screen_min, screen_max, border_color, rounding,
+        ImDrawFlags_RoundCornersAll, 1.0f);
 }
 
 Bounds VisualNode::getContentBounds() const {
@@ -502,7 +504,8 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     uint32_t fill = custom_color_.has_value()
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BUS_FILL;
-    dl->add_rect_filled(bus_min, bus_max, fill);
+    float rounding = editor_constants::NODE_ROUNDING * vp.zoom;
+    dl->add_rect_filled_with_rounding(bus_min, bus_max, fill, rounding);
 
     Pt text_pos(bus_min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
@@ -566,7 +569,8 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     uint32_t fill = custom_color_.has_value()
         ? custom_color_->to_uint32()
         : render_theme::COLOR_BUS_FILL;
-    dl->add_rect_filled(screen_min, screen_max, fill);
+    float rounding = editor_constants::NODE_ROUNDING * vp.zoom;
+    dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);

@@ -16,6 +16,7 @@ struct PortTestDrawList : IDrawList {
 
     void add_line(Pt, Pt, uint32_t, float) override {}
     void add_rect(Pt, Pt, uint32_t, float) override {}
+    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float = 1.0f) override {}
     void add_rect_filled(Pt, Pt, uint32_t) override {}
     void add_circle(Pt, float, uint32_t, int) override {}
     void add_circle_filled(Pt center, float radius, uint32_t color, int) override {
@@ -25,6 +26,8 @@ struct PortTestDrawList : IDrawList {
         texts.push_back({pos, text, color, font_size});
     }
     void add_polyline(const Pt*, size_t, uint32_t, float) override {}
+    void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) override {}
+    void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) override {}
     Pt calc_text_size(const char* text, float font_size) const override {
         return Pt(strlen(text) * font_size * 0.6f, font_size);
     }

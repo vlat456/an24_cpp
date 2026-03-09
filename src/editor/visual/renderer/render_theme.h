@@ -24,6 +24,7 @@ constexpr uint32_t COLOR_PORT_OUTPUT = 0xFFDCB4B4;
 constexpr uint32_t COLOR_ROUTING_POINT = 0xFFFF8000;
 constexpr uint32_t COLOR_JUMP_ARC    = 0xFF404040;
 constexpr uint32_t COLOR_BODY_FILL   = 0xFF303040;
+constexpr uint32_t COLOR_HEADER_FILL = 0xFF282838;  // Slightly darker than body
 constexpr uint32_t COLOR_BUS_FILL    = 0xFF404060;
 constexpr uint32_t COLOR_BUS_BORDER  = 0xFF8080A0;
 

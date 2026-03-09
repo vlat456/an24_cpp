@@ -32,7 +32,20 @@ public:
 
     void add_line(Pt, Pt, uint32_t, float) override { had_line_ = true; }
     void add_rect(Pt, Pt, uint32_t, float) override { had_rect_ = true; rect_count_++; }
+    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float = 1.0f) override { had_rect_ = true; rect_count_++; }
     void add_rect_filled(Pt min, Pt max, uint32_t color) override {
+        had_rect_ = true;
+        rect_count_++;
+        rect_filled_colors_.push_back(color);
+        rect_filled_entries_.push_back({min, max, color});
+    }
+    void add_rect_filled_with_rounding(Pt min, Pt max, uint32_t color, float) override {
+        had_rect_ = true;
+        rect_count_++;
+        rect_filled_colors_.push_back(color);
+        rect_filled_entries_.push_back({min, max, color});
+    }
+    void add_rect_filled_with_rounding_corners(Pt min, Pt max, uint32_t color, float, int) override {
         had_rect_ = true;
         rect_count_++;
         rect_filled_colors_.push_back(color);
