@@ -300,13 +300,21 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
         : render_theme::COLOR_BODY_FILL;
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
-    // === Render all content ===
+    // === Render all content (includes ports, but they'll be drawn over) ===
     layout_.render(dl, screen_min, vp.zoom);
 
     // === BORDER: Full outline with all corners rounded ===
     dl->add_rect_with_rounding_corners(
         screen_min, screen_max, border_color, rounding,
         ImDrawFlags_RoundCornersAll, 1.0f);
+
+    // === PORTS: Draw on top of everything for highest z-index ===
+    float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
+    for (const auto& port : ports_) {
+        Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
+        uint32_t port_color = render_theme::get_port_color(port.type());
+        dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
+    }
 }
 
 Bounds VisualNode::getContentBounds() const {
@@ -510,16 +518,17 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt text_pos(bus_min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
+    // Border (render before ports)
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
+    dl->add_rect_with_rounding_corners(bus_min, bus_max, border_color, rounding, ImDrawFlags_RoundCornersAll, 1.0f);
+
+    // Ports (render LAST for highest z-index, on top of border)
     float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
     for (const auto& port : ports_) {
         Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
         uint32_t port_color = render_theme::get_port_color(port.type());
         dl->add_circle_filled(screen_pos, port_radius, port_color, 8);
     }
-
-    // Border (render LAST for highest z-index, so selection is visible above content)
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(bus_min, bus_max, border_color, 1.0f);
 }
 
 // ============================================================================
@@ -575,15 +584,16 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt text_pos(screen_min.x + 2 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
+    // Border (render before port)
+    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
+    dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding, ImDrawFlags_RoundCornersAll, 1.0f);
+
+    // Port (render LAST for highest z-index, on top of border)
     // [d5e6f7g8] Use grid-snapped position so rendering matches port world position.
     Pt world_port_pos = snap_to_grid(Pt(position_.x + size_.x / 2, position_.y));
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     uint32_t port_color = render_theme::get_port_color(ports_[0].type());
     dl->add_circle_filled(port_pos, editor_constants::PORT_RADIUS * vp.zoom, port_color, 8);
-
-    // Border (render LAST for highest z-index, so selection is visible above content)
-    uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect(screen_min, screen_max, border_color, 1.0f);
 }
 
 // ============================================================================
