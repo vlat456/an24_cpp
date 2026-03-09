@@ -800,15 +800,68 @@
         "x": 48.0,
         "y": 48.0
       }
+    },
+    {
+      "classname": "Comparator",
+      "kind": "Node",
+      "name": "comparator_1",
+      "params": {
+        "Voff": "12",
+        "Von": "28"
+      },
+      "ports": {
+        "Va": {
+          "direction": "In",
+          "type": "V"
+        },
+        "Vb": {
+          "direction": "In",
+          "type": "V"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Bool"
+        }
+      },
+      "pos": {
+        "x": 256.0,
+        "y": 192.0
+      },
+      "size": {
+        "x": 64.0,
+        "y": 48.0
+      }
+    },
+    {
+      "classname": "RefNode",
+      "kind": "Ref",
+      "name": "refnode_2",
+      "params": {
+        "value": "0.0"
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 192.0,
+        "y": 272.0
+      },
+      "size": {
+        "x": 48.0,
+        "y": 48.0
+      }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": 7.290802001953125,
-      "y": -151.21424865722656
+      "x": -11.173675537109375,
+      "y": -78.12116241455078
     },
-    "zoom": 0.9067842960357666
+    "zoom": 1.4150891304016113
   },
   "wires": [
     {
@@ -1064,16 +1117,6 @@
       "to": "bat_main_1.v_in"
     },
     {
-      "from": "bat_main_1.v_out",
-      "routing_points": [
-        {
-          "x": 400.0,
-          "y": 144.0
-        }
-      ],
-      "to": "main_bus.v"
-    },
-    {
       "from": "refnode_1.v",
       "routing_points": [],
       "to": "bus_1.v"
@@ -1124,6 +1167,21 @@
       "from": "holdbutton_1.state",
       "routing_points": [],
       "to": "and_1.B"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [],
+      "to": "comparator_1.Va"
+    },
+    {
+      "from": "bat_main_1.v_out",
+      "routing_points": [],
+      "to": "main_bus.v"
+    },
+    {
+      "from": "refnode_2.v",
+      "routing_points": [],
+      "to": "comparator_1.Vb"
     }
   ]
 }
