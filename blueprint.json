@@ -168,7 +168,7 @@
         }
       },
       "pos": {
-        "x": 640.0,
+        "x": 656.0,
         "y": 496.0
       },
       "size": {
@@ -750,118 +750,15 @@
         "x": 128.0,
         "y": 80.0
       }
-    },
-    {
-      "classname": "Positive_V_to_Bool",
-      "kind": "Node",
-      "name": "positive_v_to_bool_1",
-      "ports": {
-        "Vin": {
-          "direction": "In",
-          "type": "V"
-        },
-        "o": {
-          "direction": "Out",
-          "type": "Bool"
-        }
-      },
-      "pos": {
-        "x": 208.0,
-        "y": -16.0
-      },
-      "size": {
-        "x": 48.0,
-        "y": 48.0
-      }
-    },
-    {
-      "classname": "AND",
-      "kind": "Node",
-      "name": "and_1",
-      "ports": {
-        "A": {
-          "direction": "In",
-          "type": "Bool"
-        },
-        "B": {
-          "direction": "In",
-          "type": "Bool"
-        },
-        "o": {
-          "direction": "Out",
-          "type": "Bool"
-        }
-      },
-      "pos": {
-        "x": 1024.0,
-        "y": -112.0
-      },
-      "size": {
-        "x": 48.0,
-        "y": 48.0
-      }
-    },
-    {
-      "classname": "Comparator",
-      "kind": "Node",
-      "name": "comparator_1",
-      "params": {
-        "Voff": "12",
-        "Von": "28"
-      },
-      "ports": {
-        "Va": {
-          "direction": "In",
-          "type": "V"
-        },
-        "Vb": {
-          "direction": "In",
-          "type": "V"
-        },
-        "o": {
-          "direction": "Out",
-          "type": "Bool"
-        }
-      },
-      "pos": {
-        "x": 256.0,
-        "y": 192.0
-      },
-      "size": {
-        "x": 64.0,
-        "y": 48.0
-      }
-    },
-    {
-      "classname": "RefNode",
-      "kind": "Ref",
-      "name": "refnode_2",
-      "params": {
-        "value": "0.0"
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 192.0,
-        "y": 272.0
-      },
-      "size": {
-        "x": 48.0,
-        "y": 48.0
-      }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -11.173675537109375,
-      "y": -78.12116241455078
+      "x": 70.70991516113281,
+      "y": -185.5733184814453
     },
-    "zoom": 1.4150891304016113
+    "zoom": 0.8537780046463013
   },
   "wires": [
     {
@@ -1015,7 +912,7 @@
       "routing_points": [
         {
           "x": 864.0,
-          "y": -32.0
+          "y": -48.0
         },
         {
           "x": 864.0,
@@ -1059,7 +956,7 @@
       "routing_points": [
         {
           "x": 704.0,
-          "y": -48.0
+          "y": -32.0
         },
         {
           "x": 704.0,
@@ -1147,41 +1044,21 @@
           "y": 240.0
         },
         {
-          "x": 416.0,
+          "x": 400.0,
           "y": 240.0
         }
       ],
       "to": "main_bus.v"
     },
     {
-      "from": "main_bus.v",
-      "routing_points": [],
-      "to": "positive_v_to_bool_1.Vin"
-    },
-    {
-      "from": "positive_v_to_bool_1.o",
-      "routing_points": [],
-      "to": "and_1.A"
-    },
-    {
-      "from": "holdbutton_1.state",
-      "routing_points": [],
-      "to": "and_1.B"
-    },
-    {
-      "from": "main_bus.v",
-      "routing_points": [],
-      "to": "comparator_1.Va"
-    },
-    {
       "from": "bat_main_1.v_out",
-      "routing_points": [],
+      "routing_points": [
+        {
+          "x": 416.0,
+          "y": 144.0
+        }
+      ],
       "to": "main_bus.v"
-    },
-    {
-      "from": "refnode_2.v",
-      "routing_points": [],
-      "to": "comparator_1.Vb"
     }
   ]
 }
