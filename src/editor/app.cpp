@@ -4,7 +4,6 @@
 #include "data/wire.h"
 #include "data/node.h"
 #include "json_parser/json_parser.h"
-#include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <filesystem>
@@ -181,97 +180,28 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         unique_id = base_id + "_" + std::to_string(counter++);
     } while (scene.findNode(unique_id.c_str()) != nullptr);
 
-    // Snap position to grid
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
 
-    // IMMEDIATELY EXPAND the nested blueprint (always-flatten architecture)
-    // Build JSON from TypeDefinition and parse (handles recursive expansion)
-    nlohmann::json nested_json;
-    nested_json["devices"] = nlohmann::json::array();
-    for (const auto& inner_dev : bp_def->devices) {
-        nlohmann::json dev_j;
-        dev_j["name"] = inner_dev.name;
-        dev_j["classname"] = inner_dev.classname;
-        if (!inner_dev.params.empty()) {
-            dev_j["params"] = inner_dev.params;
-        }
-        nested_json["devices"].push_back(dev_j);
-    }
-    nested_json["connections"] = nlohmann::json::array();
-    for (const auto& conn : bp_def->connections) {
-        nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
-    }
+    // Expand TypeDefinition into a sub-Blueprint (shared code path)
+    Blueprint sub_bp = expand_type_definition(*bp_def, type_registry);
+    bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
+                                  [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
 
-    an24::ParserContext nested_ctx;
-    try {
-        nested_ctx = an24::parse_json(nested_json.dump());
-    } catch (const std::exception& e) {
-        spdlog::error("[editor] failed to parse blueprint {}: {}",
-                     blueprint_name, e.what());
-        return;
-    }
-
-    // Add all nested devices with prefix to the main blueprint
-    std::string prefix = unique_id;  // Use the blueprint's ID as prefix
+    // Merge into parent scene with prefix
     std::vector<std::string> internal_node_ids;
-
-    for (const auto& dev : nested_ctx.devices) {
-        Node node;
-        node.id = prefix + ":" + dev.name;
+    for (auto& node : sub_bp.nodes) {
+        node.id = unique_id + ":" + node.id;
         node.name = node.id;
-        node.type_name = dev.classname;
-        // Derive render_hint and expandable from type registry
-        const auto* inner_def = type_registry.get(dev.classname);
-        if (inner_def) {
-            node.render_hint = inner_def->render_hint;
-            node.expandable = !inner_def->cpp_class && !inner_def->devices.empty();
-        }
-        node.pos = snapped_pos;  // All start at same position (will be auto-layout)
-        node.size = get_default_node_size(dev.classname, &type_registry);
-
-        // Add ports from DeviceInstance
-        for (const auto& [port_name, port] : dev.ports) {
-            if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
-                node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
-            }
-            if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut) {
-                node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
-            }
-        }
-
-        // Add params from DeviceInstance
-        node.params = dev.params;
-
-        // Create node_content from TypeDefinition
-        const auto* def = type_registry.get(dev.classname);
-        if (def) {
-            node.node_content = create_node_content_from_def(def);
-        }
-
-        scene.blueprint().add_node(node);
+        if (!has_layout) node.pos = snapped_pos;
         internal_node_ids.push_back(node.id);
+        scene.blueprint().add_node(std::move(node));
     }
 
-    // Add and rewrite connections with prefix
-    for (const auto& conn : nested_ctx.connections) {
-        Wire wire;
-        wire.id = prefix + ":" + conn.from + "->" + prefix + ":" + conn.to;
-
-        // Rewrite from: "vin.port" -> "unique_id:vin.port"
-        size_t from_dot = conn.from.find('.');
-        if (from_dot != std::string::npos) {
-            wire.start.node_id = prefix + ":" + conn.from.substr(0, from_dot);
-            wire.start.port_name = conn.from.substr(from_dot + 1);
-        }
-
-        // Rewrite to: "vout.port" -> "unique_id:vout.port"
-        size_t to_dot = conn.to.find('.');
-        if (to_dot != std::string::npos) {
-            wire.end.node_id = prefix + ":" + conn.to.substr(0, to_dot);
-            wire.end.port_name = conn.to.substr(to_dot + 1);
-        }
-
-        scene.blueprint().add_wire(wire);
+    for (auto& wire : sub_bp.wires) {
+        wire.start.node_id = unique_id + ":" + wire.start.node_id;
+        wire.end.node_id = unique_id + ":" + wire.end.node_id;
+        wire.id = unique_id + ":" + wire.id;
+        scene.blueprint().add_wire(std::move(wire));
     }
 
     // Create COLLAPSED Blueprint node (visible in parent view)
@@ -284,12 +214,10 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
 
-    // Calculate size based on number of exposed ports
     size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
     collapsed_node.size = Pt(120.0f, height);
 
-    // Add exposed ports from TypeDefinition
     for (const auto& [port_name, port] : bp_def->ports) {
         if (port.direction == PortDirection::In) {
             collapsed_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
@@ -309,20 +237,17 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_group.internal_node_ids = internal_node_ids;
     scene.blueprint().collapsed_groups.push_back(collapsed_group);
 
-    // Recompute group_ids from collapsed_groups state
     scene.blueprint().recompute_group_ids();
 
-    // Auto-layout the internal nodes of this group
-    scene.blueprint().auto_layout_group(unique_id);
+    if (!has_layout) {
+        scene.blueprint().auto_layout_group(unique_id);
+    }
 
-    // Clear visual cache to force rebuild
     scene.cache().clear();
-
-    // Rebuild simulation (no expansion needed - devices are already flattened)
     rebuild_simulation();
 
-    spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal connections",
-                 blueprint_name, unique_id, internal_node_ids.size(), nested_ctx.connections.size());
+    spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
+                 blueprint_name, unique_id, internal_node_ids.size(), sub_bp.wires.size());
 }
 
 void EditorApp::trigger_switch(const std::string& node_id) {

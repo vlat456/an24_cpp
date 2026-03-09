@@ -662,6 +662,20 @@ params_integrity_tests/fast:
 .PHONY : params_integrity_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/expand_typedef_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/expand_typedef_tests.dir/rule
+.PHONY : tests/CMakeFiles/expand_typedef_tests.dir/rule
+
+# Convenience name for target.
+expand_typedef_tests: tests/CMakeFiles/expand_typedef_tests.dir/rule
+.PHONY : expand_typedef_tests
+
+# fast build rule for target.
+expand_typedef_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/build
+.PHONY : expand_typedef_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/context_menu_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/context_menu_tests.dir/rule
 .PHONY : tests/CMakeFiles/context_menu_tests.dir/rule
@@ -785,6 +799,7 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
@@ -809,6 +824,7 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
@@ -833,6 +849,7 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
@@ -2082,6 +2099,30 @@ test_editor_hierarchical.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/test_editor_hierarchical.cpp.s
 .PHONY : test_editor_hierarchical.cpp.s
 
+test_expand_type_definition.o: test_expand_type_definition.cpp.o
+.PHONY : test_expand_type_definition.o
+
+# target to build an object file
+test_expand_type_definition.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.o
+.PHONY : test_expand_type_definition.cpp.o
+
+test_expand_type_definition.i: test_expand_type_definition.cpp.i
+.PHONY : test_expand_type_definition.i
+
+# target to preprocess a source file
+test_expand_type_definition.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.i
+.PHONY : test_expand_type_definition.cpp.i
+
+test_expand_type_definition.s: test_expand_type_definition.cpp.s
+.PHONY : test_expand_type_definition.s
+
+# target to generate assembly for a file
+test_expand_type_definition.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.s
+.PHONY : test_expand_type_definition.cpp.s
+
 test_hittest.o: test_hittest.cpp.o
 .PHONY : test_hittest.o
 
@@ -2666,6 +2707,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
+	@echo "... expand_typedef_tests"
 	@echo "... inspector_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
@@ -2794,6 +2836,9 @@ help:
 	@echo "... test_editor_hierarchical.o"
 	@echo "... test_editor_hierarchical.i"
 	@echo "... test_editor_hierarchical.s"
+	@echo "... test_expand_type_definition.o"
+	@echo "... test_expand_type_definition.i"
+	@echo "... test_expand_type_definition.s"
 	@echo "... test_hittest.o"
 	@echo "... test_hittest.i"
 	@echo "... test_hittest.s"

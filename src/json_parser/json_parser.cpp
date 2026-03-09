@@ -131,6 +131,18 @@ static DeviceInstance parse_device(const json& j) {
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
     // in type definitions (library/*.json). Users cannot override domains.
 
+    // Editor layout (optional, for blueprint expansion)
+    if (j.contains("pos") && j["pos"].is_object()) {
+        auto& p = j["pos"];
+        if (p.contains("x") && p.contains("y"))
+            dev.pos = {p["x"].get<float>(), p["y"].get<float>()};
+    }
+    if (j.contains("size") && j["size"].is_object()) {
+        auto& s = j["size"];
+        if (s.contains("x") && s.contains("y"))
+            dev.size = {s["x"].get<float>(), s["y"].get<float>()};
+    }
+
     return dev;
 }
 
@@ -709,6 +721,20 @@ static TypeDefinition parse_type_definition(const json& j) {
     if (j.contains("connections") && j["connections"].is_array()) {
         for (const auto& conn_j : j["connections"]) {
             def.connections.push_back(parse_connection(conn_j));
+        }
+    }
+    // Also accept "wires" (editor format) as connections, with routing_points
+    if (def.connections.empty() && j.contains("wires") && j["wires"].is_array()) {
+        for (const auto& wire_j : j["wires"]) {
+            Connection conn = parse_connection(wire_j);
+            if (wire_j.contains("routing_points") && wire_j["routing_points"].is_array()) {
+                for (const auto& rp : wire_j["routing_points"]) {
+                    if (rp.contains("x") && rp.contains("y")) {
+                        conn.routing_points.push_back({rp["x"].get<float>(), rp["y"].get<float>()});
+                    }
+                }
+            }
+            def.connections.push_back(std::move(conn));
         }
     }
 

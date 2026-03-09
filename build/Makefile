@@ -809,6 +809,19 @@ params_integrity_tests/fast:
 .PHONY : params_integrity_tests/fast
 
 #=============================================================================
+# Target rules for targets named expand_typedef_tests
+
+# Build rule for target.
+expand_typedef_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 expand_typedef_tests
+.PHONY : expand_typedef_tests
+
+# fast build rule for target.
+expand_typedef_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/build
+.PHONY : expand_typedef_tests/fast
+
+#=============================================================================
 # Target rules for targets named context_menu_tests
 
 # Build rule for target.
@@ -897,6 +910,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
+	@echo "... expand_typedef_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

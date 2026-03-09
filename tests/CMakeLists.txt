@@ -845,6 +845,25 @@ target_link_libraries(params_integrity_tests PRIVATE
 )
 gtest_discover_tests(params_integrity_tests)
 
+# expand_type_definition tests (shared blueprint expansion)
+add_executable(expand_typedef_tests
+    test_expand_type_definition.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(expand_typedef_tests PRIVATE EDITOR_TESTING)
+target_include_directories(expand_typedef_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(expand_typedef_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(expand_typedef_tests)
+
 # Context menu tests (Phase 1: right-click on node)
 add_executable(context_menu_tests
     test_context_menu.cpp

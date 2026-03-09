@@ -66,6 +66,7 @@ struct Port {
 struct Connection {
     std::string from;  // "device.port"
     std::string to;    // "device.port"
+    std::vector<std::pair<float,float>> routing_points;  // Editor layout (optional)
 };
 
 /// Type definition (ports, params, domains for a component class or blueprint)
@@ -139,6 +140,8 @@ struct DeviceInstance {
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;  // From component definition only, NOT user-configurable
+    std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
+    std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
 
     // Default constructor
     DeviceInstance() = default;

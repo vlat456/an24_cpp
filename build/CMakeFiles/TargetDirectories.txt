@@ -131,6 +131,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_deletion_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/params_integrity_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/expand_typedef_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/context_menu_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir

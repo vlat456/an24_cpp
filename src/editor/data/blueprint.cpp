@@ -159,3 +159,74 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
     for (size_t i = 0; i < grounds.size(); i++)
         nodes[grounds[i]].pos = layout_snap(Pt(bus_x, ground_y + i * row_spacing));
 }
+
+// ─── Shared blueprint expansion ───
+
+Blueprint expand_type_definition(const an24::TypeDefinition& def, const an24::TypeRegistry& registry) {
+    using namespace an24;
+    Blueprint bp;
+
+    for (const auto& dev : def.devices) {
+        Node node;
+        node.id = dev.name;
+        node.name = dev.name;
+        node.type_name = dev.classname;
+
+        // Position and size from stored layout (editor-saved blueprints)
+        if (dev.pos)
+            node.pos = Pt(dev.pos->first, dev.pos->second);
+        if (dev.size)
+            node.size = Pt(dev.size->first, dev.size->second);
+        else
+            node.size = get_default_node_size(dev.classname, &registry);
+
+        // Type info from registry
+        const auto* inner_def = registry.get(dev.classname);
+        if (inner_def) {
+            node.render_hint = inner_def->render_hint;
+            node.expandable = !inner_def->cpp_class && !inner_def->devices.empty();
+            node.node_content = create_node_content_from_def(inner_def);
+        }
+
+        // Ports: prefer inline ports from device, fall back to registry
+        const auto& port_source = !dev.ports.empty() ? dev.ports
+                                : (inner_def ? inner_def->ports : dev.ports);
+        for (const auto& [port_name, port] : port_source) {
+            if (port.direction == PortDirection::In || port.direction == PortDirection::InOut)
+                node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+            if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut)
+                node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+        }
+
+        // Params: registry defaults + device overrides
+        if (inner_def)
+            node.params = inner_def->params;
+        for (const auto& [k, v] : dev.params)
+            node.params[k] = v;
+
+        bp.add_node(std::move(node));
+    }
+
+    for (const auto& conn : def.connections) {
+        Wire wire;
+        wire.id = conn.from + "->" + conn.to;
+
+        size_t dot = conn.from.find('.');
+        if (dot != std::string::npos) {
+            wire.start.node_id = conn.from.substr(0, dot);
+            wire.start.port_name = conn.from.substr(dot + 1);
+        }
+        dot = conn.to.find('.');
+        if (dot != std::string::npos) {
+            wire.end.node_id = conn.to.substr(0, dot);
+            wire.end.port_name = conn.to.substr(dot + 1);
+        }
+
+        for (const auto& [x, y] : conn.routing_points)
+            wire.routing_points.push_back(Pt(x, y));
+
+        bp.add_wire(std::move(wire));
+    }
+
+    return bp;
+}

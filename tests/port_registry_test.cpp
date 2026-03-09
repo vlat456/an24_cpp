@@ -8,7 +8,7 @@
 
 TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
     // Load RU19A definition from registry
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/RU19A.json");
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/systems/RU19A.json");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;
@@ -33,7 +33,7 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
 }
 
 TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/DMR400.json");
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/systems/DMR400.json");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;
@@ -87,8 +87,8 @@ TEST(PortRegistryTest, AllTypesInRegistry) {
     // Count JSON files in library/
     int json_count = 0;
     std::string library_dir = std::string(TEST_DATA_DIR) + "/library";
-    for (const auto& entry : std::filesystem::directory_iterator(library_dir)) {
-        if (entry.path().extension() == ".json") {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(library_dir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
             json_count++;
         }
     }

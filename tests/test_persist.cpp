@@ -1408,8 +1408,9 @@ TEST(PersistTest, RenderHint_Roundtrip_DefaultIsEmpty) {
     auto bp2 = blueprint_from_json(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
-    EXPECT_EQ(bp2->nodes[0].render_hint, "")
-        << "Node with no render_hint set should roundtrip as empty";
+    // render_hint is enriched from registry on load (backward compat for old saves)
+    EXPECT_EQ(bp2->nodes[0].render_hint, "ref")
+        << "Node with known type_name should get render_hint from registry";
 }
 
 // =============================================================================

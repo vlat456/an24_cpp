@@ -39,6 +39,7 @@ include("/Users/vladimir/an24_cpp/build/tests/visual_scene_tests[1]_include.cmak
 include("/Users/vladimir/an24_cpp/build/tests/node_deletion_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/multi_window_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/params_integrity_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/expand_typedef_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/context_menu_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/properties_window_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/dt_regression_tests[1]_include.cmake")

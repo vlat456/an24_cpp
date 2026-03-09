@@ -539,6 +539,11 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     for (auto& n : bp.nodes) {
         apply_port_types_from_registry(n, registry);
         apply_params_from_registry(n, registry);
+        // Enrich render_hint from registry for old saves that predate the migration
+        if (n.render_hint.empty()) {
+            const auto* def = registry.get(n.type_name);
+            if (def) n.render_hint = def->render_hint;
+        }
     }
 
     // BUGFIX [e4a1b7] Load wires with dedup — reject duplicate connections on load
