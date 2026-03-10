@@ -57,6 +57,7 @@ enum class PortNames : uint32_t {
     port,
     power,
     primary,
+    reset,
     rpm_out,
     secondary,
     setpoint,
@@ -65,6 +66,7 @@ enum class PortNames : uint32_t {
     temp,
     temp_in,
     temp_out,
+    trigger,
     tripped,
     v,
     v_bus,
@@ -82,6 +84,7 @@ enum class ComponentType {
     AZS,
     Add,
     Any_V_to_Bool,
+    AsymSlewRate,
     AsymTMO,
     Battery,
     BlueprintInput,
@@ -100,11 +103,13 @@ enum class ComponentType {
     HoldButton,
     IndicatorLight,
     InertiaNode,
+    Integrator,
     Inverter,
     LUT,
     LerpNode,
     Load,
     Merger,
+    Monostable,
     Multiply,
     NAND,
     NOT,
@@ -120,12 +125,14 @@ enum class ComponentType {
     RefNode,
     Relay,
     Resistor,
+    SampleHold,
     SlewRate,
     SolenoidValve,
     Splitter,
     Subtract,
     Switch,
     TempSensor,
+    TimeDelay,
     Transformer,
     Voltmeter,
     XOR
@@ -137,6 +144,7 @@ constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
 constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
+constexpr size_t AsymSlewRate_PORT_COUNT = 2;
 constexpr size_t AsymTMO_PORT_COUNT = 2;
 constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
@@ -155,11 +163,13 @@ constexpr size_t HighPowerLoad_PORT_COUNT = 2;
 constexpr size_t HoldButton_PORT_COUNT = 4;
 constexpr size_t IndicatorLight_PORT_COUNT = 3;
 constexpr size_t InertiaNode_PORT_COUNT = 2;
+constexpr size_t Integrator_PORT_COUNT = 3;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
 constexpr size_t Load_PORT_COUNT = 1;
 constexpr size_t Merger_PORT_COUNT = 3;
+constexpr size_t Monostable_PORT_COUNT = 2;
 constexpr size_t Multiply_PORT_COUNT = 3;
 constexpr size_t NAND_PORT_COUNT = 3;
 constexpr size_t NOT_PORT_COUNT = 2;
@@ -175,12 +185,14 @@ constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 3;
 constexpr size_t Resistor_PORT_COUNT = 2;
+constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Subtract_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
+constexpr size_t TimeDelay_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
@@ -210,6 +222,10 @@ constexpr const char* Add_PORTS[] = {
 constexpr const char* Any_V_to_Bool_PORTS[] = {
     "Vin",
     "o"
+};
+constexpr const char* AsymSlewRate_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* AsymTMO_PORTS[] = {
     "in",
@@ -289,6 +305,11 @@ constexpr const char* InertiaNode_PORTS[] = {
     "input",
     "output"
 };
+constexpr const char* Integrator_PORTS[] = {
+    "in",
+    "out",
+    "reset"
+};
 constexpr const char* Inverter_PORTS[] = {
     "ac_out",
     "dc_in"
@@ -308,6 +329,10 @@ constexpr const char* Merger_PORTS[] = {
     "i1",
     "i2",
     "o"
+};
+constexpr const char* Monostable_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* Multiply_PORTS[] = {
     "A",
@@ -379,6 +404,11 @@ constexpr const char* Resistor_PORTS[] = {
     "v_in",
     "v_out"
 };
+constexpr const char* SampleHold_PORTS[] = {
+    "in",
+    "out",
+    "trigger"
+};
 constexpr const char* SlewRate_PORTS[] = {
     "in",
     "out"
@@ -407,6 +437,10 @@ constexpr const char* Switch_PORTS[] = {
 constexpr const char* TempSensor_PORTS[] = {
     "temp_in",
     "temp_out"
+};
+constexpr const char* TimeDelay_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* Transformer_PORTS[] = {
     "primary",
@@ -458,6 +492,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"port", PortNames::port},
         {"power", PortNames::power},
         {"primary", PortNames::primary},
+        {"reset", PortNames::reset},
         {"rpm_out", PortNames::rpm_out},
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
@@ -466,6 +501,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
+        {"trigger", PortNames::trigger},
         {"tripped", PortNames::tripped},
         {"v", PortNames::v},
         {"v_bus", PortNames::v_bus},
@@ -488,6 +524,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
         {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
+        {"AsymSlewRate", {"in", "out"}},
         {"AsymTMO", {"in", "out"}},
         {"Battery", {"v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
@@ -506,11 +543,13 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"HoldButton", {"control", "state", "v_in", "v_out"}},
         {"IndicatorLight", {"brightness", "v_in", "v_out"}},
         {"InertiaNode", {"input", "output"}},
+        {"Integrator", {"in", "out", "reset"}},
         {"Inverter", {"ac_out", "dc_in"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
         {"Load", {"input"}},
         {"Merger", {"i1", "i2", "o"}},
+        {"Monostable", {"in", "out"}},
         {"Multiply", {"A", "B", "o"}},
         {"NAND", {"A", "B", "o"}},
         {"NOT", {"A", "o"}},
@@ -526,12 +565,14 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"RefNode", {"v"}},
         {"Relay", {"control", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
+        {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
         {"Subtract", {"A", "B", "o"}},
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
+        {"TimeDelay", {"in", "out"}},
         {"Transformer", {"primary", "secondary"}},
         {"Voltmeter", {"v_in"}},
         {"XOR", {"A", "B", "o"}},
@@ -552,6 +593,7 @@ using ComponentVariant = std::variant<
     AZS<JitProvider>,
     Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
+    AsymSlewRate<JitProvider>,
     AsymTMO<JitProvider>,
     Battery<JitProvider>,
     BlueprintInput<JitProvider>,
@@ -570,11 +612,13 @@ using ComponentVariant = std::variant<
     HoldButton<JitProvider>,
     IndicatorLight<JitProvider>,
     InertiaNode<JitProvider>,
+    Integrator<JitProvider>,
     Inverter<JitProvider>,
     LUT<JitProvider>,
     LerpNode<JitProvider>,
     Load<JitProvider>,
     Merger<JitProvider>,
+    Monostable<JitProvider>,
     Multiply<JitProvider>,
     NAND<JitProvider>,
     NOT<JitProvider>,
@@ -590,12 +634,14 @@ using ComponentVariant = std::variant<
     RefNode<JitProvider>,
     Relay<JitProvider>,
     Resistor<JitProvider>,
+    SampleHold<JitProvider>,
     SlewRate<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
     Subtract<JitProvider>,
     Switch<JitProvider>,
     TempSensor<JitProvider>,
+    TimeDelay<JitProvider>,
     Transformer<JitProvider>,
     Voltmeter<JitProvider>,
     XOR<JitProvider>

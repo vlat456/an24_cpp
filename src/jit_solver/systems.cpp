@@ -63,19 +63,25 @@ size_t Systems::component_count() const {
 }
 
 void Systems::solve_step(SimulationState& state, size_t step, float dt) {
+    // Pause-safe and lag-spike protection: clamp dt once for all domains
+    // This prevents numerical explosions and ensures components don't need individual clamps
+    constexpr float DT_MIN = 1e-6f;  // Prevent div-by-zero
+    constexpr float DT_MAX = 0.1f;   // Prevent instability on lag spikes
+    float safe_dt = std::max(DT_MIN, std::min(dt, DT_MAX));
+
     // Accumulate dt for each domain (FPS-independent physics)
-    accumulator_mechanical += dt;
-    accumulator_hydraulic += dt;
-    accumulator_thermal += dt;
+    accumulator_mechanical += safe_dt;
+    accumulator_hydraulic += safe_dt;
+    accumulator_thermal += safe_dt;
 
     // Electrical: every step (no accumulation needed)
     for (auto& comp : electrical) {
-        comp->solve_electrical(state, dt);
+        comp->solve_electrical(state, safe_dt);
     }
 
     // Logical: every step (runs every frame like electrical)
     for (auto& comp : logical) {
-        comp->solve_logical(state, dt);
+        comp->solve_logical(state, safe_dt);
     }
 
     // Mechanical: every 3rd step - use accumulated time, then reset

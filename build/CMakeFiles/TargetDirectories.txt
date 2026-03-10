@@ -117,6 +117,8 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pid_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pd_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/subtract_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_tmo_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logic_gates_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lut_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lut_codegen_tests.dir

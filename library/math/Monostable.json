@@ -1,0 +1,16 @@
+{
+  "classname": "Monostable",
+  "description": "Pulse timer: outputs 1.0 for duration after rising edge",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Bool" },
+    "out": { "direction": "Out", "type": "Bool" }
+  },
+  "params": {
+    "duration": "30.0"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false,
+  "size": { "x": 2, "y": 1 }
+}

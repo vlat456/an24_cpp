@@ -25,6 +25,8 @@ include("/Users/vladimir/an24_cpp/build/tests/provider_pattern_tests[1]_include.
 include("/Users/vladimir/an24_cpp/build/tests/pid_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/pd_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/subtract_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/asym_tmo_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/slew_rate_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/logic_gates_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/lut_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/lut_codegen_tests[1]_include.cmake")

@@ -1,6 +1,6 @@
 {
   "classname": "LerpNode",
-  "description": "Linear interpolation node (first-order filter) for sensor simulation",
+  "description": "Linear interpolation node (first-order filter) for sensor simulation with deadzone",
   "cpp_class": true,
   "ports": {
     "input": {
@@ -13,7 +13,8 @@
     }
   },
   "params": {
-    "factor": "0.05"
+    "factor": "0.05",
+    "deadzone": "0.001"
   },
   "domains": [
     "Electrical"

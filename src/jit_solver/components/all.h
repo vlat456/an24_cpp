@@ -205,12 +205,13 @@ public:
 
     Provider provider;
     float internal_r = 0.005f;
+    float inv_internal_r = 200.0f; // Precomputed
     float v_nominal = 28.5f;
 
     Generator() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
-    void pre_load() {}
+    void pre_load();
 };
 
 /// GS24 - Starter-Generator
@@ -272,7 +273,7 @@ public:
     void pre_load() {}
 };
 
-/// LerpNode - linear interpolation
+/// LerpNode - linear interpolation with deadzone
 template <typename Provider = JitProvider>
 class LerpNode {
 public:
@@ -280,6 +281,9 @@ public:
 
     Provider provider;
     float factor = 1.0f;
+    float deadzone = 0.001f;
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
 
     LerpNode() = default;
 
@@ -431,7 +435,7 @@ public:
     void pre_load() {}
 };
 
-/// HighPowerLoad - high power electrical load
+/// HighPowerLoad - high power electrical load (branchless, optimized)
 template <typename Provider = JitProvider>
 class HighPowerLoad {
 public:
@@ -439,6 +443,7 @@ public:
 
     Provider provider;
     float power_draw = 500.0f;
+    float min_voltage_diff = 0.01f; // Minimum voltage diff to conduct
 
     HighPowerLoad() = default;
 
@@ -510,7 +515,7 @@ public:
     void pre_load() {}
 };
 
-/// SolenoidValve - electrically controlled hydraulic valve
+/// SolenoidValve - electrically controlled hydraulic valve (branchless)
 template <typename Provider = JitProvider>
 class SolenoidValve {
 public:
@@ -518,6 +523,7 @@ public:
 
     Provider provider;
     bool normally_closed = true;
+    float open_mask = 0.0f; // Branchless state (0.0 = closed, 1.0 = open)
 
     SolenoidValve() = default;
 
@@ -952,6 +958,102 @@ public:
     float first_frame_mask = 1.0f;
 
     SlewRate() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// AsymSlewRate - asymmetric linear rate limiter (different rise/fall rates)
+template <typename Provider = JitProvider>
+class AsymSlewRate {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float rate_up = 1.0f;
+    float rate_down = 0.5f;
+    float deadzone = 0.0001f;
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    AsymSlewRate() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// TimeDelay - logic delay node with separate ON and OFF timers
+template <typename Provider = JitProvider>
+class TimeDelay {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float delay_on = 0.5f;
+    float delay_off = 0.1f;
+
+    float accumulator = 0.0f;
+    float current_out = 0.0f;
+    float last_in = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    TimeDelay() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Monostable - pulse timer (one-shot): outputs 1.0 for duration after rising edge
+template <typename Provider = JitProvider>
+class Monostable {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float duration = 30.0f;
+    float timer = 0.0f;
+    float last_in = 0.0f;
+
+    Monostable() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// SampleHold - samples input on trigger rising edge and holds value
+template <typename Provider = JitProvider>
+class SampleHold {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float stored_value = 0.0f;
+    float last_trig = 0.0f;
+
+    SampleHold() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Integrator - mathematical integrator with reset: out = integral(in * dt)
+template <typename Provider = JitProvider>
+class Integrator {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float gain = 1.0f;
+    float initial_val = 0.0f;
+    float accumulator = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    Integrator() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
     void pre_load() {}

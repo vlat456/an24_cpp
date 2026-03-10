@@ -1,0 +1,102 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "MonostableTest",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "InitiallyOff",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 36
+        },
+        {
+          "name": "RisingEdge_TriggersPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 48
+        },
+        {
+          "name": "Pulse_ExpiresAfterDuration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 64
+        },
+        {
+          "name": "FallingEdge_DoesNotRetrigger",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 95
+        },
+        {
+          "name": "HighInput_DoesNotRetrigger",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 114
+        },
+        {
+          "name": "RetriggerOnNewPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 136
+        },
+        {
+          "name": "VariableDt_TimerTicksCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 167
+        },
+        {
+          "name": "ZeroDt_PausesTimer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 193
+        },
+        {
+          "name": "ShortPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 216
+        },
+        {
+          "name": "LongPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 244
+        },
+        {
+          "name": "BooleanThreshold_0_5",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 265
+        },
+        {
+          "name": "NegativeInput_Ignored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 284
+        },
+        {
+          "name": "MultiplePulses_Sequential",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 299
+        },
+        {
+          "name": "RapidRetrigger_ExtendsPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 325
+        },
+        {
+          "name": "ZeroDuration_InstantPulse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 353
+        },
+        {
+          "name": "TimerClampedAtZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 369
+        },
+        {
+          "name": "InputHighDuringPulse_NoEffect",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 390
+        },
+        {
+          "name": "EngineStartCycle_RealisticUseCase",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_monostable.cpp",
+          "line": 413
+        }
+      ]
+    }
+  ]
+}

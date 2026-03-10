@@ -1,0 +1,127 @@
+{
+  "tests": 23,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "IntegratorTest",
+      "tests": 23,
+      "testsuite": [
+        {
+          "name": "ColdStart_StartsAtInitialValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 39
+        },
+        {
+          "name": "Integration_AccumulatesPositiveInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 52
+        },
+        {
+          "name": "Integration_AccumulatesNegativeInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 68
+        },
+        {
+          "name": "Reset_ZerosAccumulator",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 84
+        },
+        {
+          "name": "ResetWhileHigh_StaysZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 107
+        },
+        {
+          "name": "ResetReleased_ResumesIntegration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 122
+        },
+        {
+          "name": "Gain_ScalesIntegration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 147
+        },
+        {
+          "name": "NegativeGain_InvertsIntegration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 163
+        },
+        {
+          "name": "ZeroGain_NoAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 179
+        },
+        {
+          "name": "VariableDt_AdaptsIntegration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 195
+        },
+        {
+          "name": "ZeroDt_NoAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 209
+        },
+        {
+          "name": "ZeroInput_NoAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 227
+        },
+        {
+          "name": "Precision_MaintainedOverTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 243
+        },
+        {
+          "name": "FuelConsumption_RealisticUseCase",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 259
+        },
+        {
+          "name": "BatteryCharge_RealisticUseCase",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 288
+        },
+        {
+          "name": "WearAccumulation_RealisticUseCase",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 309
+        },
+        {
+          "name": "BooleanThreshold_Reset",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 329
+        },
+        {
+          "name": "LargeDt_Clip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 354
+        },
+        {
+          "name": "MultipleResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 368
+        },
+        {
+          "name": "NegativeInputCrossesZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 404
+        },
+        {
+          "name": "AlternatingInput_CorrectIntegration",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 421
+        },
+        {
+          "name": "ResetDoesNotAffectFirstFrameMask",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 449
+        },
+        {
+          "name": "IntegrationContinuesAfterReset",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_integrator.cpp",
+          "line": 466
+        }
+      ]
+    }
+  ]
+}

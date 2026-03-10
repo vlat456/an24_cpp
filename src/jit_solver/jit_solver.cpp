@@ -135,6 +135,7 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         comp.v_nominal = get_float(dev, "v_nominal", 28.5f);
         comp.internal_r = get_float(dev, "internal_r", 0.005f);
+        comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "GS24") {
@@ -160,6 +161,7 @@ ComponentVariant create_component_variant(
         LerpNode<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.factor = get_float(dev, "factor", 1.0f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Splitter") {
@@ -188,6 +190,7 @@ ComponentVariant create_component_variant(
         HighPowerLoad<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.power_draw = get_float(dev, "power_draw", 500.0f);
+        comp.min_voltage_diff = get_float(dev, "min_voltage_diff", 0.01f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "ElectricPump") {
@@ -422,6 +425,39 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         comp.max_rate = get_float(dev, "max_rate", 1.0f);
         comp.deadzone = get_float(dev, "deadzone", 0.0001f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AsymSlewRate") {
+        AsymSlewRate<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.rate_up = get_float(dev, "rate_up", 1.0f);
+        comp.rate_down = get_float(dev, "rate_down", 0.5f);
+        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "TimeDelay") {
+        TimeDelay<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.delay_on = get_float(dev, "delay_on", 0.5f);
+        comp.delay_off = get_float(dev, "delay_off", 0.1f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Monostable") {
+        Monostable<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.duration = get_float(dev, "duration", 30.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "SampleHold") {
+        SampleHold<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Integrator") {
+        Integrator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.gain = get_float(dev, "gain", 1.0f);
+        comp.initial_val = get_float(dev, "initial_val", 0.0f);
         return ComponentVariant(std::move(comp));
     }
     else {

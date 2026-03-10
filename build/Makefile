@@ -627,6 +627,32 @@ subtract_tests/fast:
 .PHONY : subtract_tests/fast
 
 #=============================================================================
+# Target rules for targets named asym_tmo_tests
+
+# Build rule for target.
+asym_tmo_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asym_tmo_tests
+.PHONY : asym_tmo_tests
+
+# fast build rule for target.
+asym_tmo_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
+.PHONY : asym_tmo_tests/fast
+
+#=============================================================================
+# Target rules for targets named slew_rate_tests
+
+# Build rule for target.
+slew_rate_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 slew_rate_tests
+.PHONY : slew_rate_tests
+
+# fast build rule for target.
+slew_rate_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
+.PHONY : slew_rate_tests/fast
+
+#=============================================================================
 # Target rules for targets named logic_gates_tests
 
 # Build rule for target.
@@ -968,6 +994,7 @@ help:
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
@@ -1019,6 +1046,7 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... slew_rate_tests"
 	@echo "... spdlog"
 	@echo "... subtract_tests"
 	@echo "... v_to_bool_tests"

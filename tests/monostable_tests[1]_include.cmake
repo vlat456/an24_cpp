@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/monostable_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/monostable_tests[1]_tests.cmake")
+else()
+  add_test(monostable_tests_NOT_BUILT monostable_tests_NOT_BUILT)
+endif()

@@ -466,6 +466,34 @@ subtract_tests/fast:
 .PHONY : subtract_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/asym_tmo_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_tmo_tests.dir/rule
+.PHONY : tests/CMakeFiles/asym_tmo_tests.dir/rule
+
+# Convenience name for target.
+asym_tmo_tests: tests/CMakeFiles/asym_tmo_tests.dir/rule
+.PHONY : asym_tmo_tests
+
+# fast build rule for target.
+asym_tmo_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
+.PHONY : asym_tmo_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/slew_rate_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/slew_rate_tests.dir/rule
+.PHONY : tests/CMakeFiles/slew_rate_tests.dir/rule
+
+# Convenience name for target.
+slew_rate_tests: tests/CMakeFiles/slew_rate_tests.dir/rule
+.PHONY : slew_rate_tests
+
+# fast build rule for target.
+slew_rate_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
+.PHONY : slew_rate_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/logic_gates_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logic_gates_tests.dir/rule
 .PHONY : tests/CMakeFiles/logic_gates_tests.dir/rule
@@ -2075,6 +2103,30 @@ test_arithmetic.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.s
 .PHONY : test_arithmetic.cpp.s
 
+test_asym_tmo.o: test_asym_tmo.cpp.o
+.PHONY : test_asym_tmo.o
+
+# target to build an object file
+test_asym_tmo.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/test_asym_tmo.cpp.o
+.PHONY : test_asym_tmo.cpp.o
+
+test_asym_tmo.i: test_asym_tmo.cpp.i
+.PHONY : test_asym_tmo.i
+
+# target to preprocess a source file
+test_asym_tmo.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/test_asym_tmo.cpp.i
+.PHONY : test_asym_tmo.cpp.i
+
+test_asym_tmo.s: test_asym_tmo.cpp.s
+.PHONY : test_asym_tmo.s
+
+# target to generate assembly for a file
+test_asym_tmo.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/test_asym_tmo.cpp.s
+.PHONY : test_asym_tmo.cpp.s
+
 test_azs.o: test_azs.cpp.o
 .PHONY : test_azs.o
 
@@ -2891,6 +2943,30 @@ test_simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
 .PHONY : test_simulation.cpp.s
 
+test_slew_rate.o: test_slew_rate.cpp.o
+.PHONY : test_slew_rate.o
+
+# target to build an object file
+test_slew_rate.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.o
+.PHONY : test_slew_rate.cpp.o
+
+test_slew_rate.i: test_slew_rate.cpp.i
+.PHONY : test_slew_rate.i
+
+# target to preprocess a source file
+test_slew_rate.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.i
+.PHONY : test_slew_rate.cpp.i
+
+test_slew_rate.s: test_slew_rate.cpp.s
+.PHONY : test_slew_rate.s
+
+# target to generate assembly for a file
+test_slew_rate.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.s
+.PHONY : test_slew_rate.cpp.s
+
 test_spatial_grid.o: test_spatial_grid.cpp.o
 .PHONY : test_spatial_grid.o
 
@@ -3074,6 +3150,7 @@ help:
 	@echo "... test"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
@@ -3114,6 +3191,7 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... slew_rate_tests"
 	@echo "... subtract_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
@@ -3199,6 +3277,9 @@ help:
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"
+	@echo "... test_asym_tmo.o"
+	@echo "... test_asym_tmo.i"
+	@echo "... test_asym_tmo.s"
 	@echo "... test_azs.o"
 	@echo "... test_azs.i"
 	@echo "... test_azs.s"
@@ -3301,6 +3382,9 @@ help:
 	@echo "... test_simulation.o"
 	@echo "... test_simulation.i"
 	@echo "... test_simulation.s"
+	@echo "... test_slew_rate.o"
+	@echo "... test_slew_rate.i"
+	@echo "... test_slew_rate.s"
 	@echo "... test_spatial_grid.o"
 	@echo "... test_spatial_grid.i"
 	@echo "... test_spatial_grid.s"

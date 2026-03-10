@@ -1126,3 +1126,87 @@ target_link_libraries(layout_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(layout_tests)
+
+# =============================================================================
+# New component tests (AsymSlewRate, TimeDelay, Monostable, SampleHold, Integrator)
+# =============================================================================
+
+# AsymSlewRate component tests
+add_executable(asym_slew_rate_tests
+    test_asym_slew_rate.cpp
+)
+target_include_directories(asym_slew_rate_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(asym_slew_rate_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(asym_slew_rate_tests)
+
+# TimeDelay component tests
+add_executable(time_delay_tests
+    test_time_delay.cpp
+)
+target_include_directories(time_delay_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(time_delay_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(time_delay_tests)
+
+# Monostable component tests
+add_executable(monostable_tests
+    test_monostable.cpp
+)
+target_include_directories(monostable_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(monostable_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(monostable_tests)
+
+# SampleHold component tests
+add_executable(sample_hold_tests
+    test_sample_hold.cpp
+)
+target_include_directories(sample_hold_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(sample_hold_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(sample_hold_tests)
+
+# Integrator component tests
+add_executable(integrator_tests
+    test_integrator.cpp
+)
+target_include_directories(integrator_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(integrator_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(integrator_tests)

@@ -982,6 +982,556 @@ gtest_discover_tests(my_component_tests)
 
 ---
 
+## Шаг 9 (опционально): Оптимизации компонентов
+
+В этом проекте используются несколько паттернов оптимизации для максимальной производительности и WASM-совместимости. Все оптимизации направлены на:
+- **Устранение ветвлений** в hot path (branchless programming)
+- **Предвычисление** делений в `pre_load()`
+- **Защиту от паузы** (pause-safe) через централизованный clamp
+- **Защиту от дребезга** (deadzone) для стабилизации выходов
+
+### 9.1 Pause-Safe компоненты
+
+**Проблема**: Симуляция может быть поставлена на паузу (`dt = 0`), что приводит к:
+- Делению на ноль в производных `d/dt ≈ Δ/dt`
+- Численной нестабильности при экстремальных значениях `dt`
+
+**Решение**: Централизованный clamp в `systems.cpp` — **ЕДИНСТВЕННОЕ МЕСТО** для ограничения `dt`:
+
+```cpp
+// src/jit_solver/systems.cpp
+void Systems::solve_step(SimulationState& state, size_t step, float dt) {
+    // Pause-safe and lag-spike protection: clamp dt ONCE for all domains
+    constexpr float DT_MIN = 1e-6f;  // Prevent div-by-zero
+    constexpr float DT_MAX = 0.1f;   // Prevent instability on lag spikes
+    float safe_dt = std::max(DT_MIN, std::min(dt, DT_MAX));
+
+    // Все компоненты получают пред-ограниченный dt:
+    for (auto& comp : electrical) {
+        comp->solve_electrical(state, safe_dt);
+    }
+    // ...
+}
+```
+
+**ВАЖНО**: Не клампай `dt` в каждом компоненте! Это экономит десятки вызовов `std::min/max` на кадр.
+
+**Исключение**: Если компонент тестируется напрямую через unit-тесты (минуя `systems.cpp`), добавь локальный clamp:
+
+```cpp
+// Self-contained dt clamping for testability (core also clamps, defense in depth)
+float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
+```
+
+### 9.2 Branchless programming — безусловное выполнение
+
+WASM и современные CPU плохо предсказывают ветвления. Заменяем `if/else` на float-маски.
+
+#### Паттерн 1: Маска для deadzone
+
+Вместо:
+```cpp
+if (std::abs(diff) >= deadzone) {
+    current_value += diff * factor;
+}
+```
+
+Используем:
+```cpp
+float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+current_value += diff * factor * dz_mask;
+```
+
+**Пример: FastTMO**
+```cpp
+template <typename Provider>
+void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // Первичный кадр: инициализация current_value = input
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = input - current_value;
+    float factor = std::min(dt * inv_tau, 1.0f);
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += diff * factor * dz_mask;
+    st.across[out_idx] = current_value;
+}
+```
+
+**JSON для FastTMO** (`library/math/FastTMO.json`):
+```json
+{
+  "classname": "FastTMO",
+  "description": "WASM-optimized branchless TMO filter with rational approximation",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Any" },
+    "out": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "tau": "0.1",
+    "deadzone": "0.001"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false
+}
+```
+
+**all.h — объявление**:
+```cpp
+template <typename Provider = JitProvider>
+class FastTMO {
+public:
+    static constexpr Domain domain = Domain::Logical;
+    Provider provider;
+
+    // Параметры
+    float tau = 0.1f;
+    float deadzone = 0.001f;
+
+    // Внутреннее состояние
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;  // 1.0 на первом кадре, 0.0 потом
+
+    // Предвычисленные значения
+    float inv_tau = 10.0f;  // = 1/tau, вычисляется в pre_load()
+
+    FastTMO() = default;
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load();
+};
+```
+
+**all.cpp — реализация**:
+```cpp
+template <typename Provider>
+void FastTMO<Provider>::pre_load() {
+    inv_tau = 1.0f / std::max(tau, 0.0001f);
+}
+
+template <typename Provider>
+void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // Первичный кадр: инициализация current_value = input
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = input - current_value;
+    float factor = std::min(dt * inv_tau, 1.0f);
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += diff * factor * dz_mask;
+    st.across[out_idx] = current_value;
+}
+```
+
+#### Паттерн 2: XOR через float-маски
+
+Вместо:
+```cpp
+if (normally_closed) {
+    open = (ctrl <= 12.0f);
+} else {
+    open = (ctrl > 12.0f);
+}
+```
+
+Используем:
+```cpp
+float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
+float nc_mask = normally_closed ? 1.0f : 0.0f;
+open_mask = std::abs(ctrl_above - nc_mask);  // XOR: 0⊕0=0, 0⊕1=1, 1⊕0=1, 1⊕1=0
+```
+
+**Пример: SolenoidValve**
+```cpp
+template <typename Provider>
+void SolenoidValve<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {
+    float ctrl = st.across[provider.get(PortNames::ctrl)];
+
+    float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
+    float nc_mask = normally_closed ? 1.0f : 0.0f;
+    open_mask = std::abs(ctrl_above - nc_mask);  // XOR
+
+    float g = 1.0e6f * open_mask;
+    st.conductance[provider.get(PortNames::flow_in)] += g;
+    st.conductance[provider.get(PortNames::flow_out)] += g;
+}
+```
+
+#### Паттерн 3: Branchless guard для деления
+
+Вместо:
+```cpp
+if (v_diff > min_voltage_diff) {
+    float i = power_draw / v_diff;
+    float g = i / v_diff;
+    // ...
+}
+```
+
+Используем:
+```cpp
+float safe_v_diff = std::max(v_diff, min_voltage_diff);
+float conduct_mask = (v_diff > min_voltage_diff) ? 1.0f : 0.0f;
+
+float i = power_draw / safe_v_diff * conduct_mask;
+float g = i / safe_v_diff;
+// i=0, g=0 если conduct_mask=0 (защита от деления на ноль)
+```
+
+**Пример: HighPowerLoad**
+```cpp
+template <typename Provider>
+void HighPowerLoad<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    float v_in = st.across[provider.get(PortNames::v_in)];
+    float v_out = st.across[provider.get(PortNames::v_out)];
+    float v_diff = v_in - v_out;
+
+    float safe_v_diff = std::max(v_diff, min_voltage_diff);
+    float conduct_mask = (v_diff > min_voltage_diff) ? 1.0f : 0.0f;
+
+    float i = power_draw / safe_v_diff * conduct_mask;
+    float g = i / safe_v_diff;
+
+    st.through[provider.get(PortNames::v_out)] += i;
+    st.through[provider.get(PortNames::v_in)] -= i;
+    st.conductance[provider.get(PortNames::v_out)] += g;
+    st.conductance[provider.get(PortNames::v_in)] += g;
+}
+```
+
+**JSON для HighPowerLoad** (`library/electrical/HighPowerLoad.json`):
+```json
+{
+  "classname": "HighPowerLoad",
+  "description": "Constant power load (adjusts conductance based on voltage, branchless optimized)",
+  "cpp_class": true,
+  "ports": {
+    "v_in": { "direction": "In", "type": "V" },
+    "v_out": { "direction": "Out", "type": "V" }
+  },
+  "params": {
+    "power_draw": "500.0",
+    "min_voltage_diff": "0.01"
+  },
+  "domains": ["Electrical"],
+  "priority": "med",
+  "critical": false
+}
+```
+
+### 9.3 Предвычисление инверсий
+
+Деление — ~10-20x медленнее умножения. Переносим деления из hot path в `pre_load()`.
+
+#### Паттерн: `inv_x = 1.0f / x`
+
+**all.h**:
+```cpp
+float internal_r = 0.01f;    // Параметр из JSON
+float inv_internal_r = 100.0f;  // Предвычисленное, = 1/internal_r
+
+void pre_load();  // Объявление
+```
+
+**all.cpp**:
+```cpp
+template <typename Provider>
+void Generator<Provider>::pre_load() {
+    inv_internal_r = (internal_r > 0.0f) ? (1.0f / internal_r) : 0.0f;
+}
+
+template <typename Provider>
+void Generator<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+    // Было: float g = 1.0f / internal_r;
+    // Стало:
+    float g = inv_internal_r;  // Предвычисленное, без деления
+    // ...
+}
+```
+
+### 9.4 Deadzone — зона нечувствительности
+
+Компоненты с feedback loop (TMO, PID, Lerp) могут "дребезжать" около setpoint из-за численной погрешности. Deadzone отсекает микро-коррекции.
+
+**Когда добавлять deadzone**:
+- Компонент имеет внутреннее состояние (`current_value`, `integral`, и т.д.)
+- Вычисляет разницу `diff = target - current`
+- Применяет коррекцию proportional к `diff`
+
+**Типичные значения deadzone**:
+- Для напряжений (0-30V): `0.001` — `0.01`
+- Для нормированных сигналов (0-1): `0.0001` — `0.001`
+- Для температур: `0.1` — `1.0`
+
+**Пример: LerpNode с deadzone**
+```cpp
+// all.h
+template <typename Provider = JitProvider>
+class LerpNode {
+public:
+    static constexpr Domain domain = Domain::Logical;
+    Provider provider;
+    float factor = 0.05f;
+    float deadzone = 0.001f;  // Новый параметр
+
+    // Внутреннее состояние
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    LerpNode() = default;
+    void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+// all.cpp
+template <typename Provider>
+void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
+    (void)dt;
+    float v_input = st.across[provider.get(PortNames::input)];
+
+    // Первичный кадр: инициализация
+    current_value += (v_input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = v_input - current_value;
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    float new_output = current_value + factor * diff * dz_mask;
+    current_value = new_output;
+    st.across[provider.get(PortNames::output)] = new_output;
+}
+```
+
+**JSON для LerpNode** (`library/math/LerpNode.json`):
+```json
+{
+  "classname": "LerpNode",
+  "description": "Linear interpolation node (first-order filter) for sensor simulation with deadzone",
+  "cpp_class": true,
+  "ports": {
+    "input": { "direction": "In", "type": "Any" },
+    "output": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "factor": "0.05",
+    "deadzone": "0.001"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false
+}
+```
+
+### 9.5 First frame initialization — холодный старт без if
+
+Компоненты с внутренним состоянием должны инициализироваться первым входным значением. Вместо `if (first_frame) { ... }` используем маску.
+
+**Паттерн**:
+```cpp
+// В all.h:
+float current_value = 0.0f;
+float first_frame_mask = 1.0f;  // 1.0 → 0.0 после первого кадра
+
+// В solve/post_step:
+// current_value = input на первом кадре, потом current_value += ...
+current_value += (input - current_value) * first_frame_mask;
+first_frame_mask = 0.0f;  // После первого кадра больше не влияет
+```
+
+**Почему это работает**:
+- Кадр 1: `current_value += (input - 0) * 1.0` → `current_value = input`
+- Кадр 2+: `current_value += (input - current_value) * 0.0` → `current_value` не меняется этой строкой
+
+### 9.6 Полные примеры оптимизированных компонентов
+
+#### AsymTMO — асимметричный фильтр
+
+**library/math/AsymTMO.json**:
+```json
+{
+  "classname": "AsymTMO",
+  "description": "Asymmetric TMO filter (different rise/fall rates)",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Any" },
+    "out": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "tau_up": "0.1",
+    "tau_down": "0.5",
+    "deadzone": "0.001"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false
+}
+```
+
+**all.h**:
+```cpp
+template <typename Provider = JitProvider>
+class AsymTMO {
+public:
+    static constexpr Domain domain = Domain::Logical;
+    Provider provider;
+
+    // Параметры
+    float tau_up = 0.1f;
+    float tau_down = 0.5f;
+    float deadzone = 0.001f;
+
+    // Внутреннее состояние
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    // Предвычисленные
+    float inv_tau_up = 10.0f;
+    float inv_tau_down = 2.0f;
+
+    AsymTMO() = default;
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load();
+};
+```
+
+**all.cpp**:
+```cpp
+template <typename Provider>
+void AsymTMO<Provider>::pre_load() {
+    inv_tau_up = 1.0f / std::max(tau_up, 0.0001f);
+    inv_tau_down = 1.0f / std::max(tau_down, 0.0001f);
+}
+
+template <typename Provider>
+void AsymTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = input - current_value;
+    float active_inv_tau = (diff > 0.0f) ? inv_tau_up : inv_tau_down;
+    float factor = std::min(dt * active_inv_tau, 1.0f);
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += diff * factor * dz_mask;
+    st.across[out_idx] = current_value;
+}
+```
+
+#### SlewRate — линейный ограничитель скорости
+
+**library/math/SlewRate.json**:
+```json
+{
+  "classname": "SlewRate",
+  "description": "Linear rate limiter (slew rate limiter)",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Any" },
+    "out": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "max_rate": "1.0",
+    "deadzone": "0.0001"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false
+}
+```
+
+**all.h**:
+```cpp
+template <typename Provider = JitProvider>
+class SlewRate {
+public:
+    static constexpr Domain domain = Domain::Logical;
+    Provider provider;
+
+    // Параметры
+    float max_rate = 1.0f;
+    float deadzone = 0.0001f;
+
+    // Внутреннее состояние
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    SlewRate() = default;
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+```
+
+**all.cpp**:
+```cpp
+template <typename Provider>
+void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = input - current_value;
+    float max_step = max_rate * dt;
+    float limited_diff = std::max(-max_step, std::min(max_step, diff));
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += limited_diff * dz_mask;
+    st.across[out_idx] = current_value;
+}
+```
+
+### 9.7 WASM friendliness — чеклист
+
+WASM (WebAssembly) имеет особенности производительности:
+
+| Паттерн | WASM-дружелюбность | Почему |
+|---------|-------------------|--------|
+| **Branchless с float masks** | ✅ Отлично | Нет branch prediction penalties |
+| **Предвычисленные инверсии** | ✅ Отлично | Деление дорого в WASM |
+| **Deadzone** | ✅ Отлично | Уменьшает дребезг, меньше обновлений |
+| **First frame masks** | ✅ Отлично | Нет `if` на каждый кадр |
+| **`expf`, `logf`, `powf`** | ⚠️ Медленно | Используй рациональные аппроксимации |
+| **`std::sin`, `std::cos`** | ⚠️ Медленно | LUT или lookup table |
+| **`if/else` в hot path** | ❌ Плохо | Branch misprediction ~15-20 cycles |
+| **Деление в hot path** | ❌ Плохо | ~20x медленнее умножения |
+
+### 9.8 Резюме: что оптимизировать в первую очередь
+
+1. **Высокий приоритет** (деления в hot path):
+   - Перенеси все `1.0f / x` в `pre_load()`
+   - Пример: `Generator::inv_internal_r`, `Battery::inv_internal_r`
+
+2. **Высокий приоритет** (ветвления в hot path):
+   - Замени `if (abs(x) > threshold)` на mask-based logic
+   - Пример: `FastTMO`, `AsymTMO`, `SlewRate`, `HighPowerLoad`
+
+3. **Средний приоритет** (стабильность):
+   - Добавь deadzone для компонентов с feedback
+   - Пример: `LerpNode`, `FastTMO`, `AsymTMO`
+
+4. **Низкий приоритет** ( readability vs performance ):
+   - Если компонент вызывается редко (Thermal domain, 1 Hz),
+     ветвления допустимы для ясности кода
+
+---
+
 ## Чеклист
 
 - [ ] `library/<category>/<Name>.json` создан с `"cpp_class": true`

@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/sample_hold_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/sample_hold_tests[1]_tests.cmake")
+else()
+  add_test(sample_hold_tests_NOT_BUILT sample_hold_tests_NOT_BUILT)
+endif()

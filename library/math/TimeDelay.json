@@ -1,0 +1,17 @@
+{
+  "classname": "TimeDelay",
+  "description": "Logic delay node with separate ON and OFF timers",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Bool" },
+    "out": { "direction": "Out", "type": "Bool" }
+  },
+  "params": {
+    "delay_on": "0.5",
+    "delay_off": "0.1"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false,
+  "size": { "x": 2, "y": 1 }
+}

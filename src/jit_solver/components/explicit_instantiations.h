@@ -61,6 +61,11 @@ template class LUT<JitProvider>;
 template class FastTMO<JitProvider>;
 template class AsymTMO<JitProvider>;
 template class SlewRate<JitProvider>;
+template class AsymSlewRate<JitProvider>;
+template class TimeDelay<JitProvider>;
+template class Monostable<JitProvider>;
+template class SampleHold<JitProvider>;
+template class Integrator<JitProvider>;
 
 } // namespace an24
 

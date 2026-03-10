@@ -195,7 +195,7 @@ void BlueprintOutput<Provider>::solve_electrical(an24::SimulationState& st, floa
 
 template <typename Provider>
 void Generator<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
-    float g = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
+    float g = inv_internal_r;
     float v_gnd = st.across[provider.get(PortNames::v_in)];
     float v_bus = st.across[provider.get(PortNames::v_out)];
 
@@ -207,6 +207,11 @@ void Generator<Provider>::solve_electrical(an24::SimulationState& st, float /*dt
 
     st.conductance[provider.get(PortNames::v_out)] += g;
     st.conductance[provider.get(PortNames::v_in)] += g;
+}
+
+template <typename Provider>
+void Generator<Provider>::pre_load() {
+    inv_internal_r = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
 }
 
 // =============================================================================
@@ -345,9 +350,18 @@ template <typename Provider>
 void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
     (void)dt;
     float v_input = st.across[provider.get(PortNames::input)];
-    float v_output = st.across[provider.get(PortNames::output)];
 
-    float new_output = v_output + factor * (v_input - v_output);
+    // 1. Branchless cold start
+    current_value += (v_input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    // 2. Compute difference with deadzone
+    float diff = v_input - current_value;
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    // 3. Apply interpolation with deadzone
+    float new_output = current_value + factor * diff * dz_mask;
+    current_value = new_output;
     st.across[provider.get(PortNames::output)] = new_output;
 }
 
@@ -367,9 +381,9 @@ void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
-    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    // Self-contained dt clamping for testability (core also clamps, defense in depth)
     float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
-    float inv_dt  = 1.0f / safe_dt;
+    float inv_dt = 1.0f / safe_dt;
 
     // Error
     float error = setpoint - feedback;
@@ -409,9 +423,9 @@ void PD<Provider>::post_step(an24::SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
-    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    // Self-contained dt clamping for testability (core also clamps, defense in depth)
     float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
-    float inv_dt  = 1.0f / safe_dt;
+    float inv_dt = 1.0f / safe_dt;
 
     // Error
     float error = setpoint - feedback;
@@ -447,7 +461,7 @@ void PI<Provider>::post_step(an24::SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
-    // Clamp dt: branchless MINSS/MAXSS, protects against lag spikes and div-by-zero
+    // Self-contained dt clamping for testability (core also clamps, defense in depth)
     float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
 
     // Error
@@ -559,15 +573,17 @@ void HighPowerLoad<Provider>::solve_electrical(an24::SimulationState& st, float 
     float v_out = st.across[provider.get(PortNames::v_out)];
     float v_diff = v_in - v_out;
 
-    if (v_diff > 0.01f) {
-        float i = power_draw / v_diff;
-        st.through[provider.get(PortNames::v_out)] += i;
-        st.through[provider.get(PortNames::v_in)] -= i;
+    // Branchless: use max to avoid negative division, conductance mask for threshold
+    float safe_v_diff = std::max(v_diff, min_voltage_diff);
+    float conduct_mask = (v_diff > min_voltage_diff) ? 1.0f : 0.0f;
 
-        float g = i / v_diff;
-        st.conductance[provider.get(PortNames::v_out)] += g;
-        st.conductance[provider.get(PortNames::v_in)] += g;
-    }
+    float i = power_draw / safe_v_diff * conduct_mask;
+    float g = i / safe_v_diff;
+
+    st.through[provider.get(PortNames::v_out)] += i;
+    st.through[provider.get(PortNames::v_in)] -= i;
+    st.conductance[provider.get(PortNames::v_out)] += g;
+    st.conductance[provider.get(PortNames::v_in)] += g;
 }
 
 // =============================================================================
@@ -628,13 +644,15 @@ void ElectricPump<Provider>::solve_hydraulic(an24::SimulationState& st, float /*
 template <typename Provider>
 void SolenoidValve<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {
     float ctrl = st.across[provider.get(PortNames::ctrl)];
-    bool open = (ctrl > 12.0f) ^ normally_closed;
 
-    if (open) {
-        float g = 1.0e6f;
-        st.conductance[provider.get(PortNames::flow_in)] += g;
-        st.conductance[provider.get(PortNames::flow_out)] += g;
-    }
+    // Branchless: compute open state from control and normally_closed
+    float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
+    float nc_mask = normally_closed ? 1.0f : 0.0f;
+    open_mask = std::abs(ctrl_above - nc_mask); // XOR: open when different
+
+    float g = 1.0e6f * open_mask;
+    st.conductance[provider.get(PortNames::flow_in)] += g;
+    st.conductance[provider.get(PortNames::flow_out)] += g;
 }
 
 // =============================================================================
@@ -698,7 +716,6 @@ void RUG82<Provider>::solve_electrical(an24::SimulationState& st, float dt) {
     float v_gen = st.across[provider.get(PortNames::v_gen)];
 
     float error = v_target - v_gen;
-
     k_mod += kp * error * dt;
 
     if (k_mod < 0.0f) k_mod = 0.0f;
@@ -1301,6 +1318,145 @@ void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 
     current_value += limited_diff * dz_mask;
     st.across[out_idx] = current_value;
+}
+
+// =============================================================================
+// AsymSlewRate
+// =============================================================================
+
+template <typename Provider>
+void AsymSlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // 1. Branchless Cold Start
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    float diff = input - current_value;
+
+    // 2. Select active rate (WASM f32.select)
+    // If rising - rate_up, if falling - rate_down
+    float active_rate = (diff > 0.0f) ? rate_up : rate_down;
+
+    // 3. Limit step for current frame
+    float max_step = active_rate * dt;
+
+    // 4. Branchless Clamp & Deadzone
+    // Limit increment to [-max_step, max_step]
+    float limited_diff = std::max(-max_step, std::min(max_step, diff));
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += limited_diff * dz_mask;
+    st.across[out_idx] = current_value;
+}
+
+// =============================================================================
+// TimeDelay
+// =============================================================================
+
+template <typename Provider>
+void TimeDelay<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    // Convert input to 0.0 or 1.0
+    float raw_in = (st.across[in_idx] > 0.5f) ? 1.0f : 0.0f;
+
+    // 1. Cold start (branchless)
+    current_out += (raw_in - current_out) * first_frame_mask;
+    last_in = raw_in;  // Prevent accumulator reset on 1st frame
+    first_frame_mask = 0.0f;
+
+    // 2. Reset logic: if input changed from last frame, zero the timer
+    // WASM f32.select: keep accumulator if raw_in == last_in, else 0
+    accumulator = (raw_in == last_in) ? (accumulator + dt) : 0.0f;
+    last_in = raw_in;
+
+    // 3. Select time threshold (delay_on if targeting 1, delay_off if targeting 0)
+    float target_delay = (raw_in > 0.5f) ? delay_on : delay_off;
+
+    // 4. Check timer expiration and state difference
+    bool timer_expired = (accumulator >= target_delay);
+    bool state_differs = (raw_in != current_out);
+
+    // Update output only if timer expired
+    current_out = (timer_expired && state_differs) ? raw_in : current_out;
+
+    st.across[out_idx] = current_out;
+}
+
+// =============================================================================
+// Monostable
+// =============================================================================
+
+template <typename Provider>
+void Monostable<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    // Convert input to 0.0 or 1.0
+    float raw_in = (st.across[in_idx] > 0.5f) ? 1.0f : 0.0f;
+
+    // Rising edge detector
+    bool trigger = (raw_in > 0.5f && last_in <= 0.5f);
+    last_in = raw_in;
+
+    // If triggered, reset timer to duration, otherwise tick down to 0
+    timer = trigger ? duration : std::max(0.0f, timer - dt);
+
+    // Output is active while timer > 0
+    st.across[out_idx] = (timer > 0.0f) ? 1.0f : 0.0f;
+}
+
+// =============================================================================
+// SampleHold
+// =============================================================================
+
+template <typename Provider>
+void SampleHold<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t trig_idx = provider.get(PortNames::trigger);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    float val_in = st.across[in_idx];
+    float trig_in = st.across[trig_idx];
+
+    // Rising edge detector
+    bool is_rising = (trig_in > 0.5f && last_trig <= 0.5f);
+    last_trig = trig_in;
+
+    // If rising edge, update stored value, otherwise keep old value
+    stored_value = is_rising ? val_in : stored_value;
+
+    st.across[out_idx] = stored_value;
+}
+
+// =============================================================================
+// Integrator
+// =============================================================================
+
+template <typename Provider>
+void Integrator<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t reset_idx = provider.get(PortNames::reset);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    float val_in = st.across[in_idx];
+    float reset_in = st.across[reset_idx];
+
+    // 1. Cold Start
+    accumulator += (initial_val - accumulator) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    // 2. Integration: accumulate with gain scaling
+    accumulator += val_in * gain * dt;
+
+    // 3. Reset: if reset signal > 0.5, zero out (branchless)
+    accumulator = (reset_in > 0.5f) ? 0.0f : accumulator;
+
+    st.across[out_idx] = accumulator;
 }
 
 } // namespace an24

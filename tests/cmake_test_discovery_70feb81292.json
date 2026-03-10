@@ -1,0 +1,112 @@
+{
+  "tests": 20,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SampleHoldTest",
+      "tests": 20,
+      "testsuite": [
+        {
+          "name": "InitiallyZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 37
+        },
+        {
+          "name": "RisingEdge_SamplesInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 48
+        },
+        {
+          "name": "NoTrigger_HoldsValue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 64
+        },
+        {
+          "name": "HighTrigger_DoesNotResample",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 88
+        },
+        {
+          "name": "FallingEdge_DoesNotResample",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 109
+        },
+        {
+          "name": "MultipleTriggers_ResamplesEachTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 133
+        },
+        {
+          "name": "NegativeInput_SamplesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 163
+        },
+        {
+          "name": "ZeroInput_SamplesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 177
+        },
+        {
+          "name": "LargeInput_SamplesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 191
+        },
+        {
+          "name": "BooleanThreshold_Trigger",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 205
+        },
+        {
+          "name": "ContinuousTrigger_SamplesOnlyOnEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 223
+        },
+        {
+          "name": "RapidTriggering_ResamplesOnEachEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 245
+        },
+        {
+          "name": "VariableDt_NoEffectOnSampling",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 266
+        },
+        {
+          "name": "IndependentOfDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 287
+        },
+        {
+          "name": "PressureCapture_RealisticUseCase",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 312
+        },
+        {
+          "name": "MaxValueCapture_WithComparator",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 339
+        },
+        {
+          "name": "TriggerAtZero_DoesNotSample",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 367
+        },
+        {
+          "name": "TriggerStaysHigh_NoMoreSamples",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 382
+        },
+        {
+          "name": "InputPrecision_Maintained",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 404
+        },
+        {
+          "name": "SequentialSamples_LastOneWins",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sample_hold.cpp",
+          "line": 419
+        }
+      ]
+    }
+  ]
+}

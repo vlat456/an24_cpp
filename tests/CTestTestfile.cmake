@@ -52,3 +52,8 @@ include("/Users/vladimir/an24_cpp/tests/codegen_accumulator_tests[1]_include.cma
 include("/Users/vladimir/an24_cpp/tests/node_color_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/node_autosize_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/layout_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/asym_slew_rate_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/time_delay_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/monostable_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/sample_hold_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/integrator_tests[1]_include.cmake")

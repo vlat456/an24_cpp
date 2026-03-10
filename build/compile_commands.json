@@ -877,6 +877,18 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/asym_tmo_tests.dir/test_asym_tmo.cpp.o -c /Users/vladimir/an24_cpp/tests/test_asym_tmo.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_asym_tmo.cpp",
+  "output": "tests/CMakeFiles/asym_tmo_tests.dir/test_asym_tmo.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.o -c /Users/vladimir/an24_cpp/tests/test_slew_rate.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_slew_rate.cpp",
+  "output": "tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.o -c /Users/vladimir/an24_cpp/tests/test_logic_gates.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_logic_gates.cpp",
   "output": "tests/CMakeFiles/logic_gates_tests.dir/test_logic_gates.cpp.o"

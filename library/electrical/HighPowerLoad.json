@@ -1,6 +1,6 @@
 {
   "classname": "HighPowerLoad",
-  "description": "Constant power load (adjusts conductance based on voltage)",
+  "description": "Constant power load (adjusts conductance based on voltage, branchless optimized)",
   "cpp_class": true,
   "ports": {
     "v_in": {
@@ -13,7 +13,8 @@
     }
   },
   "params": {
-    "power_draw": "500.0"
+    "power_draw": "500.0",
+    "min_voltage_diff": "0.01"
   },
   "domains": [
     "Electrical"
