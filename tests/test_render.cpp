@@ -1066,7 +1066,7 @@ TEST(RenderGroupFilter, NodeInDifferentGroup_NotRendered) {
     // Render root group — internal node should not appear
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
-                    nullptr, std::nullopt, nullptr, "");
+                    nullptr, std::nullopt, nullptr, std::nullopt, "");
 
     // Should render at least the root node rect
     EXPECT_TRUE(dl.had_rect()) << "Root node should render a rect";
@@ -1107,7 +1107,7 @@ TEST(RenderGroupFilter, WireCrossGroup_NotRendered) {
     VisualNodeCache cache;
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
-                    nullptr, std::nullopt, nullptr, "");
+                    nullptr, std::nullopt, nullptr, std::nullopt, "");
 
     // Wire should NOT be rendered — endpoints are in different groups
     EXPECT_FALSE(dl.had_polyline()) << "Wire crossing groups should not render";
@@ -1145,7 +1145,7 @@ TEST(RenderGroupFilter, WireSameGroup_Rendered) {
     VisualNodeCache cache;
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
-                    nullptr, std::nullopt, nullptr, "");
+                    nullptr, std::nullopt, nullptr, std::nullopt, "");
 
     EXPECT_TRUE(dl.had_polyline()) << "Wire within same group should render";
 }
@@ -1185,7 +1185,7 @@ TEST(RenderGroupFilter, RenderSubgroup_ShowsOnlyGroupNodes) {
     VisualNodeCache cache;
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache,
-                    nullptr, std::nullopt, nullptr, "lamp1");
+                    nullptr, std::nullopt, nullptr, std::nullopt, "lamp1");
 
     // At least 2 rects for the two internal nodes (body + ports)
     EXPECT_GE(dl.rect_count(), 2u) << "Should render internal nodes of lamp1";

@@ -17,6 +17,7 @@ public:
                 Pt canvas_min, VisualNodeCache& cache,
                 const an24::Simulator<an24::JIT_Solver>* sim,
                 std::optional<size_t> selected_wire,
+                std::optional<size_t> hovered_wire = std::nullopt,
                 const std::string& group_id = "");
 
     /// Polylines built during the last render() call. Index matches bp.wires.

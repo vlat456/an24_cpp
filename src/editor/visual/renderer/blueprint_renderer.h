@@ -22,6 +22,7 @@ public:
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
                 const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
+                std::optional<size_t> hovered_wire = std::nullopt,
                 const std::string& group_id = "");
 
     /// Detect tooltip at hover position (call after render()).

@@ -324,11 +324,18 @@ int main(int argc, char** argv) {
             ImGuiDrawList dl;
             dl.dl = draw_list;
 
+            // Update hover state (needed for wire hover highlighting)
+            if (hovered) {
+                ImVec2 mp = ImGui::GetMousePos();
+                Pt mouse_world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
+                win.input.update_hover(mouse_world);
+            }
+
             // Grid + blueprint
             BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
             win.scene.render(dl, cmin, cmax,
                              &win.input.selected_nodes(), win.input.selected_wire(),
-                             &app.simulation);
+                             &app.simulation, win.input.hovered_wire());
 
             // Tooltip
             if (hovered) {

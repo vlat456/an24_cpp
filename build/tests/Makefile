@@ -2886,6 +2886,30 @@ test_simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/test_simulation.cpp.s
 .PHONY : test_simulation.cpp.s
 
+test_spatial_grid.o: test_spatial_grid.cpp.o
+.PHONY : test_spatial_grid.o
+
+# target to build an object file
+test_spatial_grid.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_spatial_grid.cpp.o
+.PHONY : test_spatial_grid.cpp.o
+
+test_spatial_grid.i: test_spatial_grid.cpp.i
+.PHONY : test_spatial_grid.i
+
+# target to preprocess a source file
+test_spatial_grid.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_spatial_grid.cpp.i
+.PHONY : test_spatial_grid.cpp.i
+
+test_spatial_grid.s: test_spatial_grid.cpp.s
+.PHONY : test_spatial_grid.s
+
+# target to generate assembly for a file
+test_spatial_grid.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_spatial_grid.cpp.s
+.PHONY : test_spatial_grid.cpp.s
+
 test_subtract.o: test_subtract.cpp.o
 .PHONY : test_subtract.o
 
@@ -3271,6 +3295,9 @@ help:
 	@echo "... test_simulation.o"
 	@echo "... test_simulation.i"
 	@echo "... test_simulation.s"
+	@echo "... test_spatial_grid.o"
+	@echo "... test_spatial_grid.i"
+	@echo "... test_spatial_grid.s"
 	@echo "... test_subtract.o"
 	@echo "... test_subtract.i"
 	@echo "... test_subtract.s"

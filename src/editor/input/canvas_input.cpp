@@ -25,6 +25,29 @@ void CanvasInput::clear_selection() {
     selected_wire_.reset();
 }
 
+// ============================================================================
+// Hover tracking
+// ============================================================================
+
+void CanvasInput::update_hover(Pt world_pos) {
+    // Don't update hover during drag operations
+    if (state_ == InputState::DraggingNode ||
+        state_ == InputState::DraggingRoutingPoint ||
+        state_ == InputState::CreatingWire ||
+        state_ == InputState::ReconnectingWire) {
+        hovered_wire_.reset();
+        return;
+    }
+
+    // Check for wire hover
+    HitResult hit = scene_.hitTest(world_pos);
+    if (hit.type == HitType::Wire) {
+        hovered_wire_ = hit.wire_index;
+    } else {
+        hovered_wire_.reset();
+    }
+}
+
 void CanvasInput::add_node_selection(size_t idx) {
     if (std::find(selected_nodes_.begin(), selected_nodes_.end(), idx) == selected_nodes_.end())
         selected_nodes_.push_back(idx);
@@ -259,6 +282,7 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
                 break;
         }
         leave_state();
+        scene_.invalidateSpatialGrid();
     }
     return result;
 }

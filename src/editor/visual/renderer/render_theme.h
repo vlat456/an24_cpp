@@ -16,6 +16,7 @@ constexpr uint32_t COLOR_TEXT        = 0xFFDCD5D4;  // Text Primary
 constexpr uint32_t COLOR_TEXT_DIM    = 0xFF968685;  // Text Secondary
 constexpr uint32_t COLOR_WIRE        = 0xFF2A92C8;  // Wire Selected (Amber Bright)
 constexpr uint32_t COLOR_WIRE_UNSEL  = 0xFF605048;  // Wire Inactive
+constexpr uint32_t COLOR_WIRE_HOVER  = 0xFF3A6FA0;  // Wire Hovered (lighter blue)
 constexpr uint32_t COLOR_WIRE_CURRENT= 0xFF2874A0;  // Wire Energized (Amber Mid)
 constexpr uint32_t COLOR_GRID        = 0xFF312625;  // Grid Dot
 constexpr uint32_t COLOR_SELECTED    = 0xFF2A92C8;  // Selected border (Amber Bright)

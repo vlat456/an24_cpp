@@ -33,6 +33,7 @@ public:
 
     const std::vector<size_t>& selected_nodes() const { return selected_nodes_; }
     std::optional<size_t> selected_wire() const { return selected_wire_; }
+    std::optional<size_t> hovered_wire() const { return hovered_wire_; }
 
     bool is_marquee_selecting() const { return state_ == InputState::MarqueeSelect; }
     Pt marquee_start() const { return marquee_start_; }
@@ -50,6 +51,11 @@ public:
     void add_node_selection(size_t idx);
     bool is_node_selected(size_t idx) const;
 
+    // ---- Hover tracking ----
+
+    /// Update hover state based on current mouse position (call every frame)
+    void update_hover(Pt world_pos);
+
 private:
     VisualScene& scene_;
     WireManager& wire_mgr_;
@@ -59,6 +65,7 @@ private:
     // Selection
     std::vector<size_t> selected_nodes_;
     std::optional<size_t> selected_wire_;
+    std::optional<size_t> hovered_wire_;  ///< Wire currently under mouse cursor
 
     // Drag state (shared by DraggingNode / DraggingRoutingPoint)
     Pt drag_anchor_;

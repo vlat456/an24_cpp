@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "editor/visual/hittest.h"
+#include "editor/visual/spatial_grid.h"
 #include "editor/visual/trigonometry.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
@@ -13,7 +14,9 @@ TEST(HitTest, EmptyBlueprint_ReturnsNone) {
     Blueprint bp;
     VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), vp);
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -27,8 +30,10 @@ TEST(HitTest, Node_Inside_ReturnsNode) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     // Клик внутри узла
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -43,8 +48,10 @@ TEST(HitTest, Node_Outside_ReturnsNone) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     // Клик вне узла
-    auto hit = hit_test(bp, cache, Pt(0.0f, 0.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(0.0f, 0.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -65,8 +72,10 @@ TEST(HitTest, MultipleNodes_ReturnsClosest) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     // Клик между узлами - первый найденный
-    auto hit = hit_test(bp, cache, Pt(50.0f, 25.0f), vp);
+    auto hit = hit_test(bp, cache, Pt(50.0f, 25.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -79,8 +88,10 @@ TEST(PortHitTest, EmptyBlueprint_NoPorts) {
     Blueprint bp;
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
-    auto hit = hit_test_ports(bp, cache, Pt(100.0f, 100.0f));
+    auto hit = hit_test_ports(bp, cache, Pt(100.0f, 100.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -95,6 +106,8 @@ TEST(PortHitTest, NodeWithPorts_ClickNearPort_ReturnsPort) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // Создаём визуальный узел
     auto* visual = cache.getOrCreate(bp.nodes[0]);
@@ -104,7 +117,7 @@ TEST(PortHitTest, NodeWithPorts_ClickNearPort_ReturnsPort) {
     Pt port_pos = visual->getPort("v_in")->worldPosition();
 
     // Кликаем прямо на порт
-    auto hit = hit_test_ports(bp, cache, port_pos);
+    auto hit = hit_test_ports(bp, cache, port_pos, "", grid);
     EXPECT_EQ(hit.type, HitType::Port);
     EXPECT_EQ(hit.port_node_id, "batt1");
     EXPECT_EQ(hit.port_name, "v_in");
@@ -120,9 +133,11 @@ TEST(PortHitTest, ClickFarFromPorts_ReturnsNone) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // Кликаем далеко от портов
-    auto hit = hit_test_ports(bp, cache, Pt(1000.0f, 1000.0f));
+    auto hit = hit_test_ports(bp, cache, Pt(1000.0f, 1000.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -147,6 +162,8 @@ TEST(PortAliasTest, BusWithWire_ShouldCreateMultipleVisualPorts) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
@@ -171,6 +188,8 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
@@ -178,7 +197,7 @@ TEST(PortAliasTest, HitTestOnWirePort_ShouldReturnTargetPortName) {
     Pt wire_port_pos = visual->getPort("wire_1")->worldPosition();
 
     // Hit test should find the port
-    auto hit = hit_test_ports(bp, cache, wire_port_pos);
+    auto hit = hit_test_ports(bp, cache, wire_port_pos, "", grid);
     EXPECT_EQ(hit.type, HitType::Port);
     EXPECT_EQ(hit.port_node_id, "bus_1");
 
@@ -271,7 +290,9 @@ TEST(RegressionBusPort, HitTestFindsPortAfterSetSize) {
     Pt port_pos = visual->getPort("v")->worldPosition();
 
     // Hit test at exact port position must find it
-    auto hit = hit_test_ports(bp, cache, port_pos);
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto hit = hit_test_ports(bp, cache, port_pos, "", grid);
     EXPECT_EQ(hit.type, HitType::Port);
     EXPECT_EQ(hit.port_node_id, "bus_1");
     EXPECT_EQ(hit.port_name, "v");
@@ -311,7 +332,9 @@ TEST(RegressionRefPort, HitTestReturnsCorrectPortName) {
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     Pt port_pos = visual->getPort("v")->worldPosition();
 
-    auto hit = hit_test_ports(bp, cache, port_pos);
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto hit = hit_test_ports(bp, cache, port_pos, "", grid);
     EXPECT_EQ(hit.type, HitType::Port);
     EXPECT_EQ(hit.port_name, "v");  // Was "ref" before fix
     EXPECT_EQ(hit.port_side, PortSide::Output);
@@ -373,13 +396,15 @@ TEST(CachedHitTest, CachedHitTest_InsideAndOutside) {
 
     Viewport vp;
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // Point inside node
-    HitResult r1 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp);
+    HitResult r1 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp, "", grid);
     EXPECT_EQ(r1.type, HitType::Node);
 
     // Point outside
-    HitResult r2 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp);
+    HitResult r2 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp, "", grid);
     EXPECT_EQ(r2.type, HitType::None);
 }
 
@@ -397,6 +422,8 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // 4.5 world units from the first segment (start→routing_point) should hit
     // This confirms tolerance is 5.0f, not 20.0f
@@ -409,13 +436,13 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     Pt perp(-seg_dy / seg_len * 4.5f, seg_dx / seg_len * 4.5f);
     Pt test_pt(mid.x + perp.x, mid.y + perp.y);
 
-    HitResult r = hit_test(bp, cache, test_pt, vp);
+    HitResult r = hit_test(bp, cache, test_pt, vp, "", grid);
     EXPECT_EQ(r.type, HitType::Wire);
 
     // 6.0 units away should NOT hit
     Pt perp_far(-seg_dy / seg_len * 6.0f, seg_dx / seg_len * 6.0f);
     Pt test_pt_far(mid.x + perp_far.x, mid.y + perp_far.y);
-    HitResult r2 = hit_test(bp, cache, test_pt_far, vp);
+    HitResult r2 = hit_test(bp, cache, test_pt_far, vp, "", grid);
     EXPECT_EQ(r2.type, HitType::None);
 }
 
@@ -451,6 +478,8 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // Build visuals so Bus has two alias ports
     for (auto& n : bp.nodes)
@@ -461,7 +490,7 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
     Pt end2   = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", cache);
     Pt mid2((start2.x + end2.x) / 2.0f, (start2.y + end2.y) / 2.0f);
 
-    HitResult r = hit_test(bp, cache, mid2, vp);
+    HitResult r = hit_test(bp, cache, mid2, vp, "", grid);
     EXPECT_EQ(r.type, HitType::Wire);
     EXPECT_EQ(r.wire_index, 1u);  // w2 is the second wire
 }
@@ -492,13 +521,15 @@ TEST(HitTest, PortHit_BusAlias_ReturnsCorrectWireId) {
     bp.add_wire(std::move(w2));
 
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     for (auto& n : bp.nodes)
         cache.getOrCreate(n, bp.wires);
 
     // Get position of w2's alias port on the bus
     Pt w2_port_pos = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", cache);
 
-    HitResult r = hit_test_ports(bp, cache, w2_port_pos);
+    HitResult r = hit_test_ports(bp, cache, w2_port_pos, "", grid);
     EXPECT_EQ(r.type, HitType::Port);
     EXPECT_EQ(r.port_node_id, "bus1");
     EXPECT_EQ(r.port_name, "v");        // logical port name
@@ -514,6 +545,8 @@ TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
     bp.add_node(std::move(bus));
 
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     cache.getOrCreate(bp.nodes[0], bp.wires);
 
     // Main "v" port (no alias) — wire_id should be empty
@@ -522,7 +555,7 @@ TEST(HitTest, PortHit_BusMainV_EmptyWireId) {
     // "v" is the only port (no wires), at index 0
     Pt v_pos = visual->getPort("v")->worldPosition();
 
-    HitResult r = hit_test_ports(bp, cache, v_pos);
+    HitResult r = hit_test_ports(bp, cache, v_pos, "", grid);
     EXPECT_EQ(r.type, HitType::Port);
     EXPECT_EQ(r.port_name, "v");
     EXPECT_TRUE(r.port_wire_id.empty());  // main "v" port, not an alias
@@ -543,8 +576,10 @@ TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     // Click inside the node's bounds, but filtering for root group ""
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
@@ -559,8 +594,10 @@ TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable_WithCache) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
@@ -575,7 +612,9 @@ TEST(HitTestGroupFilter, NodeInSameGroup_Hittable) {
 
     VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::Node) << "Node in same group should be hittable";
     EXPECT_EQ(hit.node_index, 0u);
 }
@@ -591,12 +630,14 @@ TEST(HitTestGroupFilter, PortInDifferentGroup_NotHittable) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
     auto* visual = cache.getOrCreate(bp.nodes[0], bp.wires);
     ASSERT_NE(visual, nullptr);
 
     Pt port_pos = visual->getPort("v_in")->worldPosition();
 
-    auto hit = hit_test_ports(bp, cache, port_pos, "");
+    auto hit = hit_test_ports(bp, cache, port_pos, "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Port on node in different group should not be hittable";
 }
 
@@ -627,7 +668,9 @@ TEST(HitTestGroupFilter, WireCrossGroup_NotHittable) {
 
     VisualNodeCache cache;
     Viewport vp;
-    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp, "");
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Wire crossing groups should not be hittable";
 }
 
@@ -651,14 +694,17 @@ TEST(HitTestGroupFilter, DrillInOut_GroupSwitching) {
 
     VisualNodeCache cache;
     Viewport vp;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
 
     // At root: collapsed is hittable, internal is not
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "");
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0u);
 
     // Drilled into "lamp1": internal is hittable, collapsed is not
-    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "lamp1");
+    grid.rebuild(bp, cache, "lamp1");
+    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "lamp1", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 1u) << "After drill-in, internal node should be hittable";
 }

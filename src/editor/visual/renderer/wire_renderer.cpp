@@ -11,6 +11,7 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
                           Pt canvas_min, VisualNodeCache& cache,
                           const an24::Simulator<an24::JIT_Solver>* sim,
                           std::optional<size_t> selected_wire,
+                          std::optional<size_t> hovered_wire,
                           const std::string& group_id) {
     using namespace render_theme;
 
@@ -70,7 +71,15 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
         if (poly.size() < 2) continue;
 
         bool is_selected = selected_wire.has_value() && *selected_wire == wire_idx;
-        uint32_t wire_color = is_selected ? COLOR_WIRE : COLOR_WIRE_UNSEL;
+        bool is_hovered = hovered_wire.has_value() && *hovered_wire == wire_idx;
+        uint32_t wire_color;
+        if (is_selected) {
+            wire_color = COLOR_WIRE;
+        } else if (is_hovered) {
+            wire_color = COLOR_WIRE_HOVER;
+        } else {
+            wire_color = COLOR_WIRE_UNSEL;
+        }
 
         // Energized wire highlighting
         if (sim && sim->is_running() && !w.start.node_id.empty()) {

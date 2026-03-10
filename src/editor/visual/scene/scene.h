@@ -7,6 +7,7 @@
 #include "visual/renderer/blueprint_renderer.h"
 #include "visual/trigonometry.h"
 #include "visual/scene/persist.h"
+#include "visual/spatial_grid.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
@@ -16,6 +17,15 @@
 /// Single authority for hit testing, rendering, and scene mutations.
 /// Each scene renders a specific nesting level identified by group_id.
 class VisualScene {
+private:
+    Blueprint* bp_;
+    Viewport vp_;
+    VisualNodeCache cache_;
+    BlueprintRenderer renderer_;
+    std::string group_id_;
+    editor_spatial::SpatialGrid spatial_grid_;
+    bool spatial_grid_dirty_ = true;  // needs rebuild
+
 public:
     /// Construct a scene viewing a shared blueprint, filtered by group_id.
     explicit VisualScene(Blueprint& bp, const std::string& group_id = "")
@@ -61,11 +71,23 @@ public:
     // ---- Hit testing ----
 
     HitResult hitTest(Pt world_pos) {
-        return hit_test(*bp_, cache_, world_pos, vp_, group_id_);
+        ensureSpatialGrid();
+        return hit_test(*bp_, cache_, world_pos, vp_, group_id_, spatial_grid_);
     }
 
     HitResult hitTestPorts(Pt world_pos) {
-        return hit_test_ports(*bp_, cache_, world_pos, group_id_);
+        ensureSpatialGrid();
+        return hit_test_ports(*bp_, cache_, world_pos, group_id_, spatial_grid_);
+    }
+
+    // Call after any structural mutation: node add/remove/move, wire add/remove.
+    void invalidateSpatialGrid() { spatial_grid_dirty_ = true; }
+
+    // Rebuild only when dirty. Call at start of hitTest/hitTestPorts.
+    void ensureSpatialGrid() {
+        if (!spatial_grid_dirty_) return;
+        spatial_grid_.rebuild(*bp_, cache_, group_id_);
+        spatial_grid_dirty_ = false;
     }
 
     // ---- Rendering ----
@@ -73,10 +95,11 @@ public:
     void render(IDrawList& dl, Pt canvas_min, Pt canvas_max,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
-                const an24::Simulator<an24::JIT_Solver>* sim = nullptr)
+                const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
+                std::optional<size_t> hovered_wire = std::nullopt)
     {
         renderer_.render(*bp_, dl, vp_, canvas_min, canvas_max, cache_,
-                         selected_nodes, selected_wire, sim, group_id_);
+                         selected_nodes, selected_wire, sim, hovered_wire, group_id_);
     }
 
     TooltipInfo detectTooltip(Pt world_pos, const an24::Simulator<an24::JIT_Solver>& sim, Pt canvas_min) {
@@ -90,7 +113,9 @@ public:
     size_t addNode(Node node) {
         assert(bp_);
         cache_.getOrCreate(node, bp_->wires);
-        return bp_->add_node(std::move(node));
+        size_t idx = bp_->add_node(std::move(node));
+        invalidateSpatialGrid();
+        return idx;
     }
 
     void removeNode(size_t index) {
@@ -102,7 +127,10 @@ public:
     [[nodiscard]] bool addWire(Wire wire) {
         assert(bp_);
         bool ok = bp_->add_wire_validated(std::move(wire));
-        if (ok) cache_.onWireAdded(bp_->wires.back(), bp_->nodes);
+        if (ok) {
+            cache_.onWireAdded(bp_->wires.back(), bp_->nodes);
+            invalidateSpatialGrid();
+        }
         return ok;
     }
 
@@ -112,6 +140,7 @@ public:
         bp_->wires.erase(bp_->wires.begin() + static_cast<long>(index));
         bp_->wire_index_.erase(WireKey(copy));
         cache_.onWireDeleted(copy, bp_->nodes);
+        invalidateSpatialGrid();
     }
 
     /// Remove multiple nodes by index (indices must be sorted descending).
@@ -166,6 +195,7 @@ public:
         }
         bp_->rebuild_wire_index();
         cache_.clear();
+        invalidateSpatialGrid();
     }
 
     /// Reconnect one end of a wire to a new port. Clears routing points.
@@ -180,6 +210,7 @@ public:
         wire.routing_points.clear();
         bp_->wire_index_.insert(WireKey(wire));
         cache_.clear();
+        invalidateSpatialGrid();
     }
 
     /// Swap port connections for two wires attached to the same bus.
@@ -204,6 +235,7 @@ public:
 
         // Swap in blueprint so the order persists across save/load.
         std::swap(bp_->wires[idx_a], bp_->wires[idx_b]);
+        invalidateSpatialGrid();
         return true;
     }
 
@@ -213,6 +245,7 @@ public:
         bp_->nodes[index].pos = new_pos;
         auto* vis = cache_.getOrCreate(bp_->nodes[index], bp_->wires);
         if (vis) vis->setPosition(new_pos);
+        // Note: don't invalidate here during drag - only on mouse up
     }
 
     /// Sync grid step between viewport and blueprint.
@@ -256,6 +289,7 @@ public:
         *bp_ = Blueprint();
         vp_ = Viewport();
         cache_.clear();
+        invalidateSpatialGrid();
     }
 
     // ---- Persistence ----
@@ -277,13 +311,7 @@ public:
         vp_.grid_step = bp_->grid_step;
         vp_.clamp_zoom();
         cache_.clear();
+        invalidateSpatialGrid();
         return true;
     }
-
-private:
-    Blueprint* bp_;
-    Viewport vp_;
-    VisualNodeCache cache_;
-    BlueprintRenderer renderer_;
-    std::string group_id_;
 };

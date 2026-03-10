@@ -6,6 +6,7 @@
 которая отвечает "какие объекты есть рядом с точкой" за O(1) в среднем, без итерации по всему массиву.
 
 Сцена редактора содержит три вида объектов:
+
 - **Узлы (Node)** — прямоугольники ~80–200px, фиксированный размер
 - **Порты (Port)** — точки на краях узлов, radius hit = 10 world units
 - **Wire-сегменты** — отрезки, которые могут пересекать много ячеек сетки; их может быть много
@@ -16,7 +17,9 @@
 ## Текущий код — где всё происходит
 
 ### Главный hit-test
+
 **`src/editor/visual/hittest.cpp`** — функция `hit_test(...)`:
+
 ```
 for each node  → visual->containsPoint(world_pos)           // O(N_nodes)
 for each wire  → for each routing_point → dist check        // O(N_wires × N_rp)
@@ -24,6 +27,7 @@ for each wire  → for each segment → dist_to_segment check   // O(N_wires × 
 ```
 
 **`src/editor/visual/hittest.cpp`** — функция `hit_test_ports(...)`:
+
 ```
 for each node → for each port → dist check                  // O(N_nodes × N_ports)
 ```
@@ -32,6 +36,7 @@ for each node → for each port → dist check                  // O(N_nodes × 
 **`src/editor/visual/scene/scene.h`** (строки 63–70).
 
 ### Зависимости и типы данных
+
 - `Pt` — `struct { float x, y; }` (`src/editor/data/pt.h`)
 - `Node` — `struct { Pt pos, size; std::string id, group_id; ... }` (`src/editor/data/node.h`)
 - `Wire` — `struct { std::string id; WireEnd start, end; std::vector<Pt> routing_points; }`
@@ -282,6 +287,7 @@ HitResult hitTestPorts(Pt world_pos) {
 ```
 
 Добавить `invalidateSpatialGrid()` в каждый метод-мутатор сцены:
+
 - `addNode(...)` — после добавления
 - `removeNodes(...)` — после удаления
 - `moveNode(...)` — после перемещения
@@ -481,6 +487,7 @@ HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_p
   ведёт ноду, hover на других объектах в этот момент не нужен.
 
 Для этого в `CanvasInput::on_mouse_up` (после `leave_state()`) добавить:
+
 ```cpp
 scene_.invalidateSpatialGrid();
 ```
@@ -488,7 +495,6 @@ scene_.invalidateSpatialGrid();
 И в `CanvasInput::on_mouse_down` **не** вызывать invalidate.
 
 ---
-
 
 ## Добавить в тесты: `tests/test_spatial_grid.cpp`
 
@@ -591,7 +597,7 @@ TEST(SpatialGrid, Rebuild_ClearsOldData) {
 
 ## Добавить test target в CMakeLists.txt
 
-Найди в **`tests/CMakeLists.txt`** строку, где перечислены source файлы для 
+Найди в **`tests/CMakeLists.txt`** строку, где перечислены source файлы для
 `editor_hittest_tests` или `editor_widget_tests` (или создай отдельный target):
 
 ```cmake
@@ -668,10 +674,10 @@ HitResult r = hit_test_ports(bp, cache, pos, "", grid);
 
 ## Ожидаемый результат по производительности
 
-| Сцена | До (O) | После (O) |
-|---|---|---|
-| 100 узлов, 150 проводов | O(250) | O(1–8 кандидатов) |
-| 1000 узлов, 2000 проводов | O(3000) | O(1–12 кандидатов) |
-| каждый кадр, 60 fps | 60 × O(N) | 60 × O(1) |
+| Сцена                     | До (O)    | После (O)          |
+| ------------------------- | --------- | ------------------ |
+| 100 узлов, 150 проводов   | O(250)    | O(1–8 кандидатов)  |
+| 1000 узлов, 2000 проводов | O(3000)   | O(1–12 кандидатов) |
+| каждый кадр, 60 fps       | 60 × O(N) | 60 × O(1)          |
 
 Mouse hover вызывает hit_test примерно 60 раз в секунду. При большой схеме это ощутимо.

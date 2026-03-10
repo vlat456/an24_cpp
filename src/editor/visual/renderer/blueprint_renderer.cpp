@@ -5,9 +5,10 @@ void BlueprintRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewpor
                                const std::vector<size_t>* selected_nodes,
                                std::optional<size_t> selected_wire,
                                const an24::Simulator<an24::JIT_Solver>* sim,
+                               std::optional<size_t> hovered_wire,
                                const std::string& group_id) {
     grid_renderer_.render(dl, vp, canvas_min, canvas_max);
-    wire_renderer_.render(bp, dl, vp, canvas_min, cache, sim, selected_wire, group_id);
+    wire_renderer_.render(bp, dl, vp, canvas_min, cache, sim, selected_wire, hovered_wire, group_id);
     node_renderer_.render(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
 }
 

@@ -3,6 +3,7 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "data/pt.h"
+#include "visual/spatial_grid.h"
 
 // Forward declaration
 class VisualNodeCache;
@@ -36,10 +37,12 @@ struct HitResult {
 
 /// Определить что находится в указанной точке (мировые координаты)
 /// group_id filters which nodes/wires are considered ("" = root level)
-HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos, const Viewport& vp,
-                   const std::string& group_id = "");
+HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
+                   const Viewport& vp, const std::string& group_id,
+                   const editor_spatial::SpatialGrid& grid);
 
 /// Hit test для портов
 /// group_id filters which nodes are considered ("" = root level)
 HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
-                         const std::string& group_id = "");
+                         const std::string& group_id,
+                         const editor_spatial::SpatialGrid& grid);
