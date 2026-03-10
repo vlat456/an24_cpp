@@ -5,7 +5,9 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/pt.h"
 #include "editor/data/port.h"
-#include "editor/wires/hittest.h"
+#include "editor/visual/hittest.h"
+#include "editor/visual/spatial_grid.h"
+#include "editor/visual/node/node.h"
 
 TEST(RoutingTest, HitRoutingPoint) {
     Blueprint bp;
@@ -35,11 +37,15 @@ TEST(RoutingTest, HitRoutingPoint) {
     w.routing_points.push_back(Pt(150.0f, 40.0f)); // Точка изгиба
     bp.wires.push_back(w);
 
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
     // Hit test рядом с routing point (в пределах радиуса 10)
-    auto hit = hit_test_routing_point(bp, Pt(150.0f, 41.0f));
-    ASSERT_TRUE(hit.has_value());
-    EXPECT_EQ(hit->wire_index, 0);
-    EXPECT_EQ(hit->routing_point_index, 0);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 41.0f), "", grid);
+    EXPECT_EQ(hit.type, HitType::RoutingPoint);
+    EXPECT_EQ(hit.wire_index, 0u);
+    EXPECT_EQ(hit.routing_point_index, 0u);
 }
 
 // Тест: hit test НЕ находит routing point если курсор далеко
@@ -69,7 +75,11 @@ TEST(RoutingTest, MissRoutingPoint) {
     w.routing_points.push_back(Pt(150.0f, 40.0f));
     bp.wires.push_back(w);
 
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
     // Курсор далеко от routing point (более 10 пикселей)
-    auto hit = hit_test_routing_point(bp, Pt(150.0f, 100.0f));
-    EXPECT_FALSE(hit.has_value());
+    auto hit = hit_test(bp, cache, Pt(150.0f, 100.0f), "", grid);
+    EXPECT_NE(hit.type, HitType::RoutingPoint);
 }

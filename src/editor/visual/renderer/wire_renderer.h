@@ -10,7 +10,6 @@
 
 /// Renders all wires in a blueprint: polylines with crossing gaps,
 /// routing points, jump arcs, and energized-wire highlighting.
-/// Stores computed polylines for use by TooltipDetector.
 class WireRenderer {
 public:
     void render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
@@ -19,9 +18,6 @@ public:
                 std::optional<size_t> selected_wire,
                 std::optional<size_t> hovered_wire = std::nullopt,
                 const std::string& group_id = "");
-
-    /// Polylines built during the last render() call. Index matches bp.wires.
-    const std::vector<std::vector<Pt>>& polylines() const { return polylines_; }
 
 private:
     std::vector<std::vector<Pt>> polylines_;

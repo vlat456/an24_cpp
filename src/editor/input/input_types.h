@@ -29,6 +29,14 @@ struct Modifiers {
     bool ctrl = false;   // Ctrl or Cmd on macOS
 };
 
+/// Resize handle corners
+enum class ResizeCorner {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight
+};
+
 /// FSM states for canvas mouse interaction.
 /// Exactly one state is active per window at any time.
 enum class InputState {
@@ -39,6 +47,7 @@ enum class InputState {
     CreatingWire,          ///< Left-drag from a port (new wire)
     ReconnectingWire,      ///< Left-drag from existing wire end
     MarqueeSelect,         ///< Alt+left-drag rectangle selection
+    ResizingNode,          ///< Left-drag on a resize handle (group nodes)
 };
 
 /// Actions the canvas input wants the host (EditorApp) to perform.

@@ -2,7 +2,6 @@
 #include "visual/scene/scene.h"
 #include "visual/scene/wire_manager.h"
 #include "visual/hittest.h"
-#include "wires/hittest.h"
 #include "visual/trigonometry.h"
 #include "visual/node/node.h"
 #include "debug.h"
@@ -34,14 +33,15 @@ void CanvasInput::update_hover(Pt world_pos) {
     if (state_ == InputState::DraggingNode ||
         state_ == InputState::DraggingRoutingPoint ||
         state_ == InputState::CreatingWire ||
-        state_ == InputState::ReconnectingWire) {
+        state_ == InputState::ReconnectingWire ||
+        state_ == InputState::ResizingNode) {
         hovered_wire_.reset();
         return;
     }
 
     // Check for wire hover
     HitResult hit = scene_.hitTest(world_pos);
-    if (hit.type == HitType::Wire) {
+    if (hit.type == HitType::Wire || hit.type == HitType::RoutingPoint) {
         hovered_wire_ = hit.wire_index;
     } else {
         hovered_wire_.reset();
@@ -103,9 +103,22 @@ void CanvasInput::enter_drag_node(size_t node_index, bool add_to_selection, bool
 
 void CanvasInput::enter_drag_routing_point(size_t wire_idx, size_t rp_idx) {
     state_ = InputState::DraggingRoutingPoint;
+    selected_wire_ = wire_idx;
     rp_wire_ = wire_idx;
     rp_index_ = rp_idx;
     drag_anchor_ = scene_.wires()[wire_idx].routing_points[rp_idx];
+}
+
+void CanvasInput::enter_resize_node(size_t node_index, ResizeCorner corner) {
+    state_ = InputState::ResizingNode;
+    clear_selection();
+    add_node_selection(node_index);
+    resize_node_idx_ = node_index;
+    resize_corner_ = corner;
+    auto* vis = scene_.cache().getOrCreate(scene_.nodes()[node_index], scene_.wires());
+    resize_original_pos_ = vis->getPosition();
+    resize_original_size_ = vis->getSize();
+    drag_anchor_ = Pt(0, 0);  // accumulated delta
 }
 
 void CanvasInput::enter_create_wire(const std::string& node_id, const std::string& port_name,
@@ -169,6 +182,8 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         if (mods.alt) {
             // Alt+click → marquee selection
             enter_marquee(world);
+        } else if (hit.type == HitType::ResizeHandle) {
+            enter_resize_node(hit.node_index, hit.resize_corner);
         } else if (hit.type == HitType::Node) {
             enter_drag_node(hit.node_index, false, mods.ctrl);
         } else if (hit.type == HitType::RoutingPoint) {
@@ -250,6 +265,64 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 marquee_end_ = marquee_end_ + world_delta;
                 break;
 
+            case InputState::ResizingNode: {
+                drag_anchor_ = drag_anchor_ + world_delta;
+                if (resize_node_idx_ >= scene_.nodes().size()) break;
+
+                float grid = scene_.gridStep();
+                Pt orig_pos = resize_original_pos_;
+                Pt orig_sz = resize_original_size_;
+                Pt delta = drag_anchor_;
+                Pt new_pos = orig_pos;
+                Pt new_size = orig_sz;
+
+                switch (resize_corner_) {
+                    case ResizeCorner::BottomRight:
+                        new_size = Pt(orig_sz.x + delta.x, orig_sz.y + delta.y);
+                        break;
+                    case ResizeCorner::BottomLeft:
+                        new_pos.x = orig_pos.x + delta.x;
+                        new_size = Pt(orig_sz.x - delta.x, orig_sz.y + delta.y);
+                        break;
+                    case ResizeCorner::TopRight:
+                        new_pos.y = orig_pos.y + delta.y;
+                        new_size = Pt(orig_sz.x + delta.x, orig_sz.y - delta.y);
+                        break;
+                    case ResizeCorner::TopLeft:
+                        new_pos = Pt(orig_pos.x + delta.x, orig_pos.y + delta.y);
+                        new_size = Pt(orig_sz.x - delta.x, orig_sz.y - delta.y);
+                        break;
+                }
+
+                // Enforce minimum size
+                float min_w = editor_constants::MIN_GROUP_WIDTH;
+                float min_h = editor_constants::MIN_GROUP_HEIGHT;
+                if (new_size.x < min_w) {
+                    if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft)
+                        new_pos.x = orig_pos.x + orig_sz.x - min_w;
+                    new_size.x = min_w;
+                }
+                if (new_size.y < min_h) {
+                    if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::TopRight)
+                        new_pos.y = orig_pos.y + orig_sz.y - min_h;
+                    new_size.y = min_h;
+                }
+
+                // Snap to grid
+                new_pos = editor_math::snap_to_grid(new_pos, grid);
+                new_size = editor_math::snap_to_grid(new_size, grid);
+
+                auto& node_data = scene_.nodes()[resize_node_idx_];
+                node_data.pos = new_pos;
+                node_data.size = new_size;
+                auto* vis = scene_.cache().getOrCreate(node_data, scene_.wires());
+                if (vis) {
+                    vis->setPosition(new_pos);
+                    vis->setSize(new_size);
+                }
+                break;
+            }
+
             case InputState::Idle:
                 break;
         }
@@ -304,16 +377,15 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     InputResult result;
     Pt world = scene_.viewport().screen_to_world(screen_pos, canvas_min);
 
-    // 1. Routing-point removal
-    // BUGFIX [3f7b9c] Pass group_id to filter routing points to current group
-    auto rp_hit = hit_test_routing_point(scene_.blueprint(), world, scene_.groupId());
-    if (rp_hit) {
-        wire_mgr_.removeRoutingPoint(rp_hit->wire_index, rp_hit->routing_point_index);
+    HitResult hit = scene_.hitTest(world);
+
+    // 1. Routing-point removal (hitTest returns RoutingPoint with higher priority than Wire)
+    if (hit.type == HitType::RoutingPoint) {
+        wire_mgr_.removeRoutingPoint(hit.wire_index, hit.routing_point_index);
         return result;
     }
 
     // 2. Node hit → open sub-window for Blueprint nodes
-    HitResult hit = scene_.hitTest(world);
     if (hit.type == HitType::Node) {
         const auto& node = scene_.nodes()[hit.node_index];
         if (node.expandable) {

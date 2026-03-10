@@ -32,6 +32,12 @@ constexpr uint32_t COLOR_BUS_BORDER  = 0xFF54403E;  // Border Mid
 constexpr float ARC_RADIUS_WORLD = 5.0f;
 constexpr int   ARC_SEGMENTS     = 8;
 
+// ---- Visual group ----
+constexpr uint32_t COLOR_GROUP_FILL   = 0x30605048;  // Semi-transparent
+constexpr uint32_t COLOR_GROUP_BORDER = 0xFF54403E;  // Border Mid
+constexpr uint32_t COLOR_GROUP_TITLE  = 0xFFDCD5D4;  // Text Primary
+constexpr uint32_t COLOR_RESIZE_HANDLE = 0xFF968685; // Text Secondary
+
 // ============================================================================
 // Node style colors
 // ============================================================================

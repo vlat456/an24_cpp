@@ -4,17 +4,61 @@
 #include "visual/node/node.h"
 #include "layout_constants.h"
 
+namespace {
+
+/// Check if world_pos is within a resize handle corner of a resizable node.
+/// Returns true and fills result if hit.
+bool check_resize_handles(const VisualNode* visual, size_t node_index,
+                          Pt world_pos, HitResult& result) {
+    if (!visual->isResizable()) return false;
+
+    Pt pos = visual->getPosition();
+    Pt sz = visual->getSize();
+    float r = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
+
+    struct Corner { Pt pt; ResizeCorner corner; };
+    Corner corners[] = {
+        { Pt(pos.x, pos.y),                     ResizeCorner::TopLeft },
+        { Pt(pos.x + sz.x, pos.y),              ResizeCorner::TopRight },
+        { Pt(pos.x, pos.y + sz.y),              ResizeCorner::BottomLeft },
+        { Pt(pos.x + sz.x, pos.y + sz.y),       ResizeCorner::BottomRight },
+    };
+
+    for (const auto& c : corners) {
+        if (editor_math::distance(world_pos, c.pt) <= r) {
+            result.type = HitType::ResizeHandle;
+            result.node_index = node_index;
+            result.resize_corner = c.corner;
+            return true;
+        }
+    }
+    return false;
+}
+
+}  // anonymous namespace
+
 HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
-                   const Viewport& vp, const std::string& group_id,
+                   const std::string& group_id,
                    const editor_spatial::SpatialGrid& grid) {
     HitResult result;
-    (void)vp;
 
-    // --- Узлы ---
+    // --- Узлы (resize handles first, then body) ---
     {
         std::vector<size_t> candidates;
         candidates.reserve(8);
-        grid.query_nodes(world_pos, 0.0f, candidates);
+        grid.query_nodes(world_pos, editor_constants::RESIZE_HANDLE_HIT_RADIUS, candidates);
+
+        // First pass: check resize handles on resizable nodes
+        for (size_t i : candidates) {
+            if (i >= bp.nodes.size()) continue;
+            const auto& n = bp.nodes[i];
+            if (n.group_id != group_id) continue;
+            auto* visual = cache.getOrCreate(n, bp.wires);
+            if (check_resize_handles(visual, i, world_pos, result))
+                return result;
+        }
+
+        // Second pass: check node body
         for (size_t i : candidates) {
             if (i >= bp.nodes.size()) continue;
             const auto& n = bp.nodes[i];
@@ -96,10 +140,6 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
 // ============================================================================
 // Port Hit Testing
 // ============================================================================
-
-namespace {
-    constexpr float PORT_HIT_RADIUS = editor_constants::PORT_HIT_RADIUS;  // Радиус зоны клика порта
-}
 
 HitResult hit_test_ports(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
                          const std::string& group_id,

@@ -536,6 +536,9 @@ BuildResult build_systems_dev(
 
     // Create components dynamically using factory
     for (const auto& dev : devices) {
+        // Skip visual-only devices (no simulation behavior, e.g. Group)
+        if (dev.visual_only) continue;
+
         ComponentVariant variant = create_component_variant(dev, result);
         result.devices[dev.name] = variant;
 

@@ -993,3 +993,35 @@ TEST(RoundedCorners, VisualNode_CustomColor_StillRounded) {
     EXPECT_GT(dl.rounded_filled_calls, 0)
         << "VisualNode with custom color must still use rounded background";
 }
+
+// ============================================================================
+// Regression: port row container height must be exactly PORT_ROW_HEIGHT
+// Before fix, buildLayout used PORT_RADIUS*2 (8) to compute padding, but the
+// actual row preferred height is 9 (Label font_size=9 > circle diameter=8).
+// This made containers 17px tall instead of 16, breaking grid alignment.
+// ============================================================================
+
+TEST(PortRowHeight, RowContainer_IsExactlyPortRowHeight) {
+    Node n;
+    n.id = "n1"; n.name = "Test"; n.type_name = "test";
+    n.at(0, 0).size_wh(120, 80);
+    n.input("in1");
+    n.input("in2");
+    n.output("out1");
+
+    VisualNode visual(n);
+
+    Pt in1 = visual.getPort("in1")->worldPosition();
+    Pt in2 = visual.getPort("in2")->worldPosition();
+    Pt out1 = visual.getPort("out1")->worldPosition();
+
+    // Row-to-row spacing must be exactly PORT_ROW_HEIGHT (16), not 17.
+    float dy_in = in2.y - in1.y;
+    EXPECT_FLOAT_EQ(dy_in, editor_constants::PORT_ROW_HEIGHT)
+        << "Adjacent port row spacing must equal PORT_ROW_HEIGHT";
+
+    // First port Y must be integer (grid-aligned), not .5
+    float first_port_y = in1.y;
+    EXPECT_FLOAT_EQ(std::fmod(first_port_y, 1.0f), 0.0f)
+        << "First port Y must be integer (no .5 offset from odd row height)";
+}

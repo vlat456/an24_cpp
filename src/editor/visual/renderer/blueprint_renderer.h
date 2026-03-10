@@ -5,6 +5,7 @@
 #include "visual/renderer/node_renderer.h"
 #include "visual/renderer/tooltip_detector.h"
 #include "visual/renderer/grid_renderer.h"
+#include "visual/spatial_grid.h"
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "visual/node/node.h"
@@ -30,6 +31,7 @@ public:
                               Pt canvas_min, VisualNodeCache& cache,
                               Pt world_pos,
                               const an24::Simulator<an24::JIT_Solver>& sim,
+                              const editor_spatial::SpatialGrid& grid,
                               const std::string& group_id = "") const;
 
     /// Render a tooltip box.

@@ -72,7 +72,7 @@ public:
 
     HitResult hitTest(Pt world_pos) {
         ensureSpatialGrid();
-        return hit_test(*bp_, cache_, world_pos, vp_, group_id_, spatial_grid_);
+        return hit_test(*bp_, cache_, world_pos, group_id_, spatial_grid_);
     }
 
     HitResult hitTestPorts(Pt world_pos) {
@@ -103,7 +103,9 @@ public:
     }
 
     TooltipInfo detectTooltip(Pt world_pos, const an24::Simulator<an24::JIT_Solver>& sim, Pt canvas_min) {
-        return renderer_.detectTooltip(*bp_, vp_, canvas_min, cache_, world_pos, sim, group_id_);
+        ensureSpatialGrid();
+        return renderer_.detectTooltip(*bp_, vp_, canvas_min, cache_, world_pos, sim,
+                                       spatial_grid_, group_id_);
     }
 
     BlueprintRenderer& renderer() { return renderer_; }

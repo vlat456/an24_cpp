@@ -8,17 +8,20 @@ void BlueprintRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewpor
                                std::optional<size_t> hovered_wire,
                                const std::string& group_id) {
     grid_renderer_.render(dl, vp, canvas_min, canvas_max);
+    node_renderer_.renderGroups(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
     wire_renderer_.render(bp, dl, vp, canvas_min, cache, sim, selected_wire, hovered_wire, group_id);
-    node_renderer_.render(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
+    node_renderer_.renderNodes(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
+    node_renderer_.renderResizeHandles(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
 }
 
 TooltipInfo BlueprintRenderer::detectTooltip(const Blueprint& bp, const Viewport& vp,
                                              Pt canvas_min, VisualNodeCache& cache,
                                              Pt world_pos,
                                              const an24::Simulator<an24::JIT_Solver>& sim,
+                                             const editor_spatial::SpatialGrid& grid,
                                              const std::string& group_id) const {
     return tooltip_detector_.detect(bp, vp, canvas_min, cache, world_pos, sim,
-                                    wire_renderer_.polylines(), group_id);
+                                    grid, group_id);
 }
 
 void BlueprintRenderer::renderTooltip(IDrawList& dl, const TooltipInfo& tooltip) {

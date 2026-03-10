@@ -1,0 +1,10 @@
+{
+  "classname": "Group",
+  "description": "Visual grouping rectangle for organizing circuit sections. No logic, no ports.",
+  "cpp_class": false,
+  "visual_only": true,
+  "ports": {},
+  "params": {},
+  "render_hint": "group",
+  "size": { "x": 10, "y": 6 }
+}

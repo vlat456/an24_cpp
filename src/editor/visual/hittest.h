@@ -1,8 +1,8 @@
 #pragma once
 
 #include "data/blueprint.h"
-#include "viewport/viewport.h"
 #include "data/pt.h"
+#include "input/input_types.h"
 #include "visual/spatial_grid.h"
 
 // Forward declaration
@@ -14,7 +14,8 @@ enum class HitType {
     Node,          ///< Узел
     Wire,          ///< Провод
     Port,          ///< Порт
-    RoutingPoint   ///< Точка изгиба провода
+    RoutingPoint,  ///< Точка изгиба провода
+    ResizeHandle   ///< Resize handle on a group node
 };
 
 /// Результат hit test
@@ -25,6 +26,7 @@ struct HitResult {
     size_t port_index = 0;          ///< Индекс порта
     // BUGFIX [c5a1d8] Removed dead 'is_input' field — port_side is the source of truth
     size_t routing_point_index = 0; ///< Индекс точки изгиба (для HitType::RoutingPoint)
+    ResizeCorner resize_corner = ResizeCorner::BottomRight; ///< Corner for HitType::ResizeHandle
 
     // Данные для порта (заполняются когда type == Port)
     std::string port_node_id;       ///< ID узла с портом
@@ -38,7 +40,7 @@ struct HitResult {
 /// Определить что находится в указанной точке (мировые координаты)
 /// group_id filters which nodes/wires are considered ("" = root level)
 HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
-                   const Viewport& vp, const std::string& group_id,
+                   const std::string& group_id,
                    const editor_spatial::SpatialGrid& grid);
 
 /// Hit test для портов

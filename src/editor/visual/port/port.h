@@ -24,7 +24,7 @@ class VisualPort : public Widget {
 public:
     static constexpr float RADIUS = 6.0f;
     static constexpr float HIT_RADIUS = 10.0f;
-    static constexpr float LABEL_FONT_SIZE = 9.0f;
+    static constexpr float LABEL_FONT_SIZE = 9.0f;  // Font::Small
     static constexpr float LABEL_GAP = 3.0f;
 
     VisualPort(const std::string& name,

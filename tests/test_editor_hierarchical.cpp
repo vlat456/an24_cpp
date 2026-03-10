@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/visual/renderer/mock_draw_list.h"
+#include "editor/visual/renderer/render_theme.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/viewport/viewport.h"
@@ -282,12 +283,15 @@ TEST(CollapsedNode, PortColors_MatchExposedType) {
     VisualNodeCache cache;
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
-    // Check for specific port type colors
-    // Format: 0xAABBGGRR (alpha, blue, green, red) - see render_theme::get_port_color()
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF)) << "V port should be red (0xFF0000FF = AABBGGRR)";
-    EXPECT_TRUE(dl.has_circle_with_color(0xFFFF0000)) << "I port should be blue (0xFFFF0000 = AABBGGRR)";
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00)) << "Bool port should be green (0xFF00FF00 = AABBGGRR)";
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF)) << "RPM port should be orange (0xFF00A5FF = AABBGGRR)";
+    // Check for specific port type colors from render_theme::get_port_color()
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::V)))
+        << "V port color must match render_theme";
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::I)))
+        << "I port color must match render_theme";
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::Bool)))
+        << "Bool port color must match render_theme";
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::RPM)))
+        << "RPM port color must match render_theme";
 }
 
 TEST(CollapsedNode, VisualIndicator_IconOrBadge) {

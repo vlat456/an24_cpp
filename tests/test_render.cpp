@@ -2,6 +2,9 @@
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/visual/renderer/render_theme.h"
 #include "editor/visual/renderer/mock_draw_list.h"
+#include "editor/visual/renderer/handle_renderer.h"
+#include "editor/visual/spatial_grid.h"
+#include "editor/layout_constants.h"
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
@@ -153,9 +156,9 @@ TEST(RenderTest, WireHighlighting_EnergizedWiresAreYellow) {
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache,
                      nullptr, std::nullopt, &sim);
 
-    // Should have yellow/amber (energized) polylines: 0xFF44AAFF
-    EXPECT_TRUE(dl.has_polyline_with_color(0xFF44AAFF))
-        << "Energized wires should be drawn in yellow/amber";
+    // Should have energized polylines
+    EXPECT_TRUE(dl.has_polyline_with_color(render_theme::COLOR_WIRE_CURRENT))
+        << "Energized wires should be drawn in energized color";
 }
 
 TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
@@ -166,9 +169,9 @@ TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
     VisualNodeCache cache;
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
 
-    // Without simulation, no yellow/amber polylines
-    EXPECT_FALSE(dl.has_polyline_with_color(0xFF44AAFF))
-        << "Without simulation, no yellow/amber wires";
+    // Without simulation, no energized polylines
+    EXPECT_FALSE(dl.has_polyline_with_color(render_theme::COLOR_WIRE_CURRENT))
+        << "Without simulation, no energized wires";
 }
 
 // ─── Tooltip tests ───
@@ -188,9 +191,9 @@ TEST(RenderTest, Tooltip_PortHover_ShowsValue) {
     VisualNodeCache cache;
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, nullptr, std::nullopt, &sim);
-    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim);
-
-    // Tooltip should be active if we hit a port
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim, grid);
     if (tooltip.active) {
         EXPECT_FALSE(tooltip.text.empty()) << "Tooltip should have a value text";
         EXPECT_FALSE(tooltip.label.empty()) << "Tooltip should have a label";
@@ -253,7 +256,9 @@ TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
     VisualNodeCache cache;
     BlueprintRenderer renderer;
     renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, nullptr, std::nullopt, &sim);
-    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim);
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+    auto tooltip = renderer.detectTooltip(bp, vp, Pt(0, 0), cache, hover_pos, sim, grid);
 
     // Tooltip should be active for wire
     EXPECT_TRUE(tooltip.active) << "Tooltip should be active when hovering over wire";
@@ -604,78 +609,52 @@ TEST(RenderTest, ContentBounds_OutputPortLabelOnRight) {
 // Port Type Visualization Tests - FAILING TESTS FIRST (TDD)
 // ============================================================================
 
-TEST(RenderTest, PortTypeColor_V_IsRed) {
-    // This test will fail until render_theme::get_port_color() is implemented
-    // Format: 0xAABBGGRR (A=alpha, B=blue, G=green, R=red)
-    // Red should be: 0xFF0000FF (alpha=FF, blue=00, green=00, red=FF)
-
+TEST(RenderTest, PortTypeColor_V) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::V);
-
-    EXPECT_EQ(color, 0xFF0000FF) << "Voltage ports should be red (0xFF0000FF)";
+    EXPECT_EQ(color, 0xFF5068C0) << "Voltage port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_I_IsBlue) {
-    // Blue should be: 0xFFFF0000 (alpha=FF, blue=FF, green=00, red=00)
-
+TEST(RenderTest, PortTypeColor_I) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::I);
-
-    EXPECT_EQ(color, 0xFFFF0000) << "Current ports should be blue (0xFFFF0000)";
+    EXPECT_EQ(color, 0xFF986850) << "Current port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_Bool_IsGreen) {
-    // Green should be: 0xFF00FF00 (alpha=FF, blue=00, green=FF, red=00)
-
+TEST(RenderTest, PortTypeColor_Bool) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Bool);
-
-    EXPECT_EQ(color, 0xFF00FF00) << "Boolean ports should be green (0xFF00FF00)";
+    EXPECT_EQ(color, 0xFF60905A) << "Bool port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_RPM_IsOrange) {
-    // Orange should be: 0xFF00A5FF (alpha=FF, blue=00, green=A5, red=FF)
-
+TEST(RenderTest, PortTypeColor_RPM) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::RPM);
-
-    EXPECT_EQ(color, 0xFF00A5FF) << "RPM ports should be orange (0xFF00A5FF)";
+    EXPECT_EQ(color, 0xFF3088C0) << "RPM port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_Temperature_IsYellow) {
-    // Yellow should be: 0xFF00FFFF (alpha=FF, blue=00, green=FF, red=FF)
-
+TEST(RenderTest, PortTypeColor_Temperature) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Temperature);
-
-    EXPECT_EQ(color, 0xFF00FFFF) << "Temperature ports should be yellow (0xFF00FFFF)";
+    EXPECT_EQ(color, 0xFF4050B0) << "Temperature port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_Pressure_IsCyan) {
-    // Cyan should be: 0xFFFFFF00 (alpha=FF, blue=FF, green=FF, red=00)
-
+TEST(RenderTest, PortTypeColor_Pressure) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Pressure);
-
-    EXPECT_EQ(color, 0xFFFFFF00) << "Pressure ports should be cyan (0xFFFFFF00)";
+    EXPECT_EQ(color, 0xFF8C7848) << "Pressure port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_Position_IsPurple) {
-    // Purple should be: 0xFF800080 (alpha=FF, blue=80, green=00, red=80)
-
+TEST(RenderTest, PortTypeColor_Position) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Position);
-
-    EXPECT_EQ(color, 0xFF800080) << "Position ports should be purple (0xFF800080)";
+    EXPECT_EQ(color, 0xFFA86078) << "Position port color must match render_theme";
 }
 
-TEST(RenderTest, PortTypeColor_Any_IsGray) {
-    // Gray should be: 0xFF808080 (alpha=FF, blue=80, green=80, red=80)
-
+TEST(RenderTest, PortTypeColor_Any) {
     using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Any);
-
-    EXPECT_EQ(color, 0xFF808080) << "Any ports should be gray (0xFF808080)";
+    EXPECT_EQ(color, 0xFF968685) << "Any port color must match render_theme";
 }
 
 TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
@@ -704,9 +683,9 @@ TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
     VisualNodeCache cache;
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
-    // Should have red circles for voltage ports
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF0000FF))
-        << "Voltage ports should render as red circles";
+    // Should have voltage-colored circles
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::V)))
+        << "Voltage ports should render with V port color";
 }
 
 TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
@@ -740,9 +719,9 @@ TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
     VisualNodeCache cache;
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
-    // Should have green circles for boolean ports
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF00FF00))
-        << "Boolean ports should render as green circles";
+    // Should have bool-colored circles
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::Bool)))
+        << "Boolean ports should render with Bool port color";
 }
 
 TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
@@ -779,9 +758,9 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
     VisualNodeCache cache;
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
-    // Should have orange circles for RPM ports
-    EXPECT_TRUE(dl.has_circle_with_color(0xFF00A5FF))
-        << "RPM ports should render as orange circles";
+    // Should have RPM-colored circles
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::RPM)))
+        << "RPM ports should render with RPM port color";
 }
 
 // ============================================================================
@@ -1241,4 +1220,585 @@ TEST(RenderRegressionTest, HeaderBody_NoGap) {
     EXPECT_FLOAT_EQ(header_max.y, expected_header_bottom)
         << "Header overlay must end at VISUAL_HEIGHT (not HEIGHT) — "
         << "otherwise 4px of COLOR_HEADER_FILL bleeds into the body area";
+}
+
+// ============================================================================
+// Regression: RP border circle rendered on selected/hovered wire
+// Before fix, add_circle was only add_circle_filled (no border outline).
+// ============================================================================
+
+static Blueprint make_wire_with_rp() {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.at(0, 0).size_wh(120, 80); n1.output("o");
+    Node n2; n2.id = "b"; n2.at(400, 0).size_wh(120, 80); n2.input("i");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    w.add_routing_point(Pt(250.0f, 100.0f));
+    bp.add_wire(std::move(w));
+    return bp;
+}
+
+TEST(RenderTest, RoutingPoint_SelectedWire_DrawsBorderCircle) {
+    Blueprint bp = make_wire_with_rp();
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    // Render with wire 0 selected
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache,
+                    nullptr, std::optional<size_t>(0));
+
+    // RP fill (COLOR_ROUTING_POINT) and border (black) must both appear
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::COLOR_ROUTING_POINT))
+        << "Selected wire RP fill circle must be drawn";
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF000000))
+        << "Selected wire RP border circle must be drawn";
+}
+
+TEST(RenderTest, RoutingPoint_HoveredWire_DrawsBorderCircle) {
+    Blueprint bp = make_wire_with_rp();
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    // Render with wire 0 hovered (not selected)
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache,
+                    nullptr, std::nullopt, nullptr, std::optional<size_t>(0));
+
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::COLOR_ROUTING_POINT))
+        << "Hovered wire RP fill circle must be drawn";
+    EXPECT_TRUE(dl.has_circle_with_color(0xFF000000))
+        << "Hovered wire RP border circle must be drawn";
+}
+
+TEST(RenderTest, RoutingPoint_UnselectedWire_NoBorderCircle) {
+    Blueprint bp = make_wire_with_rp();
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    // Render with no wire selected or hovered
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    // RP should NOT be drawn for unselected/unhovered wires
+    EXPECT_FALSE(dl.has_circle_with_color(render_theme::COLOR_ROUTING_POINT))
+        << "Unselected wire should not render RP circles";
+}
+
+// ============================================================================
+// GroupVisualNode rendering tests
+// ============================================================================
+
+TEST(RenderTest, GroupNode_Renders_SemiTransparentFill) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Power";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(200.0f, 120.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    // Group should render a semi-transparent fill rect
+    EXPECT_TRUE(dl.has_rect_filled_with_color(render_theme::COLOR_GROUP_FILL))
+        << "Group node should render semi-transparent fill";
+}
+
+TEST(RenderTest, GroupNode_RendersTitleText) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Power Section";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(200.0f, 120.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    // Check that title text is rendered
+    bool found_title = false;
+    for (const auto& t : dl.texts_) {
+        if (t.text == "Power Section") {
+            found_title = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found_title) << "Group should render its name as title text";
+}
+
+TEST(RenderTest, GroupNode_SelectedBorderColor) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Grp";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(200.0f, 120.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+
+    std::vector<size_t> selected = {0};
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, &selected);
+
+    // Selected group should have the selection border color
+    EXPECT_TRUE(dl.has_rect_border_with_color(render_theme::COLOR_SELECTED))
+        << "Selected group should have selection border color";
+}
+
+// ============================================================================
+// Font enum constants
+// ============================================================================
+
+TEST(RenderTest, FontEnum_SmallMediumLargeValues) {
+    using namespace editor_constants;
+    EXPECT_FLOAT_EQ(Font::Small,  9.0f);
+    EXPECT_FLOAT_EQ(Font::Medium, 12.0f);
+    EXPECT_FLOAT_EQ(Font::Large,  14.0f);
+}
+
+TEST(RenderTest, FontEnum_PortLabelUsesSmall) {
+    using namespace editor_constants;
+    EXPECT_FLOAT_EQ(PORT_LABEL_FONT_SIZE, Font::Small)
+        << "Port labels should use Font::Small";
+}
+
+TEST(RenderTest, FontEnum_OrderingSmallLessMediumLessLarge) {
+    using namespace editor_constants;
+    EXPECT_LT(Font::Small, Font::Medium);
+    EXPECT_LT(Font::Medium, Font::Large);
+}
+
+// ============================================================================
+// Group title uses Font::Medium
+// ============================================================================
+
+TEST(RenderTest, GroupNode_TitleFontSize_IsMedium) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Engines";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;   // zoom = 1.0
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    // Find the title text entry
+    bool found = false;
+    for (const auto& t : dl.texts_) {
+        if (t.text == "Engines") {
+            EXPECT_FLOAT_EQ(t.font_size, editor_constants::Font::Medium * vp.zoom)
+                << "Group title should use Font::Medium scaled by zoom";
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found) << "Group title text 'Engines' not found in draw list";
+}
+
+TEST(RenderTest, GroupNode_TitleFontSize_ScalesWithZoom) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Avionics";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 2.0f;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(1600, 1200), cache);
+
+    for (const auto& t : dl.texts_) {
+        if (t.text == "Avionics") {
+            EXPECT_FLOAT_EQ(t.font_size, editor_constants::Font::Medium * 2.0f)
+                << "Group title font should scale with zoom";
+            return;
+        }
+    }
+    ADD_FAILURE() << "Group title text 'Avionics' not found";
+}
+
+// ============================================================================
+// Group node: no border when unselected
+// ============================================================================
+
+TEST(RenderTest, GroupNode_Unselected_NoBorder) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Group";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    // Render with NO selection → group should have no border
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    EXPECT_FALSE(dl.has_rect_border_with_color(render_theme::COLOR_GROUP_BORDER))
+        << "Unselected group should NOT have GROUP_BORDER";
+    EXPECT_FALSE(dl.has_rect_border_with_color(render_theme::COLOR_SELECTED))
+        << "Unselected group should NOT have selection border";
+}
+
+TEST(RenderTest, GroupNode_Selected_HasBorder) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Group";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    std::vector<size_t> selected = {0};
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, &selected);
+
+    EXPECT_TRUE(dl.has_rect_border_with_color(render_theme::COLOR_SELECTED))
+        << "Selected group MUST have selection border";
+}
+
+// ============================================================================
+// Handle renderer: DRY unified handle drawing
+// ============================================================================
+
+TEST(RenderTest, HandleRenderer_DrawsFilledAndOutlineCircle) {
+    MockDrawList dl;
+    Pt pos(100.0f, 200.0f);
+    float radius = 5.0f;
+    uint32_t fill = 0xFFAABBCC;
+    uint32_t outline = 0xFF112233;
+
+    handle_renderer::draw_handle(dl, pos, radius, fill, outline, 12);
+
+    // Should produce exactly 2 circle draw calls: filled + outline
+    ASSERT_EQ(dl.circle_entries_.size(), 2u);
+
+    // First: filled circle
+    EXPECT_TRUE(dl.circle_entries_[0].filled);
+    EXPECT_EQ(dl.circle_entries_[0].color, fill);
+    EXPECT_FLOAT_EQ(dl.circle_entries_[0].radius, radius);
+
+    // Second: outline circle
+    EXPECT_FALSE(dl.circle_entries_[1].filled);
+    EXPECT_EQ(dl.circle_entries_[1].color, outline);
+    EXPECT_FLOAT_EQ(dl.circle_entries_[1].radius, radius);
+}
+
+TEST(RenderTest, HandleRenderer_DefaultOutlineIsBlack) {
+    MockDrawList dl;
+    handle_renderer::draw_handle(dl, Pt(0, 0), 3.0f, 0xFFFF0000);
+
+    ASSERT_EQ(dl.circle_entries_.size(), 2u);
+    // Default outline color is black (0xFF000000)
+    EXPECT_EQ(dl.circle_entries_[1].color, 0xFF000000u);
+    EXPECT_FALSE(dl.circle_entries_[1].filled);
+}
+
+// ============================================================================
+// Routing points use handle_renderer (DRY: filled circle + outline)
+// ============================================================================
+
+TEST(RenderTest, RoutingPoint_SelectedWire_UsesDRYHandle) {
+    Blueprint bp = make_wire_with_rp();
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache,
+                    nullptr, std::optional<size_t>(0));
+
+    // handle_renderer produces one filled + one outline circle for the RP
+    EXPECT_TRUE(dl.has_filled_circle_with_color(render_theme::COLOR_ROUTING_POINT))
+        << "RP should have filled circle (via handle_renderer)";
+    EXPECT_TRUE(dl.has_outline_circle_with_color(0xFF000000))
+        << "RP should have outline circle (via handle_renderer)";
+}
+
+// ============================================================================
+// Resize handles rendered as circles (not rects) via handle_renderer
+// ============================================================================
+
+TEST(RenderTest, ResizeHandles_AreCircles_NotRects) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Group";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    std::vector<size_t> selected = {0};
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache, &selected);
+
+    // Resize handles should produce filled+outline circles with COLOR_RESIZE_HANDLE
+    EXPECT_TRUE(dl.has_filled_circle_with_color(render_theme::COLOR_RESIZE_HANDLE))
+        << "Resize handles should be filled circles";
+    EXPECT_TRUE(dl.has_outline_circle_with_color(0xFF000000))
+        << "Resize handles should have outline circles (from handle_renderer)";
+
+    // 4 corners × 2 draw calls (filled + outline) = 8 circles with matching colors
+    EXPECT_GE(dl.count_circles_with_color(render_theme::COLOR_RESIZE_HANDLE), 4u)
+        << "Should have at least 4 filled handle circles (one per corner)";
+}
+
+TEST(RenderTest, ResizeHandles_NotShownWhenUnselected) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Group";
+    g.render_hint = "group";
+    g.at(50.0f, 50.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    // No selection
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    EXPECT_FALSE(dl.has_filled_circle_with_color(render_theme::COLOR_RESIZE_HANDLE))
+        << "Resize handles should NOT appear when node is unselected";
+}
+
+// ============================================================================
+// visual_only flag: JSON parsing and solver skip
+// ============================================================================
+
+TEST(RenderTest, VisualOnly_TypeRegistryGroupHasFlag) {
+    // Load type registry — Group.json should have visual_only=true
+    an24::TypeRegistry reg = an24::load_type_registry();
+    const auto* group_def = reg.get("Group");
+    ASSERT_NE(group_def, nullptr) << "Group type must be in registry";
+    EXPECT_TRUE(group_def->visual_only)
+        << "Group type definition should have visual_only=true";
+    EXPECT_EQ(group_def->render_hint, "group");
+}
+
+TEST(RenderTest, VisualOnly_DefaultIsFalse) {
+    // Battery type should NOT have visual_only
+    an24::TypeRegistry reg = an24::load_type_registry();
+    const auto* batt_def = reg.get("Battery");
+    ASSERT_NE(batt_def, nullptr) << "Battery type must be in registry";
+    EXPECT_FALSE(batt_def->visual_only)
+        << "Battery should not have visual_only (it has real simulation)";
+}
+
+TEST(RenderTest, VisualOnly_PropagatedToDeviceInstance) {
+    // Create a TypeDefinition with visual_only=true
+    an24::TypeDefinition group_def;
+    group_def.classname = "Group";
+    group_def.visual_only = true;
+
+    // Create a minimal DeviceInstance
+    an24::DeviceInstance inst;
+    inst.name = "grp1";
+    inst.classname = "Group";
+
+    // merge_device_instance propagates visual_only
+    auto merged = an24::merge_device_instance(inst, group_def);
+    EXPECT_TRUE(merged.visual_only)
+        << "merge_device_instance should propagate visual_only from definition";
+}
+
+TEST(RenderTest, VisualOnly_NotPropagatedWhenFalse) {
+    an24::TypeDefinition batt_def;
+    batt_def.classname = "Battery";
+    batt_def.visual_only = false;  // default
+
+    an24::DeviceInstance inst;
+    inst.name = "bat1";
+    inst.classname = "Battery";
+
+    auto merged = an24::merge_device_instance(inst, batt_def);
+    EXPECT_FALSE(merged.visual_only)
+        << "Non-visual-only type should NOT mark instance as visual_only";
+}
+
+TEST(RenderTest, VisualOnly_SolverSkipsGroupDevice) {
+    // Build a minimal circuit with a Group device that should be skipped
+    Blueprint bp;
+    bp.grid_step = 16.0f;
+
+    // Normal circuit components
+    Node gnd;
+    gnd.id = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.render_hint = "ref";
+    gnd.output("v");
+    gnd.at(80, 240);
+    gnd.size_wh(40, 40);
+    gnd.node_content.type = NodeContentType::Value;
+    gnd.node_content.value = 0.0f;
+    bp.add_node(std::move(gnd));
+
+    Node batt;
+    batt.id = "bat";
+    batt.type_name = "Battery";
+    batt.input("v_in");
+    batt.output("v_out");
+    batt.at(80, 80);
+    batt.size_wh(120, 80);
+    bp.add_node(std::move(batt));
+
+    // Add a Group visual-only node
+    Node grp;
+    grp.id = "grp1";
+    grp.name = "Power";
+    grp.type_name = "Group";
+    grp.render_hint = "group";
+    grp.at(50, 50);
+    grp.size_wh(200, 200);
+    bp.add_node(std::move(grp));
+
+    // Wire the real components
+    Wire w1;
+    w1.start.node_id = "gnd"; w1.start.port_name = "v";
+    w1.end.node_id = "bat";   w1.end.port_name = "v_in";
+    bp.add_wire(std::move(w1));
+
+    Wire w2;
+    w2.start.node_id = "bat"; w2.start.port_name = "v_out";
+    w2.end.node_id = "gnd";   w2.end.port_name = "v";
+    bp.add_wire(std::move(w2));
+
+    // Should NOT throw "Unknown component type: Group"
+    an24::Simulator<an24::JIT_Solver> sim;
+    EXPECT_NO_THROW(sim.start(bp))
+        << "Solver should skip visual_only devices like Group";
+
+    // Simulation should still work (step without crash)
+    EXPECT_NO_THROW({
+        for (int i = 0; i < 100; i++) sim.step(0.016f);
+    }) << "Stepping with visual_only nodes should not crash";
+}
+
+// ============================================================================
+// Normal (non-group) node still has border when unselected
+// ============================================================================
+
+TEST(RenderTest, NormalNode_Unselected_StillHasBorder) {
+    Blueprint bp;
+    Node n;
+    n.id = "bat1";
+    n.name = "Battery";
+    n.type_name = "Battery";
+    n.input("v_in");
+    n.output("v_out");
+    n.at(100.0f, 50.0f);
+    n.size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n));
+
+    MockDrawList dl;
+    Viewport vp;
+    VisualNodeCache cache;
+    BlueprintRenderer renderer;
+    renderer.render(bp, dl, vp, Pt(0, 0), Pt(800, 600), cache);
+
+    // Normal nodes always have their styled border, even when unselected
+    EXPECT_TRUE(dl.rect_border_colors_.size() > 0)
+        << "Normal node should still have border rects when unselected";
+}
+
+// ============================================================================
+// GroupVisualNode is resizable, normal nodes are not
+// ============================================================================
+
+TEST(RenderTest, GroupNode_IsResizable) {
+    Node g;
+    g.id = "grp1";
+    g.name = "Group";
+    g.render_hint = "group";
+    g.at(50, 50);
+    g.size_wh(192, 128);
+
+    auto visual = VisualNodeFactory::create(g);
+    EXPECT_TRUE(visual->isResizable())
+        << "GroupVisualNode should be resizable";
+    EXPECT_TRUE(visual->isGroup())
+        << "GroupVisualNode should report isGroup()=true";
+}
+
+TEST(RenderTest, NormalNode_IsNotResizable) {
+    Node n;
+    n.id = "bat1";
+    n.name = "Battery";
+    n.type_name = "Battery";
+    n.input("v_in");
+    n.output("v_out");
+    n.at(100, 50);
+    n.size_wh(120, 80);
+
+    auto visual = VisualNodeFactory::create(n);
+    EXPECT_FALSE(visual->isResizable())
+        << "Normal VisualNode should NOT be resizable";
+    EXPECT_FALSE(visual->isGroup())
+        << "Normal VisualNode should report isGroup()=false";
+}
+
+// ============================================================================
+// MockDrawList: font_size is recorded in TextEntry
+// ============================================================================
+
+TEST(RenderTest, MockDrawList_RecordsFontSize) {
+    MockDrawList dl;
+    dl.add_text(Pt(10, 20), "hello", 0xFFFFFFFF, 16.0f);
+    dl.add_text(Pt(30, 40), "world", 0xFF000000, 9.0f);
+
+    ASSERT_EQ(dl.texts_.size(), 2u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, 16.0f);
+    EXPECT_FLOAT_EQ(dl.texts_[1].font_size, 9.0f);
+}
+
+TEST(RenderTest, MockDrawList_CircleEntries_TrackPositionAndFilled) {
+    MockDrawList dl;
+    dl.add_circle_filled(Pt(10, 20), 5.0f, 0xFFFF0000, 12);
+    dl.add_circle(Pt(10, 20), 5.0f, 0xFF000000, 12);
+
+    ASSERT_EQ(dl.circle_entries_.size(), 2u);
+    EXPECT_TRUE(dl.circle_entries_[0].filled);
+    EXPECT_FALSE(dl.circle_entries_[1].filled);
+    EXPECT_FLOAT_EQ(dl.circle_entries_[0].center.x, 10.0f);
+    EXPECT_FLOAT_EQ(dl.circle_entries_[0].center.y, 20.0f);
 }

@@ -4,7 +4,6 @@
 #include "editor/visual/trigonometry.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
-#include "editor/viewport/viewport.h"
 #include "editor/visual/node/node.h"
 #include <cmath>
 
@@ -13,10 +12,9 @@
 TEST(HitTest, EmptyBlueprint_ReturnsNone) {
     Blueprint bp;
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
-    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -29,11 +27,10 @@ TEST(HitTest, Node_Inside_ReturnsNode) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
     // Клик внутри узла
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -47,11 +44,10 @@ TEST(HitTest, Node_Outside_ReturnsNone) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
     // Клик вне узла
-    auto hit = hit_test(bp, cache, Pt(0.0f, 0.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(0.0f, 0.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None);
 }
 
@@ -71,11 +67,10 @@ TEST(HitTest, MultipleNodes_ReturnsClosest) {
     bp.add_node(std::move(n2));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
     // Клик между узлами - первый найденный
-    auto hit = hit_test(bp, cache, Pt(50.0f, 25.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(50.0f, 25.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0);
 }
@@ -87,7 +82,6 @@ TEST(HitTest, MultipleNodes_ReturnsClosest) {
 TEST(PortHitTest, EmptyBlueprint_NoPorts) {
     Blueprint bp;
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
@@ -105,7 +99,6 @@ TEST(PortHitTest, NodeWithPorts_ClickNearPort_ReturnsPort) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
@@ -132,7 +125,6 @@ TEST(PortHitTest, ClickFarFromPorts_ReturnsNone) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
@@ -394,17 +386,16 @@ TEST(CachedHitTest, CachedHitTest_InsideAndOutside) {
     n.size_wh(120.0f, 80.0f);
     bp.add_node(std::move(n));
 
-    Viewport vp;
     VisualNodeCache cache;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
     // Point inside node
-    HitResult r1 = hit_test(bp, cache, Pt(150.0f, 90.0f), vp, "", grid);
+    HitResult r1 = hit_test(bp, cache, Pt(150.0f, 90.0f), "", grid);
     EXPECT_EQ(r1.type, HitType::Node);
 
     // Point outside
-    HitResult r2 = hit_test(bp, cache, Pt(500.0f, 500.0f), vp, "", grid);
+    HitResult r2 = hit_test(bp, cache, Pt(500.0f, 500.0f), "", grid);
     EXPECT_EQ(r2.type, HitType::None);
 }
 
@@ -421,7 +412,6 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
@@ -436,13 +426,13 @@ TEST(WireHitTolerance, UniformToleranceForAllSegments) {
     Pt perp(-seg_dy / seg_len * 4.5f, seg_dx / seg_len * 4.5f);
     Pt test_pt(mid.x + perp.x, mid.y + perp.y);
 
-    HitResult r = hit_test(bp, cache, test_pt, vp, "", grid);
+    HitResult r = hit_test(bp, cache, test_pt, "", grid);
     EXPECT_EQ(r.type, HitType::Wire);
 
     // 6.0 units away should NOT hit
     Pt perp_far(-seg_dy / seg_len * 6.0f, seg_dx / seg_len * 6.0f);
     Pt test_pt_far(mid.x + perp_far.x, mid.y + perp_far.y);
-    HitResult r2 = hit_test(bp, cache, test_pt_far, vp, "", grid);
+    HitResult r2 = hit_test(bp, cache, test_pt_far, "", grid);
     EXPECT_EQ(r2.type, HitType::None);
 }
 
@@ -477,7 +467,6 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
     bp.add_wire(std::move(w2));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
@@ -490,7 +479,7 @@ TEST(HitTest, WireClick_BusTwoWires_CachedOverload) {
     Pt end2   = editor_math::get_port_position(bp.nodes[0], "v", bp.wires, "w2", cache);
     Pt mid2((start2.x + end2.x) / 2.0f, (start2.y + end2.y) / 2.0f);
 
-    HitResult r = hit_test(bp, cache, mid2, vp, "", grid);
+    HitResult r = hit_test(bp, cache, mid2, "", grid);
     EXPECT_EQ(r.type, HitType::Wire);
     EXPECT_EQ(r.wire_index, 1u);  // w2 is the second wire
 }
@@ -575,11 +564,10 @@ TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
     // Click inside the node's bounds, but filtering for root group ""
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
@@ -593,11 +581,10 @@ TEST(HitTestGroupFilter, NodeInDifferentGroup_NotHittable_WithCache) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Node in different group should not be hittable";
 }
 
@@ -611,10 +598,9 @@ TEST(HitTestGroupFilter, NodeInSameGroup_Hittable) {
     bp.add_node(std::move(n));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::Node) << "Node in same group should be hittable";
     EXPECT_EQ(hit.node_index, 0u);
 }
@@ -667,10 +653,9 @@ TEST(HitTestGroupFilter, WireCrossGroup_NotHittable) {
     bp.add_wire(std::move(w));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
-    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(200.0f, 25.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::None) << "Wire crossing groups should not be hittable";
 }
 
@@ -693,19 +678,424 @@ TEST(HitTestGroupFilter, DrillInOut_GroupSwitching) {
     bp.add_node(std::move(internal));
 
     VisualNodeCache cache;
-    Viewport vp;
     editor_spatial::SpatialGrid grid;
     grid.rebuild(bp, cache, "");
 
     // At root: collapsed is hittable, internal is not
-    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "", grid);
+    auto hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0u);
 
     // Drilled into "lamp1": internal is hittable, collapsed is not
     grid.rebuild(bp, cache, "lamp1");
-    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), vp, "lamp1", grid);
+    hit = hit_test(bp, cache, Pt(150.0f, 80.0f), "lamp1", grid);
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 1u) << "After drill-in, internal node should be hittable";
+}
+
+// ============================================================================
+// Regression: wire hit test near routing points (L-turns)
+// The routing point hit radius (10px) is larger than wire segment tolerance (5px).
+// Points on a wire segment near a routing point must still return Wire or
+// RoutingPoint — never None.
+// ============================================================================
+
+TEST(HitTest, WireHittableNearRoutingPoint) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.at(0, 0).size_wh(120, 80); n1.output("o");
+    Node n2; n2.id = "b"; n2.at(400, 200).size_wh(120, 80); n2.input("i");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+
+    // L-shaped wire with a routing point at the corner
+    Wire w = Wire::make("w1", wire_output("a", "o"), wire_input("b", "i"));
+    const Pt rp(300.0f, 40.0f);
+    w.add_routing_point(rp);
+    bp.add_wire(std::move(w));
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Exactly on the routing point → RoutingPoint
+    HitResult hit = hit_test(bp, cache, rp, "", grid);
+    EXPECT_EQ(hit.type, HitType::RoutingPoint);
+    EXPECT_EQ(hit.wire_index, 0u);
+
+    // 8px back along the first segment (within RP radius but ON the wire)
+    Pt start_pos = editor_math::get_port_position(bp.nodes[0], "o", bp.wires, nullptr, cache);
+    float dx = rp.x - start_pos.x;
+    float dy = rp.y - start_pos.y;
+    float len = std::sqrt(dx * dx + dy * dy);
+    Pt near_rp_on_seg1(rp.x - dx / len * 8.0f, rp.y - dy / len * 8.0f);
+
+    hit = hit_test(bp, cache, near_rp_on_seg1, "", grid);
+    EXPECT_TRUE(hit.type == HitType::Wire || hit.type == HitType::RoutingPoint)
+        << "Point on segment near RP must be hittable (Wire or RoutingPoint), got None";
+
+    // 8px along the second segment from the RP
+    Pt end_pos = editor_math::get_port_position(bp.nodes[1], "i", bp.wires, nullptr, cache);
+    float dx2 = end_pos.x - rp.x;
+    float dy2 = end_pos.y - rp.y;
+    float len2 = std::sqrt(dx2 * dx2 + dy2 * dy2);
+    Pt near_rp_on_seg2(rp.x + dx2 / len2 * 8.0f, rp.y + dy2 / len2 * 8.0f);
+
+    hit = hit_test(bp, cache, near_rp_on_seg2, "", grid);
+    EXPECT_TRUE(hit.type == HitType::Wire || hit.type == HitType::RoutingPoint)
+        << "Point on segment near RP must be hittable (Wire or RoutingPoint), got None";
+}
+
+// ============================================================================
+// GroupVisualNode hit tests
+// ============================================================================
+
+TEST(HitTest, GroupNode_TitleBar_ReturnsNode) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Power Section";
+    g.render_hint = "group";
+    g.at(96.0f, 96.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Click on title bar (top-left area of the group)
+    auto hit = hit_test(bp, cache, Pt(192.0f, 106.0f), "", grid);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 0u);
+}
+
+TEST(HitTest, GroupNode_ResizeHandle_BottomRight) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.name = "Grp";
+    g.render_hint = "group";
+    g.at(96.0f, 96.0f);
+    g.size_wh(192.0f, 128.0f);  // multiples of 16 (PORT_LAYOUT_GRID)
+    bp.add_node(std::move(g));
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Bottom-right corner at (96+192, 96+128) = (288, 224)
+    auto hit = hit_test(bp, cache, Pt(288.0f, 224.0f), "", grid);
+    EXPECT_EQ(hit.type, HitType::ResizeHandle);
+    EXPECT_EQ(hit.node_index, 0u);
+    EXPECT_EQ(hit.resize_corner, ResizeCorner::BottomRight);
+}
+
+TEST(HitTest, GroupNode_ResizeHandle_TopLeft) {
+    Blueprint bp;
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(96.0f, 96.0f);
+    g.size_wh(192.0f, 128.0f);
+    bp.add_node(std::move(g));
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    auto hit = hit_test(bp, cache, Pt(96.0f, 96.0f), "", grid);
+    EXPECT_EQ(hit.type, HitType::ResizeHandle);
+    EXPECT_EQ(hit.resize_corner, ResizeCorner::TopLeft);
+}
+
+TEST(HitTest, NormalNode_NoResizeHandle) {
+    Blueprint bp;
+    Node n;
+    n.id = "bat1";
+    n.name = "Bat";
+    n.type_name = "Battery";
+    n.at(100.0f, 100.0f);
+    n.size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n));
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Click exactly on the corner of a normal node — should be Node, not ResizeHandle
+    auto hit = hit_test(bp, cache, Pt(100.0f, 100.0f), "", grid);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_NE(hit.type, HitType::ResizeHandle);
+}
+
+// ============================================================================
+// GroupVisualNode property tests
+// ============================================================================
+
+TEST(GroupVisualNode, IsGroup) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0, 0);
+    g.size_wh(200.0f, 120.0f);
+    auto visual = VisualNodeFactory::create(g);
+    EXPECT_TRUE(visual->isGroup());
+    EXPECT_TRUE(visual->isResizable());
+}
+
+TEST(GroupVisualNode, NormalNode_IsNotGroup) {
+    Node n;
+    n.id = "bat1";
+    n.name = "Bat";
+    n.type_name = "Battery";
+    n.at(0, 0);
+    n.size_wh(120.0f, 80.0f);
+    auto visual = VisualNodeFactory::create(n);
+    EXPECT_FALSE(visual->isGroup());
+    EXPECT_FALSE(visual->isResizable());
+}
+
+TEST(GroupVisualNode, NoPorts) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0, 0);
+    g.size_wh(200.0f, 120.0f);
+    auto visual = VisualNodeFactory::create(g);
+    EXPECT_EQ(visual->getPortCount(), 0u);
+}
+
+TEST(GroupVisualNode, SizeFromData) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(48.0f, 64.0f);
+    g.size_wh(192.0f, 128.0f);
+    auto visual = VisualNodeFactory::create(g);
+    EXPECT_FLOAT_EQ(visual->getPosition().x, 48.0f);
+    EXPECT_FLOAT_EQ(visual->getPosition().y, 64.0f);
+    EXPECT_FLOAT_EQ(visual->getSize().x, 192.0f);
+    EXPECT_FLOAT_EQ(visual->getSize().y, 128.0f);
+}
+
+// ============================================================================
+// Group hit-test: border-only containsPoint (interior passes through)
+// ============================================================================
+
+// Helper: build a blueprint with a group covering a wire+node inside it
+static Blueprint make_group_with_wire_inside() {
+    Blueprint bp;
+
+    // Group at (0,0) size 320x240
+    Node g;
+    g.id = "grp1";
+    g.name = "Power";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    bp.add_node(std::move(g));
+
+    // Two normal nodes inside the group bounds
+    Node n1;
+    n1.id = "bat";
+    n1.type_name = "Battery";
+    n1.output("v_out");
+    n1.at(32.0f, 48.0f);
+    n1.size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n1));
+
+    Node n2;
+    n2.id = "res";
+    n2.type_name = "Resistor";
+    n2.input("v_in");
+    n2.at(192.0f, 48.0f);
+    n2.size_wh(120.0f, 80.0f);
+    bp.add_node(std::move(n2));
+
+    // Wire between them (runs through group interior)
+    Wire w = Wire::make("w1", wire_output("bat", "v_out"), wire_input("res", "v_in"));
+    bp.add_wire(std::move(w));
+
+    return bp;
+}
+
+TEST(GroupHitTest, ContainsPoint_TitleBar_Hit) {
+    Node g;
+    g.id = "grp1";
+    g.name = "Power";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    // Title bar area (y within top padding+font+padding)
+    EXPECT_TRUE(visual->containsPoint(Pt(160.0f, 5.0f)))
+        << "Click on title bar should hit group";
+    EXPECT_TRUE(visual->containsPoint(Pt(160.0f, 20.0f)))
+        << "Click within title height should hit group";
+}
+
+TEST(GroupHitTest, ContainsPoint_LeftBorder_Hit) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    // Near left edge
+    EXPECT_TRUE(visual->containsPoint(Pt(3.0f, 120.0f)))
+        << "Click near left border should hit group";
+}
+
+TEST(GroupHitTest, ContainsPoint_RightBorder_Hit) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    // Near right edge
+    EXPECT_TRUE(visual->containsPoint(Pt(317.0f, 120.0f)))
+        << "Click near right border should hit group";
+}
+
+TEST(GroupHitTest, ContainsPoint_BottomBorder_Hit) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    // Near bottom edge
+    EXPECT_TRUE(visual->containsPoint(Pt(160.0f, 237.0f)))
+        << "Click near bottom border should hit group";
+}
+
+TEST(GroupHitTest, ContainsPoint_Interior_PassThrough) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    // Center of group (well inside borders)
+    EXPECT_FALSE(visual->containsPoint(Pt(160.0f, 120.0f)))
+        << "Click in group interior should PASS THROUGH (not hit group)";
+}
+
+TEST(GroupHitTest, ContainsPoint_Outside_Miss) {
+    Node g;
+    g.id = "grp1";
+    g.render_hint = "group";
+    g.at(0.0f, 0.0f);
+    g.size_wh(320.0f, 240.0f);
+    auto visual = VisualNodeFactory::create(g);
+
+    EXPECT_FALSE(visual->containsPoint(Pt(-10.0f, 120.0f)))
+        << "Click outside should miss";
+    EXPECT_FALSE(visual->containsPoint(Pt(400.0f, 120.0f)))
+        << "Click outside should miss";
+}
+
+TEST(GroupHitTest, WireInsideGroup_Hittable) {
+    Blueprint bp = make_group_with_wire_inside();
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Get actual wire endpoint positions to find a point on the wire
+    const auto* bat = bp.find_node("bat");
+    const auto* res = bp.find_node("res");
+    ASSERT_NE(bat, nullptr);
+    ASSERT_NE(res, nullptr);
+
+    auto* vbat = cache.getOrCreate(*bat, bp.wires);
+    auto* vres = cache.getOrCreate(*res, bp.wires);
+    const VisualPort* vout = vbat->getPort("v_out");
+    const VisualPort* vin  = vres->getPort("v_in");
+    ASSERT_NE(vout, nullptr);
+    ASSERT_NE(vin, nullptr);
+
+    Pt p1 = vout->worldPosition();
+    Pt p2 = vin->worldPosition();
+    Pt mid((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+
+    auto hit = hit_test(bp, cache, mid, "", grid);
+    // Should hit wire inside the group — NOT the group itself
+    EXPECT_EQ(hit.type, HitType::Wire)
+        << "Wire inside group bounds should be hittable (mid=" << mid.x << "," << mid.y << ")";
+}
+
+TEST(GroupHitTest, NodeInsideGroup_Hittable) {
+    Blueprint bp = make_group_with_wire_inside();
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Click on center of battery node (32+60=92, 48+40=88)
+    Pt bat_center(92.0f, 88.0f);
+
+    auto hit = hit_test(bp, cache, bat_center, "", grid);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 1u)  // bat is index 1 (group is 0)
+        << "Should hit battery node inside group, not the group itself";
+}
+
+TEST(GroupHitTest, PortInsideGroup_Hittable) {
+    Blueprint bp = make_group_with_wire_inside();
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Get battery output port position
+    const auto* bat = bp.find_node("bat");
+    auto* vbat = cache.getOrCreate(*bat, bp.wires);
+    const VisualPort* vout = vbat->getPort("v_out");
+
+    if (vout) {
+        Pt port_pos = vout->worldPosition();
+        auto hit = hit_test_ports(bp, cache, port_pos, "", grid);
+        EXPECT_EQ(hit.type, HitType::Port)
+            << "Port inside group bounds should be hittable";
+    }
+}
+
+TEST(GroupHitTest, GroupTitleBar_HitsGroup) {
+    Blueprint bp = make_group_with_wire_inside();
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Click on top-left of group (title bar area)
+    Pt title(100.0f, 10.0f);
+
+    auto hit = hit_test(bp, cache, title, "", grid);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 0u)
+        << "Clicking on group title bar should select the group";
+}
+
+TEST(GroupHitTest, GroupBorder_HitsGroup) {
+    Blueprint bp = make_group_with_wire_inside();
+
+    VisualNodeCache cache;
+    editor_spatial::SpatialGrid grid;
+    grid.rebuild(bp, cache, "");
+
+    // Click on left border of group (x ≈ 2, y in middle)
+    Pt left_border(2.0f, 140.0f);
+
+    auto hit = hit_test(bp, cache, left_border, "", grid);
+    EXPECT_EQ(hit.type, HitType::Node);
+    EXPECT_EQ(hit.node_index, 0u)
+        << "Clicking on group border should select the group";
 }
 

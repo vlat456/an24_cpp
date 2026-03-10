@@ -175,8 +175,8 @@ void VisualNode::buildLayout(const Node& node) {
         }
 
         // Wrap row in padding container to achieve PORT_ROW_HEIGHT
-        float inner_h = editor_constants::PORT_RADIUS * 2.0f;
-        float pad = (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f;
+        float inner_h = row->getPreferredSize(nullptr).y;
+        float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
         auto row_container = std::make_unique<Container>(
             std::move(row),
             Edges{0, pad, 0, pad}
@@ -603,6 +603,73 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     Pt port_pos = vp.world_to_screen(world_port_pos, canvas_min);
     uint32_t port_color = render_theme::get_port_color(ports_[0].type());
     dl->add_circle_filled(port_pos, editor_constants::PORT_RADIUS * vp.zoom, port_color, 8);
+}
+
+// ============================================================================
+// GroupVisualNode
+// ============================================================================
+
+GroupVisualNode::GroupVisualNode(const Node& node)
+    : VisualNode(node)
+{
+    // Group uses size directly from data model (no auto-size layout)
+    size_ = snap_size_to_grid(node.size);
+    ports_.clear();
+    port_slots_.clear();
+}
+
+bool GroupVisualNode::containsPoint(Pt world_pos) const {
+    float x0 = position_.x, y0 = position_.y;
+    float x1 = x0 + size_.x, y1 = y0 + size_.y;
+
+    // Outside the bounding rect entirely → miss
+    if (world_pos.x < x0 || world_pos.x > x1 ||
+        world_pos.y < y0 || world_pos.y > y1)
+        return false;
+
+    float m = editor_constants::GROUP_BORDER_HIT_MARGIN;
+
+    // Title bar (top strip): padding + font height + padding
+    float title_h = editor_constants::GROUP_TITLE_PADDING * 2 + editor_constants::Font::Medium;
+    if (world_pos.y <= y0 + title_h)
+        return true;
+
+    // Near any edge → hit (border area)
+    if (world_pos.x <= x0 + m || world_pos.x >= x1 - m ||
+        world_pos.y >= y1 - m)
+        return true;
+
+    // Interior → pass through
+    return false;
+}
+
+void GroupVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
+                             bool is_selected) const {
+    Pt screen_min = vp.world_to_screen(position_, canvas_min);
+    Pt screen_max = vp.world_to_screen(
+        Pt(position_.x + size_.x, position_.y + size_.y), canvas_min);
+
+    float rounding = editor_constants::GROUP_ROUNDING * vp.zoom;
+
+    uint32_t fill = custom_color_.has_value()
+        ? (custom_color_->to_uint32() & 0x00FFFFFF) | 0x30000000  // Force semi-transparent
+        : render_theme::COLOR_GROUP_FILL;
+    dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
+
+    // Border only when selected
+    if (is_selected) {
+        dl->add_rect_with_rounding_corners(screen_min, screen_max,
+                                           render_theme::COLOR_SELECTED, rounding,
+                                           editor_constants::DRAW_CORNERS_ALL, 1.0f);
+    }
+
+    // Title text at top-left
+    if (!name_.empty()) {
+        float pad = editor_constants::GROUP_TITLE_PADDING * vp.zoom;
+        Pt text_pos(screen_min.x + pad, screen_min.y + pad);
+        dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_GROUP_TITLE,
+                     editor_constants::Font::Medium * vp.zoom);
+    }
 }
 
 // ============================================================================

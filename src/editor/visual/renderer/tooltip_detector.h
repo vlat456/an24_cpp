@@ -4,11 +4,12 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "visual/node/node.h"
+#include "visual/spatial_grid.h"
 #include "jit_solver/simulator.h"
 #include <vector>
 
 /// Detects tooltip info when hovering over ports or wire segments.
-/// Requires polylines from WireRenderer.
+/// Uses SpatialGrid for O(1) candidate lookup instead of scanning all entities.
 class TooltipDetector {
 public:
     /// Detect tooltip at world_pos. Returns active TooltipInfo or inactive default.
@@ -16,7 +17,7 @@ public:
                        Pt canvas_min, VisualNodeCache& cache,
                        Pt world_pos,
                        const an24::Simulator<an24::JIT_Solver>& sim,
-                       const std::vector<std::vector<Pt>>& polylines,
+                       const editor_spatial::SpatialGrid& grid,
                        const std::string& group_id = "") const;
 
     /// Render a tooltip box.

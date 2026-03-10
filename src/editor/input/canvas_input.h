@@ -87,6 +87,12 @@ private:
     size_t rp_wire_ = 0;
     size_t rp_index_ = 0;
 
+    // Resize drag
+    size_t resize_node_idx_ = 0;
+    ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
+    Pt resize_original_pos_;
+    Pt resize_original_size_;
+
     // Marquee
     Pt marquee_start_;
     Pt marquee_end_;
@@ -98,6 +104,7 @@ private:
     void enter_panning();
     void enter_drag_node(size_t node_index, bool add_to_selection, bool ctrl);
     void enter_drag_routing_point(size_t wire_idx, size_t rp_idx);
+    void enter_resize_node(size_t node_index, ResizeCorner corner);
     void enter_create_wire(const std::string& node_id, const std::string& port_name,
                            PortSide side, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,

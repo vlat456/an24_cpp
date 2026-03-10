@@ -77,7 +77,7 @@ private:
     std::string name_;
     uint32_t fill_color_;
     float rounding_;  ///< World-space corner rounding radius (0 = sharp)
-    static constexpr float FONT_SIZE = 12.0f;
+    static constexpr float FONT_SIZE = 12.0f;  // Font::Medium
     static constexpr float PADDING = 5.0f;
 
     static float estimateTextWidth(const std::string& text) {

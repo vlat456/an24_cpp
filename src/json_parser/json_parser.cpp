@@ -702,6 +702,11 @@ static TypeDefinition parse_type_definition(const json& j) {
         def.render_hint = j["render_hint"].get<std::string>();
     }
 
+    // Parse visual_only flag
+    if (j.contains("visual_only")) {
+        def.visual_only = j["visual_only"].get<bool>();
+    }
+
     // Parse size {x, y} in grid units
     if (j.contains("size") && j["size"].is_object()) {
         auto size_obj = j["size"];
@@ -865,6 +870,11 @@ DeviceInstance merge_device_instance(
     // Merge critical: instance overrides default
     if (!merged.critical && definition.critical) {
         merged.critical = true;
+    }
+
+    // Propagate visual_only from definition
+    if (definition.visual_only) {
+        merged.visual_only = true;
     }
 
     return merged;

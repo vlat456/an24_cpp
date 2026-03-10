@@ -598,14 +598,12 @@ TEST(RouterTest, RouteWithPortDeparture) {
     // Path should start by going RIGHT from start, then LEFT into end
     Node n1;
     n1.id = "n1";
-    n1.pos = Pt(0, 0);
-    n1.size = Pt(120, 80);
+    n1.at(0, 0).size_wh(120, 80);
     n1.output("out");
 
     Node n2;
     n2.id = "n2";
-    n2.pos = Pt(300, 0);
-    n2.size = Pt(120, 80);
+    n2.at(300, 0).size_wh(120, 80);
     n2.input("in");
 
     std::vector<Node> nodes = {n1, n2};

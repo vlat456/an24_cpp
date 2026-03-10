@@ -329,6 +329,8 @@ int main(int argc, char** argv) {
                 ImVec2 mp = ImGui::GetMousePos();
                 Pt mouse_world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
                 win.input.update_hover(mouse_world);
+            } else {
+                win.input.update_hover(Pt(-1e9f, -1e9f));  // clear hover
             }
 
             // Grid + blueprint

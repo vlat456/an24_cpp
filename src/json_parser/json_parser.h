@@ -81,6 +81,7 @@ struct TypeDefinition {
     bool critical = false;            // Critical flag
     std::string content_type = "None"; // UI content type (None, Gauge, Switch, Text)
     std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
+    bool visual_only = false;  // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
@@ -140,6 +141,7 @@ struct DeviceInstance {
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;  // From component definition only, NOT user-configurable
+    bool visual_only = false;      // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
 

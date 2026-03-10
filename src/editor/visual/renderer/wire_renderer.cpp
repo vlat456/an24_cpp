@@ -1,5 +1,6 @@
 #include "visual/renderer/wire_renderer.h"
 #include "visual/renderer/render_theme.h"
+#include "visual/renderer/handle_renderer.h"
 #include "layout_constants.h"
 #include "visual/trigonometry.h"
 #include "router/crossings.h"
@@ -96,7 +97,8 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
         if (is_selected || is_hovered) {
             for (const auto& rp : w.routing_points) {
                 Pt screen_rp = vp.world_to_screen(rp, canvas_min);
-                dl.add_circle_filled(screen_rp, editor_constants::ROUTING_POINT_RADIUS * vp.zoom, COLOR_ROUTING_POINT, 12);
+                float r = editor_constants::ROUTING_POINT_RADIUS * vp.zoom;
+                handle_renderer::draw_handle(dl, screen_rp, r, COLOR_ROUTING_POINT);
             }
         }
 

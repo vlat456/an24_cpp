@@ -12,6 +12,14 @@ namespace editor_spatial {
 
 constexpr float CELL_SIZE = 64.0f;  // Must be > PORT_HIT_RADIUS * 2
 
+namespace detail {
+/// Append idx to vec only if not already present.  O(n) is fine for small candidate sets.
+inline void push_unique(std::vector<size_t>& vec, size_t idx) {
+    for (size_t x : vec) { if (x == idx) return; }
+    vec.push_back(idx);
+}
+} // namespace detail
+
 inline int cell_coord(float world) {
     return (int)std::floor(world / CELL_SIZE);
 }
@@ -79,12 +87,8 @@ public:
             for (int cy = cy0; cy <= cy1; cy++) {
                 auto it = cells_.find(cell_key(cx, cy));
                 if (it == cells_.end()) continue;
-                for (size_t idx : it->second.node_indices) {
-                    // Deduplicate: only append if not already in out_nodes
-                    bool found = false;
-                    for (size_t x : out_nodes) { if (x == idx) { found = true; break; } }
-                    if (!found) out_nodes.push_back(idx);
-                }
+                for (size_t idx : it->second.node_indices)
+                    detail::push_unique(out_nodes, idx);
             }
         }
     }
@@ -100,11 +104,8 @@ public:
             for (int cy = cy0; cy <= cy1; cy++) {
                 auto it = cells_.find(cell_key(cx, cy));
                 if (it == cells_.end()) continue;
-                for (size_t idx : it->second.wire_indices) {
-                    bool found = false;
-                    for (size_t x : out_wires) { if (x == idx) { found = true; break; } }
-                    if (!found) out_wires.push_back(idx);
-                }
+                for (size_t idx : it->second.wire_indices)
+                    detail::push_unique(out_wires, idx);
             }
         }
     }
@@ -141,10 +142,7 @@ private:
         int cx1 = cell_coord(max_x), cy1 = cell_coord(max_y);
         for (int cx = cx0; cx <= cx1; cx++) {
             for (int cy = cy0; cy <= cy1; cy++) {
-                auto& cell = get_or_create(cx, cy);
-                bool found = false;
-                for (size_t x : cell.wire_indices) { if (x == wire_idx) { found = true; break; } }
-                if (!found) cell.wire_indices.push_back(wire_idx);
+                detail::push_unique(get_or_create(cx, cy).wire_indices, wire_idx);
             }
         }
     }

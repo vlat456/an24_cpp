@@ -90,6 +90,10 @@ public:
     const std::optional<NodeColor>& customColor() const { return custom_color_; }
     void setCustomColor(std::optional<NodeColor> c) { custom_color_ = std::move(c); }
 
+    // --- Group / resize queries ---
+    virtual bool isGroup() const { return false; }
+    virtual bool isResizable() const { return false; }
+
     // --- IDrawable ---
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
@@ -175,6 +179,25 @@ public:
 };
 
 // ============================================================================
+// GroupVisualNode — Pure-visual grouping rectangle
+// ============================================================================
+
+class GroupVisualNode : public VisualNode {
+public:
+    GroupVisualNode(const Node& node);
+
+    bool isGroup() const override { return true; }
+    bool isResizable() const override { return true; }
+
+    /// Hit only on border edges + title bar, not the interior.
+    /// This lets wires/ports inside the group receive hits.
+    bool containsPoint(Pt world_pos) const override;
+
+    void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
+               bool is_selected) const override;
+};
+
+// ============================================================================
 // Factory
 // ============================================================================
 
@@ -187,6 +210,9 @@ public:
         }
         if (node.render_hint == "ref") {
             return std::make_unique<RefVisualNode>(node);
+        }
+        if (node.render_hint == "group") {
+            return std::make_unique<GroupVisualNode>(node);
         }
         if (node.expandable) {
             // Expandable (collapsed blueprint) — strip content

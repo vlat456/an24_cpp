@@ -472,3 +472,154 @@ TEST(TooltipCanvasMin, ScenePassesCanvasMinToDetector) {
     // Far from any node — should be inactive
     EXPECT_FALSE(tooltip.active);
 }
+
+// ============================================================================
+// Regression: dragging RP must keep wire selected (selection color + RP circle)
+// Before fix, enter_drag_routing_point didn't set selected_wire_, so the wire
+// lost its selection color and RP circles disappeared during drag.
+// ============================================================================
+
+TEST(RPDrag, DraggingRoutingPointSelectsWire) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80);
+    n1.output("v_out");
+    bp.add_node(std::move(n1));
+
+    Node n2; n2.id = "b"; n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80);
+    n2.input("v_in");
+    bp.add_node(std::move(n2));
+
+    Wire w = Wire::make("w1",
+        WireEnd("a", "v_out", PortSide::Output),
+        WireEnd("b", "v_in", PortSide::Input));
+    w.add_routing_point(Pt(250.0f, 100.0f));
+    bp.add_wire(std::move(w));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    Pt canvas_min(0, 0);
+
+    // No wire selected initially
+    EXPECT_FALSE(input.selected_wire().has_value());
+
+    // Click on the routing point (250, 100) — should enter DraggingRoutingPoint
+    input.on_mouse_down(Pt(250, 100), MouseButton::Left, canvas_min);
+
+    // Wire must be selected during RP drag
+    EXPECT_EQ(input.state(), InputState::DraggingRoutingPoint);
+    ASSERT_TRUE(input.selected_wire().has_value())
+        << "Wire must be selected when dragging its routing point";
+    EXPECT_EQ(*input.selected_wire(), 0u);
+
+    // Drag the RP — wire must stay selected
+    input.on_mouse_drag(MouseButton::Left, Pt(10, 10), canvas_min);
+    EXPECT_TRUE(input.selected_wire().has_value())
+        << "Wire must remain selected during RP drag";
+
+    // Release — wire should still be selected
+    input.on_mouse_up(MouseButton::Left, Pt(260, 110), canvas_min);
+    EXPECT_TRUE(input.selected_wire().has_value())
+        << "Wire must remain selected after RP drag ends";
+}
+
+// ============================================================================
+// Regression: hover near routing point sets hovered_wire
+// Before fix, update_hover only checked HitType::Wire, not HitType::RoutingPoint,
+// so wire lost hover highlight within RP hit radius.
+// ============================================================================
+
+TEST(WireHover, HoverNearRoutingPoint_SetsHoveredWire) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    bp.add_node(std::move(n1));
+    Node n2; n2.id = "b"; n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    bp.add_node(std::move(n2));
+    Wire w = Wire::make("w1",
+        WireEnd("a", "v_out", PortSide::Output),
+        WireEnd("b", "v_in", PortSide::Input));
+    w.add_routing_point(Pt(250.0f, 100.0f));
+    bp.add_wire(std::move(w));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    // Hover exactly on the routing point
+    input.update_hover(Pt(250.0f, 100.0f));
+    ASSERT_TRUE(input.hovered_wire().has_value())
+        << "Hovering on RP must set hovered_wire";
+    EXPECT_EQ(*input.hovered_wire(), 0u);
+}
+
+// ============================================================================
+// Regression: stale hover clears when moving cursor far away
+// Before fix, hover on window-unhover wasn't cleared — wire stayed highlighted.
+// ============================================================================
+
+TEST(WireHover, HoverClears_WhenCursorMovesAway) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    bp.add_node(std::move(n1));
+    Node n2; n2.id = "b"; n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    bp.add_node(std::move(n2));
+    Wire w = Wire::make("w1",
+        WireEnd("a", "v_out", PortSide::Output),
+        WireEnd("b", "v_in", PortSide::Input));
+    w.add_routing_point(Pt(250.0f, 100.0f));
+    bp.add_wire(std::move(w));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    // First hover on wire RP — should highlight
+    input.update_hover(Pt(250.0f, 100.0f));
+    ASSERT_TRUE(input.hovered_wire().has_value());
+
+    // Move cursor far away (simulates window unhover: update_hover with far-away pos)
+    input.update_hover(Pt(-1e9f, -1e9f));
+    EXPECT_FALSE(input.hovered_wire().has_value())
+        << "Moving cursor far away must clear hovered_wire";
+}
+
+// ============================================================================
+// Regression: double-click on RP removes it
+// DRY fix unified on_double_click to use hitTest(), which returns
+// RoutingPoint with higher priority than Wire — enabling RP removal.
+// ============================================================================
+
+TEST(RPDoubleClick, DoubleClickOnRP_RemovesIt) {
+    Blueprint bp;
+    Node n1; n1.id = "a"; n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    bp.add_node(std::move(n1));
+    Node n2; n2.id = "b"; n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    bp.add_node(std::move(n2));
+    Wire w = Wire::make("w1",
+        WireEnd("a", "v_out", PortSide::Output),
+        WireEnd("b", "v_in", PortSide::Input));
+    w.add_routing_point(Pt(250.0f, 100.0f));
+    bp.add_wire(std::move(w));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    Pt canvas_min(0, 0);
+    ASSERT_EQ(scene.wires()[0].routing_points.size(), 1u);
+
+    // Double-click on the routing point
+    input.on_double_click(Pt(250.0f, 100.0f), canvas_min);
+
+    EXPECT_EQ(scene.wires()[0].routing_points.size(), 0u)
+        << "Double-click on RP must remove it";
+}
