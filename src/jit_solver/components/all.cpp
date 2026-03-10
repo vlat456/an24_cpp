@@ -1366,7 +1366,7 @@ void TimeDelay<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 
     // 1. Cold start (branchless)
     current_out += (raw_in - current_out) * first_frame_mask;
-    last_in = raw_in;  // Prevent accumulator reset on 1st frame
+    last_in += (raw_in - last_in) * first_frame_mask;  // Sync on cold start only
     first_frame_mask = 0.0f;
 
     // 2. Reset logic: if input changed from last frame, zero the timer

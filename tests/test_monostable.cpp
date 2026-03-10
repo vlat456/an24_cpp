@@ -82,14 +82,14 @@ TEST(MonostableTest, Pulse_ExpiresAfterDuration)
     // Should still be on
     EXPECT_FLOAT_EQ(st.across[1], 1.0f);
 
-    // Run for 0.1 more seconds (total 1.0s)
-    for (int i = 0; i < 6; ++i) {
+    // Run past expiration (+1 frame for fp rounding safety)
+    for (int i = 0; i < 7; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    // Should now be off (with small tolerance for floating point)
-    EXPECT_NEAR(st.across[1], 0.0f, 0.01f);
-    EXPECT_NEAR(comp.timer, 0.0f, 0.001f);
+    // Should now be off
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
 
 TEST(MonostableTest, FallingEdge_DoesNotRetrigger)

@@ -144,6 +144,11 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_color_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_autosize_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/layout_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/time_delay_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/monostable_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/sample_hold_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/integrator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

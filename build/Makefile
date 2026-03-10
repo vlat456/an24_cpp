@@ -977,6 +977,71 @@ layout_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/build
 .PHONY : layout_tests/fast
 
+#=============================================================================
+# Target rules for targets named asym_slew_rate_tests
+
+# Build rule for target.
+asym_slew_rate_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asym_slew_rate_tests
+.PHONY : asym_slew_rate_tests
+
+# fast build rule for target.
+asym_slew_rate_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/build
+.PHONY : asym_slew_rate_tests/fast
+
+#=============================================================================
+# Target rules for targets named time_delay_tests
+
+# Build rule for target.
+time_delay_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 time_delay_tests
+.PHONY : time_delay_tests
+
+# fast build rule for target.
+time_delay_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
+.PHONY : time_delay_tests/fast
+
+#=============================================================================
+# Target rules for targets named monostable_tests
+
+# Build rule for target.
+monostable_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 monostable_tests
+.PHONY : monostable_tests
+
+# fast build rule for target.
+monostable_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
+.PHONY : monostable_tests/fast
+
+#=============================================================================
+# Target rules for targets named sample_hold_tests
+
+# Build rule for target.
+sample_hold_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sample_hold_tests
+.PHONY : sample_hold_tests
+
+# fast build rule for target.
+sample_hold_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
+.PHONY : sample_hold_tests/fast
+
+#=============================================================================
+# Target rules for targets named integrator_tests
+
+# Build rule for target.
+integrator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 integrator_tests
+.PHONY : integrator_tests
+
+# fast build rule for target.
+integrator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
+.PHONY : integrator_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -994,6 +1059,7 @@ help:
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
 	@echo "... bench_vsu_aot"
@@ -1023,6 +1089,7 @@ help:
 	@echo "... gtest_main"
 	@echo "... hello_world"
 	@echo "... inspector_tests"
+	@echo "... integrator_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
@@ -1032,6 +1099,7 @@ help:
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
+	@echo "... monostable_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... node_autosize_tests"
@@ -1046,9 +1114,11 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"
 	@echo "... subtract_tests"
+	@echo "... time_delay_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"

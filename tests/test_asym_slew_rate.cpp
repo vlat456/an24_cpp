@@ -122,8 +122,8 @@ TEST(AsymSlewRateTest, SymmetricRates_EqualChange)
 TEST(AsymSlewRateTest, RapidRiseSlowFall_RealisticBehavior)
 {
     // Simulates relay/indicator: fast turn-on, slow turn-off
-    // rate_up = 100 (instant), rate_down = 2 (slow decay)
-    auto comp = make_asym_slew_rate(100.0f, 2.0f);
+    // rate_up = 1000 (instant in 1 frame), rate_down = 2 (slow decay)
+    auto comp = make_asym_slew_rate(1000.0f, 2.0f);
 
     auto st = make_state(0.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
@@ -145,8 +145,8 @@ TEST(AsymSlewRateTest, RapidRiseSlowFall_RealisticBehavior)
 TEST(AsymSlewRateTest, SlowRiseRapidFall_RealisticBehavior)
 {
     // Simulates capacitor discharge: slow charge, fast discharge
-    // rate_up = 2 (slow), rate_down = 100 (instant)
-    auto comp = make_asym_slew_rate(2.0f, 100.0f);
+    // rate_up = 2 (slow), rate_down = 1000 (instant in 1 frame)
+    auto comp = make_asym_slew_rate(2.0f, 1000.0f);
 
     auto st = make_state(0.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
@@ -157,7 +157,7 @@ TEST(AsymSlewRateTest, SlowRiseRapidFall_RealisticBehavior)
     EXPECT_LT(st.across[1], 1.0f);  // Barely moved
 
     // Turn off (fast fall)
-    auto comp2 = make_asym_slew_rate(2.0f, 100.0f);
+    auto comp2 = make_asym_slew_rate(2.0f, 1000.0f);
     auto st2 = make_state(10.0f);
     comp2.solve_logical(st2, 1.0f / 60.0f);
     st2.across[0] = 0.0f;
@@ -207,7 +207,7 @@ TEST(AsymSlewRateTest, Deadzone_PreventsMicroAdjustments)
 
 TEST(AsymSlewRateTest, Deadzone_AllowsLargeChanges)
 {
-    auto comp = make_asym_slew_rate(1.0f, 0.5f, 0.5f);
+    auto comp = make_asym_slew_rate(10.0f, 5.0f, 0.5f);
 
     auto st = make_state(5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
@@ -219,7 +219,7 @@ TEST(AsymSlewRateTest, Deadzone_AllowsLargeChanges)
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    // Output should approach new input
+    // Output should approach new input (rate_up=10 → ~0.167/frame × 10 = ~1.67)
     EXPECT_GT(st.across[1], 6.0f);
 }
 
@@ -348,23 +348,23 @@ TEST(AsymSlewRateTest, ConstantInput_OutputStaysConstant)
 TEST(AsymSlewRateTest, OscillatingInput_FollowsAsymmetricRates)
 {
     // Test with alternating input
-    auto comp = make_asym_slew_rate(60.0f, 30.0f);
+    auto comp = make_asym_slew_rate(60.0f, 5.0f);
 
     auto st = make_state(0.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    // Rise to 10
+    // Rise to 10 (rate_up=60 → 1.0/frame, reaches 10 in 10 frames)
     st.across[0] = 10.0f;
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
     EXPECT_NEAR(st.across[1], 10.0f, 0.1f);
 
-    // Fall to 0 (slower)
+    // Fall to 0 (slower: rate_down=5 → 5.0 units/sec × 1.0s = 5.0 traveled)
     st.across[0] = 0.0f;
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    // Should only be halfway down (rate_down = 30, half of rate_up)
+    // Should only be halfway down (rate_down=5: 5 units/sec × 1s = 5 units of 10)
     EXPECT_NEAR(st.across[1], 5.0f, 0.5f);
 }

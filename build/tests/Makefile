@@ -843,6 +843,76 @@ layout_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/build
 .PHONY : layout_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/asym_slew_rate_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_slew_rate_tests.dir/rule
+.PHONY : tests/CMakeFiles/asym_slew_rate_tests.dir/rule
+
+# Convenience name for target.
+asym_slew_rate_tests: tests/CMakeFiles/asym_slew_rate_tests.dir/rule
+.PHONY : asym_slew_rate_tests
+
+# fast build rule for target.
+asym_slew_rate_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/build
+.PHONY : asym_slew_rate_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/time_delay_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/time_delay_tests.dir/rule
+.PHONY : tests/CMakeFiles/time_delay_tests.dir/rule
+
+# Convenience name for target.
+time_delay_tests: tests/CMakeFiles/time_delay_tests.dir/rule
+.PHONY : time_delay_tests
+
+# fast build rule for target.
+time_delay_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
+.PHONY : time_delay_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/monostable_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/monostable_tests.dir/rule
+.PHONY : tests/CMakeFiles/monostable_tests.dir/rule
+
+# Convenience name for target.
+monostable_tests: tests/CMakeFiles/monostable_tests.dir/rule
+.PHONY : monostable_tests
+
+# fast build rule for target.
+monostable_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
+.PHONY : monostable_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/sample_hold_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sample_hold_tests.dir/rule
+.PHONY : tests/CMakeFiles/sample_hold_tests.dir/rule
+
+# Convenience name for target.
+sample_hold_tests: tests/CMakeFiles/sample_hold_tests.dir/rule
+.PHONY : sample_hold_tests
+
+# fast build rule for target.
+sample_hold_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
+.PHONY : sample_hold_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/integrator_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/integrator_tests.dir/rule
+.PHONY : tests/CMakeFiles/integrator_tests.dir/rule
+
+# Convenience name for target.
+integrator_tests: tests/CMakeFiles/integrator_tests.dir/rule
+.PHONY : integrator_tests
+
+# fast build rule for target.
+integrator_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
+.PHONY : integrator_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -2103,6 +2173,30 @@ test_arithmetic.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.s
 .PHONY : test_arithmetic.cpp.s
 
+test_asym_slew_rate.o: test_asym_slew_rate.cpp.o
+.PHONY : test_asym_slew_rate.o
+
+# target to build an object file
+test_asym_slew_rate.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/test_asym_slew_rate.cpp.o
+.PHONY : test_asym_slew_rate.cpp.o
+
+test_asym_slew_rate.i: test_asym_slew_rate.cpp.i
+.PHONY : test_asym_slew_rate.i
+
+# target to preprocess a source file
+test_asym_slew_rate.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/test_asym_slew_rate.cpp.i
+.PHONY : test_asym_slew_rate.cpp.i
+
+test_asym_slew_rate.s: test_asym_slew_rate.cpp.s
+.PHONY : test_asym_slew_rate.s
+
+# target to generate assembly for a file
+test_asym_slew_rate.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/test_asym_slew_rate.cpp.s
+.PHONY : test_asym_slew_rate.cpp.s
+
 test_asym_tmo.o: test_asym_tmo.cpp.o
 .PHONY : test_asym_tmo.o
 
@@ -2463,6 +2557,30 @@ test_inspector.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/test_inspector.cpp.s
 .PHONY : test_inspector.cpp.s
 
+test_integrator.o: test_integrator.cpp.o
+.PHONY : test_integrator.o
+
+# target to build an object file
+test_integrator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.o
+.PHONY : test_integrator.cpp.o
+
+test_integrator.i: test_integrator.cpp.i
+.PHONY : test_integrator.i
+
+# target to preprocess a source file
+test_integrator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.i
+.PHONY : test_integrator.cpp.i
+
+test_integrator.s: test_integrator.cpp.s
+.PHONY : test_integrator.s
+
+# target to generate assembly for a file
+test_integrator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.s
+.PHONY : test_integrator.cpp.s
+
 test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
 .PHONY : test_lamp_passthrough_jit.o
 
@@ -2606,6 +2724,30 @@ test_lut_codegen.s: test_lut_codegen.cpp.s
 test_lut_codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/test_lut_codegen.cpp.s
 .PHONY : test_lut_codegen.cpp.s
+
+test_monostable.o: test_monostable.cpp.o
+.PHONY : test_monostable.o
+
+# target to build an object file
+test_monostable.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/test_monostable.cpp.o
+.PHONY : test_monostable.cpp.o
+
+test_monostable.i: test_monostable.cpp.i
+.PHONY : test_monostable.i
+
+# target to preprocess a source file
+test_monostable.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/test_monostable.cpp.i
+.PHONY : test_monostable.cpp.i
+
+test_monostable.s: test_monostable.cpp.s
+.PHONY : test_monostable.s
+
+# target to generate assembly for a file
+test_monostable.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/test_monostable.cpp.s
+.PHONY : test_monostable.cpp.s
 
 test_multi_window.o: test_multi_window.cpp.o
 .PHONY : test_multi_window.o
@@ -2919,6 +3061,30 @@ test_router.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/test_router.cpp.s
 .PHONY : test_router.cpp.s
 
+test_sample_hold.o: test_sample_hold.cpp.o
+.PHONY : test_sample_hold.o
+
+# target to build an object file
+test_sample_hold.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/test_sample_hold.cpp.o
+.PHONY : test_sample_hold.cpp.o
+
+test_sample_hold.i: test_sample_hold.cpp.i
+.PHONY : test_sample_hold.i
+
+# target to preprocess a source file
+test_sample_hold.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/test_sample_hold.cpp.i
+.PHONY : test_sample_hold.cpp.i
+
+test_sample_hold.s: test_sample_hold.cpp.s
+.PHONY : test_sample_hold.s
+
+# target to generate assembly for a file
+test_sample_hold.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/test_sample_hold.cpp.s
+.PHONY : test_sample_hold.cpp.s
+
 test_simulation.o: test_simulation.cpp.o
 .PHONY : test_simulation.o
 
@@ -3014,6 +3180,30 @@ test_subtract.s: test_subtract.cpp.s
 test_subtract.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.s
 .PHONY : test_subtract.cpp.s
+
+test_time_delay.o: test_time_delay.cpp.o
+.PHONY : test_time_delay.o
+
+# target to build an object file
+test_time_delay.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.o
+.PHONY : test_time_delay.cpp.o
+
+test_time_delay.i: test_time_delay.cpp.i
+.PHONY : test_time_delay.i
+
+# target to preprocess a source file
+test_time_delay.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.i
+.PHONY : test_time_delay.cpp.i
+
+test_time_delay.s: test_time_delay.cpp.s
+.PHONY : test_time_delay.s
+
+# target to generate assembly for a file
+test_time_delay.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.s
+.PHONY : test_time_delay.cpp.s
 
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
@@ -3150,6 +3340,7 @@ help:
 	@echo "... test"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
 	@echo "... blueprint_integration_tests"
@@ -3171,6 +3362,7 @@ help:
 	@echo "... editor_widget_tests"
 	@echo "... expand_typedef_tests"
 	@echo "... inspector_tests"
+	@echo "... integrator_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... layout_tests"
@@ -3178,6 +3370,7 @@ help:
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
+	@echo "... monostable_tests"
 	@echo "... multi_window_tests"
 	@echo "... node_autosize_tests"
 	@echo "... node_color_tests"
@@ -3191,8 +3384,10 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... subtract_tests"
+	@echo "... time_delay_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
@@ -3277,6 +3472,9 @@ help:
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"
+	@echo "... test_asym_slew_rate.o"
+	@echo "... test_asym_slew_rate.i"
+	@echo "... test_asym_slew_rate.s"
 	@echo "... test_asym_tmo.o"
 	@echo "... test_asym_tmo.i"
 	@echo "... test_asym_tmo.s"
@@ -3322,6 +3520,9 @@ help:
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
+	@echo "... test_integrator.o"
+	@echo "... test_integrator.i"
+	@echo "... test_integrator.s"
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
@@ -3340,6 +3541,9 @@ help:
 	@echo "... test_lut_codegen.o"
 	@echo "... test_lut_codegen.i"
 	@echo "... test_lut_codegen.s"
+	@echo "... test_monostable.o"
+	@echo "... test_monostable.i"
+	@echo "... test_monostable.s"
 	@echo "... test_multi_window.o"
 	@echo "... test_multi_window.i"
 	@echo "... test_multi_window.s"
@@ -3379,6 +3583,9 @@ help:
 	@echo "... test_router.o"
 	@echo "... test_router.i"
 	@echo "... test_router.s"
+	@echo "... test_sample_hold.o"
+	@echo "... test_sample_hold.i"
+	@echo "... test_sample_hold.s"
 	@echo "... test_simulation.o"
 	@echo "... test_simulation.i"
 	@echo "... test_simulation.s"
@@ -3391,6 +3598,9 @@ help:
 	@echo "... test_subtract.o"
 	@echo "... test_subtract.i"
 	@echo "... test_subtract.s"
+	@echo "... test_time_delay.o"
+	@echo "... test_time_delay.i"
+	@echo "... test_time_delay.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"

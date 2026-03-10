@@ -1960,5 +1960,35 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/layout_tests.dir/__/src/editor/visual/node/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/node/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/node/widget.cpp",
   "output": "tests/CMakeFiles/layout_tests.dir/__/src/editor/visual/node/widget.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/asym_slew_rate_tests.dir/test_asym_slew_rate.cpp.o -c /Users/vladimir/an24_cpp/tests/test_asym_slew_rate.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_asym_slew_rate.cpp",
+  "output": "tests/CMakeFiles/asym_slew_rate_tests.dir/test_asym_slew_rate.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.o -c /Users/vladimir/an24_cpp/tests/test_time_delay.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_time_delay.cpp",
+  "output": "tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/monostable_tests.dir/test_monostable.cpp.o -c /Users/vladimir/an24_cpp/tests/test_monostable.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_monostable.cpp",
+  "output": "tests/CMakeFiles/monostable_tests.dir/test_monostable.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/sample_hold_tests.dir/test_sample_hold.cpp.o -c /Users/vladimir/an24_cpp/tests/test_sample_hold.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_sample_hold.cpp",
+  "output": "tests/CMakeFiles/sample_hold_tests.dir/test_sample_hold.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -O3 -DNDEBUG -O3 -ffast-math -std=gnu++20 -arch arm64 -o CMakeFiles/integrator_tests.dir/test_integrator.cpp.o -c /Users/vladimir/an24_cpp/tests/test_integrator.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_integrator.cpp",
+  "output": "tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.o"
 }
 ]
