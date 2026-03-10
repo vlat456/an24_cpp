@@ -67,11 +67,11 @@ void VisualPort::render(IDrawList* dl, Pt origin, float zoom) const {
 
         if (label_side_ == LabelSide::Right) {
             Pt label_pos(origin.x + r + gap, origin.y - font / 2);
-            dl->add_text(label_pos, label_.c_str(), 0xFFAAAAAA, font);
+            dl->add_text(label_pos, label_.c_str(), render_theme::COLOR_TEXT, font);
         } else { // Left
             Pt text_size = dl->calc_text_size(label_.c_str(), font);
             Pt label_pos(origin.x - r - gap - text_size.x, origin.y - font / 2);
-            dl->add_text(label_pos, label_.c_str(), 0xFFAAAAAA, font);
+            dl->add_text(label_pos, label_.c_str(), render_theme::COLOR_TEXT, font);
         }
     }
 }

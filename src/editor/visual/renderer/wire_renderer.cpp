@@ -81,6 +81,13 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
 
         const auto& crossings = all_crossings[wire_idx];
 
+        // Routing points (draw BEFORE wires so they appear underneath)
+        for (const auto& rp : w.routing_points) {
+            Pt screen_rp = vp.world_to_screen(rp, canvas_min);
+            dl.add_circle_filled(screen_rp, 6.0f, COLOR_ROUTING_POINT, 12);
+            dl.add_circle(screen_rp, 6.0f, 0xFF000000, 12);
+        }
+
         // Classify crossings by segment
         struct CrossOnSeg {
             size_t seg_idx;
@@ -179,13 +186,6 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
 
             if (current_sub.size() >= 2)
                 dl.add_polyline(current_sub.data(), current_sub.size(), wire_color, 2.0f);
-        }
-
-        // Routing points
-        for (const auto& rp : w.routing_points) {
-            Pt screen_rp = vp.world_to_screen(rp, canvas_min);
-            dl.add_circle_filled(screen_rp, 6.0f, COLOR_ROUTING_POINT, 12);
-            dl.add_circle(screen_rp, 6.0f, 0xFF000000, 12);
         }
 
         // Jump arcs at crossings

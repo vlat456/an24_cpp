@@ -24,7 +24,7 @@ constexpr float LAYOUT_ORIGIN_X    = 80.0f;
 constexpr float LAYOUT_ORIGIN_Y    = 80.0f;
 
 // ---- Port rendering ----
-constexpr float PORT_RADIUS    = 6.0f;
+constexpr float PORT_RADIUS    = 4.0f;
 constexpr float PORT_HIT_RADIUS = 10.0f;
 constexpr float PORT_LABEL_GAP = 3.0f;
 constexpr float PORT_LABEL_FONT_SIZE = 9.0f;
