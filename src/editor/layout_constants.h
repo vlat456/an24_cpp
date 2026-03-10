@@ -51,6 +51,7 @@ constexpr float ZOOM_SPEED = 0.001f;
 
 // ---- Hit test tolerances ----
 constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
+constexpr float ROUTING_POINT_RADIUS = 4.5f;
 constexpr float WIRE_SEGMENT_HIT_TOLERANCE = 5.0f;
 
 // ---- Default collapsed group size ----

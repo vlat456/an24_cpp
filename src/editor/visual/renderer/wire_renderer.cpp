@@ -1,5 +1,6 @@
 #include "visual/renderer/wire_renderer.h"
 #include "visual/renderer/render_theme.h"
+#include "layout_constants.h"
 #include "visual/trigonometry.h"
 #include "router/crossings.h"
 #include <algorithm>
@@ -84,8 +85,7 @@ void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp
         // Routing points (draw BEFORE wires so they appear underneath)
         for (const auto& rp : w.routing_points) {
             Pt screen_rp = vp.world_to_screen(rp, canvas_min);
-            dl.add_circle_filled(screen_rp, 6.0f, COLOR_ROUTING_POINT, 12);
-            dl.add_circle(screen_rp, 6.0f, 0xFF000000, 12);
+            dl.add_circle_filled(screen_rp, editor_constants::ROUTING_POINT_RADIUS * vp.zoom, COLOR_ROUTING_POINT, 12);
         }
 
         // Classify crossings by segment

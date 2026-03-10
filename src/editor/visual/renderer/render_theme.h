@@ -74,15 +74,15 @@ inline NodeColors get_node_colors(const char* type_name) {
 
 inline uint32_t get_port_color(an24::PortType type) {
     switch (type) {
-        case an24::PortType::V:           return 0xFF5058B8;  // Port Voltage  (muted red-slate)
+        case an24::PortType::V:           return 0xFF5068C0;  // Port Voltage  (warmer coral-red)
         case an24::PortType::I:           return 0xFF986850;  // Port Current  (muted blue-teal)
         case an24::PortType::Bool:        return 0xFF60905A;  // Port Bool     (muted green)
-        case an24::PortType::RPM:         return 0xFF387CB8;  // Port RPM      (muted orange)
-        case an24::PortType::Temperature: return 0xFF4848A0;  // Port Temp     (muted rose)
+        case an24::PortType::RPM:         return 0xFF3088C0;  // Port RPM      (golden-amber)
+        case an24::PortType::Temperature: return 0xFF4050B0;  // Port Temp     (warm rose)
         case an24::PortType::Pressure:    return 0xFF8C7848;  // Port Pressure (muted cyan-teal)
         case an24::PortType::Position:    return 0xFFA86078;  // Port Position (muted purple)
-        case an24::PortType::Any:         return 0xFF706060;  // Port Any      (neutral gray)
-        default:                          return 0xFF706060;
+        case an24::PortType::Any:         return 0xFF968685;  // Port Any      (Text Secondary)
+        default:                          return 0xFF968685;
     }
 }
 
