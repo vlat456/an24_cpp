@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/codegen_sanitize_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/codegen_sanitize_tests[1]_tests.cmake")
+else()
+  add_test(codegen_sanitize_tests_NOT_BUILT codegen_sanitize_tests_NOT_BUILT)
+endif()

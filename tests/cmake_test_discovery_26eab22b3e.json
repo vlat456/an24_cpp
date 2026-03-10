@@ -1,0 +1,97 @@
+{
+  "tests": 17,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SlewRateTest",
+      "tests": 17,
+      "testsuite": [
+        {
+          "name": "ColdStart_FirstFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 37
+        },
+        {
+          "name": "LimitsRiseRate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 49
+        },
+        {
+          "name": "LimitsFallRate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 66
+        },
+        {
+          "name": "AsymmetricLimits_SameRate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 81
+        },
+        {
+          "name": "ApproachesTargetOverTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 105
+        },
+        {
+          "name": "HandlesZeroDt_Pause",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 123
+        },
+        {
+          "name": "Deadzone_PreventsMicroAdjustments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 141
+        },
+        {
+          "name": "Deadzone_AllowsLargeChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 161
+        },
+        {
+          "name": "ZeroRate_NoChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 179
+        },
+        {
+          "name": "InfiniteRate_InstantTracking",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 198
+        },
+        {
+          "name": "PreservesStateBetweenFrames",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 213
+        },
+        {
+          "name": "VariableDt_AdaptsStepSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 232
+        },
+        {
+          "name": "NegativeInput_HandlesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 257
+        },
+        {
+          "name": "CrossingZero_WorksCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 272
+        },
+        {
+          "name": "ZeroDeadzone_AllowsAllChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 289
+        },
+        {
+          "name": "ConstantInput_OutputStaysConstant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 307
+        },
+        {
+          "name": "StepChange_CorrectTotalTime",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_slew_rate.cpp",
+          "line": 325
+        }
+      ]
+    }
+  ]
+}

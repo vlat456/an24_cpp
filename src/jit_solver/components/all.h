@@ -896,4 +896,65 @@ private:
     static float interpolate(float x, const float* keys, const float* vals, uint16_t size);
 };
 
+/// FastTMO - fast generalized Time Management Offset filter (low-pass)
+template <typename Provider = JitProvider>
+class FastTMO {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float tau = 0.1f;
+    float inv_tau = 10.0f; // Precomputed
+    float deadzone = 0.001f;
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f; // Branchless init mask
+
+    FastTMO() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load();
+};
+
+/// AsymTMO - asymmetric Time Management Offset filter (different rise/fall rates)
+template <typename Provider = JitProvider>
+class AsymTMO {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float tau_up = 0.1f;
+    float tau_down = 0.5f;
+    float inv_tau_up = 10.0f;
+    float inv_tau_down = 2.0f;
+    float deadzone = 0.001f;
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    AsymTMO() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load();
+};
+
+/// SlewRate - linear rate of change limiter (slew rate limiter)
+template <typename Provider = JitProvider>
+class SlewRate {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float max_rate = 1.0f;
+    float deadzone = 0.0001f;
+    float current_value = 0.0f;
+    float first_frame_mask = 1.0f;
+
+    SlewRate() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
 } // namespace an24

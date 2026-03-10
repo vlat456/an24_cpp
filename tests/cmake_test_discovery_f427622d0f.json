@@ -1,0 +1,188 @@
+{
+  "tests": 34,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PITest",
+      "tests": 19,
+      "testsuite": [
+        {
+          "name": "ProportionalOnly_Basic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 53
+        },
+        {
+          "name": "ProportionalOnly_NegativeError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 64
+        },
+        {
+          "name": "ProportionalOnly_ZeroError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 75
+        },
+        {
+          "name": "IntegralOnly_Accumulates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 88
+        },
+        {
+          "name": "IntegralOnly_DecreasesWhenErrorChangesSign",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 100
+        },
+        {
+          "name": "ProportionalAndIntegral_StepResponse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 125
+        },
+        {
+          "name": "ProportionalAndIntegral_SteadyStateZeroError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 138
+        },
+        {
+          "name": "NegativeGains_InvertControl",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 151
+        },
+        {
+          "name": "IntegralTimeInvariance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 166
+        },
+        {
+          "name": "AntiWindupCapsOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 184
+        },
+        {
+          "name": "AntiWindupIntegralClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 198
+        },
+        {
+          "name": "ZeroGains_ZeroOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 214
+        },
+        {
+          "name": "ExtremeDt_ClampedToMax",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 224
+        },
+        {
+          "name": "TinyDt_ClampedToMin",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 236
+        },
+        {
+          "name": "OutputSaturation_PositiveClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 247
+        },
+        {
+          "name": "OutputSaturation_NegativeClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 258
+        },
+        {
+          "name": "MultipleInstances_IndependentState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 269
+        },
+        {
+          "name": "ComparedToPID_NoDerivative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 286
+        },
+        {
+          "name": "SolveElectricalStampsConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 312
+        }
+      ]
+    },
+    {
+      "name": "PTest",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "ProportionalOnly_Basic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 326
+        },
+        {
+          "name": "ProportionalOnly_NegativeError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 337
+        },
+        {
+          "name": "ProportionalOnly_ZeroError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 348
+        },
+        {
+          "name": "HighGain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 359
+        },
+        {
+          "name": "ZeroGain_ZeroOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 372
+        },
+        {
+          "name": "NegativeGain_InvertsControl",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 382
+        },
+        {
+          "name": "OutputSaturation_PositiveClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 393
+        },
+        {
+          "name": "OutputSaturation_NegativeClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 404
+        },
+        {
+          "name": "OutputSaturation_AsymmetricLimits",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 415
+        },
+        {
+          "name": "DtDoesNotAffectOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 431
+        },
+        {
+          "name": "Memoryless_NoStateAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 448
+        },
+        {
+          "name": "Memoryless_ErrorChangeImmediate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 466
+        },
+        {
+          "name": "ComparedToPI_KiZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 488
+        },
+        {
+          "name": "ComparedToPID_KiKdZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 512
+        },
+        {
+          "name": "SolveElectricalStampsConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pi_p.cpp",
+          "line": 540
+        }
+      ]
+    }
+  ]
+}

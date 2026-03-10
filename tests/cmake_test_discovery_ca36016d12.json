@@ -1,0 +1,17 @@
+{
+  "tests": 1,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "JITIntegration",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "LampPassThrough_Blueprint_VoltageFlow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lamp_passthrough_jit.cpp",
+          "line": 12
+        }
+      ]
+    }
+  ]
+}

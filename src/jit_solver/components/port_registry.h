@@ -44,12 +44,14 @@ enum class PortNames : uint32_t {
     i,
     i1,
     i2,
+    in,
     input,
     k_mod,
     lamp,
     o,
     o1,
     o2,
+    out,
     output,
     p_out,
     port,
@@ -80,6 +82,7 @@ enum class ComponentType {
     AZS,
     Add,
     Any_V_to_Bool,
+    AsymTMO,
     Battery,
     BlueprintInput,
     BlueprintOutput,
@@ -89,6 +92,7 @@ enum class ComponentType {
     Divide,
     ElectricHeater,
     ElectricPump,
+    FastTMO,
     GS24,
     Generator,
     Gyroscope,
@@ -116,6 +120,7 @@ enum class ComponentType {
     RefNode,
     Relay,
     Resistor,
+    SlewRate,
     SolenoidValve,
     Splitter,
     Subtract,
@@ -132,6 +137,7 @@ constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
 constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
+constexpr size_t AsymTMO_PORT_COUNT = 2;
 constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
@@ -141,6 +147,7 @@ constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 2;
+constexpr size_t FastTMO_PORT_COUNT = 2;
 constexpr size_t GS24_PORT_COUNT = 3;
 constexpr size_t Generator_PORT_COUNT = 2;
 constexpr size_t Gyroscope_PORT_COUNT = 1;
@@ -168,6 +175,7 @@ constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
 constexpr size_t Relay_PORT_COUNT = 3;
 constexpr size_t Resistor_PORT_COUNT = 2;
+constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Subtract_PORT_COUNT = 3;
@@ -202,6 +210,10 @@ constexpr const char* Add_PORTS[] = {
 constexpr const char* Any_V_to_Bool_PORTS[] = {
     "Vin",
     "o"
+};
+constexpr const char* AsymTMO_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* Battery_PORTS[] = {
     "v_in",
@@ -241,6 +253,10 @@ constexpr const char* ElectricHeater_PORTS[] = {
 constexpr const char* ElectricPump_PORTS[] = {
     "p_out",
     "v_in"
+};
+constexpr const char* FastTMO_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* GS24_PORTS[] = {
     "k_mod",
@@ -363,6 +379,10 @@ constexpr const char* Resistor_PORTS[] = {
     "v_in",
     "v_out"
 };
+constexpr const char* SlewRate_PORTS[] = {
+    "in",
+    "out"
+};
 constexpr const char* SolenoidValve_PORTS[] = {
     "ctrl",
     "flow_in",
@@ -425,12 +445,14 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"i", PortNames::i},
         {"i1", PortNames::i1},
         {"i2", PortNames::i2},
+        {"in", PortNames::in},
         {"input", PortNames::input},
         {"k_mod", PortNames::k_mod},
         {"lamp", PortNames::lamp},
         {"o", PortNames::o},
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
+        {"out", PortNames::out},
         {"output", PortNames::output},
         {"p_out", PortNames::p_out},
         {"port", PortNames::port},
@@ -466,6 +488,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
         {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
+        {"AsymTMO", {"in", "out"}},
         {"Battery", {"v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
@@ -475,6 +498,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_out", "v_in"}},
+        {"FastTMO", {"in", "out"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},
         {"Generator", {"v_in", "v_out"}},
         {"Gyroscope", {"input"}},
@@ -502,6 +526,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"RefNode", {"v"}},
         {"Relay", {"control", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
+        {"SlewRate", {"in", "out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
         {"Subtract", {"A", "B", "o"}},
@@ -527,6 +552,7 @@ using ComponentVariant = std::variant<
     AZS<JitProvider>,
     Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
+    AsymTMO<JitProvider>,
     Battery<JitProvider>,
     BlueprintInput<JitProvider>,
     BlueprintOutput<JitProvider>,
@@ -536,6 +562,7 @@ using ComponentVariant = std::variant<
     Divide<JitProvider>,
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
+    FastTMO<JitProvider>,
     GS24<JitProvider>,
     Generator<JitProvider>,
     Gyroscope<JitProvider>,
@@ -563,6 +590,7 @@ using ComponentVariant = std::variant<
     RefNode<JitProvider>,
     Relay<JitProvider>,
     Resistor<JitProvider>,
+    SlewRate<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
     Subtract<JitProvider>,

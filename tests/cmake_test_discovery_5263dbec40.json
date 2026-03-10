@@ -1,0 +1,102 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "NodeAutoSizeTest",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "DefaultSize_NoPorts_NoContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 11
+        },
+        {
+          "name": "LongPortNames_ExpandWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 27
+        },
+        {
+          "name": "GaugeContent_SetsMinimumWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 51
+        },
+        {
+          "name": "ManyPorts_ExpandHeight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 73
+        },
+        {
+          "name": "ExplicitSize_LargerThanMinimum",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 102
+        },
+        {
+          "name": "ExplicitSize_TooSmall_LogsWarning",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 120
+        },
+        {
+          "name": "SwitchContent_MinimumWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 145
+        },
+        {
+          "name": "ValueContent_ExpandsForLabel",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 164
+        },
+        {
+          "name": "ShortPortNames_CanNarrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 184
+        },
+        {
+          "name": "GaugeWithPorts_HeightIncludesAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 203
+        },
+        {
+          "name": "GridSnapping_AutoSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 226
+        },
+        {
+          "name": "Regression_GaugeAutoSize_NotOverwrittenByStaleSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 254
+        },
+        {
+          "name": "Regression_ContentBoundsInsideNode_Gauge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 288
+        },
+        {
+          "name": "Regression_ContentBoundsInsideNode_Switch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 318
+        },
+        {
+          "name": "Regression_ContentBoundsInsideNode_Value",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 340
+        },
+        {
+          "name": "Regression_CachedVisualPreservesAutoSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 362
+        },
+        {
+          "name": "Regression_RenameDoesNotChangeWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 397
+        },
+        {
+          "name": "EstimateTextWidth_UTF8_CountsCodepoints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_autosize.cpp",
+          "line": 425
+        }
+      ]
+    }
+  ]
+}

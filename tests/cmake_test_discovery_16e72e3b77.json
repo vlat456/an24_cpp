@@ -1,0 +1,137 @@
+{
+  "tests": 25,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PDTest",
+      "tests": 25,
+      "testsuite": [
+        {
+          "name": "ProportionalOnly_Basic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 41
+        },
+        {
+          "name": "ProportionalOnly_NegativeError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 52
+        },
+        {
+          "name": "ProportionalOnly_ZeroError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 63
+        },
+        {
+          "name": "ProportionalOnly_HighGain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 74
+        },
+        {
+          "name": "DerivativeOnly_PositiveRateOfChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 87
+        },
+        {
+          "name": "DerivativeOnly_NegativeRateOfChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 105
+        },
+        {
+          "name": "DerivativeOnly_ConstantError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 121
+        },
+        {
+          "name": "DerivativeFilterReducesNoise",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 141
+        },
+        {
+          "name": "ProportionalAndDerivative_StepResponse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 170
+        },
+        {
+          "name": "ProportionalAndDerivative_SteadyState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 183
+        },
+        {
+          "name": "NegativeGains_InvertControl",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 201
+        },
+        {
+          "name": "OutputSaturation_PositiveClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 216
+        },
+        {
+          "name": "OutputSaturation_NegativeClamp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 228
+        },
+        {
+          "name": "OutputSaturation_AsymmetricLimits",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 240
+        },
+        {
+          "name": "OutputSaturation_WithDerivativeKick",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 255
+        },
+        {
+          "name": "TimeInvariance_DifferentDtSameOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 276
+        },
+        {
+          "name": "ZeroGains_ZeroOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 301
+        },
+        {
+          "name": "ExtremeDt_ClampedToMax",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 312
+        },
+        {
+          "name": "TinyDt_ClampedToMin",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 330
+        },
+        {
+          "name": "FilterAlphaZero_NoFiltering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 343
+        },
+        {
+          "name": "FilterAlphaOne_InstantTracking",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 358
+        },
+        {
+          "name": "VeryLargeKd_WithSmallDt_Stability",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 375
+        },
+        {
+          "name": "MultipleInstances_IndependentState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 393
+        },
+        {
+          "name": "SolveElectricalStampsConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 414
+        },
+        {
+          "name": "ComparedToPID_NoIntegral",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pd.cpp",
+          "line": 428
+        }
+      ]
+    }
+  ]
+}

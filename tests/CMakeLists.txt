@@ -512,6 +512,38 @@ target_link_libraries(subtract_tests PRIVATE
 )
 gtest_discover_tests(subtract_tests)
 
+# AsymTMO and FastTMO tests
+add_executable(asym_tmo_tests
+    test_asym_tmo.cpp
+)
+target_include_directories(asym_tmo_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(asym_tmo_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(asym_tmo_tests)
+
+# SlewRate tests
+add_executable(slew_rate_tests
+    test_slew_rate.cpp
+)
+target_include_directories(slew_rate_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(slew_rate_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(slew_rate_tests)
+
 # Logic gates tests
 add_executable(logic_gates_tests
     test_logic_gates.cpp

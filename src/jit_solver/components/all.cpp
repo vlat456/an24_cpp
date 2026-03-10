@@ -1212,6 +1212,97 @@ bool LUT<Provider>::parse_table(const std::string& table_str,
     return !keys.empty();
 }
 
+// =============================================================================
+// FastTMO
+// =============================================================================
+
+template <typename Provider>
+void FastTMO<Provider>::pre_load() {
+    inv_tau = 1.0f / std::max(tau, 0.0001f);
+}
+
+template <typename Provider>
+void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // 1. Branchless Cold Start
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    // 2. Branchless TMO Logic
+    float diff = input - current_value;
+    float factor = std::min(dt * inv_tau, 1.0f);
+    // f32.select equivalent
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += diff * factor * dz_mask;
+    st.across[out_idx] = current_value;
+}
+
+// =============================================================================
+// AsymTMO
+// =============================================================================
+
+template <typename Provider>
+void AsymTMO<Provider>::pre_load() {
+    inv_tau_up = 1.0f / std::max(tau_up, 0.0001f);
+    inv_tau_down = 1.0f / std::max(tau_down, 0.0001f);
+}
+
+template <typename Provider>
+void AsymTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // 1. Branchless Cold Start
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    // 2. Branchless Asymmetric Logic
+    float diff = input - current_value;
+    // WASM f32.select for tau selection
+    float active_inv_tau = (diff > 0.0f) ? inv_tau_up : inv_tau_down;
+
+    float factor = std::min(dt * active_inv_tau, 1.0f);
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += diff * factor * dz_mask;
+    st.across[out_idx] = current_value;
+}
+
+// =============================================================================
+// SlewRate
+// =============================================================================
+
+template <typename Provider>
+void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+    float input = st.across[in_idx];
+
+    // 1. Instant initialization on first frame (branchless)
+    current_value += (input - current_value) * first_frame_mask;
+    first_frame_mask = 0.0f;
+
+    // 2. Compute desired change
+    float diff = input - current_value;
+
+    // 3. Compute limit per step for current dt
+    float max_step = max_rate * dt;
+
+    // 4. Clamp differential (WASM friendly clamp)
+    float limited_diff = std::max(-max_step, std::min(max_step, diff));
+
+    // 5. Apply deadzone mask to avoid "dithering" around target
+    float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
+
+    current_value += limited_diff * dz_mask;
+    st.across[out_idx] = current_value;
+}
+
 } // namespace an24
 
 // =============================================================================

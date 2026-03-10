@@ -1,0 +1,18 @@
+{
+  "classname": "AsymTMO",
+  "description": "Asymmetric branchless TMO for WASM",
+  "cpp_class": true,
+  "ports": {
+    "in": { "direction": "In", "type": "Any" },
+    "out": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "tau_up": "0.1",
+    "tau_down": "0.5",
+    "deadzone": "0.001"
+  },
+  "domains": ["Logical"],
+  "priority": "med",
+  "critical": false,
+  "size": { "x": 2, "y": 1 }
+}

@@ -1,0 +1,107 @@
+{
+  "tests": 19,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Inspector",
+      "tests": 19,
+      "testsuite": [
+        {
+          "name": "BuildDisplayTree_SingleNode_CreatesEntry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 78
+        },
+        {
+          "name": "BuildDisplayTree_WithConnection_ShowsConnection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 93
+        },
+        {
+          "name": "BuildDisplayTree_UnconnectedPort_ShowsNotConnected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 119
+        },
+        {
+          "name": "ConnectionCount_SingleWire_CountsBothNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 138
+        },
+        {
+          "name": "ConnectionCount_MultipleWiresFromOneNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 154
+        },
+        {
+          "name": "SearchFilter_MatchesName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 173
+        },
+        {
+          "name": "SearchFilter_MatchesType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 188
+        },
+        {
+          "name": "MarkDirty_RebuildsOnChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 204
+        },
+        {
+          "name": "SortMode_ByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 223
+        },
+        {
+          "name": "SortMode_ByType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 241
+        },
+        {
+          "name": "GroupFiltering_RootInspectorHidesSubBlueprintNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 263
+        },
+        {
+          "name": "GroupFiltering_SubInspectorShowsOnlyOwnNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 309
+        },
+        {
+          "name": "GroupFiltering_WiresOnlyCountOwnGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 354
+        },
+        {
+          "name": "FanOut_OutputShowsMultipleConnections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 435
+        },
+        {
+          "name": "DisplayNode_HasNodeId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 468
+        },
+        {
+          "name": "ConsumeSelection_EmptyByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 485
+        },
+        {
+          "name": "ConsumeSelection_ClearsAfterRead",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 491
+        },
+        {
+          "name": "Regression_NameUpdateAfterMarkDirty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 507
+        },
+        {
+          "name": "Regression_CyrillicNameInDisplayTree",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_inspector.cpp",
+          "line": 532
+        }
+      ]
+    }
+  ]
+}

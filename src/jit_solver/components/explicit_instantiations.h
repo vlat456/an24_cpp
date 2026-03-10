@@ -58,6 +58,9 @@ template class NAND<JitProvider>;
 template class Any_V_to_Bool<JitProvider>;
 template class Positive_V_to_Bool<JitProvider>;
 template class LUT<JitProvider>;
+template class FastTMO<JitProvider>;
+template class AsymTMO<JitProvider>;
+template class SlewRate<JitProvider>;
 
 } // namespace an24
 

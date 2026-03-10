@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/editor_hierarchical_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/editor_hierarchical_tests[1]_tests.cmake")
+else()
+  add_test(editor_hierarchical_tests_NOT_BUILT editor_hierarchical_tests_NOT_BUILT)
+endif()

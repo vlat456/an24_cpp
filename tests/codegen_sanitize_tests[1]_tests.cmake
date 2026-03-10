@@ -1,0 +1,5 @@
+add_test([=[CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers]=]  /Users/vladimir/an24_cpp/tests/codegen_sanitize_tests [==[--gtest_filter=CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_codegen_sanitize.cpp:94 WORKING_DIRECTORY /Users/vladimir/an24_cpp/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+add_test([=[CodegenSanitize.SanitizeNameFunction]=]  /Users/vladimir/an24_cpp/tests/codegen_sanitize_tests [==[--gtest_filter=CodegenSanitize.SanitizeNameFunction]==] --gtest_also_run_disabled_tests)
+set_tests_properties([=[CodegenSanitize.SanitizeNameFunction]=]  PROPERTIES DEF_SOURCE_LINE /Users/vladimir/an24_cpp/tests/test_codegen_sanitize.cpp:125 WORKING_DIRECTORY /Users/vladimir/an24_cpp/tests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
+set(  codegen_sanitize_tests_TESTS CodegenSanitize.DeviceNamesWithColonsAreValidIdentifiers CodegenSanitize.SanitizeNameFunction)

@@ -1,0 +1,67 @@
+{
+  "tests": 11,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ParamsIntegrity",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "AddComponentPopulatesDefaultParams",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 18
+        },
+        {
+          "name": "AddComponentPopulatesLerpNodeParams",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 43
+        },
+        {
+          "name": "AddComponentNoParamsForUnknownComponent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 57
+        },
+        {
+          "name": "LoadedBlueprintHasFullParams",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 69
+        },
+        {
+          "name": "UserOverridesPreservedOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 107
+        },
+        {
+          "name": "SavedParamsRoundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 146
+        },
+        {
+          "name": "ComponentWithNoDefaultParams_StaysEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 184
+        },
+        {
+          "name": "AddComponent_CppClassTrue_GetsInternalCPP",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 221
+        },
+        {
+          "name": "AddComponent_CppClassFalse_GetsBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 233
+        },
+        {
+          "name": "AddComponent_BusStillGetsBusKind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 254
+        },
+        {
+          "name": "AddComponent_RefNodeStillGetsRefKind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_params_integrity.cpp",
+          "line": 261
+        }
+      ]
+    }
+  ]
+}

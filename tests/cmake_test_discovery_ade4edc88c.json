@@ -1,0 +1,115 @@
+{
+  "tests": 17,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "MultiplyTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BasicMultiplication",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 33
+        },
+        {
+          "name": "MultiplyByZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 45
+        },
+        {
+          "name": "NegativeNumbers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 57
+        },
+        {
+          "name": "BothNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 69
+        },
+        {
+          "name": "LargeNumbers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 81
+        }
+      ]
+    },
+    {
+      "name": "DivideTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BasicDivision",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 97
+        },
+        {
+          "name": "DivideByZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 109
+        },
+        {
+          "name": "NegativeDivision",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 121
+        },
+        {
+          "name": "DivideByNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 133
+        },
+        {
+          "name": "FractionalResult",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 145
+        }
+      ]
+    },
+    {
+      "name": "AddTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BasicAddition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 161
+        },
+        {
+          "name": "AddWithZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 173
+        },
+        {
+          "name": "AddNegativeNumbers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 185
+        },
+        {
+          "name": "AddBothNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 197
+        },
+        {
+          "name": "LargeNumbers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 209
+        }
+      ]
+    },
+    {
+      "name": "ArithmeticTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "MultiplyThenAdd",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 225
+        },
+        {
+          "name": "SubtractThenDivide",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_arithmetic.cpp",
+          "line": 252
+        }
+      ]
+    }
+  ]
+}

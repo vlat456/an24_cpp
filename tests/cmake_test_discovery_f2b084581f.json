@@ -1,0 +1,37 @@
+{
+  "tests": 5,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PropertiesWindow",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "OpenSetsTarget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 9
+        },
+        {
+          "name": "CancelRevertsParams",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 23
+        },
+        {
+          "name": "CancelRevertsAddedParam",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 45
+        },
+        {
+          "name": "OpenTwiceOverwritesSnapshot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 66
+        },
+        {
+          "name": "ClosedWindowIsNotOpen",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_properties_window.cpp",
+          "line": 89
+        }
+      ]
+    }
+  ]
+}

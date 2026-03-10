@@ -1,0 +1,32 @@
+{
+  "tests": 4,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PortMapRegression",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "AllComponentPortsAreInStringToPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
+          "line": 18
+        },
+        {
+          "name": "AND_Gate_Reads_Correct_Signals",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
+          "line": 81
+        },
+        {
+          "name": "NOT_Gate_Reads_Correct_Input",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
+          "line": 156
+        },
+        {
+          "name": "Subtract_Reads_Both_Inputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_port_map_regression.cpp",
+          "line": 206
+        }
+      ]
+    }
+  ]
+}

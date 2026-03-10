@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CodegenSanitize",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DeviceNamesWithColonsAreValidIdentifiers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_sanitize.cpp",
+          "line": 94
+        },
+        {
+          "name": "SanitizeNameFunction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_sanitize.cpp",
+          "line": 125
+        }
+      ]
+    }
+  ]
+}

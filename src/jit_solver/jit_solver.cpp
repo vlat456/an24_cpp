@@ -400,6 +400,30 @@ ComponentVariant create_component_variant(
         }
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "FastTMO") {
+        FastTMO<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.tau = get_float(dev, "tau", 0.1f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AsymTMO") {
+        AsymTMO<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.tau_up = get_float(dev, "tau_up", 0.1f);
+        comp.tau_down = get_float(dev, "tau_down", 0.5f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "SlewRate") {
+        SlewRate<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.max_rate = get_float(dev, "max_rate", 1.0f);
+        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
+        return ComponentVariant(std::move(comp));
+    }
     else {
         throw std::runtime_error("Unknown component type: " + dev.classname);
     }

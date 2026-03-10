@@ -1,0 +1,22 @@
+{
+  "tests": 2,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintPorts",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "BasicBatteryCircuit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_integration.cpp",
+          "line": 98
+        },
+        {
+          "name": "InputPassThroughToOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_integration.cpp",
+          "line": 135
+        }
+      ]
+    }
+  ]
+}

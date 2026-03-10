@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/blueprint_integration_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/blueprint_integration_tests[1]_tests.cmake")
+else()
+  add_test(blueprint_integration_tests_NOT_BUILT blueprint_integration_tests_NOT_BUILT)
+endif()

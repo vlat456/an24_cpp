@@ -1,0 +1,37 @@
+{
+  "tests": 5,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "EditorComponentVariant",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BuildSimpleBatteryLoadCircuit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/editor_componentvariant_test.cpp",
+          "line": 8
+        },
+        {
+          "name": "MultiDomainComponents",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/editor_componentvariant_test.cpp",
+          "line": 63
+        },
+        {
+          "name": "RefNodeFixedVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/editor_componentvariant_test.cpp",
+          "line": 99
+        },
+        {
+          "name": "AllComponentTypes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/editor_componentvariant_test.cpp",
+          "line": 140
+        },
+        {
+          "name": "FactoryCreatesCorrectVariant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/editor_componentvariant_test.cpp",
+          "line": 174
+        }
+      ]
+    }
+  ]
+}

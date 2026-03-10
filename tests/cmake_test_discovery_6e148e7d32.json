@@ -1,0 +1,84 @@
+{
+  "tests": 12,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintLoading",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "UnknownClassnameThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 18
+        },
+        {
+          "name": "MissingBlueprintReturnsError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 29
+        },
+        {
+          "name": "DirectBlueprintLoadWorks",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 40
+        },
+        {
+          "name": "Integration_NestedBlueprintRunsSimulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 123
+        },
+        {
+          "name": "ExpandBlueprintFromTypeRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 293
+        }
+      ]
+    },
+    {
+      "name": "ExtractExposedPorts",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "SimpleBatteryBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 178
+        },
+        {
+          "name": "MultipleBlueprints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 220
+        },
+        {
+          "name": "EmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 250
+        },
+        {
+          "name": "DefaultValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 265
+        }
+      ]
+    },
+    {
+      "name": "BlueprintCycleDetection",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "DirectSelfReference_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 340
+        },
+        {
+          "name": "IndirectCycle_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 374
+        },
+        {
+          "name": "ValidNesting_NoCycle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_loading.cpp",
+          "line": 413
+        }
+      ]
+    }
+  ]
+}

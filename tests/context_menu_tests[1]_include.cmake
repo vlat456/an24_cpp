@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/context_menu_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/context_menu_tests[1]_tests.cmake")
+else()
+  add_test(context_menu_tests_NOT_BUILT context_menu_tests_NOT_BUILT)
+endif()

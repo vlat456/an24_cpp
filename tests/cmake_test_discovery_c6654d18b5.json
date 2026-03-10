@@ -1,0 +1,109 @@
+{
+  "tests": 17,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Any_V_to_BoolTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "PositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 38
+        },
+        {
+          "name": "NegativeVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 48
+        },
+        {
+          "name": "ZeroVoltageToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 58
+        },
+        {
+          "name": "SmallPositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 68
+        },
+        {
+          "name": "SmallNegativeVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 78
+        },
+        {
+          "name": "LargePositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 88
+        },
+        {
+          "name": "LargeNegativeVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 98
+        }
+      ]
+    },
+    {
+      "name": "Positive_V_to_BoolTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "PositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 112
+        },
+        {
+          "name": "NegativeVoltageToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 122
+        },
+        {
+          "name": "ZeroVoltageToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 132
+        },
+        {
+          "name": "SmallPositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 142
+        },
+        {
+          "name": "SmallNegativeVoltageToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 152
+        },
+        {
+          "name": "LargePositiveVoltageToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 162
+        },
+        {
+          "name": "LargeNegativeVoltageToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 172
+        }
+      ]
+    },
+    {
+      "name": "V_to_BoolComparisonTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AnyVsPositiveOnNegativeVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 186
+        },
+        {
+          "name": "AnyVsPositiveOnPositiveVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 202
+        },
+        {
+          "name": "AnyVsPositiveOnZeroVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_v_to_bool.cpp",
+          "line": 217
+        }
+      ]
+    }
+  ]
+}

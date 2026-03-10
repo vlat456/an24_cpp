@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/and_gate_debug_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/and_gate_debug_tests[1]_tests.cmake")
+else()
+  add_test(and_gate_debug_tests_NOT_BUILT and_gate_debug_tests_NOT_BUILT)
+endif()

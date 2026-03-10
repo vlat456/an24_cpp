@@ -1,0 +1,52 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CodegenAccumulator",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "HeaderContainsAccumulatorFields",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 85
+        },
+        {
+          "name": "SolveStepAccumulatesDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 103
+        },
+        {
+          "name": "NoDtMultiplyPatternInGenerated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 122
+        },
+        {
+          "name": "MechanicalUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 140
+        },
+        {
+          "name": "HydraulicUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 155
+        },
+        {
+          "name": "ThermalUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 168
+        },
+        {
+          "name": "DomainScheduleConstantsAreCanonical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 185
+        },
+        {
+          "name": "DispatchTableSizeMatchesCycleLength",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 200
+        }
+      ]
+    }
+  ]
+}

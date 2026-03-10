@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/arithmetic_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/arithmetic_tests[1]_tests.cmake")
+else()
+  add_test(arithmetic_tests_NOT_BUILT arithmetic_tests_NOT_BUILT)
+endif()

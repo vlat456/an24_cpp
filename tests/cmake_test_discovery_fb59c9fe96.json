@@ -1,0 +1,67 @@
+{
+  "tests": 11,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ViewportTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "DefaultValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 7
+        },
+        {
+          "name": "ScreenToWorld_Identity",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 15
+        },
+        {
+          "name": "WorldToScreen_Identity",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 25
+        },
+        {
+          "name": "ScreenToWorld_WithPan",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 34
+        },
+        {
+          "name": "WorldToScreen_WithPan",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 45
+        },
+        {
+          "name": "ScreenToWorld_WithZoom",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 55
+        },
+        {
+          "name": "PanBy",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 66
+        },
+        {
+          "name": "ZoomAt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 74
+        },
+        {
+          "name": "ZoomClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 81
+        },
+        {
+          "name": "CenterOn_PanUpdated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 102
+        },
+        {
+          "name": "CenterOn_WithZoom",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_viewport.cpp",
+          "line": 113
+        }
+      ]
+    }
+  ]
+}

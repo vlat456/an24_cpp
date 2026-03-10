@@ -1,0 +1,167 @@
+{
+  "tests": 25,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ANDTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BothTrue_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 26
+        },
+        {
+          "name": "OneFalse_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 35
+        },
+        {
+          "name": "BothFalse_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 44
+        },
+        {
+          "name": "Threshold_0_5_IsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 53
+        },
+        {
+          "name": "Threshold_0_4_IsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 62
+        }
+      ]
+    },
+    {
+      "name": "ORTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "BothTrue_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 83
+        },
+        {
+          "name": "OneTrue_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 92
+        },
+        {
+          "name": "BothFalse_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 101
+        },
+        {
+          "name": "OtherInputTrue_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 110
+        }
+      ]
+    },
+    {
+      "name": "XORTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "DifferentInputs_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 131
+        },
+        {
+          "name": "SameInputs_BothTrue_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 140
+        },
+        {
+          "name": "SameInputs_BothFalse_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 149
+        },
+        {
+          "name": "OppositeInputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 158
+        }
+      ]
+    },
+    {
+      "name": "NOTTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "InvertTrueToFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 184
+        },
+        {
+          "name": "InvertFalseToTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 192
+        },
+        {
+          "name": "DoubleNegation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 200
+        },
+        {
+          "name": "Threshold_0_6_IsTrue_BecomesFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 217
+        },
+        {
+          "name": "Threshold_0_4_IsFalse_BecomesTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 225
+        }
+      ]
+    },
+    {
+      "name": "NANDTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "BothTrue_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 245
+        },
+        {
+          "name": "OneFalse_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 254
+        },
+        {
+          "name": "BothFalse_ReturnsTrue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 263
+        },
+        {
+          "name": "TruthTable_Complete",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 272
+        }
+      ]
+    },
+    {
+      "name": "CombinedLogic",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AND_OR_SameResult",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 301
+        },
+        {
+          "name": "XOR_Equals_1_WhenInputsDiffer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 320
+        },
+        {
+          "name": "NOT_NAND_Equivalent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logic_gates.cpp",
+          "line": 335
+        }
+      ]
+    }
+  ]
+}

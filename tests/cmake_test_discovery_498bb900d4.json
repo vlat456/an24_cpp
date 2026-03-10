@@ -1,0 +1,190 @@
+{
+  "tests": 26,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintWindow",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "ConstructWithGroupId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 12
+        },
+        {
+          "name": "SceneReferencesSharedBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 22
+        },
+        {
+          "name": "TwoWindowsSeeSharedData",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 39
+        },
+        {
+          "name": "IndependentViewports",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 62
+        },
+        {
+          "name": "IndependentInteraction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 74
+        }
+      ]
+    },
+    {
+      "name": "WindowManager",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "CreatesRootOnConstruction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 92
+        },
+        {
+          "name": "OpenSubWindow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 102
+        },
+        {
+          "name": "OpenExistingReturnsSame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 113
+        },
+        {
+          "name": "FindWindow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 124
+        },
+        {
+          "name": "CloseSubWindow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 135
+        },
+        {
+          "name": "CloseRootIsIgnored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 147
+        },
+        {
+          "name": "CloseAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 155
+        },
+        {
+          "name": "RemoveClosedWindows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 169
+        },
+        {
+          "name": "SubWindowSeesSharedBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 186
+        },
+        {
+          "name": "MultipleWindowsIndependentViewports",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 200
+        }
+      ]
+    },
+    {
+      "name": "AutoLayoutGroup",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "LayoutsNodesInGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 217
+        },
+        {
+          "name": "EmptyGroupIsNoOp",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 260
+        }
+      ]
+    },
+    {
+      "name": "RecomputeGroupIds",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PreservesCollapsedNodeGroupId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 276
+        },
+        {
+          "name": "TopLevelCollapsedNodeStaysRoot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 329
+        }
+      ]
+    },
+    {
+      "name": "WireDeselect",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "ClickEmptySpaceDeselectsWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 357
+        },
+        {
+          "name": "ClickNodeDeselectsWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 413
+        }
+      ]
+    },
+    {
+      "name": "TooltipCanvasMin",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ScenePassesCanvasMinToDetector",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 457
+        }
+      ]
+    },
+    {
+      "name": "RPDrag",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "DraggingRoutingPointSelectsWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 482
+        }
+      ]
+    },
+    {
+      "name": "WireHover",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "HoverNearRoutingPoint_SetsHoveredWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 535
+        },
+        {
+          "name": "HoverClears_WhenCursorMovesAway",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 565
+        }
+      ]
+    },
+    {
+      "name": "RPDoubleClick",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "DoubleClickOnRP_RemovesIt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_multi_window.cpp",
+          "line": 599
+        }
+      ]
+    }
+  ]
+}
