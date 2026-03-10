@@ -510,6 +510,19 @@ editor_simulation_tests/fast:
 .PHONY : editor_simulation_tests/fast
 
 #=============================================================================
+# Target rules for targets named azs_tests
+
+# Build rule for target.
+azs_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 azs_tests
+.PHONY : azs_tests
+
+# fast build rule for target.
+azs_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
+.PHONY : azs_tests/fast
+
+#=============================================================================
 # Target rules for targets named logical_solver_tests
 
 # Build rule for target.
@@ -955,6 +968,7 @@ help:
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... azs_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"

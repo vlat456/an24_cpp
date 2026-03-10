@@ -416,14 +416,11 @@ std::string CodeGen::generate_source(
     }
     oss << "}\n\n";
 
-    // Pre-load: initialize LUT arena in SimulationState
+    // Pre-load: call pre_load() on components that have it, then LUT arena init
     oss << "void Systems::pre_load() {\n";
+    // All cpp_class components have pre_load() (empty stub or real implementation)
     for (const auto& dev : devices) {
-        if (dev.classname == "Battery") {
-            if (dev.params.count("internal_r")) {
-                oss << "    " << sanitize_name(dev.name) << ".inv_internal_r = 1.0f / " << sanitize_name(dev.name) << ".internal_r;\n";
-            }
-        }
+        oss << "    " << sanitize_name(dev.name) << ".pre_load();\n";
     }
     // Emit LUT arena initialization
     if (!lut_entries.empty()) {

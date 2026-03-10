@@ -44,6 +44,13 @@ void EditorApp::update_node_content_from_simulation() {
             // state=true = PRESSED, state=false = RELEASED/idle
             node.node_content.state = (state_voltage > 0.5f);
         }
+        // Update AZS (circuit breaker) state + tripped indicator
+        else if (node.type_name == "AZS") {
+            float state_voltage = simulation.get_port_value(node.id, "state");
+            node.node_content.state = (state_voltage > 0.5f);
+            float tripped_voltage = simulation.get_port_value(node.id, "tripped");
+            node.node_content.tripped = (tripped_voltage > 0.5f);
+        }
         // Relay has no UI - automatic device controlled by external signals
     }
 }

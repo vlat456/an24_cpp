@@ -201,6 +201,16 @@ void VisualNode::buildLayout(const Node& node) {
                 node_content_.max,
                 node_content_.unit
             ));
+        } else if (node_content_.type == NodeContentType::Switch) {
+            float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
+            float v_pad = 2.0f;  // vertical padding around the button
+            auto sw = std::make_unique<SwitchWidget>(node_content_.state, node_content_.tripped);
+            auto content_container = std::make_unique<Container>(
+                std::move(sw),
+                Edges{margin, v_pad, margin, v_pad}
+            );
+            content_container->setFlexible(true);
+            content_widget_ = layout_.addChild(std::move(content_container));
         } else {
             // Content area: sized by label text, with margins to avoid overlapping port circles
             float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
@@ -288,6 +298,15 @@ void VisualNode::updateNodeContent(const NodeContent& content) {
             if (auto* vw = dynamic_cast<VoltmeterWidget*>(layout_.child(i))) {
                 vw->setValue(node_content_.value);
                 break;
+            }
+        }
+    }
+    // Propagate state/tripped to SwitchWidget (inside Container)
+    if (node_content_.type == NodeContentType::Switch) {
+        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
+            if (auto* sw = dynamic_cast<SwitchWidget*>(c->child())) {
+                sw->setState(node_content_.state);
+                sw->setTripped(node_content_.tripped);
             }
         }
     }

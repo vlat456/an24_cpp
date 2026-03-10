@@ -203,6 +203,18 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         } else if (hit.type == HitType::ResizeHandle) {
             enter_resize_node(hit.node_index, hit.resize_corner);
         } else if (hit.type == HitType::Node) {
+            // Check if click landed on Switch content area
+            const auto& node = scene_.nodes()[hit.node_index];
+            if (node.node_content.type == NodeContentType::Switch) {
+                auto* visual = scene_.cache().getOrCreate(node, scene_.wires());
+                Bounds cb = visual->getContentBounds();
+                float local_x = world.x - node.pos.x;
+                float local_y = world.y - node.pos.y;
+                if (cb.w > 0 && cb.contains(local_x, local_y)) {
+                    result.toggle_switch_node_id = node.id;
+                    return result;
+                }
+            }
             enter_drag_node(hit.node_index, false, mods.ctrl);
         } else if (hit.type == HitType::RoutingPoint) {
             if (hit.wire_index < scene_.wires().size() &&

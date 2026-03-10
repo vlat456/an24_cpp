@@ -90,6 +90,14 @@ ComponentVariant create_component_variant(
         comp.closed = get_bool(dev, "initial_state", false);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "AZS") {
+        AZS<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.closed = get_bool(dev, "closed", false);
+        comp.i_nominal = get_float(dev, "i_nominal", 20.0f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "Relay") {
         Relay<JitProvider> comp;
         setup_component_ports(comp, dev, result);

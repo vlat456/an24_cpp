@@ -58,6 +58,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Relay - on/off switch controlled by voltage threshold
@@ -77,6 +78,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// HoldButton - hold-to-operate button with press/release detection
@@ -97,6 +99,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Resistor - pure conductance element
@@ -111,6 +114,7 @@ public:
     Resistor() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Load - single port resistive load to ground
@@ -125,6 +129,7 @@ public:
     Load() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// RefNode - fixed voltage reference
@@ -139,6 +144,7 @@ public:
     RefNode() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Bus - electrical bus/rail, connects all ports together
@@ -152,6 +158,7 @@ public:
     Bus() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// BlueprintInput - input port marker for nested blueprints
@@ -169,6 +176,7 @@ public:
     BlueprintInput() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// BlueprintOutput - output port marker for nested blueprints
@@ -186,6 +194,7 @@ public:
     BlueprintOutput() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Generator - voltage source like battery
@@ -201,6 +210,7 @@ public:
     Generator() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// GS24 - Starter-Generator
@@ -228,6 +238,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Transformer - AC transformer with voltage ratio
@@ -242,6 +253,7 @@ public:
     Transformer() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Inverter - DC to AC inverter
@@ -257,6 +269,7 @@ public:
     Inverter() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// LerpNode - linear interpolation
@@ -272,6 +285,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// PID - Proportional-Integral-Derivative controller
@@ -297,6 +311,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// PD - Proportional-Derivative controller
@@ -320,6 +335,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// PI - Proportional-Integral controller
@@ -341,6 +357,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// P - Proportional controller
@@ -360,6 +377,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Splitter - 1-to-2 signal splitter
@@ -376,6 +394,7 @@ public:
     void solve_mechanical(an24::SimulationState& st, float dt);
     void solve_hydraulic(an24::SimulationState& st, float dt);
     void solve_thermal(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Merger - 2-to-1 signal merger (inverse of Splitter)
@@ -392,6 +411,7 @@ public:
     void solve_mechanical(an24::SimulationState& st, float dt);
     void solve_hydraulic(an24::SimulationState& st, float dt);
     void solve_thermal(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// IndicatorLight - aircraft indicator light
@@ -408,6 +428,7 @@ public:
     IndicatorLight() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// HighPowerLoad - high power electrical load
@@ -422,6 +443,7 @@ public:
     HighPowerLoad() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Voltmeter - analog voltage gauge
@@ -435,6 +457,7 @@ public:
     Voltmeter() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Gyroscope - power-only sensor
@@ -449,6 +472,7 @@ public:
     Gyroscope() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// AGK47 - attitude gyro
@@ -463,6 +487,7 @@ public:
     AGK47() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 // =============================================================================
@@ -482,6 +507,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void solve_hydraulic(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// SolenoidValve - electrically controlled hydraulic valve
@@ -496,6 +522,7 @@ public:
     SolenoidValve() = default;
 
     void solve_hydraulic(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 // =============================================================================
@@ -535,6 +562,7 @@ public:
     TempSensor() = default;
 
     void solve_thermal(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// ElectricHeater - electrical heater
@@ -551,6 +579,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void solve_thermal(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// RUG82 - Coal column voltage regulator
@@ -567,6 +596,7 @@ public:
     RUG82() = default;
 
     void solve_electrical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// DMR400 - Differential Minimum Relay
@@ -586,6 +616,7 @@ public:
 
     void solve_electrical(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// RU19A-300 - Auxiliary Power Unit
@@ -621,6 +652,7 @@ public:
     void solve_mechanical(an24::SimulationState& st, float dt);
     void solve_thermal(an24::SimulationState& st, float dt);
     void post_step(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Radiator - heat exchanger
@@ -635,6 +667,36 @@ public:
     Radiator() = default;
 
     void solve_thermal(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// AZS (Автомат Защиты Сети) — Aircraft circuit breaker
+/// Hybrid switch + thermal fuse. Manual toggle via control port.
+/// Thermal model: T += (I² * r_heat - T * k_cool) * dt, trips at T > 1.0
+template <typename Provider = JitProvider>
+class AZS {
+public:
+    static constexpr Domain domain = Domain::Electrical | Domain::Thermal;
+
+    Provider provider;
+    bool closed = false;
+    bool tripped = false;
+    float last_control = 0.0f;
+    float downstream_g = 0.0f;
+    float downstream_I = 0.0f;
+    float v_out_old = 0.0f;
+    float temp = 0.0f;
+    float current = 0.0f;
+    float i_nominal = 20.0f;
+    float r_heat = 0.0025f;   // 1/(i_nominal²) — precomputed
+    float k_cool = 1.0f;
+
+    AZS() = default;
+
+    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_thermal(an24::SimulationState& st, float dt);
+    void post_step(an24::SimulationState& st, float dt);
+    void pre_load();
 };
 
 /// Comparator - voltage comparator with hysteresis
@@ -665,6 +727,7 @@ public:
     Subtract() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Multiply - multiplier (o = A * B)
@@ -678,6 +741,7 @@ public:
     Multiply() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Divide - divider (o = A / B, returns 0 if B is 0)
@@ -691,6 +755,7 @@ public:
     Divide() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Add - adder (o = A + B)
@@ -704,6 +769,7 @@ public:
     Add() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// AND - logical AND gate (o = A && B)
@@ -717,6 +783,7 @@ public:
     AND() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// OR - logical OR gate (o = A || B)
@@ -730,6 +797,7 @@ public:
     OR() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// XOR - logical XOR gate (o = A != B)
@@ -743,6 +811,7 @@ public:
     XOR() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// NOT - logical NOT gate (o = !A)
@@ -756,6 +825,7 @@ public:
     NOT() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// NAND - logical NAND gate (o = !(A && B))
@@ -769,6 +839,7 @@ public:
     NAND() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Any_V_to_Bool - convert any non-zero voltage to TRUE (including negative)
@@ -782,6 +853,7 @@ public:
     Any_V_to_Bool() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// Positive_V_to_Bool - convert positive voltage to TRUE (v > 0)
@@ -795,6 +867,7 @@ public:
     Positive_V_to_Bool() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 };
 
 /// LUT - Lookup table with linear interpolation.
@@ -812,6 +885,7 @@ public:
     LUT() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
 
     /// Parse "k1:v1; k2:v2; ..." table string into keys/values vectors
     static bool parse_table(const std::string& table_str,

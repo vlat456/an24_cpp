@@ -347,6 +347,21 @@ target_link_libraries(editor_simulation_tests PRIVATE
 )
 gtest_discover_tests(editor_simulation_tests)
 
+# AZS (Circuit Breaker) component tests
+add_executable(azs_tests
+    test_azs.cpp
+)
+target_include_directories(azs_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(azs_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(azs_tests)
+
 # Factory validation tests (TDD - Task 2) - Disabled (uses old create_component API)
 # add_executable(factory_validation_tests
 #     factory_validation_test.cpp

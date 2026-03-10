@@ -393,12 +393,9 @@ int main(int argc, char** argv) {
                                 if (checked) app.hold_button_press(node.id);
                                 else app.hold_button_release(node.id);
                             }
-                        } else {
-                            std::string label = content.state ? "ON" : "OFF";
-                            std::string id = label + "##" + node.id;
-                            if (ImGui::Button(id.c_str(), ImVec2(aw, 0)))
-                                app.trigger_switch(node.id);
                         }
+                        // Other Switch/AZS nodes: visual drawn by SwitchWidget,
+                        // clicks handled via CanvasInput hit testing (no ImGui overlay)
                         break;
                     }
                     case NodeContentType::Value: {

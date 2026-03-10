@@ -39,8 +39,8 @@
         }
       },
       "pos": {
-        "x": 176.0,
-        "y": 128.0
+        "x": -64.0,
+        "y": -32.0
       },
       "size": {
         "x": 96.0,
@@ -63,7 +63,7 @@
         }
       },
       "pos": {
-        "x": 272.0,
+        "x": 288.0,
         "y": -80.0
       },
       "render_hint": "bus",
@@ -655,8 +655,8 @@
         }
       },
       "pos": {
-        "x": 192.0,
-        "y": 320.0
+        "x": 288.0,
+        "y": 336.0
       },
       "render_hint": "bus",
       "size": {
@@ -683,8 +683,8 @@
         }
       },
       "pos": {
-        "x": 192.0,
-        "y": 448.0
+        "x": 288.0,
+        "y": 464.0
       },
       "render_hint": "ref",
       "size": {
@@ -751,7 +751,7 @@
       },
       "pos": {
         "x": 736.0,
-        "y": 144.0
+        "y": 112.0
       },
       "render_hint": "bus",
       "size": {
@@ -770,35 +770,76 @@
       "name": "group_1",
       "ports": {},
       "pos": {
-        "x": 256.0,
-        "y": -112.0
+        "x": 240.0,
+        "y": -96.0
       },
       "render_hint": "group",
       "size": {
-        "x": 464.0,
+        "x": 496.0,
         "y": 528.0
+      }
+    },
+    {
+      "classname": "AZS",
+      "content": {
+        "label": "ON",
+        "max": 1.0,
+        "min": 0.0,
+        "state": false,
+        "type": 2,
+        "unit": "",
+        "value": 0.0
+      },
+      "name": "azs_1",
+      "params": {
+        "closed": "false",
+        "i_nominal": "20.0"
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "temp": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 64.0,
+        "y": -48.0
+      },
+      "size": {
+        "x": 112.0,
+        "y": 128.0
       }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -21.995529174804688,
-      "y": -465.18408203125
+      "x": -244.27479553222656,
+      "y": -411.27093505859375
     },
-    "zoom": 0.7802722454071045
+    "zoom": 0.7228097915649414
   },
   "wires": [
-    {
-      "from": "bat_main_1.v_out",
-      "routing_points": [
-        {
-          "x": 288.0,
-          "y": 160.0
-        }
-      ],
-      "to": "main_bus.v"
-    },
     {
       "from": "lerpnode_1.output",
       "routing_points": [
@@ -920,43 +961,11 @@
       "to": "vsu_1.k_mod"
     },
     {
-      "from": "main_bus.v",
+      "from": "azs_1.v_out",
       "routing_points": [
         {
           "x": 304.0,
-          "y": 304.0
-        }
-      ],
-      "to": "dmr_vsu.v_in"
-    },
-    {
-      "from": "vsu_1.v_bus",
-      "routing_points": [
-        {
-          "x": 704.0,
-          "y": 144.0
-        },
-        {
-          "x": 704.0,
-          "y": 192.0
-        },
-        {
-          "x": 752.0,
-          "y": 192.0
-        }
-      ],
-      "to": "bus_2.v"
-    },
-    {
-      "from": "bus_2.v",
-      "routing_points": [
-        {
-          "x": 768.0,
-          "y": 208.0
-        },
-        {
-          "x": 320.0,
-          "y": 208.0
+          "y": 32.0
         }
       ],
       "to": "main_bus.v"
@@ -965,7 +974,7 @@
       "from": "bus_2.v",
       "routing_points": [
         {
-          "x": 784.0,
+          "x": 752.0,
           "y": 224.0
         },
         {
@@ -983,29 +992,38 @@
       "from": "bus_1.v",
       "routing_points": [
         {
-          "x": 208.0,
-          "y": 416.0
+          "x": 304.0,
+          "y": 400.0
         },
         {
-          "x": 144.0,
-          "y": 416.0
+          "x": -112.0,
+          "y": 400.0
         },
         {
-          "x": 144.0,
-          "y": 160.0
+          "x": -112.0,
+          "y": 0.0
         }
       ],
       "to": "bat_main_1.v_in"
     },
     {
-      "from": "refnode_1.v",
-      "routing_points": [],
-      "to": "bus_1.v"
-    },
-    {
       "from": "holdbutton_1.v_out",
       "routing_points": [],
       "to": "vsu_1.v_start"
+    },
+    {
+      "from": "bus_2.v",
+      "routing_points": [
+        {
+          "x": 768.0,
+          "y": 208.0
+        },
+        {
+          "x": 320.0,
+          "y": 208.0
+        }
+      ],
+      "to": "main_bus.v"
     },
     {
       "from": "holdbutton_1.v_in",
@@ -1018,31 +1036,8 @@
       "to": "main_bus.v"
     },
     {
-      "from": "main_bus.v",
-      "routing_points": [
-        {
-          "x": 352.0,
-          "y": 16.0
-        }
-      ],
-      "to": "rug82_1.v_gen"
-    },
-    {
-      "from": "light_1.v_out",
-      "routing_points": [
-        {
-          "x": 880.0,
-          "y": 304.0
-        },
-        {
-          "x": 880.0,
-          "y": 416.0
-        },
-        {
-          "x": 240.0,
-          "y": 416.0
-        }
-      ],
+      "from": "refnode_1.v",
+      "routing_points": [],
       "to": "bus_1.v"
     },
     {
@@ -1080,6 +1075,54 @@
         }
       ],
       "to": "lerpnode_1.input"
+    },
+    {
+      "from": "bat_main_1.v_out",
+      "routing_points": [],
+      "to": "azs_1.v_in"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [
+        {
+          "x": 352.0,
+          "y": 304.0
+        }
+      ],
+      "to": "dmr_vsu.v_in"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [
+        {
+          "x": 368.0,
+          "y": 16.0
+        }
+      ],
+      "to": "rug82_1.v_gen"
+    },
+    {
+      "from": "vsu_1.v_bus",
+      "routing_points": [],
+      "to": "bus_2.v"
+    },
+    {
+      "from": "light_1.v_out",
+      "routing_points": [
+        {
+          "x": 880.0,
+          "y": 304.0
+        },
+        {
+          "x": 880.0,
+          "y": 416.0
+        },
+        {
+          "x": 336.0,
+          "y": 416.0
+        }
+      ],
+      "to": "bus_1.v"
     }
   ]
 }

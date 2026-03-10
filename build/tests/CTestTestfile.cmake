@@ -16,6 +16,7 @@ include("/Users/vladimir/an24_cpp/build/tests/json_parser_tests[1]_include.cmake
 include("/Users/vladimir/an24_cpp/build/tests/editor_router_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_widget_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/editor_simulation_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/azs_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/logical_solver_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/blueprint_ports_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/blueprint_integration_tests[1]_include.cmake")

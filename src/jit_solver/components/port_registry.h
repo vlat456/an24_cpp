@@ -60,8 +60,10 @@ enum class PortNames : uint32_t {
     setpoint,
     state,
     t4_out,
+    temp,
     temp_in,
     temp_out,
+    tripped,
     v,
     v_bus,
     v_gen,
@@ -75,6 +77,7 @@ enum class PortNames : uint32_t {
 enum class ComponentType {
     AGK47,
     AND,
+    AZS,
     Add,
     Any_V_to_Bool,
     Battery,
@@ -126,6 +129,7 @@ enum class ComponentType {
 // Port count for each component
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t AND_PORT_COUNT = 3;
+constexpr size_t AZS_PORT_COUNT = 6;
 constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t Battery_PORT_COUNT = 2;
@@ -181,6 +185,14 @@ constexpr const char* AND_PORTS[] = {
     "A",
     "B",
     "o"
+};
+constexpr const char* AZS_PORTS[] = {
+    "control",
+    "state",
+    "temp",
+    "tripped",
+    "v_in",
+    "v_out"
 };
 constexpr const char* Add_PORTS[] = {
     "A",
@@ -429,8 +441,10 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"setpoint", PortNames::setpoint},
         {"state", PortNames::state},
         {"t4_out", PortNames::t4_out},
+        {"temp", PortNames::temp},
         {"temp_in", PortNames::temp_in},
         {"temp_out", PortNames::temp_out},
+        {"tripped", PortNames::tripped},
         {"v", PortNames::v},
         {"v_bus", PortNames::v_bus},
         {"v_gen", PortNames::v_gen},
@@ -449,6 +463,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
     static const std::unordered_map<std::string, std::vector<std::string>> registry = {
         {"AGK47", {"input"}},
         {"AND", {"A", "B", "o"}},
+        {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
         {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"Battery", {"v_in", "v_out"}},
@@ -509,6 +524,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
 using ComponentVariant = std::variant<
     AGK47<JitProvider>,
     AND<JitProvider>,
+    AZS<JitProvider>,
     Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
     Battery<JitProvider>,

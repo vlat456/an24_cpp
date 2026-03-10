@@ -25,6 +25,7 @@ struct NodeContent {
     float max = 1.0f;
     std::string unit;
     bool state = false;
+    bool tripped = false;  ///< AZS thermal trip indicator (red button tint)
 };
 
 /// Optional per-node custom color (RGBA, 0.0–1.0)

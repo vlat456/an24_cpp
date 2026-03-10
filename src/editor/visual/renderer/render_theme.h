@@ -41,6 +41,11 @@ constexpr uint32_t COLOR_RESIZE_HANDLE = 0xFF968685; // Text Secondary
 // ---- Visual text node ----
 constexpr uint32_t COLOR_TEXT_BORDER = 0x40968685;  // Faint border for text nodes
 
+// ---- Tripped / alert ----
+constexpr uint32_t COLOR_TRIPPED       = 0xFF3040C0;  // Red accent (tripped AZS button)
+constexpr uint32_t COLOR_TRIPPED_HOVER = 0xFF3848D0;  // Red hover
+constexpr uint32_t COLOR_TRIPPED_ACTIVE= 0xFF2838A0;  // Red active/pressed
+
 // ============================================================================
 // Node style colors
 // ============================================================================

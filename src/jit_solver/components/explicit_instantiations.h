@@ -9,6 +9,7 @@
 
 namespace an24 {
 
+template class AZS<JitProvider>;
 template class Battery<JitProvider>;
 template class Switch<JitProvider>;
 template class Relay<JitProvider>;

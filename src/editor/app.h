@@ -138,6 +138,7 @@ struct EditorApp {
             node_context_menu_group_id = group_id;
         }
         if (!r.open_sub_window.empty()) open_sub_window(r.open_sub_window);
+        if (!r.toggle_switch_node_id.empty()) trigger_switch(r.toggle_switch_node_id);
     }
 
     /// Добавить компонент на схему (group_id = which sub-blueprint to add to)

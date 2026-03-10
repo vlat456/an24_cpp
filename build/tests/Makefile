@@ -340,6 +340,20 @@ editor_simulation_tests/fast:
 .PHONY : editor_simulation_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/azs_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/azs_tests.dir/rule
+.PHONY : tests/CMakeFiles/azs_tests.dir/rule
+
+# Convenience name for target.
+azs_tests: tests/CMakeFiles/azs_tests.dir/rule
+.PHONY : azs_tests
+
+# fast build rule for target.
+azs_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
+.PHONY : azs_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/logical_solver_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logical_solver_tests.dir/rule
 .PHONY : tests/CMakeFiles/logical_solver_tests.dir/rule
@@ -2061,6 +2075,30 @@ test_arithmetic.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/test_arithmetic.cpp.s
 .PHONY : test_arithmetic.cpp.s
 
+test_azs.o: test_azs.cpp.o
+.PHONY : test_azs.o
+
+# target to build an object file
+test_azs.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.o
+.PHONY : test_azs.cpp.o
+
+test_azs.i: test_azs.cpp.i
+.PHONY : test_azs.i
+
+# target to preprocess a source file
+test_azs.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.i
+.PHONY : test_azs.cpp.i
+
+test_azs.s: test_azs.cpp.s
+.PHONY : test_azs.s
+
+# target to generate assembly for a file
+test_azs.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.s
+.PHONY : test_azs.cpp.s
+
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
 
@@ -3036,6 +3074,7 @@ help:
 	@echo "... test"
 	@echo "... and_gate_debug_tests"
 	@echo "... arithmetic_tests"
+	@echo "... azs_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
@@ -3160,6 +3199,9 @@ help:
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"
+	@echo "... test_azs.o"
+	@echo "... test_azs.i"
+	@echo "... test_azs.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"
