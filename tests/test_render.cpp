@@ -324,6 +324,28 @@ TEST(RenderTest, VisualNodeCache_NodeContent_SyncsAfterClear) {
         << "After cache clear, visual node should have updated content";
 }
 
+TEST(RenderTest, VisualNodeCache_Size_SyncsFromDataModel) {
+    Node node;
+    node.id = "grp1";
+    node.name = "Test";
+    node.type_name = "Group";
+    node.render_hint = "group";
+    node.at(0, 0);
+    node.size_wh(160, 96);
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+    EXPECT_FLOAT_EQ(visual->getSize().x, 160.0f);
+    EXPECT_FLOAT_EQ(visual->getSize().y, 96.0f);
+
+    // Simulate external size change (e.g. undo, file reload)
+    node.size = Pt(256, 192);
+    auto* visual2 = cache.getOrCreate(node);
+    EXPECT_EQ(visual2, visual) << "Same cached node";
+    EXPECT_FLOAT_EQ(visual2->getSize().x, 256.0f);
+    EXPECT_FLOAT_EQ(visual2->getSize().y, 192.0f);
+}
+
 TEST(RenderTest, VisualNodeCache_GetContentBounds_WithContent) {
     // Create a node with content
     Node node;
@@ -1756,8 +1778,8 @@ TEST(RenderTest, GroupNode_IsResizable) {
     auto visual = VisualNodeFactory::create(g);
     EXPECT_TRUE(visual->isResizable())
         << "GroupVisualNode should be resizable";
-    EXPECT_TRUE(visual->isGroup())
-        << "GroupVisualNode should report isGroup()=true";
+    EXPECT_EQ(visual->renderLayer(), RenderLayer::Group)
+        << "GroupVisualNode should render in Group layer";
 }
 
 TEST(RenderTest, NormalNode_IsNotResizable) {
@@ -1773,8 +1795,8 @@ TEST(RenderTest, NormalNode_IsNotResizable) {
     auto visual = VisualNodeFactory::create(n);
     EXPECT_FALSE(visual->isResizable())
         << "Normal VisualNode should NOT be resizable";
-    EXPECT_FALSE(visual->isGroup())
-        << "Normal VisualNode should report isGroup()=false";
+    EXPECT_EQ(visual->renderLayer(), RenderLayer::Node)
+        << "Normal VisualNode should render in Node layer";
 }
 
 // ============================================================================
@@ -1801,4 +1823,219 @@ TEST(RenderTest, MockDrawList_CircleEntries_TrackPositionAndFilled) {
     EXPECT_FALSE(dl.circle_entries_[1].filled);
     EXPECT_FLOAT_EQ(dl.circle_entries_[0].center.x, 10.0f);
     EXPECT_FLOAT_EQ(dl.circle_entries_[0].center.y, 20.0f);
+}
+
+// ============================================================================
+// TextVisualNode rendering tests
+// ============================================================================
+
+static Node make_text_node(const std::string& text = "Hello\nWorld",
+                           const std::string& font_size = "large") {
+    Node n;
+    n.id = "txt1";
+    n.name = "";
+    n.type_name = "Text";
+    n.render_hint = "text";
+    n.at(0, 0);
+    n.size_wh(160, 96);
+    n.params["text"] = text;
+    n.params["font_size"] = font_size;
+    return n;
+}
+
+TEST(TextNode, RenderLayer_IsText) {
+    auto visual = VisualNodeFactory::create(make_text_node());
+    EXPECT_EQ(visual->renderLayer(), RenderLayer::Text);
+    EXPECT_TRUE(visual->isResizable());
+}
+
+TEST(TextNode, Render_NoFillRect) {
+    auto visual = VisualNodeFactory::create(make_text_node());
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    // No filled rects (transparent background)
+    EXPECT_TRUE(dl.rect_filled_colors_.empty())
+        << "TextVisualNode should have no fill rect (transparent)";
+}
+
+TEST(TextNode, Render_DisplaysMultilineText) {
+    auto visual = VisualNodeFactory::create(make_text_node("Line1\nLine2\nLine3"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 3u);
+    EXPECT_EQ(dl.texts_[0].text, "Line1");
+    EXPECT_EQ(dl.texts_[1].text, "Line2");
+    EXPECT_EQ(dl.texts_[2].text, "Line3");
+}
+
+TEST(TextNode, Render_TextColor) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_EQ(dl.texts_[0].color, render_theme::COLOR_TEXT);
+}
+
+TEST(TextNode, Render_FontSize_DefaultIsLarge) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Large);
+}
+
+TEST(TextNode, Render_FontSize_ScalesWithZoom) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 2.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Large * 2.0f);
+}
+
+TEST(TextNode, Render_Unselected_FaintBorder) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    EXPECT_FALSE(dl.rect_border_colors_.empty())
+        << "Unselected TextVisualNode should have a faint border";
+    EXPECT_TRUE(dl.has_rect_border_with_color(render_theme::COLOR_TEXT_BORDER))
+        << "Unselected border should use COLOR_TEXT_BORDER";
+}
+
+TEST(TextNode, Render_Selected_HasBorder) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), true);
+
+    EXPECT_FALSE(dl.rect_border_colors_.empty());
+    EXPECT_TRUE(dl.has_rect_border_with_color(render_theme::COLOR_SELECTED))
+        << "Selected TextVisualNode should have selection border";
+}
+
+TEST(TextNode, Render_EmptyText_ShowsPlaceholder) {
+    auto visual = VisualNodeFactory::create(make_text_node(""));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_EQ(dl.texts_[0].text, "Text")
+        << "Empty text node should show placeholder";
+    EXPECT_EQ(dl.texts_[0].color, render_theme::COLOR_TEXT_DIM)
+        << "Placeholder should use dim color";
+}
+
+TEST(TextNode, Render_MultilineYPositions) {
+    auto visual = VisualNodeFactory::create(make_text_node("A\nB"));
+    visual->setPosition(Pt(0, 0));
+
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+
+    ASSERT_EQ(dl.texts_.size(), 2u);
+    // Second line should be below first
+    EXPECT_GT(dl.texts_[1].pos.y, dl.texts_[0].pos.y)
+        << "Second text line should be below the first";
+}
+
+TEST(TextNode, NoPorts) {
+    auto visual = VisualNodeFactory::create(make_text_node());
+    EXPECT_EQ(visual->getPortCount(), 0u)
+        << "TextVisualNode should have no ports";
+}
+
+// ============================================================================
+// TextNode: configurable font_size param
+// ============================================================================
+
+TEST(TextNode, FontSize_Small) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test", "small"));
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Small);
+}
+
+TEST(TextNode, FontSize_Medium) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test", "medium"));
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Medium);
+}
+
+TEST(TextNode, FontSize_Large) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test", "large"));
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Large);
+}
+
+TEST(TextNode, FontSize_UnknownDefaultsToLarge) {
+    auto visual = VisualNodeFactory::create(make_text_node("Test", "bogus"));
+    MockDrawList dl;
+    Viewport vp;
+    vp.zoom = 1.0f;
+    visual->render(&dl, vp, Pt(0, 0), false);
+    ASSERT_EQ(dl.texts_.size(), 1u);
+    EXPECT_FLOAT_EQ(dl.texts_[0].font_size, editor_constants::Font::Large);
+}
+
+// ============================================================================
+// Text visual_only: type registry
+// ============================================================================
+
+TEST(RenderTest, VisualOnly_TypeRegistryTextHasFlag) {
+    an24::TypeRegistry reg = an24::load_type_registry();
+    const auto* text_def = reg.get("Text");
+    ASSERT_NE(text_def, nullptr) << "Text type must be in registry";
+    EXPECT_TRUE(text_def->visual_only)
+        << "Text type definition should have visual_only=true";
+    EXPECT_EQ(text_def->render_hint, "text");
 }

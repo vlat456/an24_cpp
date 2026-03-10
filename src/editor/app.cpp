@@ -65,7 +65,8 @@ void EditorApp::reset_node_content() {
 void EditorApp::open_properties_for_node(size_t node_index) {
     if (node_index >= blueprint.nodes.size()) return;
     Node& node = blueprint.nodes[node_index];
-    properties_window.open(node, [this](const std::string&) {
+    properties_window.open(node, [this](const std::string& node_id) {
+        scene.cache().invalidate(node_id);
         rebuild_simulation();
     });
 }

@@ -7,20 +7,27 @@ void NodeRenderer::renderGroups(const Blueprint& bp, IDrawList& dl, const Viewpo
                                 Pt canvas_min, VisualNodeCache& cache,
                                 const std::vector<size_t>* selected_nodes,
                                 const std::string& group_id) {
-    renderFiltered(bp, dl, vp, canvas_min, cache, selected_nodes, group_id, true);
+    renderFiltered(bp, dl, vp, canvas_min, cache, selected_nodes, group_id, RenderLayer::Group);
+}
+
+void NodeRenderer::renderTexts(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
+                               Pt canvas_min, VisualNodeCache& cache,
+                               const std::vector<size_t>* selected_nodes,
+                               const std::string& group_id) {
+    renderFiltered(bp, dl, vp, canvas_min, cache, selected_nodes, group_id, RenderLayer::Text);
 }
 
 void NodeRenderer::renderNodes(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                                Pt canvas_min, VisualNodeCache& cache,
                                const std::vector<size_t>* selected_nodes,
                                const std::string& group_id) {
-    renderFiltered(bp, dl, vp, canvas_min, cache, selected_nodes, group_id, false);
+    renderFiltered(bp, dl, vp, canvas_min, cache, selected_nodes, group_id, RenderLayer::Node);
 }
 
 void NodeRenderer::renderFiltered(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                                   Pt canvas_min, VisualNodeCache& cache,
                                   const std::vector<size_t>* selected_nodes,
-                                  const std::string& group_id, bool groups_only) {
+                                  const std::string& group_id, RenderLayer layer) {
     size_t node_idx = 0;
     for (const auto& n : bp.nodes) {
         if (n.group_id != group_id) {
@@ -30,7 +37,7 @@ void NodeRenderer::renderFiltered(const Blueprint& bp, IDrawList& dl, const View
 
         auto* visual = cache.getOrCreate(n, bp.wires);
 
-        if (visual->isGroup() != groups_only) {
+        if (visual->renderLayer() != layer) {
             node_idx++;
             continue;
         }

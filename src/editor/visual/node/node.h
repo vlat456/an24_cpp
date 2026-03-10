@@ -13,6 +13,9 @@
 #include <unordered_map>
 #include <memory>
 
+/// Render layer for z-ordering: groups (bottom) → texts → wires → nodes (top).
+enum class RenderLayer { Group, Text, Node };
+
 // Forward declaration
 struct EditorApp;
 
@@ -90,8 +93,8 @@ public:
     const std::optional<NodeColor>& customColor() const { return custom_color_; }
     void setCustomColor(std::optional<NodeColor> c) { custom_color_ = std::move(c); }
 
-    // --- Group / resize queries ---
-    virtual bool isGroup() const { return false; }
+    // --- Render layer / resize queries ---
+    virtual RenderLayer renderLayer() const { return RenderLayer::Node; }
     virtual bool isResizable() const { return false; }
 
     // --- IDrawable ---
@@ -186,7 +189,7 @@ class GroupVisualNode : public VisualNode {
 public:
     GroupVisualNode(const Node& node);
 
-    bool isGroup() const override { return true; }
+    RenderLayer renderLayer() const override { return RenderLayer::Group; }
     bool isResizable() const override { return true; }
 
     /// Hit only on border edges + title bar, not the interior.
@@ -195,6 +198,27 @@ public:
 
     void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                bool is_selected) const override;
+};
+
+// ============================================================================
+// TextVisualNode — Visual text annotation with multiline content
+// ============================================================================
+
+class TextVisualNode : public VisualNode {
+public:
+    TextVisualNode(const Node& node);
+
+    RenderLayer renderLayer() const override { return RenderLayer::Text; }
+    bool isResizable() const override { return true; }
+
+    // Full bounding-box hit test — clicking anywhere selects it.
+
+    void render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
+               bool is_selected) const override;
+
+private:
+    std::string text_;       // cached from params["text"]
+    float font_size_base_;   // base font size (before zoom)
 };
 
 // ============================================================================
@@ -213,6 +237,9 @@ public:
         }
         if (node.render_hint == "group") {
             return std::make_unique<GroupVisualNode>(node);
+        }
+        if (node.render_hint == "text") {
+            return std::make_unique<TextVisualNode>(node);
         }
         if (node.expandable) {
             // Expandable (collapsed blueprint) — strip content
@@ -234,6 +261,7 @@ public:
 
     VisualNode* getOrCreate(const Node& node, const std::vector<Wire>& wires = {});
     VisualNode* get(const std::string& node_id);
+    void invalidate(const std::string& node_id) { cache_.erase(node_id); }
     void clear() { cache_.clear(); }
 
     void onWireAdded(const Wire& wire, const std::vector<Node>& all_nodes);

@@ -92,3 +92,8 @@ void Viewport::fit_content(Pt content_min, Pt content_max, float window_w, float
     pan.x = cx - (window_w * 0.5f) / zoom;
     pan.y = cy - (window_h * 0.5f) / zoom;
 }
+
+void Viewport::centerOn(Pt world_point, float window_w, float window_h) {
+    pan.x = world_point.x - (window_w * 0.5f) / zoom;
+    pan.y = world_point.y - (window_h * 0.5f) / zoom;
+}

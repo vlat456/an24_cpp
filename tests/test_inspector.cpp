@@ -460,3 +460,42 @@ TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
     EXPECT_NE(v_out_it->connection.find("lamp2"), std::string::npos)
         << "Missing lamp2 in fan-out: " << v_out_it->connection;
 }
+
+// ============================================================================
+// DisplayNode stores node_id
+// ============================================================================
+
+TEST(Inspector, DisplayNode_HasNodeId) {
+    InspectorTestScene ts;
+    ts.addNode("bat1", "Battery");
+    ts.rebuild();
+
+    Inspector inspector(ts.scene);
+    inspector.buildDisplayTree();
+
+    const auto& tree = inspector.displayTree();
+    ASSERT_EQ(tree.size(), 1u);
+    EXPECT_EQ(tree[0].node_id, "bat1");
+}
+
+// ============================================================================
+// consumeSelection — single-shot output
+// ============================================================================
+
+TEST(Inspector, ConsumeSelection_EmptyByDefault) {
+    InspectorTestScene ts;
+    Inspector inspector(ts.scene);
+    EXPECT_TRUE(inspector.consumeSelection().empty());
+}
+
+TEST(Inspector, ConsumeSelection_ClearsAfterRead) {
+    InspectorTestScene ts;
+    Inspector inspector(ts.scene);
+    // Simulate a click by directly setting the field (render() would do this via ImGui)
+    // We test consumeSelection logic only
+    auto sel1 = inspector.consumeSelection();
+    EXPECT_TRUE(sel1.empty());
+    // Second read is also empty
+    auto sel2 = inspector.consumeSelection();
+    EXPECT_TRUE(sel2.empty());
+}

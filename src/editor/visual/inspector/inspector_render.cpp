@@ -33,9 +33,14 @@ void Inspector::render() {
     // Node tree
     for (const auto& node : display_tree_) {
         std::string label = node.name + " [" + node.type_name + "] (" +
-                            std::to_string(node.connection_count) + " conn)";
+                            std::to_string(node.connection_count) + " conn)##" +
+                            node.node_id;  // unique ID suffix for ImGui
 
         if (ImGui::TreeNodeEx(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+            // Click on tree header → select this node on canvas
+            if (ImGui::IsItemClicked()) {
+                clicked_node_id_ = node.node_id;
+            }
             for (const auto& port : node.ports) {
                 const char* arrow = (port.side == PortSide::Input) ? "\xe2\x86\x90" : "\xe2\x86\x92"; // ← / →
                 bool connected = (port.connection != "[not connected]");

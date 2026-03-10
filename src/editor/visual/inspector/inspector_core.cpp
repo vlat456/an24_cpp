@@ -4,6 +4,12 @@
 
 Inspector::Inspector(const VisualScene& scene) : scene_(scene) {}
 
+std::string Inspector::consumeSelection() {
+    std::string result;
+    result.swap(clicked_node_id_);
+    return result;
+}
+
 void Inspector::setSearch(std::string_view search) {
     if (search_ == search) return;
     search_ = search;
@@ -40,6 +46,7 @@ void Inspector::buildDisplayTree() {
         if (!passesFilter(node)) continue;
 
         DisplayNode dn;
+        dn.node_id = node.id;
         dn.name = node.name;
         dn.type_name = node.type_name;
 

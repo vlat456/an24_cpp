@@ -839,7 +839,7 @@ TEST(GroupVisualNode, IsGroup) {
     g.at(0, 0);
     g.size_wh(200.0f, 120.0f);
     auto visual = VisualNodeFactory::create(g);
-    EXPECT_TRUE(visual->isGroup());
+    EXPECT_EQ(visual->renderLayer(), RenderLayer::Group);
     EXPECT_TRUE(visual->isResizable());
 }
 
@@ -851,7 +851,7 @@ TEST(GroupVisualNode, NormalNode_IsNotGroup) {
     n.at(0, 0);
     n.size_wh(120.0f, 80.0f);
     auto visual = VisualNodeFactory::create(n);
-    EXPECT_FALSE(visual->isGroup());
+    EXPECT_EQ(visual->renderLayer(), RenderLayer::Node);
     EXPECT_FALSE(visual->isResizable());
 }
 
@@ -1097,5 +1097,66 @@ TEST(GroupHitTest, GroupBorder_HitsGroup) {
     EXPECT_EQ(hit.type, HitType::Node);
     EXPECT_EQ(hit.node_index, 0u)
         << "Clicking on group border should select the group";
+}
+
+// ============================================================================
+// TextVisualNode hit-test
+// ============================================================================
+
+static Node make_text_node_for_hit(float x = 0, float y = 0,
+                                    float w = 192, float h = 128) {
+    Node n;
+    n.id = "txt1";
+    n.type_name = "Text";
+    n.render_hint = "text";
+    n.at(x, y);
+    n.size_wh(w, h);
+    n.params["text"] = "Hello";
+    return n;
+}
+
+TEST(TextHitTest, ContainsPoint_LeftBorder_Hit) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    // Left border: x near 0, y in middle
+    EXPECT_TRUE(visual->containsPoint(Pt(3.0f, 60.0f)));
+}
+
+TEST(TextHitTest, ContainsPoint_RightBorder_Hit) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    // Right border: x near 192, y in middle
+    EXPECT_TRUE(visual->containsPoint(Pt(189.0f, 60.0f)));
+}
+
+TEST(TextHitTest, ContainsPoint_TopBorder_Hit) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    // Top border: y near 0
+    EXPECT_TRUE(visual->containsPoint(Pt(100.0f, 3.0f)));
+}
+
+TEST(TextHitTest, ContainsPoint_BottomBorder_Hit) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    // Bottom border: y near 128
+    EXPECT_TRUE(visual->containsPoint(Pt(100.0f, 125.0f)));
+}
+
+TEST(TextHitTest, ContainsPoint_Interior_Hit) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    // Interior center — text nodes are fully clickable
+    EXPECT_TRUE(visual->containsPoint(Pt(100.0f, 60.0f)))
+        << "Interior of TextVisualNode should be clickable";
+}
+
+TEST(TextHitTest, ContainsPoint_Outside_Miss) {
+    auto visual = VisualNodeFactory::create(make_text_node_for_hit());
+    visual->setPosition(Pt(0, 0));
+    EXPECT_FALSE(visual->containsPoint(Pt(-10.0f, 60.0f)));
+    EXPECT_FALSE(visual->containsPoint(Pt(100.0f, -10.0f)));
+    EXPECT_FALSE(visual->containsPoint(Pt(250.0f, 60.0f)));
+    EXPECT_FALSE(visual->containsPoint(Pt(100.0f, 200.0f)));
 }
 

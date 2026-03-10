@@ -214,3 +214,172 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     EXPECT_NE(source.find("test_lut.table_offset"), std::string::npos);
     EXPECT_NE(source.find("test_lut.table_size"), std::string::npos);
 }
+
+// =============================================================================
+// visual_only devices must NOT leak into AOT codegen
+// =============================================================================
+
+TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
+    CodegenSetup s;
+    uint32_t next_sig = 0;
+
+    auto gnd = make_ref_node();
+    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.devices.push_back(std::move(gnd));
+
+    // Normal device
+    DeviceInstance bat;
+    bat.name = "bat";
+    bat.classname = "Battery";
+    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    s.port_to_signal["bat.v_in"]  = next_sig++;
+    s.port_to_signal["bat.v_out"] = next_sig++;
+    s.devices.push_back(std::move(bat));
+
+    // visual_only device — must NOT appear in generated code
+    DeviceInstance grp;
+    grp.name = "grp1";
+    grp.classname = "Group";
+    grp.visual_only = true;
+    s.devices.push_back(std::move(grp));
+
+    s.signal_count = next_sig;
+
+    std::string header = CodeGen::generate_header(
+        "test.json", s.devices, s.connections,
+        s.port_to_signal, s.signal_count);
+
+    EXPECT_NE(header.find("bat"), std::string::npos)
+        << "Normal device 'bat' should be in generated header";
+    EXPECT_EQ(header.find("grp1"), std::string::npos)
+        << "visual_only device 'grp1' must NOT appear in generated header";
+    EXPECT_EQ(header.find("Group"), std::string::npos)
+        << "visual_only classname 'Group' must NOT appear in generated header";
+}
+
+TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
+    CodegenSetup s;
+    uint32_t next_sig = 0;
+
+    auto gnd = make_ref_node();
+    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.devices.push_back(std::move(gnd));
+
+    DeviceInstance bat;
+    bat.name = "bat";
+    bat.classname = "Battery";
+    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.params["emf"] = "24.0";
+    bat.params["internal_r"] = "0.05";
+    s.port_to_signal["bat.v_in"]  = next_sig++;
+    s.port_to_signal["bat.v_out"] = next_sig++;
+    s.devices.push_back(std::move(bat));
+
+    // visual_only device
+    DeviceInstance grp;
+    grp.name = "grp1";
+    grp.classname = "Group";
+    grp.visual_only = true;
+    s.devices.push_back(std::move(grp));
+
+    s.signal_count = next_sig;
+
+    std::string source = CodeGen::generate_source(
+        "test.h", s.devices, s.connections,
+        s.port_to_signal, s.signal_count);
+
+    EXPECT_NE(source.find("bat"), std::string::npos)
+        << "Normal device 'bat' should be in generated source";
+    EXPECT_EQ(source.find("grp1"), std::string::npos)
+        << "visual_only device 'grp1' must NOT appear in generated source";
+    EXPECT_EQ(source.find("Group"), std::string::npos)
+        << "visual_only classname 'Group' must NOT appear in generated source";
+}
+
+// =============================================================================
+// Text visual_only must NOT leak into AOT codegen
+// =============================================================================
+
+TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
+    CodegenSetup s;
+    uint32_t next_sig = 0;
+
+    auto gnd = make_ref_node();
+    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.devices.push_back(std::move(gnd));
+
+    DeviceInstance bat;
+    bat.name = "bat";
+    bat.classname = "Battery";
+    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    s.port_to_signal["bat.v_in"]  = next_sig++;
+    s.port_to_signal["bat.v_out"] = next_sig++;
+    s.devices.push_back(std::move(bat));
+
+    // Text visual_only device — must NOT appear in generated code
+    DeviceInstance txt;
+    txt.name = "txt1";
+    txt.classname = "Text";
+    txt.visual_only = true;
+    txt.params["text"] = "annotation";
+    txt.params["font_size"] = "large";
+    s.devices.push_back(std::move(txt));
+
+    s.signal_count = next_sig;
+
+    std::string header = CodeGen::generate_header(
+        "test.json", s.devices, s.connections,
+        s.port_to_signal, s.signal_count);
+
+    EXPECT_NE(header.find("bat"), std::string::npos)
+        << "Normal device 'bat' should be in generated header";
+    EXPECT_EQ(header.find("txt1"), std::string::npos)
+        << "visual_only Text device 'txt1' must NOT appear in generated header";
+    EXPECT_EQ(header.find("annotation"), std::string::npos)
+        << "Text param content must NOT appear in generated header";
+}
+
+TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
+    CodegenSetup s;
+    uint32_t next_sig = 0;
+
+    auto gnd = make_ref_node();
+    s.port_to_signal["gnd.v_out"] = next_sig++;
+    s.devices.push_back(std::move(gnd));
+
+    DeviceInstance bat;
+    bat.name = "bat";
+    bat.classname = "Battery";
+    bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
+    bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.params["emf"] = "24.0";
+    bat.params["internal_r"] = "0.05";
+    s.port_to_signal["bat.v_in"]  = next_sig++;
+    s.port_to_signal["bat.v_out"] = next_sig++;
+    s.devices.push_back(std::move(bat));
+
+    // Text visual_only device
+    DeviceInstance txt;
+    txt.name = "txt1";
+    txt.classname = "Text";
+    txt.visual_only = true;
+    txt.params["text"] = "note";
+    txt.params["font_size"] = "medium";
+    s.devices.push_back(std::move(txt));
+
+    s.signal_count = next_sig;
+
+    std::string source = CodeGen::generate_source(
+        "test.h", s.devices, s.connections,
+        s.port_to_signal, s.signal_count);
+
+    EXPECT_NE(source.find("bat"), std::string::npos)
+        << "Normal device 'bat' should be in generated source";
+    EXPECT_EQ(source.find("txt1"), std::string::npos)
+        << "visual_only Text device 'txt1' must NOT appear in generated source";
+    EXPECT_EQ(source.find("note"), std::string::npos)
+        << "Text param content must NOT appear in generated source";
+}

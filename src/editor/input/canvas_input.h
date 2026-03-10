@@ -51,6 +51,10 @@ public:
     void add_node_selection(size_t idx);
     bool is_node_selected(size_t idx) const;
 
+    /// Select a node by its ID and center the viewport on it.
+    /// Returns true if found and selected.
+    bool selectNodeById(const std::string& node_id);
+
     // ---- Hover tracking ----
 
     /// Update hover state based on current mouse position (call every frame)

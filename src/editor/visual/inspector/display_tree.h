@@ -13,6 +13,7 @@ struct DisplayPort {
 
 /// Cached node info for Inspector display
 struct DisplayNode {
+    std::string node_id;  // Blueprint node ID (for selection)
     std::string name;
     std::string type_name;
     size_t connection_count = 0;

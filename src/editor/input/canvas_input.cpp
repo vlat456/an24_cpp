@@ -57,6 +57,24 @@ bool CanvasInput::is_node_selected(size_t idx) const {
     return std::find(selected_nodes_.begin(), selected_nodes_.end(), idx) != selected_nodes_.end();
 }
 
+bool CanvasInput::selectNodeById(const std::string& node_id) {
+    const auto& nodes = scene_.nodes();
+    for (size_t i = 0; i < nodes.size(); i++) {
+        if (nodes[i].id == node_id) {
+            clear_selection();
+            add_node_selection(i);
+            // Center viewport on the node
+            const Node& n = nodes[i];
+            Pt center(n.pos.x + n.size.x * 0.5f, n.pos.y + n.size.y * 0.5f);
+            // Use a reasonable default window size for centering; actual window
+            // dimension will be applied by the caller if needed.
+            scene_.viewport().centerOn(center, 800.0f, 600.0f);
+            return true;
+        }
+    }
+    return false;
+}
+
 // ============================================================================
 // Temp-wire queries for rendering
 // ============================================================================

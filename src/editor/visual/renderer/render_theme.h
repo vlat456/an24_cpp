@@ -38,6 +38,9 @@ constexpr uint32_t COLOR_GROUP_BORDER = 0xFF54403E;  // Border Mid
 constexpr uint32_t COLOR_GROUP_TITLE  = 0xFFDCD5D4;  // Text Primary
 constexpr uint32_t COLOR_RESIZE_HANDLE = 0xFF968685; // Text Secondary
 
+// ---- Visual text node ----
+constexpr uint32_t COLOR_TEXT_BORDER = 0x40968685;  // Faint border for text nodes
+
 // ============================================================================
 // Node style colors
 // ============================================================================

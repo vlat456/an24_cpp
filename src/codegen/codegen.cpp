@@ -157,11 +157,17 @@ std::string get_port_name(const std::unordered_map<std::string, Port>& ports, co
 
 std::string CodeGen::generate_header(
     const std::string& source_file,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count
 ) {
+    // Filter out visual-only devices (no simulation behavior, e.g. Group)
+    std::vector<DeviceInstance> devices;
+    devices.reserve(devices_unfiltered.size());
+    for (const auto& d : devices_unfiltered)
+        if (!d.visual_only) devices.push_back(d);
+
     std::ostringstream oss;
 
     // Header guard
@@ -319,11 +325,17 @@ std::string CodeGen::generate_header(
 
 std::string CodeGen::generate_source(
     const std::string& header_name,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count
 ) {
+    // Filter out visual-only devices (no simulation behavior, e.g. Group)
+    std::vector<DeviceInstance> devices;
+    devices.reserve(devices_unfiltered.size());
+    for (const auto& d : devices_unfiltered)
+        if (!d.visual_only) devices.push_back(d);
+
     std::ostringstream oss;
 
     oss << "#include \"" << header_name << "\"\n";

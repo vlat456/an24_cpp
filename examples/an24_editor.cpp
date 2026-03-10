@@ -507,6 +507,13 @@ int main(int argc, char** argv) {
                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                 ImGuiWindowFlags_NoCollapse);
             app.inspector.render();
+
+            // Inspector click → select + center on canvas
+            std::string sel = app.inspector.consumeSelection();
+            if (!sel.empty()) {
+                app.input.selectNodeById(sel);
+            }
+
             ImGui::End();
 
             // Splitter (invisible draggable button between inspector and canvas)

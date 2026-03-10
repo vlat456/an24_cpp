@@ -84,6 +84,62 @@ TEST(ContextMenu, RightClickOnSecondNode_ReportsCorrectIndex) {
 }
 
 // =============================================================================
+// selectNodeById — programmatic selection from Inspector
+// =============================================================================
+
+TEST(SelectNodeById, Found_SelectsAndCenters) {
+    Blueprint bp;
+    Node n;
+    n.id = "bat1";
+    n.type_name = "Battery";
+    n.at(200, 300).size_wh(120, 80);
+    n.input("v_in");
+    n.output("v_out");
+    bp.add_node(std::move(n));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    bool found = input.selectNodeById("bat1");
+    EXPECT_TRUE(found);
+    EXPECT_EQ(input.selected_nodes().size(), 1u);
+    EXPECT_EQ(input.selected_nodes()[0], 0u);
+}
+
+TEST(SelectNodeById, NotFound_ReturnsFalse) {
+    Blueprint bp;
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    EXPECT_FALSE(input.selectNodeById("nonexistent"));
+    EXPECT_TRUE(input.selected_nodes().empty());
+}
+
+TEST(SelectNodeById, ClearsPreviousSelection) {
+    Blueprint bp;
+    Node n1, n2;
+    n1.id = "bat1"; n1.type_name = "Battery"; n1.at(0, 0).size_wh(120, 80);
+    n1.input("v_in"); n1.output("v_out");
+    n2.id = "bat2"; n2.type_name = "Battery"; n2.at(200, 0).size_wh(120, 80);
+    n2.input("v_in"); n2.output("v_out");
+    bp.add_node(std::move(n1));
+    bp.add_node(std::move(n2));
+
+    VisualScene scene(bp);
+    WireManager wm(scene);
+    CanvasInput input(scene, wm);
+
+    input.selectNodeById("bat1");
+    EXPECT_EQ(input.selected_nodes().size(), 1u);
+
+    input.selectNodeById("bat2");
+    EXPECT_EQ(input.selected_nodes().size(), 1u);
+    EXPECT_EQ(input.selected_nodes()[0], 1u);
+}
+
+// =============================================================================
 // Bus port swap integration tests (VisualScene::swapWirePortsOnBus)
 // These verify the full scene-level swap: visual port order + wire re-routing
 // =============================================================================

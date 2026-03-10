@@ -94,3 +94,28 @@ TEST(ViewportTest, ZoomClamped) {
     // Должен быть огранилен
     EXPECT_GE(vp.zoom, 0.25f);
 }
+
+// ============================================================================
+// Viewport::centerOn
+// ============================================================================
+
+TEST(ViewportTest, CenterOn_PanUpdated) {
+    Viewport vp;
+    vp.zoom = 1.0f;
+    vp.centerOn(Pt(200.0f, 150.0f), 800.0f, 600.0f);
+
+    // After centering, world_to_screen of the target point should be at window center
+    Pt screen = vp.world_to_screen(Pt(200.0f, 150.0f), Pt(0, 0));
+    EXPECT_FLOAT_EQ(screen.x, 400.0f);
+    EXPECT_FLOAT_EQ(screen.y, 300.0f);
+}
+
+TEST(ViewportTest, CenterOn_WithZoom) {
+    Viewport vp;
+    vp.zoom = 2.0f;
+    vp.centerOn(Pt(100.0f, 100.0f), 400.0f, 300.0f);
+
+    Pt screen = vp.world_to_screen(Pt(100.0f, 100.0f), Pt(0, 0));
+    EXPECT_FLOAT_EQ(screen.x, 200.0f);
+    EXPECT_FLOAT_EQ(screen.y, 150.0f);
+}

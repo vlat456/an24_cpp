@@ -26,6 +26,10 @@ public:
     /// Render inspector widget (ImGui::Begin/End handled by caller)
     void render();
 
+    /// Consume the node ID the user clicked in the inspector (empty if none).
+    /// Resets after read (single-shot output).
+    std::string consumeSelection();
+
     /// Set search filter (marks dirty if changed)
     void setSearch(std::string_view search);
 
@@ -59,4 +63,7 @@ private:
     std::string findConnectionFor(const Node& node, const Port& port, PortSide side) const;
     void sortDisplayTree();
     bool passesFilter(const Node& node) const;
+
+    // Selection output (consumed by main loop)
+    std::string clicked_node_id_;
 };

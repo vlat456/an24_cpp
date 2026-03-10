@@ -36,4 +36,7 @@ struct Viewport {
     /// Fit viewport to show a world-space bounding box centered in the given window size.
     /// Adds padding around the content.
     void fit_content(Pt content_min, Pt content_max, float window_w, float window_h);
+
+    /// Center viewport on a world-space point (keeps current zoom).
+    void centerOn(Pt world_point, float window_w, float window_h);
 };

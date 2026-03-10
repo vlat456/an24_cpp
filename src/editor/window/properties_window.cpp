@@ -93,6 +93,17 @@ void PropertiesWindow::render() {
                 renderTableParam(key);
                 continue;
             }
+            if (key == "text") {
+                // Multiline text editor for Text nodes
+                char text_buf[4096];
+                strncpy(text_buf, target_->params[key].c_str(), sizeof(text_buf) - 1);
+                text_buf[sizeof(text_buf) - 1] = '\0';
+                if (ImGui::InputTextMultiline(key.c_str(), text_buf, sizeof(text_buf),
+                                              ImVec2(-1, 200))) {
+                    target_->params[key] = text_buf;
+                }
+                continue;
+            }
             char buf[256];
             strncpy(buf, target_->params[key].c_str(), sizeof(buf) - 1);
             buf[sizeof(buf) - 1] = '\0';

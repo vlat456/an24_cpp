@@ -9,6 +9,7 @@ void BlueprintRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewpor
                                const std::string& group_id) {
     grid_renderer_.render(dl, vp, canvas_min, canvas_max);
     node_renderer_.renderGroups(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
+    node_renderer_.renderTexts(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
     wire_renderer_.render(bp, dl, vp, canvas_min, cache, sim, selected_wire, hovered_wire, group_id);
     node_renderer_.renderNodes(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
     node_renderer_.renderResizeHandles(bp, dl, vp, canvas_min, cache, selected_nodes, group_id);
