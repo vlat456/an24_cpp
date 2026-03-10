@@ -10,10 +10,11 @@
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
     None,
-    Gauge,     ///< Измерительный прибор
-    Switch,    ///< Переключатель
-    Value,     ///< Отображаемое значение
-    Text       ///< Текст
+    Gauge,           ///< Измерительный прибор
+    Switch,          ///< Кнопка-переключатель
+    VerticalToggle,  ///< Вертикальный тумблер (слайдер)
+    Value,           ///< Отображаемое значение
+    Text             ///< Текст
 };
 
 /// Содержимое узла (пока placeholder)
@@ -169,6 +170,11 @@ inline NodeContent create_node_content_from_def(const an24::TypeDefinition* def)
     } else if (ct == "Switch") {
         content.type = NodeContentType::Switch;
         content.label = "ON";
+        auto it = def->params.find("closed");
+        content.state = (it != def->params.end() && it->second == "true");
+    } else if (ct == "VerticalToggle") {
+        content.type = NodeContentType::VerticalToggle;
+        content.label = "";
         auto it = def->params.find("closed");
         content.state = (it != def->params.end() && it->second == "true");
     } else if (ct == "HoldButton") {

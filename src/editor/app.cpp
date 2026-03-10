@@ -74,6 +74,7 @@ void EditorApp::open_properties_for_node(size_t node_index) {
     Node& node = blueprint.nodes[node_index];
     properties_window.open(node, [this](const std::string& node_id) {
         scene.cache().invalidate(node_id);
+        inspector.markDirty();
         rebuild_simulation();
     });
 }

@@ -112,12 +112,14 @@ protected:
     Column layout_;
     std::optional<NodeColor> custom_color_;
     Widget* content_widget_ = nullptr;
+    Pt content_offset_;  // absolute offset of content_widget_ within layout_ (for nested layouts)
 
     struct PortSlot {
         Widget* row_container;  // Container wrapping the port Row
         std::string name;
         bool is_left;
         an24::PortType type;
+        float parent_y_offset = 0;  // Y offset of enclosing parent (0 for standard layout)
     };
     std::vector<PortSlot> port_slots_;
 

@@ -65,6 +65,96 @@ TEST(PersistTest, ToJson_FromJson_Roundtrip) {
     EXPECT_EQ(bp2->wires[0].start.node_id, "batt1");
 }
 
+// ============================================================================
+// Regression: display_name (node.name) must roundtrip through save/load
+// ============================================================================
+
+TEST(PersistTest, DisplayName_Roundtrip_CustomName) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "azs_1";
+    n.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
+    n.type_name = "AZS";
+    n.at(0, 0).size_wh(160, 128);
+    n.input("control");
+    n.output("state");
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_editor_json(bp);
+    // JSON should contain display_name since name != id
+    EXPECT_NE(json.find("display_name"), std::string::npos)
+        << "Editor JSON must include display_name when name differs from id";
+
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    EXPECT_EQ(bp2->nodes[0].id, "azs_1");
+    EXPECT_EQ(bp2->nodes[0].name, "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8")
+        << "Display name must survive save/load roundtrip";
+}
+
+TEST(PersistTest, DisplayName_Roundtrip_SameAsId) {
+    // When name == id, display_name is not saved (backward compatible)
+    Blueprint bp;
+
+    Node n;
+    n.id = "battery_1";
+    n.name = "battery_1";  // same as id
+    n.type_name = "Battery";
+    n.at(0, 0);
+    n.input("v_in");
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_editor_json(bp);
+    EXPECT_EQ(json.find("display_name"), std::string::npos)
+        << "display_name should NOT be saved when name == id";
+
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    EXPECT_EQ(bp2->nodes[0].name, "battery_1")
+        << "name should default to id when display_name is absent";
+}
+
+TEST(PersistTest, DisplayName_WithSpacesAndSpecialChars) {
+    Blueprint bp;
+
+    Node n;
+    n.id = "pump_3";
+    n.name = "Main Fuel Pump #3 (backup)";
+    n.type_name = "Pump";
+    n.at(50, 50);
+    n.input("in");
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    EXPECT_EQ(bp2->nodes[0].name, "Main Fuel Pump #3 (backup)")
+        << "Display name with spaces and special characters must roundtrip";
+}
+
+TEST(PersistTest, SizeExplicitlySet_FromJson) {
+    // Nodes loaded from JSON with explicit size should preserve it
+    Blueprint bp;
+
+    Node n;
+    n.id = "r1";
+    n.name = "r1";
+    n.type_name = "Resistor";
+    n.at(0, 0).size_wh(200, 100);
+    n.input("in");
+    n.output("out");
+    bp.add_node(std::move(n));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2 = blueprint_from_json(json);
+    ASSERT_TRUE(bp2.has_value());
+    EXPECT_TRUE(bp2->nodes[0].size_explicitly_set)
+        << "Loaded node with explicit size in JSON must have size_explicitly_set=true";
+    EXPECT_FLOAT_EQ(bp2->nodes[0].size.x, 200.0f);
+    EXPECT_FLOAT_EQ(bp2->nodes[0].size.y, 100.0f);
+}
+
 TEST(PersistTest, FromJson_Invalid_ReturnsNullopt) {
     auto bp = blueprint_from_json("invalid json {");
     EXPECT_FALSE(bp.has_value());

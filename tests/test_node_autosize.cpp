@@ -389,3 +389,53 @@ TEST(NodeAutoSizeTest, Regression_CachedVisualPreservesAutoSize) {
     EXPECT_FLOAT_EQ(first_size.y, second_size.y)
         << "Cached visual height must be stable across getOrCreate calls";
 }
+
+// ============================================================================
+// Regression: Renaming node must NOT change width (size_explicitly_set on load)
+// ============================================================================
+
+TEST(NodeAutoSizeTest, Regression_RenameDoesNotChangeWidth) {
+    // Simulate: node loaded from JSON with explicit size, then renamed
+    Node n;
+    n.id = "azs_1";
+    n.name = "AZS_1";
+    n.type_name = "AZS";
+    n.at(100, 100).size_wh(160, 128);  // size_explicitly_set = true
+    n.input("control");
+    n.input("v_in");
+    n.output("state");
+    n.output("v_out");
+
+    VisualNode visual_before(n);
+    Pt size_before = visual_before.getSize();
+
+    // Rename to a much longer Cyrillic name
+    n.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8 \xd0\x9e\xd1\x81\xd0\xbd\xd0\xbe\xd0\xb2\xd0\xbd\xd1\x8b\xd0\xb5"; // "АЗС Батареи Основные"
+
+    // Cache invalidated → new VisualNode built from same Node data
+    VisualNode visual_after(n);
+    Pt size_after = visual_after.getSize();
+
+    EXPECT_FLOAT_EQ(size_before.x, size_after.x)
+        << "Node width must NOT change after rename when size is explicit";
+    EXPECT_FLOAT_EQ(size_before.y, size_after.y)
+        << "Node height must NOT change after rename when size is explicit";
+}
+
+TEST(NodeAutoSizeTest, EstimateTextWidth_UTF8_CountsCodepoints) {
+    // "АЗС" in UTF-8 = 6 bytes, 3 codepoints
+    // estimateTextWidth should use codepoints, not bytes
+    float width_ascii = HeaderWidget::estimateTextWidth("ABC");
+    float width_cyrillic = HeaderWidget::estimateTextWidth("\xd0\x90\xd0\x97\xd0\xa1"); // "АЗС"
+
+    EXPECT_FLOAT_EQ(width_ascii, width_cyrillic)
+        << "3 ASCII chars and 3 Cyrillic chars should estimate to the same width";
+
+    // "Hello" = 5 bytes/codepoints, "Привет" = 12 bytes, 6 codepoints
+    float w_hello = HeaderWidget::estimateTextWidth("Hello");
+    float w_privet = HeaderWidget::estimateTextWidth("\xd0\x9f\xd1\x80\xd0\xb8\xd0\xb2\xd0\xb5\xd1\x82"); // "Привет"
+
+    EXPECT_NE(w_hello, w_privet) << "5 chars vs 6 chars should differ";
+    float expected_ratio = 6.0f / 5.0f;
+    EXPECT_FLOAT_EQ(w_privet / w_hello, expected_ratio);
+}

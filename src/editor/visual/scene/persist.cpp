@@ -283,6 +283,8 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
         }
         json device = json::object();
         device["name"] = n.id;
+        if (n.name != n.id)
+            device["display_name"] = n.name;
         device["classname"] = n.type_name;
         if (!n.render_hint.empty())
             device["render_hint"] = n.render_hint;
@@ -455,7 +457,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     for (const auto& d : j["devices"]) {
         Node n;
         n.id = d.value("name", "");
-        n.name = n.id;
+        n.name = d.value("display_name", n.id);
         n.type_name = d.value("classname", "");
 
         // BUGFIX [e4a1b7] Skip duplicate node IDs (malformed saves may contain duplicates)
@@ -520,6 +522,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         if (d.contains("size")) {
             n.size.x = d["size"].value("x", 120.0f);
             n.size.y = d["size"].value("y", 80.0f);
+            n.size_explicitly_set = true;
         }
 
         // Content (UI metadata)

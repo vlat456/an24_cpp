@@ -109,6 +109,19 @@ VisualNode::VisualNode(const Node& node)
     // Recalculate layout with final size
     layout_.layout(size_.x, size_.y);
 
+    // Compute content_offset_ for nested content widgets (VerticalToggle)
+    if (node_content_.type == NodeContentType::VerticalToggle && content_widget_ && layout_.childCount() > 1) {
+        // content_widget_ is inside: layout_ → main_row → center_col → toggle_container
+        Widget* main_row = layout_.child(1);
+        // center_col is child(1) of main_row (child(0)=left_col, child(1)=center_col)
+        auto* row_ptr = dynamic_cast<Row*>(main_row);
+        if (row_ptr && row_ptr->childCount() > 1) {
+            Widget* center_col = row_ptr->child(1);
+            content_offset_ = Pt(main_row->x() + center_col->x(),
+                                 main_row->y() + center_col->y());
+        }
+    }
+
     // Build VisualPort objects from layout positions
     buildPorts(node);
 }
@@ -133,100 +146,163 @@ void VisualNode::buildLayout(const Node& node) {
         name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING));
 
     // Port rows: pair inputs and outputs
-    size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
     port_slots_.clear();
-    for (size_t i = 0; i < max_ports; i++) {
-        std::string left_name = (i < node.inputs.size()) ? node.inputs[i].name : "";
-        std::string right_name = (i < node.outputs.size()) ? node.outputs[i].name : "";
-        an24::PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : an24::PortType::Any;
-        an24::PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : an24::PortType::Any;
 
-        auto row = std::make_unique<Row>();
+    if (node_content_.type == NodeContentType::VerticalToggle) {
+        // 3-column layout: [input labels] [toggle] [output labels]
+        // No Circle widgets here — render() draws port circles from ports_ vector.
+        auto main_row = std::make_unique<Row>();
 
-        if (!left_name.empty()) {
-            uint32_t left_color = render_theme::get_port_color(left_type);
-            row->addChild(std::make_unique<Container>(
-                std::make_unique<Circle>(editor_constants::PORT_RADIUS, left_color),
-                Edges{-editor_constants::PORT_RADIUS, 0, editor_constants::PORT_LABEL_GAP, 0}
-            ));
-            row->addChild(std::make_unique<Label>(left_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
-        }
-
-        // Flexible gap between left and right labels
-        if (!left_name.empty() && !right_name.empty()) {
-            float half_gap = editor_constants::PORT_MIN_GAP / 2.0f;
-            auto gap = std::make_unique<Container>(
-                std::make_unique<Spacer>(),
-                Edges{half_gap, 0, half_gap, 0}
+        // Left column — input port labels
+        auto left_col = std::make_unique<Column>();
+        for (size_t i = 0; i < node.inputs.size(); i++) {
+            const auto& port = node.inputs[i];
+            auto label = std::make_unique<Label>(port.name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR);
+            float inner_h = label->getPreferredSize(nullptr).y;
+            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
+            auto row_container = std::make_unique<Container>(
+                std::move(label),
+                Edges{editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP, pad, 0, pad}
             );
-            gap->setFlexible(true);
-            row->addChild(std::move(gap));
-        } else {
-            row->addChild(std::make_unique<Spacer>());
+            auto* ptr = left_col->addChild(std::move(row_container));
+            port_slots_.push_back({ptr, port.name, true, port.type, 0});
         }
 
-        if (!right_name.empty()) {
-            row->addChild(std::make_unique<Label>(right_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
-            uint32_t right_color = render_theme::get_port_color(right_type);
-            row->addChild(std::make_unique<Container>(
-                std::make_unique<Circle>(editor_constants::PORT_RADIUS, right_color),
-                Edges{editor_constants::PORT_LABEL_GAP, 0, -editor_constants::PORT_RADIUS, 0}
-            ));
-        }
-
-        // Wrap row in padding container to achieve PORT_ROW_HEIGHT
-        float inner_h = row->getPreferredSize(nullptr).y;
-        float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
-        auto row_container = std::make_unique<Container>(
-            std::move(row),
-            Edges{0, pad, 0, pad}
+        // Center column — toggle widget (flexible)
+        auto center_col = std::make_unique<Column>();
+        auto vt = std::make_unique<VerticalToggleWidget>(node_content_.state, node_content_.tripped);
+        auto toggle_container = std::make_unique<Container>(
+            std::move(vt), Edges{0, 5.0f, 0, 5.0f}
         );
+        toggle_container->setFlexible(true);
+        content_widget_ = center_col->addChild(std::move(toggle_container));
+        center_col->setFlexible(true);
 
-        auto* container_ptr = layout_.addChild(std::move(row_container));
-
-        if (!left_name.empty()) {
-            port_slots_.push_back({container_ptr, left_name, true, left_type});
-        }
-        if (!right_name.empty()) {
-            port_slots_.push_back({container_ptr, right_name, false, right_type});
-        }
-    }
-
-    // Content area (flexible, takes remaining space)
-    if (node_content_.type != NodeContentType::None) {
-        if (node_content_.type == NodeContentType::Gauge) {
-            layout_.addChild(std::make_unique<VoltmeterWidget>(
-                node_content_.value,
-                node_content_.min,
-                node_content_.max,
-                node_content_.unit
-            ));
-        } else if (node_content_.type == NodeContentType::Switch) {
-            float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
-            float v_pad = 2.0f;  // vertical padding around the button
-            auto sw = std::make_unique<SwitchWidget>(node_content_.state, node_content_.tripped);
-            auto content_container = std::make_unique<Container>(
-                std::move(sw),
-                Edges{margin, v_pad, margin, v_pad}
+        // Right column — output port labels (right-aligned)
+        auto right_col = std::make_unique<Column>();
+        for (size_t i = 0; i < node.outputs.size(); i++) {
+            const auto& port = node.outputs[i];
+            auto label = std::make_unique<Label>(port.name, editor_constants::PORT_LABEL_FONT_SIZE,
+                                                 editor_constants::PORT_LABEL_COLOR, TextAlign::Right);
+            float inner_h = label->getPreferredSize(nullptr).y;
+            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
+            auto row_container = std::make_unique<Container>(
+                std::move(label),
+                Edges{0, pad, editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP, pad}
             );
-            content_container->setFlexible(true);
-            content_widget_ = layout_.addChild(std::move(content_container));
-        } else {
-            // Content area: sized by label text, with margins to avoid overlapping port circles
-            float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
-            std::unique_ptr<Widget> content_inner;
-            if (!node_content_.label.empty()) {
-                // Use a Label for sizing (text gets overdrawn by ImGui overlay)
-                content_inner = std::make_unique<Label>(node_content_.label, 10.0f, 0x00000000);
-            } else {
-                content_inner = std::make_unique<Spacer>();
+            auto* ptr = right_col->addChild(std::move(row_container));
+            port_slots_.push_back({ptr, port.name, false, port.type, 0});
+        }
+
+        main_row->addChild(std::move(left_col));
+        main_row->addChild(std::move(center_col));
+        main_row->addChild(std::move(right_col));
+        main_row->setFlexible(true);
+
+        // Store main_row pointer, then after layout we'll patch parent_y_offset
+        auto* main_row_ptr = layout_.addChild(std::move(main_row));
+        // parent_y_offset will be set in buildPorts after layout is computed
+        for (auto& slot : port_slots_) {
+            slot.parent_y_offset = -1.0f;  // sentinel — will be patched
+        }
+        // We store main_row_ptr in a way buildPorts can find it:
+        // It's layout_.child(1) (index 0 = Header, index 1 = main_row)
+        (void)main_row_ptr;
+    } else {
+        // Standard layout: port rows stacked vertically
+        size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
+        for (size_t i = 0; i < max_ports; i++) {
+            std::string left_name = (i < node.inputs.size()) ? node.inputs[i].name : "";
+            std::string right_name = (i < node.outputs.size()) ? node.outputs[i].name : "";
+            an24::PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : an24::PortType::Any;
+            an24::PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : an24::PortType::Any;
+
+            auto row = std::make_unique<Row>();
+
+            if (!left_name.empty()) {
+                uint32_t left_color = render_theme::get_port_color(left_type);
+                row->addChild(std::make_unique<Container>(
+                    std::make_unique<Circle>(editor_constants::PORT_RADIUS, left_color),
+                    Edges{-editor_constants::PORT_RADIUS, 0, editor_constants::PORT_LABEL_GAP, 0}
+                ));
+                row->addChild(std::make_unique<Label>(left_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
             }
-            auto content_container = std::make_unique<Container>(
-                std::move(content_inner),
-                Edges{margin, 0, margin, 0}
+
+            // Flexible gap between left and right labels
+            if (!left_name.empty() && !right_name.empty()) {
+                float half_gap = editor_constants::PORT_MIN_GAP / 2.0f;
+                auto gap = std::make_unique<Container>(
+                    std::make_unique<Spacer>(),
+                    Edges{half_gap, 0, half_gap, 0}
+                );
+                gap->setFlexible(true);
+                row->addChild(std::move(gap));
+            } else {
+                row->addChild(std::make_unique<Spacer>());
+            }
+
+            if (!right_name.empty()) {
+                row->addChild(std::make_unique<Label>(right_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
+                uint32_t right_color = render_theme::get_port_color(right_type);
+                row->addChild(std::make_unique<Container>(
+                    std::make_unique<Circle>(editor_constants::PORT_RADIUS, right_color),
+                    Edges{editor_constants::PORT_LABEL_GAP, 0, -editor_constants::PORT_RADIUS, 0}
+                ));
+            }
+
+            // Wrap row in padding container to achieve PORT_ROW_HEIGHT
+            float inner_h = row->getPreferredSize(nullptr).y;
+            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
+            auto row_container = std::make_unique<Container>(
+                std::move(row),
+                Edges{0, pad, 0, pad}
             );
-            content_container->setFlexible(true);
-            content_widget_ = layout_.addChild(std::move(content_container));
+
+            auto* container_ptr = layout_.addChild(std::move(row_container));
+
+            if (!left_name.empty()) {
+                port_slots_.push_back({container_ptr, left_name, true, left_type, 0});
+            }
+            if (!right_name.empty()) {
+                port_slots_.push_back({container_ptr, right_name, false, right_type, 0});
+            }
+        }
+
+        // Content area (flexible, takes remaining space)
+        if (node_content_.type != NodeContentType::None) {
+            if (node_content_.type == NodeContentType::Gauge) {
+                layout_.addChild(std::make_unique<VoltmeterWidget>(
+                    node_content_.value,
+                    node_content_.min,
+                    node_content_.max,
+                    node_content_.unit
+                ));
+            } else if (node_content_.type == NodeContentType::Switch) {
+                float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
+                float v_pad = 2.0f;
+                auto sw = std::make_unique<SwitchWidget>(node_content_.state, node_content_.tripped);
+                auto content_container = std::make_unique<Container>(
+                    std::move(sw),
+                    Edges{margin, v_pad, margin, v_pad}
+                );
+                content_container->setFlexible(true);
+                content_widget_ = layout_.addChild(std::move(content_container));
+            } else {
+                // Content area: sized by label text, with margins to avoid overlapping port circles
+                float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
+                std::unique_ptr<Widget> content_inner;
+                if (!node_content_.label.empty()) {
+                    content_inner = std::make_unique<Label>(node_content_.label, 10.0f, 0x00000000);
+                } else {
+                    content_inner = std::make_unique<Spacer>();
+                }
+                auto content_container = std::make_unique<Container>(
+                    std::move(content_inner),
+                    Edges{margin, 0, margin, 0}
+                );
+                content_container->setFlexible(true);
+                content_widget_ = layout_.addChild(std::move(content_container));
+            }
         }
     }
 
@@ -236,11 +312,21 @@ void VisualNode::buildLayout(const Node& node) {
 
 void VisualNode::buildPorts(const Node& node) {
     ports_.clear();
+
+    // Patch parent_y_offset for VerticalToggle slots (layout is now computed)
+    if (node_content_.type == NodeContentType::VerticalToggle && layout_.childCount() > 1) {
+        float main_row_y = layout_.child(1)->y();  // main_row is child(1) after Header
+        for (auto& slot : port_slots_) {
+            if (slot.parent_y_offset < 0)  // sentinel from buildLayout
+                slot.parent_y_offset = main_row_y;
+        }
+    }
+
     for (const auto& p : node.inputs) {
         VisualPort vp(p.name, PortSide::Input, p.type);
         for (const auto& slot : port_slots_) {
             if (slot.is_left && slot.name == p.name) {
-                float port_y = position_.y + slot.row_container->y() + slot.row_container->height() / 2;
+                float port_y = position_.y + slot.parent_y_offset + slot.row_container->y() + slot.row_container->height() / 2;
                 float port_x = position_.x;
                 vp.setWorldPosition(Pt(port_x, port_y));
                 break;
@@ -252,7 +338,7 @@ void VisualNode::buildPorts(const Node& node) {
         VisualPort vp(p.name, PortSide::Output, p.type);
         for (const auto& slot : port_slots_) {
             if (!slot.is_left && slot.name == p.name) {
-                float port_y = position_.y + slot.row_container->y() + slot.row_container->height() / 2;
+                float port_y = position_.y + slot.parent_y_offset + slot.row_container->y() + slot.row_container->height() / 2;
                 float port_x = position_.x + size_.x;
                 vp.setWorldPosition(Pt(port_x, port_y));
                 break;
@@ -310,6 +396,15 @@ void VisualNode::updateNodeContent(const NodeContent& content) {
             }
         }
     }
+    // Propagate state/tripped to VerticalToggleWidget (inside Container)
+    if (node_content_.type == NodeContentType::VerticalToggle) {
+        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
+            if (auto* vt = dynamic_cast<VerticalToggleWidget*>(c->child())) {
+                vt->setState(node_content_.state);
+                vt->setTripped(node_content_.tripped);
+            }
+        }
+    }
 }
 
 void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
@@ -348,17 +443,17 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 Bounds VisualNode::getContentBounds() const {
     if (!content_widget_) return {};
 
-    // content_widget_ is a Container with margins around a Spacer.
-    // The Container's child (the Spacer) has the actual content area.
+    // content_widget_ is a Container with margins around a child widget
+    // (SwitchWidget, VerticalToggleWidget, Label/Spacer, etc.).
     auto* container = dynamic_cast<const Container*>(content_widget_);
     if (!container || !container->child()) return {};
 
-    const Widget* spacer = container->child();
+    const Widget* child = container->child();
     return {
-        content_widget_->x() + spacer->x(),
-        content_widget_->y() + spacer->y(),
-        spacer->width(),
-        spacer->height()
+        content_offset_.x + content_widget_->x() + child->x(),
+        content_offset_.y + content_widget_->y() + child->y(),
+        child->width(),
+        child->height()
     };
 }
 
@@ -769,6 +864,16 @@ VisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wir
         cache_[node.id] = std::move(visual);
         return ptr;
     }
+
+    // If content type changed (e.g., Switch -> VerticalToggle), recreate the node
+    // This is necessary because layout structure depends on content type
+    if (it->second->getContentType() != node.node_content.type) {
+        auto visual = VisualNodeFactory::create(node, wires);
+        auto* ptr = visual.get();
+        cache_[node.id] = std::move(visual);
+        return ptr;
+    }
+
     // Sync node_content from blueprint (simulation may have updated it)
     it->second->updateNodeContent(node.node_content);
     // Sync position from data model (loading/external edits may change it)

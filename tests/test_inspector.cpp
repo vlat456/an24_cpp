@@ -499,3 +499,51 @@ TEST(Inspector, ConsumeSelection_ClearsAfterRead) {
     auto sel2 = inspector.consumeSelection();
     EXPECT_TRUE(sel2.empty());
 }
+
+// ============================================================================
+// Regression: Inspector must update display name after markDirty()
+// ============================================================================
+
+TEST(Inspector, Regression_NameUpdateAfterMarkDirty) {
+    InspectorTestScene ts;
+    Node& bat = ts.addNode("bat1", "Battery");
+    ts.rebuild();
+
+    Inspector inspector(ts.scene);
+    inspector.buildDisplayTree();
+
+    // Initially the name == id
+    ASSERT_EQ(inspector.displayTree().size(), 1u);
+    EXPECT_EQ(inspector.displayTree()[0].name, "bat1");
+
+    // Simulate rename (properties window modifies node.name in-place)
+    bat.name = "Main Battery 28V";
+
+    // Without markDirty(), the tree is stale
+    // Calling buildDisplayTree after markDirty() should pick up the new name
+    inspector.markDirty();
+    inspector.buildDisplayTree();
+
+    ASSERT_EQ(inspector.displayTree().size(), 1u);
+    EXPECT_EQ(inspector.displayTree()[0].name, "Main Battery 28V")
+        << "Inspector must reflect renamed node after markDirty + rebuild";
+}
+
+TEST(Inspector, Regression_CyrillicNameInDisplayTree) {
+    InspectorTestScene ts;
+    Node& node = ts.addNode("azs_1", "Test");
+    ts.rebuild();
+
+    // Set a Cyrillic display name
+    node.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
+
+    Inspector inspector(ts.scene);
+    inspector.buildDisplayTree();
+
+    ASSERT_EQ(inspector.displayTree().size(), 1u);
+    EXPECT_EQ(inspector.displayTree()[0].name,
+              "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8")
+        << "Cyrillic display name must appear correctly in inspector tree";
+    EXPECT_EQ(inspector.displayTree()[0].node_id, "azs_1")
+        << "node_id must remain the original id, not the display name";
+}

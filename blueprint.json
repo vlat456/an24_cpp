@@ -19,6 +19,7 @@
   "devices": [
     {
       "classname": "Battery",
+      "display_name": "Батарейка",
       "name": "bat_main_1",
       "params": {
         "capacity": "1000.0",
@@ -39,11 +40,11 @@
         }
       },
       "pos": {
-        "x": -64.0,
+        "x": -80.0,
         "y": -32.0
       },
       "size": {
-        "x": 96.0,
+        "x": 144.0,
         "y": 64.0
       }
     },
@@ -157,7 +158,7 @@
         "label": "OFF",
         "max": 1.0,
         "min": 0.0,
-        "type": 4,
+        "type": 5,
         "unit": "",
         "value": 0.0
       },
@@ -459,7 +460,7 @@
         "label": "OFF",
         "max": 1.0,
         "min": 0.0,
-        "type": 4,
+        "type": 5,
         "unit": "",
         "value": 0.0
       },
@@ -553,7 +554,7 @@
         "label": "OFF",
         "max": 1.0,
         "min": 0.0,
-        "type": 4,
+        "type": 5,
         "unit": "",
         "value": 0.0
       },
@@ -782,14 +783,65 @@
     {
       "classname": "AZS",
       "content": {
-        "label": "ON",
+        "label": "",
         "max": 1.0,
         "min": 0.0,
-        "state": false,
-        "type": 2,
+        "type": 3,
         "unit": "",
         "value": 0.0
       },
+      "display_name": "Азс батареи",
+      "name": "azs_2",
+      "params": {
+        "closed": "false",
+        "i_nominal": "20.0"
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "temp": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 80.0,
+        "y": -48.0
+      },
+      "size": {
+        "x": 176.0,
+        "y": 112.0
+      }
+    },
+    {
+      "classname": "AZS",
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "type": 3,
+        "unit": "",
+        "value": 0.0
+      },
+      "display_name": "АЗС батареи",
       "name": "azs_1",
       "params": {
         "closed": "false",
@@ -822,22 +874,22 @@
         }
       },
       "pos": {
-        "x": 64.0,
-        "y": -48.0
+        "x": -64.0,
+        "y": -176.0
       },
       "size": {
         "x": 112.0,
-        "y": 128.0
+        "y": 112.0
       }
     }
   ],
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -244.27479553222656,
-      "y": -411.27093505859375
+      "x": -254.90591430664063,
+      "y": -228.97409057617188
     },
-    "zoom": 0.7228097915649414
+    "zoom": 1.4499458074569702
   },
   "wires": [
     {
@@ -961,16 +1013,6 @@
       "to": "vsu_1.k_mod"
     },
     {
-      "from": "azs_1.v_out",
-      "routing_points": [
-        {
-          "x": 304.0,
-          "y": 32.0
-        }
-      ],
-      "to": "main_bus.v"
-    },
-    {
       "from": "bus_2.v",
       "routing_points": [
         {
@@ -1000,7 +1042,7 @@
           "y": 400.0
         },
         {
-          "x": -112.0,
+          "x": -144.0,
           "y": 0.0
         }
       ],
@@ -1012,6 +1054,16 @@
       "to": "vsu_1.v_start"
     },
     {
+      "from": "azs_2.v_out",
+      "routing_points": [
+        {
+          "x": 304.0,
+          "y": 32.0
+        }
+      ],
+      "to": "main_bus.v"
+    },
+    {
       "from": "bus_2.v",
       "routing_points": [
         {
@@ -1021,16 +1073,6 @@
         {
           "x": 320.0,
           "y": 208.0
-        }
-      ],
-      "to": "main_bus.v"
-    },
-    {
-      "from": "holdbutton_1.v_in",
-      "routing_points": [
-        {
-          "x": 336.0,
-          "y": 128.0
         }
       ],
       "to": "main_bus.v"
@@ -1077,9 +1119,14 @@
       "to": "lerpnode_1.input"
     },
     {
-      "from": "bat_main_1.v_out",
-      "routing_points": [],
-      "to": "azs_1.v_in"
+      "from": "holdbutton_1.v_in",
+      "routing_points": [
+        {
+          "x": 336.0,
+          "y": 128.0
+        }
+      ],
+      "to": "main_bus.v"
     },
     {
       "from": "main_bus.v",
@@ -1090,16 +1137,6 @@
         }
       ],
       "to": "dmr_vsu.v_in"
-    },
-    {
-      "from": "main_bus.v",
-      "routing_points": [
-        {
-          "x": 368.0,
-          "y": 16.0
-        }
-      ],
-      "to": "rug82_1.v_gen"
     },
     {
       "from": "vsu_1.v_bus",
@@ -1123,6 +1160,21 @@
         }
       ],
       "to": "bus_1.v"
+    },
+    {
+      "from": "bat_main_1.v_out",
+      "routing_points": [],
+      "to": "azs_2.v_in"
+    },
+    {
+      "from": "main_bus.v",
+      "routing_points": [
+        {
+          "x": 368.0,
+          "y": 16.0
+        }
+      ],
+      "to": "rug82_1.v_gen"
     }
   ]
 }

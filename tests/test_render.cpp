@@ -2039,3 +2039,155 @@ TEST(RenderTest, VisualOnly_TypeRegistryTextHasFlag) {
         << "Text type definition should have visual_only=true";
     EXPECT_EQ(text_def->render_hint, "text");
 }
+
+// ============================================================================
+// VerticalToggle regression tests
+// ============================================================================
+
+// Regression: VerticalToggle must use standard port-row layout (no duplicate ports)
+TEST(RenderTest, VerticalToggle_NoDuplicatePorts) {
+    Node node;
+    node.id = "azs1";
+    node.name = "azs_1";
+    node.type_name = "AZS";
+    node.input("control", an24::PortType::I);
+    node.input("v_in", an24::PortType::V);
+    node.output("v_out", an24::PortType::V);
+    node.output("state", an24::PortType::Bool);
+    node.output("temp", an24::PortType::Temperature);
+    node.output("tripped", an24::PortType::Bool);
+    node.node_content.type = NodeContentType::VerticalToggle;
+    node.node_content.state = false;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+
+    // Exactly 6 ports: 2 inputs + 4 outputs
+    EXPECT_EQ(visual->getPortCount(), 6u)
+        << "VerticalToggle should have exactly 6 ports (no duplicates)";
+
+    // Verify each port exists exactly once
+    std::vector<std::string> expected = {"control", "v_in", "v_out", "state", "temp", "tripped"};
+    for (const auto& name : expected) {
+        EXPECT_NE(visual->getPort(name), nullptr)
+            << "Port '" << name << "' should exist";
+    }
+}
+
+// Regression: VerticalToggle right-side ports must be at node right edge
+TEST(RenderTest, VerticalToggle_OutputPortsAtRightEdge) {
+    Node node;
+    node.id = "azs2";
+    node.name = "azs_2";
+    node.type_name = "AZS";
+    node.input("v_in", an24::PortType::V);
+    node.output("v_out", an24::PortType::V);
+    node.output("state", an24::PortType::Bool);
+    node.at(100, 200);
+    node.node_content.type = NodeContentType::VerticalToggle;
+    node.node_content.state = false;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+
+    float node_right = visual->getPosition().x + visual->getSize().x;
+
+    // All output ports must be at right edge of node
+    const auto* vout = visual->getPort("v_out");
+    const auto* state = visual->getPort("state");
+    ASSERT_NE(vout, nullptr);
+    ASSERT_NE(state, nullptr);
+    EXPECT_FLOAT_EQ(vout->worldPosition().x, node_right);
+    EXPECT_FLOAT_EQ(state->worldPosition().x, node_right);
+
+    // Input port must be at left edge
+    const auto* vin = visual->getPort("v_in");
+    ASSERT_NE(vin, nullptr);
+    EXPECT_FLOAT_EQ(vin->worldPosition().x, visual->getPosition().x);
+}
+
+// Regression: VerticalToggle has same layout structure as Switch
+TEST(RenderTest, VerticalToggle_SamePortCountAsSwitch) {
+    auto make_node = [](const std::string& id, NodeContentType type) {
+        Node node;
+        node.id = id;
+        node.name = id;
+        node.type_name = "AZS";
+        node.input("control", an24::PortType::I);
+        node.input("v_in", an24::PortType::V);
+        node.output("v_out", an24::PortType::V);
+        node.output("state", an24::PortType::Bool);
+        node.node_content.type = type;
+        node.node_content.state = false;
+        return node;
+    };
+
+    VisualNodeCache cache;
+    Node sw = make_node("sw1", NodeContentType::Switch);
+    Node vt = make_node("vt1", NodeContentType::VerticalToggle);
+
+    auto* visual_sw = cache.getOrCreate(sw);
+    auto* visual_vt = cache.getOrCreate(vt);
+
+    EXPECT_EQ(visual_sw->getPortCount(), visual_vt->getPortCount())
+        << "VerticalToggle and Switch must produce same number of ports for same inputs/outputs";
+}
+
+// Regression: cache invalidation when content type changes (Switch -> VerticalToggle)
+TEST(RenderTest, VerticalToggle_CacheInvalidationOnContentTypeChange) {
+    Node node;
+    node.id = "azs_cache";
+    node.name = "azs_cache";
+    node.type_name = "AZS";
+    node.input("v_in", an24::PortType::V);
+    node.output("v_out", an24::PortType::V);
+    node.node_content.type = NodeContentType::Switch;
+    node.node_content.state = false;
+
+    VisualNodeCache cache;
+    auto* visual1 = cache.getOrCreate(node);
+    EXPECT_EQ(visual1->getContentType(), NodeContentType::Switch);
+
+    // Change content type to VerticalToggle (simulating library update)
+    node.node_content.type = NodeContentType::VerticalToggle;
+    auto* visual2 = cache.getOrCreate(node);
+
+    EXPECT_NE(visual1, visual2)
+        << "Cache must recreate node when content type changes";
+    EXPECT_EQ(visual2->getContentType(), NodeContentType::VerticalToggle);
+    EXPECT_EQ(visual2->getPortCount(), 2u)
+        << "Recreated node must have correct port count";
+}
+
+// Regression: VerticalToggle has content bounds (clickable toggle area)
+TEST(RenderTest, VerticalToggle_HasContentBounds) {
+    Node node;
+    node.id = "azs_cb";
+    node.name = "azs_cb";
+    node.type_name = "AZS";
+    node.input("v_in", an24::PortType::V);
+    node.output("v_out", an24::PortType::V);
+    node.node_content.type = NodeContentType::VerticalToggle;
+    node.node_content.state = false;
+
+    VisualNodeCache cache;
+    auto* visual = cache.getOrCreate(node);
+    Bounds cb = visual->getContentBounds();
+
+    EXPECT_GT(cb.w, 0.0f) << "VerticalToggle content should have positive width";
+    EXPECT_GT(cb.h, 0.0f) << "VerticalToggle content should have positive height";
+
+    // Content bounds must be inside the node (for click detection to work)
+    EXPECT_GE(cb.x, 0.0f) << "Content x must be >= 0 (within node)";
+    EXPECT_GE(cb.y, 0.0f) << "Content y must be >= 0 (within node)";
+    EXPECT_LE(cb.x + cb.w, visual->getSize().x)
+        << "Content right edge must be within node width";
+    EXPECT_LE(cb.y + cb.h, visual->getSize().y)
+        << "Content bottom edge must be within node height";
+
+    // Click at center of content must be detected
+    float cx = cb.x + cb.w / 2;
+    float cy = cb.y + cb.h / 2;
+    EXPECT_TRUE(cb.contains(cx, cy))
+        << "Click at content center must hit the toggle";
+}

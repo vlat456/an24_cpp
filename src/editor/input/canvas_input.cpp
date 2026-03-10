@@ -203,9 +203,10 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
         } else if (hit.type == HitType::ResizeHandle) {
             enter_resize_node(hit.node_index, hit.resize_corner);
         } else if (hit.type == HitType::Node) {
-            // Check if click landed on Switch content area
+            // Check if click landed on Switch/VerticalToggle content area
             const auto& node = scene_.nodes()[hit.node_index];
-            if (node.node_content.type == NodeContentType::Switch) {
+            if (node.node_content.type == NodeContentType::Switch ||
+                node.node_content.type == NodeContentType::VerticalToggle) {
                 auto* visual = scene_.cache().getOrCreate(node, scene_.wires());
                 Bounds cb = visual->getContentBounds();
                 float local_x = world.x - node.pos.x;

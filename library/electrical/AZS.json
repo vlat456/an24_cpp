@@ -35,5 +35,5 @@
   "domains": ["Electrical", "Thermal"],
   "priority": "med",
   "critical": false,
-  "content_type": "Switch"
+  "content_type": "VerticalToggle"
 }
