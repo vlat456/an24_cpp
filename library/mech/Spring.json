@@ -1,0 +1,18 @@
+{
+  "classname": "Spring",
+  "description": "Mechanical spring (Hooke's law, compression_only mode)",
+  "cpp_class": true,
+  "ports": {
+    "pos_a": { "direction": "In", "type": "Any" },
+    "pos_b": { "direction": "In", "type": "Any" },
+    "force_out": { "direction": "Out", "type": "Any" }
+  },
+  "params": {
+    "k": "1000.0",
+    "c": "10.0",
+    "rest_length": "0.1",
+    "compression_only": "true"
+  },
+  "domains": ["Mechanical"],
+  "size": { "x": 2, "y": 1 }
+}

@@ -913,6 +913,48 @@ integrator_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
 .PHONY : integrator_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/clamp_normalize_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/clamp_normalize_tests.dir/rule
+.PHONY : tests/CMakeFiles/clamp_normalize_tests.dir/rule
+
+# Convenience name for target.
+clamp_normalize_tests: tests/CMakeFiles/clamp_normalize_tests.dir/rule
+.PHONY : clamp_normalize_tests
+
+# fast build rule for target.
+clamp_normalize_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/build
+.PHONY : clamp_normalize_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/comparison_components_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/comparison_components_tests.dir/rule
+.PHONY : tests/CMakeFiles/comparison_components_tests.dir/rule
+
+# Convenience name for target.
+comparison_components_tests: tests/CMakeFiles/comparison_components_tests.dir/rule
+.PHONY : comparison_components_tests
+
+# fast build rule for target.
+comparison_components_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/build
+.PHONY : comparison_components_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/spring_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/spring_tests.dir/rule
+.PHONY : tests/CMakeFiles/spring_tests.dir/rule
+
+# Convenience name for target.
+spring_tests: tests/CMakeFiles/spring_tests.dir/rule
+.PHONY : spring_tests
+
+# fast build rule for target.
+spring_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/build
+.PHONY : spring_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -2341,6 +2383,30 @@ test_bus_port_swap.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_bus_port_swap.cpp.s
 .PHONY : test_bus_port_swap.cpp.s
 
+test_clamp_normalize.o: test_clamp_normalize.cpp.o
+.PHONY : test_clamp_normalize.o
+
+# target to build an object file
+test_clamp_normalize.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/test_clamp_normalize.cpp.o
+.PHONY : test_clamp_normalize.cpp.o
+
+test_clamp_normalize.i: test_clamp_normalize.cpp.i
+.PHONY : test_clamp_normalize.i
+
+# target to preprocess a source file
+test_clamp_normalize.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/test_clamp_normalize.cpp.i
+.PHONY : test_clamp_normalize.cpp.i
+
+test_clamp_normalize.s: test_clamp_normalize.cpp.s
+.PHONY : test_clamp_normalize.s
+
+# target to generate assembly for a file
+test_clamp_normalize.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/test_clamp_normalize.cpp.s
+.PHONY : test_clamp_normalize.cpp.s
+
 test_codegen_accumulator.o: test_codegen_accumulator.cpp.o
 .PHONY : test_codegen_accumulator.o
 
@@ -2388,6 +2454,30 @@ test_codegen_sanitize.s: test_codegen_sanitize.cpp.s
 test_codegen_sanitize.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/test_codegen_sanitize.cpp.s
 .PHONY : test_codegen_sanitize.cpp.s
+
+test_comparison_components.o: test_comparison_components.cpp.o
+.PHONY : test_comparison_components.o
+
+# target to build an object file
+test_comparison_components.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/test_comparison_components.cpp.o
+.PHONY : test_comparison_components.cpp.o
+
+test_comparison_components.i: test_comparison_components.cpp.i
+.PHONY : test_comparison_components.i
+
+# target to preprocess a source file
+test_comparison_components.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/test_comparison_components.cpp.i
+.PHONY : test_comparison_components.cpp.i
+
+test_comparison_components.s: test_comparison_components.cpp.s
+.PHONY : test_comparison_components.s
+
+# target to generate assembly for a file
+test_comparison_components.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/test_comparison_components.cpp.s
+.PHONY : test_comparison_components.cpp.s
 
 test_context_menu.o: test_context_menu.cpp.o
 .PHONY : test_context_menu.o
@@ -3157,6 +3247,30 @@ test_spatial_grid.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/test_spatial_grid.cpp.s
 .PHONY : test_spatial_grid.cpp.s
 
+test_spring.o: test_spring.cpp.o
+.PHONY : test_spring.o
+
+# target to build an object file
+test_spring.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/test_spring.cpp.o
+.PHONY : test_spring.cpp.o
+
+test_spring.i: test_spring.cpp.i
+.PHONY : test_spring.i
+
+# target to preprocess a source file
+test_spring.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/test_spring.cpp.i
+.PHONY : test_spring.cpp.i
+
+test_spring.s: test_spring.cpp.s
+.PHONY : test_spring.s
+
+# target to generate assembly for a file
+test_spring.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/test_spring.cpp.s
+.PHONY : test_spring.cpp.s
+
 test_subtract.o: test_subtract.cpp.o
 .PHONY : test_subtract.o
 
@@ -3346,8 +3460,10 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
+	@echo "... comparison_components_tests"
 	@echo "... context_menu_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
@@ -3386,6 +3502,7 @@ help:
 	@echo "... provider_pattern_tests"
 	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
+	@echo "... spring_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
 	@echo "... v_to_bool_tests"
@@ -3493,12 +3610,18 @@ help:
 	@echo "... test_bus_port_swap.o"
 	@echo "... test_bus_port_swap.i"
 	@echo "... test_bus_port_swap.s"
+	@echo "... test_clamp_normalize.o"
+	@echo "... test_clamp_normalize.i"
+	@echo "... test_clamp_normalize.s"
 	@echo "... test_codegen_accumulator.o"
 	@echo "... test_codegen_accumulator.i"
 	@echo "... test_codegen_accumulator.s"
 	@echo "... test_codegen_sanitize.o"
 	@echo "... test_codegen_sanitize.i"
 	@echo "... test_codegen_sanitize.s"
+	@echo "... test_comparison_components.o"
+	@echo "... test_comparison_components.i"
+	@echo "... test_comparison_components.s"
 	@echo "... test_context_menu.o"
 	@echo "... test_context_menu.i"
 	@echo "... test_context_menu.s"
@@ -3595,6 +3718,9 @@ help:
 	@echo "... test_spatial_grid.o"
 	@echo "... test_spatial_grid.i"
 	@echo "... test_spatial_grid.s"
+	@echo "... test_spring.o"
+	@echo "... test_spring.i"
+	@echo "... test_spring.s"
 	@echo "... test_subtract.o"
 	@echo "... test_subtract.i"
 	@echo "... test_subtract.s"

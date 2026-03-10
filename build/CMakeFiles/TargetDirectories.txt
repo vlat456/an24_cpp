@@ -149,6 +149,9 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/monostable_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/sample_hold_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/integrator_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/clamp_normalize_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/comparison_components_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

@@ -679,6 +679,30 @@ void InertiaNode<Provider>::pre_load() {
 }
 
 // =============================================================================
+// Spring
+// =============================================================================
+
+template <typename Provider>
+void Spring<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {
+    float pA = st.across[provider.get(PortNames::pos_a)];
+    float pB = st.across[provider.get(PortNames::pos_b)];
+
+    // 1. Calculate current deformation
+    float delta_x = (pA - pB) - rest_length;
+
+    // 2. Spring force (Hooke's Law)
+    float force = delta_x * k;
+
+    // 3. If spring works only in compression (like in RUG-82 governor),
+    //    cut off stretching forces (branchless select)
+    float compression_mask = (compression_only) ? ((delta_x < 0.0f) ? 1.0f : 0.0f) : 1.0f;
+
+    // Result (invert sign because spring resists compression)
+    // std::abs ensures force is positive for compression
+    st.across[provider.get(PortNames::force_out)] = std::abs(force) * compression_mask;
+}
+
+// =============================================================================
 // TempSensor
 // =============================================================================
 
@@ -1457,6 +1481,97 @@ void Integrator<Provider>::solve_logical(an24::SimulationState& st, float dt) {
     accumulator = (reset_in > 0.5f) ? 0.0f : accumulator;
 
     st.across[out_idx] = accumulator;
+}
+
+// =============================================================================
+// Clamp
+// =============================================================================
+
+template <typename Provider>
+void Clamp<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    float input = st.across[in_idx];
+
+    // std::clamp compiles to f32.min/f32.max in WASM
+    st.across[out_idx] = std::clamp(input, min, max);
+}
+
+// =============================================================================
+// Normalize
+// =============================================================================
+
+template <typename Provider>
+void Normalize<Provider>::pre_load() {
+    // Предрасчитываем инверсный диапазон, чтобы избежать деления в solve
+    float range = max - min;
+    inv_range = (std::abs(range) > 1e-6f) ? (1.0f / range) : 0.0f;
+}
+
+template <typename Provider>
+void Normalize<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    uint32_t in_idx = provider.get(PortNames::in);
+    uint32_t out_idx = provider.get(PortNames::out);
+
+    float input = st.across[in_idx];
+
+    // Линейное преобразование: (x - min) * (1 / range)
+    float normalized = (input - min) * inv_range;
+
+    // Всегда ограничиваем результат в 0..1 для безопасности последующей логики
+    st.across[out_idx] = std::clamp(normalized, 0.0f, 1.0f);
+}
+
+// =============================================================================
+// Min / Max
+// =============================================================================
+
+template <typename Provider>
+void Min<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = std::min(A, B);
+}
+
+template <typename Provider>
+void Max<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = std::max(A, B);
+}
+
+// =============================================================================
+// Comparison Operators (Greater / Lesser / GreaterEq / LesserEq)
+// =============================================================================
+
+template <typename Provider>
+void Greater<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    // Branchless: результат сравнения приводится к float (1.0 или 0.0)
+    st.across[provider.get(PortNames::o)] = (A > B) ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void Lesser<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = (A < B) ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void GreaterEq<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = (A >= B) ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void LesserEq<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+    float A = st.across[provider.get(PortNames::A)];
+    float B = st.across[provider.get(PortNames::B)];
+    st.across[provider.get(PortNames::o)] = (A <= B) ? 1.0f : 0.0f;
 }
 
 } // namespace an24

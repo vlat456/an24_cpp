@@ -1042,6 +1042,45 @@ integrator_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
 .PHONY : integrator_tests/fast
 
+#=============================================================================
+# Target rules for targets named clamp_normalize_tests
+
+# Build rule for target.
+clamp_normalize_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clamp_normalize_tests
+.PHONY : clamp_normalize_tests
+
+# fast build rule for target.
+clamp_normalize_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/build
+.PHONY : clamp_normalize_tests/fast
+
+#=============================================================================
+# Target rules for targets named comparison_components_tests
+
+# Build rule for target.
+comparison_components_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 comparison_components_tests
+.PHONY : comparison_components_tests
+
+# fast build rule for target.
+comparison_components_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/build
+.PHONY : comparison_components_tests/fast
+
+#=============================================================================
+# Target rules for targets named spring_tests
+
+# Build rule for target.
+spring_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 spring_tests
+.PHONY : spring_tests
+
+# fast build rule for target.
+spring_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/build
+.PHONY : spring_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1067,9 +1106,11 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
+	@echo "... comparison_components_tests"
 	@echo "... context_menu_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
@@ -1117,6 +1158,7 @@ help:
 	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"
+	@echo "... spring_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
 	@echo "... v_to_bool_tests"

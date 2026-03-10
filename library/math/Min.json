@@ -1,0 +1,11 @@
+{
+  "classname": "Min",
+  "description": "Outputs the smaller of two inputs",
+  "cpp_class": true,
+  "ports": {
+    "A": { "direction": "In", "type": "Any" },
+    "B": { "direction": "In", "type": "Any" },
+    "o": { "direction": "Out", "type": "Any" }
+  },
+  "domains": ["Logical"]
+}

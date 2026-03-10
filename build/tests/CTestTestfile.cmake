@@ -57,3 +57,6 @@ include("/Users/vladimir/an24_cpp/build/tests/time_delay_tests[1]_include.cmake"
 include("/Users/vladimir/an24_cpp/build/tests/monostable_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/sample_hold_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/integrator_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/clamp_normalize_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/comparison_components_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/spring_tests[1]_include.cmake")

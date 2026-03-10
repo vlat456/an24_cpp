@@ -34,6 +34,7 @@ template class HighPowerLoad<JitProvider>;
 template class ElectricPump<JitProvider>;
 template class SolenoidValve<JitProvider>;
 template class InertiaNode<JitProvider>;
+template class Spring<JitProvider>;
 template class TempSensor<JitProvider>;
 template class ElectricHeater<JitProvider>;
 template class Radiator<JitProvider>;
@@ -66,6 +67,14 @@ template class TimeDelay<JitProvider>;
 template class Monostable<JitProvider>;
 template class SampleHold<JitProvider>;
 template class Integrator<JitProvider>;
+template class Clamp<JitProvider>;
+template class Normalize<JitProvider>;
+template class Min<JitProvider>;
+template class Max<JitProvider>;
+template class Greater<JitProvider>;
+template class Lesser<JitProvider>;
+template class GreaterEq<JitProvider>;
+template class LesserEq<JitProvider>;
 
 } // namespace an24
 

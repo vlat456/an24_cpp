@@ -1210,3 +1210,51 @@ target_link_libraries(integrator_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(integrator_tests)
+
+# Clamp and Normalize component tests
+add_executable(clamp_normalize_tests
+    test_clamp_normalize.cpp
+)
+target_include_directories(clamp_normalize_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(clamp_normalize_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(clamp_normalize_tests)
+
+# Comparison component tests (Min/Max/Greater/Lesser/GreaterEq/LesserEq)
+add_executable(comparison_components_tests
+    test_comparison_components.cpp
+)
+target_include_directories(comparison_components_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(comparison_components_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(comparison_components_tests)
+
+# Spring component tests (mechanical domain)
+add_executable(spring_tests
+    test_spring.cpp
+)
+target_include_directories(spring_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(spring_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(spring_tests)

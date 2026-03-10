@@ -552,6 +552,24 @@ public:
     void pre_load();
 };
 
+/// Spring - mechanical spring-damper with preload
+template <typename Provider = JitProvider>
+class Spring {
+public:
+    static constexpr Domain domain = Domain::Mechanical;
+    Provider provider;
+
+    float k = 1000.0f;          // Stiffness (N/m)
+    float c = 10.0f;            // Viscous damping (N*s/m) — TODO: not yet used in solve_mechanical
+    float rest_length = 0.1f;   // Free length
+    bool compression_only = true;
+
+    Spring() = default;
+
+    void solve_mechanical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
 // =============================================================================
 // Thermal Components
 // =============================================================================
@@ -1054,6 +1072,125 @@ public:
     float first_frame_mask = 1.0f;
 
     Integrator() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Clamp - clamps input value between min and max
+template <typename Provider = JitProvider>
+class Clamp {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float min = 0.0f;
+    float max = 1.0f;
+
+    Clamp() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Normalize - maps [min..max] range to [0..1], result clamped
+template <typename Provider = JitProvider>
+class Normalize {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    float min = 0.0f;
+    float max = 100.0f;
+    float inv_range = 0.01f;  // precomputed in pre_load()
+
+    Normalize() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load();
+};
+
+/// Min - outputs the smaller of two inputs
+template <typename Provider = JitProvider>
+class Min {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Min() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Max - outputs the larger of two inputs
+template <typename Provider = JitProvider>
+class Max {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Max() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Greater - outputs 1.0 if A > B, else 0.0
+template <typename Provider = JitProvider>
+class Greater {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Greater() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// Lesser - outputs 1.0 if A < B, else 0.0
+template <typename Provider = JitProvider>
+class Lesser {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Lesser() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// GreaterEq - outputs 1.0 if A >= B, else 0.0
+template <typename Provider = JitProvider>
+class GreaterEq {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    GreaterEq() = default;
+
+    void solve_logical(an24::SimulationState& st, float dt);
+    void pre_load() {}
+};
+
+/// LesserEq - outputs 1.0 if A <= B, else 0.0
+template <typename Provider = JitProvider>
+class LesserEq {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    LesserEq() = default;
 
     void solve_logical(an24::SimulationState& st, float dt);
     void pre_load() {}

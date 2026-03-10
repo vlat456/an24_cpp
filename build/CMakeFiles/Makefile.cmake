@@ -200,4 +200,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/monostable_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/sample_hold_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/integrator_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/clamp_normalize_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/comparison_components_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/spring_tests.dir/DependInfo.cmake"
   )

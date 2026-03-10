@@ -213,6 +213,15 @@ ComponentVariant create_component_variant(
         comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "Spring") {
+        Spring<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.k = get_float(dev, "k", 1000.0f);
+        comp.c = get_float(dev, "c", 10.0f);
+        comp.rest_length = get_float(dev, "rest_length", 0.1f);
+        comp.compression_only = get_bool(dev, "compression_only", true);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "TempSensor") {
         TempSensor<JitProvider> comp;
         setup_component_ports(comp, dev, result);
@@ -458,6 +467,53 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         comp.gain = get_float(dev, "gain", 1.0f);
         comp.initial_val = get_float(dev, "initial_val", 0.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Clamp") {
+        Clamp<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        float a = get_float(dev, "min", 0.0f);
+        float b = get_float(dev, "max", 1.0f);
+        comp.min = std::min(a, b);
+        comp.max = std::max(a, b);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Normalize") {
+        Normalize<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.min = get_float(dev, "min", 0.0f);
+        comp.max = get_float(dev, "max", 100.0f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Min") {
+        Min<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Max") {
+        Max<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Greater") {
+        Greater<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Lesser") {
+        Lesser<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "GreaterEq") {
+        GreaterEq<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "LesserEq") {
+        LesserEq<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
     else {
