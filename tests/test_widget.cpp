@@ -8,6 +8,7 @@
 #include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/data/node.h"
 #include "editor/layout_constants.h"
+#include "editor/visual/renderer/render_theme.h"
 
 // ============================================================================
 // Detailed MockDrawList for recording draw calls
@@ -772,4 +773,223 @@ TEST(BusNodeGridTest, PortPositions_AreGridAligned) {
         EXPECT_NEAR(ry, 0.0f, 0.01f)
             << "Bus port '" << p->name() << "' Y not grid-aligned";
     }
+}
+
+// ============================================================================
+// Gauge animation regression tests
+// Verifies that updateNodeContent() propagates the value to VoltmeterWidget.
+// Before the fix, the value was only stored in node_content_ but never pushed
+// to the widget — so the gauge needle stayed frozen at its initial position.
+// ============================================================================
+
+static Node make_gauge_node() {
+    Node n;
+    n.id = "v1";
+    n.name = "Voltmeter";
+    n.type_name = "Voltmeter";
+    n.at(0, 0);  // auto-size
+    n.input("v_in");
+    n.node_content.type  = NodeContentType::Gauge;
+    n.node_content.value = 0.0f;
+    n.node_content.min   = 0.0f;
+    n.node_content.max   = 30.0f;
+    n.node_content.unit  = "V";
+    return n;
+}
+
+// updateNodeContent() must push the new value to the VoltmeterWidget inside the layout.
+TEST(GaugeAnimation, UpdateNodeContent_PropagatesValueToWidget) {
+    Node n = make_gauge_node();
+    VisualNode vn(n);
+
+    // Find the VoltmeterWidget in the layout
+    VoltmeterWidget* vw = nullptr;
+    for (size_t i = 0; i < vn.getLayout().childCount(); i++) {
+        vw = dynamic_cast<VoltmeterWidget*>(vn.getLayout().child(i));
+        if (vw) break;
+    }
+    ASSERT_NE(vw, nullptr) << "Gauge node should have a VoltmeterWidget in layout";
+    EXPECT_FLOAT_EQ(vw->getValue(), 0.0f) << "Initial value should be 0";
+
+    // Simulate a voltage update arriving from the simulation
+    NodeContent updated = n.node_content;
+    updated.value = 15.5f;
+    vn.updateNodeContent(updated);
+
+    // The widget value must have been updated (regression: was NOT before the fix)
+    EXPECT_FLOAT_EQ(vw->getValue(), 15.5f)
+        << "VoltmeterWidget value must match after updateNodeContent() — "
+           "was broken by rounded-corners refactor (gauge needle frozen at 0)";
+}
+
+// Multiple sequential updates must all propagate correctly.
+TEST(GaugeAnimation, UpdateNodeContent_MultipleUpdates_AllPropagate) {
+    Node n = make_gauge_node();
+    VisualNode vn(n);
+
+    VoltmeterWidget* vw = nullptr;
+    for (size_t i = 0; i < vn.getLayout().childCount(); i++) {
+        vw = dynamic_cast<VoltmeterWidget*>(vn.getLayout().child(i));
+        if (vw) break;
+    }
+    ASSERT_NE(vw, nullptr);
+
+    for (float v : {5.0f, 10.0f, 0.0f, 29.9f, 15.0f}) {
+        NodeContent c = n.node_content;
+        c.value = v;
+        vn.updateNodeContent(c);
+        EXPECT_FLOAT_EQ(vw->getValue(), v) << "Value " << v << " not propagated";
+    }
+}
+
+// updateNodeContent() for a non-gauge node should not crash.
+TEST(GaugeAnimation, UpdateNodeContent_NonGauge_NoSideEffects) {
+    Node n;
+    n.id = "b1"; n.name = "Battery"; n.type_name = "Battery";
+    n.at(0, 0).size_wh(96, 80);
+    n.output("v_out");
+    n.node_content.type = NodeContentType::None;
+
+    VisualNode vn(n);
+    NodeContent c = n.node_content;
+    c.label = "updated";
+    EXPECT_NO_FATAL_FAILURE(vn.updateNodeContent(c));
+}
+
+// Gauge renders correctly after an update (arc + needle draw calls expected).
+TEST(GaugeAnimation, Render_AfterUpdate_DoesNotCrash) {
+    Node n = make_gauge_node();
+    VisualNode vn(n);
+
+    NodeContent updated = n.node_content;
+    updated.value = 24.0f;  // near max
+    vn.updateNodeContent(updated);
+
+    MockDrawList dl;
+    Viewport vp;
+    EXPECT_NO_FATAL_FAILURE(vn.render(&dl, vp, Pt(0, 0), false));
+    // Gauge arc is a polyline; needle is drawn as a line
+    EXPECT_TRUE(dl.had_polyline_) << "Gauge arc should produce polyline draw calls";
+}
+
+// ============================================================================
+// Rounded corners regression tests
+// Verifies that VisualNode and HeaderWidget use the new rounding API correctly.
+// ============================================================================
+
+// Track rounding draw calls vs plain fill calls.
+class RoundingTrackingDrawList : public IDrawList {
+public:
+    int rounded_filled_calls = 0;
+    int plain_filled_calls   = 0;
+    int rounded_border_calls = 0;
+
+    void add_line(Pt, Pt, uint32_t, float) override {}
+    void add_rect(Pt, Pt, uint32_t, float) override {}
+    void add_rect_with_rounding_corners(Pt, Pt, uint32_t, float, int, float) override {
+        rounded_border_calls++;
+    }
+    void add_rect_filled(Pt, Pt, uint32_t) override {
+        plain_filled_calls++;
+    }
+    void add_rect_filled_with_rounding(Pt, Pt, uint32_t, float) override {
+        rounded_filled_calls++;
+    }
+    void add_rect_filled_with_rounding_corners(Pt, Pt, uint32_t, float, int) override {
+        rounded_filled_calls++;
+    }
+    void add_circle(Pt, float, uint32_t, int) override {}
+    void add_circle_filled(Pt, float, uint32_t, int) override {}
+    void add_text(Pt, const char*, uint32_t, float) override {}
+    Pt calc_text_size(const char* t, float fs) const override {
+        return Pt(strlen(t) * fs * 0.6f, fs);
+    }
+    void add_polyline(const Pt*, size_t, uint32_t, float) override {}
+};
+
+// VisualNode::render() must use rounded-rect APIs for background and border.
+TEST(RoundedCorners, VisualNode_Render_UsesRoundedBackground) {
+    Node n;
+    n.id = "r1"; n.name = "R"; n.type_name = "R";
+    n.at(0, 0).size_wh(96, 80);
+    n.input("v_in"); n.output("v_out");
+
+    VisualNode vn(n);
+    RoundingTrackingDrawList dl;
+    Viewport vp;
+    vn.render(&dl, vp, Pt(0, 0), false);
+
+    EXPECT_GT(dl.rounded_filled_calls, 0)
+        << "VisualNode::render() must call add_rect_filled_with_rounding[_corners]";
+    EXPECT_GT(dl.rounded_border_calls, 0)
+        << "VisualNode::render() must call add_rect_with_rounding_corners for border";
+}
+
+// HeaderWidget with rounding > 0 must use add_rect_filled_with_rounding_corners.
+TEST(RoundedCorners, HeaderWidget_WithRounding_UsesRoundedFill) {
+    Column layout;
+    layout.addChild(std::make_unique<HeaderWidget>(
+        "Node", render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING));
+    layout.layout(120.0f, 80.0f);
+
+    RoundingTrackingDrawList dl;
+    layout.render(&dl, Pt(0, 0), 1.0f);
+
+    EXPECT_GT(dl.rounded_filled_calls, 0)
+        << "HeaderWidget with rounding must call add_rect_filled_with_rounding_corners";
+    EXPECT_EQ(dl.plain_filled_calls, 0)
+        << "HeaderWidget with rounding must NOT call plain add_rect_filled";
+}
+
+// HeaderWidget with default rounding (0) must use the plain add_rect_filled.
+TEST(RoundedCorners, HeaderWidget_NoRounding_UsesPlainFill) {
+    Column layout;
+    layout.addChild(std::make_unique<HeaderWidget>(
+        "Node", render_theme::COLOR_HEADER_FILL));
+    layout.layout(120.0f, 80.0f);
+
+    RoundingTrackingDrawList dl;
+    layout.render(&dl, Pt(0, 0), 1.0f);
+
+    EXPECT_EQ(dl.rounded_filled_calls, 0)
+        << "HeaderWidget without rounding must NOT call rounding variant";
+    EXPECT_GT(dl.plain_filled_calls, 0)
+        << "HeaderWidget without rounding must call plain add_rect_filled";
+}
+
+// BusVisualNode render must also use rounded APIs.
+TEST(RoundedCorners, BusVisualNode_Render_UsesRoundedBackground) {
+    Node n;
+    n.id = "bus1"; n.name = "Bus"; n.type_name = "Bus";
+    n.render_hint = "bus"; n.at(0, 0).size_wh(80, 32);
+    n.input("v"); n.output("v");
+
+    Wire w = Wire::make("w1", wire_output("a", "out"), wire_input("bus1", "v"));
+    BusVisualNode vn(n, BusOrientation::Horizontal, {w});
+
+    RoundingTrackingDrawList dl;
+    Viewport vp;
+    vn.render(&dl, vp, Pt(0, 0), false);
+
+    EXPECT_GT(dl.rounded_filled_calls, 0)
+        << "BusVisualNode::render() must use rounded fill";
+    EXPECT_GT(dl.rounded_border_calls, 0)
+        << "BusVisualNode::render() must use rounded border";
+}
+
+// VisualNode with custom color must still use rounded background (not plain fill).
+TEST(RoundedCorners, VisualNode_CustomColor_StillRounded) {
+    Node n;
+    n.id = "c1"; n.name = "C"; n.type_name = "C";
+    n.at(0, 0).size_wh(96, 80);
+    n.input("v_in"); n.output("v_out");
+    n.color = NodeColor{1.0f, 0.0f, 0.0f, 1.0f};
+
+    VisualNode vn(n);
+    RoundingTrackingDrawList dl;
+    Viewport vp;
+    vn.render(&dl, vp, Pt(0, 0), false);
+
+    EXPECT_GT(dl.rounded_filled_calls, 0)
+        << "VisualNode with custom color must still use rounded background";
 }

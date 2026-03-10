@@ -65,7 +65,7 @@ protected:
 
 class HeaderWidget : public Widget {
 public:
-    HeaderWidget(const std::string& name, uint32_t fill_color);
+    HeaderWidget(const std::string& name, uint32_t fill_color, float rounding = 0.0f);
 
     Pt getPreferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, Pt origin, float zoom) const override;
@@ -76,6 +76,7 @@ public:
 private:
     std::string name_;
     uint32_t fill_color_;
+    float rounding_;  ///< World-space corner rounding radius (0 = sharp)
     static constexpr float FONT_SIZE = 12.0f;
     static constexpr float PADDING = 5.0f;
 
@@ -130,12 +131,12 @@ private:
     static constexpr float START_ANGLE = 210.0f;
     static constexpr float SWEEP_ANGLE = -240.0f;
 
-    static constexpr uint32_t COLOR_GAUGE_BG = 0xFF2A2A2A;
-    static constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF4A4A4A;
-    static constexpr uint32_t COLOR_NEEDLE = 0xFFFF4444;
-    static constexpr uint32_t COLOR_TICK_MAJOR = 0xFFFFFFFF;
-    static constexpr uint32_t COLOR_TICK_MINOR = 0xFF888888;
-    static constexpr uint32_t COLOR_TEXT = 0xFFCCCCCC;
+    static constexpr uint32_t COLOR_GAUGE_BG     = 0xFF1C1D24;  // Surface 0
+    static constexpr uint32_t COLOR_GAUGE_BORDER = 0xFF3E3130;  // Surface 3
+    static constexpr uint32_t COLOR_NEEDLE       = 0xFF2A70C8;  // Needle (amber-orange)
+    static constexpr uint32_t COLOR_TICK_MAJOR   = 0xFFDCD5D4;  // Text Primary
+    static constexpr uint32_t COLOR_TICK_MINOR   = 0xFF606070;  // Port Any / mid gray
+    static constexpr uint32_t COLOR_TEXT         = 0xFFDCD5D4;  // Text Primary
     static constexpr float VALUE_FONT_SIZE = 14.0f;
     static constexpr float UNIT_FONT_SIZE = 10.0f;
 };

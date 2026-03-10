@@ -1196,8 +1196,14 @@ TEST(RenderGroupFilter, RenderSubgroup_ShowsOnlyGroupNodes) {
 // ============================================================================
 
 TEST(RenderRegressionTest, HeaderBody_NoGap) {
-    // BUGFIX [header-gap-fix] Body background should start at VISUAL_HEIGHT (20px)
-    // not at HEIGHT (24px) to avoid 4px gap between header and content
+    // BUGFIX [header-gap-fix] The header overlay must end exactly at VISUAL_HEIGHT
+    // (20px) and not extend to HEIGHT (24px), which would bleed 4px into the body.
+    //
+    // In the current rendering approach the whole node is painted as one
+    // COLOR_BODY_FILL background; the header widget then overlays just its
+    // visual area (VISUAL_HEIGHT) with COLOR_HEADER_FILL on top.  Checking that
+    // the header rect's bottom edge == node_y + VISUAL_HEIGHT ensures there is
+    // no gap between the visual header and the port rows below it.
     Node n;
     n.id = "test";
     n.name = "Battery";
@@ -1216,23 +1222,23 @@ TEST(RenderRegressionTest, HeaderBody_NoGap) {
 
     visual.render(&dl, vp, canvas_min, false);
 
-    // Find the body background rect_filled (COLOR_BODY_FILL)
-    bool body_found = false;
-    Pt body_min;
+    // Find the header overlay rect (COLOR_HEADER_FILL)
+    bool header_found = false;
+    Pt header_max;
     for (const auto& entry : dl.rect_filled_entries_) {
-        if (entry.color == render_theme::COLOR_BODY_FILL) {
-            body_min = entry.min;
-            body_found = true;
+        if (entry.color == render_theme::COLOR_HEADER_FILL) {
+            header_max = entry.max;
+            header_found = true;
             break;
         }
     }
 
-    ASSERT_TRUE(body_found) << "Should have body background rect";
+    ASSERT_TRUE(header_found) << "Should have header fill rect (COLOR_HEADER_FILL)";
 
-    // Body should start at VISUAL_HEIGHT (20px) not HEIGHT (24px)
-    // Node is at (100, 50), so body should start at screen Y = 50 + VISUAL_HEIGHT
-    float expected_body_y = 50.0f + HeaderWidget::VISUAL_HEIGHT;
-    EXPECT_FLOAT_EQ(body_min.y, expected_body_y)
-        << "Body background should start at VISUAL_HEIGHT after node position, "
-        << "not at HEIGHT (this would create a 4px gap)";
+    // Header must end at VISUAL_HEIGHT (20px) below the node top, not at HEIGHT (24px).
+    // Node is at (100, 50), so header bottom = 50 + VISUAL_HEIGHT = 70.
+    float expected_header_bottom = 50.0f + HeaderWidget::VISUAL_HEIGHT;
+    EXPECT_FLOAT_EQ(header_max.y, expected_header_bottom)
+        << "Header overlay must end at VISUAL_HEIGHT (not HEIGHT) — "
+        << "otherwise 4px of COLOR_HEADER_FILL bleeds into the body area";
 }

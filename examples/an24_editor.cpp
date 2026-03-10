@@ -713,7 +713,7 @@ int main(int argc, char** argv) {
         // Рендер
         ImGui::Render();
         glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-        glClearColor(0.118f, 0.118f, 0.137f, 1.0f);  // RGB: 30, 30, 35
+        glClearColor(0.078f, 0.082f, 0.102f, 1.0f);  // Canvas #14151A
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

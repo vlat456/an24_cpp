@@ -81,7 +81,7 @@ public:
     NodeContentType getContentType() const { return node_content_.type; }
     const NodeContent& getNodeContent() const { return node_content_; }
     Bounds getContentBounds() const;
-    virtual void updateNodeContent(const NodeContent& content) { node_content_ = content; }
+    virtual void updateNodeContent(const NodeContent& content);
 
     // --- Layout access for testing ---
     const Column& getLayout() const { return layout_; }

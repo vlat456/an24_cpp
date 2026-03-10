@@ -38,6 +38,12 @@ constexpr float MIN_NODE_WIDTH = 80.0f;
 // ---- Node rendering ----
 constexpr float NODE_ROUNDING = 6.0f;  // Rounded corners for nodes
 
+// ---- Draw corner flags (values match ImDrawFlags_ in imgui.h, stable across versions) ----
+// ImDrawFlags_RoundCornersTopLeft=0x10, TopRight=0x20, BottomLeft=0x40, BottomRight=0x80
+constexpr int DRAW_CORNERS_TOP    = 0x30;  // TopLeft | TopRight
+constexpr int DRAW_CORNERS_BOTTOM = 0xC0;  // BottomLeft | BottomRight
+constexpr int DRAW_CORNERS_ALL    = 0xF0;  // All four corners
+
 // ---- Zoom bounds ----
 constexpr float ZOOM_MIN   = 0.25f;
 constexpr float ZOOM_MAX   = 4.0f;

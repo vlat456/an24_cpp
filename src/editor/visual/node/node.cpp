@@ -9,17 +9,10 @@
 #include <cmath>
 #include <cstdio>
 
-// ImGui corner rounding flags - include from ImGui if available, otherwise define locally
+// ImGui is needed for editor builds (for float value math, not render flags).
+// DRAW_CORNERS_* constants come from layout_constants.h and match ImDrawFlags_* values.
 #ifndef EDITOR_TESTING
-// For editor builds, include ImGui which defines these flags
 #include <imgui.h>
-#else
-// For test builds, define the flags we need locally
-namespace {
-    constexpr int ImDrawFlags_RoundCornersTop     = 0x30;  // TopLeft | TopRight (16 | 32)
-    constexpr int ImDrawFlags_RoundCornersBottom  = 0xC0;  // BottomLeft | BottomRight (64 | 128)
-    constexpr int ImDrawFlags_RoundCornersAll     = 0xF0;  // All corners
-}
 #endif
 
 // ============================================================================
@@ -135,8 +128,9 @@ void VisualNode::setSize(Pt size) {
 }
 
 void VisualNode::buildLayout(const Node& node) {
-    // Header
-    layout_.addChild(std::make_unique<HeaderWidget>(name_, render_theme::COLOR_BUS_FILL));
+    // Header (with rounded top corners matching NODE_ROUNDING)
+    layout_.addChild(std::make_unique<HeaderWidget>(
+        name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING));
 
     // Port rows: pair inputs and outputs
     size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
@@ -285,6 +279,20 @@ void VisualNode::connectWire(const Wire&) {}
 void VisualNode::disconnectWire(const Wire&) {}
 void VisualNode::recalculatePorts() {}
 
+void VisualNode::updateNodeContent(const NodeContent& content) {
+    node_content_ = content;
+    // Propagate updated value to VoltmeterWidget so gauge animation works.
+    // Without this, the widget retains its construction-time value forever.
+    if (node_content_.type == NodeContentType::Gauge) {
+        for (size_t i = 0; i < layout_.childCount(); i++) {
+            if (auto* vw = dynamic_cast<VoltmeterWidget*>(layout_.child(i))) {
+                vw->setValue(node_content_.value);
+                break;
+            }
+        }
+    }
+}
+
 void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                         bool is_selected) const {
     Pt screen_min = vp.world_to_screen(position_, canvas_min);
@@ -300,13 +308,14 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
         : render_theme::COLOR_BODY_FILL;
     dl->add_rect_filled_with_rounding(screen_min, screen_max, fill, rounding);
 
-    // === Render all content (includes ports, but they'll be drawn over) ===
+    // === Render all content ===
+    // HeaderWidget draws its own header background with rounded top corners.
     layout_.render(dl, screen_min, vp.zoom);
 
     // === BORDER: Full outline with all corners rounded ===
     dl->add_rect_with_rounding_corners(
         screen_min, screen_max, border_color, rounding,
-        ImDrawFlags_RoundCornersAll, 1.0f);
+        editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
     // === PORTS: Draw on top of everything for highest z-index ===
     float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
@@ -520,7 +529,7 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 
     // Border (render before ports)
     uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect_with_rounding_corners(bus_min, bus_max, border_color, rounding, ImDrawFlags_RoundCornersAll, 1.0f);
+    dl->add_rect_with_rounding_corners(bus_min, bus_max, border_color, rounding, editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
     // Ports (render LAST for highest z-index, on top of border)
     float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
@@ -586,7 +595,7 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 
     // Border (render before port)
     uint32_t border_color = is_selected ? render_theme::COLOR_SELECTED : render_theme::COLOR_BUS_BORDER;
-    dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding, ImDrawFlags_RoundCornersAll, 1.0f);
+    dl->add_rect_with_rounding_corners(screen_min, screen_max, border_color, rounding, editor_constants::DRAW_CORNERS_ALL, 1.0f);
 
     // Port (render LAST for highest z-index, on top of border)
     // [d5e6f7g8] Use grid-snapped position so rendering matches port world position.

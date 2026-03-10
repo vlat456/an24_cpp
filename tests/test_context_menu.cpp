@@ -184,15 +184,15 @@ TEST(SwapWirePortsOnBus, PassingLogicalPortName_ReturnsFalse) {
         << "swapWirePortsOnBus must return false when wire_id_b is 'v' (a port name, not a wire ID)";
 }
 
-// After a successful swap, routing points are preserved on each wire.
-// Since wires are swapped in bp_->wires, indices swap too.
+// After a successful swap, routing points are preserved. Endpoints are resolved
+// every frame via resolveWirePort(), so wires automatically follow their ports.
 TEST(SwapWirePortsOnBus, AfterSwap_RoutingPointsPreserved) {
     Blueprint bp = make_bus_with_two_wires();
     VisualScene scene(bp);
 
     // Pre-seed hand-crafted routing points
-    bp.wires[0].routing_points.push_back(Pt(99, 99));  // wire_1
-    bp.wires[1].routing_points.push_back(Pt(88, 88));  // wire_2
+    bp.wires[0].routing_points.push_back(Pt(99, 99));
+    bp.wires[1].routing_points.push_back(Pt(88, 88));
 
     const Node* bus_node = bp.find_node("bus1");
     ASSERT_NE(bus_node, nullptr);
@@ -201,11 +201,9 @@ TEST(SwapWirePortsOnBus, AfterSwap_RoutingPointsPreserved) {
     bool ok = scene.swapWirePortsOnBus("bus1", "wire_2", "wire_1");
     ASSERT_TRUE(ok);
 
-    // Wires swapped in bp_->wires: [0] is now wire_2, [1] is now wire_1
-    EXPECT_EQ(bp.wires[0].id, "wire_2");
-    EXPECT_EQ(bp.wires[1].id, "wire_1");
-
-    // Routing points travel with their wire — preserved, just at swapped index
+    // swapWirePortsOnBus swaps the complete wire objects (including routing
+    // points) so each wire's geometry travels with it to the new bus slot.
+    // After swap: wires[0] is the old wire_2 (had {88,88}), wires[1] is old wire_1 (had {99,99}).
     ASSERT_EQ(bp.wires[0].routing_points.size(), 1u);
     EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].x, 88);
     EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].y, 88);

@@ -22,8 +22,8 @@ void Widget::layout(float available_width, float available_height) {
 // HeaderWidget
 // ============================================================================
 
-HeaderWidget::HeaderWidget(const std::string& name, uint32_t fill_color)
-    : name_(name), fill_color_(fill_color)
+HeaderWidget::HeaderWidget(const std::string& name, uint32_t fill_color, float rounding)
+    : name_(name), fill_color_(fill_color), rounding_(rounding)
 {
     height_ = HEIGHT;
 }
@@ -51,13 +51,20 @@ void HeaderWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     float w = width_ * zoom;
     float vh = VISUAL_HEIGHT * zoom;
 
-    // Header fill (only visual portion)
-    dl->add_rect_filled(origin, Pt(origin.x + w, origin.y + vh), fill_color_);
+    // Header fill — use rounded top corners when rounding is set
+    float r = rounding_ * zoom;
+    if (r > 0.0f) {
+        // 0x30 = ImDrawFlags_RoundCornersTop (TopLeft|TopRight), value is stable in ImGui
+        dl->add_rect_filled_with_rounding_corners(
+            origin, Pt(origin.x + w, origin.y + vh), fill_color_, r, 0x30);
+    } else {
+        dl->add_rect_filled(origin, Pt(origin.x + w, origin.y + vh), fill_color_);
+    }
 
     // Name text centered vertically in visual header
     float font = FONT_SIZE * zoom;
     Pt text_pos(origin.x + PADDING * zoom, origin.y + vh / 2 - font / 2);
-    dl->add_text(text_pos, name_.c_str(), 0xFFFFFFFF, font);
+    dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, font);
 }
 
 // ============================================================================
@@ -95,7 +102,7 @@ void TypeNameWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     // Centered horizontally, vertically centered in row
     float tx = origin.x + (w - text_size.x) / 2;
     float ty = origin.y + (height_ * zoom - font) / 2;
-    dl->add_text(Pt(tx, ty), type_name_.c_str(), 0xFFAAAAAA, font);
+    dl->add_text(Pt(tx, ty), type_name_.c_str(), render_theme::COLOR_TEXT_DIM, font);
 }
 
 // ============================================================================
@@ -181,5 +188,5 @@ void VoltmeterWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     Pt unit_size = dl->calc_text_size(unit_.c_str(), unit_font);
     Pt unit_pos(cx - unit_size.x / 2.0f,
                 value_pos.y + value_font + 2.0f * zoom);
-    dl->add_text(unit_pos, unit_.c_str(), 0xFFAAAAAA, unit_font);
+    dl->add_text(unit_pos, unit_.c_str(), render_theme::COLOR_TEXT_DIM, unit_font);
 }
