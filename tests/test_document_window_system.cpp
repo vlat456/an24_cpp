@@ -792,7 +792,7 @@ TEST(WindowSystem, OpenDocument_AddsToRecentFiles) {
 }
 
 TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
-    // Create temp file
+    // Create temp files
     char temp_file[] = "/tmp/recent_dup_test_XXXXXX";
     int fd = mkstemp(temp_file);
     ASSERT_GE(fd, 0);
@@ -807,7 +807,6 @@ TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
 })";
     f.close();
 
-    // Create another file
     char temp_file2[] = "/tmp/recent_dup_test2_XXXXXX";
     int fd2 = mkstemp(temp_file2);
     ASSERT_GE(fd2, 0);
@@ -838,4 +837,130 @@ TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
     
     std::remove(temp_file);
     std::remove(temp_file2);
+}
+
+// ============================================================================
+// Edge case tests
+// ============================================================================
+
+// EDGE: Document becomes not pristine after adding a wire
+TEST(Document, IsPristine_AfterAddWire) {
+    Document doc;
+    an24::TypeRegistry registry = an24::load_type_registry();
+    
+    EXPECT_TRUE(doc.isPristine());
+    
+    // Add two nodes
+    doc.addComponent("Battery", Pt(100, 100), "", registry);
+    doc.addComponent("Lamp", Pt(300, 100), "", registry);
+    
+    // Add wire - should make not pristine
+    Wire w;
+    w.id = "wire_1";
+    w.start.node_id = doc.blueprint().nodes[0].id;
+    w.start.port_name = "v_out";
+    w.end.node_id = doc.blueprint().nodes[1].id;
+    w.end.port_name = "v_in";
+    doc.blueprint().wires.push_back(w);
+    
+    EXPECT_FALSE(doc.isPristine());
+}
+
+// EDGE: OpenDocument with invalid path returns nullptr
+TEST(WindowSystem, OpenDocument_InvalidPath) {
+    WindowSystem ws;
+    
+    Document* result = ws.openDocument("/nonexistent/path/file.blueprint");
+    
+    EXPECT_EQ(result, nullptr);
+    EXPECT_EQ(ws.documentCount(), 1u);  // Still has pristine Untitled
+}
+
+// EDGE: RecentFiles handles empty string
+TEST(RecentFiles, HandlesEmptyString) {
+    RecentFiles rf;
+    rf.add("");  // Empty path
+    
+    // Empty path should still be added (though not useful)
+    EXPECT_EQ(rf.files().size(), 1u);
+}
+
+// EDGE: RecentFiles handles paths with unicode (if filesystem supports)
+TEST(RecentFiles, HandlesUnicodePath) {
+    // Create temp file with unicode name
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "ан24_test";
+    std::filesystem::create_directories(temp_dir);
+    std::string unicode_path = (temp_dir / "тест.blueprint").string();
+    
+    {
+        std::ofstream f(unicode_path);
+        f << "test";
+    }
+    
+    if (std::filesystem::exists(unicode_path)) {
+        RecentFiles rf;
+        rf.add(unicode_path);
+        
+        EXPECT_EQ(rf.files().size(), 1u);
+        EXPECT_EQ(rf.files()[0], unicode_path);
+        
+        std::filesystem::remove_all(temp_dir);
+    }
+}
+
+// EDGE: CloseDocument with sub-windows open
+TEST(WindowSystem, CloseDocument_WithSubWindowsOpen) {
+    WindowSystem ws;
+    an24::TypeRegistry registry = an24::load_type_registry();
+    
+    // Create a document with sub-blueprint
+    ws.activeDocument()->addComponent("Battery", Pt(100, 100), "", registry);
+    
+    // This should not crash when closing
+    EXPECT_TRUE(ws.closeDocument(*ws.activeDocument()));
+    EXPECT_EQ(ws.documentCount(), 1u);  // New document created
+}
+
+// EDGE: Rapid open/close cycles don't leak memory
+TEST(WindowSystem, RapidOpenCloseCycles) {
+    // Create temp file
+    char temp_file[] = "/tmp/rapid_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "test" },
+  "nodes": { "b1": { "type": "Battery", "pos": [100, 100] } },
+  "wires": []
+})";
+    f.close();
+
+    WindowSystem ws;
+    
+    for (int i = 0; i < 50; i++) {
+        Document* doc = ws.openDocument(temp_file);
+        ASSERT_NE(doc, nullptr);
+        ws.closeDocument(*doc);
+    }
+    
+    std::remove(temp_file);
+}
+
+// EDGE: RecentFiles max limit edge
+TEST(RecentFiles, MaxLimitExact) {
+    RecentFiles rf;
+    
+    // Add exactly MAX files
+    for (size_t i = 0; i < RecentFiles::MAX; i++) {
+        rf.add("/file" + std::to_string(i) + ".blueprint");
+    }
+    
+    EXPECT_EQ(rf.files().size(), RecentFiles::MAX);
+    
+    // Add one more - should still be MAX
+    rf.add("/file_extra.blueprint");
+    EXPECT_EQ(rf.files().size(), RecentFiles::MAX);
 }

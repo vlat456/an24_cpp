@@ -64,5 +64,6 @@ include("/Users/vladimir/an24_cpp/tests/comparison_components_tests[1]_include.c
 include("/Users/vladimir/an24_cpp/tests/spring_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/sub_blueprint_ref_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/document_window_system_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/recent_files_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/blueprint_v2_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/library_v2_tests[1]_include.cmake")
