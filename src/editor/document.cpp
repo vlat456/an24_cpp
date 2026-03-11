@@ -41,6 +41,15 @@ bool Document::load(const std::string& path) {
     auto bp = load_blueprint_from_file(path.c_str());
     if (!bp.has_value()) return false;
 
+    // Close any sub-windows from previous blueprint
+    window_manager_.closeAll();
+
+    // Stop simulation if running
+    if (simulation_running_) {
+        simulation_.stop();
+        simulation_running_ = false;
+    }
+
     blueprint_ = std::move(*bp);
     blueprint_.rebuild_wire_index();
 

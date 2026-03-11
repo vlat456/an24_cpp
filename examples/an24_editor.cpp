@@ -493,6 +493,7 @@ int main(int argc, char** argv) {
             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
         if (ImGui::BeginTabBar("DocumentTabs")) {
+            Document* doc_to_close = nullptr;
             for (auto& doc : ws.documents()) {
                 ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;
                 if (doc->isModified()) flags |= ImGuiTabItemFlags_UnsavedDocument;
@@ -520,11 +521,16 @@ int main(int argc, char** argv) {
                     ImGui::EndTabItem();
                 }
                 if (!tab_open) {
-                    // User clicked X on tab — close document
-                    ws.closeDocument(*doc);
+                    // Defer close to after iteration (erase during iteration = UB)
+                    doc_to_close = doc.get();
                 }
             }
             ImGui::EndTabBar();
+
+            // Close deferred document (at most one per frame)
+            if (doc_to_close) {
+                ws.closeDocument(*doc_to_close);
+            }
         }
 
         ImGui::End();
@@ -631,12 +637,9 @@ int main(int argc, char** argv) {
                 }
                 for (const auto& classname : tree.entries) {
                     if (ImGui::MenuItem(classname.c_str())) {
-                        ImVec2 mp = ImGui::GetMousePosOnOpeningCurrentPopup();
-                        Pt menu_pos(mp.x, mp.y);
                         Document* doc = ws.contextMenu.source_doc ? ws.contextMenu.source_doc : ws.activeDocument();
                         if (doc) {
-                            Pt world_pos = doc->scene().viewport().screen_to_world(menu_pos, Pt(canvas_x, menu_height));
-                            doc->addComponent(classname, world_pos, ws.contextMenu.group_id, ws.typeRegistry());
+                            doc->addComponent(classname, ws.contextMenu.position, ws.contextMenu.group_id, ws.typeRegistry());
                         }
                     }
                 }
@@ -674,6 +677,7 @@ int main(int argc, char** argv) {
         // Color picker dialog
         if (ws.colorPicker.show) {
             ImGui::OpenPopup("Node Color");
+            ws.colorPicker.show = false;
         }
         if (ImGui::BeginPopupModal("Node Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             ImGui::ColorPicker4("##picker", ws.colorPicker.rgba,

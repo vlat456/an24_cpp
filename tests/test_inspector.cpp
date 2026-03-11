@@ -80,7 +80,7 @@ TEST(Inspector, BuildDisplayTree_SingleNode_CreatesEntry) {
     ts.addNode("battery", "Battery");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();  // Force build
 
     const auto& tree = inspector.displayTree();
@@ -97,7 +97,7 @@ TEST(Inspector, BuildDisplayTree_WithConnection_ShowsConnection) {
     ts.addWire("battery", "v_out", "lamp", "v_in");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -121,7 +121,7 @@ TEST(Inspector, BuildDisplayTree_UnconnectedPort_ShowsNotConnected) {
     ts.addNode("battery", "Battery");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -142,7 +142,7 @@ TEST(Inspector, ConnectionCount_SingleWire_CountsBothNodes) {
     ts.addWire("battery", "v_out", "lamp", "v_in");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -160,7 +160,7 @@ TEST(Inspector, ConnectionCount_MultipleWiresFromOneNode) {
     ts.addWire("battery", "v_out", "lamp2", "v_in");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -176,7 +176,7 @@ TEST(Inspector, SearchFilter_MatchesName) {
     ts.addNode("lamp", "Lamp");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.setSearch("bat");  // Should match "battery"
     inspector.buildDisplayTree();
 
@@ -191,7 +191,7 @@ TEST(Inspector, SearchFilter_MatchesType) {
     ts.addNode("lamp", "Lamp");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.setSearch("lamp");  // Should match Lamp type
     inspector.buildDisplayTree();
 
@@ -206,7 +206,7 @@ TEST(Inspector, MarkDirty_RebuildsOnChange) {
     ts.addNode("battery", "Battery");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
     ASSERT_EQ(inspector.displayTree().size(), 1u);
 
@@ -227,7 +227,7 @@ TEST(Inspector, SortMode_ByName) {
     ts.addNode("banana", "Test");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.setSortMode(Inspector::SortMode::Name);
     inspector.buildDisplayTree();
 
@@ -245,7 +245,7 @@ TEST(Inspector, SortMode_ByType) {
     ts.addNode("c", "Banana");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.setSortMode(Inspector::SortMode::Type);
     inspector.buildDisplayTree();
 
@@ -296,7 +296,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     bp.rebuild_wire_index();
 
     VisualScene scene(bp, "");  // root scene
-    Inspector inspector(scene);
+    Inspector inspector(&scene);
     inspector.buildDisplayTree();
 
     // Root inspector should show battery1 + lamp1, NOT lamp1:led
@@ -341,7 +341,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
 
     // Sub-blueprint scene for "lamp1" group
     VisualScene sub_scene(bp, "lamp1");
-    Inspector sub_inspector(sub_scene);
+    Inspector sub_inspector(&sub_scene);
     sub_inspector.buildDisplayTree();
 
     // Should show only lamp1:led and lamp1:res, NOT battery1
@@ -411,7 +411,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
 
     // Root inspector: bat should have 1 connection (root wire), not 2
     VisualScene root_scene(bp, "");
-    Inspector root_inspector(root_scene);
+    Inspector root_inspector(&root_scene);
     root_inspector.buildDisplayTree();
 
     const auto& root_tree = root_inspector.displayTree();
@@ -422,7 +422,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
 
     // Sub inspector: lamp1:led should have 1 connection (internal wire)
     VisualScene sub_scene(bp, "lamp1");
-    Inspector sub_inspector(sub_scene);
+    Inspector sub_inspector(&sub_scene);
     sub_inspector.buildDisplayTree();
 
     const auto& sub_tree = sub_inspector.displayTree();
@@ -441,7 +441,7 @@ TEST(Inspector, FanOut_OutputShowsMultipleConnections) {
     ts.addWire("battery", "v_out", "lamp2", "v_in");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -470,7 +470,7 @@ TEST(Inspector, DisplayNode_HasNodeId) {
     ts.addNode("bat1", "Battery");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     const auto& tree = inspector.displayTree();
@@ -484,13 +484,13 @@ TEST(Inspector, DisplayNode_HasNodeId) {
 
 TEST(Inspector, ConsumeSelection_EmptyByDefault) {
     InspectorTestScene ts;
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     EXPECT_TRUE(inspector.consumeSelection().empty());
 }
 
 TEST(Inspector, ConsumeSelection_ClearsAfterRead) {
     InspectorTestScene ts;
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     // Simulate a click by directly setting the field (render() would do this via ImGui)
     // We test consumeSelection logic only
     auto sel1 = inspector.consumeSelection();
@@ -509,7 +509,7 @@ TEST(Inspector, Regression_NameUpdateAfterMarkDirty) {
     Node& bat = ts.addNode("bat1", "Battery");
     ts.rebuild();
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     // Initially the name == id
@@ -537,7 +537,7 @@ TEST(Inspector, Regression_CyrillicNameInDisplayTree) {
     // Set a Cyrillic display name
     node.name = "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8";  // "АЗС Батареи"
 
-    Inspector inspector(ts.scene);
+    Inspector inspector(&ts.scene);
     inspector.buildDisplayTree();
 
     ASSERT_EQ(inspector.displayTree().size(), 1u);

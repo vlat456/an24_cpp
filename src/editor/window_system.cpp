@@ -50,35 +50,47 @@ bool WindowSystem::closeDocument(Document& doc) {
         return false;
     }
 
-    // Remove from documents vector
-    auto it = std::remove_if(documents_.begin(), documents_.end(),
-                              [&doc](const auto& ptr) { return ptr.get() == &doc; });
+    // Find the document to remove
+    auto it = std::find_if(documents_.begin(), documents_.end(),
+                            [&doc](const auto& ptr) { return ptr.get() == &doc; });
+    if (it == documents_.end()) return false;
 
-    if (it != documents_.end()) {
-        spdlog::info("[WindowSystem] Closing document: {}", doc.displayName());
+    spdlog::info("[WindowSystem] Closing document: {}", doc.displayName());
 
-        // If this was the active document, switch to another
-        if (active_document_ == &doc) {
-            active_document_ = nullptr;
-            // Set the first remaining document as active, or create new one if empty
-            if (!documents_.empty()) {
-                if (it != documents_.end()) {
-                    active_document_ = it->get();
-                } else if (!documents_.empty()) {
-                    active_document_ = documents_.front().get();
-                }
-            }
-            if (!active_document_) {
-                createDocument();
-            }
+    // If this was the active document, pick a replacement BEFORE erasing
+    if (active_document_ == &doc) {
+        active_document_ = nullptr;
+        // Prefer the next document, or the previous one
+        auto next = std::next(it);
+        if (next != documents_.end()) {
+            active_document_ = next->get();
+        } else if (it != documents_.begin()) {
+            active_document_ = std::prev(it)->get();
         }
-
-        documents_.erase(it, documents_.end());
-
-        return true;
     }
 
-    return false;
+    // Clear any context menu / color picker references to the closing doc
+    if (contextMenu.source_doc == &doc) contextMenu.source_doc = nullptr;
+    if (nodeContextMenu.source_doc == &doc) nodeContextMenu.source_doc = nullptr;
+    if (colorPicker.source_doc == &doc) {
+        colorPicker.source_doc = nullptr;
+        colorPicker.show = false;
+    }
+
+    documents_.erase(it);
+
+    // If no documents remain, create a fresh one
+    if (!active_document_) {
+        if (documents_.empty()) {
+            createDocument();
+        } else {
+            setActiveDocument(documents_.front().get());
+        }
+    } else {
+        setActiveDocument(active_document_);  // update inspector
+    }
+
+    return true;
 }
 
 bool WindowSystem::closeAllDocuments() {
@@ -123,11 +135,20 @@ void WindowSystem::removeClosedDocuments() {
 void WindowSystem::openPropertiesForNode(size_t node_index, Document& doc) {
     if (node_index >= doc.blueprint().nodes.size()) return;
     Node& node = doc.blueprint().nodes[node_index];
-    properties_window_.open(node, [this, &doc](const std::string& node_id) {
-        doc.scene().cache().invalidate(node_id);
+    Document* doc_ptr = &doc;
+    properties_window_.open(node, [this, doc_ptr](const std::string& node_id) {
+        // Verify document still exists before using the pointer
+        for (const auto& d : documents_) {
+            if (d.get() == doc_ptr) {
+                doc_ptr->scene().cache().invalidate(node_id);
+                inspector_.markDirty();
+                doc_ptr->rebuildSimulation();
+                doc_ptr->markModified();
+                return;
+            }
+        }
+        // Document was closed — just mark inspector dirty
         inspector_.markDirty();
-        doc.rebuildSimulation();
-        doc.markModified();
     });
 }
 
