@@ -45,6 +45,39 @@ static std::optional<an24::PortType> parse_port_type_str(const std::string& s) {
     return std::nullopt;
 }
 
+/// Serialize ports with InOut detection
+static json serialize_ports(const Node& n) {
+    std::set<std::string> input_names, output_names;
+    for (const auto& p : n.inputs) input_names.insert(p.name);
+    for (const auto& p : n.outputs) output_names.insert(p.name);
+
+    json ports = json::object();
+    for (const auto& p : n.inputs) {
+        bool is_inout = output_names.count(p.name) > 0;
+        ports[p.name] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
+    }
+    for (const auto& p : n.outputs) {
+        if (input_names.count(p.name) > 0) continue;
+        ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
+    }
+    return ports;
+}
+
+/// Serialize node_content (UI metadata) to JSON
+static json serialize_content(const Node& n) {
+    json content = {
+        {"type", static_cast<int>(n.node_content.type)},
+        {"label", n.node_content.label},
+        {"value", n.node_content.value},
+        {"min", n.node_content.min},
+        {"max", n.node_content.max},
+        {"unit", n.node_content.unit}
+    };
+    if (n.node_content.type == NodeContentType::Switch)
+        content["state"] = n.node_content.state;
+    return content;
+}
+
 // Публичные функции
 
 std::string blueprint_to_json(const Blueprint& bp) {
@@ -85,20 +118,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
         // ports
         // BUGFIX [b7e3a9] InOut ports were serialized as "Out" (second loop overwrote first).
         // Now detect InOut by checking if port name exists in both inputs and outputs.
-        std::set<std::string> input_names, output_names;
-        for (const auto& p : n.inputs) input_names.insert(p.name);
-        for (const auto& p : n.outputs) output_names.insert(p.name);
-
-        json ports = json::object();
-        for (const auto& p : n.inputs) {
-            bool is_inout = output_names.count(p.name) > 0;
-            ports[p.name] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
-        }
-        for (const auto& p : n.outputs) {
-            if (input_names.count(p.name) > 0) continue; // already written as InOut
-            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
-        }
-        device["ports"] = ports;
+        device["ports"] = serialize_ports(n);
         
         // Add parameters from Node::params (overrides for component defaults)
         if (!n.params.empty()) {
@@ -210,18 +230,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
 
         // Store node_content (UI metadata) in editor.nodes
         if (n.node_content.type != NodeContentType::None) {
-            json content = {
-                {"type", static_cast<int>(n.node_content.type)},
-                {"label", n.node_content.label},
-                {"value", n.node_content.value},
-                {"min", n.node_content.min},
-                {"max", n.node_content.max},
-                {"unit", n.node_content.unit}
-            };
-            if (n.node_content.type == NodeContentType::Switch) {
-                content["state"] = n.node_content.state;
-            }
-            node_state["content"] = content;
+            node_state["content"] = serialize_content(n);
         }
 
         node_states[n.id] = node_state;
@@ -243,22 +252,23 @@ std::string blueprint_to_json(const Blueprint& bp) {
     }
     editor["wires"] = wire_states;
 
-    // collapsed_groups (editor-only visual hierarchy metadata)
-    json collapsed_groups = json::array();
-    std::set<std::string> saved_group_ids;  // Dedup collapsed_groups
-    for (const auto& group : bp.collapsed_groups) {
+    // sub_blueprint_instances (editor-only visual hierarchy metadata)
+    json sub_blueprint_instances = json::array();
+    std::set<std::string> saved_group_ids;  // Dedup sub_blueprint_instances
+    for (const auto& group : bp.sub_blueprint_instances) {
         if (!saved_group_ids.insert(group.id).second) continue;
         json group_json = {
             {"id", group.id},
             {"blueprint_path", group.blueprint_path},
             {"type_name", group.type_name},
+            {"baked_in", group.baked_in},
             {"pos", {{"x", group.pos.x}, {"y", group.pos.y}}},
             {"size", {{"x", group.size.x}, {"y", group.size.y}}},
             {"internal_node_ids", group.internal_node_ids}
         };
-        collapsed_groups.push_back(group_json);
+        sub_blueprint_instances.push_back(group_json);
     }
-    editor["collapsed_groups"] = collapsed_groups;
+    editor["sub_blueprint_instances"] = sub_blueprint_instances;
 
     j["editor"] = editor;
 
@@ -267,7 +277,7 @@ std::string blueprint_to_json(const Blueprint& bp) {
 
 // ─── Editor save format ────────────────────────────────────────────────────
 // Flat list of ALL nodes + wires, no rewriting.
-// Hierarchy is metadata only (collapsed_groups), reconstructed on load for visuals.
+// Hierarchy is metadata only (sub_blueprint_instances), reconstructed on load for visuals.
 // blueprint_to_json() is only for simulation (rewrites wires, skips Blueprint kind).
 
 std::string blueprint_to_editor_json(const Blueprint& bp) {
@@ -296,20 +306,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             device["group_id"] = n.group_id;
 
         // ports — detect InOut by checking if port appears in both inputs and outputs
-        std::set<std::string> input_names, output_names;
-        for (const auto& p : n.inputs) input_names.insert(p.name);
-        for (const auto& p : n.outputs) output_names.insert(p.name);
-
-        json ports = json::object();
-        for (const auto& p : n.inputs) {
-            bool is_inout = output_names.count(p.name) > 0;
-            ports[p.name] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
-        }
-        for (const auto& p : n.outputs) {
-            if (input_names.count(p.name) > 0) continue; // already written as InOut
-            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
-        }
-        device["ports"] = ports;
+        device["ports"] = serialize_ports(n);
 
         if (!n.params.empty()) {
             json params = json::object();
@@ -331,17 +328,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
 
         // Content (UI metadata)
         if (n.node_content.type != NodeContentType::None) {
-            json content = {
-                {"type", static_cast<int>(n.node_content.type)},
-                {"label", n.node_content.label},
-                {"value", n.node_content.value},
-                {"min", n.node_content.min},
-                {"max", n.node_content.max},
-                {"unit", n.node_content.unit}
-            };
-            if (n.node_content.type == NodeContentType::Switch)
-                content["state"] = n.node_content.state;
-            device["content"] = content;
+            device["content"] = serialize_content(n);
         }
 
         // Per-node custom color (optional)
@@ -382,18 +369,45 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
     }
     j["wires"] = wires;
 
-    // collapsed_groups: hierarchy metadata for visual grouping
-    json collapsed_groups = json::array();
-    std::set<std::string> emitted_group_ids;  // Dedup collapsed_groups
-    for (const auto& group : bp.collapsed_groups) {
+    // sub_blueprint_instances: hierarchy metadata for visual grouping
+    json sub_blueprint_instances = json::array();
+    std::set<std::string> emitted_group_ids;  // Dedup sub_blueprint_instances
+    for (const auto& group : bp.sub_blueprint_instances) {
         if (!emitted_group_ids.insert(group.id).second) continue;
-        collapsed_groups.push_back({
+        json gj = {
             {"id", group.id},
             {"blueprint_path", group.blueprint_path},
-            {"type_name", group.type_name}
-        });
+            {"type_name", group.type_name},
+            {"baked_in", group.baked_in},
+            {"pos", {{"x", group.pos.x}, {"y", group.pos.y}}},
+            {"size", {{"x", group.size.x}, {"y", group.size.y}}},
+            {"internal_node_ids", group.internal_node_ids}
+        };
+        if (!group.params_override.empty()) {
+            json po = json::object();
+            for (const auto& [k, v] : group.params_override)
+                po[k] = v;
+            gj["params_override"] = po;
+        }
+        if (!group.layout_override.empty()) {
+            json lo = json::object();
+            for (const auto& [k, pt] : group.layout_override)
+                lo[k] = {{"x", pt.x}, {"y", pt.y}};
+            gj["layout_override"] = lo;
+        }
+        if (!group.internal_routing.empty()) {
+            json ir = json::object();
+            for (const auto& [k, pts] : group.internal_routing) {
+                json arr = json::array();
+                for (const auto& pt : pts)
+                    arr.push_back({{"x", pt.x}, {"y", pt.y}});
+                ir[k] = arr;
+            }
+            gj["internal_routing"] = ir;
+        }
+        sub_blueprint_instances.push_back(gj);
     }
-    j["collapsed_groups"] = collapsed_groups;
+    j["sub_blueprint_instances"] = sub_blueprint_instances;
 
     // viewport
     j["viewport"] = {
@@ -447,7 +461,7 @@ static void apply_params_from_registry(Node& n, const an24::TypeRegistry& regist
     }
 }
 
-// ─── Load: new editor format (flat devices + wires + collapsed_groups) ─────
+// ─── Load: editor format (flat devices + wires + sub_blueprint_instances) ─────
 
 static std::optional<Blueprint> load_editor_format(const json& j) {
     Blueprint bp;
@@ -611,8 +625,8 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     // [2.1] Rebuild wire dedup index after loading all wires
     bp.rebuild_wire_index();
 
-    // Reconstruct collapsed_groups from group metadata + group_id on devices
-    if (j.contains("collapsed_groups") && j["collapsed_groups"].is_array()) {
+    // Reconstruct sub_blueprint_instances from group metadata + group_id on devices
+    if (j.contains("sub_blueprint_instances") && j["sub_blueprint_instances"].is_array()) {
         // Build map of group_id → internal node IDs from device group_id tags
         // Use sets to dedup (malformed saves may have duplicate devices)
         std::map<std::string, std::set<std::string>> group_member_sets;
@@ -626,13 +640,14 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
         for (auto& [gid, members] : group_member_sets)
             group_members[gid] = std::vector<std::string>(members.begin(), members.end());
 
-        std::set<std::string> loaded_group_ids;  // Dedup collapsed_groups by ID
-        for (const auto& gj : j["collapsed_groups"]) {
-            CollapsedGroup group;
+        std::set<std::string> loaded_group_ids;  // Dedup sub_blueprint_instances by ID
+        for (const auto& gj : j["sub_blueprint_instances"]) {
+            SubBlueprintInstance group;
             group.id = gj.value("id", "");
             if (!loaded_group_ids.insert(group.id).second) continue;
             group.blueprint_path = gj.value("blueprint_path", "");
             group.type_name = gj.value("type_name", "");
+            group.baked_in = gj.value("baked_in", false);
 
             // Reconstruct internal_node_ids from group_id tags on devices
             auto it = group_members.find(group.id);
@@ -646,16 +661,48 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
                     group.internal_node_ids.push_back(nid.get<std::string>());
             }
 
+            // Restore params_override, layout_override, internal_routing
+            if (gj.contains("params_override") && gj["params_override"].is_object()) {
+                for (auto& [k, v] : gj["params_override"].items())
+                    group.params_override[k] = v.get<std::string>();
+            }
+            if (gj.contains("layout_override") && gj["layout_override"].is_object()) {
+                for (auto& [k, v] : gj["layout_override"].items())
+                    group.layout_override[k] = Pt(v.value("x", 0.0f), v.value("y", 0.0f));
+            }
+            if (gj.contains("internal_routing") && gj["internal_routing"].is_object()) {
+                for (auto& [k, arr] : gj["internal_routing"].items()) {
+                    std::vector<Pt> pts;
+                    if (arr.is_array()) {
+                        for (const auto& p : arr)
+                            pts.push_back(Pt(p.value("x", 0.0f), p.value("y", 0.0f)));
+                    }
+                    group.internal_routing[k] = pts;
+                }
+            }
+
             // Get pos/size from the expandable node (single source of truth)
+            bool found_node = false;
             for (const auto& n : bp.nodes) {
                 if (n.id == group.id && n.expandable) {
                     group.pos = n.pos;
                     group.size = n.size;
+                    found_node = true;
                     break;
                 }
             }
+            // Fallback: use saved pos/size from JSON (reference-mode instances
+            // may not have a corresponding expandable node yet)
+            if (!found_node && gj.contains("pos")) {
+                group.pos.x = gj["pos"].value("x", 0.0f);
+                group.pos.y = gj["pos"].value("y", 0.0f);
+            }
+            if (!found_node && gj.contains("size")) {
+                group.size.x = gj["size"].value("x", 120.0f);
+                group.size.y = gj["size"].value("y", 80.0f);
+            }
 
-            bp.collapsed_groups.push_back(group);
+            bp.sub_blueprint_instances.push_back(group);
         }
     }
 

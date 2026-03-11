@@ -670,6 +670,17 @@ int main(int argc, char** argv) {
                     auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
                     ws.handleInputAction(action, *doc);
                 }
+                // Show "Bake In" only for nodes inside a SubBlueprintInstance reference (not already baked in)
+                if (!ws.nodeContextMenu.group_id.empty()) {
+                    auto* sb = doc->blueprint().find_sub_blueprint_instance(ws.nodeContextMenu.group_id);
+                    if (sb && !sb->baked_in) {
+                        if (ImGui::MenuItem("Bake In (Embed)")) {
+                            ws.pendingBakeIn.show_confirmation = true;
+                            ws.pendingBakeIn.sub_blueprint_id = ws.nodeContextMenu.group_id;
+                            ws.pendingBakeIn.doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : doc;
+                        }
+                    }
+                }
             }
             ImGui::EndPopup();
         }
@@ -718,6 +729,29 @@ int main(int argc, char** argv) {
                 if (ImGui::Button("Cancel")) {
                     ImGui::CloseCurrentPopup();
                 }
+            }
+            ImGui::EndPopup();
+        }
+
+        // Bake In confirmation dialog
+        if (ws.pendingBakeIn.show_confirmation) {
+            ImGui::OpenPopup("Bake In Confirmation");
+            ws.pendingBakeIn.show_confirmation = false;
+        }
+        if (ImGui::BeginPopupModal("Bake In Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Are you sure you want to bake in this sub-blueprint?");
+            ImGui::Text("This will embed all nodes from the library file directly into this document.");
+            ImGui::Separator();
+            if (ImGui::Button("Bake In")) {
+                if (ws.pendingBakeIn.doc) {
+                    ws.pendingBakeIn.doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
+                    ws.pendingBakeIn.doc->markModified();
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }

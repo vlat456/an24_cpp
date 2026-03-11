@@ -156,8 +156,8 @@ struct EditorApp {
     /// HoldButton: отпустить кнопку (control = 2.0V, затем 0.0V)
     void hold_button_release(const std::string& node_id);
 
-    /// Open a sub-window for a collapsed group (replaces drill_into).
-    void open_sub_window(const std::string& collapsed_group_id);
+    /// Open a sub-window for a sub-blueprint instance.
+    void open_sub_window(const std::string& sub_blueprint_id);
 
     /// Open properties window for a specific node
     void open_properties_for_node(size_t node_index);

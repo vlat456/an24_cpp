@@ -160,7 +160,8 @@ std::string CodeGen::generate_header(
     const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const std::string& class_name
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -254,7 +255,7 @@ std::string CodeGen::generate_header(
     oss << "// Components are NON-VIRTUAL for AOT - no vtable overhead\n";
     oss << "// ==============================================================================\n\n";
 
-    oss << "class Systems {\n";
+    oss << "class " << class_name << " {\n";
     oss << "public:\n";
 
     // Device objects with AotProvider - compile-time constexpr port index lookup
@@ -292,7 +293,7 @@ std::string CodeGen::generate_header(
     oss << "    float* convergence_buffer = nullptr;\n\n";
 
     // Constructor
-    oss << "    Systems();\n\n";
+    oss << "    " << class_name << "();\n\n";
 
     // Methods - all inline for optimization
     oss << "    /// Pre-load initialization\n";
@@ -328,7 +329,8 @@ std::string CodeGen::generate_source(
     const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const std::string& class_name
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -358,7 +360,7 @@ std::string CodeGen::generate_source(
     oss << "\n";
 
     // Constructor - only initialize component parameters (port indices are compile-time constants)
-    oss << "Systems::Systems()\n";
+    oss << class_name << "::" << class_name << "()\n";
     oss << "{\n";
     oss << "    // Pre-allocate convergence buffer (zero-allocation in hot path)\n";
     oss << "    alignas(64) static float buf[SIGNAL_COUNT];\n";
@@ -417,7 +419,7 @@ std::string CodeGen::generate_source(
     oss << "}\n\n";
 
     // Pre-load: call pre_load() on components that have it, then LUT arena init
-    oss << "void Systems::pre_load() {\n";
+    oss << "void " << class_name << "::pre_load() {\n";
     // All cpp_class components have pre_load() (empty stub or real implementation)
     for (const auto& dev : devices) {
         oss << "    " << sanitize_name(dev.name) << ".pre_load();\n";
@@ -452,7 +454,7 @@ std::string CodeGen::generate_source(
 
     // Jump table dispatch - COMPUTED GOTO (faster than switch, branchless)
     // Uses GCC/Clang labels-as-values extension
-    oss << "void Systems::solve_step(void* state, uint32_t step, float dt) {\n";
+    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
     oss << "    // Accumulate dt for sub-rate domain scheduling\n";
     oss << "    acc_mechanical_ += dt;\n";
     oss << "    acc_hydraulic_  += dt;\n";
@@ -517,7 +519,7 @@ std::string CodeGen::generate_source(
 
     // Generate each step method
     for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-        oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
+        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         oss << "    st->clear_through();\n";
 
@@ -611,14 +613,14 @@ std::string CodeGen::generate_source(
     // Post-step is now integrated into each step_N() method
     // (runs after SOR, before logical — correct execution order)
     // This method is kept empty for backward compatibility with test harnesses
-    oss << "void Systems::post_step(void* state, float dt) {\n";
+    oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
     oss << "    // No-op: post_step is now inlined into step_N() functions\n";
     oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
     oss << "    (void)state; (void)dt;\n";
     oss << "}\n\n";
 
     // Convergence check - optimized with sparse sampling
-    oss << "AOT_INLINE bool Systems::check_convergence(void* state, float tolerance) const {\n";
+    oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
     oss << "    auto* st = static_cast<SimulationState*>(state);\n";
     oss << "    const float* __restrict across = st->across.data();\n";
     oss << "    const float* __restrict buf = convergence_buffer;\n";
@@ -893,6 +895,133 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         total_ports += comp.ports.size();
     }
     std::cerr << "[codegen]   - " << total_ports << " total ports\n";
+}
+
+CompositeCodegenResult CodeGen::generate_composite_systems(
+    const TypeDefinition& td,
+    const TypeRegistry& registry)
+{
+    // 1. Expand sub-blueprint references into flat devices + connections
+    std::set<std::string> loading_stack;
+    auto expanded = expand_sub_blueprint_references(td, registry, loading_stack);
+
+    // 2. Merge each device with its type definition (ports, params, domains)
+    for (auto& dev : expanded.devices) {
+        const auto* type_def = registry.get(dev.classname);
+        if (type_def) {
+            dev = merge_device_instance(dev, *type_def);
+        }
+    }
+
+    // 3. Signal allocation (union-find) — same algorithm as build_systems_dev
+    std::vector<std::string> all_ports;
+    std::unordered_map<std::string, uint32_t> port_to_idx;
+
+    for (const auto& dev : expanded.devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            std::string full_port = dev.name + "." + port_name;
+            uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            all_ports.push_back(full_port);
+            port_to_idx[full_port] = idx;
+        }
+    }
+
+    // Union-Find
+    std::vector<uint32_t> uf_parent(all_ports.size());
+    std::vector<uint32_t> uf_rank(all_ports.size(), 0);
+    for (uint32_t i = 0; i < all_ports.size(); ++i) uf_parent[i] = i;
+
+    auto uf_find = [&](uint32_t x) -> uint32_t {
+        while (uf_parent[x] != x) {
+            uf_parent[x] = uf_parent[uf_parent[x]];
+            x = uf_parent[x];
+        }
+        return x;
+    };
+    auto uf_unite = [&](uint32_t a, uint32_t b) {
+        uint32_t ra = uf_find(a), rb = uf_find(b);
+        if (ra == rb) return;
+        if (uf_rank[ra] < uf_rank[rb]) std::swap(ra, rb);
+        uf_parent[rb] = ra;
+        if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
+    };
+
+    // Union connected ports
+    for (const auto& conn : expanded.connections) {
+        auto it_from = port_to_idx.find(conn.from);
+        auto it_to = port_to_idx.find(conn.to);
+        if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
+            uf_unite(it_from->second, it_to->second);
+        }
+    }
+
+    // Union alias ports within same device
+    for (const auto& dev : expanded.devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.alias.has_value() && !port.alias->empty()) {
+                std::string full_port = dev.name + "." + port_name;
+                std::string full_alias = dev.name + "." + *port.alias;
+                auto it_port = port_to_idx.find(full_port);
+                auto it_alias = port_to_idx.find(full_alias);
+                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                    uf_unite(it_port->second, it_alias->second);
+                }
+            }
+        }
+    }
+
+    // Map each port → root, then remap roots to sequential 0-based signal indices
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    for (const auto& port : all_ports) {
+        port_to_signal[port] = uf_find(port_to_idx[port]);
+    }
+
+    std::map<uint32_t, uint32_t> root_to_signal;
+    std::vector<uint32_t> unique_roots;
+    for (const auto& [port, root] : port_to_signal) {
+        unique_roots.push_back(root);
+    }
+    std::sort(unique_roots.begin(), unique_roots.end());
+    unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());
+
+    uint32_t next_signal = 0;
+    for (uint32_t root : unique_roots) {
+        root_to_signal[root] = next_signal++;
+    }
+    for (auto& [port, sig] : port_to_signal) {
+        sig = root_to_signal[sig];
+    }
+    uint32_t signal_count = next_signal;
+
+    // 4. Delegate to existing generate_header/generate_source
+    std::string class_name = sanitize_name(td.classname) + "_Systems";
+    std::string source_file = td.classname + ".json";
+    std::string header_name = "generated_" + sanitize_name(td.classname) + ".h";
+
+    CompositeCodegenResult result;
+    result.class_name = class_name;
+    result.header = generate_header(source_file, expanded.devices, expanded.connections,
+                                    port_to_signal, signal_count, class_name);
+    result.source = generate_source(header_name, expanded.devices, expanded.connections,
+                                    port_to_signal, signal_count, class_name);
+    return result;
+}
+
+std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(
+    const TypeRegistry& registry)
+{
+    std::map<std::string, CompositeCodegenResult> results;
+
+    auto order = registry.get_composites_topo_sorted();
+
+    for (const auto& name : order) {
+        const auto* td = registry.get(name);
+        if (td && !td->cpp_class) {
+            results[name] = generate_composite_systems(*td, registry);
+        }
+    }
+
+    return results;
 }
 
 } // namespace an24

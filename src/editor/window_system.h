@@ -63,6 +63,12 @@ public:
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
     } colorPicker;
 
+    struct PendingBakeIn {
+        bool show_confirmation = false;
+        Document* doc = nullptr;
+        std::string sub_blueprint_id;
+    } pendingBakeIn;
+
     bool showInspector = true;
 
     // ── Utility ──

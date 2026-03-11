@@ -151,12 +151,13 @@ TEST(Document, OpenSubWindowForMissingGroupDoesNotCrash) {
 TEST(Document, OpenSubWindowCreatesWindow) {
     Document doc;
 
-    // Create a collapsed group in the blueprint
-    CollapsedGroup cg;
+    // Create a sub-blueprint instance in the blueprint
+    SubBlueprintInstance cg;
     cg.id = "lamp1";
     cg.type_name = "Lamp";
     cg.internal_node_ids = {"lamp1:r1"};
-    doc.blueprint().collapsed_groups.push_back(cg);
+    cg.baked_in = true;
+    doc.blueprint().sub_blueprint_instances.push_back(cg);
 
     doc.openSubWindow("lamp1");
     EXPECT_EQ(doc.windowManager().windows().size(), 2u);

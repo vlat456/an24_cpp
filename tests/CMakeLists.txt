@@ -1048,6 +1048,41 @@ target_link_libraries(codegen_accumulator_tests PRIVATE
 )
 gtest_discover_tests(codegen_accumulator_tests)
 
+# AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
+add_executable(aot_composite_tests
+    test_aot_composite.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
+)
+target_include_directories(aot_composite_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(aot_composite_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(aot_composite_tests)
+
+# Bake-in tests (Phase 4: bake-in conversion, params flatten)
+add_executable(bake_in_tests
+    test_bake_in.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(bake_in_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bake_in_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(bake_in_tests)
+
 # Node color tests (Phase 1: data model, persistence, visual node)
 add_executable(node_color_tests
     test_node_color.cpp
@@ -1258,6 +1293,27 @@ target_link_libraries(spring_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(spring_tests)
+
+# Sub-blueprint reference tests (TDD - SubBlueprintInstance data structures)
+add_executable(sub_blueprint_ref_tests
+    test_sub_blueprint_ref.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+)
+target_include_directories(sub_blueprint_ref_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(sub_blueprint_ref_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(sub_blueprint_ref_tests)
 
 # Document + WindowSystem tests (MDI lifecycle, regression tests)
 add_executable(document_window_system_tests

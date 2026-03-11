@@ -939,6 +939,32 @@ codegen_accumulator_tests/fast:
 .PHONY : codegen_accumulator_tests/fast
 
 #=============================================================================
+# Target rules for targets named aot_composite_tests
+
+# Build rule for target.
+aot_composite_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 aot_composite_tests
+.PHONY : aot_composite_tests
+
+# fast build rule for target.
+aot_composite_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/build
+.PHONY : aot_composite_tests/fast
+
+#=============================================================================
+# Target rules for targets named bake_in_tests
+
+# Build rule for target.
+bake_in_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bake_in_tests
+.PHONY : bake_in_tests
+
+# fast build rule for target.
+bake_in_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/build
+.PHONY : bake_in_tests/fast
+
+#=============================================================================
 # Target rules for targets named node_color_tests
 
 # Build rule for target.
@@ -1081,6 +1107,32 @@ spring_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/build
 .PHONY : spring_tests/fast
 
+#=============================================================================
+# Target rules for targets named sub_blueprint_ref_tests
+
+# Build rule for target.
+sub_blueprint_ref_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sub_blueprint_ref_tests
+.PHONY : sub_blueprint_ref_tests
+
+# fast build rule for target.
+sub_blueprint_ref_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/build
+.PHONY : sub_blueprint_ref_tests/fast
+
+#=============================================================================
+# Target rules for targets named document_window_system_tests
+
+# Build rule for target.
+document_window_system_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 document_window_system_tests
+.PHONY : document_window_system_tests
+
+# fast build rule for target.
+document_window_system_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
+.PHONY : document_window_system_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1097,10 +1149,12 @@ help:
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
+	@echo "... aot_composite_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
+	@echo "... bake_in_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"
@@ -1112,6 +1166,7 @@ help:
 	@echo "... codegen_test"
 	@echo "... comparison_components_tests"
 	@echo "... context_menu_tests"
+	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_tests"
@@ -1159,6 +1214,7 @@ help:
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"
 	@echo "... spring_tests"
+	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
 	@echo "... v_to_bool_tests"

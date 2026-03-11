@@ -11,6 +11,7 @@ target_include_directories(jit_solver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 
 target_link_libraries(jit_solver PUBLIC

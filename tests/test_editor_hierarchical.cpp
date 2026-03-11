@@ -28,7 +28,7 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 }
 
 // Helper: build a fully-expanded lamp_pass_through blueprint (always-flatten architecture)
-// Creates: collapsed Blueprint node + 3 internal nodes + internal wires + CollapsedGroup
+// Creates: collapsed Blueprint node + 3 internal nodes + internal wires + SubBlueprintInstance
 static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
                                    Pt pos = Pt(200.0f, 100.0f)) {
     // Collapsed Blueprint node (visual wrapper)
@@ -91,15 +91,16 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     w2.end = WireEnd((id + ":vout").c_str(), "port", PortSide::Input);
     bp.add_wire(w2);
 
-    // CollapsedGroup
-    CollapsedGroup group;
+    // SubBlueprintInstance
+    SubBlueprintInstance group;
     group.id = id;
     group.blueprint_path = "blueprints/lamp_pass_through.json";
     group.type_name = "lamp_pass_through";
     group.pos = pos;
     group.size = Pt(120.0f, 80.0f);
     group.internal_node_ids = {id + ":vin", id + ":lamp", id + ":vout"};
-    bp.collapsed_groups.push_back(group);
+    group.baked_in = true;
+    bp.sub_blueprint_instances.push_back(group);
 
     // Recompute group_ids (internal nodes assigned to group)
     bp.recompute_group_ids();
@@ -186,14 +187,15 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     w3.end = WireEnd((id + ":vin").c_str(), "port", PortSide::Input);
     bp.add_wire(w3);
 
-    CollapsedGroup group;
+    SubBlueprintInstance group;
     group.id = id;
     group.blueprint_path = "blueprints/simple_battery.json";
     group.type_name = "simple_battery";
     group.pos = pos;
     group.size = Pt(120.0f, 80.0f);
+    group.baked_in = true;
     group.internal_node_ids = {id + ":gnd", id + ":vin", id + ":bat", id + ":vout"};
-    bp.collapsed_groups.push_back(group);
+    bp.sub_blueprint_instances.push_back(group);
 
     bp.recompute_group_ids();
 }
@@ -648,7 +650,7 @@ TEST(VoltageFlow, CollapsedBlueprint_PassesVoltage) {
     source.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
     bp.add_node(std::move(source));
 
-    // Expanded lamp_pass_through (collapsed node + 3 internal nodes + CollapsedGroup)
+    // Expanded lamp_pass_through (collapsed node + 3 internal nodes + SubBlueprintInstance)
     add_lamp_pass_through(bp, "lamp1");
 
     // External wire: source → collapsed node's vin port
@@ -862,7 +864,7 @@ TEST(GroupId, CollapsedNodeHasRootGroupId_InternalsHaveGroupGroupId) {
 TEST(GroupId, GroupIdAssignmentsAre_Static_NotDrillBased) {
     // Verify that group_id is a static assignment — recompute_group_ids()
     // doesn't take a drill_stack parameter, it assigns group_id based on
-    // collapsed_groups membership, which is static.
+    // sub_blueprint_instances membership, which is static.
     Blueprint bp;
     add_lamp_pass_through(bp, "lamp1");
 
@@ -1037,16 +1039,16 @@ TEST(Regression, NLevelHierarchy_GroupIdAssignments) {
     add_lamp_pass_through(bp, "A:sub");
 
     // Add A:sub to A's group (making it nested)
-    // add_lamp_pass_through already created a CollapsedGroup for A:sub,
+    // add_lamp_pass_through already created a SubBlueprintInstance for A:sub,
     // so just add A:sub to A's internal_node_ids
-    for (auto& group : bp.collapsed_groups) {
+    for (auto& group : bp.sub_blueprint_instances) {
         if (group.id == "A") {
             group.internal_node_ids.push_back("A:sub");
             break;
         }
     }
 
-    // Recompute group_ids (static assignment based on collapsed_groups)
+    // Recompute group_ids (static assignment based on sub_blueprint_instances)
     bp.recompute_group_ids();
 
     // Top-level nodes: 'top' and 'A' have root group_id
@@ -1416,8 +1418,8 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     res.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
     bp.add_node(std::move(res));
 
-    // Keep collapsed_groups in sync (as the fixed add_component does)
-    for (auto& g : bp.collapsed_groups) {
+    // Keep sub_blueprint_instances in sync (as the fixed add_component does)
+    for (auto& g : bp.sub_blueprint_instances) {
         if (g.id == "lpt") {
             g.internal_node_ids.push_back("resistor_1");
             break;
@@ -1468,7 +1470,7 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     EXPECT_FLOAT_EQ(loaded_res->pos.x, 300.0f);
     EXPECT_FLOAT_EQ(loaded_res->pos.y, 100.0f);
 
-    // Recompute group_ids from loaded collapsed_groups
+    // Recompute group_ids from loaded sub_blueprint_instances
     loaded->recompute_group_ids();
 
     // Verify group_id is correct after load
@@ -1493,14 +1495,14 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
 
     // Verify the resistor is in the collapsed group's internal_node_ids
     bool found_in_group = false;
-    for (const auto& g : loaded->collapsed_groups) {
+    for (const auto& g : loaded->sub_blueprint_instances) {
         if (g.id == "lpt") {
             for (const auto& nid : g.internal_node_ids) {
                 if (nid == "resistor_1") found_in_group = true;
             }
         }
     }
-    EXPECT_TRUE(found_in_group) << "Added node must be in collapsed_group internal_node_ids after load";
+    EXPECT_TRUE(found_in_group) << "Added node must be in sub_blueprint_instance internal_node_ids after load";
 }
 
 // =============================================================================
@@ -1559,9 +1561,9 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     std::string json_str = blueprint_to_editor_json(original);
     auto j = json::parse(json_str);
 
-    // Verify structure: top-level "wires" (not "connections"), "collapsed_groups", "viewport"
+    // Verify structure: top-level "wires" (not "connections"), "sub_blueprint_instances", "viewport"
     EXPECT_TRUE(j.contains("wires"));
-    EXPECT_TRUE(j.contains("collapsed_groups"));
+    EXPECT_TRUE(j.contains("sub_blueprint_instances"));
     EXPECT_TRUE(j.contains("viewport"));
     EXPECT_FALSE(j.contains("connections")) << "Editor format should not have 'connections'";
     EXPECT_FALSE(j.contains("editor")) << "Editor format should not have nested 'editor' section";
@@ -1621,9 +1623,9 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     EXPECT_TRUE(found_wire) << "Wire to Blueprint node must survive save/load";
 
     // Collapsed groups reconstructed from group_id
-    EXPECT_EQ(loaded->collapsed_groups.size(), 1u);
-    EXPECT_EQ(loaded->collapsed_groups[0].id, "lamp1");
-    EXPECT_FALSE(loaded->collapsed_groups[0].internal_node_ids.empty());
+    EXPECT_EQ(loaded->sub_blueprint_instances.size(), 1u);
+    EXPECT_EQ(loaded->sub_blueprint_instances[0].id, "lamp1");
+    EXPECT_FALSE(loaded->sub_blueprint_instances[0].internal_node_ids.empty());
 
     // group_id recomputed correctly
     EXPECT_TRUE(loaded->find_node("lamp1")->group_id.empty());

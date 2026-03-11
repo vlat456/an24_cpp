@@ -382,6 +382,8 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__utility/to_underlying.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/__variant/monostate.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/algorithm \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/any \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/array \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/bitset \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
@@ -389,6 +391,7 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/clocale \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cmath \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/compare \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts \
@@ -402,8 +405,11 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ctype.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cwchar \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cwctype \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/deque \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/errno.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/exception \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/filesystem \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/forward_list \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/functional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/initializer_list \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/iomanip \
@@ -421,10 +427,12 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/include/c++/v1/memory \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/mutex \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/new \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/numeric \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/optional \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ostream \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/set \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/stack \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/stdint.h \
@@ -441,6 +449,7 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/valarray \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/vector \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/version \
@@ -466,6 +475,51 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdarg.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h \
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  _deps/json-src/include/nlohmann/adl_serializer.hpp \
+  _deps/json-src/include/nlohmann/byte_container_with_subtype.hpp \
+  _deps/json-src/include/nlohmann/detail/abi_macros.hpp \
+  _deps/json-src/include/nlohmann/detail/conversions/from_json.hpp \
+  _deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp \
+  _deps/json-src/include/nlohmann/detail/conversions/to_json.hpp \
+  _deps/json-src/include/nlohmann/detail/exceptions.hpp \
+  _deps/json-src/include/nlohmann/detail/hash.hpp \
+  _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp \
+  _deps/json-src/include/nlohmann/detail/input/input_adapters.hpp \
+  _deps/json-src/include/nlohmann/detail/input/json_sax.hpp \
+  _deps/json-src/include/nlohmann/detail/input/lexer.hpp \
+  _deps/json-src/include/nlohmann/detail/input/parser.hpp \
+  _deps/json-src/include/nlohmann/detail/input/position_t.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/iter_impl.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/iteration_proxy.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp \
+  _deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp \
+  _deps/json-src/include/nlohmann/detail/json_custom_base_class.hpp \
+  _deps/json-src/include/nlohmann/detail/json_pointer.hpp \
+  _deps/json-src/include/nlohmann/detail/json_ref.hpp \
+  _deps/json-src/include/nlohmann/detail/macro_scope.hpp \
+  _deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/call_std/begin.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/call_std/end.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/cpp_future.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/detected.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/type_traits.hpp \
+  _deps/json-src/include/nlohmann/detail/meta/void_t.hpp \
+  _deps/json-src/include/nlohmann/detail/output/binary_writer.hpp \
+  _deps/json-src/include/nlohmann/detail/output/output_adapters.hpp \
+  _deps/json-src/include/nlohmann/detail/output/serializer.hpp \
+  _deps/json-src/include/nlohmann/detail/string_concat.hpp \
+  _deps/json-src/include/nlohmann/detail/string_escape.hpp \
+  _deps/json-src/include/nlohmann/detail/value_t.hpp \
+  _deps/json-src/include/nlohmann/json.hpp \
+  _deps/json-src/include/nlohmann/json_fwd.hpp \
+  _deps/json-src/include/nlohmann/ordered_map.hpp \
+  _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
+  _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   _deps/spdlog-src/include/spdlog/common.h \
   _deps/spdlog-src/include/spdlog/details/backtracer.h \
   _deps/spdlog-src/include/spdlog/details/circular_q.h \
@@ -513,17 +567,65 @@ _deps/spdlog-src/include/spdlog/details/periodic_worker.h:
 
 _deps/spdlog-src/include/spdlog/details/null_mutex.h:
 
-_deps/spdlog-src/include/spdlog/details/log_msg.h:
+_deps/spdlog-src/include/spdlog/details/backtracer.h:
+
+_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
+
+_deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp:
+
+_deps/json-src/include/nlohmann/json_fwd.hpp:
+
+_deps/json-src/include/nlohmann/json.hpp:
+
+_deps/json-src/include/nlohmann/detail/string_concat.hpp:
+
+_deps/json-src/include/nlohmann/detail/output/serializer.hpp:
+
+_deps/json-src/include/nlohmann/detail/output/binary_writer.hpp:
+
+_deps/json-src/include/nlohmann/detail/meta/void_t.hpp:
+
+_deps/json-src/include/nlohmann/detail/meta/type_traits.hpp:
+
+_deps/json-src/include/nlohmann/detail/meta/cpp_future.hpp:
+
+_deps/json-src/include/nlohmann/detail/meta/call_std/end.hpp:
+
+_deps/json-src/include/nlohmann/detail/meta/call_std/begin.hpp:
+
+_deps/json-src/include/nlohmann/detail/output/output_adapters.hpp:
+
+_deps/json-src/include/nlohmann/detail/macro_unscope.hpp:
+
+_deps/json-src/include/nlohmann/detail/json_ref.hpp:
+
+_deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp:
+
+_deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
+
+_deps/json-src/include/nlohmann/detail/iterators/iter_impl.hpp:
+
+_deps/json-src/include/nlohmann/detail/input/parser.hpp:
+
+_deps/json-src/include/nlohmann/detail/input/lexer.hpp:
 
 _deps/spdlog-src/include/spdlog/details/circular_q.h:
 
-_deps/spdlog-src/include/spdlog/details/backtracer.h:
+_deps/json-src/include/nlohmann/detail/input/json_sax.hpp:
+
+_deps/spdlog-src/include/spdlog/details/log_msg.h:
+
+_deps/json-src/include/nlohmann/detail/hash.hpp:
+
+_deps/json-src/include/nlohmann/detail/conversions/to_json.hpp:
+
+_deps/json-src/include/nlohmann/detail/abi_macros.hpp:
+
+_deps/json-src/include/nlohmann/adl_serializer.hpp:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stddef.h:
-
-/Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_rsize_t.h:
 
@@ -555,7 +657,13 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/variant:
 
+/Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/valarray:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/utility:
+
+_deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map:
 
@@ -567,15 +675,19 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/string:
 
-/Library/Developer/CommandLineTools/usr/include/c++/v1/stdint.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stdexcept:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stddef.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/stack:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/optional:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/stdint.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/numeric:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/new:
 
@@ -607,15 +719,15 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/functional:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/forward_list:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/filesystem:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/exception:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/errno.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/ctime:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/push_heap.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/cstdlib:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cstdio:
 
@@ -628,6 +740,10 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/types.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/atomic:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/any:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/ranges_operations.h:
 
@@ -659,10 +775,6 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__undef_macros:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_dev_t.h:
-
-/Library/Developer/CommandLineTools/usr/include/c++/v1/cstring:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tuple:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
@@ -674,6 +786,8 @@ _deps/spdlog-src/include/spdlog/details/backtracer.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_view.h:
 
 _deps/spdlog-src/include/spdlog/common.h:
+
+_deps/json-src/include/nlohmann/detail/input/binary_reader.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uid_t.h:
 
@@ -711,6 +825,8 @@ _deps/spdlog-src/include/spdlog/common.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/reverse_access.h:
 
+_deps/json-src/include/nlohmann/detail/value_t.hpp:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/readable_traits.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/prev.h:
@@ -720,6 +836,8 @@ _deps/spdlog-src/include/spdlog/common.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator_traits.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iterator.h:
+
+_deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/iter_move.h:
 
@@ -817,6 +935,8 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/addressof.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/deque:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/bind_front.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/transform.h:
@@ -847,11 +967,17 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_right.h:
 
+_deps/json-src/include/nlohmann/detail/json_custom_base_class.hpp:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/concepts.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_left.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_sigset_t.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/array:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__string:
 
@@ -891,6 +1017,10 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/cstdlib:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/push_heap.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdlib.h:
@@ -901,11 +1031,17 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/none_of.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/clocale:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/shared_ptr.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/mismatch.h:
 
+_deps/json-src/include/nlohmann/detail/string_escape.hpp:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/minmax.h:
+
+_deps/json-src/include/nlohmann/byte_container_with_subtype.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/__wctype.h:
 
@@ -920,6 +1056,8 @@ _deps/spdlog-src/include/spdlog/tweakme.h:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__thread/poll_with_backoff.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/lexicographical_compare.h:
+
+_deps/json-src/include/nlohmann/detail/iterators/internal_iterator.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_sorted.h:
 
@@ -963,6 +1101,10 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/core.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/find.h:
 
+_deps/json-src/include/nlohmann/detail/iterators/iteration_proxy.hpp:
+
+_deps/json-src/include/nlohmann/detail/conversions/from_json.hpp:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill_n.h:
 
 _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
@@ -991,6 +1133,8 @@ _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
 
 _deps/spdlog-src/include/spdlog/logger.h:
 
+_deps/json-src/include/nlohmann/detail/meta/detected.hpp:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/binary_search.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__bsd_locale_defaults.h:
@@ -1016,6 +1160,8 @@ _deps/spdlog-src/include/spdlog/logger.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/errno.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__config:
+
+_deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/system_error:
 
@@ -1061,6 +1207,8 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istreambuf_iterator.h:
 
+_deps/json-src/include/nlohmann/detail/input/input_adapters.hpp:
+
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_wchar_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/mach/arm/_structs.h:
@@ -1095,6 +1243,10 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ssize_t.h:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/cstring:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_dev_t.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_if.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/operations.h:
@@ -1103,11 +1255,11 @@ _deps/spdlog-src/include/spdlog/fmt/bundled/format.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_va_list.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_sigset_t.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/ostreambuf_iterator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/pop_heap.h:
+
+_deps/json-src/include/nlohmann/detail/meta/identity_tag.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_sigaltstack.h:
 
@@ -1323,6 +1475,8 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partition_point.h:
 
+_deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/limits.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/pthread/qos.h:
@@ -1387,8 +1541,6 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/partial_sort_copy.h:
 
-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/remove_copy.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_wctype_t.h:
@@ -1400,6 +1552,8 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/signal.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_wctype.h:
+
+_deps/json-src/include/nlohmann/detail/iterators/iterator_traits.hpp:
 
 /Library/Developer/CommandLineTools/usr/lib/clang/17/include/__stddef_offsetof.h:
 
@@ -1431,7 +1585,11 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint16_t.h:
 
+_deps/json-src/include/nlohmann/detail/exceptions.hpp:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/stdio.h:
+
+_deps/json-src/include/nlohmann/detail/input/position_t.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/endian.h:
 
@@ -1463,11 +1621,15 @@ _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_intmax_t.h:
 
+_deps/json-src/include/nlohmann/detail/json_pointer.hpp:
+
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uintmax_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/is_sorted_until.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h:
+
+_deps/json-src/include/nlohmann/detail/conversions/to_chars.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h:
 

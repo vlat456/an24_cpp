@@ -294,10 +294,11 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
     Node lamp; lamp.id = "vsu1:lamp"; lamp.at(100, 0).size_wh(60, 40);
     bp.add_node(std::move(lamp));
 
-    CollapsedGroup vsu_group;
+    SubBlueprintInstance vsu_group;
     vsu_group.id = "vsu1";
     vsu_group.internal_node_ids = {"vsu1:vin", "vsu1:lamp"};
-    bp.collapsed_groups.push_back(vsu_group);
+    vsu_group.baked_in = true;
+    bp.sub_blueprint_instances.push_back(vsu_group);
 
     // Now add a nested blueprint INSIDE vsu1's sub-window
     Node nested; nested.id = "nested1"; nested.at(300, 0).size_wh(120, 80);
@@ -310,10 +311,11 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
     Node n_int; n_int.id = "nested1:r1"; n_int.at(0, 0).size_wh(60, 40);
     bp.add_node(std::move(n_int));
 
-    CollapsedGroup nested_group;
+    SubBlueprintInstance nested_group;
     nested_group.id = "nested1";
     nested_group.internal_node_ids = {"nested1:r1"};
-    bp.collapsed_groups.push_back(nested_group);
+    nested_group.baked_in = true;
+    bp.sub_blueprint_instances.push_back(nested_group);
 
     // Recompute should preserve nested's group_id
     bp.recompute_group_ids();
@@ -339,10 +341,11 @@ TEST(RecomputeGroupIds, TopLevelCollapsedNodeStaysRoot) {
     Node internal; internal.id = "bp1:r1"; internal.at(0, 0).size_wh(60, 40);
     bp.add_node(std::move(internal));
 
-    CollapsedGroup g;
+    SubBlueprintInstance g;
     g.id = "bp1";
     g.internal_node_ids = {"bp1:r1"};
-    bp.collapsed_groups.push_back(g);
+    g.baked_in = true;
+    bp.sub_blueprint_instances.push_back(g);
 
     bp.recompute_group_ids();
 

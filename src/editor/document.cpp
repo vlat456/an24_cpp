@@ -240,9 +240,9 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     scene().addNode(node);
 
-    // Keep collapsed_groups.internal_node_ids in sync
+    // Keep sub_blueprint_instances.internal_node_ids in sync
     if (!group_id.empty()) {
-        for (auto& g : blueprint_.collapsed_groups) {
+        for (auto& g : blueprint_.sub_blueprint_instances) {
             if (g.id == group_id) {
                 g.internal_node_ids.push_back(unique_id);
                 break;
@@ -324,13 +324,15 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     scene().blueprint().add_node(collapsed_node);
 
-    CollapsedGroup collapsed_group;
-    collapsed_group.id = unique_id;
-    collapsed_group.type_name = blueprint_name;
-    collapsed_group.pos = snapped_pos;
-    collapsed_group.size = Pt(120.0f, height);
-    collapsed_group.internal_node_ids = internal_node_ids;
-    scene().blueprint().collapsed_groups.push_back(collapsed_group);
+    SubBlueprintInstance sbi;
+    sbi.id = unique_id;
+    sbi.blueprint_path = blueprint_name;
+    sbi.type_name = blueprint_name;
+    sbi.pos = snapped_pos;
+    sbi.size = Pt(120.0f, height);
+    sbi.baked_in = false;
+    sbi.internal_node_ids = internal_node_ids;
+    scene().blueprint().sub_blueprint_instances.push_back(sbi);
 
     scene().blueprint().recompute_group_ids();
 
@@ -346,24 +348,24 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
                  blueprint_name, unique_id, internal_node_ids.size(), sub_bp.wires.size());
 }
 
-void Document::openSubWindow(const std::string& collapsed_group_id) {
-    const CollapsedGroup* group = nullptr;
-    for (const auto& g : blueprint_.collapsed_groups) {
-        if (g.id == collapsed_group_id) {
+void Document::openSubWindow(const std::string& sub_blueprint_id) {
+    const SubBlueprintInstance* group = nullptr;
+    for (const auto& g : blueprint_.sub_blueprint_instances) {
+        if (g.id == sub_blueprint_id) {
             group = &g;
             break;
         }
     }
 
     if (!group) {
-        spdlog::error("[editor] Cannot open sub-window: collapsed group '{}' not found", collapsed_group_id);
+        spdlog::error("[editor] Cannot open sub-window: sub-blueprint '{}' not found", sub_blueprint_id);
         return;
     }
 
-    auto* win = window_manager_.open(collapsed_group_id, group->type_name + " [" + collapsed_group_id + "]");
+    auto* win = window_manager_.open(sub_blueprint_id, group->type_name + " [" + sub_blueprint_id + "]");
 
     spdlog::info("[editor] Opened sub-window for '{}' ({} internal nodes)",
-                 collapsed_group_id, group->internal_node_ids.size());
+                 sub_blueprint_id, group->internal_node_ids.size());
     (void)win;
 }
 

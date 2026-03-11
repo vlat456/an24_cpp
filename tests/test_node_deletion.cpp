@@ -108,9 +108,9 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
     bp.add_wire(Wire::make("gw1", wire_output("lamp1:led", "out"),
                             wire_input("lamp1:res", "in")));
 
-    CollapsedGroup g("lamp1", "blueprints/lamp.json", "lamp");
+    SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:led", "lamp1:res"};
-    bp.collapsed_groups.push_back(g);
+    bp.sub_blueprint_instances.push_back(g);
 
     VisualScene scene(bp, "lamp1");  // sub-window for this group
 
@@ -127,8 +127,8 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
     EXPECT_EQ(bp.wires.size(), 0u);
 
     // internal_node_ids updated
-    ASSERT_EQ(bp.collapsed_groups.size(), 1u);
-    auto& ids = bp.collapsed_groups[0].internal_node_ids;
+    ASSERT_EQ(bp.sub_blueprint_instances.size(), 1u);
+    auto& ids = bp.sub_blueprint_instances[0].internal_node_ids;
     EXPECT_EQ(std::count(ids.begin(), ids.end(), "lamp1:led"), 0);
     EXPECT_EQ(std::count(ids.begin(), ids.end(), "lamp1:res"), 1);
 }
@@ -281,9 +281,9 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     bp.add_wire(Wire::make("gw", wire_output("lamp1:a", "out"),
                             wire_input("lamp1:b", "in")));
 
-    CollapsedGroup g("lamp1", "blueprints/lamp.json", "lamp");
+    SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:a", "lamp1:b"};
-    bp.collapsed_groups.push_back(g);
+    bp.sub_blueprint_instances.push_back(g);
 
     // Sub-window scene for lamp1
     VisualScene sub_scene(bp, "lamp1");
@@ -304,7 +304,7 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     EXPECT_EQ(bp.wires.size(), 0u);
 
     // internal_node_ids cleaned
-    auto& ids = bp.collapsed_groups[0].internal_node_ids;
+    auto& ids = bp.sub_blueprint_instances[0].internal_node_ids;
     EXPECT_EQ(std::count(ids.begin(), ids.end(), "lamp1:a"), 0);
 }
 
@@ -341,9 +341,9 @@ static Blueprint make_bp_with_sub_blueprint() {
     // Internal wire: led -> res
     bp.add_wire(Wire::make("int_w", wire_output("lamp1:led", "out"), wire_input("lamp1:res", "in")));
 
-    CollapsedGroup g("lamp1", "blueprints/lamp.json", "lamp");
+    SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:led", "lamp1:res"};
-    bp.collapsed_groups.push_back(g);
+    bp.sub_blueprint_instances.push_back(g);
 
     return bp;
 }
@@ -390,9 +390,9 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
     EXPECT_EQ(bp.wire_index_.size(), 0u);
 }
 
-// ---- 15. Deleting sub-blueprint removes CollapsedGroup entry ----
+// ---- 15. Deleting sub-blueprint removes SubBlueprintInstance entry ----
 
-TEST(NodeDeletion, DeleteSubBlueprint_RemovesCollapsedGroup) {
+TEST(NodeDeletion, DeleteSubBlueprint_RemovesSubBlueprintInstance) {
     Blueprint bp = make_bp_with_sub_blueprint();
     VisualScene scene(bp);
 
@@ -403,8 +403,8 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesCollapsedGroup) {
 
     scene.removeNodes({lamp_idx});
 
-    EXPECT_EQ(bp.collapsed_groups.size(), 0u)
-        << "CollapsedGroup for deleted sub-blueprint should be removed";
+    EXPECT_EQ(bp.sub_blueprint_instances.size(), 0u)
+        << "SubBlueprintInstance for deleted sub-blueprint should be removed";
 }
 
 // ---- 16. Recursive: sub-sub-blueprint deletion ----
@@ -438,18 +438,20 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
     bp.add_wire(Wire::make("w1", wire_output("sys1", "in"), wire_input("sys1:sub2", "in")));
     bp.add_wire(Wire::make("w2", wire_output("sys1:sub2", "in"), wire_input("sys1:sub2:leaf", "in")));
 
-    // Collapsed groups
-    CollapsedGroup g1("sys1", "blueprints/sys1.json", "sys1");
+    // Sub-blueprint instances
+    SubBlueprintInstance g1("sys1", "blueprints/sys1.json", "sys1");
     g1.internal_node_ids = {"sys1:sub2"};
-    bp.collapsed_groups.push_back(g1);
+    g1.baked_in = true;
+    bp.sub_blueprint_instances.push_back(g1);
 
-    CollapsedGroup g2("sys1:sub2", "blueprints/sub2.json", "sub2");
+    SubBlueprintInstance g2("sys1:sub2", "blueprints/sub2.json", "sub2");
     g2.internal_node_ids = {"sys1:sub2:leaf"};
-    bp.collapsed_groups.push_back(g2);
+    g2.baked_in = true;
+    bp.sub_blueprint_instances.push_back(g2);
 
     ASSERT_EQ(bp.nodes.size(), 4u);
     ASSERT_EQ(bp.wires.size(), 3u);
-    ASSERT_EQ(bp.collapsed_groups.size(), 2u);
+    ASSERT_EQ(bp.sub_blueprint_instances.size(), 2u);
 
     VisualScene scene(bp);
 
@@ -467,7 +469,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
     // All wires gone
     EXPECT_EQ(bp.wires.size(), 0u);
     // All collapsed groups gone
-    EXPECT_EQ(bp.collapsed_groups.size(), 0u);
+    EXPECT_EQ(bp.sub_blueprint_instances.size(), 0u);
 }
 
 // ---- 17. WindowManager removes orphaned sub-windows ----
@@ -514,7 +516,7 @@ TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
     EXPECT_NE(bp.find_node("lamp1"), nullptr);
     EXPECT_NE(bp.find_node("lamp1:led"), nullptr);
     EXPECT_NE(bp.find_node("lamp1:res"), nullptr);
-    EXPECT_EQ(bp.collapsed_groups.size(), 1u);
+    EXPECT_EQ(bp.sub_blueprint_instances.size(), 1u);
     // Only internal wire survives
     EXPECT_EQ(bp.wires.size(), 1u);
     EXPECT_EQ(bp.wires[0].id, "int_w");

@@ -76,6 +76,10 @@ bool WindowSystem::closeDocument(Document& doc) {
         colorPicker.source_doc = nullptr;
         colorPicker.show = false;
     }
+    if (pendingBakeIn.doc == &doc) {
+        pendingBakeIn.doc = nullptr;
+        pendingBakeIn.show_confirmation = false;
+    }
 
     documents_.erase(it);
 

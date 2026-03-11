@@ -648,7 +648,7 @@ std::string serialize_json(const ParserContext& ctx) {
 }
 
 // Helper: parse TypeDefinition from JSON
-static TypeDefinition parse_type_definition(const json& j) {
+TypeDefinition parse_type_definition(const json& j) {
     TypeDefinition def;
 
     if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
@@ -740,6 +740,25 @@ static TypeDefinition parse_type_definition(const json& j) {
                 }
             }
             def.connections.push_back(std::move(conn));
+        }
+    }
+
+    // Parse sub_blueprints array (references to other blueprints)
+    if (j.contains("sub_blueprints") && j["sub_blueprints"].is_array()) {
+        for (const auto& sbj : j["sub_blueprints"]) {
+            SubBlueprintRef ref;
+            ref.id = sbj.value("id", "");
+            ref.blueprint_path = sbj.value("blueprint_path", "");
+            ref.type_name = sbj.value("type_name", "");
+            if (sbj.contains("pos"))
+                ref.pos = {sbj["pos"].value("x", 0.0f), sbj["pos"].value("y", 0.0f)};
+            if (sbj.contains("size"))
+                ref.size = {sbj["size"].value("x", 0.0f), sbj["size"].value("y", 0.0f)};
+            if (sbj.contains("params_override") && sbj["params_override"].is_object()) {
+                for (auto& [k, v] : sbj["params_override"].items())
+                    ref.params_override[k] = v.get<std::string>();
+            }
+            def.sub_blueprints.push_back(std::move(ref));
         }
     }
 
@@ -949,6 +968,87 @@ std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance&
     }
 
     return std::nullopt;  // Validation passed
+}
+
+TypeDefinition expand_sub_blueprint_references(
+    const TypeDefinition& td,
+    const TypeRegistry& registry,
+    std::set<std::string>& loading_stack)
+{
+    if (td.cpp_class) return td;
+
+    if (!loading_stack.insert(td.classname).second) {
+        throw std::runtime_error("Circular sub-blueprint reference: " + td.classname);
+    }
+
+    TypeDefinition result = td;
+    result.sub_blueprints.clear();
+
+    for (const auto& ref : td.sub_blueprints) {
+        const auto* sub_td = registry.get(ref.type_name);
+        if (!sub_td) {
+            throw std::runtime_error(
+                "Sub-blueprint '" + ref.type_name + "' not found in TypeRegistry"
+                " (referenced by '" + td.classname + "' as '" + ref.id + "')");
+        }
+
+        auto expanded = expand_sub_blueprint_references(*sub_td, registry, loading_stack);
+
+        for (auto& dev : expanded.devices) {
+            dev.name = ref.id + ":" + dev.name;
+
+            for (const auto& [override_key, override_val] : ref.params_override) {
+                auto dot = override_key.find('.');
+                if (dot == std::string::npos) continue;
+                std::string dev_name = override_key.substr(0, dot);
+                std::string param_name = override_key.substr(dot + 1);
+                std::string unprefixed = dev.name.substr(ref.id.size() + 1);
+                if (unprefixed == dev_name) {
+                    dev.params[param_name] = override_val;
+                }
+            }
+
+            result.devices.push_back(std::move(dev));
+        }
+
+        for (auto& conn : expanded.connections) {
+            conn.from = ref.id + ":" + conn.from;
+            conn.to = ref.id + ":" + conn.to;
+            result.connections.push_back(std::move(conn));
+        }
+    }
+
+    loading_stack.erase(td.classname);
+    return result;
+}
+
+std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
+    std::vector<std::string> result;
+    std::set<std::string> visited;
+    std::set<std::string> in_stack;
+
+    std::function<void(const std::string&)> visit = [&](const std::string& name) {
+        if (visited.count(name)) return;
+        if (in_stack.count(name))
+            throw std::runtime_error("Cycle in composite hierarchy: " + name);
+        in_stack.insert(name);
+
+        auto it = types.find(name);
+        if (it == types.end() || it->second.cpp_class) return;
+
+        for (const auto& ref : it->second.sub_blueprints) {
+            visit(ref.type_name);
+        }
+
+        in_stack.erase(name);
+        visited.insert(name);
+        result.push_back(name);
+    };
+
+    for (const auto& [name, td] : types) {
+        if (!td.cpp_class) visit(name);
+    }
+    return result;
 }
 
 } // namespace an24

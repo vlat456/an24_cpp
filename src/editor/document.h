@@ -95,7 +95,7 @@ public:
 
     // ── Sub-windows ──
 
-    void openSubWindow(const std::string& collapsed_group_id);
+    void openSubWindow(const std::string& sub_blueprint_id);
 
     // ── Input result dispatch ──
 

@@ -61,9 +61,9 @@ constexpr float ROUTING_POINT_HIT_RADIUS = 10.0f;
 constexpr float ROUTING_POINT_RADIUS = 4.5f;
 constexpr float WIRE_SEGMENT_HIT_TOLERANCE = 5.0f;
 
-// ---- Default collapsed group size ----
-constexpr float COLLAPSED_GROUP_WIDTH  = 120.0f;
-constexpr float COLLAPSED_GROUP_HEIGHT = 80.0f;
+// ---- Default sub-blueprint instance size ----
+constexpr float SUB_BLUEPRINT_DEFAULT_WIDTH  = 120.0f;
+constexpr float SUB_BLUEPRINT_DEFAULT_HEIGHT = 80.0f;
 
 // ---- Visual group (render_hint="group") ----
 constexpr float MIN_GROUP_WIDTH  = 64.0f;

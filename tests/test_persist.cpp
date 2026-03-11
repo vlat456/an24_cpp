@@ -1174,24 +1174,30 @@ TEST(PersistTest, EditorSave_PreservesFirstWireRoutingOnDedup) {
 }
 
 // =============================================================================
-// Editor save dedup: collapsed_groups dedup
+// Editor save dedup: sub_blueprints dedup
 // =============================================================================
 
-TEST(PersistTest, EditorSave_DedupsCollapsedGroups) {
+TEST(PersistTest, EditorSave_DedupsSubBlueprints) {
     Blueprint bp;
 
-    CollapsedGroup g1("lamp1", "blueprints/lamp.json", "LampCircuit");
-    CollapsedGroup g2("lamp1", "blueprints/lamp.json", "LampCircuit"); // exact dup
+    SubBlueprintInstance g1;
+    g1.id = "lamp1";
+    g1.blueprint_path = "blueprints/lamp.json";
+    g1.type_name = "LampCircuit";
+    SubBlueprintInstance g2;
+    g2.id = "lamp1";  // exact dup
+    g2.blueprint_path = "blueprints/lamp.json";
+    g2.type_name = "LampCircuit";
 
-    bp.collapsed_groups.push_back(g1);
-    bp.collapsed_groups.push_back(g2);
+    bp.sub_blueprint_instances.push_back(g1);
+    bp.sub_blueprint_instances.push_back(g2);
 
     std::string json_str = blueprint_to_editor_json(bp);
     auto j = nlohmann::json::parse(json_str);
 
-    ASSERT_TRUE(j.contains("collapsed_groups"));
-    EXPECT_EQ(j["collapsed_groups"].size(), 1)
-        << "Duplicate collapsed_groups must be deduped on save";
+    ASSERT_TRUE(j.contains("sub_blueprint_instances"));
+    EXPECT_EQ(j["sub_blueprint_instances"].size(), 1)
+        << "Duplicate sub_blueprint_instances must be deduped on save";
 }
 
 // =============================================================================

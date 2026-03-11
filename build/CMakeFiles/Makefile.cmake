@@ -192,6 +192,8 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/properties_window_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/dt_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_accumulator_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/aot_composite_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/bake_in_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/node_color_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/node_autosize_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/layout_tests.dir/DependInfo.cmake"
@@ -203,4 +205,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/clamp_normalize_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/comparison_components_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/spring_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/sub_blueprint_ref_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/document_window_system_tests.dir/DependInfo.cmake"
   )

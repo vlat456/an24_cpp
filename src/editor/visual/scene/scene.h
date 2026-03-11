@@ -146,9 +146,9 @@ public:
     }
 
     /// Remove multiple nodes by index (indices must be sorted descending).
-    /// Connected wires and collapsed_groups are cleaned automatically.
+    /// Connected wires and sub_blueprint_instances are cleaned automatically.
     /// If any deleted node is a sub-blueprint (expandable), its internal
-    /// nodes, wires, and CollapsedGroup entries are recursively removed.
+    /// nodes, wires, and SubBlueprintInstance entries are recursively removed.
     void removeNodes(const std::vector<size_t>& sorted_desc_indices) {
         // Collect initial set of deleted IDs
         std::unordered_set<std::string> deleted_ids;
@@ -180,16 +180,16 @@ public:
                 }),
             bp_->wires.end());
 
-        // Remove CollapsedGroup entries for deleted groups
-        bp_->collapsed_groups.erase(
-            std::remove_if(bp_->collapsed_groups.begin(), bp_->collapsed_groups.end(),
-                [&deleted_ids, &deleted_group_ids](const CollapsedGroup& g) {
+        // Remove SubBlueprintInstance entries for deleted groups
+        bp_->sub_blueprint_instances.erase(
+            std::remove_if(bp_->sub_blueprint_instances.begin(), bp_->sub_blueprint_instances.end(),
+                [&deleted_ids, &deleted_group_ids](const SubBlueprintInstance& g) {
                     return deleted_group_ids.count(g.id) || deleted_ids.count(g.id);
                 }),
-            bp_->collapsed_groups.end());
+            bp_->sub_blueprint_instances.end());
 
-        // Clean remaining collapsed_groups.internal_node_ids
-        for (auto& g : bp_->collapsed_groups) {
+        // Clean remaining sub_blueprint_instances.internal_node_ids
+        for (auto& g : bp_->sub_blueprint_instances) {
             g.internal_node_ids.erase(
                 std::remove_if(g.internal_node_ids.begin(), g.internal_node_ids.end(),
                     [&deleted_ids](const std::string& id) { return deleted_ids.count(id); }),

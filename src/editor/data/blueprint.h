@@ -8,25 +8,32 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
-/// Collapsed blueprint group - editor-only metadata for visual hierarchy
-/// When a blueprint is expanded in the simulation, we still want to show it as collapsed
-/// in the editor until the user drills down. This tracks that visual state.
-struct CollapsedGroup {
-    std::string id;              // Unique ID for this collapsed group (e.g., "lamp1")
-    std::string blueprint_path;  // Path to blueprint JSON file
-    std::string type_name;       // Component type name (e.g., "lamp_pass_through")
-    Pt pos;                      // Visual position of collapsed node
-    Pt size;                     // Visual size of collapsed node
-    std::vector<std::string> internal_node_ids;  // IDs of internal devices in this group
+/// Instance of a sub-blueprint — reference (baked_in=false) or embedded (baked_in=true).
+struct SubBlueprintInstance {
+    std::string id;                  // Unique instance ID: "lamp_1"
+    std::string blueprint_path;      // "library/systems/lamp_pass_through.json"
+    std::string type_name;           // "lamp_pass_through" (for UI display)
 
-    // Constructor
-    CollapsedGroup() : pos(Pt::zero()), size(Pt(editor_constants::COLLAPSED_GROUP_WIDTH, editor_constants::COLLAPSED_GROUP_HEIGHT)) {}
+    bool baked_in = false;           // true = inline devices saved to JSON
+                                     // false = expand from library file on load
 
-    CollapsedGroup(const std::string& id_, const std::string& path, const std::string& type)
-        : id(id_), blueprint_path(path), type_name(type), pos(Pt::zero()), size(Pt(editor_constants::COLLAPSED_GROUP_WIDTH, editor_constants::COLLAPSED_GROUP_HEIGHT)) {}
+    Pt pos = Pt::zero();             // Layout of collapsed node
+    Pt size = Pt(editor_constants::SUB_BLUEPRINT_DEFAULT_WIDTH, editor_constants::SUB_BLUEPRINT_DEFAULT_HEIGHT);
+
+    std::map<std::string, std::string> params_override;
+    std::map<std::string, Pt> layout_override;
+    std::map<std::string, std::vector<Pt>> internal_routing;
+
+    std::vector<std::string> internal_node_ids;
+
+    SubBlueprintInstance() = default;
+
+    SubBlueprintInstance(const std::string& id_, const std::string& path, const std::string& type)
+        : id(id_), blueprint_path(path), type_name(type) {}
 };
 
 /// Blueprint - схема соединений (все домены: электрика, гидравлика, механика)
@@ -52,9 +59,20 @@ struct Blueprint {
         }
     }
 
-    /// Editor-only metadata: visually collapsed blueprint groups
-    /// These are NOT separate devices - they're just visual groupings of existing nodes
-    std::vector<CollapsedGroup> collapsed_groups;
+    /// Sub-blueprint instances (unified: baked_in flag controls reference vs embedded)
+    std::vector<SubBlueprintInstance> sub_blueprint_instances;
+
+    /// Find sub-blueprint instance by ID
+    SubBlueprintInstance* find_sub_blueprint_instance(const std::string& id);
+    const SubBlueprintInstance* find_sub_blueprint_instance(const std::string& id) const;
+
+    /// Remove sub-blueprint instance by ID (returns true if removed)
+    bool remove_sub_blueprint_instance(const std::string& id);
+
+    /// Convert a SubBlueprintInstance from reference (baked_in=false) to embedded (baked_in=true).
+    /// Merges overrides into actual node data, sets baked_in flag, clears overrides.
+    /// Returns false if id not found in sub_blueprint_instances or already baked in.
+    bool bake_in_sub_blueprint(const std::string& id);
 
     /// Viewport состояние (pan/zoom) - сохраняется с схемой
     Pt pan;
@@ -101,15 +119,15 @@ struct Blueprint {
         return nullptr;
     }
 
-    /// Recompute group_id for all nodes from collapsed_groups.
-    /// Internal nodes of a collapsed group get group_id = group.id.
+    /// Recompute group_id for all nodes from sub_blueprint_instances.
+    /// Internal nodes of a sub-blueprint get group_id = sbi.id.
     /// Top-level nodes (not in any group) get group_id = "".
     /// Collapsed Blueprint nodes themselves get group_id = their parent group
     /// (empty if top-level).
     void recompute_group_ids() {
         // Build reverse map: node_id → group_id
         std::unordered_map<std::string, std::string> node_to_group;
-        for (const auto& g : collapsed_groups) {
+        for (const auto& g : sub_blueprint_instances) {
             for (const auto& id : g.internal_node_ids) {
                 node_to_group[id] = g.id;
             }
@@ -128,14 +146,14 @@ struct Blueprint {
         }
     }
 
-    /// Collect all node IDs that belong to a collapsed group (recursively).
-    /// If a group contains sub-blueprint nodes, their internal nodes are included too.
-    /// Also collects the group IDs themselves (for CollapsedGroup cleanup).
+    /// Collect all node IDs that belong to a sub-blueprint (recursively).
+    /// If a sub-blueprint contains other expandable nodes, their internal nodes are included too.
+    /// Also collects the sub-blueprint IDs themselves (for cleanup).
     void collect_group_internals(const std::string& group_id,
                                  std::unordered_set<std::string>& out_node_ids,
                                  std::unordered_set<std::string>& out_group_ids) const {
-        // Find the CollapsedGroup for this group_id
-        for (const auto& g : collapsed_groups) {
+        // Find the SubBlueprintInstance for this group_id
+        for (const auto& g : sub_blueprint_instances) {
             if (g.id != group_id) continue;
             out_group_ids.insert(g.id);
             for (const auto& nid : g.internal_node_ids) {

@@ -3,9 +3,12 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
+#include <utility>
+#include <nlohmann/json.hpp>
 
 namespace an24 {
 
@@ -69,6 +72,16 @@ struct Connection {
     std::vector<std::pair<float,float>> routing_points;  // Editor layout (optional)
 };
 
+/// Minimal reference to a sub-blueprint (used in TypeDefinition for library definitions)
+struct SubBlueprintRef {
+    std::string id;
+    std::string blueprint_path;
+    std::string type_name;
+    std::optional<std::pair<float, float>> pos;
+    std::optional<std::pair<float, float>> size;
+    std::map<std::string, std::string> params_override;
+};
+
 /// Type definition (ports, params, domains for a component class or blueprint)
 struct TypeDefinition {
     std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
@@ -86,6 +99,8 @@ struct TypeDefinition {
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
+    // Sub-blueprint references (cpp_class = false composites only)
+    std::vector<SubBlueprintRef> sub_blueprints;
 };
 
 /// Tree structure mirroring library/ subdirectory hierarchy for menu building.
@@ -128,6 +143,10 @@ struct TypeRegistry {
 
     /// Validate instance against definition
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
+
+    /// Get all composites (cpp_class = false) in topological order (leaves first).
+    /// Used for AOT codegen to generate nested Systems classes.
+    std::vector<std::string> get_composites_topo_sorted() const;
 };
 
 /// Device instance at any level (primitive or composite)
@@ -259,5 +278,16 @@ DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
     const TypeDefinition& definition
 );
+
+/// Parse a TypeDefinition from JSON (helper for testing)
+TypeDefinition parse_type_definition(const nlohmann::json& j);
+
+/// Expand sub_blueprint references into flat devices + connections.
+/// Throws std::runtime_error on circular references.
+/// loading_stack tracks ancestors for cycle detection — pass empty set at top call.
+TypeDefinition expand_sub_blueprint_references(
+    const TypeDefinition& td,
+    const TypeRegistry& registry,
+    std::set<std::string>& loading_stack);
 
 } // namespace an24

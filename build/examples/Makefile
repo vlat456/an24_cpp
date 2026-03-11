@@ -519,6 +519,30 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
+__/src/editor/document.o: __/src/editor/document.cpp.o
+.PHONY : __/src/editor/document.o
+
+# target to build an object file
+__/src/editor/document.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.o
+.PHONY : __/src/editor/document.cpp.o
+
+__/src/editor/document.i: __/src/editor/document.cpp.i
+.PHONY : __/src/editor/document.i
+
+# target to preprocess a source file
+__/src/editor/document.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.i
+.PHONY : __/src/editor/document.cpp.i
+
+__/src/editor/document.s: __/src/editor/document.cpp.s
+.PHONY : __/src/editor/document.s
+
+# target to generate assembly for a file
+__/src/editor/document.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.s
+.PHONY : __/src/editor/document.cpp.s
+
 __/src/editor/imgui_theme.o: __/src/editor/imgui_theme.cpp.o
 .PHONY : __/src/editor/imgui_theme.o
 
@@ -975,6 +999,30 @@ __/src/editor/window/properties_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window/properties_window.cpp.s
 .PHONY : __/src/editor/window/properties_window.cpp.s
 
+__/src/editor/window_system.o: __/src/editor/window_system.cpp.o
+.PHONY : __/src/editor/window_system.o
+
+# target to build an object file
+__/src/editor/window_system.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window_system.cpp.o
+.PHONY : __/src/editor/window_system.cpp.o
+
+__/src/editor/window_system.i: __/src/editor/window_system.cpp.i
+.PHONY : __/src/editor/window_system.i
+
+# target to preprocess a source file
+__/src/editor/window_system.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window_system.cpp.i
+.PHONY : __/src/editor/window_system.cpp.i
+
+__/src/editor/window_system.s: __/src/editor/window_system.cpp.s
+.PHONY : __/src/editor/window_system.s
+
+# target to generate assembly for a file
+__/src/editor/window_system.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/window_system.cpp.s
+.PHONY : __/src/editor/window_system.cpp.s
+
 an24_editor.o: an24_editor.cpp.o
 .PHONY : an24_editor.o
 
@@ -1123,6 +1171,9 @@ help:
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/document.o"
+	@echo "... __/src/editor/document.i"
+	@echo "... __/src/editor/document.s"
 	@echo "... __/src/editor/imgui_theme.o"
 	@echo "... __/src/editor/imgui_theme.i"
 	@echo "... __/src/editor/imgui_theme.s"
@@ -1180,6 +1231,9 @@ help:
 	@echo "... __/src/editor/window/properties_window.o"
 	@echo "... __/src/editor/window/properties_window.i"
 	@echo "... __/src/editor/window/properties_window.s"
+	@echo "... __/src/editor/window_system.o"
+	@echo "... __/src/editor/window_system.i"
+	@echo "... __/src/editor/window_system.s"
 	@echo "... an24_editor.o"
 	@echo "... an24_editor.i"
 	@echo "... an24_editor.s"

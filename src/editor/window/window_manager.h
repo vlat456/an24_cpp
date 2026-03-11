@@ -58,11 +58,11 @@ public:
             windows_.end());
     }
 
-    /// Close sub-windows whose group_id no longer exists in collapsed_groups.
+    /// Close sub-windows whose group_id no longer exists in sub_blueprint_instances.
     /// Call after deleting sub-blueprint nodes.
     void removeOrphanedWindows() {
         std::unordered_set<std::string> live_groups;
-        for (const auto& g : bp_.collapsed_groups) {
+        for (const auto& g : bp_.sub_blueprint_instances) {
             live_groups.insert(g.id);
         }
         windows_.erase(

@@ -2,6 +2,8 @@
 #include "port.h"
 #include "layout_constants.h"
 #include <set>
+#include <map>
+#include <algorithm>
 #include <cstdio>
 #include <spdlog/spdlog.h>
 
@@ -94,6 +96,98 @@ bool Blueprint::add_wire_validated(Wire wire) {
 
     wires.push_back(std::move(wire));
     wire_index_.insert(WireKey(wires.back()));
+    return true;
+}
+
+// ─── SubBlueprintInstance helpers ───
+
+SubBlueprintInstance* Blueprint::find_sub_blueprint_instance(const std::string& id) {
+    for (auto& sbi : sub_blueprint_instances) {
+        if (sbi.id == id) return &sbi;
+    }
+    return nullptr;
+}
+
+const SubBlueprintInstance* Blueprint::find_sub_blueprint_instance(const std::string& id) const {
+    for (const auto& sbi : sub_blueprint_instances) {
+        if (sbi.id == id) return &sbi;
+    }
+    return nullptr;
+}
+
+bool Blueprint::remove_sub_blueprint_instance(const std::string& id) {
+    auto it = std::find_if(sub_blueprint_instances.begin(), sub_blueprint_instances.end(),
+                           [&](const SubBlueprintInstance& s) { return s.id == id; });
+    if (it == sub_blueprint_instances.end()) return false;
+    sub_blueprint_instances.erase(it);
+    return true;
+}
+
+bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
+    auto sbi_it = std::find_if(sub_blueprint_instances.begin(), sub_blueprint_instances.end(),
+                               [&](const SubBlueprintInstance& s) { return s.id == id; });
+    if (sbi_it == sub_blueprint_instances.end()) return false;
+
+    SubBlueprintInstance& sbi = *sbi_it;
+    if (sbi.baked_in) return false;
+
+    std::string prefix = sbi.id + ":";
+
+    for (const auto& [override_key, override_val] : sbi.params_override) {
+        auto dot = override_key.find('.');
+        if (dot == std::string::npos) continue;
+        std::string dev_name = override_key.substr(0, dot);
+        std::string param_name = override_key.substr(dot + 1);
+        std::string target_id = sbi.id + ":" + dev_name;
+
+        Node* node = find_node(target_id.c_str());
+        if (node) {
+            node->params[param_name] = override_val;
+        }
+    }
+
+    for (const auto& [dev_name, pos] : sbi.layout_override) {
+        std::string target_id = sbi.id + ":" + dev_name;
+        Node* node = find_node(target_id.c_str());
+        if (node) {
+            node->pos = pos;
+        }
+    }
+
+    for (auto& wire : wires) {
+        if (wire.start.node_id.size() <= prefix.size() || 
+            wire.start.node_id.substr(0, prefix.size()) != prefix) {
+            continue;
+        }
+        if (wire.end.node_id.size() <= prefix.size() || 
+            wire.end.node_id.substr(0, prefix.size()) != prefix) {
+            continue;
+        }
+        std::string start_unprefixed = wire.start.node_id.substr(prefix.size());
+        std::string end_unprefixed = wire.end.node_id.substr(prefix.size());
+        std::string wk = start_unprefixed + "." +
+                         wire.start.port_name + "->" +
+                         end_unprefixed + "." +
+                         wire.end.port_name;
+        auto rt_it = sbi.internal_routing.find(wk);
+        if (rt_it != sbi.internal_routing.end()) {
+            wire.routing_points = rt_it->second;
+        }
+    }
+
+    std::vector<std::string> internal_ids;
+    for (const auto& n : nodes) {
+        if (n.group_id == sbi.id && n.id != sbi.id) {
+            internal_ids.push_back(n.id);
+        }
+    }
+
+    sbi_it->baked_in = true;
+    sbi_it->internal_node_ids = internal_ids;
+    sbi_it->params_override.clear();
+    sbi_it->layout_override.clear();
+    sbi_it->internal_routing.clear();
+
     return true;
 }
 
