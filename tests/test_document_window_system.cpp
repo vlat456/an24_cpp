@@ -278,6 +278,32 @@ TEST(WindowSystem, CloseLastDocumentCreatesNew) {
     EXPECT_NE(ws.activeDocument(), nullptr);
 }
 
+// REGRESSION: Inspector::detectSceneChange crash (SIGSEGV) after document close.
+// closeDocument picked a replacement active_document_ but didn't update
+// inspector_.scene_, leaving it as a dangling pointer to the destroyed scene.
+TEST(WindowSystem, CloseActiveDocumentUpdatesInspectorScene) {
+    WindowSystem ws;
+    Document& d2 = ws.createDocument();
+
+    // Add a node to d2 so its scene is non-trivial
+    Node n;
+    n.id = "crash_test";
+    n.name = "crash_test";
+    n.pos = Pt(0, 0);
+    n.size = Pt(100, 80);
+    d2.blueprint().add_node(std::move(n));
+
+    ws.setActiveDocument(&d2);
+    // Inspector now points to d2's scene
+
+    // Close d2 — inspector must switch to d1's scene, not dangle
+    ws.closeDocument(d2);
+    EXPECT_NE(ws.activeDocument(), nullptr);
+
+    // This would crash (SIGSEGV) if inspector_.scene_ is dangling
+    ws.inspector().buildDisplayTree();
+}
+
 // REGRESSION: closeDocument should clear context menu source_doc pointers.
 TEST(WindowSystem, CloseDocumentClearsContextMenuPointers) {
     WindowSystem ws;

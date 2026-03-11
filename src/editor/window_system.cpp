@@ -79,15 +79,17 @@ bool WindowSystem::closeDocument(Document& doc) {
 
     documents_.erase(it);
 
-    // If no documents remain, create a fresh one
+    // Update inspector and ensure active_document_ is set
     if (!active_document_) {
         if (documents_.empty()) {
-            createDocument();
+            createDocument();  // setActiveDocument called inside
         } else {
             setActiveDocument(documents_.front().get());
         }
     } else {
-        setActiveDocument(active_document_);  // update inspector
+        // Force inspector update (setActiveDocument skips if pointer unchanged)
+        inspector_.setScene(active_document_->scene());
+        inspector_.markDirty();
     }
 
     return true;
