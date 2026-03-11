@@ -1,0 +1,27 @@
+{
+  "exposes": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Pure conductance element (resistor). Models resistive load with conductance parameter (Siemens = 1/Ohm).",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Resistor"
+  },
+  "params": {
+    "conductance": {
+      "default": "0.1",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

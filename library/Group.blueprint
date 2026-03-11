@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "description": "Visual grouping rectangle for organizing circuit sections. No logic, no ports.",
+    "name": "Group",
+    "render_hint": "group",
+    "size": [
+      10.0,
+      6.0
+    ],
+    "visual_only": true
+  },
+  "version": 2
+}

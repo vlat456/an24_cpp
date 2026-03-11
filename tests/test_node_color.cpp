@@ -86,14 +86,13 @@ TEST(NodeColorPersist, Color_Roundtrip) {
 // Node color loads from JSON that has "color" field
 TEST(NodeColorPersist, LoadFromJson_WithColor) {
     std::string json = R"({
-        "devices": [{
-            "name": "n1",
-            "classname": "Battery",
-            "ports": {"v_in": {"direction": "In", "type": "V"}, "v_out": {"direction": "Out", "type": "V"}},
-            "pos": {"x": 0, "y": 0},
-            "size": {"x": 120, "y": 80},
+        "version": 2, "meta": {"name": ""},
+        "nodes": {"n1": {
+            "type": "Battery",
+            "pos": [0, 0],
+            "size": [120, 80],
             "color": {"r": 0.2, "g": 0.4, "b": 0.6, "a": 1.0}
-        }],
+        }},
         "wires": []
     })";
     auto bp = blueprint_from_json(json);
@@ -105,13 +104,12 @@ TEST(NodeColorPersist, LoadFromJson_WithColor) {
 // JSON without color field → no custom color
 TEST(NodeColorPersist, LoadFromJson_WithoutColor) {
     std::string json = R"({
-        "devices": [{
-            "name": "n1",
-            "classname": "Battery",
-            "ports": {"v_in": {"direction": "In", "type": "V"}, "v_out": {"direction": "Out", "type": "V"}},
-            "pos": {"x": 0, "y": 0},
-            "size": {"x": 120, "y": 80}
-        }],
+        "version": 2, "meta": {"name": ""},
+        "nodes": {"n1": {
+            "type": "Battery",
+            "pos": [0, 0],
+            "size": [120, 80]
+        }},
         "wires": []
     })";
     auto bp = blueprint_from_json(json);
@@ -273,14 +271,13 @@ TEST(NodeColorPersist, ZeroAlpha_Roundtrip) {
 // JSON with color as non-object (string) → should not crash, no color set
 TEST(NodeColorPersist, MalformedColor_String_Ignored) {
     std::string json = R"({
-        "devices": [{
-            "name": "n1",
-            "classname": "Battery",
-            "ports": {"v_in": {"direction": "In", "type": "V"}},
-            "pos": {"x": 0, "y": 0},
-            "size": {"x": 120, "y": 80},
+        "version": 2, "meta": {"name": ""},
+        "nodes": {"n1": {
+            "type": "Battery",
+            "pos": [0, 0],
+            "size": [120, 80],
             "color": "red"
-        }],
+        }},
         "wires": []
     })";
     auto bp = blueprint_from_json(json);
@@ -291,14 +288,13 @@ TEST(NodeColorPersist, MalformedColor_String_Ignored) {
 // JSON with color as null → should not crash, no color set
 TEST(NodeColorPersist, MalformedColor_Null_Ignored) {
     std::string json = R"({
-        "devices": [{
-            "name": "n1",
-            "classname": "Battery",
-            "ports": {"v_in": {"direction": "In", "type": "V"}},
-            "pos": {"x": 0, "y": 0},
-            "size": {"x": 120, "y": 80},
+        "version": 2, "meta": {"name": ""},
+        "nodes": {"n1": {
+            "type": "Battery",
+            "pos": [0, 0],
+            "size": [120, 80],
             "color": null
-        }],
+        }},
         "wires": []
     })";
     auto bp = blueprint_from_json(json);
@@ -309,14 +305,13 @@ TEST(NodeColorPersist, MalformedColor_Null_Ignored) {
 // JSON with color object missing some keys → defaults used
 TEST(NodeColorPersist, PartialColor_DefaultsApplied) {
     std::string json = R"({
-        "devices": [{
-            "name": "n1",
-            "classname": "Battery",
-            "ports": {"v_in": {"direction": "In", "type": "V"}},
-            "pos": {"x": 0, "y": 0},
-            "size": {"x": 120, "y": 80},
+        "version": 2, "meta": {"name": ""},
+        "nodes": {"n1": {
+            "type": "Battery",
+            "pos": [0, 0],
+            "size": [120, 80],
             "color": {"r": 0.9}
-        }],
+        }},
         "wires": []
     })";
     auto bp = blueprint_from_json(json);

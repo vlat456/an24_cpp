@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
                     ws.createDocument();
                 }
                 if (ImGui::MenuItem("Open...", "Ctrl+O")) {
-                    nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
+                    nfdu8filteritem_t filterItem = {"Blueprint", "blueprint"};
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
                     if (result == NFD_OKAY) {
@@ -190,9 +190,9 @@ int main(int argc, char** argv) {
                 if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc && active_doc->isModified())) {
                     if (active_doc) {
                         if (active_doc->filepath().empty()) {
-                            nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
+                            nfdu8filteritem_t filterItem = {"Blueprint", "blueprint"};
                             nfdchar_t* outPath = nullptr;
-                            nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
+                            nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.blueprint");
                             if (result == NFD_OKAY) {
                                 active_doc->save(outPath);
                                 NFD_FreePath(outPath);

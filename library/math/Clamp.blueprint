@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Clamps input value between min and max parameters",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Clamp",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "max": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "min": {
+      "default": "0.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

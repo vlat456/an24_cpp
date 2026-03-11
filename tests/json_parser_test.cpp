@@ -611,11 +611,11 @@ TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
 // Recursive library loading + MenuTree
 // =============================================================================
 
-static const char* minimal_json(const char* classname) {
+static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
-    static char buf[256];
+    static char buf[512];
     snprintf(buf, sizeof(buf),
-        R"({"classname": "%s", "cpp_class": true, "ports": {}, "params": {}})",
+        R"({"version": 2, "meta": {"name": "%s", "cpp_class": true}, "exposes": {}})",
         classname);
     return buf;
 }
@@ -626,8 +626,8 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     fs::remove_all(tmp);
     fs::create_directories(tmp / "electrical");
 
-    std::ofstream(tmp / "Battery.json") << minimal_json("Battery");
-    std::ofstream(tmp / "electrical" / "Resistor.json") << minimal_json("Resistor");
+    std::ofstream(tmp / "Battery.blueprint") << minimal_blueprint_v2("Battery");
+    std::ofstream(tmp / "electrical" / "Resistor.blueprint") << minimal_blueprint_v2("Resistor");
 
     auto registry = load_type_registry(tmp.string());
 
@@ -649,7 +649,7 @@ TEST(TypeRegistry, LoadRecursive_DeepNesting) {
     fs::remove_all(tmp);
     fs::create_directories(tmp / "electrical" / "generators");
 
-    std::ofstream(tmp / "electrical" / "generators" / "GS24.json") << minimal_json("GS24");
+    std::ofstream(tmp / "electrical" / "generators" / "GS24.blueprint") << minimal_blueprint_v2("GS24");
 
     auto registry = load_type_registry(tmp.string());
 

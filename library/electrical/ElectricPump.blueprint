@@ -1,0 +1,28 @@
+{
+  "exposes": {
+    "p_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Electric motor driving hydraulic pump",
+    "domains": [
+      "Electrical",
+      "Hydraulic"
+    ],
+    "name": "ElectricPump"
+  },
+  "params": {
+    "max_pressure": {
+      "default": "1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "v": {
+      "alias": "dynamic",
+      "direction": "InOut",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "critical": true,
+    "description": "Electrical bus - connects all ports to the same signal node. Used as wire junction/collector for distributing power to multiple loads.",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Bus",
+    "priority": "high",
+    "render_hint": "bus",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

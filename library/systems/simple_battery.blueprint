@@ -1,0 +1,86 @@
+{
+  "exposes": {
+    "vin": {
+      "direction": "In",
+      "type": "V"
+    },
+    "vout": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "critical": true,
+    "description": "Simple battery module with exposed input/output ports",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "simple_battery",
+    "priority": "high"
+  },
+  "nodes": {
+    "bat": {
+      "params": {
+        "internal_r": "0.01",
+        "v_nominal": "28.0"
+      },
+      "type": "Battery"
+    },
+    "gnd": {
+      "params": {
+        "value": "0.0"
+      },
+      "type": "RefNode"
+    },
+    "vin": {
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    "vout": {
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    }
+  },
+  "version": 2,
+  "wires": [
+    {
+      "from": [
+        "vin",
+        "port"
+      ],
+      "id": "w0",
+      "to": [
+        "bat",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "bat",
+        "v_out"
+      ],
+      "id": "w1",
+      "to": [
+        "vout",
+        "port"
+      ]
+    },
+    {
+      "from": [
+        "gnd",
+        "v"
+      ],
+      "id": "w2",
+      "to": [
+        "vin",
+        "port"
+      ]
+    }
+  ]
+}

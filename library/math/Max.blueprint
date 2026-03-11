@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Outputs the larger of two inputs",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Max"
+  },
+  "version": 2
+}

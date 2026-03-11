@@ -86,17 +86,33 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/json_parser.dir/json_parser.cpp.s"
 	cd /Users/vladimir/an24_cpp/build/src/json_parser && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/json_parser/json_parser.cpp -o CMakeFiles/json_parser.dir/json_parser.cpp.s
 
+src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o: src/json_parser/CMakeFiles/json_parser.dir/flags.make
+src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o: /Users/vladimir/an24_cpp/src/v2/convert.cpp
+src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o: src/json_parser/CMakeFiles/json_parser.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o"
+	cd /Users/vladimir/an24_cpp/build/src/json_parser && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o -MF CMakeFiles/json_parser.dir/__/v2/convert.cpp.o.d -o CMakeFiles/json_parser.dir/__/v2/convert.cpp.o -c /Users/vladimir/an24_cpp/src/v2/convert.cpp
+
+src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/json_parser.dir/__/v2/convert.cpp.i"
+	cd /Users/vladimir/an24_cpp/build/src/json_parser && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/vladimir/an24_cpp/src/v2/convert.cpp > CMakeFiles/json_parser.dir/__/v2/convert.cpp.i
+
+src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/json_parser.dir/__/v2/convert.cpp.s"
+	cd /Users/vladimir/an24_cpp/build/src/json_parser && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/v2/convert.cpp -o CMakeFiles/json_parser.dir/__/v2/convert.cpp.s
+
 # Object files for target json_parser
 json_parser_OBJECTS = \
-"CMakeFiles/json_parser.dir/json_parser.cpp.o"
+"CMakeFiles/json_parser.dir/json_parser.cpp.o" \
+"CMakeFiles/json_parser.dir/__/v2/convert.cpp.o"
 
 # External object files for target json_parser
 json_parser_EXTERNAL_OBJECTS =
 
 src/json_parser/libjson_parser.a: src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o
+src/json_parser/libjson_parser.a: src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o
 src/json_parser/libjson_parser.a: src/json_parser/CMakeFiles/json_parser.dir/build.make
 src/json_parser/libjson_parser.a: src/json_parser/CMakeFiles/json_parser.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libjson_parser.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libjson_parser.a"
 	cd /Users/vladimir/an24_cpp/build/src/json_parser && $(CMAKE_COMMAND) -P CMakeFiles/json_parser.dir/cmake_clean_target.cmake
 	cd /Users/vladimir/an24_cpp/build/src/json_parser && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/json_parser.dir/link.txt --verbose=$(VERBOSE)
 

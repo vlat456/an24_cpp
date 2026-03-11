@@ -273,30 +273,33 @@ TEST(ExpandTypeDef, RoutingPoints_Preserved) {
 // parse_type_definition reads "wires" as connections with routing_points
 // =============================================================================
 TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
-    // Simulate a blueprint JSON that uses "wires" instead of "connections"
-    // (editor-saved format)
+    // Simulate a v2 blueprint that has nodes and wires with routing points
     std::string json_str = R"({
-        "classname": "WireTest",
-        "cpp_class": false,
-        "ports": {},
-        "devices": [
-            {"name": "a", "classname": "Battery"},
-            {"name": "b", "classname": "Resistor"}
-        ],
+        "version": 2,
+        "meta": {
+            "name": "WireTest",
+            "cpp_class": false
+        },
+        "exposes": {},
+        "nodes": {
+            "a": {"type": "Battery", "pos": [0, 0]},
+            "b": {"type": "Resistor", "pos": [0, 0]}
+        },
         "wires": [
             {
-                "from": "a.v_out",
-                "to": "b.v_in",
-                "routing_points": [{"x": 100.0, "y": 200.0}]
+                "id": "w1",
+                "from": ["a", "v_out"],
+                "to": ["b", "v_in"],
+                "routing": [[100.0, 200.0]]
             }
         ]
     })";
 
-    // Write to temp file, load via type registry
+    // Write to temp file as .blueprint, load via type registry
     auto tmp = std::filesystem::temp_directory_path() / "expand_test_lib";
     std::filesystem::create_directories(tmp);
     {
-        std::ofstream f(tmp / "WireTest.json");
+        std::ofstream f(tmp / "WireTest.blueprint");
         f << json_str;
     }
 
@@ -328,24 +331,26 @@ TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
 // =============================================================================
 TEST(ExpandTypeDef, ParseTypeDefinition_DevicePosSize) {
     std::string json_str = R"({
-        "classname": "LayoutTest",
-        "cpp_class": false,
-        "ports": {},
-        "devices": [
-            {
-                "name": "bat",
-                "classname": "Battery",
-                "pos": {"x": 96.0, "y": 112.0},
-                "size": {"x": 128.0, "y": 80.0}
+        "version": 2,
+        "meta": {
+            "name": "LayoutTest",
+            "cpp_class": false
+        },
+        "exposes": {},
+        "nodes": {
+            "bat": {
+                "type": "Battery",
+                "pos": [96.0, 112.0],
+                "size": [128.0, 80.0]
             }
-        ],
+        },
         "wires": []
     })";
 
     auto tmp = std::filesystem::temp_directory_path() / "expand_test_lib2";
     std::filesystem::create_directories(tmp);
     {
-        std::ofstream f(tmp / "LayoutTest.json");
+        std::ofstream f(tmp / "LayoutTest.blueprint");
         f << json_str;
     }
 

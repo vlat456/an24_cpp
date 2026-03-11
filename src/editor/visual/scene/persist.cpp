@@ -2,6 +2,7 @@
 #include "router/router.h"
 #include "json_parser/json_parser.h"
 #include "data/node.h"
+#include "v2/blueprint_v2.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -276,92 +277,210 @@ std::string blueprint_to_json(const Blueprint& bp) {
 }
 
 // ─── Editor save format ────────────────────────────────────────────────────
-// Flat list of ALL nodes + wires, no rewriting.
-// Hierarchy is metadata only (sub_blueprint_instances), reconstructed on load for visuals.
+// v2 format: uses BlueprintV2 as the serialization schema.
 // blueprint_to_json() is only for simulation (rewrites wires, skips Blueprint kind).
 
-std::string blueprint_to_editor_json(const Blueprint& bp) {
-    json j = json::object();
+// ─── Conversion helpers: Editor Blueprint ↔ BlueprintV2 ───────────────────
 
-    // Build set of internal node IDs for non-baked-in sub-blueprints
-    // These nodes should NOT be saved - they will be re-expanded from library on load
-    std::set<std::string> non_baked_in_internals;
-    for (const auto& sbi : bp.sub_blueprint_instances) {
-        if (!sbi.baked_in) {
-            for (const auto& internal_id : sbi.internal_node_ids) {
-                non_baked_in_internals.insert(internal_id);
+static std::string content_type_to_string(NodeContentType t) {
+    switch (t) {
+        case NodeContentType::None:           return "none";
+        case NodeContentType::Gauge:          return "gauge";
+        case NodeContentType::Switch:         return "switch";
+        case NodeContentType::VerticalToggle: return "vertical_toggle";
+        case NodeContentType::Value:          return "value";
+        case NodeContentType::Text:           return "text";
+    }
+    return "none";
+}
+
+static NodeContentType string_to_content_type(const std::string& s) {
+    if (s == "gauge"   || s == "Gauge")          return NodeContentType::Gauge;
+    if (s == "switch"  || s == "Switch")         return NodeContentType::Switch;
+    if (s == "vertical_toggle" || s == "VerticalToggle") return NodeContentType::VerticalToggle;
+    if (s == "value"   || s == "Value")          return NodeContentType::Value;
+    if (s == "text"    || s == "Text")           return NodeContentType::Text;
+    if (s == "HoldButton")     return NodeContentType::Switch;  // HoldButton uses Switch type
+    return NodeContentType::None;
+}
+
+/// Convert editor Node → v2 NodeV2
+static an24::v2::NodeV2 node_to_v2(const Node& n) {
+    an24::v2::NodeV2 nv;
+    nv.type = n.type_name;
+    nv.pos = {n.pos.x, n.pos.y};
+    nv.size = {n.size.x, n.size.y};
+
+    // Params
+    for (const auto& [k, v] : n.params) {
+        nv.params[k] = v;
+    }
+
+    // Content
+    if (n.node_content.type != NodeContentType::None) {
+        an24::v2::ContentV2 c;
+        c.kind = content_type_to_string(n.node_content.type);
+        c.label = n.node_content.label;
+        c.value = n.node_content.value;
+        c.min = n.node_content.min;
+        c.max = n.node_content.max;
+        c.unit = n.node_content.unit;
+        c.state = n.node_content.state;
+        nv.content = c;
+    }
+
+    // Color
+    if (n.color.has_value()) {
+        an24::v2::NodeColorV2 c;
+        c.r = n.color->r;
+        c.g = n.color->g;
+        c.b = n.color->b;
+        c.a = n.color->a;
+        nv.color = c;
+    }
+
+    // Editor-only fields
+    if (n.name != n.id) {
+        nv.display_name = n.name;
+    }
+    nv.render_hint = n.render_hint;
+    nv.expandable = n.expandable;
+    nv.group_id = n.group_id;
+    nv.blueprint_path = n.blueprint_path;
+
+    return nv;
+}
+
+/// Convert editor Wire → v2 WireV2
+static an24::v2::WireV2 wire_to_v2(const Wire& w) {
+    an24::v2::WireV2 wv;
+    wv.id = w.id;
+    wv.from = {w.start.node_id, w.start.port_name};
+    wv.to = {w.end.node_id, w.end.port_name};
+    for (const auto& pt : w.routing_points) {
+        wv.routing.push_back({pt.x, pt.y});
+    }
+    return wv;
+}
+
+/// Convert editor SubBlueprintInstance → v2 SubBlueprintV2
+static an24::v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
+                                           const Blueprint& bp) {
+    an24::v2::SubBlueprintV2 sb;
+
+    if (!sbi.blueprint_path.empty()) {
+        sb.template_path = sbi.blueprint_path;
+    }
+    sb.type_name = sbi.type_name;
+    sb.pos = {sbi.pos.x, sbi.pos.y};
+    sb.size = {sbi.size.x, sbi.size.y};
+    sb.collapsed = true;  // Currently always collapsed in save
+
+    // Build overrides
+    an24::v2::OverridesV2 ov;
+    for (const auto& [k, v] : sbi.params_override) {
+        ov.params[k] = v;
+    }
+
+    // Strip "sbi_id:" prefix from node ID, or return as-is if mismatched
+    std::string prefix = sbi.id + ":";
+    auto strip_prefix = [&](const std::string& nid) -> std::string {
+        if (nid.size() > prefix.size() && nid.compare(0, prefix.size(), prefix) == 0)
+            return nid.substr(prefix.size());
+        return nid;  // Already unprefixed or mismatched
+    };
+
+    // For non-baked-in SBIs, snapshot live Node::pos into layout
+    // Override keys are UNPREFIXED (per v2 design: scope is structural)
+    std::map<std::string, Pt> layout = sbi.layout_override;
+    if (!sbi.baked_in) {
+        for (const auto& nid : sbi.internal_node_ids) {
+            if (const Node* n = bp.find_node(nid.c_str())) {
+                layout[strip_prefix(nid)] = n->pos;
+            }
+        }
+    }
+    for (const auto& [k, pt] : layout) {
+        ov.layout[k] = {pt.x, pt.y};
+    }
+    for (const auto& [k, pts] : sbi.internal_routing) {
+        std::vector<an24::v2::Pos> v2pts;
+        for (const auto& pt : pts) {
+            v2pts.push_back({pt.x, pt.y});
+        }
+        ov.routing[k] = v2pts;
+    }
+
+    if (!ov.params.empty() || !ov.layout.empty() || !ov.routing.empty()) {
+        sb.overrides = ov;
+    }
+
+    // For baked-in sub-blueprints, store internal nodes/wires inline
+    // Node keys and wire endpoints are UNPREFIXED (per v2 design)
+    if (sbi.baked_in) {
+        for (const auto& nid : sbi.internal_node_ids) {
+            if (const Node* n = bp.find_node(nid.c_str())) {
+                sb.nodes[strip_prefix(nid)] = node_to_v2(*n);
+            }
+        }
+        // Collect wires where both endpoints are internal
+        std::set<std::string> internal_set(sbi.internal_node_ids.begin(),
+                                           sbi.internal_node_ids.end());
+        for (const auto& w : bp.wires) {
+            if (internal_set.count(w.start.node_id) && internal_set.count(w.end.node_id)) {
+                auto wv = wire_to_v2(w);
+                wv.from.node = strip_prefix(w.start.node_id);
+                wv.to.node = strip_prefix(w.end.node_id);
+                sb.wires.push_back(std::move(wv));
             }
         }
     }
 
-    // devices: flat list of ALL nodes including Blueprint kind
-    json devices = json::array();
-    std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs on save
-    for (const auto& n : bp.nodes) {
-        if (non_baked_in_internals.count(n.id) > 0) {
-            continue;  // Skip internal nodes of non-baked-in sub-blueprints
+    return sb;
+}
+
+/// Convert full editor Blueprint → BlueprintV2 (for editor save)
+static an24::v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
+    an24::v2::BlueprintV2 bpv2;
+    bpv2.version = 2;
+
+    // Meta (minimal for editor saves — no component-level metadata)
+    bpv2.meta.name = "";
+
+    // Viewport
+    an24::v2::ViewportV2 vp;
+    vp.pan = {bp.pan.x, bp.pan.y};
+    vp.zoom = bp.zoom;
+    vp.grid = bp.grid_step;
+    bpv2.viewport = vp;
+
+    // Build set of internal node IDs for non-baked-in sub-blueprints
+    // These nodes should NOT be saved — they will be re-expanded from library on load
+    std::set<std::string> non_baked_in_internals;
+    for (const auto& sbi : bp.sub_blueprint_instances) {
+        if (!sbi.baked_in) {
+            for (const auto& nid : sbi.internal_node_ids) {
+                non_baked_in_internals.insert(nid);
+            }
         }
+    }
+
+    // Nodes
+    std::set<std::string> emitted_ids;
+    for (const auto& n : bp.nodes) {
+        // Skip internal nodes of non-baked-in sub-blueprints
+        if (non_baked_in_internals.count(n.id) > 0) continue;
+
+        // Dedup
         if (!emitted_ids.insert(n.id).second) {
             spdlog::warn("[dedup] Duplicate node '{}' on editor save", n.id);
             continue;
         }
-        json device = json::object();
-        device["name"] = n.id;
-        if (n.name != n.id)
-            device["display_name"] = n.name;
-        device["classname"] = n.type_name;
-        if (!n.render_hint.empty())
-            device["render_hint"] = n.render_hint;
-        if (n.expandable)
-            device["expandable"] = true;
 
-        // group_id: use the node's runtime group_id (single source of truth)
-        if (!n.group_id.empty())
-            device["group_id"] = n.group_id;
-
-        // ports — detect InOut by checking if port appears in both inputs and outputs
-        device["ports"] = serialize_ports(n);
-
-        if (!n.params.empty()) {
-            json params = json::object();
-            for (const auto& [key, value] : n.params)
-                params[key] = value;
-            device["params"] = params;
-        } else if (n.type_name == "RefNode" || n.type_name == "Ref") {
-            json params = json::object();
-            float value = (n.node_content.type == NodeContentType::Value) ? n.node_content.value : 0.0f;
-            params["value"] = (value == 0.0f) ? "0.0" : std::to_string(value);
-            device["params"] = params;
-        }
-
-        if (!n.blueprint_path.empty())
-            device["blueprint_path"] = n.blueprint_path;
-
-        device["pos"] = {{"x", n.pos.x}, {"y", n.pos.y}};
-        device["size"] = {{"x", n.size.x}, {"y", n.size.y}};
-
-        // Content (UI metadata)
-        if (n.node_content.type != NodeContentType::None) {
-            device["content"] = serialize_content(n);
-        }
-
-        // Per-node custom color (optional)
-        if (n.color.has_value()) {
-            device["color"] = {
-                {"r", n.color->r},
-                {"g", n.color->g},
-                {"b", n.color->b},
-                {"a", n.color->a}
-            };
-        }
-
-        devices.push_back(device);
+        bpv2.nodes[n.id] = node_to_v2(n);
     }
-    j["devices"] = devices;
 
-    // wires: flat list, original form, no rewriting
-    // BUGFIX [e4a1b7] Dedup wires on save — prevents accumulation of duplicate connections
-    json wires = json::array();
+    // Wires
     std::set<std::string> emitted_wire_keys;
     for (const auto& w : bp.wires) {
         // Skip wires where BOTH endpoints are internal nodes of non-baked-in sub-blueprints
@@ -369,370 +488,213 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
             non_baked_in_internals.count(w.end.node_id) > 0) {
             continue;
         }
+        // Skip wires where either endpoint wasn't emitted
         if (!emitted_ids.count(w.start.node_id) || !emitted_ids.count(w.end.node_id))
             continue;
+
         std::string key = w.start.node_id + "." + w.start.port_name + "→" +
                           w.end.node_id + "." + w.end.port_name;
         if (!emitted_wire_keys.insert(key).second) {
             spdlog::warn("[dedup] Duplicate wire on save: {}", key);
             continue;
         }
-        json wire = json::object();
-        wire["from"] = w.start.node_id + "." + w.start.port_name;
-        wire["to"] = w.end.node_id + "." + w.end.port_name;
-        json rps = json::array();
-        for (const auto& pt : w.routing_points)
-            rps.push_back({{"x", pt.x}, {"y", pt.y}});
-        wire["routing_points"] = rps;
-        wires.push_back(wire);
+
+        bpv2.wires.push_back(wire_to_v2(w));
     }
-    j["wires"] = wires;
 
-    // sub_blueprint_instances: hierarchy metadata for visual grouping
-    json sub_blueprint_instances = json::array();
-    std::set<std::string> emitted_group_ids;  // Dedup sub_blueprint_instances
-    for (const auto& group : bp.sub_blueprint_instances) {
-        if (!emitted_group_ids.insert(group.id).second) continue;
-        json gj = {
-            {"id", group.id},
-            {"blueprint_path", group.blueprint_path},
-            {"type_name", group.type_name},
-            {"baked_in", group.baked_in},
-            {"pos", {{"x", group.pos.x}, {"y", group.pos.y}}},
-            {"size", {{"x", group.size.x}, {"y", group.size.y}}},
-            {"internal_node_ids", group.internal_node_ids}
-        };
-        if (!group.params_override.empty()) {
-            json po = json::object();
-            for (const auto& [k, v] : group.params_override)
-                po[k] = v;
-            gj["params_override"] = po;
-        }
-
-        // For non-baked-in SBIs, snapshot live Node::pos into layout_override
-        // so positions survive save/load (internal nodes are not saved as devices)
-        std::map<std::string, Pt> layout = group.layout_override;
-        if (!group.baked_in) {
-            for (const auto& nid : group.internal_node_ids) {
-                if (const Node* n = bp.find_node(nid.c_str()))
-                    layout[nid] = n->pos;
-            }
-        }
-        if (!layout.empty()) {
-            json lo = json::object();
-            for (const auto& [k, pt] : layout)
-                lo[k] = {{"x", pt.x}, {"y", pt.y}};
-            gj["layout_override"] = lo;
-        }
-        if (!group.internal_routing.empty()) {
-            json ir = json::object();
-            for (const auto& [k, pts] : group.internal_routing) {
-                json arr = json::array();
-                for (const auto& pt : pts)
-                    arr.push_back({{"x", pt.x}, {"y", pt.y}});
-                ir[k] = arr;
-            }
-            gj["internal_routing"] = ir;
-        }
-        sub_blueprint_instances.push_back(gj);
+    // Sub-blueprints
+    std::set<std::string> emitted_group_ids;
+    for (const auto& sbi : bp.sub_blueprint_instances) {
+        if (!emitted_group_ids.insert(sbi.id).second) continue;
+        bpv2.sub_blueprints[sbi.id] = sbi_to_v2(sbi, bp);
     }
-    j["sub_blueprint_instances"] = sub_blueprint_instances;
 
-    // viewport
-    j["viewport"] = {
-        {"pan", {{"x", bp.pan.x}, {"y", bp.pan.y}}},
-        {"zoom", bp.zoom},
-        {"grid_step", bp.grid_step}
-    };
-
-    return j.dump(2);
+    return bpv2;
 }
 
-// BUGFIX [f2c8d4] Removed ~200 lines of dead code:
-// - device_to_node() — legacy JSON→Node converter, unused since editor format migration
-// - device_instance_to_node() — DeviceInstance→Node converter, no callers
-// - create_node_content() — duplicate wrapper, replaced by create_node_content_from_def
-// - auto_layout() / port_center() / classify_node() / NodeRole — never called
-// - snap() / LAYOUT_GRID — only used by dead auto_layout
-
-// Разобрать "device.port" на component и port
-static bool parse_port_ref(const std::string& ref, std::string& device, std::string& port) {
-    size_t dot = ref.find('.');
-    if (dot == std::string::npos) return false;
-    device = ref.substr(0, dot);
-    port = ref.substr(dot + 1);
-    return true;
-}
-
-// ─── Apply port types from component registry ──────────────────────────────
-
-static void apply_port_types_from_registry(Node& n, const an24::TypeRegistry& registry) {
-    const auto* def = registry.get(n.type_name);
-    if (!def) return;
-    for (auto& p : n.inputs) {
-        auto it = def->ports.find(p.name);
-        if (it != def->ports.end()) p.type = it->second.type;
-    }
-    for (auto& p : n.outputs) {
-        auto it = def->ports.find(p.name);
-        if (it != def->ports.end()) p.type = it->second.type;
-    }
-}
-
-/// Fill missing params from component definition defaults (same merge as merge_device_instance)
-static void apply_params_from_registry(Node& n, const an24::TypeRegistry& registry) {
-    const auto* def = registry.get(n.type_name);
-    if (!def) return;
-    for (const auto& [key, value] : def->params) {
-        if (n.params.find(key) == n.params.end()) {
-            n.params[key] = value;
-        }
-    }
-}
-
-// ─── Load: editor format (flat devices + wires + sub_blueprint_instances) ─────
-
-static std::optional<Blueprint> load_editor_format(const json& j) {
+/// Convert v2 BlueprintV2 → editor Blueprint (for editor load)
+static std::optional<Blueprint> v2_to_editor_blueprint(const an24::v2::BlueprintV2& bpv2) {
     Blueprint bp;
 
-    // Load devices → nodes (all inline: pos, size, kind, content, group_id)
-    std::set<std::string> loaded_ids;  // Dedup: skip duplicate node IDs
-    for (const auto& d : j["devices"]) {
-        Node n;
-        n.id = d.value("name", "");
-        n.name = d.value("display_name", n.id);
-        n.type_name = d.value("classname", "");
+    // Viewport
+    if (bpv2.viewport.has_value()) {
+        bp.pan = Pt(bpv2.viewport->pan[0], bpv2.viewport->pan[1]);
+        bp.zoom = bpv2.viewport->zoom;
+        bp.grid_step = bpv2.viewport->grid;
+    }
 
-        // BUGFIX [e4a1b7] Skip duplicate node IDs (malformed saves may contain duplicates)
-        if (!loaded_ids.insert(n.id).second) {
-            spdlog::warn("[dedup] Duplicate node '{}' found on load — skipping", n.id);
+    // Nodes
+    std::set<std::string> loaded_ids;
+    for (const auto& [id, nv] : bpv2.nodes) {
+        if (!loaded_ids.insert(id).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on load — skipping", id);
             continue;
         }
 
-        n.render_hint = d.value("render_hint", "");
-        n.expandable = d.value("expandable", false);
-
-        // Ports
-        if (d.contains("ports") && d["ports"].is_object()) {
-            for (auto& [port_name, port_info] : d["ports"].items()) {
-                Port p;
-                p.name = port_name;
-                if (port_info.contains("type")) {
-                    auto pt = parse_port_type_str(port_info["type"].get<std::string>());
-                    if (!pt) {
-                        spdlog::warn("Port '{}' on device '{}': unknown type '{}', defaulting to Any",
-                                     port_name, n.id, port_info["type"].get<std::string>());
-                        p.type = an24::PortType::Any;
-                    } else {
-                        p.type = *pt;
-                    }
-                } else {
-                    spdlog::warn("Port '{}' on device '{}' missing 'type' field in JSON, defaulting to Any",
-                                 port_name, n.id);
-                    p.type = an24::PortType::Any;
-                }
-                std::string dir = port_info.value("direction", "In");
-                if (dir == "Out" || dir == "InOut") {
-                    p.side = PortSide::Output;
-                    n.outputs.push_back(p);
-                }
-                if (dir == "In" || dir == "InOut") {
-                    p.side = PortSide::Input;
-                    n.inputs.push_back(p);
-                }
-            }
+        Node n;
+        n.id = id;
+        n.type_name = nv.type;
+        n.name = nv.display_name.empty() ? id : nv.display_name;
+        n.render_hint = nv.render_hint;
+        n.expandable = nv.expandable;
+        n.group_id = nv.group_id;
+        n.blueprint_path = nv.blueprint_path;
+        if (n.expandable && !n.blueprint_path.empty()) {
+            n.collapsed = true;
         }
 
-        // Params
-        if (d.contains("params") && d["params"].is_object()) {
-            for (auto& [key, val] : d["params"].items()) {
-                n.params[key] = val.is_string() ? val.get<std::string>() : val.dump();
-            }
-        }
-
-        // Blueprint path
-        if (d.contains("blueprint_path")) {
-            n.blueprint_path = d["blueprint_path"].get<std::string>();
-            if (n.expandable)
-                n.collapsed = true;
-        }
-
-        // Position + size (inline)
-        if (d.contains("pos")) {
-            n.pos.x = d["pos"].value("x", 0.0f);
-            n.pos.y = d["pos"].value("y", 0.0f);
-        }
-        if (d.contains("size")) {
-            n.size.x = d["size"].value("x", 120.0f);
-            n.size.y = d["size"].value("y", 80.0f);
+        n.pos = Pt(nv.pos[0], nv.pos[1]);
+        n.size = Pt(nv.size[0], nv.size[1]);
+        if (nv.size[0] != 0.0f || nv.size[1] != 0.0f) {
             n.size_explicitly_set = true;
         }
 
-        // Content (UI metadata)
-        if (d.contains("content")) {
-            const auto& c = d["content"];
-            if (c.contains("type"))
-                n.node_content.type = static_cast<NodeContentType>(c["type"].get<int>());
-            if (c.contains("label"))
-                n.node_content.label = c["label"].get<std::string>();
-            if (c.contains("value"))
-                n.node_content.value = c["value"].get<float>();
-            if (c.contains("min"))
-                n.node_content.min = c["min"].get<float>();
-            if (c.contains("max"))
-                n.node_content.max = c["max"].get<float>();
-            if (c.contains("unit"))
-                n.node_content.unit = c["unit"].get<std::string>();
-            if (c.contains("state"))
-                n.node_content.state = c["state"].get<bool>();
+        // Params
+        for (const auto& [k, v] : nv.params) {
+            n.params[k] = v;
         }
 
-        // Per-node custom color (optional)
-        if (d.contains("color") && d["color"].is_object()) {
+        // Content
+        if (nv.content.has_value()) {
+            n.node_content.type = string_to_content_type(nv.content->kind);
+            n.node_content.label = nv.content->label;
+            n.node_content.value = nv.content->value;
+            n.node_content.min = nv.content->min;
+            n.node_content.max = nv.content->max;
+            n.node_content.unit = nv.content->unit;
+            n.node_content.state = nv.content->state;
+        }
+
+        // Color
+        if (nv.color.has_value()) {
             NodeColor c;
-            c.r = d["color"].value("r", 0.5f);
-            c.g = d["color"].value("g", 0.5f);
-            c.b = d["color"].value("b", 0.5f);
-            c.a = d["color"].value("a", 1.0f);
+            c.r = nv.color->r;
+            c.g = nv.color->g;
+            c.b = nv.color->b;
+            c.a = nv.color->a;
             n.color = c;
         }
 
+        // Ports are NOT stored in v2 editor save — they are enriched from registry below
         bp.nodes.push_back(std::move(n));
     }
 
-    // [PERF-q7r8] Was reloading component registry from disk on every load — now cached as static
+    // Enrich nodes from type registry (ports, params, render_hint)
     static an24::TypeRegistry registry = an24::load_type_registry();
     for (auto& n : bp.nodes) {
-        apply_port_types_from_registry(n, registry);
-        apply_params_from_registry(n, registry);
-        // Enrich render_hint from registry for old saves that predate the migration
-        if (n.render_hint.empty()) {
-            const auto* def = registry.get(n.type_name);
-            if (def) n.render_hint = def->render_hint;
+        const auto* def = registry.get(n.type_name);
+        if (def) {
+            // Reconstruct ports from registry
+            for (const auto& [port_name, port_def] : def->ports) {
+                Port p;
+                p.name = port_name;
+                p.type = port_def.type;
+                if (port_def.direction == an24::PortDirection::In) {
+                    p.side = PortSide::Input;
+                    n.inputs.push_back(p);
+                } else if (port_def.direction == an24::PortDirection::Out) {
+                    p.side = PortSide::Output;
+                    n.outputs.push_back(p);
+                } else if (port_def.direction == an24::PortDirection::InOut) {
+                    // InOut: add to both inputs and outputs
+                    p.side = PortSide::Input;
+                    n.inputs.push_back(p);
+                    Port p_out = p;
+                    p_out.side = PortSide::Output;
+                    n.outputs.push_back(p_out);
+                }
+            }
+
+            // Fill missing params from defaults
+            for (const auto& [key, value] : def->params) {
+                if (n.params.find(key) == n.params.end()) {
+                    n.params[key] = value;
+                }
+            }
+
+            // Enrich render_hint if not saved (old saves)
+            if (n.render_hint.empty()) {
+                n.render_hint = def->render_hint;
+            }
         }
     }
 
-    // BUGFIX [e4a1b7] Load wires with dedup — reject duplicate connections on load
+    // Wires
     std::set<std::string> loaded_wire_keys;
-    for (const auto& ws : j["wires"]) {
-        std::string from = ws.value("from", "");
-        std::string to = ws.value("to", "");
-
-        std::string from_device, from_port, to_device, to_port;
-        if (!parse_port_ref(from, from_device, from_port) ||
-            !parse_port_ref(to, to_device, to_port))
-            continue;
-
-        std::string key = from + "→" + to;
+    for (const auto& wv : bpv2.wires) {
+        std::string key = wv.from.node + "." + wv.from.port + "→" +
+                          wv.to.node + "." + wv.to.port;
         if (!loaded_wire_keys.insert(key).second) {
-            spdlog::warn("[dedup] Duplicate wire on load: {} → {}", from, to);
+            spdlog::warn("[dedup] Duplicate wire on load: {}", key);
             continue;
         }
 
         Wire w;
-        w.id = key;
-        w.start.node_id = from_device;
-        w.start.port_name = from_port;
-        w.end.node_id = to_device;
-        w.end.port_name = to_port;
+        w.id = wv.id.empty() ? key : wv.id;
+        w.start.node_id = wv.from.node;
+        w.start.port_name = wv.from.port;
+        w.start.side = PortSide::Output;
+        w.end.node_id = wv.to.node;
+        w.end.port_name = wv.to.port;
+        w.end.side = PortSide::Input;
 
-        if (ws.contains("routing_points") && ws["routing_points"].is_array()) {
-            std::set<std::pair<float,float>> seen_rps;
-            for (const auto& pj : ws["routing_points"]) {
-                float rx = pj.value("x", 0.0f), ry = pj.value("y", 0.0f);
-                if (!seen_rps.insert({rx, ry}).second) {
-                    spdlog::warn("[dedup] Duplicate routing point ({},{}) in wire {}", rx, ry, key);
-                    continue;
-                }
-                w.routing_points.push_back(Pt(rx, ry));
-            }
+        for (const auto& pt : wv.routing) {
+            w.routing_points.push_back(Pt(pt[0], pt[1]));
         }
 
         bp.wires.push_back(std::move(w));
     }
-
-    // [2.1] Rebuild wire dedup index after loading all wires
     bp.rebuild_wire_index();
 
-    // Reconstruct sub_blueprint_instances from group metadata + group_id on devices
-    if (j.contains("sub_blueprint_instances") && j["sub_blueprint_instances"].is_array()) {
-        // Build map of group_id → internal node IDs from device group_id tags
-        // Use sets to dedup (malformed saves may have duplicate devices)
-        std::map<std::string, std::set<std::string>> group_member_sets;
-        for (const auto& d : j["devices"]) {
-            if (d.contains("group_id")) {
-                group_member_sets[d["group_id"].get<std::string>()].insert(
-                    d.value("name", ""));
+    // Sub-blueprints
+    std::set<std::string> loaded_group_ids;
+    for (const auto& [id, sb] : bpv2.sub_blueprints) {
+        if (!loaded_group_ids.insert(id).second) continue;
+
+        SubBlueprintInstance sbi;
+        sbi.id = id;
+        sbi.blueprint_path = sb.template_path.value_or("");
+        sbi.type_name = sb.type_name;
+        sbi.baked_in = sb.is_embedded();
+        sbi.pos = Pt(sb.pos[0], sb.pos[1]);
+        sbi.size = Pt(sb.size[0], sb.size[1]);
+
+        // Build internal_node_ids from group_id on nodes
+        for (const auto& n : bp.nodes) {
+            if (n.group_id == id) {
+                sbi.internal_node_ids.push_back(n.id);
             }
         }
-        std::map<std::string, std::vector<std::string>> group_members;
-        for (auto& [gid, members] : group_member_sets)
-            group_members[gid] = std::vector<std::string>(members.begin(), members.end());
 
-        std::set<std::string> loaded_group_ids;  // Dedup sub_blueprint_instances by ID
-        for (const auto& gj : j["sub_blueprint_instances"]) {
-            SubBlueprintInstance group;
-            group.id = gj.value("id", "");
-            if (!loaded_group_ids.insert(group.id).second) continue;
-            group.blueprint_path = gj.value("blueprint_path", "");
-            group.type_name = gj.value("type_name", "");
-            group.baked_in = gj.value("baked_in", false);
-
-            // Reconstruct internal_node_ids from group_id tags on devices
-            auto it = group_members.find(group.id);
-            if (it != group_members.end())
-                group.internal_node_ids = it->second;
-
-            // Backward compat: if saved with explicit internal_node_ids, use those
-            if (group.internal_node_ids.empty() &&
-                gj.contains("internal_node_ids") && gj["internal_node_ids"].is_array()) {
-                for (const auto& nid : gj["internal_node_ids"])
-                    group.internal_node_ids.push_back(nid.get<std::string>());
+        // Overrides
+        if (sb.overrides.has_value()) {
+            for (const auto& [k, v] : sb.overrides->params) {
+                sbi.params_override[k] = v;
             }
-
-            // Restore params_override, layout_override, internal_routing
-            if (gj.contains("params_override") && gj["params_override"].is_object()) {
-                for (auto& [k, v] : gj["params_override"].items())
-                    group.params_override[k] = v.get<std::string>();
+            for (const auto& [k, pos] : sb.overrides->layout) {
+                sbi.layout_override[k] = Pt(pos[0], pos[1]);
             }
-            if (gj.contains("layout_override") && gj["layout_override"].is_object()) {
-                for (auto& [k, v] : gj["layout_override"].items())
-                    group.layout_override[k] = Pt(v.value("x", 0.0f), v.value("y", 0.0f));
-            }
-            if (gj.contains("internal_routing") && gj["internal_routing"].is_object()) {
-                for (auto& [k, arr] : gj["internal_routing"].items()) {
-                    std::vector<Pt> pts;
-                    if (arr.is_array()) {
-                        for (const auto& p : arr)
-                            pts.push_back(Pt(p.value("x", 0.0f), p.value("y", 0.0f)));
-                    }
-                    group.internal_routing[k] = pts;
+            for (const auto& [k, pts] : sb.overrides->routing) {
+                std::vector<Pt> rpts;
+                for (const auto& pt : pts) {
+                    rpts.push_back(Pt(pt[0], pt[1]));
                 }
+                sbi.internal_routing[k] = rpts;
             }
-
-            // Get pos/size from the expandable node (single source of truth)
-            bool found_node = false;
-            for (const auto& n : bp.nodes) {
-                if (n.id == group.id && n.expandable) {
-                    group.pos = n.pos;
-                    group.size = n.size;
-                    found_node = true;
-                    break;
-                }
-            }
-            // Fallback: use saved pos/size from JSON (reference-mode instances
-            // may not have a corresponding expandable node yet)
-            if (!found_node && gj.contains("pos")) {
-                group.pos.x = gj["pos"].value("x", 0.0f);
-                group.pos.y = gj["pos"].value("y", 0.0f);
-            }
-            if (!found_node && gj.contains("size")) {
-                group.size.x = gj["size"].value("x", 120.0f);
-                group.size.y = gj["size"].value("y", 80.0f);
-            }
-
-            bp.sub_blueprint_instances.push_back(group);
         }
+
+        // If no expandable node found but we have pos/size from JSON, keep them
+        // (pos/size were already set from sb above)
+        // But if there's an expandable node, use its position as source of truth
+        for (const auto& n : bp.nodes) {
+            if (n.id == id && n.expandable) {
+                sbi.pos = n.pos;
+                sbi.size = n.size;
+                break;
+            }
+        }
+
+        bp.sub_blueprint_instances.push_back(std::move(sbi));
     }
 
     // Re-expand non-baked-in sub-blueprints from library
@@ -756,8 +718,9 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             node.group_id = sbi.id;
             internal_ids.push_back(node.id);
 
-            // Apply layout_override if present
-            auto it = sbi.layout_override.find(node.id);
+            // Apply layout_override if present (keys are unprefixed per v2 design)
+            std::string local_id = node.id.substr(sbi.id.size() + 1);
+            auto it = sbi.layout_override.find(local_id);
             if (it != sbi.layout_override.end())
                 node.pos = it->second;
 
@@ -784,8 +747,7 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
 
         sbi.internal_node_ids = internal_ids;
 
-        // Fallback: if no layout_override was saved (e.g. old save files),
-        // run auto_layout_group so nodes don't all stay at (0,0)
+        // Fallback auto-layout if no layout_override was saved
         if (sbi.layout_override.empty()) {
             bool all_zero = true;
             for (const auto& nid : internal_ids) {
@@ -802,17 +764,6 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     }
     bp.rebuild_wire_index();
 
-    // Viewport
-    if (j.contains("viewport")) {
-        const auto& vp = j["viewport"];
-        if (vp.contains("pan")) {
-            bp.pan.x = vp["pan"].value("x", 0.0f);
-            bp.pan.y = vp["pan"].value("y", 0.0f);
-        }
-        bp.zoom = vp.value("zoom", 1.0f);
-        bp.grid_step = vp.value("grid_step", 16.0f);
-    }
-
     // Initialize next_wire_id
     bp.next_wire_id = static_cast<int>(bp.wires.size());
     for (const auto& w : bp.wires) {
@@ -826,23 +777,29 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
     return bp;
 }
 
+std::string blueprint_to_editor_json(const Blueprint& bp) {
+    auto bpv2 = editor_blueprint_to_v2(bp);
+    return an24::v2::serialize_blueprint_v2(bpv2);
+}
+
+// BUGFIX [f2c8d4] Removed ~200 lines of dead code:
+// - device_to_node() — legacy JSON→Node converter, unused since editor format migration
+// - device_instance_to_node() — DeviceInstance→Node converter, no callers
+// - create_node_content() — duplicate wrapper, replaced by create_node_content_from_def
+// - auto_layout() / port_center() / classify_node() / NodeRole — never called
+// - snap() / LAYOUT_GRID — only used by dead auto_layout
+// [Phase 3] Removed v1 load_editor_format() and helpers — replaced by v2_to_editor_blueprint()
+
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
-    try {
-        json j = json::parse(json_str);
-
-        if (!j.contains("devices") || !j["devices"].is_array())
-            return std::nullopt;
-
-        if (!j.contains("wires") || !j["wires"].is_array()) {
-            spdlog::error("blueprint_from_json: missing 'wires' array (legacy format no longer supported)");
-            return std::nullopt;
-        }
-
-        return load_editor_format(j);
-    } catch (const std::exception& e) {
-        spdlog::error("blueprint_from_json failed: {}", e.what());
-        return std::nullopt;
+    // Try v2 format first
+    auto bpv2 = an24::v2::parse_blueprint_v2(json_str);
+    if (bpv2.has_value()) {
+        return v2_to_editor_blueprint(*bpv2);
     }
+
+    // v2 parse failed — this is not a valid v2 blueprint
+    spdlog::error("blueprint_from_json: not a valid v2 blueprint (version field missing or != 2)");
+    return std::nullopt;
 }
 
 bool save_blueprint_to_file(const Blueprint& bp, const char* path) {

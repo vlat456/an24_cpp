@@ -1011,6 +1011,34 @@ document_window_system_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
 .PHONY : document_window_system_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/blueprint_v2_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_v2_tests.dir/rule
+.PHONY : tests/CMakeFiles/blueprint_v2_tests.dir/rule
+
+# Convenience name for target.
+blueprint_v2_tests: tests/CMakeFiles/blueprint_v2_tests.dir/rule
+.PHONY : blueprint_v2_tests
+
+# fast build rule for target.
+blueprint_v2_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/build
+.PHONY : blueprint_v2_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/library_v2_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/library_v2_tests.dir/rule
+.PHONY : tests/CMakeFiles/library_v2_tests.dir/rule
+
+# Convenience name for target.
+library_v2_tests: tests/CMakeFiles/library_v2_tests.dir/rule
+.PHONY : library_v2_tests
+
+# fast build rule for target.
+library_v2_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
+.PHONY : library_v2_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -2607,6 +2635,30 @@ test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
 
+test_blueprint_v2.o: test_blueprint_v2.cpp.o
+.PHONY : test_blueprint_v2.o
+
+# target to build an object file
+test_blueprint_v2.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.o
+.PHONY : test_blueprint_v2.cpp.o
+
+test_blueprint_v2.i: test_blueprint_v2.cpp.i
+.PHONY : test_blueprint_v2.i
+
+# target to preprocess a source file
+test_blueprint_v2.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.i
+.PHONY : test_blueprint_v2.cpp.i
+
+test_blueprint_v2.s: test_blueprint_v2.cpp.s
+.PHONY : test_blueprint_v2.s
+
+# target to generate assembly for a file
+test_blueprint_v2.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.s
+.PHONY : test_blueprint_v2.cpp.s
+
 test_bus_port_swap.o: test_bus_port_swap.cpp.o
 .PHONY : test_bus_port_swap.o
 
@@ -2990,6 +3042,30 @@ test_layout.s: test_layout.cpp.s
 test_layout.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/layout_tests.dir/build.make tests/CMakeFiles/layout_tests.dir/test_layout.cpp.s
 .PHONY : test_layout.cpp.s
+
+test_library_v2.o: test_library_v2.cpp.o
+.PHONY : test_library_v2.o
+
+# target to build an object file
+test_library_v2.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.o
+.PHONY : test_library_v2.cpp.o
+
+test_library_v2.i: test_library_v2.cpp.i
+.PHONY : test_library_v2.i
+
+# target to preprocess a source file
+test_library_v2.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.i
+.PHONY : test_library_v2.cpp.i
+
+test_library_v2.s: test_library_v2.cpp.s
+.PHONY : test_library_v2.s
+
+# target to generate assembly for a file
+test_library_v2.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.s
+.PHONY : test_library_v2.cpp.s
 
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
@@ -3758,6 +3834,7 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... blueprint_v2_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -3781,6 +3858,7 @@ help:
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... layout_tests"
+	@echo "... library_v2_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -3922,6 +4000,9 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
+	@echo "... test_blueprint_v2.o"
+	@echo "... test_blueprint_v2.i"
+	@echo "... test_blueprint_v2.s"
 	@echo "... test_bus_port_swap.o"
 	@echo "... test_bus_port_swap.i"
 	@echo "... test_bus_port_swap.s"
@@ -3970,6 +4051,9 @@ help:
 	@echo "... test_layout.o"
 	@echo "... test_layout.i"
 	@echo "... test_layout.s"
+	@echo "... test_library_v2.o"
+	@echo "... test_library_v2.i"
+	@echo "... test_library_v2.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"

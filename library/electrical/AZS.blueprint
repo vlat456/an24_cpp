@@ -1,0 +1,49 @@
+{
+  "exposes": {
+    "control": {
+      "direction": "In",
+      "type": "Temperature"
+    },
+    "state": {
+      "direction": "Out",
+      "type": "Bool"
+    },
+    "temp": {
+      "direction": "Out",
+      "type": "Temperature"
+    },
+    "tripped": {
+      "direction": "Out",
+      "type": "Bool"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "VerticalToggle",
+    "cpp_class": true,
+    "description": "Aircraft circuit breaker (Автомат Защиты Сети). Hybrid switch + thermal fuse. Manual toggle via control, auto-trips on overcurrent. Thermal model: T += (I² * r_heat - T * k_cool) * dt. Trips at T > 1.0.",
+    "domains": [
+      "Electrical",
+      "Thermal"
+    ],
+    "name": "AZS"
+  },
+  "params": {
+    "closed": {
+      "default": "false",
+      "type": "bool"
+    },
+    "i_nominal": {
+      "default": "20.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

@@ -162,3 +162,13 @@ add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
 
+# Library v1 → v2 converter (one-shot tool)
+add_executable(convert_library convert_library.cpp)
+target_include_directories(convert_library PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/v2
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(convert_library PRIVATE json_parser blueprint_v2 nlohmann_json::nlohmann_json spdlog::spdlog)
+

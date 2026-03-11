@@ -491,6 +491,7 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     vin.id = "lamp_1:vin";
     vin.type_name = "BlueprintInput";
     vin.group_id = "lamp_1";
+    vin.at(350.0f, 300.0f);  // Match layout_override so snapshot preserves it
     bp.add_node(vin);
 
     Node lamp;

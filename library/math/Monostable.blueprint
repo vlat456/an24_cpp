@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Pulse timer: outputs 1.0 for duration after rising edge",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Monostable",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "duration": {
+      "default": "30.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

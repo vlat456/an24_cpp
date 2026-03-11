@@ -1,0 +1,29 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Logical AND gate: output = A && B",
+    "domains": [
+      "Logical"
+    ],
+    "name": "AND",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

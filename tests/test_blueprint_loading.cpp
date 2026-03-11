@@ -433,3 +433,179 @@ TEST(BlueprintCycleDetection, ValidNesting_NoCycle) {
     }
     EXPECT_TRUE(found_sb_bat);
 }
+
+// =============================================================================
+// Regression: .blueprint extension standardization
+// =============================================================================
+
+// Verify load_type_registry scans only .blueprint files
+TEST(BlueprintExtension, RegistryLoadsOnlyBlueprintFiles) {
+    TypeRegistry reg = load_type_registry("library/");
+    // Registry must find at least some components
+    EXPECT_GT(reg.types.size(), 10u) << "Registry should load many .blueprint files";
+    // Battery is a well-known component
+    EXPECT_TRUE(reg.has("Battery"));
+    // simple_battery (composite) must also load from .blueprint
+    EXPECT_TRUE(reg.has("simple_battery"));
+}
+
+// Verify that .json files in library/ are ignored by the loader
+TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
+    // Create a temp directory with one .blueprint and one .json file
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_ext_test";
+    fs::create_directories(tmp_dir);
+
+    // Write a valid .blueprint file
+    {
+        std::ofstream f(tmp_dir / "TestComp.blueprint");
+        f << R"({
+            "version": 2,
+            "meta": {
+                "name": "TestComp",
+                "description": "Test component",
+                "domains": ["Electrical"],
+                "cpp_class": true
+            },
+            "exposes": {
+                "v_out": {"direction": "Out", "type": "V"}
+            },
+            "params": {},
+            "nodes": {},
+            "wires": []
+        })";
+    }
+
+    // Write a .json file (should be ignored)
+    {
+        std::ofstream f(tmp_dir / "Ignored.json");
+        f << R"({
+            "version": 2,
+            "meta": {
+                "name": "Ignored",
+                "description": "Should not be loaded",
+                "domains": ["Electrical"],
+                "cpp_class": true
+            },
+            "exposes": {},
+            "params": {},
+            "nodes": {},
+            "wires": []
+        })";
+    }
+
+    TypeRegistry reg = load_type_registry(tmp_dir.string());
+    EXPECT_TRUE(reg.has("TestComp")) << ".blueprint file should be loaded";
+    EXPECT_FALSE(reg.has("Ignored")) << ".json file must NOT be loaded";
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+// Verify no .json files remain in library/
+TEST(BlueprintExtension, NoJsonFilesInLibrary) {
+    namespace fs = std::filesystem;
+
+    // Find library path (same search logic as load_type_registry)
+    fs::path library_path = "library/";
+    std::vector<fs::path> try_paths = {
+        "library/", "../library/", "../../library/", "../../../library/"
+    };
+    for (const auto& p : try_paths) {
+        if (fs::exists(p)) {
+            library_path = p;
+            break;
+        }
+    }
+    ASSERT_TRUE(fs::exists(library_path)) << "library/ directory not found";
+
+    std::vector<std::string> json_files;
+    for (const auto& entry : fs::recursive_directory_iterator(library_path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            json_files.push_back(entry.path().string());
+        }
+    }
+    EXPECT_TRUE(json_files.empty())
+        << "Found stray .json files in library/: "
+        << (json_files.empty() ? "" : json_files[0]);
+}
+
+// Verify all library files use .blueprint extension
+TEST(BlueprintExtension, AllLibraryFilesAreBlueprintExtension) {
+    namespace fs = std::filesystem;
+
+    fs::path library_path = "library/";
+    std::vector<fs::path> try_paths = {
+        "library/", "../library/", "../../library/", "../../../library/"
+    };
+    for (const auto& p : try_paths) {
+        if (fs::exists(p)) {
+            library_path = p;
+            break;
+        }
+    }
+    ASSERT_TRUE(fs::exists(library_path));
+
+    size_t blueprint_count = 0;
+    size_t other_count = 0;
+    for (const auto& entry : fs::recursive_directory_iterator(library_path)) {
+        if (entry.is_regular_file()) {
+            // Skip hidden files (.DS_Store, etc.)
+            if (entry.path().filename().string()[0] == '.') continue;
+            if (entry.path().extension() == ".blueprint") {
+                blueprint_count++;
+            } else {
+                other_count++;
+                ADD_FAILURE() << "Non-.blueprint file in library: " << entry.path();
+            }
+        }
+    }
+    EXPECT_GT(blueprint_count, 0u) << "Should find .blueprint files";
+    EXPECT_EQ(other_count, 0u) << "No non-.blueprint files should exist in library/";
+}
+
+// Verify blueprint.blueprint (main save file) exists and is valid v2
+TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
+    namespace fs = std::filesystem;
+
+    std::vector<std::string> paths = {
+        "blueprint.blueprint", "../blueprint.blueprint", "../../blueprint.blueprint"
+    };
+    std::string content;
+    for (const auto& p : paths) {
+        std::ifstream f(p);
+        if (f.is_open()) {
+            content.assign(std::istreambuf_iterator<char>(f),
+                          std::istreambuf_iterator<char>());
+            break;
+        }
+    }
+    ASSERT_FALSE(content.empty()) << "blueprint.blueprint not found";
+
+    // Must be valid JSON with version: 2
+    auto j = nlohmann::json::parse(content);
+    EXPECT_EQ(j.at("version").get<int>(), 2) << "blueprint.blueprint must be v2 format";
+}
+
+// Verify codegen source_file uses .blueprint extension
+TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
+    // The codegen generates source_file = classname + ".blueprint"
+    // We verify by loading a composite type and checking it round-trips
+    TypeRegistry reg = load_type_registry("library/");
+
+    // Find any composite (cpp_class=false) type
+    std::string composite_name;
+    for (const auto& [name, def] : reg.types) {
+        if (!def.cpp_class) {
+            composite_name = name;
+            break;
+        }
+    }
+    ASSERT_FALSE(composite_name.empty()) << "Need at least one composite type for test";
+
+    const auto* def = reg.get(composite_name);
+    ASSERT_NE(def, nullptr);
+    // Verify classname doesn't contain .json
+    EXPECT_EQ(def->classname.find(".json"), std::string::npos)
+        << "Classname should not contain .json: " << def->classname;
+}

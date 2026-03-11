@@ -1,0 +1,27 @@
+{
+  "exposes": {
+    "temp_in": {
+      "direction": "In",
+      "type": "I"
+    },
+    "temp_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Temperature sensor with sensitivity",
+    "domains": [
+      "Thermal"
+    ],
+    "name": "TempSensor"
+  },
+  "params": {
+    "sensitivity": {
+      "default": "1.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

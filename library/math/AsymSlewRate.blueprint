@@ -1,0 +1,39 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Asymmetric linear rate limiter for WASM",
+    "domains": [
+      "Logical"
+    ],
+    "name": "AsymSlewRate",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "deadzone": {
+      "default": "0.0001",
+      "type": "float"
+    },
+    "rate_down": {
+      "default": "0.5",
+      "type": "float"
+    },
+    "rate_up": {
+      "default": "1.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

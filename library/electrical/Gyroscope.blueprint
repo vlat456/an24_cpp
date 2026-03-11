@@ -1,0 +1,23 @@
+{
+  "exposes": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Gyroscope sensor (power-only load)",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Gyroscope"
+  },
+  "params": {
+    "conductance": {
+      "default": "0.035",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

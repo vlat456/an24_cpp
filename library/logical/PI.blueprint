@@ -1,0 +1,43 @@
+{
+  "exposes": {
+    "feedback": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "setpoint": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "PI controller with proportional and integral terms (no derivative)",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "PI"
+  },
+  "params": {
+    "Ki": {
+      "default": "0.0",
+      "type": "float"
+    },
+    "Kp": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "output_max": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "output_min": {
+      "default": "-1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

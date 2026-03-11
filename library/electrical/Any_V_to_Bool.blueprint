@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "Vin": {
+      "direction": "In",
+      "type": "V"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Convert any non-zero voltage to TRUE (including negative)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Any_V_to_Bool",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

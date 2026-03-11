@@ -69,19 +69,14 @@ TEST(ParamsIntegrity, AddComponentNoParamsForUnknownComponent) {
 TEST(ParamsIntegrity, LoadedBlueprintHasFullParams) {
     // JSON with a Battery that has NO params saved (simulating old format)
     const char* json_str = R"({
-        "devices": [
-            {
-                "name": "batt1",
-                "classname": "Battery",
-                "kind": "Node",
-                "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
-                },
-                "pos": {"x": 100, "y": 100},
-                "size": {"x": 120, "y": 80}
+        "version": 2, "meta": {"name": ""},
+        "nodes": {
+            "batt1": {
+                "type": "Battery",
+                "pos": [100, 100],
+                "size": [120, 80]
             }
-        ],
+        },
         "wires": []
     })";
 
@@ -107,22 +102,15 @@ TEST(ParamsIntegrity, LoadedBlueprintHasFullParams) {
 TEST(ParamsIntegrity, UserOverridesPreservedOnLoad) {
     // JSON with a Battery that has partial params (user override)
     const char* json_str = R"({
-        "devices": [
-            {
-                "name": "batt1",
-                "classname": "Battery",
-                "kind": "Node",
-                "ports": {
-                    "v_in": {"direction": "In", "type": "V"},
-                    "v_out": {"direction": "Out", "type": "V"}
-                },
-                "params": {
-                    "v_nominal": "24.0"
-                },
-                "pos": {"x": 100, "y": 100},
-                "size": {"x": 120, "y": 80}
+        "version": 2, "meta": {"name": ""},
+        "nodes": {
+            "batt1": {
+                "type": "Battery",
+                "params": {"v_nominal": "24.0"},
+                "pos": [100, 100],
+                "size": [120, 80]
             }
-        ],
+        },
         "wires": []
     })";
 
@@ -185,18 +173,14 @@ TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
     // If a component type has no params, node.params should remain empty
     // (e.g., Bus has no params)
     const char* json_str = R"({
-        "devices": [
-            {
-                "name": "bus1",
-                "classname": "Bus",
-                "kind": "Bus",
-                "ports": {
-                    "a": {"direction": "InOut", "type": "V"}
-                },
-                "pos": {"x": 100, "y": 100},
-                "size": {"x": 40, "y": 40}
+        "version": 2, "meta": {"name": ""},
+        "nodes": {
+            "bus1": {
+                "type": "Bus",
+                "pos": [100, 100],
+                "size": [40, 40]
             }
-        ],
+        },
         "wires": []
     })";
 

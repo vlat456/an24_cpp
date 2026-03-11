@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include "blueprint_v2.h"
+#include "convert.h"
 
 using json = nlohmann::json;
 
@@ -129,7 +131,7 @@ static DeviceInstance parse_device(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in type definitions (library/*.json). Users cannot override domains.
+    // in type definitions (library/*.blueprint). Users cannot override domains.
 
     // Editor layout (optional, for blueprint expansion)
     if (j.contains("pos") && j["pos"].is_object()) {
@@ -206,7 +208,7 @@ static SystemTemplate parse_template(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in type definitions (library/*.json).
+    // in type definitions (library/*.blueprint).
 
     return tpl;
 }
@@ -555,7 +557,7 @@ static json device_to_json(const DeviceInstance& dev) {
     }
 
     // NOTE: Domains are NOT serialized to JSON - they are defined exclusively
-    // in type definitions (library/*.json).
+    // in type definitions (library/*.blueprint).
 
     return j;
 }
@@ -795,18 +797,26 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
         return registry;
     }
 
-    // Scan for *.json files recursively
+    // Scan for *.blueprint files recursively (v2 format)
     size_t loaded_count = 0;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(library_path)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+        if (entry.is_regular_file() && entry.path().extension() == ".blueprint") {
             try {
-                // Read and parse JSON file
+                // Read file content
                 std::ifstream file(entry.path());
-                json j;
-                file >> j;
+                std::string content((std::istreambuf_iterator<char>(file)),
+                                     std::istreambuf_iterator<char>());
 
-                // Parse type definition
-                TypeDefinition def = parse_type_definition(j);
+                // Parse v2 blueprint
+                auto bp_opt = v2::parse_blueprint_v2(content);
+                if (!bp_opt.has_value()) {
+                    spdlog::error("[json_parser] Failed to parse v2 blueprint '{}'",
+                                  entry.path().string());
+                    continue;
+                }
+
+                // Convert to TypeDefinition
+                TypeDefinition def = v2::v2_to_type_definition(*bp_opt);
 
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {

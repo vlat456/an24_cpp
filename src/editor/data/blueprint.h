@@ -15,7 +15,7 @@
 /// Instance of a sub-blueprint — reference (baked_in=false) or embedded (baked_in=true).
 struct SubBlueprintInstance {
     std::string id;                  // Unique instance ID: "lamp_1"
-    std::string blueprint_path;      // "library/systems/lamp_pass_through.json"
+    std::string blueprint_path;      // "library/systems/lamp_pass_through.blueprint"
     std::string type_name;           // "lamp_pass_through" (for UI display)
 
     bool baked_in = false;           // true = inline devices saved to JSON

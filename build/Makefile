@@ -276,6 +276,19 @@ json_parser/fast:
 .PHONY : json_parser/fast
 
 #=============================================================================
+# Target rules for targets named blueprint_v2
+
+# Build rule for target.
+blueprint_v2: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_v2
+.PHONY : blueprint_v2
+
+# fast build rule for target.
+blueprint_v2/fast:
+	$(MAKE) $(MAKESILENT) -f src/v2/CMakeFiles/blueprint_v2.dir/build.make src/v2/CMakeFiles/blueprint_v2.dir/build
+.PHONY : blueprint_v2/fast
+
+#=============================================================================
 # Target rules for targets named hello_world
 
 # Build rule for target.
@@ -352,6 +365,19 @@ benchmark_jit_vs_aot: cmake_check_build_system
 benchmark_jit_vs_aot/fast:
 	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
 .PHONY : benchmark_jit_vs_aot/fast
+
+#=============================================================================
+# Target rules for targets named convert_library
+
+# Build rule for target.
+convert_library: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 convert_library
+.PHONY : convert_library
+
+# fast build rule for target.
+convert_library/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/build
+.PHONY : convert_library/fast
 
 #=============================================================================
 # Target rules for targets named port_registry_tests
@@ -1133,6 +1159,32 @@ document_window_system_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
 .PHONY : document_window_system_tests/fast
 
+#=============================================================================
+# Target rules for targets named blueprint_v2_tests
+
+# Build rule for target.
+blueprint_v2_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_v2_tests
+.PHONY : blueprint_v2_tests
+
+# fast build rule for target.
+blueprint_v2_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/build
+.PHONY : blueprint_v2_tests/fast
+
+#=============================================================================
+# Target rules for targets named library_v2_tests
+
+# Build rule for target.
+library_v2_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 library_v2_tests
+.PHONY : library_v2_tests
+
+# fast build rule for target.
+library_v2_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
+.PHONY : library_v2_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1160,12 +1212,15 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... blueprint_v2"
+	@echo "... blueprint_v2_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
 	@echo "... comparison_components_tests"
 	@echo "... context_menu_tests"
+	@echo "... convert_library"
 	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
@@ -1191,6 +1246,7 @@ help:
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... layout_tests"
+	@echo "... library_v2_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"

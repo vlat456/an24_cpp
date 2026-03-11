@@ -31,7 +31,7 @@ public:
     const std::string& filepath() const { return filepath_; }
     const std::string& displayName() const { return display_name_; }
 
-    /// Title for ImGui tab: "filename.json*" if modified
+    /// Title for ImGui tab: "filename.blueprint*" if modified
     std::string title() const;
 
     // ── Modified tracking ──

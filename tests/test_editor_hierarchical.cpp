@@ -1438,23 +1438,25 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     std::string json_str = blueprint_to_editor_json(bp);
     auto j = json::parse(json_str);
 
-    // Verify the added node has group_id in JSON
-    bool found_res_with_group = false;
-    for (const auto& d : j["devices"]) {
-        if (d["name"] == "resistor_1") {
-            ASSERT_TRUE(d.contains("group_id")) << "Added sub-node must have group_id in JSON";
-            EXPECT_EQ(d["group_id"].get<std::string>(), "lpt");
-            found_res_with_group = true;
-        }
+    // Verify the added node has group_id in JSON (v2: nodes is object keyed by id)
+    ASSERT_TRUE(j.contains("nodes"));
+    ASSERT_TRUE(j["nodes"].contains("resistor_1")) << "Added Resistor must be in saved nodes";
+    {
+        const auto& res_j = j["nodes"]["resistor_1"];
+        ASSERT_TRUE(res_j.contains("group_id")) << "Added sub-node must have group_id in JSON";
+        EXPECT_EQ(res_j["group_id"].get<std::string>(), "lpt");
     }
-    EXPECT_TRUE(found_res_with_group) << "Added Resistor must be in saved devices";
 
-    // Verify the wire is saved
+    // Verify the wire is saved (v2: from/to are arrays, routing not routing_points)
     bool found_wire = false;
-    for (const auto& ws : j["wires"]) {
-        if (ws["from"] == "lpt:lamp.v_out" && ws["to"] == "resistor_1.v_in") {
-            found_wire = true;
-            EXPECT_EQ(ws["routing_points"].size(), 1u);
+    if (j.contains("wires")) {
+        for (const auto& ws : j["wires"]) {
+            auto from_arr = json::array({"lpt:lamp", "v_out"});
+            auto to_arr = json::array({"resistor_1", "v_in"});
+            if (ws["from"] == from_arr && ws["to"] == to_arr) {
+                found_wire = true;
+                EXPECT_EQ(ws["routing"].size(), 1u);
+            }
         }
     }
     EXPECT_TRUE(found_wire) << "Wire inside sub-blueprint must be saved";
@@ -1561,38 +1563,42 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     std::string json_str = blueprint_to_editor_json(original);
     auto j = json::parse(json_str);
 
-    // Verify structure: top-level "wires" (not "connections"), "sub_blueprint_instances", "viewport"
-    EXPECT_TRUE(j.contains("wires"));
-    EXPECT_TRUE(j.contains("sub_blueprint_instances"));
+    // Verify structure: v2 uses "nodes" (object), "sub_blueprints" (object), "wires", "viewport"
+    EXPECT_TRUE(j.contains("nodes"));
+    EXPECT_TRUE(j.contains("sub_blueprints"));
     EXPECT_TRUE(j.contains("viewport"));
     EXPECT_FALSE(j.contains("connections")) << "Editor format should not have 'connections'";
     EXPECT_FALSE(j.contains("editor")) << "Editor format should not have nested 'editor' section";
+    EXPECT_FALSE(j.contains("devices")) << "v2 uses 'nodes' not 'devices'";
 
-    // Verify all nodes present (including expandable nodes)
-    EXPECT_EQ(j["devices"].size(), original.nodes.size());
+    // Verify all nodes present (v2: nodes is object keyed by id)
+    EXPECT_EQ(j["nodes"].size(), original.nodes.size());
 
-    // Verify expandable node is in devices with expandable flag + group_id
+    // Verify expandable node is in nodes with expandable flag + group_id
     bool found_blueprint = false;
     bool found_internal_with_group = false;
-    for (const auto& d : j["devices"]) {
-        if (d["name"] == "lamp1" && d.value("expandable", false)) {
+    for (const auto& [id, d] : j["nodes"].items()) {
+        if (id == "lamp1" && d.value("expandable", false)) {
             found_blueprint = true;
-            EXPECT_EQ(d["pos"]["x"].get<float>(), original.find_node("lamp1")->pos.x);
+            EXPECT_FLOAT_EQ(d["pos"][0].get<float>(), original.find_node("lamp1")->pos.x);
         }
-        if (d["name"] == "lamp1:lamp" && d.contains("group_id") && d["group_id"] == "lamp1") {
+        if (id == "lamp1:lamp" && d.contains("group_id") && d["group_id"] == "lamp1") {
             found_internal_with_group = true;
         }
     }
-    EXPECT_TRUE(found_blueprint) << "Expandable node must be in devices array";
+    EXPECT_TRUE(found_blueprint) << "Expandable node must be in nodes object";
     EXPECT_TRUE(found_internal_with_group) << "Internal nodes must have group_id";
 
-    // Verify wires are in original form (not rewritten)
+    // Verify wires are in original form (v2: from/to are arrays)
     bool found_wire_to_blueprint = false;
-    for (const auto& w : j["wires"]) {
-        if (w["from"] == "bat.v_out" && w["to"] == "lamp1.vin") {
-            found_wire_to_blueprint = true;
-            // Routing points preserved
-            EXPECT_EQ(w["routing_points"].size(), 2u);
+    if (j.contains("wires")) {
+        for (const auto& w : j["wires"]) {
+            auto from_arr = json::array({"bat", "v_out"});
+            auto to_arr = json::array({"lamp1", "vin"});
+            if (w["from"] == from_arr && w["to"] == to_arr) {
+                found_wire_to_blueprint = true;
+                EXPECT_EQ(w["routing"].size(), 2u);
+            }
         }
     }
     EXPECT_TRUE(found_wire_to_blueprint) << "Wires must reference Blueprint node directly (no rewriting)";
@@ -1776,15 +1782,15 @@ TEST(BlueprintVisibility, GroupedNodeHasContent_ButFilteredByGroupId) {
 }
 
 // =============================================================================
-// Diagnostic: Load blueprint.json and run JIT simulation
+// Diagnostic: Load blueprint.blueprint and run JIT simulation
 // =============================================================================
 
-TEST(BlueprintSignalFlow, BlueprintJsonFile_SOR_Stability) {
-    // Load the user's blueprint.json file
+TEST(BlueprintSignalFlow, BlueprintFile_SOR_Stability) {
+    // Load the user's blueprint.blueprint file
     std::vector<std::string> paths = {
-        "blueprint.json",
-        "../blueprint.json",
-        "../../blueprint.json",
+        "blueprint.blueprint",
+        "../blueprint.blueprint",
+        "../../blueprint.blueprint",
     };
     std::string json_str;
     for (const auto& p : paths) {
@@ -1795,11 +1801,11 @@ TEST(BlueprintSignalFlow, BlueprintJsonFile_SOR_Stability) {
             break;
         }
     }
-    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.json";
+    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.blueprint";
 
     // Load as editor format
     auto bp_opt = blueprint_from_json(json_str);
-    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse blueprint.json";
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse blueprint.blueprint";
     Blueprint& bp = *bp_opt;
 
     // Count duplicate device names
@@ -1903,9 +1909,9 @@ TEST(BlueprintSignalFlow, BlueprintJsonFile_SOR_Stability) {
 }
 
 // Same test but using Simulator<JIT_Solver> (the actual editor path)
-TEST(BlueprintSignalFlow, BlueprintJsonFile_JIT_Simulator) {
+TEST(BlueprintSignalFlow, BlueprintFile_JIT_Simulator) {
     std::vector<std::string> paths = {
-        "blueprint.json", "../blueprint.json", "../../blueprint.json",
+        "blueprint.blueprint", "../blueprint.blueprint", "../../blueprint.blueprint",
     };
     std::string json_str;
     for (const auto& p : paths) {
@@ -1916,7 +1922,7 @@ TEST(BlueprintSignalFlow, BlueprintJsonFile_JIT_Simulator) {
             break;
         }
     }
-    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.json";
+    ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.blueprint";
 
     auto bp_opt = blueprint_from_json(json_str);
     ASSERT_TRUE(bp_opt.has_value());

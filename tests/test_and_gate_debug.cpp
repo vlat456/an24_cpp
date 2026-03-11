@@ -1,5 +1,5 @@
 /// Debug test for AND gate always outputting 1
-/// Reproduces the circuit from blueprint.json:
+/// Reproduces the circuit from blueprint.blueprint:
 ///   Battery -> Bus -> Positive_V_to_Bool -> AND.A
 ///   HoldButton.state -> AND.B
 ///   (HoldButton not pressed -> state = 0 -> AND should output 0)

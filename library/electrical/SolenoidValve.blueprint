@@ -1,0 +1,32 @@
+{
+  "exposes": {
+    "ctrl": {
+      "direction": "In",
+      "type": "Temperature"
+    },
+    "flow_in": {
+      "direction": "In",
+      "type": "I"
+    },
+    "flow_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Electrically controlled hydraulic valve",
+    "domains": [
+      "Electrical",
+      "Hydraulic"
+    ],
+    "name": "SolenoidValve"
+  },
+  "params": {
+    "normally_closed": {
+      "default": "true",
+      "type": "bool"
+    }
+  },
+  "version": 2
+}

@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "description": "Visual text label for annotating circuit diagrams. No logic, no ports.",
+    "name": "Text",
+    "render_hint": "text",
+    "size": [
+      10.0,
+      4.0
+    ],
+    "visual_only": true
+  },
+  "version": 2
+}

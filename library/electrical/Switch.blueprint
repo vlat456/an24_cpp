@@ -1,0 +1,36 @@
+{
+  "exposes": {
+    "control": {
+      "direction": "In",
+      "type": "Temperature"
+    },
+    "state": {
+      "direction": "Out",
+      "type": "Bool"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "Switch",
+    "cpp_class": true,
+    "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Switch"
+  },
+  "params": {
+    "closed": {
+      "default": "false",
+      "type": "bool"
+    }
+  },
+  "version": 2
+}

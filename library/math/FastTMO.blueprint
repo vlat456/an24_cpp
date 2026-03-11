@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "WASM-optimized branchless TMO filter",
+    "domains": [
+      "Logical"
+    ],
+    "name": "FastTMO",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "deadzone": {
+      "default": "0.001",
+      "type": "float"
+    },
+    "tau": {
+      "default": "0.1",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

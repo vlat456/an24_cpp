@@ -1,0 +1,39 @@
+{
+  "exposes": {
+    "feedback": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "setpoint": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "P controller with proportional term only",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "P"
+  },
+  "params": {
+    "Kp": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "output_max": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "output_min": {
+      "default": "-1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

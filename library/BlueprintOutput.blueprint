@@ -1,0 +1,41 @@
+{
+  "exposes": {
+    "ext": {
+      "alias": "port",
+      "direction": "Out",
+      "type": "Any"
+    },
+    "port": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Output port marker for nested blueprints - exposes internal signal to parent blueprint as output port. Works as pass-through junction (union-find collapses port to connected signal).",
+    "domains": [
+      "Electrical",
+      "Logical",
+      "Mechanical",
+      "Hydraulic",
+      "Thermal"
+    ],
+    "name": "BlueprintOutput",
+    "priority": "high",
+    "size": [
+      1.0,
+      1.0
+    ]
+  },
+  "params": {
+    "exposed_direction": {
+      "default": "Out",
+      "type": "string"
+    },
+    "exposed_type": {
+      "default": "V",
+      "type": "string"
+    }
+  },
+  "version": 2
+}

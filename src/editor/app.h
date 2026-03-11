@@ -32,7 +32,7 @@ struct EditorApp {
     an24::Simulator<an24::JIT_Solver> simulation;
     bool simulation_running = false;
 
-    /// Type registry (loaded from library/*.json)
+    /// Type registry (loaded from library/*.blueprint)
     an24::TypeRegistry type_registry;
 
     /// Context menu state (tracks which window triggered it)

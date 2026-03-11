@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Outputs the smaller of two inputs",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Min"
+  },
+  "version": 2
+}

@@ -1,0 +1,40 @@
+{
+  "exposes": {
+    "brightness": {
+      "direction": "Out",
+      "type": "I"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "Text",
+    "cpp_class": true,
+    "description": "Aircraft indicator light with brightness output",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "IndicatorLight"
+  },
+  "params": {
+    "color": {
+      "default": "white",
+      "type": "string"
+    },
+    "conductance": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "max_brightness": {
+      "default": "100.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

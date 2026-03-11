@@ -1352,3 +1352,35 @@ target_link_libraries(document_window_system_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(document_window_system_tests)
+
+# Blueprint v2 format tests (Phase 1: parser/serializer)
+add_executable(blueprint_v2_tests
+    test_blueprint_v2.cpp
+)
+target_include_directories(blueprint_v2_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/v2
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(blueprint_v2_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(blueprint_v2_tests)
+
+# Library v2 conversion tests (Phase 2: library conversion)
+add_executable(library_v2_tests
+    test_library_v2.cpp
+)
+target_include_directories(library_v2_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/v2
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(library_v2_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(library_v2_tests)

@@ -1,0 +1,1180 @@
+{
+  "meta": {
+    "name": ""
+  },
+  "nodes": {
+    "and_1": {
+      "pos": [
+        560.0,
+        0.0
+      ],
+      "size": [
+        80.0,
+        80.0
+      ],
+      "type": "AND"
+    },
+    "azs_1": {
+      "content": {
+        "kind": "vertical_toggle",
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "display_name": "АЗС батареи",
+      "params": {
+        "closed": "false",
+        "i_nominal": "20.0"
+      },
+      "pos": [
+        -64.0,
+        -176.0
+      ],
+      "size": [
+        112.0,
+        112.0
+      ],
+      "type": "AZS"
+    },
+    "azs_2": {
+      "content": {
+        "kind": "vertical_toggle",
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "display_name": "Азс батареи",
+      "params": {
+        "closed": "false",
+        "i_nominal": "20.0"
+      },
+      "pos": [
+        96.0,
+        128.0
+      ],
+      "size": [
+        176.0,
+        112.0
+      ],
+      "type": "AZS"
+    },
+    "bat_main_1": {
+      "display_name": "Батарейка",
+      "params": {
+        "capacity": "1000.0",
+        "charge": "1000.0",
+        "internal_r": "0.01",
+        "inv_capacity": "0.001",
+        "inv_internal_r": "100.0",
+        "v_nominal": "28.0"
+      },
+      "pos": [
+        -80.0,
+        -32.0
+      ],
+      "size": [
+        144.0,
+        64.0
+      ],
+      "type": "Battery"
+    },
+    "bus_1": {
+      "pos": [
+        288.0,
+        336.0
+      ],
+      "render_hint": "bus",
+      "size": [
+        112.0,
+        32.0
+      ],
+      "type": "Bus"
+    },
+    "bus_2": {
+      "color": {
+        "a": 1.0,
+        "b": 0.48878926038742065,
+        "g": 0.08329154551029205,
+        "r": 0.0832914486527443
+      },
+      "pos": [
+        736.0,
+        112.0
+      ],
+      "render_hint": "bus",
+      "size": [
+        96.0,
+        32.0
+      ],
+      "type": "Bus"
+    },
+    "dmr_vsu": {
+      "pos": [
+        560.0,
+        256.0
+      ],
+      "size": [
+        112.0,
+        80.0
+      ],
+      "type": "DMR400"
+    },
+    "group_1": {
+      "color": {
+        "a": 0.24215245246887207,
+        "b": 0.43444979190826416,
+        "g": 0.11647128313779831,
+        "r": 0.8116592168807983
+      },
+      "pos": [
+        224.0,
+        -144.0
+      ],
+      "render_hint": "group",
+      "size": [
+        496.0,
+        528.0
+      ],
+      "type": "Group"
+    },
+    "holdbutton_1": {
+      "content": {
+        "kind": "switch",
+        "label": "RELEASED",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "params": {
+        "idle": "0.0"
+      },
+      "pos": [
+        384.0,
+        80.0
+      ],
+      "size": [
+        112.0,
+        96.0
+      ],
+      "type": "HoldButton"
+    },
+    "lamp_pass_through_1": {
+      "blueprint_path": "systems/lamp_pass_through",
+      "expandable": true,
+      "pos": [
+        112.0,
+        -208.0
+      ],
+      "size": [
+        160.0,
+        64.0
+      ],
+      "type": "lamp_pass_through"
+    },
+    "lamp_pass_through_1:any_v_to_bool_1": {
+      "group_id": "lamp_pass_through_1",
+      "pos": [
+        496.0,
+        -32.0
+      ],
+      "size": [
+        128.0,
+        64.0
+      ],
+      "type": "Any_V_to_Bool"
+    },
+    "lamp_pass_through_1:lamp": {
+      "color": {
+        "a": 1.0,
+        "b": 0.7309417128562927,
+        "g": 0.06227772310376167,
+        "r": 0.062277548015117645
+      },
+      "content": {
+        "kind": "text",
+        "label": "OFF",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "color": "red",
+        "conductance": "1.0",
+        "max_brightness": "100.0"
+      },
+      "pos": [
+        272.0,
+        240.0
+      ],
+      "size": [
+        192.0,
+        96.0
+      ],
+      "type": "IndicatorLight"
+    },
+    "lamp_pass_through_1:vin": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "pos": [
+        16.0,
+        80.0
+      ],
+      "size": [
+        176.0,
+        64.0
+      ],
+      "type": "BlueprintInput"
+    },
+    "lamp_pass_through_1:vout": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "pos": [
+        528.0,
+        96.0
+      ],
+      "size": [
+        192.0,
+        64.0
+      ],
+      "type": "BlueprintOutput"
+    },
+    "lamp_pass_through_2": {
+      "blueprint_path": "systems/lamp_pass_through",
+      "expandable": true,
+      "pos": [
+        432.0,
+        -32.0
+      ],
+      "size": [
+        160.0,
+        64.0
+      ],
+      "type": "lamp_pass_through"
+    },
+    "lamp_pass_through_3:lamp": {
+      "content": {
+        "kind": "text",
+        "label": "OFF",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "params": {
+        "color": "red",
+        "conductance": "1.0",
+        "max_brightness": "100.0"
+      },
+      "pos": [
+        448.0,
+        496.0
+      ],
+      "size": [
+        120.0,
+        80.0
+      ],
+      "type": "IndicatorLight"
+    },
+    "lamp_pass_through_3:vin": {
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "pos": [
+        448.0,
+        496.0
+      ],
+      "size": [
+        20.0,
+        20.0
+      ],
+      "type": "BlueprintInput"
+    },
+    "lamp_pass_through_3:vout": {
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "pos": [
+        448.0,
+        496.0
+      ],
+      "size": [
+        20.0,
+        20.0
+      ],
+      "type": "BlueprintOutput"
+    },
+    "lerpnode_1": {
+      "params": {
+        "deadzone": "0.001",
+        "factor": "0.05"
+      },
+      "pos": [
+        1104.0,
+        32.0
+      ],
+      "size": [
+        96.0,
+        64.0
+      ],
+      "type": "LerpNode"
+    },
+    "lerpnode_2": {
+      "params": {
+        "deadzone": "0.001",
+        "factor": "0.05"
+      },
+      "pos": [
+        832.0,
+        16.0
+      ],
+      "size": [
+        96.0,
+        64.0
+      ],
+      "type": "LerpNode"
+    },
+    "light_1": {
+      "color": {
+        "a": 1.0,
+        "b": 0.07607731223106384,
+        "g": 0.42236024141311646,
+        "r": 0.17501525580883026
+      },
+      "content": {
+        "kind": "text",
+        "label": "ON",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "params": {
+        "color": "white",
+        "conductance": "1.0",
+        "max_brightness": "100.0"
+      },
+      "pos": [
+        736.0,
+        256.0
+      ],
+      "size": [
+        112.0,
+        96.0
+      ],
+      "type": "IndicatorLight"
+    },
+    "main_bus": {
+      "color": {
+        "a": 1.0,
+        "b": 0.08012809604406357,
+        "g": 0.4161490797996521,
+        "r": 0.30135926604270935
+      },
+      "pos": [
+        288.0,
+        -80.0
+      ],
+      "render_hint": "bus",
+      "size": [
+        144.0,
+        32.0
+      ],
+      "type": "Bus"
+    },
+    "refnode_1": {
+      "color": {
+        "a": 1.0,
+        "b": 0.5825862288475037,
+        "g": 0.155549556016922,
+        "r": 0.5962733030319214
+      },
+      "params": {
+        "value": "0.0"
+      },
+      "pos": [
+        288.0,
+        464.0
+      ],
+      "render_hint": "ref",
+      "size": [
+        48.0,
+        48.0
+      ],
+      "type": "RefNode"
+    },
+    "rug82_1": {
+      "color": {
+        "a": 1.0,
+        "b": 0.15793770551681519,
+        "g": 0.11703432351350784,
+        "r": 0.2690582871437073
+      },
+      "params": {
+        "v_target": "28.5"
+      },
+      "pos": [
+        560.0,
+        -16.0
+      ],
+      "size": [
+        96.0,
+        64.0
+      ],
+      "type": "RUG82"
+    },
+    "simple_battery_1": {
+      "blueprint_path": "systems/simple_battery",
+      "color": {
+        "a": 1.0,
+        "b": 0.6188340783119202,
+        "g": 0.1137767806649208,
+        "r": 0.11377666145563126
+      },
+      "expandable": true,
+      "pos": [
+        480.0,
+        -272.0
+      ],
+      "size": [
+        128.0,
+        64.0
+      ],
+      "type": "simple_battery"
+    },
+    "voltmeter_1": {
+      "content": {
+        "kind": "gauge",
+        "label": "V",
+        "max": 30.0,
+        "min": 0.0,
+        "unit": "V",
+        "value": 0.0
+      },
+      "pos": [
+        1104.0,
+        -192.0
+      ],
+      "size": [
+        96.0,
+        176.0
+      ],
+      "type": "Voltmeter"
+    },
+    "voltmeter_2": {
+      "content": {
+        "kind": "gauge",
+        "label": "V",
+        "max": 30.0,
+        "min": 0.0,
+        "unit": "V",
+        "value": 19.99900245666504
+      },
+      "pos": [
+        848.0,
+        -192.0
+      ],
+      "size": [
+        96.0,
+        176.0
+      ],
+      "type": "Voltmeter"
+    },
+    "voltmeter_3": {
+      "content": {
+        "kind": "gauge",
+        "label": "V",
+        "max": 30.0,
+        "min": 0.0,
+        "unit": "V",
+        "value": 0.0
+      },
+      "pos": [
+        976.0,
+        -192.0
+      ],
+      "size": [
+        96.0,
+        176.0
+      ],
+      "type": "Voltmeter"
+    },
+    "vsu_1": {
+      "color": {
+        "a": 1.0,
+        "b": 0.6273292303085327,
+        "g": 0.1363760381937027,
+        "r": 0.13637591898441315
+      },
+      "params": {
+        "target_rpm": "16000.0"
+      },
+      "pos": [
+        560.0,
+        80.0
+      ],
+      "size": [
+        112.0,
+        96.0
+      ],
+      "type": "RU19A"
+    }
+  },
+  "sub_blueprints": {
+    "lamp_pass_through_1": {
+      "collapsed": true,
+      "nodes": {
+        "any_v_to_bool_1": {
+          "group_id": "lamp_pass_through_1",
+          "pos": [
+            496.0,
+            -32.0
+          ],
+          "size": [
+            128.0,
+            64.0
+          ],
+          "type": "Any_V_to_Bool"
+        },
+        "lamp": {
+          "color": {
+            "a": 1.0,
+            "b": 0.7309417128562927,
+            "g": 0.06227772310376167,
+            "r": 0.062277548015117645
+          },
+          "content": {
+            "kind": "text",
+            "label": "OFF",
+            "max": 1.0,
+            "min": 0.0,
+            "unit": "",
+            "value": 0.0
+          },
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "color": "red",
+            "conductance": "1.0",
+            "max_brightness": "100.0"
+          },
+          "pos": [
+            272.0,
+            240.0
+          ],
+          "size": [
+            192.0,
+            96.0
+          ],
+          "type": "IndicatorLight"
+        },
+        "vin": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "In",
+            "exposed_type": "V"
+          },
+          "pos": [
+            16.0,
+            80.0
+          ],
+          "size": [
+            176.0,
+            64.0
+          ],
+          "type": "BlueprintInput"
+        },
+        "vout": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "Out",
+            "exposed_type": "V"
+          },
+          "pos": [
+            528.0,
+            96.0
+          ],
+          "size": [
+            192.0,
+            64.0
+          ],
+          "type": "BlueprintOutput"
+        }
+      },
+      "pos": [
+        112.0,
+        -208.0
+      ],
+      "size": [
+        160.0,
+        64.0
+      ],
+      "template": "systems/lamp_pass_through",
+      "type_name": "lamp_pass_through",
+      "wires": [
+        {
+          "from": [
+            "vin",
+            "port"
+          ],
+          "id": "w_22",
+          "to": [
+            "lamp",
+            "v_in"
+          ]
+        },
+        {
+          "from": [
+            "lamp",
+            "v_out"
+          ],
+          "id": "w_23",
+          "to": [
+            "vout",
+            "port"
+          ]
+        }
+      ]
+    },
+    "lamp_pass_through_2": {
+      "collapsed": true,
+      "overrides": {
+        "layout": {
+          "lamp": [
+            288.0,
+            80.0
+          ],
+          "vin": [
+            80.0,
+            80.0
+          ],
+          "vout": [
+            480.0,
+            80.0
+          ]
+        }
+      },
+      "pos": [
+        432.0,
+        -32.0
+      ],
+      "size": [
+        160.0,
+        64.0
+      ],
+      "template": "systems/lamp_pass_through",
+      "type_name": "lamp_pass_through"
+    },
+    "simple_battery_1": {
+      "collapsed": true,
+      "overrides": {
+        "layout": {
+          "bat": [
+            288.0,
+            80.0
+          ],
+          "gnd": [
+            480.0,
+            208.0
+          ],
+          "vin": [
+            80.0,
+            80.0
+          ],
+          "vout": [
+            480.0,
+            80.0
+          ]
+        }
+      },
+      "pos": [
+        480.0,
+        -272.0
+      ],
+      "size": [
+        120.0,
+        96.0
+      ],
+      "template": "systems/simple_battery",
+      "type_name": "simple_battery"
+    }
+  },
+  "version": 2,
+  "viewport": {
+    "grid": 16.0,
+    "pan": [
+      -52.573448181152344,
+      -350.9568176269531
+    ],
+    "zoom": 1.0082390308380127
+  },
+  "wires": [
+    {
+      "from": [
+        "lerpnode_1",
+        "output"
+      ],
+      "id": "w_0",
+      "routing": [
+        [
+          1216.0,
+          64.0
+        ],
+        [
+          1216.0,
+          16.0
+        ],
+        [
+          1088.0,
+          16.0
+        ],
+        [
+          1088.0,
+          -160.0
+        ]
+      ],
+      "to": [
+        "voltmeter_1",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lerpnode_2",
+        "output"
+      ],
+      "id": "w_1",
+      "routing": [
+        [
+          944.0,
+          48.0
+        ],
+        [
+          944.0,
+          0.0
+        ],
+        [
+          832.0,
+          -0.0
+        ],
+        [
+          832.0,
+          -160.0
+        ]
+      ],
+      "to": [
+        "voltmeter_2",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "vsu_1",
+        "rpm_out"
+      ],
+      "id": "w_2",
+      "routing": [
+        [
+          960.0,
+          112.0
+        ],
+        [
+          960.0,
+          -160.0
+        ]
+      ],
+      "to": [
+        "voltmeter_3",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_3:vin",
+        "port"
+      ],
+      "id": "w_3",
+      "to": [
+        "lamp_pass_through_3:lamp",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_3:lamp",
+        "v_out"
+      ],
+      "id": "w_4",
+      "to": [
+        "lamp_pass_through_3:vout",
+        "port"
+      ]
+    },
+    {
+      "from": [
+        "dmr_vsu",
+        "lamp"
+      ],
+      "id": "w_5",
+      "to": [
+        "light_1",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "rug82_1",
+        "k_mod"
+      ],
+      "id": "w_6",
+      "routing": [
+        [
+          704.0,
+          16.0
+        ],
+        [
+          704.0,
+          64.0
+        ],
+        [
+          528.0,
+          64.0
+        ],
+        [
+          528.0,
+          112.0
+        ]
+      ],
+      "to": [
+        "vsu_1",
+        "k_mod"
+      ]
+    },
+    {
+      "from": [
+        "bus_2",
+        "v"
+      ],
+      "id": "w_7",
+      "routing": [
+        [
+          752.0,
+          224.0
+        ],
+        [
+          528.0,
+          224.0
+        ],
+        [
+          528.0,
+          288.0
+        ]
+      ],
+      "to": [
+        "dmr_vsu",
+        "v_gen_ref"
+      ]
+    },
+    {
+      "from": [
+        "bus_1",
+        "v"
+      ],
+      "id": "w_8",
+      "routing": [
+        [
+          304.0,
+          400.0
+        ],
+        [
+          -112.0,
+          400.0
+        ],
+        [
+          -144.0,
+          0.0
+        ]
+      ],
+      "to": [
+        "bat_main_1",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "holdbutton_1",
+        "v_out"
+      ],
+      "id": "w_9",
+      "to": [
+        "vsu_1",
+        "v_start"
+      ]
+    },
+    {
+      "from": [
+        "azs_2",
+        "v_out"
+      ],
+      "id": "w_10",
+      "routing": [
+        [
+          304.0,
+          32.0
+        ]
+      ],
+      "to": [
+        "main_bus",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "bus_2",
+        "v"
+      ],
+      "id": "w_11",
+      "routing": [
+        [
+          768.0,
+          208.0
+        ],
+        [
+          320.0,
+          208.0
+        ]
+      ],
+      "to": [
+        "main_bus",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "refnode_1",
+        "v"
+      ],
+      "id": "w_12",
+      "to": [
+        "bus_1",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "vsu_1",
+        "t4_out"
+      ],
+      "id": "w_13",
+      "routing": [
+        [
+          720.0,
+          128.0
+        ],
+        [
+          720.0,
+          48.0
+        ]
+      ],
+      "to": [
+        "lerpnode_2",
+        "input"
+      ]
+    },
+    {
+      "from": [
+        "dmr_vsu",
+        "v_out"
+      ],
+      "id": "w_14",
+      "routing": [
+        [
+          688.0,
+          304.0
+        ],
+        [
+          688.0,
+          368.0
+        ],
+        [
+          1056.0,
+          368.0
+        ],
+        [
+          1056.0,
+          64.0
+        ]
+      ],
+      "to": [
+        "lerpnode_1",
+        "input"
+      ]
+    },
+    {
+      "from": [
+        "holdbutton_1",
+        "v_in"
+      ],
+      "id": "w_15",
+      "routing": [
+        [
+          336.0,
+          128.0
+        ]
+      ],
+      "to": [
+        "main_bus",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "main_bus",
+        "v"
+      ],
+      "id": "w_16",
+      "routing": [
+        [
+          352.0,
+          304.0
+        ]
+      ],
+      "to": [
+        "dmr_vsu",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "vsu_1",
+        "v_bus"
+      ],
+      "id": "w_17",
+      "to": [
+        "bus_2",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "light_1",
+        "v_out"
+      ],
+      "id": "w_18",
+      "routing": [
+        [
+          880.0,
+          304.0
+        ],
+        [
+          880.0,
+          416.0
+        ],
+        [
+          336.0,
+          416.0
+        ]
+      ],
+      "to": [
+        "bus_1",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "main_bus",
+        "v"
+      ],
+      "id": "w_19",
+      "routing": [
+        [
+          368.0,
+          16.0
+        ]
+      ],
+      "to": [
+        "rug82_1",
+        "v_gen"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1",
+        "vin"
+      ],
+      "id": "w_20",
+      "to": [
+        "bat_main_1",
+        "v_out"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1",
+        "vout"
+      ],
+      "id": "w_21",
+      "to": [
+        "azs_2",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1:vin",
+        "port"
+      ],
+      "id": "w_22",
+      "to": [
+        "lamp_pass_through_1:lamp",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1:lamp",
+        "v_out"
+      ],
+      "id": "w_23",
+      "to": [
+        "lamp_pass_through_1:vout",
+        "port"
+      ]
+    },
+    {
+      "from": [
+        "main_bus",
+        "v"
+      ],
+      "id": "w_24",
+      "to": [
+        "lamp_pass_through_2",
+        "vin"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_2",
+        "vout"
+      ],
+      "id": "w_25",
+      "to": [
+        "bus_1",
+        "v"
+      ]
+    }
+  ]
+}

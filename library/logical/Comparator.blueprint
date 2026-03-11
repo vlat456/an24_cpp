@@ -1,0 +1,39 @@
+{
+  "exposes": {
+    "Va": {
+      "direction": "In",
+      "type": "V"
+    },
+    "Vb": {
+      "direction": "In",
+      "type": "V"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Voltage comparator with hysteresis. Compares Va to Vb with configurable turn-on (Von) and turn-off (Voff) thresholds. Output is boolean (TRUE/FALSE). Thresholds are set via component parameters, not input ports.",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Comparator",
+    "size": [
+      3.0,
+      2.0
+    ]
+  },
+  "params": {
+    "Voff": {
+      "default": "2.0",
+      "type": "float"
+    },
+    "Von": {
+      "default": "5.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

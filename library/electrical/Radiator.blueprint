@@ -1,0 +1,27 @@
+{
+  "exposes": {
+    "heat_in": {
+      "direction": "In",
+      "type": "I"
+    },
+    "heat_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Heat exchanger/radiator for cooling",
+    "domains": [
+      "Thermal"
+    ],
+    "name": "Radiator"
+  },
+  "params": {
+    "cooling_capacity": {
+      "default": "1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

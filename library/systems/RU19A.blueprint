@@ -1,0 +1,42 @@
+{
+  "exposes": {
+    "k_mod": {
+      "direction": "In",
+      "type": "V"
+    },
+    "rpm_out": {
+      "direction": "Out",
+      "type": "RPM"
+    },
+    "t4_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    },
+    "v_bus": {
+      "direction": "Out",
+      "type": "V"
+    },
+    "v_start": {
+      "direction": "In",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "RU19A-300 Auxiliary Power Unit (ВСУ) with 5-state startup sequence",
+    "domains": [
+      "Electrical",
+      "Mechanical",
+      "Thermal"
+    ],
+    "name": "RU19A",
+    "priority": "high"
+  },
+  "params": {
+    "target_rpm": {
+      "default": "16000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

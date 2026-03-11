@@ -255,6 +255,20 @@ benchmark_jit_vs_aot/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
 .PHONY : benchmark_jit_vs_aot/fast
 
+# Convenience name for target.
+examples/CMakeFiles/convert_library.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/convert_library.dir/rule
+.PHONY : examples/CMakeFiles/convert_library.dir/rule
+
+# Convenience name for target.
+convert_library: examples/CMakeFiles/convert_library.dir/rule
+.PHONY : convert_library
+
+# fast build rule for target.
+convert_library/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/build
+.PHONY : convert_library/fast
+
 __/_deps/imgui-src/backends/imgui_impl_opengl3.o: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
 .PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.o
 
@@ -1095,6 +1109,30 @@ codegen_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/codegen_test.dir/build.make examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.s
 .PHONY : codegen_test.cpp.s
 
+convert_library.o: convert_library.cpp.o
+.PHONY : convert_library.o
+
+# target to build an object file
+convert_library.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.o
+.PHONY : convert_library.cpp.o
+
+convert_library.i: convert_library.cpp.i
+.PHONY : convert_library.i
+
+# target to preprocess a source file
+convert_library.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.i
+.PHONY : convert_library.cpp.i
+
+convert_library.s: convert_library.cpp.s
+.PHONY : convert_library.s
+
+# target to generate assembly for a file
+convert_library.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/convert_library.cpp.s
+.PHONY : convert_library.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -1137,6 +1175,7 @@ help:
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
+	@echo "... convert_library"
 	@echo "... hello_world"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.o"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.i"
@@ -1243,6 +1282,9 @@ help:
 	@echo "... codegen_test.o"
 	@echo "... codegen_test.i"
 	@echo "... codegen_test.s"
+	@echo "... convert_library.o"
+	@echo "... convert_library.i"
+	@echo "... convert_library.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
