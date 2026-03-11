@@ -32,21 +32,42 @@ Blueprint
 
 Simulator sees only: `devices + wires` (flat list after expansion).
 
-### 3. Codegen Independence
+### 3. Hierarchical AOT Codegen
 
-Adding a new blueprint to `library/` does **NOT** require codegen.
+Codegen generates optimized C++ for **all** blueprints — both primitives and composites:
 
 ```
 Codegen generates:
-  ✓ Battery_solve_electrical()     (cpp_class: true)
-  ✓ Bus_solve_electrical()         (cpp_class: true)
-  ✓ IndicatorLight_solve_electrical() (cpp_class: true)
-
-Codegen does NOT generate:
-  ✗ lamp_pass_through              (composite of primitives)
-  ✗ simple_battery                 (composite of primitives)
-  ✗ user_circuit                   (composite)
+  ✓ Battery_solve_electrical()                (cpp_class: true, primitive)
+  ✓ Bus_solve_electrical()                    (cpp_class: true, primitive)
+  ✓ IndicatorLight_solve_electrical()         (cpp_class: true, primitive)
+  ✓ lamp_pass_through_Systems::solve_step()   (cpp_class: false, composite)
+  ✓ simple_battery_Systems::solve_step()      (cpp_class: false, composite)
+  ✓ power_distribution_Systems::solve_step()  (cpp_class: false, composite of composites)
 ```
+
+Composite codegen is **hierarchical** — a composite's generated `Systems` class contains
+its sub-composites' `Systems` as direct fields, not flattened:
+
+```
+power_distribution_Systems
+├── battery_bank_1: battery_bank_Systems   (sub-composite, direct field)
+│     └── sb_1: simple_battery_Systems     (nested sub-composite)
+│           ├── bat: Battery<AotProvider>   (primitive, direct field)
+│           └── vin: BlueprintInput<AotProvider>
+├── lamp_1: lamp_pass_through_Systems      (sub-composite, direct field)
+│     ├── vin: BlueprintInput<AotProvider>
+│     ├── lamp: IndicatorLight<AotProvider>
+│     └── vout: BlueprintOutput<AotProvider>
+└── bus_main: Bus<AotProvider>             (top-level primitive)
+```
+
+Benefits:
+
+- **Cache locality**: sub-composite's devices are contiguous in struct layout
+- **Full inlining**: compiler sees through composite boundaries
+- **No runtime overhead**: same zero-cost abstraction as primitive AOT
+- **Reusable**: same `Systems` class generated once per composite type, instantiated N times
 
 ### 4. Hierarchical References
 
@@ -67,7 +88,7 @@ Any sub-blueprint reference can be permanently embedded ("baked in") via context
 This severs the link to the library file — internal devices become part of the parent JSON.
 
 ```
-sub_blueprint (reference)  →  Bake In  →  inline devices + collapsed_group
+SubBlueprintInstance (baked_in=false)  →  Bake In  →  SubBlueprintInstance (baked_in=true)
 ```
 
 Use cases:
@@ -76,8 +97,9 @@ Use cases:
 - Archiving a snapshot independent of library changes
 - One-off modifications without creating a new library entry
 
-After bake-in, the group is still visually collapsible (CollapsedGroup metadata preserved),
-but no longer tracks the source file. Overrides are merged permanently into device params.
+After bake-in, the group is still visually collapsible (same `SubBlueprintInstance`, same UI),
+but `baked_in = true` means internal devices are saved inline and the source file is no longer tracked.
+Overrides are merged permanently into device params. `blueprint_path` is preserved for origin info.
 
 ---
 
@@ -130,14 +152,20 @@ struct SubBlueprintInstance {
     std::string blueprint_path;      // "library/systems/lamp_pass_through.json"
     std::string type_name;           // "lamp_pass_through" (for UI display)
 
+    bool baked_in = false;           // true = inline devices saved to JSON
+                                     // false = expand from library file on load
+
     // Layout of collapsed node
     Pt pos;
     Pt size;
 
-    // Instance-specific overrides
+    // Instance-specific overrides (meaningful only when baked_in = false)
     std::map<std::string, std::string> params_override;   // "lamp.color" -> "green"
     std::map<std::string, Pt> layout_override;            // "vin" -> {100, 200}
     std::map<std::string, std::vector<Pt>> internal_routing;  // wire routing points
+
+    // Internal node tracking (always populated at runtime)
+    std::vector<std::string> internal_node_ids;  // ["lamp_1:vin", "lamp_1:lamp", ...]
 };
 ```
 
@@ -339,22 +367,24 @@ If `blueprint_path` not found → **fail load with error** (no fallback, no plac
 ```
 save_blueprint(Blueprint, path)
   │
-  ├─ Separate nodes by type:
-  │     ├─ Nodes with SubBlueprintInstance → save as sub_blueprints references
-  │     └─ Nodes with CollapsedGroup (baked-in) → save inline in devices[]
-  │
-  ├─ For each sub_blueprint (reference):
+  ├─ For each sub_blueprint_instance:
   │     │
-  │     ├─ Find source file (from TypeRegistry by type_name)
-  │     ├─ Compare params with defaults → params_override
-  │     ├─ Compare layout with defaults → layout_override
-  │     └─ Extract internal routing_points
+  │     ├─ baked_in = false (reference):
+  │     │     ├─ Compare params with defaults → params_override
+  │     │     ├─ Compare layout with defaults → layout_override
+  │     │     ├─ Extract internal routing_points
+  │     │     ├─ Save as entry in sub_blueprints[] array
+  │     │     └─ Skip internal devices in devices[] (expanded on load)
+  │     │
+  │     └─ baked_in = true (embedded):
+  │           ├─ Save internal devices inline in devices[]
+  │           ├─ Save entry in sub_blueprints[] with baked_in: true
+  │           └─ Internal routing/layout saved with device positions
   │
-  ├─ Write sub_blueprints array
-  ├─ Write top-level devices only (group_id == "")
-  ├─ Write top-level wires only (not internal to sub_blueprints)
+  ├─ Write top-level devices (group_id == "")
+  ├─ Write top-level wires (not internal to sub_blueprints)
   │
-  └─ Result: compact JSON with references
+  └─ Result: compact JSON with references + optional inline baked-in groups
 ```
 
 ---
@@ -378,8 +408,14 @@ struct TypeRegistry {
     // Get by classname (works for both cpp_class and composite)
     const TypeBlueprint* get(const std::string& classname) const;
 
-    // For codegen: filter cpp_class = true only
+    // For codegen: primitives only
     std::vector<std::string> get_cpp_classes() const;
+
+    // For codegen: composites only (hierarchical AOT)
+    std::vector<std::string> get_composites() const;
+
+    // Topological order for composite codegen (leaves first)
+    std::vector<std::string> get_composites_topo_sorted() const;
 
     // Load all from library/ directory
     static TypeRegistry load(const std::string& library_dir = "library/");
@@ -390,25 +426,102 @@ struct TypeRegistry {
 
 ## Codegen Integration
 
-**No changes required for new blueprints.**
+Codegen generates `Systems` classes for **all** blueprints in `library/` — both primitives and composites.
 
-Codegen scans `library/`, filters `cpp_class: true`, generates C++:
+### Primitive (cpp_class: true) — Unchanged
+
+Same as before: `AotProvider` with compile-time `Binding`, direct `solve_*()` calls.
+
+### Composite (cpp_class: false) — NEW: Hierarchical AOT
+
+For each composite blueprint, codegen generates a `Systems` class that:
+
+1. **Recursively expands** `sub_blueprints` via `expand_sub_blueprint_references()`
+2. **Generates nested `Systems`** for sub-composites (not flattened)
+3. **Wires signals** between sub-composite ports and parent signals
 
 ```cpp
-// generated/components.gen.cpp
+// generated/lamp_pass_through_systems.gen.h
 
-void solve_electrical_all(SimulationState& st, float dt) {
-    // Only cpp_class = true primitives
-    for (auto& dev : st.devices) {
-        if (dev.classname == "Battery") Battery_solve(dev, st, dt);
-        else if (dev.classname == "Bus") Bus_solve(dev, st, dt);
-        else if (dev.classname == "IndicatorLight") IndicatorLight_solve(dev, st, dt);
-        // ... other primitives ...
-    }
+class lamp_pass_through_Systems {
+    // Primitive devices — direct fields with AotProvider
+    BlueprintInput<AotProvider<Binding<PortNames::port, SIG_VIN_PORT>>> vin;
+    IndicatorLight<AotProvider<Binding<PortNames::v_in, SIG_LAMP_V_IN>,
+                               Binding<PortNames::v_out, SIG_LAMP_V_OUT>>> lamp;
+    BlueprintOutput<AotProvider<Binding<PortNames::port, SIG_VOUT_PORT>>> vout;
+
+    static constexpr uint32_t SIGNAL_COUNT = 4;
+
+public:
+    void solve_step(void* state, uint32_t step, float dt);
+    void pre_load();
+};
+```
+
+```cpp
+// generated/power_distribution_systems.gen.h
+// Composite of composites — hierarchical nesting
+
+class power_distribution_Systems {
+    // Sub-composite as nested Systems (not flattened!)
+    lamp_pass_through_Systems lamp_1;
+    lamp_pass_through_Systems lamp_2;
+    simple_battery_Systems battery_bank_1;
+
+    // Top-level primitives
+    Bus<AotProvider<Binding<PortNames::v, SIG_BUS_V>>> bus_main;
+
+    static constexpr uint32_t SIGNAL_COUNT = 12;
+
+public:
+    void solve_step(void* state, uint32_t step, float dt);
+    void pre_load();
+};
+```
+
+### Signal Wiring Between Levels
+
+Parent `solve_step()` connects sub-composite external ports to parent signals:
+
+```cpp
+void power_distribution_Systems::step_0(void* state, float dt) {
+    auto& st = *static_cast<SimulationState*>(state);
+    // Wire parent → sub-composite
+    st.across[lamp_1.SIG_VIN_PORT] = st.across[SIG_BUS_V];
+    // Solve sub-composite
+    lamp_1.solve_step(state, 0, dt);
+    // Wire sub-composite → parent
+    st.across[SIG_LAMP_1_VOUT] = st.across[lamp_1.SIG_VOUT_PORT];
+    // Next sub-composite...
+    lamp_2.solve_step(state, 0, dt);
+    // Top-level primitive
+    bus_main.solve_electrical(st, dt);
 }
 ```
 
-Composite blueprints (`lamp_pass_through`, `simple_battery`) are expanded at load time, their primitives are already in codegen.
+### Codegen Algorithm
+
+```
+for each TypeDefinition in registry:
+  if cpp_class = true:
+    generate_primitive_systems(td)     // existing logic
+  else:
+    generate_composite_systems(td)     // NEW
+
+generate_composite_systems(td):
+  1. Resolve sub_blueprints recursively
+  2. For each sub-blueprint:
+     - If cpp_class=true → direct AotProvider field (existing)
+     - If cpp_class=false → nested Systems field (recursive)
+  3. Allocate signal indices (parent scope)
+  4. Generate solve_step() with signal wiring between levels
+  5. Generate jump table (same 60-step LCM scheduling)
+```
+
+### Codegen Ordering
+
+Topological sort by dependency: generate leaf composites first, then parents.
+Cycle detection at codegen time (same as runtime — `expand_sub_blueprint_references()`).
 
 ---
 
@@ -444,7 +557,7 @@ Composite blueprints (`lamp_pass_through`, `simple_battery`) are expanded at loa
 
 ### Bake In (Embed Permanently) — Context Menu
 
-Converts a sub-blueprint reference into permanent inline devices (current format).
+Converts a sub-blueprint reference into a permanent inline snapshot.
 Triggered via **right-click context menu** on collapsed sub-blueprint node → "Bake In".
 
 **Algorithm:**
@@ -456,12 +569,12 @@ Triggered via **right-click context menu** on collapsed sub-blueprint node → "
    b. **Flatten overrides** — merge `params_override` into internal device params permanently
    c. **Flatten layout** — current `layout_override` positions become the devices' actual positions
    d. **Flatten routing** — `internal_routing` becomes wire `routing_points`
-   e. **Convert to CollapsedGroup** — create `CollapsedGroup` entry with same `id`, `type_name`,
-   `pos`, `size`, `internal_node_ids` (all prefixed internal nodes)
-   f. **Remove SubBlueprintInstance** entry from `sub_blueprints[]`
-   g. **Mark internal nodes** — set `group_id` on all internal devices (already present)
-   h. **Clear `blueprint_path`** reference on collapsed wrapper node
-4. **On save:** internal devices serialize inline in `devices[]` array (not as reference)
+   e. **Set `baked_in = true`** on the `SubBlueprintInstance`
+   f. **Clear overrides** — `params_override`, `layout_override`, `internal_routing` become empty
+   (values already merged into actual node data)
+   g. **`blueprint_path`** preserved as origin info (display only, not used for loading)
+4. **On save:** internal devices serialize inline in `devices[]` array; `sub_blueprints` entry
+   has `baked_in: true` flag
 5. **Visual result:** no visible change — group still expandable via double-click,
    still collapsible. Only difference is the JSON representation.
 
@@ -470,13 +583,13 @@ library file will no longer affect this instance. Continue?"
 
 **What changes after bake-in:**
 
-| Aspect       | Before (reference)           | After (baked in)                     |
-| ------------ | ---------------------------- | ------------------------------------ |
-| JSON storage | `sub_blueprints[{id, path}]` | `devices[{name: "lamp_1:vin", ...}]` |
-| Library sync | Auto-updates on load         | Frozen snapshot                      |
-| Params       | Stored as overrides          | Stored as actual values              |
-| Undo         | Reversible via undo stack    | Reversible via undo stack            |
-| Visual       | Identical                    | Identical                            |
+| Aspect       | Before (`baked_in=false`)           | After (`baked_in=true`)                                 |
+| ------------ | ----------------------------------- | ------------------------------------------------------- |
+| JSON storage | `sub_blueprints[{baked_in: false}]` | `sub_blueprints[{baked_in: true}]` + inline `devices[]` |
+| Library sync | Auto-updates on load                | Frozen snapshot                                         |
+| Params       | Stored as overrides                 | Stored as actual values on nodes                        |
+| Undo         | Reversible via undo stack           | Reversible via undo stack                               |
+| Visual       | Identical                           | Identical                                               |
 
 ---
 
@@ -519,13 +632,14 @@ Migration path:
 
 ## Deprecated / Removed
 
-| Old                          | New                    | Notes                                                                   |
-| ---------------------------- | ---------------------- | ----------------------------------------------------------------------- |
-| `TypeDefinition`             | `TypeBlueprint`        | Unified structure (NOT editor `Blueprint`)                              |
-| `CollapsedGroup`             | `SubBlueprintInstance` | With overrides (CollapsedGroup kept for baked-in groups)                |
-| `ParserContext.templates`    | Remove                 | Everything is TypeBlueprint                                             |
-| `connections` (json_parser)  | Keep as-is             | Simulator format `"device.port"` — different from editor `Wire` structs |
-| Inline sub-blueprint devices | References by default  | `sub_blueprints[]` array, with "Bake In" to convert back to inline      |
+| Old                          | New                                       | Notes                                                                   |
+| ---------------------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
+| `TypeDefinition`             | `TypeBlueprint`                           | Unified structure (NOT editor `Blueprint`)                              |
+| `CollapsedGroup`             | **Removed entirely**                      | Replaced by `SubBlueprintInstance` with `baked_in` flag                 |
+| `ParserContext.templates`    | Remove                                    | Everything is TypeBlueprint                                             |
+| `connections` (json_parser)  | Keep as-is                                | Simulator format `"device.port"` — different from editor `Wire` structs |
+| Inline sub-blueprint devices | References by default                     | `sub_blueprints[]` array, `baked_in: true` for inline                   |
+| `collapsed_groups` vector    | `sub_blueprint_instances` with `baked_in` | Single vector handles both modes                                        |
 
 ---
 
@@ -560,57 +674,76 @@ Migration path:
 - **Bake-in context menu** — right-click → "Bake In (Embed)" → convert reference to inline
 - Confirmation dialog for bake-in operation
 
-### Phase 5: Cleanup
+### Phase 5: Hierarchical AOT Codegen
+
+- Extend `src/codegen/codegen.cpp` to handle `cpp_class: false` composites
+- Recursive `generate_composite_systems()` — nested `Systems` fields for sub-composites
+- Signal wiring between parent and sub-composite ports
+- Topological sort for codegen ordering (leaves first)
+- Jump table scheduling same as primitives (60-step LCM)
+- Tests: generated composite `Systems` produces same results as JIT
+
+### Phase 6: Cleanup
 
 - Migrate `TypeDefinition` → `TypeBlueprint` (or keep name and extend with `sub_blueprints`)
-- Keep `CollapsedGroup` for baked-in groups, add `SubBlueprintInstance` for references
+- **Remove `CollapsedGroup` entirely** — `SubBlueprintInstance` with `baked_in` flag replaces it
 - Remove `ParserContext.templates`
 - Update tests
 
-### Phase 6: Testing
+### Phase 7: Testing
 
 - Cycle detection tests
 - Hierarchical loading tests
 - Override tests
 - Save/load roundtrip tests
-- **Bake-in tests**: reference → baked-in conversion, params flattening, save/load roundtrip
-- **Mixed mode tests**: files with both `sub_blueprints` and baked-in `collapsed_groups`
+- **Bake-in tests**: reference → baked-in conversion (`baked_in` flag flip), params flattening, save/load roundtrip
+- **Mixed mode tests**: files with both `baked_in=false` and `baked_in=true` SubBlueprintInstances
+- **AOT composite tests**: generated `Systems` for composites matches JIT output
+- **Hierarchical AOT tests**: 2-3 level nesting, signal wiring correctness
+- **Benchmark**: AOT composite vs JIT composite performance comparison
 
 ---
 
 ## File Changes Summary
 
-| File                                  | Changes                                                                   |
-| ------------------------------------- | ------------------------------------------------------------------------- |
-| `src/json_parser/json_parser.h`       | Extend `TypeDefinition` with `sub_blueprints`, add `SubBlueprintInstance` |
-| `src/json_parser/json_parser.cpp`     | Recursive loading, cycle detection, override application                  |
-| `src/editor/data/blueprint.h`         | Add `SubBlueprintInstance`, keep `CollapsedGroup` for baked-in            |
-| `src/editor/visual/scene/persist.cpp` | New save/load format (references + baked-in inline)                       |
-| `src/editor/document.cpp`             | `addBlueprint()`, `bakeInSubBlueprint()`, override tracking               |
-| `src/editor/window_system.cpp`        | Context menu integration for bake-in                                      |
-| `examples/an24_editor.cpp`            | Context menu rendering (bake-in option)                                   |
-| `tests/*.cpp`                         | Update for new format, bake-in roundtrip tests                            |
-| `library/**/*.json`                   | Update format (no inline expansion)                                       |
+| File                                  | Changes                                                                                |
+| ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `src/json_parser/json_parser.h`       | Extend `TypeDefinition` with `sub_blueprints`, add `SubBlueprintInstance`              |
+| `src/json_parser/json_parser.cpp`     | Recursive loading, cycle detection, override application                               |
+| `src/editor/data/blueprint.h`         | **Remove `CollapsedGroup`**, add `SubBlueprintInstance` with `baked_in`, single vector |
+| `src/editor/visual/scene/persist.cpp` | New save/load format (`baked_in` flag controls inline vs reference)                    |
+| `src/editor/document.cpp`             | `addBlueprint()`, `bakeInSubBlueprint()`, override tracking                            |
+| `src/editor/window_system.cpp`        | Context menu integration for bake-in                                                   |
+| `examples/an24_editor.cpp`            | Context menu rendering (bake-in option)                                                |
+| `src/codegen/codegen.h`               | New `generate_composite_systems()` API                                                 |
+| `src/codegen/codegen.cpp`             | Hierarchical AOT: recursive composite codegen, signal wiring                           |
+| `generated/*.gen.h/cpp`               | Generated `Systems` classes for composites                                             |
+| `tests/*.cpp`                         | Update for new format, bake-in roundtrip, AOT composite tests                          |
+| `library/**/*.json`                   | Update format (no inline expansion)                                                    |
 
 ---
 
 ## Risks & Mitigations
 
-| Risk                           | Mitigation                                                    |
-| ------------------------------ | ------------------------------------------------------------- |
-| Complex override logic         | Clear precedence rules, extensive tests                       |
-| Editor state sync              | Single source of truth in `Blueprint`                         |
-| Undo/redo with references      | Store operations as diffs, apply to overrides                 |
-| Performance (recursive load)   | Cache loaded blueprints in TypeRegistry                       |
-| Missing files                  | Fail fast with clear error message                            |
-| Bake-in data loss              | Confirmation dialog, undo support                             |
-| Naming collision (`Blueprint`) | Use `TypeBlueprint` for registry, keep `Blueprint` for editor |
+| Risk                               | Mitigation                                                    |
+| ---------------------------------- | ------------------------------------------------------------- |
+| Complex override logic             | Clear precedence rules, extensive tests                       |
+| Editor state sync                  | Single source of truth in `Blueprint`                         |
+| Undo/redo with references          | Store operations as diffs, apply to overrides                 |
+| Performance (recursive load)       | Cache loaded blueprints in TypeRegistry                       |
+| Missing files                      | Fail fast with clear error message                            |
+| Bake-in data loss                  | Confirmation dialog, undo support                             |
+| Naming collision (`Blueprint`)     | Use `TypeBlueprint` for registry, keep `Blueprint` for editor |
+| AOT codegen ordering               | Topological sort by dependency; fail on cycles                |
+| AOT signal index explosion         | Per-composite local signals; parent allocates connection bus  |
+| AOT compile time (many composites) | Incremental codegen — only regenerate changed composites      |
 
 ---
 
 ## Open Questions
 
-1. **TypeDefinition rename**: Extend existing `TypeDefinition` with `sub_blueprints` field (minimal change) vs create new `TypeBlueprint` struct (clean break)?
+1. ~~**TypeDefinition rename**~~ — **Decided:** extend existing `TypeDefinition` with `sub_blueprints` field. Minimal diff.
 2. **Bake-in undo granularity**: Should bake-in be a single undo operation or decomposed into sub-steps?
-3. **Mixed mode per-file**: Can a single blueprint JSON contain both `sub_blueprints` references AND baked-in `collapsed_groups`? (Proposed: yes — this is the natural result of selective bake-in.)
-4. **Node::blueprint_path field**: Already exists on `Node` and is serialized by persist.cpp. Should SubBlueprintInstance reuse this field or use its own?
+3. ~~**Mixed mode per-file**~~ — **Decided:** yes. A single blueprint JSON can have `SubBlueprintInstance` entries with different `baked_in` flag values. `baked_in=false` = reference, `baked_in=true` = embedded. Single vector, single struct, one flag.
+4. ~~**Node::blueprint_path field**~~ — **Decided:** reuse. Already exists on `Node`, already serialized by persist.cpp. Set to `type_name` on the collapsed wrapper node.
+5. ~~**load_editor_format() signature**~~ — **Decided:** single signature with mandatory `TypeRegistry` parameter. All callers provide a registry. Tests create a minimal registry. No overload.
