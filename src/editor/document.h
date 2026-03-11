@@ -34,11 +34,10 @@ public:
     /// Title for ImGui tab: "filename.blueprint*" if modified
     std::string title() const;
 
-    // ── Modified tracking ──
-
-    bool isModified() const { return modified_; }
-    void markModified() { modified_ = true; }
-    void clearModified() { modified_ = false; }
+    /// Returns true if this is an untitled, empty document (never saved, no content)
+    bool isPristine() const {
+        return filepath_.empty() && blueprint_.nodes.empty() && blueprint_.wires.empty();
+    }
 
     // ── File I/O ──
 
@@ -117,7 +116,6 @@ private:
     std::string id_;
     std::string filepath_;
     std::string display_name_ = "Untitled";
-    bool modified_ = false;
 
     Blueprint blueprint_;
     WindowManager window_manager_{blueprint_};

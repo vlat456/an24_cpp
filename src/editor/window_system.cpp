@@ -25,8 +25,21 @@ Document* WindowSystem::openDocument(const std::string& path) {
     // Check if already open
     if (Document* existing = findDocumentByPath(path)) {
         setActiveDocument(existing);
+        recent_files.add(path);
         spdlog::info("[WindowSystem] Document already open: {}", path);
         return existing;
+    }
+
+    // If only one document exists and it's pristine (empty Untitled), replace it
+    if (documents_.size() == 1 && documents_.front()->isPristine()) {
+        Document* pristine = documents_.front().get();
+        if (pristine->load(path)) {
+            recent_files.add(path);
+            spdlog::info("[WindowSystem] Replaced pristine Untitled with: {}", path);
+            return pristine;
+        }
+        spdlog::error("[WindowSystem] Failed to load document: {}", path);
+        return nullptr;
     }
 
     auto doc = std::make_unique<Document>();
@@ -38,6 +51,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
     Document* doc_ptr = doc.get();
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
+    recent_files.add(path);
 
     spdlog::info("[WindowSystem] Opened document: {} (total: {})", path, documents_.size());
 
@@ -45,12 +59,6 @@ Document* WindowSystem::openDocument(const std::string& path) {
 }
 
 bool WindowSystem::closeDocument(Document& doc) {
-    if (doc.isModified()) {
-        // Caller should handle save prompt - return false to indicate cancelled
-        return false;
-    }
-
-    // Find the document to remove
     auto it = std::find_if(documents_.begin(), documents_.end(),
                             [&doc](const auto& ptr) { return ptr.get() == &doc; });
     if (it == documents_.end()) return false;
@@ -100,12 +108,6 @@ bool WindowSystem::closeDocument(Document& doc) {
 }
 
 bool WindowSystem::closeAllDocuments() {
-    for (auto& doc : documents_) {
-        if (doc->isModified()) {
-            return false;  // Cancel if any document is modified
-        }
-    }
-
     documents_.clear();
     active_document_ = nullptr;
     createDocument();
@@ -149,7 +151,6 @@ void WindowSystem::openPropertiesForNode(size_t node_index, Document& doc) {
                 doc_ptr->scene().cache().invalidate(node_id);
                 inspector_.markDirty();
                 doc_ptr->rebuildSimulation();
-                doc_ptr->markModified();
                 return;
             }
         }

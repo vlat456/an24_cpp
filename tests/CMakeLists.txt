@@ -1353,6 +1353,20 @@ target_link_libraries(document_window_system_tests PRIVATE
 )
 gtest_discover_tests(document_window_system_tests)
 
+# Recent files tests
+add_executable(recent_files_tests
+    test_recent_files.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/recent_files.cpp
+)
+target_include_directories(recent_files_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(recent_files_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(recent_files_tests)
+
 # Blueprint v2 format tests (Phase 1: parser/serializer)
 add_executable(blueprint_v2_tests
     test_blueprint_v2.cpp

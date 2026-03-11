@@ -45,6 +45,32 @@
 #include <cstdio>
 #include <algorithm>
 #include <functional>
+#include <filesystem>
+
+/// Get config file path (platform-aware)
+static std::string getConfigPath() {
+#ifdef _WIN32
+    const char* appdata = getenv("APPDATA");
+    if (appdata) return std::string(appdata) + "/an24/recent_files.cfg";
+    return "C:/an24/recent_files.cfg";
+#elif defined(__APPLE__)
+    const char* home = getenv("HOME");
+    if (home) return std::string(home) + "/Library/Application Support/an24/recent_files.cfg";
+    return "/tmp/an24/recent_files.cfg";
+#else
+    const char* xdg = getenv("XDG_CONFIG_HOME");
+    if (xdg) return std::string(xdg) + "/an24/recent_files.cfg";
+    const char* home = getenv("HOME");
+    if (home) return std::string(home) + "/.config/an24/recent_files.cfg";
+    return "/tmp/an24/recent_files.cfg";
+#endif
+}
+
+/// Ensure parent directory exists
+static void ensureConfigDir(const std::string& path) {
+    auto dir = std::filesystem::path(path).parent_path();
+    std::filesystem::create_directories(dir);
+}
 
 int main(int argc, char** argv) {
     (void)argc; (void)argv;
@@ -116,17 +142,11 @@ int main(int argc, char** argv) {
 
     // Window system (manages multiple documents)
     WindowSystem ws;
-
-    // Load default file into active document
-    const char* default_file = "/Users/vladimir/an24_cpp/blueprint.json";
-    if (Document* doc = ws.activeDocument()) {
-        if (!doc->load(default_file)) {
-            // File doesn't exist or failed to load - that's ok, start with empty blueprint
-            DEBUG_INFO("Default file not found or failed to load: {}", default_file);
-        } else {
-            DEBUG_INFO("Loaded default file: {}", default_file);
-        }
-    }
+    
+    // Load recent files
+    std::string recent_cfg = getConfigPath();
+    ensureConfigDir(recent_cfg);
+    ws.recent_files.loadFrom(recent_cfg);
 
     bool running = true;
     while (running) {
@@ -187,7 +207,25 @@ int main(int argc, char** argv) {
                         NFD_FreePath(outPath);
                     }
                 }
-                if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc && active_doc->isModified())) {
+                if (ImGui::BeginMenu("Recent Files", !ws.recent_files.empty())) {
+                    for (size_t i = 0; i < ws.recent_files.files().size(); i++) {
+                        const std::string& recent_path = ws.recent_files.files()[i];
+                        std::string name = std::filesystem::path(recent_path).filename().string();
+                        if (ImGui::MenuItem(name.c_str())) {
+                            std::string path_copy = recent_path;  // copy before potential realloc
+                            ws.openDocument(path_copy);
+                        }
+                        if (ImGui::IsItemHovered()) {
+                            ImGui::SetTooltip("%s", recent_path.c_str());
+                        }
+                    }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Clear List")) {
+                        ws.recent_files.clear();
+                    }
+                    ImGui::EndMenu();
+                }
+                if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
                     if (active_doc) {
                         if (active_doc->filepath().empty()) {
                             nfdu8filteritem_t filterItem = {"Blueprint", "blueprint"};
@@ -195,6 +233,7 @@ int main(int argc, char** argv) {
                             nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.blueprint");
                             if (result == NFD_OKAY) {
                                 active_doc->save(outPath);
+                                ws.recent_files.add(outPath);
                                 NFD_FreePath(outPath);
                             }
                         } else {
@@ -497,46 +536,62 @@ int main(int argc, char** argv) {
             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
+        // Tab bar at top
+        float tab_bar_height = 0.0f;
         if (ImGui::BeginTabBar("DocumentTabs")) {
+            tab_bar_height = ImGui::GetItemRectSize().y;
             Document* doc_to_close = nullptr;
             for (auto& doc : ws.documents()) {
-                ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;
-                if (doc->isModified()) flags |= ImGuiTabItemFlags_UnsavedDocument;
-
                 bool tab_open = true;
                 std::string tab_label = doc->title() + "###" + doc->id();
-                if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, flags)) {
+                if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, ImGuiTabItemFlags_None)) {
                     // This tab is selected → active document
                     if (ws.activeDocument() != doc.get()) {
                         ws.setActiveDocument(doc.get());
                     }
-
-                    // Render canvas for this document's root window
-                    auto canvas_min = ImGui::GetWindowContentRegionMin();
-                    auto canvas_max = ImGui::GetWindowContentRegionMax();
-                    Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
-                            canvas_min.y + ImGui::GetWindowPos().y);
-                    Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
-                            canvas_max.y + ImGui::GetWindowPos().y);
-                    bool hovered = ImGui::IsWindowHovered();
-
-                    process_window(doc->root(), *doc, cmin, cmax,
-                                  ImGui::GetWindowDrawList(), hovered);
-
                     ImGui::EndTabItem();
                 }
                 if (!tab_open) {
-                    // Defer close to after iteration (erase during iteration = UB)
                     doc_to_close = doc.get();
                 }
             }
             ImGui::EndTabBar();
 
-            // Close deferred document (at most one per frame)
             if (doc_to_close) {
                 ws.closeDocument(*doc_to_close);
             }
         }
+
+        // Get tab bar height after it's rendered
+        if (tab_bar_height == 0.0f) {
+            // Estimate if BeginTabBar didn't give us the size
+            tab_bar_height = ImGui::GetTextLineHeightWithSpacing();
+        }
+
+        // Child window for canvas content (below tabs)
+        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tab_bar_height);
+        ImVec2 content_size(ImGui::GetContentRegionAvail().x, 
+                            ImGui::GetContentRegionAvail().y);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        if (ImGui::BeginChild("##CanvasArea", content_size, false,
+            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+            
+            Document* active_doc = ws.activeDocument();
+            if (active_doc) {
+                auto canvas_min = ImGui::GetWindowContentRegionMin();
+                auto canvas_max = ImGui::GetWindowContentRegionMax();
+                Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
+                        canvas_min.y + ImGui::GetWindowPos().y);
+                Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
+                        canvas_max.y + ImGui::GetWindowPos().y);
+                bool hovered = ImGui::IsWindowHovered();
+
+                process_window(active_doc->root(), *active_doc, cmin, cmax,
+                              ImGui::GetWindowDrawList(), hovered);
+            }
+        }
+        ImGui::EndChild();
+        ImGui::PopStyleVar();
 
         ImGui::End();
         ImGui::PopStyleVar();
@@ -742,7 +797,6 @@ int main(int argc, char** argv) {
                     };
                     auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
                     if (vn) vn->setCustomColor(node.color);
-                    doc->markModified();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
@@ -751,7 +805,6 @@ int main(int argc, char** argv) {
                     node.color = std::nullopt;
                     auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
                     if (vn) vn->setCustomColor(std::nullopt);
-                    doc->markModified();
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::SameLine();
@@ -774,7 +827,6 @@ int main(int argc, char** argv) {
             if (ImGui::Button("Bake In")) {
                 if (ws.pendingBakeIn.doc) {
                     ws.pendingBakeIn.doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
-                    ws.pendingBakeIn.doc->markModified();
                 }
                 ImGui::CloseCurrentPopup();
             }
@@ -797,6 +849,9 @@ int main(int argc, char** argv) {
 
         SDL_GL_SwapWindow(window);
     }
+
+    // Save recent files before exit
+    ws.recent_files.saveTo(recent_cfg);
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

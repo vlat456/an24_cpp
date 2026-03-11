@@ -4,6 +4,8 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "json_parser/json_parser.h"
+#include <fstream>
 
 // ============================================================================
 // Document tests
@@ -19,28 +21,9 @@ TEST(Document, ConstructionGeneratesUniqueId) {
 
 TEST(Document, DefaultState) {
     Document doc;
-    EXPECT_FALSE(doc.isModified());
     EXPECT_EQ(doc.displayName(), "Untitled");
     EXPECT_TRUE(doc.filepath().empty());
     EXPECT_FALSE(doc.isSimulationRunning());
-}
-
-TEST(Document, TitleShowsModifiedFlag) {
-    Document doc;
-    EXPECT_EQ(doc.title(), "Untitled");
-    doc.markModified();
-    EXPECT_EQ(doc.title(), "Untitled*");
-    doc.clearModified();
-    EXPECT_EQ(doc.title(), "Untitled");
-}
-
-TEST(Document, ModifiedTracking) {
-    Document doc;
-    EXPECT_FALSE(doc.isModified());
-    doc.markModified();
-    EXPECT_TRUE(doc.isModified());
-    doc.clearModified();
-    EXPECT_FALSE(doc.isModified());
 }
 
 TEST(Document, BlueprintAccess) {
@@ -219,16 +202,6 @@ TEST(WindowSystem, CloseDocumentRemovesIt) {
     EXPECT_EQ(ws.documentCount(), 1u);
 }
 
-TEST(WindowSystem, CloseDocumentModifiedReturnsFalse) {
-    WindowSystem ws;
-    ws.createDocument();
-    Document* doc = ws.documents()[1].get();
-    doc->markModified();
-
-    EXPECT_FALSE(ws.closeDocument(*doc));
-    EXPECT_EQ(ws.documentCount(), 2u); // not removed
-}
-
 // REGRESSION: closeDocument use-after-move bug.
 // Old code used std::remove_if then accessed moved-from unique_ptr.
 TEST(WindowSystem, CloseActiveDocumentSwitchesToNext) {
@@ -369,13 +342,6 @@ TEST(WindowSystem, CloseAllDocumentsMethod) {
     EXPECT_TRUE(ws.closeAllDocuments());
     EXPECT_EQ(ws.documentCount(), 1u); // fresh document
     EXPECT_NE(ws.activeDocument(), nullptr);
-}
-
-TEST(WindowSystem, CloseAllFailsIfModified) {
-    WindowSystem ws;
-    ws.activeDocument()->markModified();
-    EXPECT_FALSE(ws.closeAllDocuments());
-    EXPECT_EQ(ws.documentCount(), 1u); // unchanged
 }
 
 TEST(WindowSystem, HandleInputActionSetsContextMenu) {
@@ -664,4 +630,212 @@ TEST(WindowSystem, RapidCreateCloseDoesNotLeak) {
     // Should end with just the initial document
     EXPECT_GE(ws.documentCount(), 1u);
     EXPECT_NE(ws.activeDocument(), nullptr);
+}
+
+// ============================================================================
+// Document::isPristine tests
+// ============================================================================
+
+TEST(Document, IsPristine_NewDocument) {
+    Document doc;
+    EXPECT_TRUE(doc.isPristine());
+}
+
+TEST(Document, IsPristine_AfterLoad) {
+    // Create temp file
+    char temp_file[] = "/tmp/pristine_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    // Write minimal v2 blueprint
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "test" },
+  "nodes": {
+    "b1": { "type": "Battery", "pos": [100, 100] }
+  },
+  "wires": []
+})";
+    f.close();
+
+    Document doc;
+    EXPECT_TRUE(doc.isPristine());
+    
+    EXPECT_TRUE(doc.load(temp_file));
+    EXPECT_FALSE(doc.isPristine());
+    
+    std::remove(temp_file);
+}
+
+TEST(Document, IsPristine_AfterAddComponent) {
+    Document doc;
+    an24::TypeRegistry registry = an24::load_type_registry();
+    
+    EXPECT_TRUE(doc.isPristine());
+    
+    doc.addComponent("Battery", Pt(100, 100), "", registry);
+    
+    EXPECT_FALSE(doc.isPristine());
+}
+
+// ============================================================================
+// WindowSystem: Replace pristine Untitled when loading
+// ============================================================================
+
+TEST(WindowSystem, OpenDocument_ReplacesPristineUntitled) {
+    // Create temp file
+    char temp_file[] = "/tmp/replace_pristive_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "loaded_file" },
+  "nodes": {
+    "b1": { "type": "Battery", "pos": [100, 100] }
+  },
+  "wires": []
+})";
+    f.close();
+
+    WindowSystem ws;
+    
+    // Should start with 1 pristine Untitled
+    EXPECT_EQ(ws.documentCount(), 1u);
+    EXPECT_TRUE(ws.activeDocument()->isPristine());
+    EXPECT_EQ(ws.activeDocument()->displayName(), "Untitled");
+    
+    // Load file - should REPLACE the pristine Untitled
+    Document* loaded = ws.openDocument(temp_file);
+    ASSERT_NE(loaded, nullptr);
+    
+    // Should still have exactly 1 document
+    EXPECT_EQ(ws.documentCount(), 1u);
+    EXPECT_EQ(ws.activeDocument(), loaded);
+    EXPECT_FALSE(loaded->isPristine());
+    EXPECT_NE(loaded->displayName(), "Untitled");
+    
+    std::remove(temp_file);
+}
+
+TEST(WindowSystem, OpenDocument_AddsTabWhenNotPristine) {
+    // Create temp file
+    char temp_file[] = "/tmp/add_tab_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "loaded_file" },
+  "nodes": {
+    "b1": { "type": "Battery", "pos": [100, 100] }
+  },
+  "wires": []
+})";
+    f.close();
+
+    WindowSystem ws;
+    an24::TypeRegistry registry = an24::load_type_registry();
+    
+    // Modify the pristine Untitled so it's no longer pristine
+    ws.activeDocument()->addComponent("Battery", Pt(100, 100), "", registry);
+    EXPECT_FALSE(ws.activeDocument()->isPristine());
+    
+    // Load file - should ADD a new tab (not replace)
+    Document* loaded = ws.openDocument(temp_file);
+    ASSERT_NE(loaded, nullptr);
+    
+    // Should now have 2 documents
+    EXPECT_EQ(ws.documentCount(), 2u);
+    EXPECT_EQ(ws.activeDocument(), loaded);
+    
+    std::remove(temp_file);
+}
+
+// ============================================================================
+// WindowSystem + RecentFiles integration
+// ============================================================================
+
+TEST(WindowSystem, OpenDocument_AddsToRecentFiles) {
+    // Create temp file
+    char temp_file[] = "/tmp/recent_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "test" },
+  "nodes": { "b1": { "type": "Battery", "pos": [100, 100] } },
+  "wires": []
+})";
+    f.close();
+
+    WindowSystem ws;
+    EXPECT_TRUE(ws.recent_files.empty());
+    
+    Document* loaded = ws.openDocument(temp_file);
+    ASSERT_NE(loaded, nullptr);
+    
+    EXPECT_FALSE(ws.recent_files.empty());
+    EXPECT_EQ(ws.recent_files.files().size(), 1u);
+    EXPECT_EQ(ws.recent_files.files()[0], temp_file);
+    
+    std::remove(temp_file);
+}
+
+TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
+    // Create temp file
+    char temp_file[] = "/tmp/recent_dup_test_XXXXXX";
+    int fd = mkstemp(temp_file);
+    ASSERT_GE(fd, 0);
+    close(fd);
+
+    std::ofstream f(temp_file);
+    f << R"({
+  "version": 2,
+  "meta": { "name": "test" },
+  "nodes": { "b1": { "type": "Battery", "pos": [100, 100] } },
+  "wires": []
+})";
+    f.close();
+
+    // Create another file
+    char temp_file2[] = "/tmp/recent_dup_test2_XXXXXX";
+    int fd2 = mkstemp(temp_file2);
+    ASSERT_GE(fd2, 0);
+    close(fd2);
+
+    std::ofstream f2(temp_file2);
+    f2 << R"({
+  "version": 2,
+  "meta": { "name": "test2" },
+  "nodes": { "b1": { "type": "Battery", "pos": [100, 100] } },
+  "wires": []
+})";
+    f2.close();
+
+    WindowSystem ws;
+    
+    ws.openDocument(temp_file);
+    ws.openDocument(temp_file2);
+    
+    EXPECT_EQ(ws.recent_files.files().size(), 2u);
+    EXPECT_EQ(ws.recent_files.files()[0], temp_file2);  // Most recent
+    
+    // Open first file again - should move to front
+    ws.openDocument(temp_file);
+    
+    EXPECT_EQ(ws.recent_files.files().size(), 2u);
+    EXPECT_EQ(ws.recent_files.files()[0], temp_file);  // Now most recent
+    
+    std::remove(temp_file);
+    std::remove(temp_file2);
 }

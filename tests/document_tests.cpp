@@ -26,7 +26,6 @@ using namespace an24;
 TEST(DocumentTest, CreateUntitled) {
     Document doc;
 
-    EXPECT_EQ(doc.isModified(), false);
     EXPECT_EQ(doc.filepath(), "");
     EXPECT_EQ(doc.displayName(), "Untitled");
     EXPECT_TRUE(doc.title().find("Untitled") != std::string::npos);
@@ -41,29 +40,6 @@ TEST(DocumentTest, UniqueIds) {
     EXPECT_NE(doc1.id(), doc2.id());
     EXPECT_NE(doc2.id(), doc3.id());
     EXPECT_NE(doc1.id(), doc3.id());
-}
-
-TEST(DocumentTest, ModifiedFlag) {
-    Document doc;
-
-    EXPECT_FALSE(doc.isModified());
-
-    doc.markModified();
-    EXPECT_TRUE(doc.isModified());
-
-    doc.clearModified();
-    EXPECT_FALSE(doc.isModified());
-}
-
-TEST(DocumentTest, TitleShowsAsteriskWhenModified) {
-    Document doc;
-
-    std::string title_unmodified = doc.title();
-    EXPECT_FALSE(title_unmodified.find('*') != std::string::npos);
-
-    doc.markModified();
-    std::string title_modified = doc.title();
-    EXPECT_TRUE(title_modified.find('*') != std::string::npos);
 }
 
 TEST(DocumentTest, SaveLoadRoundtrip) {
@@ -82,7 +58,6 @@ TEST(DocumentTest, SaveLoadRoundtrip) {
     // Save
     EXPECT_TRUE(doc1.save(temp_file));
     EXPECT_EQ(doc1.filepath(), temp_file);
-    EXPECT_FALSE(doc1.isModified());
     EXPECT_TRUE(doc1.displayName().find("blueprint_test_") != std::string::npos);
 
     // Load into another document
@@ -91,7 +66,6 @@ TEST(DocumentTest, SaveLoadRoundtrip) {
 
     EXPECT_EQ(doc2.filepath(), temp_file);
     EXPECT_EQ(doc2.blueprint().nodes.size(), doc1.blueprint().nodes.size());
-    EXPECT_FALSE(doc2.isModified());
 
     // Clean up
     std::remove(temp_file);
@@ -172,17 +146,6 @@ TEST(DocumentTest, AddComponentCreatesUniqueNode) {
     // Both should start with "battery_"
     EXPECT_TRUE(doc.blueprint().nodes[0].id.find("battery_") == 0);
     EXPECT_TRUE(doc.blueprint().nodes[1].id.find("battery_") == 0);
-}
-
-TEST(DocumentTest, AddComponentMarksModified) {
-    Document doc;
-    TypeRegistry registry = load_type_registry();
-
-    EXPECT_FALSE(doc.isModified());
-
-    doc.addComponent("Battery", Pt(100, 100), "", registry);
-
-    EXPECT_TRUE(doc.isModified());
 }
 
 TEST(DocumentTest, TriggerSwitch) {

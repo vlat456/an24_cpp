@@ -17,7 +17,7 @@ Document::Document() {
 }
 
 std::string Document::title() const {
-    return display_name_ + (modified_ ? "*" : "");
+    return display_name_;
 }
 
 bool Document::save(const std::string& path) {
@@ -30,10 +30,8 @@ bool Document::save(const std::string& path) {
     if (!save_blueprint_to_file(blueprint_, path.c_str())) return false;
 
     filepath_ = path;
-    // Extract filename for display
     auto pos = path.find_last_of("/\\");
     display_name_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
-    clearModified();
     return true;
 }
 
@@ -65,7 +63,6 @@ bool Document::load(const std::string& path) {
     filepath_ = path;
     auto pos = path.find_last_of("/\\");
     display_name_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
-    clearModified();
     return true;
 }
 
@@ -251,7 +248,6 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     rebuildSimulation();
-    markModified();
 
     printf("Added component: %s (id=%s) at (%.1f, %.1f) group=%s\n",
            classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
@@ -348,7 +344,6 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     scene().cache().clear();
     rebuildSimulation();
-    markModified();
 
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
                  blueprint_name, unique_id, internal_node_ids.size(), sub_bp.wires.size());

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "document.h"
+#include "recent_files.h"
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
@@ -70,6 +71,7 @@ public:
     } pendingBakeIn;
 
     bool showInspector = true;
+    RecentFiles recent_files;
 
     // ── Utility ──
 
