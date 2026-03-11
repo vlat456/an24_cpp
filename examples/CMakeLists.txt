@@ -106,6 +106,8 @@ find_package(OpenGL REQUIRED)
 add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp

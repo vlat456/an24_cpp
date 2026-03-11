@@ -66,7 +66,7 @@ struct EditorApp {
     std::unordered_set<std::string> held_buttons;
 
     EditorApp()
-        : inspector(window_manager.root().scene)  // Inspector needs scene reference
+        : inspector(&window_manager.root().scene)  // Inspector needs scene pointer
     {
         // Load type registry at startup
         type_registry = an24::load_type_registry();

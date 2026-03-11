@@ -2,6 +2,11 @@
 #include <imgui.h>
 
 void Inspector::render() {
+    if (!scene_) {
+        ImGui::TextDisabled("No document loaded");
+        return;
+    }
+
     // Lazy rebuild: check scene topology + dirty flag
     if (detectSceneChange() || dirty_) {
         buildDisplayTree();

@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cctype>
 
-Inspector::Inspector(const VisualScene& scene) : scene_(scene) {}
+Inspector::Inspector(const VisualScene* scene) : scene_(scene) {}
 
 std::string Inspector::consumeSelection() {
     std::string result;
@@ -28,8 +28,9 @@ void Inspector::setSortMode(SortMode mode) {
 }
 
 bool Inspector::detectSceneChange() {
-    size_t nc = scene_.nodes().size();
-    size_t wc = scene_.wires().size();
+    if (!scene_) return false;
+    size_t nc = scene_->nodes().size();
+    size_t wc = scene_->wires().size();
     if (nc != last_node_count_ || wc != last_wire_count_) {
         last_node_count_ = nc;
         last_wire_count_ = wc;
@@ -40,9 +41,10 @@ bool Inspector::detectSceneChange() {
 
 void Inspector::buildDisplayTree() {
     display_tree_.clear();
+    if (!scene_) return;
 
-    for (const auto& node : scene_.nodes()) {
-        if (!scene_.ownsNode(node)) continue;
+    for (const auto& node : scene_->nodes()) {
+        if (!scene_->ownsNode(node)) continue;
         if (!passesFilter(node)) continue;
 
         DisplayNode dn;
@@ -52,8 +54,8 @@ void Inspector::buildDisplayTree() {
 
         // Count connections (only wires owned by this scene)
         size_t conn_count = 0;
-        for (const auto& wire : scene_.wires()) {
-            if (!scene_.ownsWire(wire)) continue;
+        for (const auto& wire : scene_->wires()) {
+            if (!scene_->ownsWire(wire)) continue;
             if (wire.start.node_id == node.id || wire.end.node_id == node.id)
                 conn_count++;
         }
@@ -77,15 +79,15 @@ void Inspector::buildDisplayTree() {
 
 std::string Inspector::findConnectionFor(const Node& node, const Port& port, PortSide side) const {
     std::string result;
-    for (const auto& wire : scene_.wires()) {
-        if (!scene_.ownsWire(wire)) continue;
+    for (const auto& wire : scene_->wires()) {
+        if (!scene_->ownsWire(wire)) continue;
 
         // Match the port's side: inputs match wire.end, outputs match wire.start
         const WireEnd& local = (side == PortSide::Input) ? wire.end : wire.start;
         const WireEnd& remote = (side == PortSide::Input) ? wire.start : wire.end;
 
         if (local.node_id == node.id && local.port_name == port.name) {
-            const Node* other = scene_.findNode(remote.node_id.c_str());
+            const Node* other = scene_->findNode(remote.node_id.c_str());
             if (other) {
                 if (!result.empty()) result += ", ";
                 result += other->name + "." + remote.port_name;

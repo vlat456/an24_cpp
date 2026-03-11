@@ -18,7 +18,17 @@ class Inspector {
 public:
     enum class SortMode { Name, Type, Connections };
 
-    explicit Inspector(const VisualScene& scene);
+    /// Default constructor (scene can be set later via setScene)
+    Inspector() : scene_(nullptr) {}
+
+    /// Constructor with scene pointer
+    Inspector(const VisualScene* scene);
+
+    /// Set the scene to inspect (for switching between documents)
+    void setScene(const VisualScene& scene) {
+        scene_ = &scene;
+        markDirty();
+    }
 
     /// Mark data stale (call after structural scene changes)
     void markDirty() { dirty_ = true; }
@@ -43,7 +53,7 @@ public:
     void buildDisplayTree();
 
 private:
-    const VisualScene& scene_;
+    const VisualScene* scene_;
     std::vector<DisplayNode> display_tree_;
 
     // Dirty tracking
