@@ -1,0 +1,198 @@
+{
+  "tests": 36,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Document",
+      "tests": 16,
+      "testsuite": [
+        {
+          "name": "ConstructionGeneratesUniqueId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 12
+        },
+        {
+          "name": "DefaultState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 20
+        },
+        {
+          "name": "TitleShowsModifiedFlag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 28
+        },
+        {
+          "name": "ModifiedTracking",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 37
+        },
+        {
+          "name": "BlueprintAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 46
+        },
+        {
+          "name": "WindowManagerAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 59
+        },
+        {
+          "name": "SceneSharesBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 66
+        },
+        {
+          "name": "SimulationStartStop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 78
+        },
+        {
+          "name": "SimulationDoubleStartIsNoop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 87
+        },
+        {
+          "name": "SignalOverridesAndHeldButtons",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 96
+        },
+        {
+          "name": "TriggerSwitchSetsOverride",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 109
+        },
+        {
+          "name": "ApplyInputResultContextMenu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 117
+        },
+        {
+          "name": "ApplyInputResultNodeContextMenu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 131
+        },
+        {
+          "name": "OpenSubWindowForMissingGroupDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 143
+        },
+        {
+          "name": "OpenSubWindowCreatesWindow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 151
+        },
+        {
+          "name": "NonCopyable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 165
+        }
+      ]
+    },
+    {
+      "name": "WindowSystem",
+      "tests": 20,
+      "testsuite": [
+        {
+          "name": "ConstructionCreatesOneDocument",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 176
+        },
+        {
+          "name": "CreateDocumentIncrementsCount",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 182
+        },
+        {
+          "name": "CreateDocumentSetsActive",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 191
+        },
+        {
+          "name": "SetActiveDocumentUpdatesPointer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 199
+        },
+        {
+          "name": "CloseDocumentRemovesIt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 211
+        },
+        {
+          "name": "CloseDocumentModifiedReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 221
+        },
+        {
+          "name": "CloseActiveDocumentSwitchesToNext",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 233
+        },
+        {
+          "name": "CloseMiddleDocumentSwitchesCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 254
+        },
+        {
+          "name": "CloseLastDocumentCreatesNew",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 270
+        },
+        {
+          "name": "CloseActiveDocumentUpdatesInspectorScene",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 284
+        },
+        {
+          "name": "CloseDocumentClearsContextMenuPointers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 308
+        },
+        {
+          "name": "CloseDocumentKeepsOtherContextMenuPointers",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 327
+        },
+        {
+          "name": "CloseAllDocumentsOneByOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 343
+        },
+        {
+          "name": "CloseAllDocumentsMethod",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 362
+        },
+        {
+          "name": "CloseAllFailsIfModified",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 373
+        },
+        {
+          "name": "HandleInputActionSetsContextMenu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 380
+        },
+        {
+          "name": "HandleInputActionSetsNodeContextMenu",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 398
+        },
+        {
+          "name": "OpenDocumentDuplicatePathReturnsExisting",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 415
+        },
+        {
+          "name": "InspectorUpdatedOnActiveDocumentChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 425
+        },
+        {
+          "name": "RapidCreateCloseDoesNotLeak",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_document_window_system.cpp",
+          "line": 450
+        }
+      ]
+    }
+  ]
+}

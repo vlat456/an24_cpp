@@ -139,7 +139,7 @@ target_include_directories(an24_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${SDL2_INCLUDE_DIRS}
