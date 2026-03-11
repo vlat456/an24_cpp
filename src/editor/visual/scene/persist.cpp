@@ -283,10 +283,24 @@ std::string blueprint_to_json(const Blueprint& bp) {
 std::string blueprint_to_editor_json(const Blueprint& bp) {
     json j = json::object();
 
+    // Build set of internal node IDs for non-baked-in sub-blueprints
+    // These nodes should NOT be saved - they will be re-expanded from library on load
+    std::set<std::string> non_baked_in_internals;
+    for (const auto& sbi : bp.sub_blueprint_instances) {
+        if (!sbi.baked_in) {
+            for (const auto& internal_id : sbi.internal_node_ids) {
+                non_baked_in_internals.insert(internal_id);
+            }
+        }
+    }
+
     // devices: flat list of ALL nodes including Blueprint kind
     json devices = json::array();
     std::set<std::string> emitted_ids;  // Dedup: skip duplicate node IDs on save
     for (const auto& n : bp.nodes) {
+        if (non_baked_in_internals.count(n.id) > 0) {
+            continue;  // Skip internal nodes of non-baked-in sub-blueprints
+        }
         if (!emitted_ids.insert(n.id).second) {
             spdlog::warn("[dedup] Duplicate node '{}' on editor save", n.id);
             continue;
@@ -350,6 +364,11 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
     json wires = json::array();
     std::set<std::string> emitted_wire_keys;
     for (const auto& w : bp.wires) {
+        // Skip wires where BOTH endpoints are internal nodes of non-baked-in sub-blueprints
+        if (non_baked_in_internals.count(w.start.node_id) > 0 &&
+            non_baked_in_internals.count(w.end.node_id) > 0) {
+            continue;
+        }
         if (!emitted_ids.count(w.start.node_id) || !emitted_ids.count(w.end.node_id))
             continue;
         std::string key = w.start.node_id + "." + w.start.port_name + "→" +
@@ -389,9 +408,19 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
                 po[k] = v;
             gj["params_override"] = po;
         }
-        if (!group.layout_override.empty()) {
+
+        // For non-baked-in SBIs, snapshot live Node::pos into layout_override
+        // so positions survive save/load (internal nodes are not saved as devices)
+        std::map<std::string, Pt> layout = group.layout_override;
+        if (!group.baked_in) {
+            for (const auto& nid : group.internal_node_ids) {
+                if (const Node* n = bp.find_node(nid.c_str()))
+                    layout[nid] = n->pos;
+            }
+        }
+        if (!layout.empty()) {
             json lo = json::object();
-            for (const auto& [k, pt] : group.layout_override)
+            for (const auto& [k, pt] : layout)
                 lo[k] = {{"x", pt.x}, {"y", pt.y}};
             gj["layout_override"] = lo;
         }
@@ -705,6 +734,73 @@ static std::optional<Blueprint> load_editor_format(const json& j) {
             bp.sub_blueprint_instances.push_back(group);
         }
     }
+
+    // Re-expand non-baked-in sub-blueprints from library
+    for (auto& sbi : bp.sub_blueprint_instances) {
+        if (sbi.baked_in) continue;
+
+        const auto* def = registry.get(sbi.type_name);
+        if (!def) {
+            spdlog::warn("[persist] Cannot re-expand '{}': type '{}' not in registry",
+                         sbi.id, sbi.type_name);
+            continue;
+        }
+
+        Blueprint sub_bp = expand_type_definition(*def, registry);
+
+        // Prefix node IDs with sbi.id + ":"
+        std::vector<std::string> internal_ids;
+        for (auto& node : sub_bp.nodes) {
+            node.id = sbi.id + ":" + node.id;
+            node.name = node.id;
+            node.group_id = sbi.id;
+            internal_ids.push_back(node.id);
+
+            // Apply layout_override if present
+            auto it = sbi.layout_override.find(node.id);
+            if (it != sbi.layout_override.end())
+                node.pos = it->second;
+
+            bp.nodes.push_back(std::move(node));
+        }
+
+        // Apply params_override: key format "local_node_id.param_name"
+        for (const auto& [key, value] : sbi.params_override) {
+            auto dot = key.find('.');
+            if (dot == std::string::npos) continue;
+            std::string local_id = sbi.id + ":" + key.substr(0, dot);
+            std::string param = key.substr(dot + 1);
+            if (Node* n = bp.find_node(local_id.c_str()))
+                n->params[param] = value;
+        }
+
+        // Prefix wire IDs
+        for (auto& wire : sub_bp.wires) {
+            wire.start.node_id = sbi.id + ":" + wire.start.node_id;
+            wire.end.node_id = sbi.id + ":" + wire.end.node_id;
+            wire.id = sbi.id + ":" + wire.id;
+            bp.wires.push_back(std::move(wire));
+        }
+
+        sbi.internal_node_ids = internal_ids;
+
+        // Fallback: if no layout_override was saved (e.g. old save files),
+        // run auto_layout_group so nodes don't all stay at (0,0)
+        if (sbi.layout_override.empty()) {
+            bool all_zero = true;
+            for (const auto& nid : internal_ids) {
+                if (const Node* n = bp.find_node(nid.c_str())) {
+                    if (n->pos.x != 0.0f || n->pos.y != 0.0f) {
+                        all_zero = false;
+                        break;
+                    }
+                }
+            }
+            if (all_zero && !internal_ids.empty())
+                bp.auto_layout_group(sbi.id);
+        }
+    }
+    bp.rebuild_wire_index();
 
     // Viewport
     if (j.contains("viewport")) {

@@ -213,6 +213,12 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
 
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
 
+    // Look up category for blueprint_path (e.g., "systems/lamp_pass_through")
+    std::string category;
+    auto cat_it = type_registry.categories.find(blueprint_name);
+    if (cat_it != type_registry.categories.end())
+        category = cat_it->second;
+
     // Expand TypeDefinition into a sub-Blueprint (shared code path)
     Blueprint sub_bp = expand_type_definition(*bp_def, type_registry);
     bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
@@ -244,6 +250,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_node.collapsed = true;
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
+    collapsed_node.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
 
     size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
@@ -262,7 +269,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     // Create SubBlueprintInstance for editor-only visual collapsing
     SubBlueprintInstance sbi;
     sbi.id = unique_id;
-    sbi.blueprint_path = blueprint_name;
+    sbi.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
     sbi.type_name = blueprint_name;
     sbi.pos = snapped_pos;
     sbi.size = Pt(120.0f, height);

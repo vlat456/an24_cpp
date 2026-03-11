@@ -52,7 +52,7 @@
       },
       "render_hint": "bus",
       "size": {
-        "x": 128.0,
+        "x": 144.0,
         "y": 32.0
       }
     },
@@ -305,201 +305,6 @@
       }
     },
     {
-      "classname": "RefNode",
-      "name": "simple_battery_1:gnd",
-      "params": {
-        "value": "0.0"
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 250.0,
-        "y": 950.0
-      },
-      "render_hint": "ref",
-      "size": {
-        "x": 48.0,
-        "y": 48.0
-      }
-    },
-    {
-      "classname": "Battery",
-      "name": "simple_battery_1:bat",
-      "params": {
-        "capacity": "1000.0",
-        "charge": "1000.0",
-        "internal_r": "0.01",
-        "inv_capacity": "0.001",
-        "inv_internal_r": "100.0",
-        "v_nominal": "28.0"
-      },
-      "ports": {
-        "v_in": {
-          "direction": "In",
-          "type": "V"
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 450.0,
-        "y": 950.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
-      "classname": "BlueprintOutput",
-      "name": "simple_battery_1:vout",
-      "params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "In",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 50.0,
-        "y": 1100.0
-      },
-      "size": {
-        "x": 32.0,
-        "y": 32.0
-      }
-    },
-    {
-      "classname": "BlueprintInput",
-      "name": "simple_battery_1:vin",
-      "params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "Out",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 650.0,
-        "y": 950.0
-      },
-      "size": {
-        "x": 32.0,
-        "y": 32.0
-      }
-    },
-    {
-      "classname": "BlueprintInput",
-      "name": "lamp_pass_through_2:vin",
-      "params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "In",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "Out",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 272.0,
-        "y": 368.0
-      },
-      "size": {
-        "x": 32.0,
-        "y": 32.0
-      }
-    },
-    {
-      "classname": "IndicatorLight",
-      "content": {
-        "label": "OFF",
-        "max": 1.0,
-        "min": 0.0,
-        "type": 5,
-        "unit": "",
-        "value": 0.0
-      },
-      "name": "lamp_pass_through_2:lamp",
-      "params": {
-        "color": "red",
-        "conductance": "1.0",
-        "max_brightness": "100.0"
-      },
-      "ports": {
-        "brightness": {
-          "direction": "Out",
-          "type": "I"
-        },
-        "v_in": {
-          "direction": "In",
-          "type": "V"
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": "V"
-        }
-      },
-      "pos": {
-        "x": 272.0,
-        "y": 368.0
-      },
-      "size": {
-        "x": 128.0,
-        "y": 80.0
-      }
-    },
-    {
-      "classname": "BlueprintOutput",
-      "name": "lamp_pass_through_2:vout",
-      "params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
-      "ports": {
-        "ext": {
-          "direction": "Out",
-          "type": "Any"
-        },
-        "port": {
-          "direction": "In",
-          "type": "Any"
-        }
-      },
-      "pos": {
-        "x": 272.0,
-        "y": 368.0
-      },
-      "size": {
-        "x": 32.0,
-        "y": 32.0
-      }
-    },
-    {
       "classname": "BlueprintInput",
       "name": "lamp_pass_through_3:vin",
       "params": {
@@ -636,7 +441,7 @@
       },
       "render_hint": "bus",
       "size": {
-        "x": 96.0,
+        "x": 112.0,
         "y": 32.0
       }
     },
@@ -746,8 +551,8 @@
       "name": "group_1",
       "ports": {},
       "pos": {
-        "x": 240.0,
-        "y": -96.0
+        "x": 224.0,
+        "y": -144.0
       },
       "render_hint": "group",
       "size": {
@@ -858,6 +663,56 @@
       }
     },
     {
+      "classname": "AND",
+      "name": "and_1",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Bool"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Bool"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Bool"
+        }
+      },
+      "pos": {
+        "x": 560.0,
+        "y": 0.0
+      },
+      "size": {
+        "x": 80.0,
+        "y": 80.0
+      }
+    },
+    {
+      "blueprint_path": "systems/lamp_pass_through",
+      "classname": "lamp_pass_through",
+      "expandable": true,
+      "name": "lamp_pass_through_1",
+      "ports": {
+        "vin": {
+          "direction": "In",
+          "type": "V"
+        },
+        "vout": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 112.0,
+        "y": -208.0
+      },
+      "size": {
+        "x": 160.0,
+        "y": 64.0
+      }
+    },
+    {
       "classname": "BlueprintInput",
       "group_id": "lamp_pass_through_1",
       "name": "lamp_pass_through_1:vin",
@@ -876,7 +731,7 @@
         }
       },
       "pos": {
-        "x": 80.0,
+        "x": 16.0,
         "y": 80.0
       },
       "size": {
@@ -886,6 +741,12 @@
     },
     {
       "classname": "IndicatorLight",
+      "color": {
+        "a": 1.0,
+        "b": 0.7309417128562927,
+        "g": 0.06227772310376167,
+        "r": 0.062277548015117645
+      },
       "content": {
         "label": "OFF",
         "max": 1.0,
@@ -926,12 +787,6 @@
     },
     {
       "classname": "BlueprintOutput",
-      "color": {
-        "a": 1.0,
-        "b": 0.7443946599960327,
-        "g": 0.1201714500784874,
-        "r": 0.12017131596803665
-      },
       "group_id": "lamp_pass_through_1",
       "name": "lamp_pass_through_1:vout",
       "params": {
@@ -949,8 +804,8 @@
         }
       },
       "pos": {
-        "x": 560.0,
-        "y": 256.0
+        "x": 528.0,
+        "y": 96.0
       },
       "size": {
         "x": 192.0,
@@ -958,9 +813,10 @@
       }
     },
     {
+      "blueprint_path": "systems/lamp_pass_through",
       "classname": "lamp_pass_through",
       "expandable": true,
-      "name": "lamp_pass_through_1",
+      "name": "lamp_pass_through_2",
       "ports": {
         "vin": {
           "direction": "In",
@@ -972,8 +828,8 @@
         }
       },
       "pos": {
-        "x": 192.0,
-        "y": -272.0
+        "x": 432.0,
+        "y": -32.0
       },
       "size": {
         "x": 160.0,
@@ -981,17 +837,13 @@
       }
     },
     {
-      "classname": "AND",
+      "classname": "Any_V_to_Bool",
       "group_id": "lamp_pass_through_1",
-      "name": "and_1",
+      "name": "any_v_to_bool_1",
       "ports": {
-        "A": {
+        "Vin": {
           "direction": "In",
-          "type": "Bool"
-        },
-        "B": {
-          "direction": "In",
-          "type": "Bool"
+          "type": "V"
         },
         "o": {
           "direction": "Out",
@@ -999,29 +851,62 @@
         }
       },
       "pos": {
-        "x": 560.0,
-        "y": 0.0
+        "x": 496.0,
+        "y": -32.0
       },
       "size": {
-        "x": 80.0,
-        "y": 80.0
+        "x": 128.0,
+        "y": 64.0
       }
     }
   ],
   "sub_blueprint_instances": [
     {
-      "baked_in": false,
-      "blueprint_path": "lamp_pass_through",
+      "baked_in": true,
+      "blueprint_path": "systems/lamp_pass_through",
       "id": "lamp_pass_through_1",
       "internal_node_ids": [
         "lamp_pass_through_1:lamp",
         "lamp_pass_through_1:vin",
         "lamp_pass_through_1:vout",
-        "and_1"
+        "any_v_to_bool_1"
       ],
       "pos": {
-        "x": 192.0,
-        "y": -272.0
+        "x": 112.0,
+        "y": -208.0
+      },
+      "size": {
+        "x": 160.0,
+        "y": 64.0
+      },
+      "type_name": "lamp_pass_through"
+    },
+    {
+      "baked_in": false,
+      "blueprint_path": "systems/lamp_pass_through",
+      "id": "lamp_pass_through_2",
+      "internal_node_ids": [
+        "lamp_pass_through_2:vin",
+        "lamp_pass_through_2:lamp",
+        "lamp_pass_through_2:vout"
+      ],
+      "layout_override": {
+        "lamp_pass_through_2:lamp": {
+          "x": 288.0,
+          "y": 80.0
+        },
+        "lamp_pass_through_2:vin": {
+          "x": 80.0,
+          "y": 80.0
+        },
+        "lamp_pass_through_2:vout": {
+          "x": 480.0,
+          "y": 80.0
+        }
+      },
+      "pos": {
+        "x": 432.0,
+        "y": -32.0
       },
       "size": {
         "x": 160.0,
@@ -1033,10 +918,10 @@
   "viewport": {
     "grid_step": 16.0,
     "pan": {
-      "x": -303.61279296875,
-      "y": -347.146240234375
+      "x": -52.573448181152344,
+      "y": -350.9568176269531
     },
-    "zoom": 1.1706936359405518
+    "zoom": 1.0082390308380127
   },
   "wires": [
     {
@@ -1096,31 +981,6 @@
         }
       ],
       "to": "voltmeter_3.v_in"
-    },
-    {
-      "from": "simple_battery_1:bat.v_out",
-      "routing_points": [],
-      "to": "simple_battery_1:vout.port"
-    },
-    {
-      "from": "lamp_pass_through_2:vin.port",
-      "routing_points": [],
-      "to": "lamp_pass_through_2:lamp.v_in"
-    },
-    {
-      "from": "lamp_pass_through_2:lamp.v_out",
-      "routing_points": [],
-      "to": "lamp_pass_through_2:vout.port"
-    },
-    {
-      "from": "simple_battery_1:vin.port",
-      "routing_points": [],
-      "to": "simple_battery_1:bat.v_in"
-    },
-    {
-      "from": "simple_battery_1:gnd.v",
-      "routing_points": [],
-      "to": "simple_battery_1:vin.port"
     },
     {
       "from": "lamp_pass_through_3:vin.port",
@@ -1319,6 +1179,16 @@
       "to": "rug82_1.v_gen"
     },
     {
+      "from": "lamp_pass_through_1.vin",
+      "routing_points": [],
+      "to": "bat_main_1.v_out"
+    },
+    {
+      "from": "lamp_pass_through_1.vout",
+      "routing_points": [],
+      "to": "azs_2.v_in"
+    },
+    {
       "from": "lamp_pass_through_1:vin.port",
       "routing_points": [],
       "to": "lamp_pass_through_1:lamp.v_in"
@@ -1329,14 +1199,14 @@
       "to": "lamp_pass_through_1:vout.port"
     },
     {
-      "from": "lamp_pass_through_1.vin",
+      "from": "main_bus.v",
       "routing_points": [],
-      "to": "bat_main_1.v_out"
+      "to": "lamp_pass_through_2.vin"
     },
     {
-      "from": "lamp_pass_through_1.vout",
+      "from": "lamp_pass_through_2.vout",
       "routing_points": [],
-      "to": "azs_2.v_in"
+      "to": "bus_1.v"
     }
   ]
 }

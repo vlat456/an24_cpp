@@ -626,3 +626,151 @@ TEST(RPDoubleClick, DoubleClickOnRP_RemovesIt) {
     EXPECT_EQ(scene.wires()[0].routing_points.size(), 0u)
         << "Double-click on RP must remove it";
 }
+
+// ============================================================================
+// Non-Baked-In Sub-Blueprint Read-Only Windows
+// ============================================================================
+
+// ============================================================================
+// REGRESSION: Bug 1 — Pan must work in read-only windows
+// The bug: an24_editor.cpp skips calling process_window (which invokes the
+// CanvasInput FSM) for read_only windows, replacing it with a manual
+// right-drag/middle-drag path. Left-drag panning (the FSM's default for
+// empty-space click) is lost.  This test verifies the CanvasInput FSM itself
+// supports panning identically regardless of the window's read_only flag.
+// ============================================================================
+
+TEST(ReadOnlyPan, LeftDragPanWorksOnReadOnlyWindow) {
+    Blueprint bp;
+    Node n; n.id = "lamp1:r1"; n.group_id = "lamp1";
+    n.at(100, 100).size_wh(80, 60);
+    bp.add_node(std::move(n));
+
+    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    win.read_only = true;
+
+    // Viewport starts at default pan (0,0)
+    Pt initial_pan = win.scene.viewport().pan;
+
+    Pt canvas_min(0, 0);
+
+    // Click on empty space (far from any node) — should enter Panning
+    win.input.on_mouse_down(Pt(500, 500), MouseButton::Left, canvas_min);
+    EXPECT_EQ(win.input.state(), InputState::Panning)
+        << "Left-click on empty space must enter Panning, even on a read-only window";
+
+    // Drag — pan should change
+    win.input.on_mouse_drag(MouseButton::Left, Pt(50, 30), canvas_min);
+
+    Pt after_pan = win.scene.viewport().pan;
+    EXPECT_NE(after_pan.x, initial_pan.x)
+        << "Left-drag pan must move viewport in read-only window";
+    EXPECT_NE(after_pan.y, initial_pan.y)
+        << "Left-drag pan must move viewport in read-only window";
+
+    // Release
+    win.input.on_mouse_up(MouseButton::Left, Pt(550, 530), canvas_min);
+    EXPECT_EQ(win.input.state(), InputState::Idle);
+}
+
+TEST(ReadOnlyPan, ScrollZoomWorksOnReadOnlyWindow) {
+    Blueprint bp;
+    Node n; n.id = "lamp1:r1"; n.group_id = "lamp1";
+    n.at(100, 100).size_wh(80, 60);
+    bp.add_node(std::move(n));
+
+    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    win.read_only = true;
+
+    float initial_zoom = win.scene.viewport().zoom;
+    Pt canvas_min(0, 0);
+
+    // Scroll to zoom
+    win.input.on_scroll(50.0f, Pt(200, 200), canvas_min);
+
+    EXPECT_NE(win.scene.viewport().zoom, initial_zoom)
+        << "Scroll zoom must work in read-only window";
+}
+
+// ============================================================================
+// REGRESSION: Bug 4 — Double-click on expandable node in read-only window
+// must still return open_sub_window.
+// The bug: an24_editor.cpp skips process_window for read-only windows, so
+// on_double_click is never called. The CanvasInput FSM itself works fine,
+// but the integration layer doesn't invoke it.
+// This test verifies the CanvasInput level works correctly.
+// ============================================================================
+
+TEST(ReadOnlyDoubleClick, ExpandableNodeReturnsOpenSubWindow) {
+    Blueprint bp;
+
+    // Collapsed expandable node visible in the sub-window
+    Node nested; nested.id = "nested1"; nested.group_id = "lamp1";
+    nested.at(50, 50).size_wh(120, 80);
+    nested.expandable = true;
+    nested.collapsed = true;
+    bp.add_node(std::move(nested));
+
+    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    win.read_only = true;
+
+    Pt canvas_min(0, 0);
+
+    // Double-click on the expandable node (center ~110, 90)
+    InputResult r = win.input.on_double_click(Pt(110, 90), canvas_min);
+
+    EXPECT_EQ(r.open_sub_window, "nested1")
+        << "Double-click on expandable node must return open_sub_window, "
+           "even in a read-only window";
+}
+
+TEST(SubBlueprintWindow, NonBakedIn_IsReadOnly) {
+    Blueprint bp;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    Node vin;
+    vin.id = "lamp_1:vin";
+    vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    bp.add_node(std::move(vin));
+
+    WindowManager mgr(bp);
+    auto* win = mgr.open("lamp_1", "Lamp [lamp_1]");
+
+    ASSERT_NE(win, nullptr);
+    win->set_read_only(!sbi.baked_in);
+    EXPECT_TRUE(win->read_only) << "Non-baked-in sub-blueprint window should be read-only";
+    EXPECT_TRUE(win->input.read_only) << "CanvasInput should also be read-only";
+}
+
+TEST(SubBlueprintWindow, BakedIn_IsNotReadOnly) {
+    Blueprint bp;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = true;
+    sbi.internal_node_ids = {"lamp_1:vin"};
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    Node vin;
+    vin.id = "lamp_1:vin";
+    vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    bp.add_node(std::move(vin));
+
+    WindowManager mgr(bp);
+    auto* win = mgr.open("lamp_1", "Lamp [lamp_1]");
+
+    ASSERT_NE(win, nullptr);
+    win->set_read_only(!sbi.baked_in);
+    EXPECT_FALSE(win->read_only) << "Baked-in sub-blueprint window should NOT be read-only";
+    EXPECT_FALSE(win->input.read_only) << "CanvasInput should also not be read-only";
+}

@@ -17,6 +17,11 @@ struct BlueprintWindow {
     WireManager wire_manager;
     CanvasInput input;
 
+    /// Whether the window is read-only (non-baked-in sub-blueprints).
+    /// Synced to CanvasInput::read_only so the FSM enforces it.
+    bool read_only = false;
+    void set_read_only(bool v) { read_only = v; input.read_only = v; }
+
     /// Construct a window viewing a specific group of a shared blueprint.
     BlueprintWindow(Blueprint& bp, const std::string& group_id_,
                     const std::string& title_)

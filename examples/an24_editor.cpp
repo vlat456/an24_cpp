@@ -290,7 +290,7 @@ int main(int argc, char** argv) {
                 dl.dl->AddLine(ImVec2(s.x, s.y), ImVec2(e.x, e.y), color, 2.0f);
             }
 
-            // Node content widgets
+            // Node content widgets (read-only windows: display gauges/text but skip interactive widgets)
             for (auto& node : doc.blueprint().nodes) {
                 if (node.group_id != win.scene.groupId()) continue;
 
@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
 
                 switch (content.type) {
                     case NodeContentType::Switch: {
-                        if (node.type_name == "HoldButton") {
+                        if (!win.read_only && node.type_name == "HoldButton") {
                             bool checked = content.state;
                             std::string id = "##hold_" + node.id;
                             if (ImGui::Checkbox(id.c_str(), &checked)) {
@@ -325,9 +325,11 @@ int main(int argc, char** argv) {
                         break;
                     }
                     case NodeContentType::Value: {
-                        ImGui::SetNextItemWidth(aw);
-                        std::string id = "##v_" + node.id;
-                        ImGui::SliderFloat(id.c_str(), &content.value, content.min, content.max, "%.2f");
+                        if (!win.read_only) {
+                            ImGui::SetNextItemWidth(aw);
+                            std::string id = "##v_" + node.id;
+                            ImGui::SliderFloat(id.c_str(), &content.value, content.min, content.max, "%.2f");
+                        }
                         break;
                     }
                     case NodeContentType::Gauge: {
@@ -405,30 +407,33 @@ int main(int argc, char** argv) {
             }
 
             // Keyboard (per-window: Delete/Backspace, Escape, R, brackets)
+            // Read-only windows only get Escape (clear selection); skip destructive keys.
             if (!io.WantCaptureKeyboard) {
                 if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
                     auto action = doc.applyInputResult(win.input.on_key(Key::Escape), win.group_id);
                     ws.handleInputAction(action, doc);
                 }
-                if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
-                    ws.handleInputAction(action, doc);
-                }
-                if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::Backspace), win.group_id);
-                    ws.handleInputAction(action, doc);
-                }
-                if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::R), win.group_id);
-                    ws.handleInputAction(action, doc);
-                }
-                if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::LeftBracket), win.group_id);
-                    ws.handleInputAction(action, doc);
-                }
-                if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::RightBracket), win.group_id);
-                    ws.handleInputAction(action, doc);
+                if (!win.read_only) {
+                    if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+                        auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
+                        ws.handleInputAction(action, doc);
+                    }
+                    if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
+                        auto action = doc.applyInputResult(win.input.on_key(Key::Backspace), win.group_id);
+                        ws.handleInputAction(action, doc);
+                    }
+                    if (ImGui::IsKeyPressed(ImGuiKey_R)) {
+                        auto action = doc.applyInputResult(win.input.on_key(Key::R), win.group_id);
+                        ws.handleInputAction(action, doc);
+                    }
+                    if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+                        auto action = doc.applyInputResult(win.input.on_key(Key::LeftBracket), win.group_id);
+                        ws.handleInputAction(action, doc);
+                    }
+                    if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+                        auto action = doc.applyInputResult(win.input.on_key(Key::RightBracket), win.group_id);
+                        ws.handleInputAction(action, doc);
+                    }
                 }
             }
         };
@@ -548,7 +553,9 @@ int main(int argc, char** argv) {
 
                 ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
                 // Include doc ID in window ID to prevent conflicts between documents
-                std::string win_title = win.title + " [" + doc->displayName() + "]###"
+                std::string win_title = win.title;
+                if (win.read_only) win_title += " [Read Only]";
+                win_title += " [" + doc->displayName() + "]###"
                                        + doc->id() + ":" + win.group_id;
                 if (!ImGui::Begin(win_title.c_str(), &win.open,
                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
@@ -556,7 +563,7 @@ int main(int argc, char** argv) {
                     continue;
                 }
 
-                // Toolbar: Fit View + Auto Layout + Delete
+                // Toolbar: Fit View (always enabled) + Auto Layout + Delete (disabled for read-only)
                 if (ImGui::Button("Fit View")) {
                     Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
                     for (const auto& node : doc->blueprint().nodes) {
@@ -572,6 +579,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 ImGui::SameLine();
+                if (win.read_only) ImGui::BeginDisabled();
                 if (ImGui::Button("Auto Layout")) {
                     doc->blueprint().auto_layout_group(win.group_id);
                     win.scene.clearCache();
@@ -598,6 +606,7 @@ int main(int argc, char** argv) {
                     }
                     if (!has_sel) ImGui::EndDisabled();
                 }
+                if (win.read_only) ImGui::EndDisabled();
 
                 // InvisibleButton captures mouse input in content area
                 ImVec2 content_size = ImGui::GetContentRegionAvail();
@@ -660,24 +669,44 @@ int main(int argc, char** argv) {
                 Node& node = doc->blueprint().nodes[ws.nodeContextMenu.node_index];
                 ImGui::Text("Node: %s", node.name.c_str());
                 ImGui::Separator();
+                
+                // Check if this is a read-only window
+                bool is_read_only = false;
+                if (!ws.nodeContextMenu.group_id.empty()) {
+                    BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.group_id);
+                    is_read_only = win && win->read_only;
+                }
+                
                 if (ImGui::MenuItem("Properties...")) {
                     ws.openPropertiesForNode(ws.nodeContextMenu.node_index, *doc);
                 }
-                if (ImGui::MenuItem("Set Color...")) {
-                    ws.openColorPickerForNode(ws.nodeContextMenu.node_index, ws.nodeContextMenu.group_id, *doc);
+                if (!is_read_only) {
+                    if (ImGui::MenuItem("Set Color...")) {
+                        ws.openColorPickerForNode(ws.nodeContextMenu.node_index, ws.nodeContextMenu.group_id, *doc);
+                    }
+                    if (ImGui::MenuItem("Delete")) {
+                        auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
+                        ws.handleInputAction(action, *doc);
+                    }
                 }
-                if (ImGui::MenuItem("Delete")) {
-                    auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
-                    ws.handleInputAction(action, *doc);
-                }
-                // Show "Bake In" only for nodes inside a SubBlueprintInstance reference (not already baked in)
-                if (!ws.nodeContextMenu.group_id.empty()) {
-                    auto* sb = doc->blueprint().find_sub_blueprint_instance(ws.nodeContextMenu.group_id);
+                // Show "Bake In" / "Edit Original" for non-baked-in sub-blueprints.
+                // Two cases: (1) right-click inside a sub-window (group_id is the SBI id),
+                //            (2) right-click a collapsed composite node at root (node.id is the SBI id).
+                {
+                    const std::string& sbi_id = !ws.nodeContextMenu.group_id.empty()
+                        ? ws.nodeContextMenu.group_id
+                        : node.id;
+                    auto* sb = doc->blueprint().find_sub_blueprint_instance(sbi_id);
                     if (sb && !sb->baked_in) {
                         if (ImGui::MenuItem("Bake In (Embed)")) {
                             ws.pendingBakeIn.show_confirmation = true;
-                            ws.pendingBakeIn.sub_blueprint_id = ws.nodeContextMenu.group_id;
+                            ws.pendingBakeIn.sub_blueprint_id = sbi_id;
                             ws.pendingBakeIn.doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : doc;
+                        }
+                        ImGui::Separator();
+                        if (ImGui::MenuItem("Edit Original")) {
+                            std::string lib_path = "library/" + sb->blueprint_path + ".json";
+                            ws.openDocument(lib_path);
                         }
                     }
                 }

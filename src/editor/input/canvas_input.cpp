@@ -180,6 +180,20 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
     last_world_pos_ = world;
 
     if (btn == MouseButton::Left) {
+        if (read_only) {
+            // Read-only: left-click only allows panning and node selection (for inspection)
+            HitResult hit = scene_.hitTest(world);
+            if (hit.type == HitType::Node) {
+                // Select the node (useful for inspector/properties), but don't drag
+                if (!mods.ctrl) clear_selection();
+                add_node_selection(hit.node_index);
+            } else {
+                clear_selection();
+                enter_panning();
+            }
+            return result;
+        }
+
         // 1. Check ports first (wire creation / reconnection)
         HitResult port_hit = scene_.hitTestPorts(world);
         if (port_hit.type == HitType::Port) {
@@ -230,7 +244,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             clear_selection();
             enter_panning();
         }
-    } else if (btn == MouseButton::Right) {
+    } else if (btn == MouseButton::Right && !read_only) {
         HitResult hit = scene_.hitTest(world);
         if (hit.type == HitType::Node) {
             result.show_node_context_menu = true;
@@ -410,13 +424,13 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
     HitResult hit = scene_.hitTest(world);
 
-    // 1. Routing-point removal (hitTest returns RoutingPoint with higher priority than Wire)
-    if (hit.type == HitType::RoutingPoint) {
+    // 1. Routing-point removal (editing operation — skip in read-only)
+    if (!read_only && hit.type == HitType::RoutingPoint) {
         wire_mgr_.removeRoutingPoint(hit.wire_index, hit.routing_point_index);
         return result;
     }
 
-    // 2. Node hit → open sub-window for Blueprint nodes
+    // 2. Node hit → open sub-window for Blueprint nodes (always allowed)
     if (hit.type == HitType::Node) {
         const auto& node = scene_.nodes()[hit.node_index];
         if (node.expandable) {
@@ -425,8 +439,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
         }
     }
 
-    // 3. Wire hit → add routing point
-    if (hit.type == HitType::Wire) {
+    // 3. Wire hit → add routing point (editing operation — skip in read-only)
+    if (!read_only && hit.type == HitType::Wire) {
         wire_mgr_.addRoutingPoint(hit.wire_index, world);
     }
 
@@ -439,6 +453,12 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
 InputResult CanvasInput::on_key(Key key) {
     InputResult result;
+
+    if (read_only) {
+        // Read-only: only Escape (clear selection) is allowed
+        if (key == Key::Escape) clear_selection();
+        return result;
+    }
 
     switch (key) {
         case Key::Escape:

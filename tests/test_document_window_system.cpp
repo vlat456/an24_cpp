@@ -448,6 +448,213 @@ TEST(WindowSystem, InspectorUpdatedOnActiveDocumentChange) {
 // Edge case: rapid create/close cycles
 // ============================================================================
 
+// ============================================================================
+// REGRESSION: Bug 2 — "Bake In" must be available for non-baked-in SBI nodes
+// at root level (group_id = "").
+// The bug: an24_editor.cpp guards "Bake In" with `if (!group_id.empty())`,
+// so it only appears when right-clicking a node INSIDE a sub-window (where
+// group_id is the SBI id). But when you right-click the collapsed node on the
+// root canvas (group_id=""), the menu item is missing.
+// The fix: also check if the right-clicked node's ID matches an SBI.
+// This test verifies the data model supports finding SBI by node ID at root.
+// ============================================================================
+
+TEST(BakeInMenuRegression, FindSBI_ByNodeId_AtRootLevel) {
+    Document doc;
+
+    // Create a non-baked-in SBI with collapsed node at root level
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin", "lamp_1:lamp"};
+    doc.blueprint().sub_blueprint_instances.push_back(sbi);
+
+    // Collapsed node at root
+    Node collapsed;
+    collapsed.id = "lamp_1";
+    collapsed.at(100, 100).size_wh(120, 80);
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    collapsed.group_id = "";  // root level
+    doc.blueprint().add_node(std::move(collapsed));
+
+    // Internal nodes
+    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    doc.blueprint().add_node(std::move(vin));
+
+    Node lamp; lamp.id = "lamp_1:lamp"; lamp.group_id = "lamp_1";
+    lamp.at(200, 0).size_wh(100, 60);
+    doc.blueprint().add_node(std::move(lamp));
+
+    // When right-clicking the collapsed node at root level, the context menu
+    // has group_id = "" (root). The current code only checks group_id, but
+    // the correct fix should ALSO check the node's own ID against SBI.
+    // This verifies the data is there:
+    const std::string root_group_id = "";
+    const std::string node_id = "lamp_1";
+
+    // Current (broken) path: find_sub_blueprint_instance(group_id) where group_id=""
+    auto* by_group = doc.blueprint().find_sub_blueprint_instance(root_group_id);
+    EXPECT_EQ(by_group, nullptr)
+        << "No SBI has id='', so group_id-based lookup fails at root";
+
+    // Correct path: find_sub_blueprint_instance(node.id) 
+    auto* by_node_id = doc.blueprint().find_sub_blueprint_instance(node_id);
+    ASSERT_NE(by_node_id, nullptr)
+        << "SBI must be findable by the collapsed node's ID";
+    EXPECT_FALSE(by_node_id->baked_in)
+        << "Found SBI must be non-baked-in (eligible for Bake In)";
+}
+
+// ============================================================================
+// REGRESSION: Bug 3 — "Edit Original" must be available for non-baked-in SBI
+// nodes at root level.
+// Same guard issue as Bug 2. Additionally verifies blueprint_path is populated.
+// ============================================================================
+
+TEST(EditOriginalRegression, SBI_HasBlueprintPath_AtRootLevel) {
+    Document doc;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    doc.blueprint().sub_blueprint_instances.push_back(sbi);
+
+    Node collapsed;
+    collapsed.id = "lamp_1";
+    collapsed.at(0, 0).size_wh(120, 80);
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    collapsed.group_id = "";
+    doc.blueprint().add_node(std::move(collapsed));
+
+    // Lookup by node ID (the fix path)
+    auto* found = doc.blueprint().find_sub_blueprint_instance("lamp_1");
+    ASSERT_NE(found, nullptr);
+    EXPECT_FALSE(found->baked_in);
+    EXPECT_FALSE(found->blueprint_path.empty())
+        << "SBI must have blueprint_path for 'Edit Original' to construct library path";
+    EXPECT_EQ(found->blueprint_path, "systems/lamp_pass_through");
+}
+
+// ============================================================================
+// REGRESSION: Bug 4 — openSubWindow must work for non-baked-in SBIs.
+// The bug: double-clicking a collapsed non-baked-in node at root calls
+// openSubWindow, which creates a window with read_only=true. But then
+// an24_editor.cpp skips process_window for read_only windows, preventing
+// further double-click drill-down into nested composites.
+// This test verifies the Document model layer: openSubWindow creates the
+// window, and it's read-only for non-baked-in SBIs.
+// ============================================================================
+
+TEST(OpenSubWindowRegression, NonBakedIn_CreatesReadOnlyWindow) {
+    Document doc;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin"};
+    doc.blueprint().sub_blueprint_instances.push_back(sbi);
+
+    Node collapsed;
+    collapsed.id = "lamp_1";
+    collapsed.at(0, 0).size_wh(120, 80);
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    doc.blueprint().add_node(std::move(collapsed));
+
+    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    doc.blueprint().add_node(std::move(vin));
+
+    // Open sub-window — should succeed and set read_only
+    EXPECT_EQ(doc.windowManager().windows().size(), 1u);  // just root
+    doc.openSubWindow("lamp_1");
+    EXPECT_EQ(doc.windowManager().windows().size(), 2u);
+
+    auto* win = doc.windowManager().find("lamp_1");
+    ASSERT_NE(win, nullptr);
+    EXPECT_TRUE(win->read_only)
+        << "Non-baked-in sub-blueprint window must be read-only";
+}
+
+TEST(OpenSubWindowRegression, BakedIn_CreatesEditableWindow) {
+    Document doc;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.baked_in = true;
+    sbi.internal_node_ids = {"lamp_1:vin"};
+    doc.blueprint().sub_blueprint_instances.push_back(sbi);
+
+    Node collapsed;
+    collapsed.id = "lamp_1";
+    collapsed.at(0, 0).size_wh(120, 80);
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    doc.blueprint().add_node(std::move(collapsed));
+
+    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    doc.blueprint().add_node(std::move(vin));
+
+    doc.openSubWindow("lamp_1");
+    auto* win = doc.windowManager().find("lamp_1");
+    ASSERT_NE(win, nullptr);
+    EXPECT_FALSE(win->read_only)
+        << "Baked-in sub-blueprint window must NOT be read-only";
+}
+
+TEST(OpenSubWindowRegression, DoubleClick_RootExpandableNode_ReturnsOpenSubWindow) {
+    Document doc;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin"};
+    doc.blueprint().sub_blueprint_instances.push_back(sbi);
+
+    // Collapsed node at root
+    Node collapsed;
+    collapsed.id = "lamp_1";
+    collapsed.at(100, 100).size_wh(120, 80);
+    collapsed.expandable = true;
+    collapsed.collapsed = true;
+    collapsed.group_id = "";
+    doc.blueprint().add_node(std::move(collapsed));
+
+    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    vin.at(0, 0).size_wh(100, 60);
+    doc.blueprint().add_node(std::move(vin));
+
+    // Double-click on the collapsed node (center ~160, 140)
+    Pt canvas_min(0, 0);
+    InputResult r = doc.input().on_double_click(Pt(160, 140), canvas_min);
+
+    EXPECT_EQ(r.open_sub_window, "lamp_1")
+        << "Double-click on collapsed expandable node must request opening sub-window";
+
+    // Apply the result — should create the window
+    doc.applyInputResult(r);
+    auto* win = doc.windowManager().find("lamp_1");
+    ASSERT_NE(win, nullptr)
+        << "applyInputResult must create sub-window for non-baked-in SBI";
+    EXPECT_TRUE(win->read_only);
+}
+
+// ============================================================================
+// Edge case: rapid create/close cycles
+// ============================================================================
+
 TEST(WindowSystem, RapidCreateCloseDoesNotLeak) {
     WindowSystem ws;
     for (int i = 0; i < 100; ++i) {

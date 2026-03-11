@@ -280,6 +280,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene().gridStep());
 
+    std::string category;
+    auto cat_it = registry.categories.find(blueprint_name);
+    if (cat_it != registry.categories.end())
+        category = cat_it->second;
+
     Blueprint sub_bp = expand_type_definition(*bp_def, registry);
     bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
                                   [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
@@ -309,6 +314,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed_node.collapsed = true;
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
+    collapsed_node.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
 
     size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
@@ -326,7 +332,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
 
     SubBlueprintInstance sbi;
     sbi.id = unique_id;
-    sbi.blueprint_path = blueprint_name;
+    sbi.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
     sbi.type_name = blueprint_name;
     sbi.pos = snapped_pos;
     sbi.size = Pt(120.0f, height);
@@ -363,6 +369,9 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
     }
 
     auto* win = window_manager_.open(sub_blueprint_id, group->type_name + " [" + sub_blueprint_id + "]");
+    if (win) {
+        win->set_read_only(!group->baked_in);
+    }
 
     spdlog::info("[editor] Opened sub-window for '{}' ({} internal nodes)",
                  sub_blueprint_id, group->internal_node_ids.size());

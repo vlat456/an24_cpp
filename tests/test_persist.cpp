@@ -8,6 +8,8 @@
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <set>
+#include <fstream>
+#include <filesystem>
 
 /// TDD Step 2: Persist - сначала тесты
 
@@ -1771,6 +1773,645 @@ TEST(BusInvariant, Construction_FiltersUnrelatedWires) {
 
     BusVisualNode vis(bus, BusOrientation::Horizontal, wires);
     EXPECT_EQ(vis.getPortCount(), 1u) << "Bus with no connected wires: just the logical 'v' port";
+}
+
+// =============================================================================
+// Non-Baked-In Sub-Blueprint Persistence
+// =============================================================================
+
+TEST(PersistNonBakedIn, Save_SkipsInternalNodes) {
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.type_name = "Battery";
+    batt1.at(100.0f, 200.0f);
+    batt1.output("v_out");
+    bp.add_node(std::move(batt1));
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin", "lamp_1:lamp", "lamp_1:vout"};
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    Node vin_node;
+    vin_node.id = "lamp_1:vin";
+    vin_node.type_name = "BlueprintInput";
+    vin_node.group_id = "lamp_1";
+    vin_node.at(150.0f, 200.0f);
+    bp.add_node(std::move(vin_node));
+
+    Node lamp_node;
+    lamp_node.id = "lamp_1:lamp";
+    lamp_node.type_name = "IndicatorLight";
+    lamp_node.group_id = "lamp_1";
+    lamp_node.at(300.0f, 200.0f);
+    bp.add_node(std::move(lamp_node));
+
+    Node vout_node;
+    vout_node.id = "lamp_1:vout";
+    vout_node.type_name = "BlueprintOutput";
+    vout_node.group_id = "lamp_1";
+    vout_node.at(450.0f, 200.0f);
+    bp.add_node(std::move(vout_node));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json);
+
+    ASSERT_TRUE(j.contains("devices"));
+    EXPECT_EQ(j["devices"].size(), 1) << "Should only save batt1 (collapsed node not saved)";
+
+    for (const auto& d : j["devices"]) {
+        std::string name = d.value("name", "");
+        EXPECT_NE(name, "lamp_1:vin") << "Internal node lamp_1:vin should NOT be saved";
+        EXPECT_NE(name, "lamp_1:lamp") << "Internal node lamp_1:lamp should NOT be saved";
+        EXPECT_NE(name, "lamp_1:vout") << "Internal node lamp_1:vout should NOT be saved";
+    }
+}
+
+TEST(PersistNonBakedIn, Save_SkipsInternalWires) {
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.type_name = "Battery";
+    batt1.at(100.0f, 200.0f);
+    batt1.output("v_out");
+    bp.add_node(std::move(batt1));
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin", "lamp_1:lamp", "lamp_1:vout"};
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    Node vin_node;
+    vin_node.id = "lamp_1:vin";
+    vin_node.type_name = "BlueprintInput";
+    vin_node.group_id = "lamp_1";
+    vin_node.at(150.0f, 200.0f);
+    vin_node.output("port");
+    bp.add_node(std::move(vin_node));
+
+    Node lamp_node;
+    lamp_node.id = "lamp_1:lamp";
+    lamp_node.type_name = "IndicatorLight";
+    lamp_node.group_id = "lamp_1";
+    lamp_node.at(300.0f, 200.0f);
+    lamp_node.input("v_in");
+    lamp_node.output("v_out");
+    bp.add_node(std::move(lamp_node));
+
+    Node vout_node;
+    vout_node.id = "lamp_1:vout";
+    vout_node.type_name = "BlueprintOutput";
+    vout_node.group_id = "lamp_1";
+    vout_node.at(450.0f, 200.0f);
+    vout_node.input("port");
+    bp.add_node(std::move(vout_node));
+
+    Wire internal_wire1;
+    internal_wire1.id = "wire_internal_1";
+    internal_wire1.start = WireEnd("lamp_1:vin", "port", PortSide::Output);
+    internal_wire1.end = WireEnd("lamp_1:lamp", "v_in", PortSide::Input);
+    bp.add_wire(std::move(internal_wire1));
+
+    Wire internal_wire2;
+    internal_wire2.id = "wire_internal_2";
+    internal_wire2.start = WireEnd("lamp_1:lamp", "v_out", PortSide::Output);
+    internal_wire2.end = WireEnd("lamp_1:vout", "port", PortSide::Input);
+    bp.add_wire(std::move(internal_wire2));
+
+    Wire external_wire;
+    external_wire.id = "wire_external";
+    external_wire.start = WireEnd("batt1", "v_out", PortSide::Output);
+    external_wire.end = WireEnd("lamp_1:vin", "port", PortSide::Input);
+    bp.add_wire(std::move(external_wire));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json);
+
+    ASSERT_TRUE(j.contains("wires"));
+    EXPECT_EQ(j["wires"].size(), 0) << "Should skip all wires - external wire also skipped because endpoint is internal";
+
+    for (const auto& w : j["wires"]) {
+        std::string from = w.value("from", "");
+        std::string to = w.value("to", "");
+        EXPECT_FALSE(from.find("lamp_1:") == 0) << "Wire from internal node should NOT be saved";
+        EXPECT_FALSE(to.find("lamp_1:") == 0) << "Wire to internal node should NOT be saved";
+    }
+}
+
+TEST(PersistNonBakedIn, Save_BakedInStillSavesInternals) {
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.type_name = "Battery";
+    batt1.at(100.0f, 200.0f);
+    batt1.output("v_out");
+    bp.add_node(std::move(batt1));
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi.baked_in = true;
+    sbi.internal_node_ids = {"lamp_1:vin", "lamp_1:lamp", "lamp_1:vout"};
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    Node vin_node;
+    vin_node.id = "lamp_1:vin";
+    vin_node.type_name = "BlueprintInput";
+    vin_node.group_id = "lamp_1";
+    vin_node.at(150.0f, 200.0f);
+    bp.add_node(std::move(vin_node));
+
+    Node lamp_node;
+    lamp_node.id = "lamp_1:lamp";
+    lamp_node.type_name = "IndicatorLight";
+    lamp_node.group_id = "lamp_1";
+    lamp_node.at(300.0f, 200.0f);
+    bp.add_node(std::move(lamp_node));
+
+    Node vout_node;
+    vout_node.id = "lamp_1:vout";
+    vout_node.type_name = "BlueprintOutput";
+    vout_node.group_id = "lamp_1";
+    vout_node.at(450.0f, 200.0f);
+    bp.add_node(std::move(vout_node));
+
+    Wire internal_wire;
+    internal_wire.id = "wire_internal";
+    internal_wire.start = WireEnd("lamp_1:vin", "port", PortSide::Output);
+    internal_wire.end = WireEnd("lamp_1:lamp", "v_in", PortSide::Input);
+    bp.add_wire(std::move(internal_wire));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json);
+
+    ASSERT_TRUE(j.contains("devices"));
+    EXPECT_EQ(j["devices"].size(), 4) << "Should save all nodes including internal ones for baked_in";
+
+    bool found_vin = false, found_lamp = false, found_vout = false;
+    for (const auto& d : j["devices"]) {
+        std::string name = d.value("name", "");
+        if (name == "lamp_1:vin") found_vin = true;
+        if (name == "lamp_1:lamp") found_lamp = true;
+        if (name == "lamp_1:vout") found_vout = true;
+    }
+    EXPECT_TRUE(found_vin) << "Baked-in: lamp_1:vin should be saved";
+    EXPECT_TRUE(found_lamp) << "Baked-in: lamp_1:lamp should be saved";
+    EXPECT_TRUE(found_vout) << "Baked-in: lamp_1:vout should be saved";
+
+    ASSERT_TRUE(j.contains("wires"));
+    EXPECT_GT(j["wires"].size(), 0) << "Baked-in: should save internal wires";
+}
+
+TEST(PersistNonBakedIn, Save_PreservesSubBlueprintInstanceMetadata) {
+    Blueprint bp;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi.baked_in = false;
+    sbi.internal_node_ids = {"lamp_1:vin", "lamp_1:lamp"};
+    sbi.pos = Pt(400.0f, 300.0f);
+    sbi.size = Pt(200.0f, 150.0f);
+    sbi.params_override["lamp.color"] = "green";
+    sbi.layout_override["lamp_1:lamp"] = Pt(500.0f, 400.0f);
+    std::vector<Pt> routing_pts = {Pt(100.0f, 100.0f), Pt(200.0f, 200.0f)};
+    sbi.internal_routing["lamp_1:vin.port->lamp_1:lamp.v_in"] = routing_pts;
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json);
+
+    ASSERT_TRUE(j.contains("sub_blueprint_instances"));
+    EXPECT_EQ(j["sub_blueprint_instances"].size(), 1);
+
+    const auto& sbi_json = j["sub_blueprint_instances"][0];
+    EXPECT_EQ(sbi_json.value("id", ""), "lamp_1");
+    EXPECT_EQ(sbi_json.value("type_name", ""), "lamp_pass_through");
+    EXPECT_EQ(sbi_json.value("baked_in", true), false);
+    EXPECT_TRUE(sbi_json.contains("params_override"));
+    EXPECT_TRUE(sbi_json.contains("layout_override"));
+    EXPECT_TRUE(sbi_json.contains("internal_routing"));
+    EXPECT_EQ(sbi_json["params_override"].value("lamp.color", ""), "green");
+}
+
+TEST(PersistNonBakedIn, Load_ReExpandsFromRegistry) {
+    std::string json = R"({
+        "devices": [
+            {"name": "batt1", "classname": "Battery", "type_name": "Battery",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 100, "y": 200}, "size": {"x": 120, "y": 80}}
+        ],
+        "wires": [],
+        "sub_blueprint_instances": [
+            {
+                "id": "lamp_1",
+                "blueprint_path": "lamp_pass_through",
+                "type_name": "lamp_pass_through",
+                "baked_in": false,
+                "pos": {"x": 400, "y": 300},
+                "size": {"x": 200, "y": 150},
+                "internal_node_ids": []
+            }
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
+    const auto& bp = *bp_opt;
+
+    bool found_lamp = false;
+    for (const auto& n : bp.nodes) {
+        if (n.id == "lamp_1:lamp") {
+            found_lamp = true;
+            EXPECT_EQ(n.group_id, "lamp_1") << "Internal node should have correct group_id";
+            break;
+        }
+    }
+
+    EXPECT_TRUE(found_lamp) << "Internal nodes should be re-expanded from registry";
+}
+
+TEST(PersistNonBakedIn, Load_AppliesParamsOverride) {
+    std::string json = R"({
+        "devices": [],
+        "wires": [],
+        "sub_blueprint_instances": [
+            {
+                "id": "simple_battery_1",
+                "blueprint_path": "simple_battery",
+                "type_name": "simple_battery",
+                "baked_in": false,
+                "pos": {"x": 400, "y": 300},
+                "size": {"x": 200, "y": 150},
+                "params_override": {
+                    "bat.v_nominal": "14.0"
+                }
+            }
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
+    const auto& bp = *bp_opt;
+
+    const Node* n = bp.find_node("simple_battery_1:bat");
+    ASSERT_NE(n, nullptr) << "simple_battery_1:bat should exist after expansion";
+    auto it = n->params.find("v_nominal");
+    ASSERT_NE(it, n->params.end()) << "v_nominal param should exist";
+    EXPECT_EQ(it->second, "14.0") << "Params override should be applied";
+}
+
+TEST(PersistNonBakedIn, Load_AppliesLayoutOverride) {
+    std::string json = R"({
+        "devices": [],
+        "wires": [],
+        "sub_blueprint_instances": [
+            {
+                "id": "lamp_1",
+                "blueprint_path": "lamp_pass_through",
+                "type_name": "lamp_pass_through",
+                "baked_in": false,
+                "pos": {"x": 400, "y": 300},
+                "size": {"x": 200, "y": 150},
+                "layout_override": {
+                    "lamp_1:lamp": {"x": 500, "y": 400}
+                }
+            }
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
+    const auto& bp = *bp_opt;
+
+    const Node* n = bp.find_node("lamp_1:lamp");
+    ASSERT_NE(n, nullptr) << "lamp_1:lamp should exist after expansion";
+    EXPECT_FLOAT_EQ(n->pos.x, 500.0f) << "Layout override x position should be applied";
+    EXPECT_FLOAT_EQ(n->pos.y, 400.0f) << "Layout override y position should be applied";
+}
+
+TEST(PersistNonBakedIn, Roundtrip_NonBakedIn) {
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.type_name = "Battery";
+    batt1.at(100.0f, 200.0f);
+    batt1.output("v_out");
+    bp.add_node(std::move(batt1));
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi.baked_in = false;
+    sbi.pos = Pt(400.0f, 300.0f);
+    sbi.size = Pt(200.0f, 150.0f);
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp2_opt.has_value()) << "Roundtrip: failed to load saved JSON";
+    const auto& bp2 = *bp2_opt;
+
+    EXPECT_EQ(bp2.sub_blueprint_instances.size(), 1) << "SBI metadata should be preserved";
+    EXPECT_EQ(bp2.sub_blueprint_instances[0].id, "lamp_1");
+    EXPECT_EQ(bp2.sub_blueprint_instances[0].type_name, "lamp_pass_through");
+    EXPECT_EQ(bp2.sub_blueprint_instances[0].baked_in, false);
+
+    int top_level_count = 0;
+    for (const auto& n : bp2.nodes) {
+        if (n.group_id.empty()) {
+            top_level_count++;
+        }
+    }
+    EXPECT_EQ(top_level_count, 1) << "Should have exactly 1 top-level node (batt1)";
+
+    bool found_internal_lamp = false;
+    for (const auto& n : bp2.nodes) {
+        if (n.id.find("lamp_1:") == 0) {
+            found_internal_lamp = true;
+            EXPECT_EQ(n.group_id, "lamp_1");
+        }
+    }
+    EXPECT_TRUE(found_internal_lamp) << "Internal nodes should be re-expanded";
+}
+
+TEST(PersistNonBakedIn, Roundtrip_MixedBakedAndNonBaked) {
+    Blueprint bp;
+
+    Node batt1;
+    batt1.id = "batt1";
+    batt1.type_name = "Battery";
+    batt1.at(100.0f, 200.0f);
+    batt1.output("v_out");
+    bp.add_node(std::move(batt1));
+
+    SubBlueprintInstance sbi_non_baked;
+    sbi_non_baked.id = "lamp_1";
+    sbi_non_baked.type_name = "lamp_pass_through";
+    sbi_non_baked.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi_non_baked.baked_in = false;
+    sbi_non_baked.pos = Pt(400.0f, 300.0f);
+    sbi_non_baked.size = Pt(200.0f, 150.0f);
+    bp.sub_blueprint_instances.push_back(sbi_non_baked);
+
+    SubBlueprintInstance sbi_baked;
+    sbi_baked.id = "lamp_2";
+    sbi_baked.type_name = "lamp_pass_through";
+    sbi_baked.blueprint_path = "library/systems/lamp_pass_through.json";
+    sbi_baked.baked_in = true;
+    sbi_baked.pos = Pt(400.0f, 500.0f);
+    sbi_baked.size = Pt(200.0f, 150.0f);
+    sbi_baked.internal_node_ids = {"lamp_2:vin", "lamp_2:lamp", "lamp_2:vout"};
+    bp.sub_blueprint_instances.push_back(sbi_baked);
+
+    Node vin_baked;
+    vin_baked.id = "lamp_2:vin";
+    vin_baked.type_name = "BlueprintInput";
+    vin_baked.group_id = "lamp_2";
+    vin_baked.at(150.0f, 500.0f);
+    bp.add_node(std::move(vin_baked));
+
+    Node lamp_baked;
+    lamp_baked.id = "lamp_2:lamp";
+    lamp_baked.type_name = "IndicatorLight";
+    lamp_baked.group_id = "lamp_2";
+    lamp_baked.at(300.0f, 500.0f);
+    bp.add_node(std::move(lamp_baked));
+
+    Node vout_baked;
+    vout_baked.id = "lamp_2:vout";
+    vout_baked.type_name = "BlueprintOutput";
+    vout_baked.group_id = "lamp_2";
+    vout_baked.at(450.0f, 500.0f);
+    bp.add_node(std::move(vout_baked));
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto bp2_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp2_opt.has_value()) << "Roundtrip: failed to load saved JSON";
+    const auto& bp2 = *bp2_opt;
+
+    EXPECT_EQ(bp2.sub_blueprint_instances.size(), 2);
+
+    bool non_baked_found = false, baked_found = false;
+    for (const auto& sbi : bp2.sub_blueprint_instances) {
+        if (sbi.id == "lamp_1") {
+            non_baked_found = true;
+            EXPECT_EQ(sbi.baked_in, false);
+        } else if (sbi.id == "lamp_2") {
+            baked_found = true;
+            EXPECT_EQ(sbi.baked_in, true);
+        }
+    }
+    EXPECT_TRUE(non_baked_found);
+    EXPECT_TRUE(baked_found);
+
+    bool lamp_2_lamp_found = false;
+    for (const auto& n : bp2.nodes) {
+        if (n.id == "lamp_2:lamp") {
+            lamp_2_lamp_found = true;
+            EXPECT_EQ(n.group_id, "lamp_2");
+        }
+    }
+    EXPECT_TRUE(lamp_2_lamp_found) << "Baked-in internal node should be preserved";
+}
+
+TEST(PersistNonBakedIn, BlueprintPath_ContainsCategory) {
+    Blueprint bp;
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    sbi.pos = Pt(400.0f, 300.0f);
+    sbi.size = Pt(200.0f, 150.0f);
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    std::string json = blueprint_to_editor_json(bp);
+    auto j = nlohmann::json::parse(json);
+
+    ASSERT_TRUE(j.contains("sub_blueprint_instances"));
+    EXPECT_EQ(j["sub_blueprint_instances"].size(), 1);
+
+    const auto& sbi_json = j["sub_blueprint_instances"][0];
+    EXPECT_EQ(sbi_json.value("blueprint_path", ""), "systems/lamp_pass_through")
+        << "blueprint_path should contain category prefix";
+}
+
+TEST(SubBlueprintMenu, EditOriginal_ResolvesLibraryPath) {
+    std::string json = R"({
+        "devices": [],
+        "wires": [],
+        "sub_blueprint_instances": [
+            {
+                "id": "lamp_1",
+                "blueprint_path": "systems/lamp_pass_through",
+                "type_name": "lamp_pass_through",
+                "baked_in": false,
+                "pos": {"x": 400, "y": 300},
+                "size": {"x": 200, "y": 150}
+            }
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
+    const auto& bp = *bp_opt;
+
+    ASSERT_EQ(bp.sub_blueprint_instances.size(), 1);
+    const auto& sbi = bp.sub_blueprint_instances[0];
+    EXPECT_EQ(sbi.blueprint_path, "systems/lamp_pass_through");
+
+    std::string lib_path = "library/" + sbi.blueprint_path + ".json";
+    EXPECT_EQ(lib_path, "library/systems/lamp_pass_through.json")
+        << "Library path should be correctly constructed from blueprint_path";
+}
+
+// ============================================================================
+// Bug regression: internal node positions lost after save/load for non-baked-in
+// ============================================================================
+
+TEST(PersistNonBakedIn, Roundtrip_PreservesInternalNodePositions) {
+    // Build a blueprint with a non-baked-in sub-blueprint whose internal nodes
+    // have been positioned (e.g. via auto_layout_group on first add).
+    Blueprint bp;
+
+    Node batt;
+    batt.id = "batt1";
+    batt.type_name = "Battery";
+    batt.at(100.0f, 200.0f);
+    batt.output("v_out");
+    bp.add_node(std::move(batt));
+
+    SubBlueprintInstance sbi;
+    sbi.id = "lamp_1";
+    sbi.type_name = "lamp_pass_through";
+    sbi.blueprint_path = "systems/lamp_pass_through";
+    sbi.baked_in = false;
+    sbi.pos = Pt(400.0f, 300.0f);
+    sbi.size = Pt(200.0f, 150.0f);
+    bp.sub_blueprint_instances.push_back(sbi);
+
+    // Simulate internal nodes that have already been positioned
+    // (as would happen after add_blueprint + auto_layout_group)
+    Node vin;
+    vin.id = "lamp_1:vin";
+    vin.type_name = "BlueprintInput";
+    vin.group_id = "lamp_1";
+    vin.at(50.0f, 100.0f).size_wh(100, 60);
+    bp.add_node(std::move(vin));
+    bp.sub_blueprint_instances.back().internal_node_ids.push_back("lamp_1:vin");
+
+    Node lamp;
+    lamp.id = "lamp_1:lamp";
+    lamp.type_name = "IndicatorLight";
+    lamp.group_id = "lamp_1";
+    lamp.at(250.0f, 100.0f).size_wh(100, 60);
+    bp.add_node(std::move(lamp));
+    bp.sub_blueprint_instances.back().internal_node_ids.push_back("lamp_1:lamp");
+
+    Node vout;
+    vout.id = "lamp_1:vout";
+    vout.type_name = "BlueprintOutput";
+    vout.group_id = "lamp_1";
+    vout.at(450.0f, 100.0f).size_wh(100, 60);
+    bp.add_node(std::move(vout));
+    bp.sub_blueprint_instances.back().internal_node_ids.push_back("lamp_1:vout");
+
+    // Save
+    std::string json = blueprint_to_editor_json(bp);
+
+    // Verify layout_override was populated in the saved JSON
+    auto j = nlohmann::json::parse(json);
+    ASSERT_TRUE(j.contains("sub_blueprint_instances"));
+    ASSERT_EQ(j["sub_blueprint_instances"].size(), 1);
+    const auto& sbi_json = j["sub_blueprint_instances"][0];
+    EXPECT_TRUE(sbi_json.contains("layout_override"))
+        << "Save should snapshot internal node positions into layout_override";
+    if (sbi_json.contains("layout_override")) {
+        EXPECT_TRUE(sbi_json["layout_override"].contains("lamp_1:vin"));
+        EXPECT_TRUE(sbi_json["layout_override"].contains("lamp_1:lamp"));
+        EXPECT_TRUE(sbi_json["layout_override"].contains("lamp_1:vout"));
+    }
+
+    // Load
+    auto bp2_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp2_opt.has_value()) << "Failed to load saved JSON";
+    const auto& bp2 = *bp2_opt;
+
+    // Verify positions survived the round-trip
+    const Node* n_vin = bp2.find_node("lamp_1:vin");
+    const Node* n_lamp = bp2.find_node("lamp_1:lamp");
+    const Node* n_vout = bp2.find_node("lamp_1:vout");
+    ASSERT_NE(n_vin, nullptr);
+    ASSERT_NE(n_lamp, nullptr);
+    ASSERT_NE(n_vout, nullptr);
+
+    EXPECT_FLOAT_EQ(n_vin->pos.x, 50.0f) << "vin x position should be preserved";
+    EXPECT_FLOAT_EQ(n_vin->pos.y, 100.0f) << "vin y position should be preserved";
+    EXPECT_FLOAT_EQ(n_lamp->pos.x, 250.0f) << "lamp x position should be preserved";
+    EXPECT_FLOAT_EQ(n_lamp->pos.y, 100.0f) << "lamp y position should be preserved";
+    EXPECT_FLOAT_EQ(n_vout->pos.x, 450.0f) << "vout x position should be preserved";
+    EXPECT_FLOAT_EQ(n_vout->pos.y, 100.0f) << "vout y position should be preserved";
+}
+
+TEST(PersistNonBakedIn, Load_AutoLayoutFallback_WhenNoLayoutOverride) {
+    // When a non-baked-in SBI has no layout_override (e.g. old save file),
+    // positions should get auto-layout instead of staying at (0,0).
+    std::string json = R"({
+        "devices": [
+            {"name": "batt1", "classname": "Battery",
+             "ports": {"v_out": {"direction": "Out", "type": "V"}},
+             "pos": {"x": 100, "y": 200}, "size": {"x": 120, "y": 80}}
+        ],
+        "wires": [],
+        "sub_blueprint_instances": [
+            {
+                "id": "lamp_1",
+                "blueprint_path": "lamp_pass_through",
+                "type_name": "lamp_pass_through",
+                "baked_in": false,
+                "pos": {"x": 400, "y": 300},
+                "size": {"x": 200, "y": 150}
+            }
+        ],
+        "viewport": {"pan": {"x": 0, "y": 0}, "zoom": 1.0, "grid_step": 16}
+    })";
+
+    auto bp_opt = blueprint_from_json(json);
+    ASSERT_TRUE(bp_opt.has_value());
+    const auto& bp = *bp_opt;
+
+    // All internal nodes should have been auto-layouted (not all at 0,0)
+    bool all_zero = true;
+    for (const auto& n : bp.nodes) {
+        if (n.group_id == "lamp_1") {
+            if (n.pos.x != 0.0f || n.pos.y != 0.0f) {
+                all_zero = false;
+                break;
+            }
+        }
+    }
+    EXPECT_FALSE(all_zero)
+        << "Internal nodes without layout_override should get auto-layout, not stay at (0,0)";
 }
 
 

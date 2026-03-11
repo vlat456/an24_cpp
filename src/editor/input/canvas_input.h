@@ -14,9 +14,18 @@ class WireManager;
 /// Owns selection + FSM state, processes raw mouse/key events.
 /// Returns InputResult so the host can perform app-level actions
 /// (rebuild simulation, open sub-window, show context menu).
+///
+/// When read_only is true, only non-destructive operations are allowed:
+/// panning, zooming, selection (for inspection), double-click to open
+/// sub-windows, and right-click context menus. Node dragging, wire
+/// creation/reconnection, deletion, resize, marquee, and routing-point
+/// manipulation are all suppressed.
 class CanvasInput {
 public:
     CanvasInput(VisualScene& scene, WireManager& wire_manager);
+
+    /// When true, the FSM suppresses all editing gestures.
+    bool read_only = false;
 
     // ---- Event handlers (call from ImGui loop) ----
 

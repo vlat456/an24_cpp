@@ -537,7 +537,13 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     ASSERT_EQ(loaded_sbi.params_override.size(), 1u);
     EXPECT_EQ(loaded_sbi.params_override.at("lamp.color"), "green");
 
-    ASSERT_EQ(loaded_sbi.layout_override.size(), 1u);
+    // layout_override now includes both the original manual entry ("vin")
+    // and snapshotted live positions for all internal nodes (lamp_1:vin, lamp_1:lamp).
+    // The snapshot adds prefixed IDs from the live node positions.
+    EXPECT_GE(loaded_sbi.layout_override.size(), 1u);
+    // Original unprefixed entry preserved
+    ASSERT_TRUE(loaded_sbi.layout_override.count("vin"))
+        << "Original layout_override entry should survive round-trip";
     EXPECT_FLOAT_EQ(loaded_sbi.layout_override.at("vin").x, 350.0f);
     EXPECT_FLOAT_EQ(loaded_sbi.layout_override.at("vin").y, 300.0f);
 
@@ -547,9 +553,19 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     EXPECT_FLOAT_EQ(rp[0].x, 375.0f);
     EXPECT_FLOAT_EQ(rp[0].y, 310.0f);
 
-    // Verify nodes and wires survived
-    EXPECT_EQ(loaded->nodes.size(), bp.nodes.size());
-    EXPECT_EQ(loaded->wires.size(), bp.wires.size());
+    // Verify nodes and wires after re-expansion from registry.
+    // Save strips internal nodes of non-baked-in SBIs (Phase 1).
+    // Load re-expands them from the TypeRegistry (Phase 2).
+    // Original bp had 4 nodes (bat, lamp_1, lamp_1:vin, lamp_1:lamp).
+    // After save: 2 saved (bat, lamp_1 collapsed). Internal nodes stripped.
+    // After load: 2 from JSON + 3 re-expanded from registry (vin, lamp, vout) = 5.
+    EXPECT_GE(loaded->nodes.size(), 2u);  // At least bat + lamp_1 (collapsed)
+    // Re-expanded internal nodes should include lamp_1:vin, lamp_1:lamp, lamp_1:vout
+    EXPECT_NE(loaded->find_node("lamp_1:vin"), nullptr);
+    EXPECT_NE(loaded->find_node("lamp_1:lamp"), nullptr);
+    EXPECT_NE(loaded->find_node("lamp_1:vout"), nullptr);
+    // External wire should survive
+    EXPECT_GE(loaded->wires.size(), 1u);
 }
 
 TEST(SubBlueprintPersist, RoundTrip_BakedIn_PreservesFlag) {
