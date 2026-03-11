@@ -15,7 +15,7 @@
  *   - imgui
  */
 
-#include "editor/app.h"
+#include "editor/window_system.h"
 #include "editor/window/window_manager.h"
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/visual/renderer/draw_list.h"
@@ -114,16 +114,18 @@ int main(int argc, char** argv) {
     ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    // Приложение редактора
-    EditorApp app;
+    // Window system (manages multiple documents)
+    WindowSystem ws;
 
-    // Загружаем файл по умолчанию
+    // Load default file into active document
     const char* default_file = "/Users/vladimir/an24_cpp/blueprint.json";
-    if (!app.scene.load(default_file)) {
-        // File doesn't exist or failed to load - that's ok, start with empty blueprint
-        DEBUG_INFO("Default file not found or failed to load: {}", default_file);
-    } else {
-        DEBUG_INFO("Loaded default file: {}", default_file);
+    if (Document* doc = ws.activeDocument()) {
+        if (!doc->load(default_file)) {
+            // File doesn't exist or failed to load - that's ok, start with empty blueprint
+            DEBUG_INFO("Default file not found or failed to load: {}", default_file);
+        } else {
+            DEBUG_INFO("Loaded default file: {}", default_file);
+        }
     }
 
     bool running = true;
@@ -146,53 +148,63 @@ int main(int argc, char** argv) {
 
         // Обработка клавиатуры через ImGui
         if (!io.WantCaptureKeyboard) {
-            // Space toggles simulation (app-level, not per-window)
-            if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
-                if (app.simulation_running) app.stop_simulation();
-                else app.start_simulation();
+            // Space toggles simulation (active document only)
+            if (Document* doc = ws.activeDocument()) {
+                if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
+                    if (doc->isSimulationRunning()) doc->stopSimulation();
+                    else doc->startSimulation();
+                }
             }
             // Per-window keys are dispatched inside process_window (below)
         }
 
-        // Обновление симуляции каждый кадр
-        app.update_simulation_step(io.DeltaTime);
-
-        // Обновление node_content на основе значений симуляции
-        app.update_node_content_from_simulation();
+        // Обновление симуляции каждый кадр (active document only)
+        if (Document* doc = ws.activeDocument()) {
+            doc->updateSimulationStep(io.DeltaTime);
+            doc->updateNodeContentFromSimulation();
+        }
 
         // Меню
         if (ImGui::BeginMainMenuBar()) {
+            Document* active_doc = ws.activeDocument();
+
             // Simulation indicator
-            if (app.simulation_running) {
+            if (active_doc && active_doc->isSimulationRunning()) {
                 ImGui::SameLine();
                 ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "▶ SIM");
             }
 
             if (ImGui::BeginMenu("File")) {
                 if (ImGui::MenuItem("New", "Ctrl+N")) {
-                    app.new_circuit();
+                    ws.createDocument();
                 }
                 if (ImGui::MenuItem("Open...", "Ctrl+O")) {
                     nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
                     nfdchar_t* outPath = nullptr;
                     nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
                     if (result == NFD_OKAY) {
-                        if (app.scene.load(outPath)) {
-                            DEBUG_INFO("Loaded file: {}", outPath);
-                        } else {
-                            DEBUG_ERROR("Failed to load file: {}", outPath);
-                        }
+                        ws.openDocument(outPath);
                         NFD_FreePath(outPath);
                     }
                 }
-                if (ImGui::MenuItem("Save", "Ctrl+S")) {
-                    nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
-                    nfdchar_t* outPath = nullptr;
-                    nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
-                    if (result == NFD_OKAY) {
-                        app.scene.save(outPath);
-                        NFD_FreePath(outPath);
+                if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc && active_doc->isModified())) {
+                    if (active_doc) {
+                        if (active_doc->filepath().empty()) {
+                            nfdu8filteritem_t filterItem = {"Blueprint JSON", "json"};
+                            nfdchar_t* outPath = nullptr;
+                            nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.json");
+                            if (result == NFD_OKAY) {
+                                active_doc->save(outPath);
+                                NFD_FreePath(outPath);
+                            }
+                        } else {
+                            active_doc->save(active_doc->filepath());
+                        }
                     }
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Close Tab", nullptr, false, ws.documentCount() > 1)) {
+                    if (active_doc) ws.closeDocument(*active_doc);
                 }
                 ImGui::Separator();
                 if (ImGui::MenuItem("Exit", "Alt+F4")) {
@@ -201,27 +213,32 @@ int main(int argc, char** argv) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Inspector", nullptr, app.show_inspector)) {
-                    app.show_inspector = !app.show_inspector;
+                if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
+                    ws.showInspector = !ws.showInspector;
                 }
                 ImGui::Separator();
-                if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-                    app.scene.viewport().zoom *= 1.1f;
-                    app.scene.viewport().clamp_zoom(); // [d4e5f6g7]
-                }
-                if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-                    app.scene.viewport().zoom /= 1.1f;
-                    app.scene.viewport().clamp_zoom(); // [d4e5f6g7]
-                }
-                if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
-                    app.scene.viewport().zoom = 1.0f;
+                if (active_doc) {
+                    if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
+                        active_doc->scene().viewport().zoom *= 1.1f;
+                        active_doc->scene().viewport().clamp_zoom();
+                    }
+                    if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
+                        active_doc->scene().viewport().zoom /= 1.1f;
+                        active_doc->scene().viewport().clamp_zoom();
+                    }
+                    if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
+                        active_doc->scene().viewport().zoom = 1.0f;
+                    }
                 }
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Edit")) {
-                bool has_sel = !app.input.selected_nodes().empty();
+                bool has_sel = active_doc && !active_doc->input().selected_nodes().empty();
                 if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
-                    app.apply_input_result(app.input.on_key(Key::Delete));
+                    if (active_doc) {
+                        auto action = active_doc->applyInputResult(active_doc->input().on_key(Key::Delete));
+                        ws.handleInputAction(action, *active_doc);
+                    }
                 }
                 ImGui::EndMenu();
             }
@@ -232,7 +249,7 @@ int main(int argc, char** argv) {
         // Helper lambda: render + handle input for any BlueprintWindow.
         // Used identically for root canvas and sub-windows.
         // ================================================================
-        auto process_window = [&](BlueprintWindow& win, Pt cmin, Pt cmax,
+        auto process_window = [&](BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax,
                                   ImDrawList* draw_list, bool hovered)
         {
             ImGuiDrawList dl;
@@ -251,13 +268,13 @@ int main(int argc, char** argv) {
             BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
             win.scene.render(dl, cmin, cmax,
                              &win.input.selected_nodes(), win.input.selected_wire(),
-                             &app.simulation, win.input.hovered_wire());
+                             &doc.simulation(), win.input.hovered_wire());
 
             // Tooltip
             if (hovered) {
                 ImVec2 mp = ImGui::GetMousePos();
                 Pt world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
-                auto tooltip = win.scene.detectTooltip(world, app.simulation, cmin);
+                auto tooltip = win.scene.detectTooltip(world, doc.simulation(), cmin);
                 BlueprintRenderer::renderTooltip(dl, tooltip);
             }
 
@@ -274,14 +291,11 @@ int main(int argc, char** argv) {
             }
 
             // Node content widgets
-            for (auto& node : app.blueprint.nodes) {
+            for (auto& node : doc.blueprint().nodes) {
                 if (node.group_id != win.scene.groupId()) continue;
 
-                auto* visual = win.scene.cache().getOrCreate(node, app.blueprint.wires);
+                auto* visual = win.scene.cache().getOrCreate(node, doc.blueprint().wires);
                 visual->setPosition(node.pos);
-                // Sync data model FROM auto-sized visual (not the other way around).
-                // VisualNode constructor computes correct size via layout preferred size;
-                // overwriting with stale Node.size would clip content (gauges, ports, etc).
                 node.size = visual->getSize();
 
                 Pt screen_min = win.scene.viewport().world_to_screen(visual->getPosition(), cmin);
@@ -304,12 +318,10 @@ int main(int argc, char** argv) {
                             bool checked = content.state;
                             std::string id = "##hold_" + node.id;
                             if (ImGui::Checkbox(id.c_str(), &checked)) {
-                                if (checked) app.hold_button_press(node.id);
-                                else app.hold_button_release(node.id);
+                                if (checked) doc.holdButtonPress(node.id);
+                                else doc.holdButtonRelease(node.id);
                             }
                         }
-                        // Other Switch/AZS nodes: visual drawn by SwitchWidget,
-                        // clicks handled via CanvasInput hit testing (no ImGui overlay)
                         break;
                     }
                     case NodeContentType::Value: {
@@ -353,54 +365,76 @@ int main(int argc, char** argv) {
             Pt screen_pos(mp.x, mp.y);
 
             // Scroll → zoom
-            if (io.MouseWheel != 0.0f)
-                app.apply_input_result(win.input.on_scroll(io.MouseWheel * 10.0f, screen_pos, cmin), win.group_id);
+            if (io.MouseWheel != 0.0f) {
+                auto action = doc.applyInputResult(win.input.on_scroll(io.MouseWheel * 10.0f, screen_pos, cmin), win.group_id);
+                ws.handleInputAction(action, doc);
+            }
 
             // Double-click (before single click)
             bool was_dbl = false;
             if (ImGui::IsMouseDoubleClicked(0)) {
-                app.apply_input_result(win.input.on_double_click(screen_pos, cmin), win.group_id);
+                auto action = doc.applyInputResult(win.input.on_double_click(screen_pos, cmin), win.group_id);
+                ws.handleInputAction(action, doc);
                 was_dbl = true;
             }
 
             // Left click
-            if (!was_dbl && ImGui::IsMouseClicked(0))
-                app.apply_input_result(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods), win.group_id);
+            if (!was_dbl && ImGui::IsMouseClicked(0)) {
+                auto action = doc.applyInputResult(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods), win.group_id);
+                ws.handleInputAction(action, doc);
+            }
 
             // Right click
-            if (ImGui::IsMouseClicked(1))
-                app.apply_input_result(win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods), win.group_id);
+            if (ImGui::IsMouseClicked(1)) {
+                auto action = doc.applyInputResult(win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods), win.group_id);
+                ws.handleInputAction(action, doc);
+            }
 
             // Left drag
             if (ImGui::IsMouseDragging(0)) {
                 ImVec2 delta = ImGui::GetMouseDragDelta(0);
-                app.apply_input_result(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin), win.group_id);
+                auto action = doc.applyInputResult(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin), win.group_id);
+                ws.handleInputAction(action, doc);
                 ImGui::ResetMouseDragDelta(0);
             }
 
             // Left release
-            if (ImGui::IsMouseReleased(0))
-                app.apply_input_result(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
+            if (ImGui::IsMouseReleased(0)) {
+                auto action = doc.applyInputResult(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
+                ws.handleInputAction(action, doc);
+            }
 
             // Keyboard (per-window: Delete/Backspace, Escape, R, brackets)
             if (!io.WantCaptureKeyboard) {
-                if (ImGui::IsKeyPressed(ImGuiKey_Escape))
-                    app.apply_input_result(win.input.on_key(Key::Escape), win.group_id);
-                if (ImGui::IsKeyPressed(ImGuiKey_Delete))
-                    app.apply_input_result(win.input.on_key(Key::Delete), win.group_id);
-                if (ImGui::IsKeyPressed(ImGuiKey_Backspace))
-                    app.apply_input_result(win.input.on_key(Key::Backspace), win.group_id);
-                if (ImGui::IsKeyPressed(ImGuiKey_R))
-                    app.apply_input_result(win.input.on_key(Key::R), win.group_id);
-                if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket))
-                    app.apply_input_result(win.input.on_key(Key::LeftBracket), win.group_id);
-                if (ImGui::IsKeyPressed(ImGuiKey_RightBracket))
-                    app.apply_input_result(win.input.on_key(Key::RightBracket), win.group_id);
+                if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::Escape), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::Backspace), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_R)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::R), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::LeftBracket), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
+                    auto action = doc.applyInputResult(win.input.on_key(Key::RightBracket), win.group_id);
+                    ws.handleInputAction(action, doc);
+                }
             }
         };
 
         // ================================================================
-        // Inspector (docked left panel) + Root canvas
+        // Inspector (docked left panel) + Root canvas with document tabs
         // ================================================================
         float menu_height = ImGui::GetFrameHeight();
         float available_h = io.DisplaySize.y - menu_height;
@@ -411,18 +445,18 @@ int main(int argc, char** argv) {
         float canvas_x = 0.0f;
 
         // Left panel: Inspector
-        if (app.show_inspector) {
+        if (ws.showInspector) {
             ImGui::SetNextWindowPos(ImVec2(0, menu_height));
             ImGui::SetNextWindowSize(ImVec2(inspector_width, available_h));
-            ImGui::Begin("Inspector", &app.show_inspector,
+            ImGui::Begin("Inspector", &ws.showInspector,
                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
                 ImGuiWindowFlags_NoCollapse);
-            app.inspector.render();
+            ws.inspector().render();
 
             // Inspector click → select + center on canvas
-            std::string sel = app.inspector.consumeSelection();
-            if (!sel.empty()) {
-                app.input.selectNodeById(sel);
+            std::string sel = ws.inspector().consumeSelection();
+            if (!sel.empty() && ws.activeDocument()) {
+                ws.activeDocument()->input().selectNodeById(sel);
             }
 
             ImGui::End();
@@ -449,106 +483,136 @@ int main(int argc, char** argv) {
             canvas_x = inspector_width + splitter_thickness;
         }
 
-        // Root canvas (fills remaining space to the right)
+        // Root canvas with document tabs (fills remaining space to the right)
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::SetNextWindowPos(ImVec2(canvas_x, menu_height));
         ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - canvas_x, available_h));
-        ImGui::Begin("Canvas", nullptr,
+        ImGui::Begin("##DocumentArea", nullptr,
             ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        auto canvas_min = ImGui::GetWindowContentRegionMin();
-        auto canvas_max = ImGui::GetWindowContentRegionMax();
-        Pt canvas_min_pt(canvas_min.x + ImGui::GetWindowPos().x, canvas_min.y + ImGui::GetWindowPos().y);
-        Pt canvas_max_pt(canvas_max.x + ImGui::GetWindowPos().x, canvas_max.y + ImGui::GetWindowPos().y);
-        bool root_hovered = ImGui::IsWindowHovered();
+        if (ImGui::BeginTabBar("DocumentTabs")) {
+            for (auto& doc : ws.documents()) {
+                ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;
+                if (doc->isModified()) flags |= ImGuiTabItemFlags_UnsavedDocument;
 
-        process_window(app.window_manager.root(), canvas_min_pt, canvas_max_pt,
-                        ImGui::GetWindowDrawList(), root_hovered);
+                bool tab_open = true;
+                std::string tab_label = doc->title() + "###" + doc->id();
+                if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, flags)) {
+                    // This tab is selected → active document
+                    if (ws.activeDocument() != doc.get()) {
+                        ws.setActiveDocument(doc.get());
+                    }
+
+                    // Render canvas for this document's root window
+                    auto canvas_min = ImGui::GetWindowContentRegionMin();
+                    auto canvas_max = ImGui::GetWindowContentRegionMax();
+                    Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
+                            canvas_min.y + ImGui::GetWindowPos().y);
+                    Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
+                            canvas_max.y + ImGui::GetWindowPos().y);
+                    bool hovered = ImGui::IsWindowHovered();
+
+                    process_window(doc->root(), *doc, cmin, cmax,
+                                  ImGui::GetWindowDrawList(), hovered);
+
+                    ImGui::EndTabItem();
+                }
+                if (!tab_open) {
+                    // User clicked X on tab — close document
+                    ws.closeDocument(*doc);
+                }
+            }
+            ImGui::EndTabBar();
+        }
 
         ImGui::End();
         ImGui::PopStyleVar();
 
         // ================================================================
-        // Sub-blueprint windows (one per open collapsed group)
+        // Sub-blueprint windows (one per open collapsed group, per document)
         // ================================================================
-        app.window_manager.removeClosedWindows();
-        for (auto& win_ptr : app.window_manager.windows()) {
-            auto& win = *win_ptr;
-            if (win.group_id.empty()) continue;
-            if (!win.open) continue;
+        for (auto& doc : ws.documents()) {
+            doc->windowManager().removeClosedWindows();
+            for (auto& win_ptr : doc->windowManager().windows()) {
+                auto& win = *win_ptr;
+                if (win.group_id.empty()) continue;
+                if (!win.open) continue;
 
-            ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-            std::string win_title = win.title + "###" + win.group_id;
-            if (!ImGui::Begin(win_title.c_str(), &win.open,
-                    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+                ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+                // Include doc ID in window ID to prevent conflicts between documents
+                std::string win_title = win.title + " [" + doc->displayName() + "]###"
+                                       + doc->id() + ":" + win.group_id;
+                if (!ImGui::Begin(win_title.c_str(), &win.open,
+                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+                    ImGui::End();
+                    continue;
+                }
+
+                // Toolbar: Fit View + Auto Layout + Delete
+                if (ImGui::Button("Fit View")) {
+                    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+                    for (const auto& node : doc->blueprint().nodes) {
+                        if (node.group_id != win.group_id) continue;
+                        bmin.x = std::min(bmin.x, node.pos.x);
+                        bmin.y = std::min(bmin.y, node.pos.y);
+                        bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
+                        bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
+                    }
+                    if (bmin.x < bmax.x && bmin.y < bmax.y) {
+                        ImVec2 ws = ImGui::GetContentRegionAvail();
+                        win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
+                    }
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Auto Layout")) {
+                    doc->blueprint().auto_layout_group(win.group_id);
+                    win.scene.clearCache();
+                    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
+                    for (const auto& node : doc->blueprint().nodes) {
+                        if (node.group_id != win.group_id) continue;
+                        bmin.x = std::min(bmin.x, node.pos.x);
+                        bmin.y = std::min(bmin.y, node.pos.y);
+                        bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
+                        bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
+                    }
+                    if (bmin.x < bmax.x && bmin.y < bmax.y) {
+                        ImVec2 ws = ImGui::GetContentRegionAvail();
+                        win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
+                    }
+                }
+                ImGui::SameLine();
+                {
+                    bool has_sel = !win.input.selected_nodes().empty();
+                    if (!has_sel) ImGui::BeginDisabled();
+                    if (ImGui::Button("Delete")) {
+                        auto action = doc->applyInputResult(win.input.on_key(Key::Delete), win.group_id);
+                        ws.handleInputAction(action, *doc);
+                    }
+                    if (!has_sel) ImGui::EndDisabled();
+                }
+
+                // InvisibleButton captures mouse input in content area
+                ImVec2 content_size = ImGui::GetContentRegionAvail();
+                ImGui::InvisibleButton(("##canvas_" + doc->id() + "_" + win.group_id).c_str(), content_size);
+                bool sub_hovered = ImGui::IsItemHovered();
+
+                auto sub_cmin = ImGui::GetWindowContentRegionMin();
+                auto sub_cmax = ImGui::GetWindowContentRegionMax();
+                Pt sub_min(sub_cmin.x + ImGui::GetWindowPos().x, sub_cmin.y + ImGui::GetWindowPos().y);
+                Pt sub_max(sub_cmax.x + ImGui::GetWindowPos().x, sub_cmax.y + ImGui::GetWindowPos().y);
+
+                process_window(win, *doc, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
+
                 ImGui::End();
-                continue;
             }
-
-            // Toolbar: Fit View + Auto Layout + Delete
-            if (ImGui::Button("Fit View")) {
-                Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-                for (const auto& node : app.blueprint.nodes) {
-                    if (node.group_id != win.group_id) continue;
-                    bmin.x = std::min(bmin.x, node.pos.x);
-                    bmin.y = std::min(bmin.y, node.pos.y);
-                    bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
-                    bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
-                }
-                if (bmin.x < bmax.x && bmin.y < bmax.y) {
-                    ImVec2 ws = ImGui::GetContentRegionAvail();
-                    win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Auto Layout")) {
-                app.blueprint.auto_layout_group(win.group_id);
-                win.scene.clearCache();
-                // Fit view after layout
-                Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-                for (const auto& node : app.blueprint.nodes) {
-                    if (node.group_id != win.group_id) continue;
-                    bmin.x = std::min(bmin.x, node.pos.x);
-                    bmin.y = std::min(bmin.y, node.pos.y);
-                    bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
-                    bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
-                }
-                if (bmin.x < bmax.x && bmin.y < bmax.y) {
-                    ImVec2 ws = ImGui::GetContentRegionAvail();
-                    win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
-                }
-            }
-            ImGui::SameLine();
-            {
-                bool has_sel = !win.input.selected_nodes().empty();
-                if (!has_sel) ImGui::BeginDisabled();
-                if (ImGui::Button("Delete")) {
-                    app.apply_input_result(win.input.on_key(Key::Delete), win.group_id);
-                }
-                if (!has_sel) ImGui::EndDisabled();
-            }
-
-            // InvisibleButton captures mouse input in content area
-            ImVec2 content_size = ImGui::GetContentRegionAvail();
-            ImGui::InvisibleButton(("##canvas_" + win.group_id).c_str(), content_size);
-            bool sub_hovered = ImGui::IsItemHovered();
-
-            auto sub_cmin = ImGui::GetWindowContentRegionMin();
-            auto sub_cmax = ImGui::GetWindowContentRegionMax();
-            Pt sub_min(sub_cmin.x + ImGui::GetWindowPos().x, sub_cmin.y + ImGui::GetWindowPos().y);
-            Pt sub_max(sub_cmax.x + ImGui::GetWindowPos().x, sub_cmax.y + ImGui::GetWindowPos().y);
-
-            process_window(win, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
-
-            ImGui::End();
         }
 
         // Context menu for adding components (right-click on empty space)
-        if (app.show_context_menu) {
+        if (ws.contextMenu.show) {
             ImGui::OpenPopup("AddComponent");
-            app.show_context_menu = false; // Reset flag
+            ws.contextMenu.show = false;
         }
 
         if (ImGui::BeginPopup("AddComponent")) {
@@ -556,7 +620,7 @@ int main(int argc, char** argv) {
             ImGui::Separator();
 
             // Render hierarchical menu from library/ directory structure
-            auto menu_tree = app.type_registry.build_menu_tree();
+            auto menu_tree = ws.typeRegistry().build_menu_tree();
             std::function<void(const an24::MenuTree&)> render_menu;
             render_menu = [&](const an24::MenuTree& tree) {
                 for (const auto& [folder, subtree] : tree.children) {
@@ -567,7 +631,13 @@ int main(int argc, char** argv) {
                 }
                 for (const auto& classname : tree.entries) {
                     if (ImGui::MenuItem(classname.c_str())) {
-                        app.add_component(classname, app.context_menu_pos, app.context_menu_group_id);
+                        ImVec2 mp = ImGui::GetMousePosOnOpeningCurrentPopup();
+                        Pt menu_pos(mp.x, mp.y);
+                        Document* doc = ws.contextMenu.source_doc ? ws.contextMenu.source_doc : ws.activeDocument();
+                        if (doc) {
+                            Pt world_pos = doc->scene().viewport().screen_to_world(menu_pos, Pt(canvas_x, menu_height));
+                            doc->addComponent(classname, world_pos, ws.contextMenu.group_id, ws.typeRegistry());
+                        }
                     }
                 }
             };
@@ -577,65 +647,79 @@ int main(int argc, char** argv) {
         }
 
         // Node context menu (right-click on node)
-        if (app.show_node_context_menu) {
+        if (ws.nodeContextMenu.show) {
             ImGui::OpenPopup("NodeContextMenu");
-            app.show_node_context_menu = false;
+            ws.nodeContextMenu.show = false;
         }
         if (ImGui::BeginPopup("NodeContextMenu")) {
-            if (ImGui::MenuItem("Color...")) {
-                app.open_color_picker_for_node(app.context_menu_node_index);
-            }
-            if (ImGui::MenuItem("Properties")) {
-                app.open_properties_for_node(app.context_menu_node_index);
+            Document* doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : ws.activeDocument();
+            if (doc && ws.nodeContextMenu.node_index < doc->blueprint().nodes.size()) {
+                Node& node = doc->blueprint().nodes[ws.nodeContextMenu.node_index];
+                ImGui::Text("Node: %s", node.name.c_str());
+                ImGui::Separator();
+                if (ImGui::MenuItem("Properties...")) {
+                    ws.openPropertiesForNode(ws.nodeContextMenu.node_index, *doc);
+                }
+                if (ImGui::MenuItem("Set Color...")) {
+                    ws.openColorPickerForNode(ws.nodeContextMenu.node_index, ws.nodeContextMenu.group_id, *doc);
+                }
+                if (ImGui::MenuItem("Delete")) {
+                    auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
+                    ws.handleInputAction(action, *doc);
+                }
             }
             ImGui::EndPopup();
         }
 
         // Color picker dialog
-        if (app.show_color_picker) {
+        if (ws.colorPicker.show) {
             ImGui::OpenPopup("Node Color");
         }
-        if (ImGui::BeginPopupModal("Node Color", &app.show_color_picker, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::ColorPicker4("##picker", app.color_picker_rgba,
+        if (ImGui::BeginPopupModal("Node Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::ColorPicker4("##picker", ws.colorPicker.rgba,
                 ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayRGB);
 
-            // Find the correct window's scene for visual cache update
-            auto* target_win = app.window_manager.find(app.color_picker_group_id);
-            VisualScene* target_scene = target_win ? &target_win->scene : &app.scene;
+            Document* doc = ws.colorPicker.source_doc ? ws.colorPicker.source_doc : ws.activeDocument();
+            if (doc && ws.colorPicker.node_index < doc->blueprint().nodes.size()) {
+                // Find the correct window's scene for visual cache update
+                BlueprintWindow* target_win = nullptr;
+                if (!ws.colorPicker.group_id.empty()) {
+                    target_win = doc->windowManager().find(ws.colorPicker.group_id);
+                }
+                VisualScene* target_scene = target_win ? &target_win->scene : &doc->scene();
 
-            if (ImGui::Button("Apply")) {
-                Node& node = app.blueprint.nodes[app.color_picker_node_index];
-                node.color = NodeColor{
-                    app.color_picker_rgba[0],
-                    app.color_picker_rgba[1],
-                    app.color_picker_rgba[2],
-                    app.color_picker_rgba[3]
-                };
-                // Update VisualNode in the correct window's cache
-                auto* vn = target_scene->getVisualNode(app.color_picker_node_index);
-                if (vn) vn->setCustomColor(node.color);
-                app.show_color_picker = false;
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Reset")) {
-                Node& node = app.blueprint.nodes[app.color_picker_node_index];
-                node.color = std::nullopt;
-                auto* vn = target_scene->getVisualNode(app.color_picker_node_index);
-                if (vn) vn->setCustomColor(std::nullopt);
-                app.show_color_picker = false;
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
-                app.show_color_picker = false;
-                ImGui::CloseCurrentPopup();
+                if (ImGui::Button("Apply")) {
+                    Node& node = doc->blueprint().nodes[ws.colorPicker.node_index];
+                    node.color = NodeColor{
+                        ws.colorPicker.rgba[0],
+                        ws.colorPicker.rgba[1],
+                        ws.colorPicker.rgba[2],
+                        ws.colorPicker.rgba[3]
+                    };
+                    auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
+                    if (vn) vn->setCustomColor(node.color);
+                    doc->markModified();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Reset")) {
+                    Node& node = doc->blueprint().nodes[ws.colorPicker.node_index];
+                    node.color = std::nullopt;
+                    auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
+                    if (vn) vn->setCustomColor(std::nullopt);
+                    doc->markModified();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel")) {
+                    ImGui::CloseCurrentPopup();
+                }
             }
             ImGui::EndPopup();
         }
 
         // Properties window
-        app.properties_window.render();
+        ws.propertiesWindow().render();
 
         // Рендер
         ImGui::Render();
