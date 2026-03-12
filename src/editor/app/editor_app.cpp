@@ -111,12 +111,17 @@ bool EditorApp::initImGui() {
 }
 
 void EditorApp::shutdown() {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
+    if (shutdown_done_) return;
+    shutdown_done_ = true;
     
-    SDL_GL_DeleteContext(gl_context_);
-    SDL_DestroyWindow(window_);
+    if (ImGui::GetCurrentContext()) {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplSDL2_Shutdown();
+        ImGui::DestroyContext();
+    }
+    
+    if (gl_context_) SDL_GL_DeleteContext(gl_context_);
+    if (window_) SDL_DestroyWindow(window_);
     SDL_Quit();
 }
 

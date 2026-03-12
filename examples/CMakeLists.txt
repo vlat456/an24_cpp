@@ -126,8 +126,6 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp

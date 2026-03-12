@@ -21,8 +21,8 @@ public:
     static constexpr float MIN_WIDTH = 40.0f;
 
 private:
-    mutable bool state_;
-    mutable bool tripped_;
+    bool state_;
+    bool tripped_;
     static constexpr float FONT_SIZE = 11.0f;
     static constexpr float ROUNDING = 4.0f;
 };

@@ -1,20 +1,7 @@
 #pragma once
 
-#include "../widget_base.h"
-#include <vector>
-#include <memory>
+#include "linear_layout.h"
 
-class Column : public Widget {
-public:
-    Widget* addChild(std::unique_ptr<Widget> child);
-
-    Pt getPreferredSize(IDrawList* dl) const override;
-    void layout(float available_width, float available_height) override;
-    void render(IDrawList* dl, Pt origin, float zoom) const override;
-
-    size_t childCount() const { return children_.size(); }
-    Widget* child(size_t i) const;
-
-private:
-    std::vector<std::unique_ptr<Widget>> children_;
-};
+/// Column: children laid out vertically (top-to-bottom).
+/// Thin alias over LinearLayout<Axis::Vertical>.
+using Column = LinearLayout<Axis::Vertical>;

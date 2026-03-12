@@ -78,13 +78,11 @@ VisualNode::VisualNode(const Node& node)
 
     layout_.layout(size_.x, size_.y);
 
-    if (node_content_.type == NodeContentType::VerticalToggle && content_widget_ && layout_.childCount() > 1) {
+    if (node_content_.type == NodeContentType::VerticalToggle && content_widget_ && center_column_) {
         Widget* main_row = layout_.child(1);
-        auto* row_ptr = dynamic_cast<Row*>(main_row);
-        if (row_ptr && row_ptr->childCount() > 1) {
-            Widget* center_col = row_ptr->child(1);
-            content_offset_ = Pt(main_row->x() + center_col->x(),
-                                 main_row->y() + center_col->y());
+        if (main_row) {
+            content_offset_ = Pt(main_row->x() + center_column_->x(),
+                                 main_row->y() + center_column_->y());
         }
     }
 
@@ -121,9 +119,11 @@ void VisualNode::buildLayout(const Node& node) {
         port_layout_builder::build_input_column(*left_col, inputs, port_slots_);
 
         auto center_col = std::make_unique<Column>();
+        center_column_ = center_col.get();
         auto vt = std::make_unique<VerticalToggleWidget>(node_content_.state, node_content_.tripped);
         auto toggle_container = std::make_unique<Container>(std::move(vt), Edges{0, 5.0f, 0, 5.0f});
         toggle_container->setFlexible(true);
+        inner_content_widget_ = toggle_container->child();
         content_widget_ = center_col->addChild(std::move(toggle_container));
         center_col->setFlexible(true);
 
@@ -156,6 +156,7 @@ void VisualNode::buildLayout(const Node& node) {
                 float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
                 float v_pad = 2.0f;
                 auto sw = std::make_unique<SwitchWidget>(node_content_.state, node_content_.tripped);
+                inner_content_widget_ = sw.get();
                 auto content_container = std::make_unique<Container>(std::move(sw), Edges{margin, v_pad, margin, v_pad});
                 content_container->setFlexible(true);
                 content_widget_ = layout_.addChild(std::move(content_container));
@@ -167,6 +168,7 @@ void VisualNode::buildLayout(const Node& node) {
                 } else {
                     content_inner = std::make_unique<Spacer>();
                 }
+                inner_content_widget_ = content_inner.get();
                 auto content_container = std::make_unique<Container>(std::move(content_inner), Edges{margin, 0, margin, 0});
                 content_container->setFlexible(true);
                 content_widget_ = layout_.addChild(std::move(content_container));
@@ -188,30 +190,26 @@ void VisualNode::buildPorts(const Node& node) {
         }
     }
 
-    for (const auto& p : node.inputs) {
-        VisualPort vp(p.name, PortSide::Input, p.type);
-        for (const auto& slot : port_slots_) {
-            if (slot.is_left && slot.name == p.name) {
-                float port_y = position_.y + slot.parent_y_offset + slot.row_container->y() + slot.row_container->height() / 2;
-                float port_x = position_.x;
-                vp.setWorldPosition(Pt(port_x, port_y));
-                break;
+    auto add_ports = [&](const std::vector<EditorPort>& port_list, PortSide side) {
+        bool is_left = (side == PortSide::Input);
+        float base_x = is_left ? position_.x : position_.x + size_.x;
+        for (const auto& p : port_list) {
+            VisualPort vp(p.name, side, p.type);
+            for (const auto& slot : port_slots_) {
+                if (slot.is_left == is_left && slot.name == p.name) {
+                    float port_y = position_.y + slot.parent_y_offset
+                                 + slot.row_container->y()
+                                 + slot.row_container->height() / 2;
+                    vp.setWorldPosition(Pt(base_x, port_y));
+                    break;
+                }
             }
+            ports_.push_back(std::move(vp));
         }
-        ports_.push_back(std::move(vp));
-    }
-    for (const auto& p : node.outputs) {
-        VisualPort vp(p.name, PortSide::Output, p.type);
-        for (const auto& slot : port_slots_) {
-            if (!slot.is_left && slot.name == p.name) {
-                float port_y = position_.y + slot.parent_y_offset + slot.row_container->y() + slot.row_container->height() / 2;
-                float port_x = position_.x + size_.x;
-                vp.setWorldPosition(Pt(port_x, port_y));
-                break;
-            }
-        }
-        ports_.push_back(std::move(vp));
-    }
+    };
+
+    add_ports(node.inputs, PortSide::Input);
+    add_ports(node.outputs, PortSide::Output);
 }
 
 const VisualPort* VisualNode::getPort(const std::string& name) const {
@@ -247,12 +245,8 @@ void VisualNode::updateNodeContent(const NodeContent& content) {
         for (size_t i = 0; i < layout_.childCount(); i++) {
             layout_.child(i)->updateFromContent(node_content_);
         }
-    } else if (content_widget_) {
-        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
-            if (c->child()) {
-                c->child()->updateFromContent(node_content_);
-            }
-        }
+    } else if (inner_content_widget_) {
+        inner_content_widget_->updateFromContent(node_content_);
     }
 }
 
@@ -271,16 +265,12 @@ void VisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
 }
 
 Bounds VisualNode::getContentBounds() const {
-    if (!content_widget_) return {};
+    if (!content_widget_ || !inner_content_widget_) return {};
 
-    auto* container = dynamic_cast<const Container*>(content_widget_);
-    if (!container || !container->child()) return {};
-
-    const Widget* child = container->child();
     return {
-        content_offset_.x + content_widget_->x() + child->x(),
-        content_offset_.y + content_widget_->y() + child->y(),
-        child->width(),
-        child->height()
+        content_offset_.x + content_widget_->x() + inner_content_widget_->x(),
+        content_offset_.y + content_widget_->y() + inner_content_widget_->y(),
+        inner_content_widget_->width(),
+        inner_content_widget_->height()
     };
 }

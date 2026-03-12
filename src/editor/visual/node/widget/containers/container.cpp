@@ -1,4 +1,5 @@
 #include "visual/node/widget/containers/container.h"
+#include <algorithm>
 
 Container::Container(std::unique_ptr<Widget> child, Edges margins)
     : child_(std::move(child)), margins_(margins) {}
@@ -16,8 +17,8 @@ void Container::layout(float available_width, float available_height) {
     height_ = available_height;
 
     if (child_) {
-        float child_w = available_width - margins_.left - margins_.right;
-        float child_h = available_height - margins_.top - margins_.bottom;
+        float child_w = std::max(0.0f, available_width - margins_.left - margins_.right);
+        float child_h = std::max(0.0f, available_height - margins_.top - margins_.bottom);
         child_->setPosition(margins_.left, margins_.top);
         child_->layout(child_w, child_h);
     }

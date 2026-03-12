@@ -90,7 +90,6 @@ void BusVisualNode::connectWire(const Wire& wire) {
     if (wire.start.node_id == node_id_ || wire.end.node_id == node_id_) {
         wires_.push_back(wire);
         distributePortsInRow(wires_);
-        size_ = calculateBusSize(ports_.size());
     }
 }
 
@@ -135,7 +134,6 @@ bool BusVisualNode::swapAliasPorts(const std::string& wire_id_a,
 
     std::swap(wires_[idx_a], wires_[idx_b]);
     distributePortsInRow(wires_);
-    size_ = calculateBusSize(ports_.size());
 
     return true;
 }
@@ -145,21 +143,14 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     auto bounds = node_frame::world_to_screen(position_, size_, vp, canvas_min);
     Pt screen_center = bounds.center();
 
-    float bus_w = size_.x * vp.zoom;
-    float bus_h = size_.y * vp.zoom;
-    node_frame::ScreenBounds bus_bounds{
-        Pt(screen_center.x - bus_w / 2, screen_center.y - bus_h / 2),
-        Pt(screen_center.x + bus_w / 2, screen_center.y + bus_h / 2)
-    };
-
     float rounding = editor_constants::NODE_ROUNDING * vp.zoom;
     uint32_t fill = node_frame::get_fill_color(customColor(), render_theme::COLOR_BUS_FILL);
-    node_frame::render_fill(*dl, bus_bounds, rounding, fill);
+    node_frame::render_fill(*dl, bounds, rounding, fill);
 
-    Pt text_pos(bus_bounds.min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
+    Pt text_pos(bounds.min.x + 3 * vp.zoom, screen_center.y - 5 * vp.zoom);
     dl->add_text(text_pos, name_.c_str(), render_theme::COLOR_TEXT, 10.0f * vp.zoom);
 
-    node_frame::render_border(*dl, bus_bounds, rounding, is_selected);
+    node_frame::render_border(*dl, bounds, rounding, is_selected);
     node_frame::render_ports(*dl, vp, canvas_min, ports_);
 }
 

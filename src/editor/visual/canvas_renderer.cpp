@@ -2,13 +2,18 @@
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/imgui_draw_list.h"
 #include "editor/input/input_types.h"
+#include "editor/input/key_handler.h"
 #include <imgui.h>
 
+static ImGuiDrawList make_dl(ImDrawList* raw) {
+    ImGuiDrawList dl;
+    dl.dl = raw;
+    return dl;
+}
 
 void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                             Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered) {
-    ImGuiDrawList dl;
-    dl.dl = draw_list;
+    auto dl = make_dl(draw_list);
     
     if (hovered) {
         ImVec2 mp = ImGui::GetMousePos();
@@ -31,22 +36,19 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
 }
 
 void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list) {
-    ImGuiDrawList dl;
-    dl.dl = draw_list;
+    auto dl = make_dl(draw_list);
     BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
 }
 
 void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax, ImDrawList* draw_list) {
-    ImGuiDrawList dl;
-    dl.dl = draw_list;
+    auto dl = make_dl(draw_list);
     win.scene.render(dl, cmin, cmax,
                      &win.input.selected_nodes(), win.input.selected_wire(),
                      &doc.simulation(), win.input.hovered_wire());
 }
 
 void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin, ImDrawList* draw_list) {
-    ImGuiDrawList dl;
-    dl.dl = draw_list;
+    auto dl = make_dl(draw_list);
     
     ImVec2 mp = ImGui::GetMousePos();
     Pt world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
@@ -70,8 +72,7 @@ void CanvasRenderer::renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* d
 void CanvasRenderer::renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list) {
     if (!win.input.is_marquee_selecting()) return;
     
-    ImGuiDrawList dl;
-    dl.dl = draw_list;
+    auto dl = make_dl(draw_list);
     
     Pt ms = win.scene.viewport().world_to_screen(win.input.marquee_start(), cmin);
     Pt me = win.scene.viewport().world_to_screen(win.input.marquee_end(), cmin);
@@ -91,73 +92,41 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     ImVec2 mp = ImGui::GetMousePos();
     Pt screen_pos(mp.x, mp.y);
 
-    if (io.MouseWheel != 0.0f) {
-        auto action = doc.applyInputResult(
-            win.input.on_scroll(io.MouseWheel * CanvasConstants::SCROLL_ZOOM_FACTOR, screen_pos, cmin), 
-            win.group_id);
+    // Dispatch helper: apply input result to document, then let WindowSystem handle the action.
+    auto dispatch = [&](InputResult result) {
+        auto action = doc.applyInputResult(result, win.group_id);
         ws.handleInputAction(action, doc);
+    };
+
+    if (io.MouseWheel != 0.0f) {
+        dispatch(win.input.on_scroll(io.MouseWheel * CanvasConstants::SCROLL_ZOOM_FACTOR, screen_pos, cmin));
     }
 
     bool was_dbl = false;
     if (ImGui::IsMouseDoubleClicked(0)) {
-        auto action = doc.applyInputResult(win.input.on_double_click(screen_pos, cmin), win.group_id);
-        ws.handleInputAction(action, doc);
+        dispatch(win.input.on_double_click(screen_pos, cmin));
         was_dbl = true;
     }
 
     if (!was_dbl && ImGui::IsMouseClicked(0)) {
-        auto action = doc.applyInputResult(
-            win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods), win.group_id);
-        ws.handleInputAction(action, doc);
+        dispatch(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods));
     }
 
     if (ImGui::IsMouseClicked(1)) {
-        auto action = doc.applyInputResult(
-            win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods), win.group_id);
-        ws.handleInputAction(action, doc);
+        dispatch(win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods));
     }
 
     if (ImGui::IsMouseDragging(0)) {
         ImVec2 delta = ImGui::GetMouseDragDelta(0);
-        auto action = doc.applyInputResult(
-            win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin), win.group_id);
-        ws.handleInputAction(action, doc);
+        dispatch(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin));
         ImGui::ResetMouseDragDelta(0);
     }
 
     if (ImGui::IsMouseReleased(0)) {
-        auto action = doc.applyInputResult(
-            win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
-        ws.handleInputAction(action, doc);
+        dispatch(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin));
     }
 
-    if (!io.WantCaptureKeyboard) {
-        if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-            auto action = doc.applyInputResult(win.input.on_key(Key::Escape), win.group_id);
-            ws.handleInputAction(action, doc);
-        }
-        if (!win.read_only) {
-            if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-                auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
-                auto action = doc.applyInputResult(win.input.on_key(Key::Backspace), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-                auto action = doc.applyInputResult(win.input.on_key(Key::R), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
-                auto action = doc.applyInputResult(win.input.on_key(Key::LeftBracket), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-            if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
-                auto action = doc.applyInputResult(win.input.on_key(Key::RightBracket), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-        }
-    }
+    key_handler::process_keys(io.WantCaptureKeyboard, win.read_only,
+        [&](Key k) { dispatch(win.input.on_key(k)); });
 }
 

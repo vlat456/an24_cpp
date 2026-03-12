@@ -1061,30 +1061,6 @@ __/src/editor/visual/node/visual_node_cache.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node_cache.cpp.s
 
-__/src/editor/visual/node/widget/containers/column.o: __/src/editor/visual/node/widget/containers/column.cpp.o
-.PHONY : __/src/editor/visual/node/widget/containers/column.o
-
-# target to build an object file
-__/src/editor/visual/node/widget/containers/column.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.o
-.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.o
-
-__/src/editor/visual/node/widget/containers/column.i: __/src/editor/visual/node/widget/containers/column.cpp.i
-.PHONY : __/src/editor/visual/node/widget/containers/column.i
-
-# target to preprocess a source file
-__/src/editor/visual/node/widget/containers/column.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.i
-.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.i
-
-__/src/editor/visual/node/widget/containers/column.s: __/src/editor/visual/node/widget/containers/column.cpp.s
-.PHONY : __/src/editor/visual/node/widget/containers/column.s
-
-# target to generate assembly for a file
-__/src/editor/visual/node/widget/containers/column.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.s
-.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.s
-
 __/src/editor/visual/node/widget/containers/container.o: __/src/editor/visual/node/widget/containers/container.cpp.o
 .PHONY : __/src/editor/visual/node/widget/containers/container.o
 
@@ -1108,30 +1084,6 @@ __/src/editor/visual/node/widget/containers/container.s: __/src/editor/visual/no
 __/src/editor/visual/node/widget/containers/container.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/container.cpp.s
 .PHONY : __/src/editor/visual/node/widget/containers/container.cpp.s
-
-__/src/editor/visual/node/widget/containers/row.o: __/src/editor/visual/node/widget/containers/row.cpp.o
-.PHONY : __/src/editor/visual/node/widget/containers/row.o
-
-# target to build an object file
-__/src/editor/visual/node/widget/containers/row.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.o
-.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.o
-
-__/src/editor/visual/node/widget/containers/row.i: __/src/editor/visual/node/widget/containers/row.cpp.i
-.PHONY : __/src/editor/visual/node/widget/containers/row.i
-
-# target to preprocess a source file
-__/src/editor/visual/node/widget/containers/row.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.i
-.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.i
-
-__/src/editor/visual/node/widget/containers/row.s: __/src/editor/visual/node/widget/containers/row.cpp.s
-.PHONY : __/src/editor/visual/node/widget/containers/row.s
-
-# target to generate assembly for a file
-__/src/editor/visual/node/widget/containers/row.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.s
-.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.s
 
 __/src/editor/visual/node/widget/content/header_widget.o: __/src/editor/visual/node/widget/content/header_widget.cpp.o
 .PHONY : __/src/editor/visual/node/widget/content/header_widget.o
@@ -1564,6 +1516,30 @@ __/src/editor/visual/renderer/node_renderer.s: __/src/editor/visual/renderer/nod
 __/src/editor/visual/renderer/node_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/node_renderer.cpp.s
+
+__/src/editor/visual/renderer/port_layout_builder.o: __/src/editor/visual/renderer/port_layout_builder.cpp.o
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.o
+
+# target to build an object file
+__/src/editor/visual/renderer/port_layout_builder.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/port_layout_builder.cpp.o
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.cpp.o
+
+__/src/editor/visual/renderer/port_layout_builder.i: __/src/editor/visual/renderer/port_layout_builder.cpp.i
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.i
+
+# target to preprocess a source file
+__/src/editor/visual/renderer/port_layout_builder.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/port_layout_builder.cpp.i
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.cpp.i
+
+__/src/editor/visual/renderer/port_layout_builder.s: __/src/editor/visual/renderer/port_layout_builder.cpp.s
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.s
+
+# target to generate assembly for a file
+__/src/editor/visual/renderer/port_layout_builder.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/port_layout_builder.cpp.s
+.PHONY : __/src/editor/visual/renderer/port_layout_builder.cpp.s
 
 __/src/editor/visual/renderer/tooltip_detector.o: __/src/editor/visual/renderer/tooltip_detector.cpp.o
 .PHONY : __/src/editor/visual/renderer/tooltip_detector.o
@@ -2092,15 +2068,9 @@ help:
 	@echo "... __/src/editor/visual/node/visual_node_cache.o"
 	@echo "... __/src/editor/visual/node/visual_node_cache.i"
 	@echo "... __/src/editor/visual/node/visual_node_cache.s"
-	@echo "... __/src/editor/visual/node/widget/containers/column.o"
-	@echo "... __/src/editor/visual/node/widget/containers/column.i"
-	@echo "... __/src/editor/visual/node/widget/containers/column.s"
 	@echo "... __/src/editor/visual/node/widget/containers/container.o"
 	@echo "... __/src/editor/visual/node/widget/containers/container.i"
 	@echo "... __/src/editor/visual/node/widget/containers/container.s"
-	@echo "... __/src/editor/visual/node/widget/containers/row.o"
-	@echo "... __/src/editor/visual/node/widget/containers/row.i"
-	@echo "... __/src/editor/visual/node/widget/containers/row.s"
 	@echo "... __/src/editor/visual/node/widget/content/header_widget.o"
 	@echo "... __/src/editor/visual/node/widget/content/header_widget.i"
 	@echo "... __/src/editor/visual/node/widget/content/header_widget.s"
@@ -2155,6 +2125,9 @@ help:
 	@echo "... __/src/editor/visual/renderer/node_renderer.o"
 	@echo "... __/src/editor/visual/renderer/node_renderer.i"
 	@echo "... __/src/editor/visual/renderer/node_renderer.s"
+	@echo "... __/src/editor/visual/renderer/port_layout_builder.o"
+	@echo "... __/src/editor/visual/renderer/port_layout_builder.i"
+	@echo "... __/src/editor/visual/renderer/port_layout_builder.s"
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.o"
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.i"
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.s"

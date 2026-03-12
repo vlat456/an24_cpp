@@ -81,7 +81,9 @@ protected:
     NodeContent node_content_;
     Column layout_;
     std::optional<NodeColor> custom_color_;
-    Widget* content_widget_ = nullptr;
+    Widget* content_widget_ = nullptr;        ///< Container wrapping the inner content
+    Widget* inner_content_widget_ = nullptr;  ///< The actual content widget inside the container
+    Widget* center_column_ = nullptr;         ///< Center column for VerticalToggle layout offset
     Pt content_offset_;
     std::vector<port_layout_builder::PortSlot> port_slots_;
 

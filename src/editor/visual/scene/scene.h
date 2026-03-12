@@ -86,9 +86,9 @@ public:
     void removeNode(size_t index) { removeNodes({index}); }
     [[nodiscard]] bool addWire(Wire wire);
     void removeWire(size_t index);
-    /// Remove multiple nodes by index (indices must be sorted descending).
-    /// Connected wires and sub_blueprint_instances are cleaned automatically.
-    void removeNodes(const std::vector<size_t>& sorted_desc_indices);
+    /// Remove multiple nodes by index. Connected wires and sub_blueprint_instances
+    /// are cleaned automatically.
+    void removeNodes(const std::vector<size_t>& indices);
     /// Reconnect one end of a wire to a new port. Clears routing points.
     void reconnectWire(size_t wire_idx, bool reconnect_start, WireEnd new_end);
     /// Swap port connections for two wires attached to the same bus.

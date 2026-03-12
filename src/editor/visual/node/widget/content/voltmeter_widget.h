@@ -21,7 +21,7 @@ public:
     static constexpr float NEEDLE_LENGTH = 32.0f;
 
 private:
-    mutable float value_;
+    float value_;
     float min_val_;
     float max_val_;
     std::string unit_;

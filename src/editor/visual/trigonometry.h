@@ -3,9 +3,12 @@
 #include "data/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
+#include "data/blueprint.h"
 #include "visual/node/visual_node_cache.h"
 #include <cmath>
 #include <algorithm>
+#include <optional>
+#include <utility>
 #include <vector>
 
 namespace editor_math {
@@ -20,6 +23,22 @@ inline Pt get_port_position(const Node& node, const char* port_name,
     // Fallback: center of node
     return Pt(visual->getPosition().x + visual->getSize().x / 2,
               visual->getPosition().y + visual->getSize().y / 2);
+}
+
+/// Resolve both endpoints of a wire to world positions.
+/// Returns nullopt if either endpoint node is missing or not in the given group.
+inline std::optional<std::pair<Pt, Pt>> resolve_wire_endpoints(
+        const Wire& wire, const Blueprint& bp,
+        const std::string& group_id, VisualNodeCache& cache) {
+    const Node* sn = bp.find_node(wire.start.node_id.c_str());
+    const Node* en = bp.find_node(wire.end.node_id.c_str());
+    if (!sn || !en) return std::nullopt;
+    if (sn->group_id != group_id || en->group_id != group_id) return std::nullopt;
+    Pt start_pos = get_port_position(*sn, wire.start.port_name.c_str(),
+                                     bp.wires, wire.id.c_str(), cache);
+    Pt end_pos   = get_port_position(*en, wire.end.port_name.c_str(),
+                                     bp.wires, wire.id.c_str(), cache);
+    return std::pair{start_pos, end_pos};
 }
 
 // Расстояние между точками

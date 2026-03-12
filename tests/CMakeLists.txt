@@ -101,8 +101,6 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -188,8 +186,6 @@ add_executable(editor_render_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -241,8 +237,6 @@ add_executable(editor_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -343,8 +337,6 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -395,8 +387,6 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -811,8 +801,6 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -882,8 +870,6 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -937,8 +923,6 @@ add_executable(visual_port_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -996,8 +980,6 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1050,8 +1032,6 @@ add_executable(refactoring_regression_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1106,8 +1086,6 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1162,8 +1140,6 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1221,8 +1197,6 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1296,8 +1270,6 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1433,8 +1405,6 @@ add_executable(node_color_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1482,8 +1452,6 @@ add_executable(node_autosize_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1525,8 +1493,6 @@ add_executable(layout_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1732,8 +1698,6 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
@@ -1821,8 +1785,6 @@ add_executable(wire_module_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp

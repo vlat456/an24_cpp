@@ -36,6 +36,7 @@ private:
     SDL_Window* window_ = nullptr;
     SDL_GLContext gl_context_ = nullptr;
     bool running_ = false;
+    bool shutdown_done_ = false;
     
     // Business logic
     ::WindowSystem ws_;

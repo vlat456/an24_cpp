@@ -23,7 +23,7 @@ public:
     static constexpr float HANDLE_SIZE = 12.0f;
 
 private:
-    mutable bool state_;
-    mutable bool tripped_;
+    bool state_;
+    bool tripped_;
     static constexpr float ROUNDING = 2.0f;
 };

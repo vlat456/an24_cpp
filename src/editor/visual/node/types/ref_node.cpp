@@ -35,6 +35,8 @@ void RefVisualNode::recalculatePorts() {
 
 void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
                            bool is_selected) const {
+    if (ports_.empty()) return;
+
     auto bounds = node_frame::world_to_screen(position_, size_, vp, canvas_min);
     Pt screen_center = bounds.center();
     float rounding = editor_constants::NODE_ROUNDING * vp.zoom;

@@ -94,14 +94,9 @@ HitResult hit_test(const Blueprint& bp, VisualNodeCache& cache, Pt world_pos,
         for (size_t wire_idx : candidates) {
             if (wire_idx >= bp.wires.size()) continue;
             const auto& w = bp.wires[wire_idx];
-            const Node* sn = bp.find_node(w.start.node_id.c_str());
-            const Node* en = bp.find_node(w.end.node_id.c_str());
-            if (!sn || !en || sn->group_id != group_id || en->group_id != group_id) continue;
-
-            Pt start_pos = editor_math::get_port_position(
-                *sn, w.start.port_name.c_str(), bp.wires, w.id.c_str(), cache);
-            Pt end_pos = editor_math::get_port_position(
-                *en, w.end.port_name.c_str(), bp.wires, w.id.c_str(), cache);
+            auto endpoints = editor_math::resolve_wire_endpoints(w, bp, group_id, cache);
+            if (!endpoints) continue;
+            auto [start_pos, end_pos] = *endpoints;
 
             Pt prev = start_pos;
             bool hit_found = false;

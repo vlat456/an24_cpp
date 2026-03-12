@@ -1,21 +1,23 @@
-# Visual Layer DRY & SOLID Refactoring - COMPLETED
+# Visual Layer DRY & SOLID Refactoring
 
 ## Summary
 
-**Phases 5.1-5.4 completed** with all 1453 tests passing.
+**Phases 5.1-7.2 completed** with all 1462 tests passing. **Refactoring complete.**
 
 ### Metrics
-- **Files modified:** 22
-- **Lines removed:** 121 lines of duplicated code
-- **New files:** 4 (`renderer/node_frame.h/.cpp`, `renderer/port_layout_builder.h/.cpp`)
-- **Tests:** 1453/1453 passing
-- **dynamic_cast eliminated:** 6 instances → 1 (in updateNodeContent)
+- **Files modified:** 26
+- **Lines removed:** ~250 lines of duplicated code
+- **New files:** 6 (`renderer/node_frame.h/.cpp`, `renderer/port_layout_builder.h/.cpp`, `input/key_handler.h`, `containers/linear_layout.h`)
+- **Files deleted:** 2 (`containers/row.cpp`, `containers/column.cpp`)
+- **Tests:** 1462/1462 passing
+- **dynamic_cast eliminated:** 6 instances → 0
+- **Mirror duplications eliminated:** Row/Column unified into single `LinearLayout<Axis>`
 
 ### Line Count Changes
 
 | File | Before | After | Change |
 |------|--------|-------|--------|
-| `node/node.cpp` | 392 → 379 → 299 | 286 | -106 |
+| `node/node.cpp` | 392 → 379 → 299 → 286 | 276 | -116 |
 | `node/types/bus_node.cpp` | 174 | 165 | -9 |
 | `node/types/ref_node.cpp` | 60 | 54 | -6 |
 | `node/widget/widget_base.h` | 34 | 37 | +3 |
@@ -30,8 +32,15 @@
 | `renderer/node_frame.cpp` | - | 48 | NEW |
 | `renderer/port_layout_builder.h` | - | 37 | NEW |
 | `renderer/port_layout_builder.cpp` | - | 101 | NEW |
+| `input/key_handler.h` | - | 39 | NEW |
+| `canvas_renderer.cpp` | 163 → 143 | 132 | -31 |
+| `containers/linear_layout.h` | - | 106 | NEW |
+| `containers/row.h` | 20 | 7 | -13 (alias) |
+| `containers/column.h` | 20 | 7 | -13 (alias) |
+| `containers/row.cpp` | 56 | DELETED | -56 |
+| `containers/column.cpp` | 56 | DELETED | -56 |
 
-**Total: 121 lines of duplicated code eliminated.**
+**Total: ~250 lines of duplicated code eliminated.**
 
 ---
 
@@ -113,57 +122,124 @@ Refactored `VisualNode::updateNodeContent()`:
 - Replaced type-specific branches with polymorphic dispatch
 - `node.cpp` reduced from 299 → 286 lines
 
-**Before (26 lines with 5 dynamic_casts):**
+### Phase 5.5: Key Handler ✅
+
+Created `input/key_handler.h` (header-only, 39 lines) with table-driven key mapping:
+
 ```cpp
-void VisualNode::updateNodeContent(const NodeContent& content) {
-    node_content_ = content;
-    if (node_content_.type == NodeContentType::Gauge) {
-        for (size_t i = 0; i < layout_.childCount(); i++) {
-            if (auto* vw = dynamic_cast<VoltmeterWidget*>(layout_.child(i))) {
-                vw->setValue(node_content_.value);
-                break;
-            }
-        }
-    }
-    if (node_content_.type == NodeContentType::Switch) {
-        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
-            if (auto* sw = dynamic_cast<SwitchWidget*>(c->child())) {
-                sw->setState(node_content_.state);
-                sw->setTripped(node_content_.tripped);
-            }
-        }
-    }
-    // ... more dynamic_cast chains
+namespace key_handler {
+    struct KeyMapping { ImGuiKey imgui_key; Key app_key; bool needs_write; };
+    
+    inline constexpr KeyMapping EDITOR_KEYS[] = { ... };
+    
+    template <typename Callback>
+    void process_keys(bool want_capture, bool read_only, Callback&& cb);
 }
 ```
 
-**After (13 lines with 1 dynamic_cast):**
+Refactored `canvas_renderer.cpp`:
+- Replaced 6 repetitive `if (ImGui::IsKeyPressed(...))` blocks with single `process_keys` call
+- `canvas_renderer.cpp` reduced from 163 → 143 lines (-20 lines)
+
+---
+
+### Phase 6.1: Bug Regression Suite ✅
+
+Added 9 new targeted regression tests in `test_refactoring_regression.cpp`:
+- `VoltmeterWidget` division-by-zero (degenerate ranges)
+- `RefVisualNode` null-dereference protection for empty port vectors
+- `SpatialGrid` invalidation after `moveNode`
+- `VisualNode` creation order/address stability in `addNode`
+- `Container` layout clamping for negative dimensions
+
+### Phase 6.2: Elimination of `dynamic_cast` in `node.cpp` ✅
+
+- Introduced `inner_content_widget_` and `center_column_` member pointers in `VisualNode`
+- Replaced the `dynamic_cast<Container*>` chains in `updateNodeContent()` and `getContentBounds()` with direct pointer access
+- Removed the `dynamic_cast<Row*>` in the constructor by storing the pointer during the layout build phase
+- **Result: 0 `dynamic_cast` remaining in `node.cpp`**
+
+### Phase 6.3: DRY Port Building ✅
+
+- Unified input/output port resolution loops in `node.cpp` into a single `add_ports` lambda
+- Reduced code duplication by ~15 lines
+- `node.cpp` reduced from 286 → 276 lines
+
+### Phase 6.4: Unify Row/Column via LinearLayout ✅
+
+Created `containers/linear_layout.h` - a template class parameterized on `Axis`:
+
 ```cpp
-void VisualNode::updateNodeContent(const NodeContent& content) {
-    node_content_ = content;
-    if (node_content_.type == NodeContentType::Gauge) {
-        for (size_t i = 0; i < layout_.childCount(); i++) {
-            layout_.child(i)->updateFromContent(node_content_);
-        }
-    } else if (content_widget_) {
-        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
-            if (c->child()) {
-                c->child()->updateFromContent(node_content_);
-            }
-        }
-    }
-}
+enum class Axis { Horizontal, Vertical };
+
+template <Axis axis>
+class LinearLayout : public Widget {
+    // All layout logic written once, axis resolved at compile time via if constexpr
+    static float main(Pt p);   // x for Horizontal, y for Vertical
+    static float cross(Pt p);  // y for Horizontal, x for Vertical
+    // ...
+};
+```
+
+Redefined `Row` and `Column` as thin type aliases:
+```cpp
+using Row = LinearLayout<Axis::Horizontal>;    // row.h
+using Column = LinearLayout<Axis::Vertical>;   // column.h
+```
+
+- **Deleted** `row.cpp` (56 lines) and `column.cpp` (56 lines) - mirror duplicates eliminated
+- Zero runtime overhead (compile-time axis dispatch)
+- All 1462 existing tests pass unchanged (backward-compatible aliases)
+
+### Phase 6.5: DRY ImGuiDrawList Adapter ✅
+
+Extracted `make_dl()` helper in `canvas_renderer.cpp` to replace 5 instances of:
+```cpp
+ImGuiDrawList dl;
+dl.dl = draw_list;
+```
+With:
+```cpp
+auto dl = make_dl(draw_list);
 ```
 
 ---
 
-## Remaining Items (Deferred)
+### Phase 7.0: Shutdown Crash Fix ✅
 
-### Phase 5.5: Key Handler (Low Priority)
+**Bug**: `EditorApp::shutdown()` was called twice — once explicitly at the end of `run()` and again from the destructor `~EditorApp()`. The second call tried to shut down ImGui backends that were already destroyed, triggering `SIGABRT` (`bd != nullptr && "No renderer backend to shutdown, or already shutdown?"`).
 
-Extract repetitive key handling from `canvas_renderer.cpp`:
-- 6 nearly identical `if (ImGui::IsKeyPressed(...))` blocks
-- Would reduce `canvas_renderer.cpp` from 163 → ~130 lines
+**Fix** (`editor_app.h` + `editor_app.cpp`):
+- Added `shutdown_done_` boolean guard to make `shutdown()` idempotent
+- Added `ImGui::GetCurrentContext()` null check to protect against partial initialization paths
+- Added null checks for `gl_context_` and `window_` before SDL teardown
+
+### Phase 7.1: Wire Endpoint Resolution DRY ✅
+
+**Problem**: The pattern "look up both endpoint nodes, null-check, group_id filter, call `get_port_position` for each end" was duplicated in 4 separate files:
+- `renderer/wire/polyline_builder.cpp`
+- `spatial/grid.h`
+- `hittest/nodes.cpp`
+- `renderer/tooltip_detector.cpp`
+
+**Fix**: Added `editor_math::resolve_wire_endpoints()` to `trigonometry.h`:
+```cpp
+inline std::optional<std::pair<Pt, Pt>> resolve_wire_endpoints(
+    const Wire& wire, const Blueprint& bp,
+    const std::string& group_id, VisualNodeCache& cache);
+```
+
+Refactored all 4 call sites to use the new function, eliminating ~30 lines of boilerplate. Also removed the hand-rolled `node_map` from `polyline_builder.cpp` (now uses `bp.find_node()` via the utility).
+
+### Phase 7.2: Input Dispatch DRY ✅
+
+**Problem**: `canvas_renderer.cpp::handleInput()` repeated the 2-line pattern 7 times:
+```cpp
+auto action = doc.applyInputResult(win.input.<method>(...), win.group_id);
+ws.handleInputAction(action, doc);
+```
+
+**Fix**: Extracted a local `dispatch` lambda that captures `doc`, `win.group_id`, and `ws`, reducing each call site to a single line. `canvas_renderer.cpp` reduced from 141 → 132 lines.
 
 ---
 
@@ -171,5 +247,24 @@ Extract repetitive key handling from `canvas_renderer.cpp`:
 
 ```bash
 cmake --build build -j$(sysctl -n hw.ncpu)
-ctest  # 1453/1453 tests pass
+ctest  # 1462/1462 tests pass
 ```
+
+## Remaining Opportunities (Reviewed)
+
+All three candidates were reviewed and determined to be adequate as-is:
+
+- **WireManager consolidation**: Already DRY via `scene_.portPosition()` → `editor_math::get_port_position()`. Adding singular `resolve_wire_endpoint` would duplicate without benefit.
+- **Node type factory**: For 4 node types, registry pattern is overkill. Current if-chain is readable and compact.
+- **File size audit**: Files at 150-170 lines (`scene.cpp`, `wire_manager.cpp`, `bus_node.cpp`) contain cohesive core logic. `node.cpp` at 276 lines is acceptable for the central visual node implementation.
+
+---
+
+## Conclusion
+
+The Visual Layer refactoring is complete. Key achievements:
+- **~250 lines of duplicated code eliminated**
+- **6 `dynamic_cast` → 0** via polymorphic dispatch
+- **Row/Column unified** into `LinearLayout<Axis>` template
+- **Wire endpoint resolution** centralized in `editor_math::resolve_wire_endpoints()`
+- **All 1462 tests passing**

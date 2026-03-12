@@ -47,8 +47,8 @@ bool VisualScene::ownsWire(const Wire& w) const {
 
 size_t VisualScene::addNode(Node node) {
     assert(bp_);
-    cache_.getOrCreate(node, bp_->wires);
     size_t idx = bp_->add_node(std::move(node));
+    cache_.getOrCreate(bp_->nodes[idx], bp_->wires);
     invalidateSpatialGrid();
     return idx;
 }
@@ -72,10 +72,10 @@ void VisualScene::removeWire(size_t index) {
     invalidateSpatialGrid();
 }
 
-void VisualScene::removeNodes(const std::vector<size_t>& sorted_desc_indices) {
+void VisualScene::removeNodes(const std::vector<size_t>& indices) {
     std::unordered_set<std::string> deleted_ids;
     std::unordered_set<std::string> deleted_group_ids;
-    for (size_t idx : sorted_desc_indices) {
+    for (size_t idx : indices) {
         if (idx < bp_->nodes.size()) {
             const auto& node = bp_->nodes[idx];
             deleted_ids.insert(node.id);
@@ -155,6 +155,7 @@ void VisualScene::moveNode(size_t index, Pt new_pos) {
     bp_->nodes[index].pos = new_pos;
     auto* vis = cache_.getOrCreate(bp_->nodes[index], bp_->wires);
     if (vis) vis->setPosition(new_pos);
+    invalidateSpatialGrid();
 }
 
 void VisualScene::reset() {

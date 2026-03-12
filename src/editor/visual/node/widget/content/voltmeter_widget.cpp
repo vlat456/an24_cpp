@@ -54,7 +54,8 @@ void VoltmeterWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     }
 
     float clamped_val = std::clamp(value_, min_val_, max_val_);
-    float normalized = (clamped_val - min_val_) / (max_val_ - min_val_);
+    float range = max_val_ - min_val_;
+    float normalized = (range > 1e-6f) ? (clamped_val - min_val_) / range : 0.0f;
     float needle_angle_deg = START_ANGLE + normalized * SWEEP_ANGLE;
 
     Pt needle_tip = angle_to_pt(needle_angle_deg, needle_len);

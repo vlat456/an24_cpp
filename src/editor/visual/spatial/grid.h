@@ -54,16 +54,9 @@ public:
         // Register wires (segments + routing points)
         for (size_t i = 0; i < bp.wires.size(); i++) {
             const Wire& w = bp.wires[i];
-            const Node* sn = bp.find_node(w.start.node_id.c_str());
-            const Node* en = bp.find_node(w.end.node_id.c_str());
-            if (!sn || !en) continue;
-            if (sn->group_id != group_id || en->group_id != group_id) continue;
-
-            // Get resolved endpoints from cache (handles Bus alias ports)
-            Pt start_pos = editor_math::get_port_position(
-                *sn, w.start.port_name.c_str(), bp.wires, w.id.c_str(), cache);
-            Pt end_pos = editor_math::get_port_position(
-                *en, w.end.port_name.c_str(), bp.wires, w.id.c_str(), cache);
+            auto endpoints = editor_math::resolve_wire_endpoints(w, bp, group_id, cache);
+            if (!endpoints) continue;
+            auto [start_pos, end_pos] = *endpoints;
 
             // Rasterize all segments (start→rp[0]→rp[1]→...→end)
             Pt prev = start_pos;
