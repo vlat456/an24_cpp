@@ -6,7 +6,8 @@
 #include "visual/spatial_grid.h"
 
 // Forward declaration
-class VisualNodeCache;
+namespace an24 { class VisualNodeCache; }
+using VisualNodeCache = an24::VisualNodeCache;
 
 /// Тип объекта под курсором
 enum class HitType {

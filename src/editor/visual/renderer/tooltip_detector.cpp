@@ -6,6 +6,8 @@
 #include <cmath>
 #include <cstdio>
 
+using VisualNodeCache = an24::VisualNodeCache;
+
 TooltipInfo TooltipDetector::detect(const Blueprint& bp, const Viewport& vp,
                                     Pt canvas_min, VisualNodeCache& cache,
                                     Pt world_pos,

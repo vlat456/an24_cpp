@@ -3,6 +3,8 @@
 #include "visual/renderer/handle_renderer.h"
 #include "layout_constants.h"
 
+using VisualNodeCache = an24::VisualNodeCache;
+
 void NodeRenderer::renderGroups(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                                 Pt canvas_min, VisualNodeCache& cache,
                                 const std::vector<size_t>* selected_nodes,

@@ -2,7 +2,7 @@
 
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
-#include "visual/node/node.h"
+#include "visual/node/visual_node_cache.h"
 #include "visual/hittest.h"
 #include "visual/renderer/blueprint_renderer.h"
 #include "visual/trigonometry.h"

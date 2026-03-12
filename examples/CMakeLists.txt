@@ -115,6 +115,11 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp

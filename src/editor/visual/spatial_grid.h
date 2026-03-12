@@ -1,7 +1,7 @@
 #pragma once
 #include "data/pt.h"
 #include "data/blueprint.h"
-#include "visual/node/node.h"
+#include "visual/node/visual_node_cache.h"
 #include "layout_constants.h"
 #include "visual/trigonometry.h"
 #include <unordered_map>
@@ -40,7 +40,7 @@ public:
 
     // Build the grid from scratch. Call when blueprint changes structurally
     // (node added/removed, wire added/removed, node moved).
-    void rebuild(const Blueprint& bp, VisualNodeCache& cache,
+    void rebuild(const Blueprint& bp, an24::VisualNodeCache& cache,
                  const std::string& group_id) {
         clear();
 

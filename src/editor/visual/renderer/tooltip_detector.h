@@ -3,7 +3,7 @@
 #include "visual/renderer/draw_list.h"
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
-#include "visual/node/node.h"
+#include "visual/node/visual_node_cache.h"
 #include "visual/spatial_grid.h"
 #include "jit_solver/simulator.h"
 #include <vector>
@@ -14,7 +14,7 @@ class TooltipDetector {
 public:
     /// Detect tooltip at world_pos. Returns active TooltipInfo or inactive default.
     TooltipInfo detect(const Blueprint& bp, const Viewport& vp,
-                       Pt canvas_min, VisualNodeCache& cache,
+                       Pt canvas_min, an24::VisualNodeCache& cache,
                        Pt world_pos,
                        const an24::Simulator<an24::JIT_Solver>& sim,
                        const editor_spatial::SpatialGrid& grid,

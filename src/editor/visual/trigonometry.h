@@ -3,7 +3,7 @@
 #include "data/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
-#include "visual/node/node.h"
+#include "visual/node/visual_node_cache.h"
 #include <cmath>
 #include <algorithm>
 #include <vector>
@@ -13,7 +13,7 @@ namespace editor_math {
 inline Pt get_port_position(const Node& node, const char* port_name,
                             const std::vector<Wire>& wires,
                             const char* wire_id,
-                            VisualNodeCache& cache) {
+                            an24::VisualNodeCache& cache) {
     VisualNode* visual = cache.getOrCreate(node, wires);
     const VisualPort* port = visual->resolveWirePort(port_name, wire_id);
     if (port) return port->worldPosition();

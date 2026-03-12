@@ -1,12 +1,14 @@
 #include "visual/renderer/wire_renderer.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/handle_renderer.h"
-#include "layout_constants.h"
 #include "visual/trigonometry.h"
+#include "layout_constants.h"
 #include "router/crossings.h"
 #include <algorithm>
 #include <cmath>
 #include <unordered_map>
+
+using VisualNodeCache = an24::VisualNodeCache;
 
 void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                           Pt canvas_min, VisualNodeCache& cache,

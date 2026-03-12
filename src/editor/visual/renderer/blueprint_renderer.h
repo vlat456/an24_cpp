@@ -8,7 +8,7 @@
 #include "visual/spatial_grid.h"
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
-#include "visual/node/node.h"
+#include "visual/node/visual_node_cache.h"
 #include "jit_solver/simulator.h"
 #include <optional>
 #include <vector>
@@ -19,7 +19,7 @@ class BlueprintRenderer {
 public:
     /// Render grid + wires + nodes.
     void render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
-                Pt canvas_min, Pt canvas_max, VisualNodeCache& cache,
+                Pt canvas_min, Pt canvas_max, an24::VisualNodeCache& cache,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
                 const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
@@ -28,7 +28,7 @@ public:
 
     /// Detect tooltip at hover position (call after render()).
     TooltipInfo detectTooltip(const Blueprint& bp, const Viewport& vp,
-                              Pt canvas_min, VisualNodeCache& cache,
+                              Pt canvas_min, an24::VisualNodeCache& cache,
                               Pt world_pos,
                               const an24::Simulator<an24::JIT_Solver>& sim,
                               const editor_spatial::SpatialGrid& grid,
