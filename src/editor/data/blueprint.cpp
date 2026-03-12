@@ -261,7 +261,7 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
 // ─── Shared blueprint expansion ───
 
 Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& registry) {
-     Blueprint bp;
+    Blueprint bp;
 
     for (const auto& dev : def.devices) {
         Node node;
@@ -333,31 +333,18 @@ Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& 
 // ════════════════════════════════════════════════════════════════════════════
 
 static std::string port_type_str(PortType t) {
-     switch (t) {
-         case PortType::V: return "V";
-         case PortType::I: return "I";
-         case PortType::Bool: return "Bool";
-         case PortType::RPM: return "RPM";
-         case PortType::Temperature: return "Temperature";
-         case PortType::Pressure: return "Pressure";
-         case PortType::Position: return "Position";
-         case PortType::Any: return "Any";
+    switch (t) {
+        case PortType::V: return "V";
+        case PortType::I: return "I";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Any: return "Any";
     }
     spdlog::error("Unknown PortType enum value: {}", static_cast<int>(t));
     std::abort();
-}
-
-static std::optional<PortType> parse_port_type_str(const std::string& s) {
-    if (s == "V") return PortType::V;
-    if (s == "I") return PortType::I;
-    if (s == "Bool") return PortType::Bool;
-    if (s == "RPM") return PortType::RPM;
-    if (s == "Temperature") return PortType::Temperature;
-    if (s == "Pressure") return PortType::Pressure;
-    if (s == "Position") return PortType::Position;
-    if (s == "Any") return PortType::Any;
-    spdlog::error("Unknown port type string: '{}'", s);
-    return std::nullopt;
 }
 
 static json serialize_ports(const Node& n) {

@@ -184,9 +184,8 @@ target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog
 add_executable(convert_library convert_library.cpp)
 target_include_directories(convert_library PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/v2
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(convert_library PRIVATE json_parser json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(convert_library PRIVATE json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
 

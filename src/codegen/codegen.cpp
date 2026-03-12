@@ -197,8 +197,8 @@ std::string CodeGen::generate_header(
     oss << "#else\n";
     oss << "#define AOT_INLINE inline\n";
     oss << "#define AOT_LIKELY(x) (x)\n";
-     oss << "#define AOT_UNLIKELY(x) (x)\n";
-     oss << "#endif\n\n";
+    oss << "#define AOT_UNLIKELY(x) (x)\n";
+    oss << "#endif\n\n";
 
     // Signal constants
     oss << "// ==============================================================================\n";
@@ -314,9 +314,9 @@ std::string CodeGen::generate_header(
 
     oss << "    uint32_t component_count() const { return " << devices.size() << "; }\n";
 
-     oss << "};\n\n";
+    oss << "};\n\n";
 
-     return oss.str();
+    return oss.str();
 }
 
 std::string CodeGen::generate_source(
@@ -340,9 +340,9 @@ std::string CodeGen::generate_source(
     oss << "#include \"jit_solver/components/all.cpp\"\n";
     oss << "#include <cstring>  // memcpy\n\n";
     // Enable fast-math for generated code only (not spdlog)
-     oss << "#ifdef __GNUC__\n";
-     oss << "#pragma GCC optimize(\"fast-math,unroll-loops\")\n";
-     oss << "#endif\n\n";
+    oss << "#ifdef __GNUC__\n";
+    oss << "#pragma GCC optimize(\"fast-math,unroll-loops\")\n";
+    oss << "#endif\n\n";
 
     // Explicit template instantiations for AotProvider
     // These tell the compiler to generate code for Component<AotProvider<Bindings...>>
@@ -626,9 +626,9 @@ std::string CodeGen::generate_source(
     oss << "        if (AOT_UNLIKELY(delta > tolerance)) return false;\n";
     oss << "    }\n";
     oss << "    return true;\n";
-     oss << "}\n\n";
+    oss << "}\n\n";
 
-     return oss.str();
+    return oss.str();
 }
 
 void CodeGen::write_files(
@@ -737,14 +737,14 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
     oss << "#include <optional>\n";
-     oss << "#include <vector>\n";
-     oss << "#include <variant>\n";
-     oss << "\n";
-     // Include Provider pattern and component definitions
-     // These are relative to port_registry.h location (src/jit_solver/components/)
-     oss << "#include \"provider.h\"\n";
-     oss << "#include \"all.h\"\n";
-     oss << "\n";
+    oss << "#include <vector>\n";
+    oss << "#include <variant>\n";
+    oss << "\n";
+    // Include Provider pattern and component definitions
+    // These are relative to port_registry.h location (src/jit_solver/components/)
+    oss << "#include \"provider.h\"\n";
+    oss << "#include \"all.h\"\n";
+    oss << "\n";
 
     // Generate enum for all port names (for Provider pattern)
     oss << "// Port names enum (for constexpr Provider pattern)\n";
@@ -857,9 +857,9 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "    if constexpr (requires { component.post_step(st, dt); }) {\n";
     oss << "        component.post_step(st, dt);\n";
     oss << "    }\n";
-     oss << "};\n\n";
+    oss << "};\n\n";
 
-     // Write to file
+    // Write to file
     std::ofstream out(output_path);
     if (!out.is_open()) {
         std::cerr << "[codegen] Error: could not write to " << output_path << "\n";
