@@ -11,6 +11,9 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <optional>
+
+struct FlatBlueprint;  // Forward declaration
 
 /// Instance of a sub-blueprint — reference (baked_in=false) or embedded (baked_in=true).
 struct SubBlueprintInstance {
@@ -171,6 +174,22 @@ struct Blueprint {
     /// Auto-layout nodes belonging to a specific group_id.
     /// Assigns positions using a simple topological column layout.
     void auto_layout_group(const std::string& group_id);
+
+    // == Serialization ==
+    
+    /// Serialize to editor JSON format (flat v2 schema)
+    std::string serialize() const;
+    
+    /// Deserialize from editor JSON format
+    static std::optional<Blueprint> deserialize(const std::string& json);
+    
+    /// Serialize to simulator JSON format (rewrites wires, skips Blueprint nodes)
+    std::string to_simulator_json() const;
+    
+    // == Flat conversion (internal) ==
+    
+    FlatBlueprint to_flat() const;
+    static std::optional<Blueprint> from_flat(const FlatBlueprint& flat);
 };
 
 /// Expand a TypeDefinition (blueprint) into a Blueprint with Nodes + Wires.

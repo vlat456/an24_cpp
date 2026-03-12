@@ -2130,7 +2130,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
-  /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
   /Users/vladimir/an24_cpp/src/editor/layout_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
@@ -2138,7 +2137,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Users/vladimir/an24_cpp/src/editor/data/port.h \
   /Users/vladimir/an24_cpp/src/editor/data/pt.h \
   /Users/vladimir/an24_cpp/src/editor/data/wire.h \
-  /Users/vladimir/an24_cpp/src/editor/visual/scene/persist.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/jit_solver/component.h \
@@ -3222,8 +3220,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 /Users/vladimir/an24_cpp/src/jit_solver/systems.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.h:
-
-/Users/vladimir/an24_cpp/src/editor/visual/scene/persist.h:
 
 /Users/vladimir/an24_cpp/src/editor/data/node.h:
 

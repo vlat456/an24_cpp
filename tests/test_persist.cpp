@@ -17,7 +17,7 @@
 
 TEST(PersistTest, ToJson_EmptyBlueprint) {
     Blueprint bp;
-    std::string json = blueprint_to_json(bp);
+    std::string json = bp.to_simulator_json();
     EXPECT_FALSE(json.empty());
     // Unified format: devices (simulator format) + editor section
     EXPECT_NE(json.find("devices"), std::string::npos);
@@ -56,8 +56,8 @@ TEST(PersistTest, ToJson_FromJson_Roundtrip) {
     bp.add_wire(std::move(w));
 
     // Roundtrip: to JSON -> from JSON
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
 
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->nodes.size(), 2);
@@ -85,12 +85,12 @@ TEST(PersistTest, DisplayName_Roundtrip_CustomName) {
     n.output("state");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     // JSON should contain display_name since name != id
     EXPECT_NE(json.find("display_name"), std::string::npos)
         << "Editor JSON must include display_name when name differs from id";
 
-    auto bp2 = blueprint_from_json(json);
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->nodes[0].id, "azs_1");
     EXPECT_EQ(bp2->nodes[0].name, "\xd0\x90\xd0\x97\xd0\xa1 \xd0\x91\xd0\xb0\xd1\x82\xd0\xb0\xd1\x80\xd0\xb5\xd0\xb8")
@@ -109,11 +109,11 @@ TEST(PersistTest, DisplayName_Roundtrip_SameAsId) {
     n.input("v_in");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     EXPECT_EQ(json.find("display_name"), std::string::npos)
         << "display_name should NOT be saved when name == id";
 
-    auto bp2 = blueprint_from_json(json);
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->nodes[0].name, "battery_1")
         << "name should default to id when display_name is absent";
@@ -130,8 +130,8 @@ TEST(PersistTest, DisplayName_WithSpacesAndSpecialChars) {
     n.input("in");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->nodes[0].name, "Main Fuel Pump #3 (backup)")
         << "Display name with spaces and special characters must roundtrip";
@@ -150,8 +150,8 @@ TEST(PersistTest, SizeExplicitlySet_FromJson) {
     n.output("out");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_TRUE(bp2->nodes[0].size_explicitly_set)
         << "Loaded node with explicit size in JSON must have size_explicitly_set=true";
@@ -160,7 +160,7 @@ TEST(PersistTest, SizeExplicitlySet_FromJson) {
 }
 
 TEST(PersistTest, FromJson_Invalid_ReturnsNullopt) {
-    auto bp = blueprint_from_json("invalid json {");
+    auto bp = Blueprint::deserialize("invalid json {");
     EXPECT_FALSE(bp.has_value());
 }
 
@@ -170,8 +170,8 @@ TEST(PersistTest, ToJson_IncludesViewport) {
     bp.zoom = 1.5f;
     bp.grid_step = 24.0f;
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
 
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->pan.x, 50.0f);
@@ -196,7 +196,7 @@ TEST(PersistTest, EditorFormat_WithMetadata) {
         "viewport": {"pan": [100, 200], "zoom": 2.0, "grid": 32}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
 
     // Check nodes
@@ -226,7 +226,7 @@ TEST(PersistTest, FromJson_MissingDevices_ReturnsNullopt) {
     const char* json = R"({
         "connections": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     EXPECT_FALSE(bp.has_value());
 }
 
@@ -246,8 +246,8 @@ TEST(PersistTest, RenderHint_Roundtrip_Bus) {
     n.size_wh(40, 40);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_EQ(bp2->nodes[0].render_hint, "bus")
@@ -266,8 +266,8 @@ TEST(PersistTest, RenderHint_Roundtrip_Ref) {
     n.size_wh(40, 40);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_EQ(bp2->nodes[0].render_hint, "ref")
@@ -286,8 +286,8 @@ TEST(PersistTest, RenderHint_Roundtrip_Default) {
     n.size_wh(120, 80);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_TRUE(bp2->nodes[0].render_hint.empty());
@@ -305,8 +305,8 @@ TEST(PersistTest, Expandable_Roundtrip_False) {
     n.size_wh(120, 80);
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_FALSE(bp2->nodes[0].expandable)
@@ -325,7 +325,7 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
     n.output("v");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_json(bp);
+    std::string json = bp.to_simulator_json();
     // value=0.0 should be set based on type_name="RefNode", not kind
     EXPECT_NE(json.find("\"value\": \"0.0\""), std::string::npos)
         << "RefNode value should be set by classname (type_name), not kind";
@@ -622,8 +622,8 @@ TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
     bp.add_node(std::move(dmr));
 
     // Roundtrip through editor format
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
 
     // Check Bus port is InOut
@@ -715,7 +715,7 @@ TEST(PersistTest, DuplicateNodes_DedupedOnLoad) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_EQ(bp->nodes.size(), 1u);
     EXPECT_EQ(bp->nodes[0].id, "bat1");
@@ -772,7 +772,7 @@ TEST(PersistTest, BlueprintToBlueprintWire_NotDropped) {
     bp.add_wire(std::move(w));
 
     // Convert to simulation JSON
-    std::string sim_json = blueprint_to_json(bp);
+    std::string sim_json = bp.to_simulator_json();
 
     // The rewritten wire should connect battery_bp:vout.ext → lamp_bp:vin.ext
     EXPECT_NE(sim_json.find("battery_bp:vout"), std::string::npos)
@@ -852,7 +852,7 @@ TEST(PersistTest, DedupGuard_DuplicateWiresDroppedOnLoad) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_EQ(bp->wires.size(), 1)
         << "Duplicate wires must be deduped on load (had 4 identical wires)";
@@ -871,7 +871,7 @@ TEST(PersistTest, DedupGuard_DuplicateNodesDroppedOnLoad) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_EQ(bp->nodes.size(), 1)
         << "Single node in v2 object format should load correctly";
@@ -893,7 +893,7 @@ TEST(PersistTest, DedupGuard_DuplicateRoutingPointsDroppedOnLoad) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->wires.size(), 1);
     // v2 loader does not dedup routing points — all 3 are preserved
@@ -916,8 +916,8 @@ TEST(PersistTest, DedupGuard_SaveDedupsWires) {
     bp.add_wire(std::move(w3));
 
     // Save and reload — duplicates must be gone
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_EQ(bp2->wires.size(), 1)
         << "Roundtrip must produce exactly 1 wire (dedup on save + load)";
@@ -1065,7 +1065,7 @@ TEST(BlueprintTest, AddNode_ReturnsExistingIndexOnDuplicate) {
 }
 
 // =============================================================================
-// sim-format blueprint_to_json() dedup tests [e4a1b7]
+// sim-format .to_simulator_json() dedup tests [e4a1b7]
 // =============================================================================
 
 TEST(PersistTest, SimFormat_DedupsConnections) {
@@ -1084,7 +1084,7 @@ TEST(PersistTest, SimFormat_DedupsConnections) {
     bp.wires.push_back(w1); // exact duplicate
     bp.wires.push_back(w1); // triple
 
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto j = nlohmann::json::parse(json_str);
 
     ASSERT_TRUE(j.contains("connections"));
@@ -1101,7 +1101,7 @@ TEST(PersistTest, SimFormat_DedupsNodes) {
     bp.nodes.push_back(std::move(a));
     bp.nodes.push_back(std::move(a2));
 
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto j = nlohmann::json::parse(json_str);
 
     ASSERT_TRUE(j.contains("devices"));
@@ -1110,7 +1110,7 @@ TEST(PersistTest, SimFormat_DedupsNodes) {
 }
 
 // =============================================================================
-// Editor save dedup: blueprint_to_editor_json() preserves first wire's routing
+// Editor save dedup: .serialize() preserves first wire's routing
 // =============================================================================
 
 TEST(PersistTest, EditorSave_PreservesFirstWireRoutingOnDedup) {
@@ -1136,8 +1136,8 @@ TEST(PersistTest, EditorSave_PreservesFirstWireRoutingOnDedup) {
     bp.wires.push_back(std::move(w1));
     bp.wires.push_back(std::move(w2));
 
-    std::string json_str = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json_str);
+    std::string json_str = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->wires.size(), 1);
     EXPECT_EQ(bp2->wires[0].routing_points.size(), 2)
@@ -1163,7 +1163,7 @@ TEST(PersistTest, EditorSave_DedupsSubBlueprints) {
     bp.sub_blueprint_instances.push_back(g1);
     bp.sub_blueprint_instances.push_back(g2);
 
-    std::string json_str = blueprint_to_editor_json(bp);
+    std::string json_str = bp.serialize();
     auto j = nlohmann::json::parse(json_str);
 
     ASSERT_TRUE(j.contains("sub_blueprints"));
@@ -1190,12 +1190,12 @@ TEST(PersistTest, Roundtrip_SaveLoadSave_Stable) {
     bp.add_wire(std::move(w));
 
     // Save → load → save → load
-    std::string json1 = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json1);
+    std::string json1 = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json1);
     ASSERT_TRUE(bp2.has_value());
 
-    std::string json2 = blueprint_to_editor_json(*bp2);
-    auto bp3 = blueprint_from_json(json2);
+    std::string json2 = bp2->serialize();
+    auto bp3 = Blueprint::deserialize(json2);
     ASSERT_TRUE(bp3.has_value());
 
     // After two roundtrips, counts must remain stable
@@ -1225,8 +1225,8 @@ TEST(PersistTest, Roundtrip_DuplicatesDoNotAccumulate) {
 
     // Roundtrip 3 times
     for (int round = 0; round < 3; round++) {
-        std::string json = blueprint_to_editor_json(bp);
-        auto loaded = blueprint_from_json(json);
+        std::string json = bp.serialize();
+        auto loaded = Blueprint::deserialize(json);
         ASSERT_TRUE(loaded.has_value()) << "Roundtrip " << round << " failed to parse";
         bp = std::move(*loaded);
     }
@@ -1404,7 +1404,7 @@ TEST(PersistTest, RenderHint_RefNode) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
     EXPECT_EQ(bp->nodes[0].render_hint, "ref");
@@ -1421,7 +1421,7 @@ TEST(PersistTest, RenderHint_Bus) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
     EXPECT_EQ(bp->nodes[0].render_hint, "bus");
@@ -1438,7 +1438,7 @@ TEST(PersistTest, Expandable_Blueprint) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
     EXPECT_TRUE(bp->nodes[0].expandable);
@@ -1454,8 +1454,8 @@ TEST(PersistTest, RenderHint_Roundtrip_RefNode) {
     gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     EXPECT_EQ(bp2->nodes[0].render_hint, "ref")
@@ -1471,8 +1471,8 @@ TEST(PersistTest, RenderHint_Roundtrip_DefaultIsEmpty) {
     gnd.at(0, 0);
     bp.nodes.push_back(std::move(gnd));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
     // render_hint is enriched from registry on load (backward compat for old saves)
@@ -1493,7 +1493,7 @@ TEST(PersistTest, UnknownPortType_DoesNotCrash) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value()) << "Unknown component type must not crash";
     ASSERT_EQ(bp->nodes.size(), 1);
     // Ports won't be populated since the type isn't in the registry
@@ -1509,7 +1509,7 @@ TEST(PersistTest, MissingPortType_DoesNotCrash) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value()) << "Unknown type must not crash";
     ASSERT_EQ(bp->nodes.size(), 1);
     EXPECT_TRUE(bp->nodes[0].inputs.empty());
@@ -1780,7 +1780,7 @@ TEST(PersistNonBakedIn, Save_SkipsInternalNodes) {
     vout_node.at(450.0f, 200.0f);
     bp.add_node(std::move(vout_node));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("nodes"));
@@ -1854,7 +1854,7 @@ TEST(PersistNonBakedIn, Save_SkipsInternalWires) {
     external_wire.end = WireEnd("lamp_1:vin", "port", PortSide::Input);
     bp.add_wire(std::move(external_wire));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("wires") == false || j["wires"].size() == 0)
@@ -1915,7 +1915,7 @@ TEST(PersistNonBakedIn, Save_BakedInStillSavesInternals) {
     internal_wire.end = WireEnd("lamp_1:lamp", "v_in", PortSide::Input);
     bp.add_wire(std::move(internal_wire));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("nodes"));
@@ -1946,7 +1946,7 @@ TEST(PersistNonBakedIn, Save_PreservesSubBlueprintInstanceMetadata) {
     sbi.internal_routing["vin.port->lamp.v_in"] = routing_pts;
     bp.sub_blueprint_instances.push_back(sbi);
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("sub_blueprints"));
@@ -1983,7 +1983,7 @@ TEST(PersistNonBakedIn, Load_ReExpandsFromRegistry) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
     const auto& bp = *bp_opt;
 
@@ -2020,7 +2020,7 @@ TEST(PersistNonBakedIn, Load_AppliesParamsOverride) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
     const auto& bp = *bp_opt;
 
@@ -2052,7 +2052,7 @@ TEST(PersistNonBakedIn, Load_AppliesLayoutOverride) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
     const auto& bp = *bp_opt;
 
@@ -2081,8 +2081,8 @@ TEST(PersistNonBakedIn, Roundtrip_NonBakedIn) {
     sbi.size = Pt(200.0f, 150.0f);
     bp.sub_blueprint_instances.push_back(sbi);
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2_opt = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2_opt.has_value()) << "Roundtrip: failed to load saved JSON";
     const auto& bp2 = *bp2_opt;
 
@@ -2159,8 +2159,8 @@ TEST(PersistNonBakedIn, Roundtrip_MixedBakedAndNonBaked) {
     vout_baked.at(450.0f, 500.0f);
     bp.add_node(std::move(vout_baked));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2_opt = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2_opt.has_value()) << "Roundtrip: failed to load saved JSON";
     const auto& bp2 = *bp2_opt;
 
@@ -2201,7 +2201,7 @@ TEST(PersistNonBakedIn, BlueprintPath_ContainsCategory) {
     sbi.size = Pt(200.0f, 150.0f);
     bp.sub_blueprint_instances.push_back(sbi);
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("sub_blueprints"));
@@ -2229,7 +2229,7 @@ TEST(SubBlueprintMenu, EditOriginal_ResolvesLibraryPath) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse JSON";
     const auto& bp = *bp_opt;
 
@@ -2294,7 +2294,7 @@ TEST(PersistNonBakedIn, Roundtrip_PreservesInternalNodePositions) {
     bp.sub_blueprint_instances.back().internal_node_ids.push_back("lamp_1:vout");
 
     // Save
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
 
     // Verify overrides were populated in the saved JSON
     auto j = nlohmann::json::parse(json);
@@ -2311,7 +2311,7 @@ TEST(PersistNonBakedIn, Roundtrip_PreservesInternalNodePositions) {
     }
 
     // Load
-    auto bp2_opt = blueprint_from_json(json);
+    auto bp2_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2_opt.has_value()) << "Failed to load saved JSON";
     const auto& bp2 = *bp2_opt;
 
@@ -2352,7 +2352,7 @@ TEST(PersistNonBakedIn, Load_AutoLayoutFallback_WhenNoLayoutOverride) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value());
     const auto& bp = *bp_opt;
 
@@ -2401,7 +2401,7 @@ TEST(PersistRegression, OverrideLayoutKeysUnprefixedInJSON) {
     lamp.at(250.0f, 100.0f);
     bp.add_node(std::move(lamp));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j.contains("sub_blueprints"));
@@ -2425,7 +2425,7 @@ TEST(PersistRegression, ContentKindLowercaseInJSON) {
     vm.node_content.label = "V";
     bp.add_node(std::move(vm));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     auto j = nlohmann::json::parse(json);
 
     ASSERT_TRUE(j["nodes"].contains("vm1"));
@@ -2454,7 +2454,7 @@ TEST(PersistRegression, LayoutOverrideAppliedAfterLoad) {
         "viewport": {"pan": [0, 0], "zoom": 1.0, "grid": 16}
     })";
 
-    auto bp_opt = blueprint_from_json(json);
+    auto bp_opt = Blueprint::deserialize(json);
     ASSERT_TRUE(bp_opt.has_value());
 
     const Node* lamp = bp_opt->find_node("lamp_1:lamp");
@@ -2511,7 +2511,7 @@ TEST(PersistRegression, UnprefixedInternalNodeIdDoesNotCrashOnSave) {
 
     // This must not throw (previously crashed with out_of_range in substr)
     std::string result;
-    EXPECT_NO_THROW(result = blueprint_to_editor_json(bp));
+    EXPECT_NO_THROW(result = bp.serialize());
     EXPECT_FALSE(result.empty());
 
     // Verify the output is valid JSON

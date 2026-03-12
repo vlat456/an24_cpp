@@ -521,8 +521,8 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     bp.add_wire(std::move(w));
 
     // Round-trip: save → load
-    std::string json_str = blueprint_to_editor_json(bp);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = bp.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     // Verify sub_blueprint_instances survived
@@ -592,8 +592,8 @@ TEST(SubBlueprintPersist, RoundTrip_BakedIn_PreservesFlag) {
     sbi.internal_node_ids = {"lamp_1:lamp"};
     bp.sub_blueprint_instances.push_back(sbi);
 
-    std::string json_str = blueprint_to_editor_json(bp);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = bp.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     ASSERT_EQ(loaded->sub_blueprint_instances.size(), 1u);
@@ -649,8 +649,8 @@ TEST(SubBlueprintPersist, MixedMode_ReferencesAndBakedIn) {
     sbi2.internal_node_ids = {"lamp_2:lamp"};
     bp.sub_blueprint_instances.push_back(sbi2);
 
-    std::string json_str = blueprint_to_editor_json(bp);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = bp.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     ASSERT_EQ(loaded->sub_blueprint_instances.size(), 2u);

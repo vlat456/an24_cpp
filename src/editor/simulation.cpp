@@ -1,5 +1,5 @@
 #include "simulation.h"
-#include "visual/scene/persist.h"
+#include "data/blueprint.h"
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 #include <cmath>
@@ -7,7 +7,7 @@
 void SimulationController::build(const Blueprint& bp) {
     // With always-flatten architecture, blueprints are already expanded when added
     // No need to expand here - just convert to JSON and parse
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto ctx = parse_json(json_str);
 
     // Build systems from parsed context

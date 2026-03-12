@@ -60,7 +60,7 @@ TEST(NodeColorPersist, NoColor_NotInJson) {
     n.input("v_in"); n.output("v_out");
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     EXPECT_EQ(json.find("\"color\""), std::string::npos)
         << "Node without custom color should not emit color key";
 }
@@ -74,8 +74,8 @@ TEST(NodeColorPersist, Color_Roundtrip) {
     n.color = NodeColor{0.5f, 0.3f, 0.8f, 1.0f};
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
 
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1u);
@@ -98,7 +98,7 @@ TEST(NodeColorPersist, LoadFromJson_WithColor) {
         }},
         "wires": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_TRUE(bp->nodes[0].color.has_value());
     EXPECT_NEAR(bp->nodes[0].color->r, 0.2f, 0.001f);
@@ -115,7 +115,7 @@ TEST(NodeColorPersist, LoadFromJson_WithoutColor) {
         }},
         "wires": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_FALSE(bp->nodes[0].color.has_value());
 }
@@ -134,8 +134,8 @@ TEST(NodeColorPersist, MultipleNodes_OnlyColoredOneHasColor) {
     bp.add_node(std::move(n1));
     bp.add_node(std::move(n2));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     EXPECT_TRUE(bp2->nodes[0].color.has_value());
     EXPECT_FALSE(bp2->nodes[1].color.has_value());
@@ -263,8 +263,8 @@ TEST(NodeColorPersist, ZeroAlpha_Roundtrip) {
     n.color = NodeColor{1.0f, 0.0f, 0.0f, 0.0f};
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_TRUE(bp2->nodes[0].color.has_value());
     EXPECT_NEAR(bp2->nodes[0].color->a, 0.0f, 0.01f);
@@ -283,7 +283,7 @@ TEST(NodeColorPersist, MalformedColor_String_Ignored) {
         }},
         "wires": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_FALSE(bp->nodes[0].color.has_value());
 }
@@ -300,7 +300,7 @@ TEST(NodeColorPersist, MalformedColor_Null_Ignored) {
         }},
         "wires": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     EXPECT_FALSE(bp->nodes[0].color.has_value());
 }
@@ -317,7 +317,7 @@ TEST(NodeColorPersist, PartialColor_DefaultsApplied) {
         }},
         "wires": []
     })";
-    auto bp = blueprint_from_json(json);
+    auto bp = Blueprint::deserialize(json);
     ASSERT_TRUE(bp.has_value());
     ASSERT_TRUE(bp->nodes[0].color.has_value());
     EXPECT_NEAR(bp->nodes[0].color->r, 0.9f, 0.01f);
@@ -335,7 +335,7 @@ TEST(NodeColorPersist, JsonKeyNames) {
     n.color = NodeColor{0.1f, 0.2f, 0.3f, 0.4f};
     bp.add_node(std::move(n));
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
     EXPECT_NE(json.find("\"color\""), std::string::npos);
     EXPECT_NE(json.find("\"r\""), std::string::npos);
     EXPECT_NE(json.find("\"g\""), std::string::npos);
@@ -352,11 +352,11 @@ TEST(NodeColorPersist, DoubleRoundtrip_Stable) {
     n.color = NodeColor{0.123f, 0.456f, 0.789f, 0.999f};
     bp.add_node(std::move(n));
 
-    std::string json1 = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(json1);
+    std::string json1 = bp.serialize();
+    auto bp2 = Blueprint::deserialize(json1);
     ASSERT_TRUE(bp2.has_value());
-    std::string json2 = blueprint_to_editor_json(*bp2);
-    auto bp3 = blueprint_from_json(json2);
+    std::string json2 = bp2->serialize();
+    auto bp3 = Blueprint::deserialize(json2);
     ASSERT_TRUE(bp3.has_value());
 
     ASSERT_TRUE(bp3->nodes[0].color.has_value());

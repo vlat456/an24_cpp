@@ -79,7 +79,7 @@ TEST(ParamsIntegrity, LoadedBlueprintHasFullParams) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json_str);
+    auto bp = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
 
@@ -113,7 +113,7 @@ TEST(ParamsIntegrity, UserOverridesPreservedOnLoad) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json_str);
+    auto bp = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
 
@@ -152,8 +152,8 @@ TEST(ParamsIntegrity, SavedParamsRoundtrip) {
     bp.add_node(std::move(n));
 
     // Save → Load roundtrip
-    std::string saved_json = blueprint_to_editor_json(bp);
-    auto bp2 = blueprint_from_json(saved_json);
+    std::string saved_json = bp.serialize();
+    auto bp2 = Blueprint::deserialize(saved_json);
     ASSERT_TRUE(bp2.has_value());
     ASSERT_EQ(bp2->nodes.size(), 1);
 
@@ -183,7 +183,7 @@ TEST(ParamsIntegrity, ComponentWithNoDefaultParams_StaysEmpty) {
         "wires": []
     })";
 
-    auto bp = blueprint_from_json(json_str);
+    auto bp = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp.has_value());
     ASSERT_EQ(bp->nodes.size(), 1);
 

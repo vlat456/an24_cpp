@@ -1,6 +1,6 @@
 #include "simulator.h"
 #include "scheduling.h"
-#include "../editor/visual/scene/persist.h"
+#include "../editor/data/blueprint.h"
 #include "../json_parser/json_parser.h"
 #include "components/port_registry.h"
 #include "components/all.h"
@@ -58,7 +58,7 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
 template<typename SolverTag>
 void Simulator<SolverTag>::start(const Blueprint& bp) {
     // Convert blueprint to JSON, then parse as simulator format
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto ctx = parse_json(json_str);
 
     // Build systems from parsed context

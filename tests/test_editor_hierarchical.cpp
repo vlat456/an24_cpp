@@ -507,7 +507,7 @@ TEST(Persistence, CollapsedState_SavesToJson) {
     Blueprint bp;
     add_lamp_pass_through(bp, "lamp1");
 
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     json j = json::parse(json_str);
 
     // Internal devices should be in devices array (not the collapsed node)
@@ -547,8 +547,8 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     original.add_node(std::move(gnd));
 
     // Save and reload
-    std::string json_str = blueprint_to_editor_json(original);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = original.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value()) << "Should parse blueprint successfully";
 
     Blueprint& bp = *loaded;
@@ -597,8 +597,8 @@ TEST(Persistence, RoundTrip_SaveLoad_PreservesCollapsedBlueprint) {
     original.add_wire(wire1);
 
     // Save and reload
-    std::string json_str = blueprint_to_editor_json(original);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = original.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value()) << "Failed to load blueprint from JSON";
 
     // Verify structure preserved
@@ -909,8 +909,8 @@ TEST(Regression, SaveLoad_GroupIdIsPreserved) {
     EXPECT_EQ(bp.find_node("lamp1:vout")->group_id, "lamp1");
 
     // Save and reload
-    std::string json_str = blueprint_to_editor_json(bp);
-    auto loaded = blueprint_from_json(json_str);
+    std::string json_str = bp.serialize();
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     // After load: group_id must be correctly preserved
@@ -924,8 +924,8 @@ TEST(Regression, SaveLoad_GroupIdIsPreserved) {
         << "Internal node must have group_id='lamp1' after load (Bug 1 regression)";
 
     // Save and load again (no drill_stack concept anymore)
-    std::string json2 = blueprint_to_editor_json(*loaded);
-    auto loaded2 = blueprint_from_json(json2);
+    std::string json2 = loaded->serialize();
+    auto loaded2 = Blueprint::deserialize(json2);
     ASSERT_TRUE(loaded2.has_value());
 
     // group_id assignments should still be correct (static, not drill-dependent)
@@ -960,7 +960,7 @@ TEST(Regression, WireRewriting_ExternalWiresToBlueprintNode) {
     bp.add_wire(wire1);
 
     // Serialize and check wire rewriting in JSON
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto j = json::parse(json_str);
 
     bool found_rewritten = false;
@@ -1122,7 +1122,7 @@ TEST(BlueprintSignalFlow, LampPassThrough_VoltageFlows) {
     Wire w4; w4.start = WireEnd("res", "v_out", PortSide::Output); w4.end = WireEnd("gnd", "v", PortSide::Input); bp.add_wire(w4);
 
     // STEP 1: Check blueprint_to_json output
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto j = nlohmann::json::parse(json_str);
 
     // Verify that lpt (Blueprint node) is NOT in devices
@@ -1305,7 +1305,7 @@ TEST(BlueprintSignalFlow, SimpleBattery_VoltageAtRootLevel) {
              w3.end = WireEnd("sbat", "vin", PortSide::Input); bp.add_wire(w3);
 
     // Dump JSON for debugging
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     std::cerr << "\n=== SERIALIZED JSON (simple_battery nested) ===" << std::endl;
     auto j = nlohmann::json::parse(json_str);
     std::cerr << "Devices: ";
@@ -1434,7 +1434,7 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     bp.add_wire(w);
 
     // Save
-    std::string json_str = blueprint_to_editor_json(bp);
+    std::string json_str = bp.serialize();
     auto j = json::parse(json_str);
 
     // Verify the added node has group_id in JSON (v2: nodes is object keyed by id)
@@ -1461,7 +1461,7 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     EXPECT_TRUE(found_wire) << "Wire inside sub-blueprint must be saved";
 
     // Load
-    auto loaded = blueprint_from_json(json_str);
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     // Verify the added node roundtripped
@@ -1559,7 +1559,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     original.grid_step = 16.0f;
 
     // Serialize with editor format
-    std::string json_str = blueprint_to_editor_json(original);
+    std::string json_str = original.serialize();
     auto j = json::parse(json_str);
 
     // Verify structure: v2 uses "nodes" (object), "sub_blueprints" (object), "wires", "viewport"
@@ -1603,7 +1603,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     EXPECT_TRUE(found_wire_to_blueprint) << "Wires must reference Blueprint node directly (no rewriting)";
 
     // Load back
-    auto loaded = blueprint_from_json(json_str);
+    auto loaded = Blueprint::deserialize(json_str);
     ASSERT_TRUE(loaded.has_value());
 
     // All nodes roundtripped
@@ -1803,7 +1803,7 @@ TEST(BlueprintSignalFlow, BlueprintFile_SOR_Stability) {
     ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.blueprint";
 
     // Load as editor format
-    auto bp_opt = blueprint_from_json(json_str);
+    auto bp_opt = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp_opt.has_value()) << "Failed to parse blueprint.blueprint";
     Blueprint& bp = *bp_opt;
 
@@ -1824,7 +1824,7 @@ TEST(BlueprintSignalFlow, BlueprintFile_SOR_Stability) {
               << ", duplicates: " << duplicates << "\n";
 
     // Convert to simulation JSON
-    std::string sim_json = blueprint_to_json(bp);
+    std::string sim_json = bp.to_simulator_json();
     auto j = json::parse(sim_json);
 
     // Check for duplicate device names in simulation format
@@ -1923,7 +1923,7 @@ TEST(BlueprintSignalFlow, BlueprintFile_JIT_Simulator) {
     }
     ASSERT_FALSE(json_str.empty()) << "Could not load blueprint.blueprint";
 
-    auto bp_opt = blueprint_from_json(json_str);
+    auto bp_opt = Blueprint::deserialize(json_str);
     ASSERT_TRUE(bp_opt.has_value());
     Blueprint& bp = *bp_opt;
 
@@ -1951,7 +1951,7 @@ TEST(BlueprintSignalFlow, BlueprintFile_JIT_Simulator) {
     // Dump ALL voltages > 0.1
     std::cerr << "\n=== ALL SIGNIFICANT VOLTAGES ===\n";
     // Access build result via the simulation JSON path
-    std::string sim_json = blueprint_to_json(bp);
+    std::string sim_json = bp.to_simulator_json();
     auto ctx = parse_json(sim_json);
     std::vector<std::pair<std::string, std::string>> connections;
     for (const auto& c : ctx.connections) connections.push_back({c.from, c.to});

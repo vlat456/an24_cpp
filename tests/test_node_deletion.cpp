@@ -225,10 +225,10 @@ TEST(NodeDeletion, Persist_DeletedNodeNotInJson) {
 
     scene.removeNode(1);  // remove "b"
 
-    std::string json = blueprint_to_editor_json(bp);
+    std::string json = bp.serialize();
 
     // Parse and verify
-    auto loaded = blueprint_from_json(json);
+    auto loaded = Blueprint::deserialize(json);
     ASSERT_TRUE(loaded.has_value());
     EXPECT_EQ(loaded->nodes.size(), 2u);
     EXPECT_EQ(loaded->wires.size(), 0u);
@@ -249,8 +249,8 @@ TEST(NodeDeletion, Persist_StaleWiresCleanedOnSave) {
     bp.add_wire(Wire::make("stale", wire_output("ghost", "p"), wire_input("b", "in")));
     ASSERT_EQ(bp.wires.size(), 2u);
 
-    std::string json = blueprint_to_editor_json(bp);
-    auto loaded = blueprint_from_json(json);
+    std::string json = bp.serialize();
+    auto loaded = Blueprint::deserialize(json);
     ASSERT_TRUE(loaded.has_value());
 
     // The stale wire should NOT survive the roundtrip
