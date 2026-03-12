@@ -4,7 +4,6 @@
 #include "visual/node/widget/containers/row.h"
 #include "visual/node/widget/containers/container.h"
 #include "visual/node/widget/primitives/label.h"
-#include "visual/node/widget/primitives/circle.h"
 #include "visual/node/widget/primitives/spacer.h"
 #include "visual/node/widget/content/header_widget.h"
 #include "visual/node/widget/content/type_name_widget.h"
@@ -12,11 +11,12 @@
 #include "visual/node/widget/content/vertical_toggle.h"
 #include "visual/node/widget/content/voltmeter_widget.h"
 #include "visual/renderer/node_frame.h"
+#include "visual/renderer/port_layout_builder.h"
+#include "visual/renderer/render_theme.h"
 #include "data/node.h"
 #include "visual/node/node_utils.h"
-#include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
-#include "layout_constants.h"
+#include "editor/layout_constants.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath>
@@ -110,46 +110,25 @@ void VisualNode::buildLayout(const Node& node) {
 
     port_slots_.clear();
 
+    std::vector<port_layout_builder::PortInfo> inputs, outputs;
+    for (const auto& p : node.inputs) inputs.push_back({p.name, p.type});
+    for (const auto& p : node.outputs) outputs.push_back({p.name, p.type});
+
     if (node_content_.type == NodeContentType::VerticalToggle) {
         auto main_row = std::make_unique<Row>();
 
         auto left_col = std::make_unique<Column>();
-        for (size_t i = 0; i < node.inputs.size(); i++) {
-            const auto& port = node.inputs[i];
-            auto label = std::make_unique<Label>(port.name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR);
-            float inner_h = label->getPreferredSize(nullptr).y;
-            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
-            auto row_container = std::make_unique<Container>(
-                std::move(label),
-                Edges{editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP, pad, 0, pad}
-            );
-            auto* ptr = left_col->addChild(std::move(row_container));
-            port_slots_.push_back({ptr, port.name, true, port.type, 0});
-        }
+        port_layout_builder::build_input_column(*left_col, inputs, port_slots_);
 
         auto center_col = std::make_unique<Column>();
         auto vt = std::make_unique<VerticalToggleWidget>(node_content_.state, node_content_.tripped);
-        auto toggle_container = std::make_unique<Container>(
-            std::move(vt), Edges{0, 5.0f, 0, 5.0f}
-        );
+        auto toggle_container = std::make_unique<Container>(std::move(vt), Edges{0, 5.0f, 0, 5.0f});
         toggle_container->setFlexible(true);
         content_widget_ = center_col->addChild(std::move(toggle_container));
         center_col->setFlexible(true);
 
         auto right_col = std::make_unique<Column>();
-        for (size_t i = 0; i < node.outputs.size(); i++) {
-            const auto& port = node.outputs[i];
-            auto label = std::make_unique<Label>(port.name, editor_constants::PORT_LABEL_FONT_SIZE,
-                                                 editor_constants::PORT_LABEL_COLOR, TextAlign::Right);
-            float inner_h = label->getPreferredSize(nullptr).y;
-            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
-            auto row_container = std::make_unique<Container>(
-                std::move(label),
-                Edges{0, pad, editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP, pad}
-            );
-            auto* ptr = right_col->addChild(std::move(row_container));
-            port_slots_.push_back({ptr, port.name, false, port.type, 0});
-        }
+        port_layout_builder::build_output_column(*right_col, outputs, port_slots_);
 
         main_row->addChild(std::move(left_col));
         main_row->addChild(std::move(center_col));
@@ -162,78 +141,22 @@ void VisualNode::buildLayout(const Node& node) {
         }
         (void)main_row_ptr;
     } else {
-        size_t max_ports = std::max(node.inputs.size(), node.outputs.size());
+        size_t max_ports = std::max(inputs.size(), outputs.size());
         for (size_t i = 0; i < max_ports; i++) {
-            std::string left_name = (i < node.inputs.size()) ? node.inputs[i].name : "";
-            std::string right_name = (i < node.outputs.size()) ? node.outputs[i].name : "";
-            PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : PortType::Any;
-            PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : PortType::Any;
-
-            auto row = std::make_unique<Row>();
-
-            if (!left_name.empty()) {
-                uint32_t left_color = render_theme::get_port_color(left_type);
-                row->addChild(std::make_unique<Container>(
-                    std::make_unique<Circle>(editor_constants::PORT_RADIUS, left_color),
-                    Edges{-editor_constants::PORT_RADIUS, 0, editor_constants::PORT_LABEL_GAP, 0}
-                ));
-                row->addChild(std::make_unique<Label>(left_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
-            }
-
-            if (!left_name.empty() && !right_name.empty()) {
-                float half_gap = editor_constants::PORT_MIN_GAP / 2.0f;
-                auto gap = std::make_unique<Container>(
-                    std::make_unique<Spacer>(),
-                    Edges{half_gap, 0, half_gap, 0}
-                );
-                gap->setFlexible(true);
-                row->addChild(std::move(gap));
-            } else {
-                row->addChild(std::make_unique<Spacer>());
-            }
-
-            if (!right_name.empty()) {
-                row->addChild(std::make_unique<Label>(right_name, editor_constants::PORT_LABEL_FONT_SIZE, editor_constants::PORT_LABEL_COLOR));
-                uint32_t right_color = render_theme::get_port_color(right_type);
-                row->addChild(std::make_unique<Container>(
-                    std::make_unique<Circle>(editor_constants::PORT_RADIUS, right_color),
-                    Edges{editor_constants::PORT_LABEL_GAP, 0, -editor_constants::PORT_RADIUS, 0}
-                ));
-            }
-
-            float inner_h = row->getPreferredSize(nullptr).y;
-            float pad = std::max(0.0f, (editor_constants::PORT_ROW_HEIGHT - inner_h) / 2.0f);
-            auto row_container = std::make_unique<Container>(
-                std::move(row),
-                Edges{0, pad, 0, pad}
-            );
-
-            auto* container_ptr = layout_.addChild(std::move(row_container));
-
-            if (!left_name.empty()) {
-                port_slots_.push_back({container_ptr, left_name, true, left_type, 0});
-            }
-            if (!right_name.empty()) {
-                port_slots_.push_back({container_ptr, right_name, false, right_type, 0});
-            }
+            const port_layout_builder::PortInfo* left = (i < inputs.size()) ? &inputs[i] : nullptr;
+            const port_layout_builder::PortInfo* right = (i < outputs.size()) ? &outputs[i] : nullptr;
+            port_layout_builder::build_port_row(layout_, left, right, port_slots_);
         }
 
         if (node_content_.type != NodeContentType::None) {
             if (node_content_.type == NodeContentType::Gauge) {
                 layout_.addChild(std::make_unique<VoltmeterWidget>(
-                    node_content_.value,
-                    node_content_.min,
-                    node_content_.max,
-                    node_content_.unit
-                ));
+                    node_content_.value, node_content_.min, node_content_.max, node_content_.unit));
             } else if (node_content_.type == NodeContentType::Switch) {
                 float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
                 float v_pad = 2.0f;
                 auto sw = std::make_unique<SwitchWidget>(node_content_.state, node_content_.tripped);
-                auto content_container = std::make_unique<Container>(
-                    std::move(sw),
-                    Edges{margin, v_pad, margin, v_pad}
-                );
+                auto content_container = std::make_unique<Container>(std::move(sw), Edges{margin, v_pad, margin, v_pad});
                 content_container->setFlexible(true);
                 content_widget_ = layout_.addChild(std::move(content_container));
             } else {
@@ -244,10 +167,7 @@ void VisualNode::buildLayout(const Node& node) {
                 } else {
                     content_inner = std::make_unique<Spacer>();
                 }
-                auto content_container = std::make_unique<Container>(
-                    std::move(content_inner),
-                    Edges{margin, 0, margin, 0}
-                );
+                auto content_container = std::make_unique<Container>(std::move(content_inner), Edges{margin, 0, margin, 0});
                 content_container->setFlexible(true);
                 content_widget_ = layout_.addChild(std::move(content_container));
             }

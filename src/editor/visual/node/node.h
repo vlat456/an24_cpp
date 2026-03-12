@@ -9,6 +9,7 @@
 #include "editor/visual/node/widget/widget_base.h"
 #include "editor/visual/node/bounds.h"
 #include "editor/viewport/viewport.h"
+#include "editor/visual/renderer/port_layout_builder.h"
 #include "json_parser/json_parser.h"
 #include <vector>
 #include <string>
@@ -18,14 +19,6 @@
 enum class RenderLayer { Group, Text, Node };
 
 struct IDrawList;
-
-struct PortSlot {
-    Widget* row_container;
-    std::string name;
-    bool is_left;
-    PortType type;
-    float parent_y_offset = 0;
-};
 
 class VisualNode : public IDrawable, public ISelectable,
                    public IDraggable, public IPersistable {
@@ -90,7 +83,7 @@ protected:
     std::optional<NodeColor> custom_color_;
     Widget* content_widget_ = nullptr;
     Pt content_offset_;
-    std::vector<PortSlot> port_slots_;
+    std::vector<port_layout_builder::PortSlot> port_slots_;
 
     void buildLayout(const Node& node);
     void buildPorts(const Node& node);

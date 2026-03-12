@@ -2,25 +2,27 @@
 
 ## Summary
 
-**Phases 5.1-5.2 completed** with all 1453 tests passing.
+**Phases 5.1-5.3 completed** with all 1453 tests passing.
 
 ### Metrics
-- **Files modified:** 15
-- **Lines removed:** 28 lines of duplicated rendering code
-- **New files:** 2 (`renderer/node_frame.h/.cpp`)
+- **Files modified:** 18
+- **Lines removed:** 108 lines of duplicated code
+- **New files:** 4 (`renderer/node_frame.h/.cpp`, `renderer/port_layout_builder.h/.cpp`)
 - **Tests:** 1453/1453 passing
 
 ### Line Count Changes
 
 | File | Before | After | Change |
 |------|--------|-------|--------|
-| `node/node.cpp` | 392 | 379 | -13 |
+| `node/node.cpp` | 392 → 379 | 299 | -93 |
 | `node/types/bus_node.cpp` | 174 | 165 | -9 |
 | `node/types/ref_node.cpp` | 60 | 54 | -6 |
 | `renderer/node_frame.h` | - | 36 | NEW |
 | `renderer/node_frame.cpp` | - | 48 | NEW |
+| `renderer/port_layout_builder.h` | - | 37 | NEW |
+| `renderer/port_layout_builder.cpp` | - | 101 | NEW |
 
-**Total: 28 lines of duplicated rendering code eliminated.**
+**Total: 108 lines of duplicated code eliminated.**
 
 ---
 
@@ -59,15 +61,31 @@ Refactored 3 node types to use the utility:
 - `BusVisualNode::render()`
 - `RefVisualNode::render()`
 
+### Phase 5.3: Port Layout Builder ✅
+
+Created `renderer/port_layout_builder.h/.cpp` to eliminate port label creation boilerplate:
+
+```cpp
+namespace port_layout_builder {
+    struct PortSlot { Widget* row_container; std::string name; bool is_left; PortType type; float parent_y_offset; };
+    struct PortInfo { std::string name; PortType type; };
+
+    Widget* add_input_label_to_column(Column& col, const PortInfo& port, std::vector<PortSlot>& slots);
+    Widget* add_output_label_to_column(Column& col, const PortInfo& port, std::vector<PortSlot>& slots);
+    Widget* build_port_row(Column& target, const PortInfo* left, const PortInfo* right, std::vector<PortSlot>& slots);
+    void build_input_column(Column& col, const std::vector<PortInfo>& inputs, std::vector<PortSlot>& slots);
+    void build_output_column(Column& col, const std::vector<PortInfo>& outputs, std::vector<PortSlot>& slots);
+}
+```
+
+Refactored `VisualNode::buildLayout()`:
+- Extracted ~60 lines of repetitive port label/row creation
+- Moved `PortSlot` struct to `port_layout_builder` namespace
+- `node.cpp` reduced from 379 → 299 lines
+
 ---
 
 ## Remaining Items (Deferred)
-
-### Phase 5.3: Port Label Builder (Medium Priority)
-
-Extract duplicated port label creation from `node.cpp::buildLayout()`:
-- `~60 lines` of identical Container+Label+padding pattern for inputs/outputs
-- Would reduce `node.cpp` from 379 → ~320 lines
 
 ### Phase 5.4: Content Widget Strategy (Medium Priority)
 

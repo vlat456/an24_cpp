@@ -112,6 +112,7 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -167,6 +168,7 @@ add_executable(editor_render_tests
     test_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -219,6 +221,7 @@ add_executable(editor_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -351,6 +354,7 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -402,6 +406,7 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -820,6 +825,7 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -887,6 +893,7 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -918,6 +925,7 @@ add_executable(visual_port_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -968,6 +976,7 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1021,6 +1030,7 @@ add_executable(refactoring_regression_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1076,6 +1086,7 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1131,6 +1142,7 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1189,6 +1201,7 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1263,6 +1276,7 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1430,6 +1444,7 @@ add_executable(node_color_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1478,6 +1493,7 @@ add_executable(node_autosize_tests
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1696,6 +1712,7 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
@@ -1792,6 +1809,7 @@ add_executable(wire_module_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
