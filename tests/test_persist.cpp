@@ -4,12 +4,18 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/node/types/bus_node.h"
+#include "editor/visual/node/visual_node_cache.h"
 #include "editor/visual/scene/scene.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include <set>
 #include <fstream>
 #include <filesystem>
+
+using an24::BusVisualNode;
+using an24::BusOrientation;
+using an24::VisualNodeCache;
 
 /// TDD Step 2: Persist - сначала тесты
 

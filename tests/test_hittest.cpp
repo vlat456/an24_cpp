@@ -5,7 +5,15 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/node/types/bus_node.h"
+#include "editor/visual/node/types/ref_node.h"
+#include "editor/visual/node/visual_node_cache.h"
 #include <cmath>
+
+using an24::BusVisualNode;
+using an24::BusOrientation;
+using an24::RefVisualNode;
+using an24::VisualNodeFactory;
 
 /// TDD Step 6: Hit testing
 

@@ -2,9 +2,17 @@
 #include "editor/data/node.h"
 #include "editor/visual/scene/persist.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/node/types/bus_node.h"
+#include "editor/visual/node/types/ref_node.h"
+#include "editor/visual/node/visual_node_cache.h"
 #include "editor/visual/renderer/render_theme.h"
 #include "editor/viewport/viewport.h"
 #include "editor/visual/renderer/mock_draw_list.h"
+
+using an24::BusVisualNode;
+using an24::BusOrientation;
+using an24::RefVisualNode;
+using an24::VisualNodeFactory;
 
 // =============================================================================
 // Phase 1.1: Data model tests

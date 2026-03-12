@@ -14,6 +14,8 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
+using an24::VisualNodeCache;
+using an24::VisualNodeFactory;
 
 /// TDD Step 5: Rendering
 

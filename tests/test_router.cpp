@@ -8,6 +8,9 @@
 #include "editor/data/blueprint.h"
 #include "editor/visual/trigonometry.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/node/visual_node_cache.h"
+
+using an24::VisualNodeCache;
 
 // ============================================================================
 // Grid conversion tests

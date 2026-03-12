@@ -3,6 +3,9 @@
 #include "editor/visual/scene/scene.h"
 #include "editor/input/canvas_input.h"
 #include "editor/visual/scene/wire_manager.h"
+#include <fstream>
+#include <sstream>
+#include <string>
 
 // =============================================================================
 // Phase 1: Context Menu Tests — TDD
@@ -267,4 +270,162 @@ TEST(SwapWirePortsOnBus, AfterSwap_RoutingPointsPreserved) {
     ASSERT_EQ(bp.wires[1].routing_points.size(), 1u);
     EXPECT_FLOAT_EQ(bp.wires[1].routing_points[0].x, 99);
     EXPECT_FLOAT_EQ(bp.wires[1].routing_points[0].y, 99);
+}
+
+// =============================================================================
+// Regression: Context menu popup lifecycle (ImGui OpenPopup/BeginPopup pattern)
+// =============================================================================
+//
+// Bug: When extracting popup code into ContextMenus class, an early return
+// was introduced that broke ImGui's popup lifecycle:
+//
+//   BROKEN:  if (!ws.contextMenu.show) return;  // kills BeginPopup on frame N+1
+//            ImGui::OpenPopup("AddComponent");
+//            ws.contextMenu.show = false;
+//            if (!ImGui::BeginPopup("AddComponent")) return;
+//
+//   CORRECT: if (ws.contextMenu.show) {
+//                ImGui::OpenPopup("AddComponent");   // one-shot trigger
+//                ws.contextMenu.show = false;
+//            }
+//            if (!ImGui::BeginPopup("AddComponent")) return;  // must run EVERY frame
+//
+// Root cause: ImGui::OpenPopup() fires on frame N, but BeginPopup() must be
+// called on EVERY subsequent frame to keep the popup alive. An early return
+// on !show prevents BeginPopup from running on frames N+1, N+2, etc.
+//
+// These tests read the source file at test time and verify the correct pattern
+// is present, catching future refactors that might reintroduce the bug.
+// =============================================================================
+
+/// Read file contents as a string. Returns empty string on failure.
+static std::string read_file(const std::string& path) {
+    std::ifstream f(path);
+    if (!f.is_open()) return {};
+    std::ostringstream ss;
+    ss << f.rdbuf();
+    return ss.str();
+}
+
+/// Check that no line matches "if (!ws.*.show) return;" which would gate
+/// BeginPopup behind the show flag (the exact bug pattern).
+static bool has_early_return_on_show_flag(const std::string& src) {
+    // Look for the broken pattern: early return when show is false,
+    // placed before BeginPopup. The regex-like check is:
+    //   "if (!ws." ... ".show)" ... "return"  on same logical line
+    std::istringstream stream(src);
+    std::string line;
+    while (std::getline(stream, line)) {
+        // Skip comment lines
+        auto trimmed = line;
+        while (!trimmed.empty() && (trimmed[0] == ' ' || trimmed[0] == '\t'))
+            trimmed.erase(trimmed.begin());
+        if (trimmed.substr(0, 2) == "//") continue;
+
+        // Check for the anti-pattern: "if (!ws.*show) return"
+        if (line.find("!ws.") != std::string::npos &&
+            line.find(".show") != std::string::npos &&
+            line.find("return") != std::string::npos) {
+            return true;  // found the broken pattern
+        }
+    }
+    return false;
+}
+
+/// Verify that OpenPopup is gated by the show flag (inside an if block)
+/// but BeginPopup is NOT inside that same if block.
+static bool has_correct_popup_pattern(const std::string& src,
+                                       const std::string& popup_name) {
+    // The correct pattern has:
+    // 1. "if (ws.*show)" followed by "OpenPopup" (within ~3 lines)
+    // 2. ".show = false" (within the gated block)
+    // 3. "BeginPopup" OUTSIDE the gated block (at lower indentation or after closing brace)
+
+    bool found_gated_open = false;
+    bool found_begin_outside = false;
+
+    std::istringstream stream(src);
+    std::string line;
+    bool inside_show_block = false;
+    int brace_depth = 0;
+
+    while (std::getline(stream, line)) {
+        // Detect entry into the show-gated block
+        if (!inside_show_block &&
+            line.find(".show") != std::string::npos &&
+            line.find("if") != std::string::npos &&
+            line.find("!") == std::string::npos &&   // NOT negated
+            line.find("OpenPopup") == std::string::npos) {
+            // Next few lines should have OpenPopup
+            inside_show_block = true;
+            brace_depth = 0;
+            for (char c : line) {
+                if (c == '{') brace_depth++;
+                if (c == '}') brace_depth--;
+            }
+            continue;
+        }
+
+        if (inside_show_block) {
+            for (char c : line) {
+                if (c == '{') brace_depth++;
+                if (c == '}') brace_depth--;
+            }
+
+            if (line.find("OpenPopup") != std::string::npos &&
+                line.find(popup_name) != std::string::npos) {
+                found_gated_open = true;
+            }
+
+            // BeginPopup should NOT be inside this block
+            if (line.find("BeginPopup") != std::string::npos) {
+                return false;  // BeginPopup is inside the show-gated block = BUG
+            }
+
+            if (brace_depth <= 0) {
+                inside_show_block = false;
+            }
+            continue;
+        }
+
+        // Outside the show block: BeginPopup should appear here
+        if (line.find("BeginPopup") != std::string::npos &&
+            line.find(popup_name) != std::string::npos) {
+            found_begin_outside = true;
+        }
+    }
+
+    return found_gated_open && found_begin_outside;
+}
+
+TEST(ContextMenuRegression, NoEarlyReturnOnShowFlag) {
+    std::string src = read_file(TEST_DATA_DIR "/src/editor/visual/popups/context_menus.cpp");
+    ASSERT_FALSE(src.empty())
+        << "Could not read context_menus.cpp — check TEST_DATA_DIR";
+
+    EXPECT_FALSE(has_early_return_on_show_flag(src))
+        << "REGRESSION: context_menus.cpp contains 'if (!ws.*.show) return;' pattern.\n"
+           "This breaks ImGui popup lifecycle: BeginPopup must be called EVERY frame,\n"
+           "not only when show==true. OpenPopup is a one-shot trigger; BeginPopup keeps\n"
+           "the popup alive on subsequent frames. See commit c42bcb8 for the original bug.";
+}
+
+TEST(ContextMenuRegression, AddComponentPopup_CorrectLifecyclePattern) {
+    std::string src = read_file(TEST_DATA_DIR "/src/editor/visual/popups/context_menus.cpp");
+    ASSERT_FALSE(src.empty());
+
+    EXPECT_TRUE(has_correct_popup_pattern(src, "AddComponent"))
+        << "REGRESSION: AddComponent popup does not follow the correct pattern.\n"
+           "OpenPopup(\"AddComponent\") must be inside 'if (ws.contextMenu.show) { ... }'\n"
+           "but BeginPopup(\"AddComponent\") must be OUTSIDE that block (called every frame).";
+}
+
+TEST(ContextMenuRegression, NodeContextPopup_CorrectLifecyclePattern) {
+    std::string src = read_file(TEST_DATA_DIR "/src/editor/visual/popups/context_menus.cpp");
+    ASSERT_FALSE(src.empty());
+
+    EXPECT_TRUE(has_correct_popup_pattern(src, "NodeContextMenu"))
+        << "REGRESSION: NodeContextMenu popup does not follow the correct pattern.\n"
+           "OpenPopup(\"NodeContextMenu\") must be inside 'if (ws.nodeContextMenu.show) { ... }'\n"
+           "but BeginPopup(\"NodeContextMenu\") must be OUTSIDE that block (called every frame).";
 }

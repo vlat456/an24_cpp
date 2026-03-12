@@ -88,6 +88,11 @@ add_executable(editor_persist_tests
     test_persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -150,6 +155,11 @@ add_executable(editor_render_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -182,6 +192,11 @@ add_executable(editor_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -269,6 +284,11 @@ gtest_discover_tests(json_parser_tests)
 add_executable(editor_router_tests
     test_router.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -301,6 +321,11 @@ add_executable(editor_widget_tests
     test_bus_port_swap.cpp
     test_spatial_grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -696,6 +721,11 @@ add_executable(inspector_tests
     test_inspector.cpp
     ../src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
@@ -745,6 +775,11 @@ gtest_discover_tests(lamp_passthrough_jit_test)
 add_executable(editor_hierarchical_tests
     test_editor_hierarchical.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -785,6 +820,11 @@ add_executable(visual_port_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
@@ -813,6 +853,11 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -847,6 +892,11 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -881,6 +931,11 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -918,6 +973,11 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -971,6 +1031,11 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -978,7 +1043,10 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
-target_compile_definitions(context_menu_tests PRIVATE EDITOR_TESTING)
+target_compile_definitions(context_menu_tests PRIVATE
+    EDITOR_TESTING
+    TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
+)
 target_include_directories(context_menu_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
@@ -1088,6 +1156,11 @@ add_executable(node_color_tests
     test_node_color.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -1117,6 +1190,11 @@ gtest_discover_tests(node_color_tests)
 add_executable(node_autosize_tests
     test_node_autosize.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
@@ -1332,6 +1410,11 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp

@@ -4,11 +4,19 @@
 #include "editor/visual/node/widget.h"
 #include "editor/visual/node/layout.h"
 #include "editor/visual/node/node.h"
+#include "editor/visual/node/types/bus_node.h"
+#include "editor/visual/node/types/ref_node.h"
+#include "editor/visual/node/visual_node_cache.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/data/node.h"
 #include "editor/layout_constants.h"
 #include "editor/visual/renderer/render_theme.h"
+
+using an24::BusVisualNode;
+using an24::BusOrientation;
+using an24::RefVisualNode;
+using an24::VisualNodeFactory;
 
 // ============================================================================
 // Detailed MockDrawList for recording draw calls

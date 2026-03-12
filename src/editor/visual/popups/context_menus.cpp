@@ -5,10 +5,11 @@
 namespace an24 {
 
 void ContextMenus::renderAddComponent(WindowSystem& ws) {
-    if (!ws.contextMenu.show) return;
-    
-    ImGui::OpenPopup("AddComponent");
-    ws.contextMenu.show = false;
+    // OpenPopup is a one-shot trigger; BeginPopup must run every frame
+    if (ws.contextMenu.show) {
+        ImGui::OpenPopup("AddComponent");
+        ws.contextMenu.show = false;
+    }
     
     if (!ImGui::BeginPopup("AddComponent")) return;
     
@@ -39,10 +40,11 @@ void ContextMenus::renderAddComponent(WindowSystem& ws) {
 }
 
 void ContextMenus::renderNodeContext(WindowSystem& ws) {
-    if (!ws.nodeContextMenu.show) return;
-    
-    ImGui::OpenPopup("NodeContextMenu");
-    ws.nodeContextMenu.show = false;
+    // OpenPopup is a one-shot trigger; BeginPopup must run every frame
+    if (ws.nodeContextMenu.show) {
+        ImGui::OpenPopup("NodeContextMenu");
+        ws.nodeContextMenu.show = false;
+    }
     
     if (!ImGui::BeginPopup("NodeContextMenu")) return;
     
