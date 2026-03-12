@@ -19,14 +19,14 @@ public:
         Document* close_requested = nullptr;
     };
     
-    Result render(WindowSystem& ws, float x, float y, float width, float height);
+    Result render(::WindowSystem& ws, float x, float y, float width, float height);
     float tabBarHeight() const { return tabs_.tabBarHeight(); }
 
 private:
     DocumentTabs tabs_;
     CanvasRenderer canvas_renderer_;
     
-    void renderCanvas(WindowSystem& ws, float x, float y, float width, float height);
+    void renderCanvas(::WindowSystem& ws, float x, float y, float width, float height);
 };
 
 } // namespace an24

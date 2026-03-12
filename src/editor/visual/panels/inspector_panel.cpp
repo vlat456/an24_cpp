@@ -8,7 +8,7 @@ InspectorPanel::InspectorPanel()
     : splitter_(std::make_unique<PanelSplitter>(SplitterDirection::Horizontal, width_)) {
 }
 
-InspectorPanel::Result InspectorPanel::render(WindowSystem& ws, float menu_height, 
+InspectorPanel::Result InspectorPanel::render(::WindowSystem& ws, float menu_height, 
                                                float available_height, float available_width) {
     Result result;
     

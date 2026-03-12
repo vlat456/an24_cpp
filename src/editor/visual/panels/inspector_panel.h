@@ -17,7 +17,7 @@ public:
     
     InspectorPanel();
     
-    Result render(WindowSystem& ws, float menu_height, float available_height, float available_width);
+    Result render(::WindowSystem& ws, float menu_height, float available_height, float available_width);
     
     float totalWidth() const { return visible_ ? width_ + splitter_thickness_ : 0.0f; }
     bool visible() const { return visible_; }

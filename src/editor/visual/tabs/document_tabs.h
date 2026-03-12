@@ -1,10 +1,8 @@
 #pragma once
 
 #include "editor/document.h"
-#include "editor/data/pt.h"
+#include "editor/window_system.h"
 #include <functional>
-
-class WindowSystem;
 
 namespace an24 {
 
@@ -15,7 +13,7 @@ public:
         Document* close_requested = nullptr;
     };
 
-    Result render(WindowSystem& ws);
+    Result render(::WindowSystem& ws);
     float tabBarHeight() const { return tab_bar_height_; }
 
 private:

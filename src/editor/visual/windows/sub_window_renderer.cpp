@@ -6,7 +6,7 @@
 
 namespace an24 {
 
-void SubWindowRenderer::renderAll(WindowSystem& ws) {
+void SubWindowRenderer::renderAll(::WindowSystem& ws) {
     for (auto& doc : ws.documents()) {
         doc->windowManager().removeClosedWindows();
         for (auto& win_ptr : doc->windowManager().windows()) {
@@ -17,7 +17,7 @@ void SubWindowRenderer::renderAll(WindowSystem& ws) {
     }
 }
 
-void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, WindowSystem& ws) {
+void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     
     std::string win_title = win.title;
@@ -36,7 +36,7 @@ void SubWindowRenderer::renderWindow(Document& doc, BlueprintWindow& win, Window
     ImGui::End();
 }
 
-void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, WindowSystem& ws) {
+void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     if (ImGui::Button("Fit View")) {
         fitViewToContent(doc, win);
     }
@@ -64,7 +64,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, Windo
     if (win.read_only) ImGui::EndDisabled();
 }
 
-void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, WindowSystem& ws) {
+void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::WindowSystem& ws) {
     ImVec2 content_size = ImGui::GetContentRegionAvail();
     ImGui::InvisibleButton(("##canvas_" + doc.id() + "_" + win.group_id).c_str(), content_size);
     bool hovered = ImGui::IsItemHovered();

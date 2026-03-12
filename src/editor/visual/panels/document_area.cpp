@@ -6,7 +6,7 @@ namespace an24 {
 
 DocumentArea::DocumentArea() = default;
 
-DocumentArea::Result DocumentArea::render(WindowSystem& ws, float x, float y, 
+DocumentArea::Result DocumentArea::render(::WindowSystem& ws, float x, float y, 
                                            float width, float height) {
     Result result;
     
@@ -43,7 +43,7 @@ DocumentArea::Result DocumentArea::render(WindowSystem& ws, float x, float y,
     return result;
 }
 
-void DocumentArea::renderCanvas(WindowSystem& ws, float, float, 
+void DocumentArea::renderCanvas(::WindowSystem& ws, float, float, 
                                  float, float) {
     Document* active_doc = ws.activeDocument();
     if (!active_doc) return;
