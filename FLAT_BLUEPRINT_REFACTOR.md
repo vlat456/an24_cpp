@@ -163,10 +163,23 @@ cd build && ctest --output-on-failure
 ## Execution Order
 
 1. ✅ Create plan (this file)
-2. ⬜ Layer 1: Rename v2/*.h/*.cpp files and types
-3. ⬜ Layer 2: Update all includes and qualified names
-4. ⬜ Layer 3: Move serialization to Blueprint class
-5. ⬜ Layer 4: Update callers
-6. ⬜ Layer 5: Update CMakeLists.txt
+2. ✅ Layer 1: Rename v2/*.h/*.cpp files and types
+3. ✅ Layer 2: Update all includes and qualified names
+4. ✅ Layer 3: Move serialization to Blueprint class
+5. ✅ Layer 4: Update callers
+6. ✅ Layer 5: Update CMakeLists.txt
 7. ⬜ Layer 6: Update documentation
-8. ⬜ Verify: Build + all 1344 tests pass
+8. ✅ Verify: Build + all 1414 tests pass
+
+## Results
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| persist.cpp | 833 lines | 34 lines | **-96%** |
+| v2/ directory | 4 files | deleted | -4 files |
+| Flat types | `v2::BlueprintV2` | `FlatBlueprint` | clearer naming |
+
+**Commits:**
+- `897d100` WIP: Add FlatBlueprint refactoring plan  
+- `c117adc` Refactor: Rename v2::BlueprintV2 to FlatBlueprint
+- `3de201c` Refactor: Move serialization logic to Blueprint class
