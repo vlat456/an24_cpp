@@ -193,109 +193,13 @@ int main(int argc, char** argv) {
             doc->updateNodeContentFromSimulation();
         }
 
-        // Меню
-        if (ImGui::BeginMainMenuBar()) {
-            Document* active_doc = ws.activeDocument();
-
-            // Simulation indicator
-            if (active_doc && active_doc->isSimulationRunning()) {
-                ImGui::SameLine();
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "▶ SIM");
-            }
-
-            if (ImGui::BeginMenu("File")) {
-                if (ImGui::MenuItem("New", "Ctrl+N")) {
-                    ws.createDocument();
-                }
-                if (ImGui::MenuItem("Open...", "Ctrl+O")) {
-                    nfdu8filteritem_t filterItem = {"Blueprint", "blueprint"};
-                    nfdchar_t* outPath = nullptr;
-                    nfdresult_t result = NFD_OpenDialog(&outPath, &filterItem, 1, nullptr);
-                    if (result == NFD_OKAY) {
-                        ws.openDocument(outPath);
-                        NFD_FreePath(outPath);
-                    }
-                }
-                if (ImGui::BeginMenu("Recent Files", !ws.recent_files.empty())) {
-                    for (size_t i = 0; i < ws.recent_files.files().size(); i++) {
-                        const std::string& recent_path = ws.recent_files.files()[i];
-                        std::string name = std::filesystem::path(recent_path).filename().string();
-                        if (ImGui::MenuItem(name.c_str())) {
-                            std::string path_copy = recent_path;  // copy before potential realloc
-                            ws.openDocument(path_copy);
-                        }
-                        if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("%s", recent_path.c_str());
-                        }
-                    }
-                    ImGui::Separator();
-                    if (ImGui::MenuItem("Clear List")) {
-                        ws.recent_files.clear();
-                    }
-                    ImGui::EndMenu();
-                }
-                if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
-                    if (active_doc) {
-                        if (active_doc->filepath().empty()) {
-                            nfdu8filteritem_t filterItem = {"Blueprint", "blueprint"};
-                            nfdchar_t* outPath = nullptr;
-                            nfdresult_t result = NFD_SaveDialog(&outPath, &filterItem, 1, nullptr, "blueprint.blueprint");
-                            if (result == NFD_OKAY) {
-                                active_doc->save(outPath);
-                                ws.recent_files.add(outPath);
-                                NFD_FreePath(outPath);
-                            }
-                        } else {
-                            active_doc->save(active_doc->filepath());
-                        }
-                    }
-                }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Close Tab", nullptr, false, ws.documentCount() > 1)) {
-                    if (active_doc) ws.closeDocument(*active_doc);
-                }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Exit", "Alt+F4")) {
-                    running = false;
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("View")) {
-                if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
-                    ws.showInspector = !ws.showInspector;
-                }
-                ImGui::Separator();
-                if (active_doc) {
-                    if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-                        active_doc->scene().viewport().zoom *= 1.1f;
-                        active_doc->scene().viewport().clamp_zoom();
-                    }
-                    if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-                        active_doc->scene().viewport().zoom /= 1.1f;
-                        active_doc->scene().viewport().clamp_zoom();
-                    }
-                    if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
-                        active_doc->scene().viewport().zoom = 1.0f;
-                    }
-                }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Edit")) {
-                bool has_sel = active_doc && !active_doc->input().selected_nodes().empty();
-                if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
-                    if (active_doc) {
-                        auto action = active_doc->applyInputResult(active_doc->input().on_key(Key::Delete));
-                        ws.handleInputAction(action, *active_doc);
-                    }
-                }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
+        // Main menu
+        auto menu_result = main_menu.render(ws);
+        if (menu_result.exit_requested) {
+            running = false;
         }
 
-        // ================================================================
         // Inspector + Document Area layout
-        // ================================================================
         float menu_height = ImGui::GetFrameHeight();
         float available_h = io.DisplaySize.y - menu_height;
         float available_w = io.DisplaySize.x;
