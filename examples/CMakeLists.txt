@@ -140,6 +140,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp

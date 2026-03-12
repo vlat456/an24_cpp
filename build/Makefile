@@ -848,6 +848,19 @@ visual_scene_tests/fast:
 .PHONY : visual_scene_tests/fast
 
 #=============================================================================
+# Target rules for targets named refactoring_regression_tests
+
+# Build rule for target.
+refactoring_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 refactoring_regression_tests
+.PHONY : refactoring_regression_tests
+
+# fast build rule for target.
+refactoring_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/build
+.PHONY : refactoring_regression_tests/fast
+
+#=============================================================================
 # Target rules for targets named node_deletion_tests
 
 # Build rule for target.
@@ -1266,6 +1279,7 @@ help:
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... recent_files_tests"
+	@echo "... refactoring_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"

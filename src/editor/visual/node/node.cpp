@@ -1,4 +1,5 @@
 #include "visual/node/node.h"
+#include "visual/node/widget.h"
 #include "data/node.h"
 #include "visual/node/node_utils.h"
 #include "visual/renderer/render_theme.h"

@@ -134,6 +134,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_hierarchical_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_port_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_scene_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/refactoring_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_deletion_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/params_integrity_tests.dir

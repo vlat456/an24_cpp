@@ -1349,6 +1349,30 @@ __/src/editor/visual/scene/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/persist.cpp.s
 .PHONY : __/src/editor/visual/scene/persist.cpp.s
 
+__/src/editor/visual/scene/scene.o: __/src/editor/visual/scene/scene.cpp.o
+.PHONY : __/src/editor/visual/scene/scene.o
+
+# target to build an object file
+__/src/editor/visual/scene/scene.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/scene.cpp.o
+.PHONY : __/src/editor/visual/scene/scene.cpp.o
+
+__/src/editor/visual/scene/scene.i: __/src/editor/visual/scene/scene.cpp.i
+.PHONY : __/src/editor/visual/scene/scene.i
+
+# target to preprocess a source file
+__/src/editor/visual/scene/scene.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/scene.cpp.i
+.PHONY : __/src/editor/visual/scene/scene.cpp.i
+
+__/src/editor/visual/scene/scene.s: __/src/editor/visual/scene/scene.cpp.s
+.PHONY : __/src/editor/visual/scene/scene.s
+
+# target to generate assembly for a file
+__/src/editor/visual/scene/scene.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/scene.cpp.s
+.PHONY : __/src/editor/visual/scene/scene.cpp.s
+
 __/src/editor/visual/scene/wire_manager.o: __/src/editor/visual/scene/wire_manager.cpp.o
 .PHONY : __/src/editor/visual/scene/wire_manager.o
 
@@ -1744,6 +1768,9 @@ help:
 	@echo "... __/src/editor/visual/scene/persist.o"
 	@echo "... __/src/editor/visual/scene/persist.i"
 	@echo "... __/src/editor/visual/scene/persist.s"
+	@echo "... __/src/editor/visual/scene/scene.o"
+	@echo "... __/src/editor/visual/scene/scene.i"
+	@echo "... __/src/editor/visual/scene/scene.s"
 	@echo "... __/src/editor/visual/scene/wire_manager.o"
 	@echo "... __/src/editor/visual/scene/wire_manager.i"
 	@echo "... __/src/editor/visual/scene/wire_manager.s"

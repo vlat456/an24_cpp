@@ -2,6 +2,176 @@
   "meta": {
     "name": ""
   },
+  "nodes": {
+    "lamp_pass_through_1": {
+      "blueprint_path": "systems/lamp_pass_through",
+      "expandable": true,
+      "pos": [
+        240.0,
+        80.0
+      ],
+      "size": [
+        160.0,
+        64.0
+      ],
+      "type": "lamp_pass_through"
+    },
+    "lamp_pass_through_1:lamp": {
+      "content": {
+        "kind": "text",
+        "label": "OFF",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "color": "red",
+        "conductance": "1.0",
+        "max_brightness": "100.0"
+      },
+      "pos": [
+        288.0,
+        80.0
+      ],
+      "size": [
+        192.0,
+        96.0
+      ],
+      "type": "IndicatorLight"
+    },
+    "lamp_pass_through_1:vin": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "pos": [
+        80.0,
+        80.0
+      ],
+      "size": [
+        176.0,
+        64.0
+      ],
+      "type": "BlueprintInput"
+    },
+    "lamp_pass_through_1:vout": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "pos": [
+        544.0,
+        160.0
+      ],
+      "size": [
+        192.0,
+        64.0
+      ],
+      "type": "BlueprintOutput"
+    }
+  },
+  "sub_blueprints": {
+    "lamp_pass_through_1": {
+      "collapsed": true,
+      "nodes": {
+        "lamp": {
+          "content": {
+            "kind": "text",
+            "label": "OFF",
+            "max": 1.0,
+            "min": 0.0,
+            "unit": "",
+            "value": 0.0
+          },
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "color": "red",
+            "conductance": "1.0",
+            "max_brightness": "100.0"
+          },
+          "pos": [
+            288.0,
+            80.0
+          ],
+          "size": [
+            192.0,
+            96.0
+          ],
+          "type": "IndicatorLight"
+        },
+        "vin": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "In",
+            "exposed_type": "V"
+          },
+          "pos": [
+            80.0,
+            80.0
+          ],
+          "size": [
+            176.0,
+            64.0
+          ],
+          "type": "BlueprintInput"
+        },
+        "vout": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "Out",
+            "exposed_type": "V"
+          },
+          "pos": [
+            544.0,
+            160.0
+          ],
+          "size": [
+            192.0,
+            64.0
+          ],
+          "type": "BlueprintOutput"
+        }
+      },
+      "pos": [
+        240.0,
+        80.0
+      ],
+      "size": [
+        120.0,
+        96.0
+      ],
+      "template": "systems/lamp_pass_through",
+      "type_name": "lamp_pass_through",
+      "wires": [
+        {
+          "from": [
+            "vin",
+            "port"
+          ],
+          "id": "lamp_pass_through_1:vin.port->lamp.v_in",
+          "to": [
+            "lamp",
+            "v_in"
+          ]
+        },
+        {
+          "from": [
+            "lamp",
+            "v_out"
+          ],
+          "id": "lamp_pass_through_1:lamp.v_out->vout.port",
+          "to": [
+            "vout",
+            "port"
+          ]
+        }
+      ]
+    }
+  },
   "version": 2,
   "viewport": {
     "grid": 16.0,
@@ -10,5 +180,29 @@
       0.0
     ],
     "zoom": 1.0
-  }
+  },
+  "wires": [
+    {
+      "from": [
+        "lamp_pass_through_1:vin",
+        "port"
+      ],
+      "id": "lamp_pass_through_1:vin.port->lamp.v_in",
+      "to": [
+        "lamp_pass_through_1:lamp",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1:lamp",
+        "v_out"
+      ],
+      "id": "lamp_pass_through_1:lamp.v_out->vout.port",
+      "to": [
+        "lamp_pass_through_1:vout",
+        "port"
+      ]
+    }
+  ]
 }

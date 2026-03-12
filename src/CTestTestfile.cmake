@@ -6,4 +6,3 @@
 # testing this directory and lists subdirectories to be tested as well.
 subdirs("jit_solver")
 subdirs("json_parser")
-subdirs("v2")

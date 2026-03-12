@@ -690,6 +690,20 @@ visual_scene_tests/fast:
 .PHONY : visual_scene_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/refactoring_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/refactoring_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/refactoring_regression_tests.dir/rule
+
+# Convenience name for target.
+refactoring_regression_tests: tests/CMakeFiles/refactoring_regression_tests.dir/rule
+.PHONY : refactoring_regression_tests
+
+# fast build rule for target.
+refactoring_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/build
+.PHONY : refactoring_regression_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/node_deletion_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/node_deletion_tests.dir/rule
 .PHONY : tests/CMakeFiles/node_deletion_tests.dir/rule
@@ -1127,6 +1141,7 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.o
@@ -1157,6 +1172,7 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.i
@@ -1187,6 +1203,7 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/data/blueprint.cpp.s
@@ -1295,6 +1312,7 @@ __/src/editor/simulation.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/simulation.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/simulation.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/simulation.cpp.o
@@ -1314,6 +1332,7 @@ __/src/editor/simulation.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/simulation.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/simulation.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/simulation.cpp.i
@@ -1333,6 +1352,7 @@ __/src/editor/simulation.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/simulation.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/simulation.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/simulation.cpp.s
@@ -1356,6 +1376,7 @@ __/src/editor/viewport/viewport.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/viewport/viewport.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.o
@@ -1380,6 +1401,7 @@ __/src/editor/viewport/viewport.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/viewport/viewport.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.i
@@ -1404,6 +1426,7 @@ __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/viewport/viewport.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/viewport/viewport.cpp.s
@@ -1418,8 +1441,11 @@ __/src/editor/visual/hittest.o: __/src/editor/visual/hittest.cpp.o
 
 # target to build an object file
 __/src/editor/visual/hittest.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/hittest.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/hittest.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/hittest.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/hittest.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/hittest.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/hittest.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/hittest.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/hittest.cpp.o
@@ -1432,8 +1458,11 @@ __/src/editor/visual/hittest.i: __/src/editor/visual/hittest.cpp.i
 
 # target to preprocess a source file
 __/src/editor/visual/hittest.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/hittest.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/hittest.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/hittest.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/hittest.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/hittest.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/hittest.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/hittest.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/hittest.cpp.i
@@ -1446,8 +1475,11 @@ __/src/editor/visual/hittest.s: __/src/editor/visual/hittest.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/visual/hittest.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/__/src/editor/visual/hittest.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/hittest.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/hittest.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/hittest.cpp.s
@@ -1499,6 +1531,7 @@ __/src/editor/visual/node/layout.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/layout.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.o
@@ -1523,6 +1556,7 @@ __/src/editor/visual/node/layout.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/layout.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.i
@@ -1547,6 +1581,7 @@ __/src/editor/visual/node/layout.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/layout.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/layout.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/layout.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/layout.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/layout.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/layout.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/layout.cpp.s
@@ -1571,6 +1606,7 @@ __/src/editor/visual/node/node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.o
@@ -1594,6 +1630,7 @@ __/src/editor/visual/node/node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.i
@@ -1617,6 +1654,7 @@ __/src/editor/visual/node/node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/node.cpp.s
@@ -1640,6 +1678,7 @@ __/src/editor/visual/node/types/bus_node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.o
@@ -1663,6 +1702,7 @@ __/src/editor/visual/node/types/bus_node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.i
@@ -1686,6 +1726,7 @@ __/src/editor/visual/node/types/bus_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/bus_node.cpp.s
@@ -1709,6 +1750,7 @@ __/src/editor/visual/node/types/group_node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/group_node.cpp.o
@@ -1732,6 +1774,7 @@ __/src/editor/visual/node/types/group_node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/group_node.cpp.i
@@ -1755,6 +1798,7 @@ __/src/editor/visual/node/types/group_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/group_node.cpp.s
@@ -1778,6 +1822,7 @@ __/src/editor/visual/node/types/ref_node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.o
@@ -1801,6 +1846,7 @@ __/src/editor/visual/node/types/ref_node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.i
@@ -1824,6 +1870,7 @@ __/src/editor/visual/node/types/ref_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/ref_node.cpp.s
@@ -1847,6 +1894,7 @@ __/src/editor/visual/node/types/text_node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/text_node.cpp.o
@@ -1870,6 +1918,7 @@ __/src/editor/visual/node/types/text_node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/text_node.cpp.i
@@ -1893,6 +1942,7 @@ __/src/editor/visual/node/types/text_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/types/text_node.cpp.s
@@ -1916,6 +1966,7 @@ __/src/editor/visual/node/visual_node_cache.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
@@ -1939,6 +1990,7 @@ __/src/editor/visual/node/visual_node_cache.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
@@ -1962,6 +2014,7 @@ __/src/editor/visual/node/visual_node_cache.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
@@ -1985,6 +2038,7 @@ __/src/editor/visual/node/widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.o
@@ -2009,6 +2063,7 @@ __/src/editor/visual/node/widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.i
@@ -2033,6 +2088,7 @@ __/src/editor/visual/node/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/node/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/node/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/node/widget.cpp.s
@@ -2057,6 +2113,7 @@ __/src/editor/visual/port/port.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/port/port.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.o
@@ -2080,6 +2137,7 @@ __/src/editor/visual/port/port.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/port/port.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.i
@@ -2103,6 +2161,7 @@ __/src/editor/visual/port/port.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/port/port.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/port/port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/port/port.cpp.s
@@ -2126,6 +2185,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.o
@@ -2149,6 +2209,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.i
@@ -2172,6 +2233,7 @@ __/src/editor/visual/renderer/blueprint_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/blueprint_renderer.cpp.s
@@ -2195,6 +2257,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.o
@@ -2218,6 +2281,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.i
@@ -2241,6 +2305,7 @@ __/src/editor/visual/renderer/grid_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
@@ -2264,6 +2329,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.o
@@ -2287,6 +2353,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.i
@@ -2310,6 +2377,7 @@ __/src/editor/visual/renderer/node_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/node_renderer.cpp.s
@@ -2333,6 +2401,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.o
@@ -2356,6 +2425,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.i
@@ -2379,6 +2449,7 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
@@ -2402,6 +2473,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.o
@@ -2425,6 +2497,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.i
@@ -2448,6 +2521,7 @@ __/src/editor/visual/renderer/wire_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/renderer/wire_renderer.cpp.s
@@ -2473,6 +2547,7 @@ __/src/editor/visual/scene/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/persist.cpp.o
@@ -2500,6 +2575,7 @@ __/src/editor/visual/scene/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/persist.cpp.i
@@ -2527,6 +2603,7 @@ __/src/editor/visual/scene/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/persist.cpp.s
@@ -2537,6 +2614,54 @@ __/src/editor/visual/scene/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene/persist.cpp.s
 .PHONY : __/src/editor/visual/scene/persist.cpp.s
+
+__/src/editor/visual/scene/scene.o: __/src/editor/visual/scene/scene.cpp.o
+.PHONY : __/src/editor/visual/scene/scene.o
+
+# target to build an object file
+__/src/editor/visual/scene/scene.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene/scene.cpp.o
+.PHONY : __/src/editor/visual/scene/scene.cpp.o
+
+__/src/editor/visual/scene/scene.i: __/src/editor/visual/scene/scene.cpp.i
+.PHONY : __/src/editor/visual/scene/scene.i
+
+# target to preprocess a source file
+__/src/editor/visual/scene/scene.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene/scene.cpp.i
+.PHONY : __/src/editor/visual/scene/scene.cpp.i
+
+__/src/editor/visual/scene/scene.s: __/src/editor/visual/scene/scene.cpp.s
+.PHONY : __/src/editor/visual/scene/scene.s
+
+# target to generate assembly for a file
+__/src/editor/visual/scene/scene.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/scene/scene.cpp.s
+.PHONY : __/src/editor/visual/scene/scene.cpp.s
 
 __/src/editor/visual/scene/wire_manager.o: __/src/editor/visual/scene/wire_manager.cpp.o
 .PHONY : __/src/editor/visual/scene/wire_manager.o
@@ -3858,6 +3983,30 @@ test_recent_files.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.s
 .PHONY : test_recent_files.cpp.s
 
+test_refactoring_regression.o: test_refactoring_regression.cpp.o
+.PHONY : test_refactoring_regression.o
+
+# target to build an object file
+test_refactoring_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/test_refactoring_regression.cpp.o
+.PHONY : test_refactoring_regression.cpp.o
+
+test_refactoring_regression.i: test_refactoring_regression.cpp.i
+.PHONY : test_refactoring_regression.i
+
+# target to preprocess a source file
+test_refactoring_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/test_refactoring_regression.cpp.i
+.PHONY : test_refactoring_regression.cpp.i
+
+test_refactoring_regression.s: test_refactoring_regression.cpp.s
+.PHONY : test_refactoring_regression.s
+
+# target to generate assembly for a file
+test_refactoring_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refactoring_regression_tests.dir/build.make tests/CMakeFiles/refactoring_regression_tests.dir/test_refactoring_regression.cpp.s
+.PHONY : test_refactoring_regression.cpp.s
+
 test_render.o: test_render.cpp.o
 .PHONY : test_render.o
 
@@ -4285,6 +4434,7 @@ help:
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... recent_files_tests"
+	@echo "... refactoring_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... spring_tests"
@@ -4369,6 +4519,9 @@ help:
 	@echo "... __/src/editor/visual/scene/persist.o"
 	@echo "... __/src/editor/visual/scene/persist.i"
 	@echo "... __/src/editor/visual/scene/persist.s"
+	@echo "... __/src/editor/visual/scene/scene.o"
+	@echo "... __/src/editor/visual/scene/scene.i"
+	@echo "... __/src/editor/visual/scene/scene.s"
 	@echo "... __/src/editor/visual/scene/wire_manager.o"
 	@echo "... __/src/editor/visual/scene/wire_manager.i"
 	@echo "... __/src/editor/visual/scene/wire_manager.s"
@@ -4531,6 +4684,9 @@ help:
 	@echo "... test_recent_files.o"
 	@echo "... test_recent_files.i"
 	@echo "... test_recent_files.s"
+	@echo "... test_refactoring_regression.o"
+	@echo "... test_refactoring_regression.i"
+	@echo "... test_refactoring_regression.s"
 	@echo "... test_render.o"
 	@echo "... test_render.i"
 	@echo "... test_render.s"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "visual/node/widget.h"
+#include "visual/node/widget_base.h"
 #include "data/port.h"
 #include "data/pt.h"
 #include <string>

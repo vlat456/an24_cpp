@@ -86,7 +86,9 @@ gtest_discover_tests(editor_data_tests)
 # Editor persist tests (TDD Step 2)
 add_executable(editor_persist_tests
     test_persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
@@ -720,6 +722,7 @@ gtest_discover_tests(pi_p_tests)
 add_executable(inspector_tests
     test_inspector.cpp
     ../src/editor/visual/inspector/inspector_core.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
@@ -729,6 +732,7 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
@@ -863,6 +867,7 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(visual_scene_tests PRIVATE EDITOR_TESTING)
@@ -878,6 +883,44 @@ target_link_libraries(visual_scene_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(visual_scene_tests)
+
+# Refactoring regression tests (audit: extracted types, [[nodiscard]], dependency decoupling)
+add_executable(refactoring_regression_tests
+    test_refactoring_regression.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+)
+target_compile_definitions(refactoring_regression_tests PRIVATE EDITOR_TESTING)
+target_include_directories(refactoring_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(refactoring_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(refactoring_regression_tests)
 
 # Node deletion tests
 add_executable(node_deletion_tests
@@ -902,6 +945,7 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(node_deletion_tests PRIVATE EDITOR_TESTING)
@@ -941,6 +985,7 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(multi_window_tests PRIVATE EDITOR_TESTING)
@@ -983,6 +1028,7 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(params_integrity_tests PRIVATE EDITOR_TESTING)
@@ -1041,6 +1087,7 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(context_menu_tests PRIVATE
@@ -1128,6 +1175,7 @@ target_include_directories(aot_composite_tests PRIVATE
 )
 target_link_libraries(aot_composite_tests PRIVATE
     json_parser
+    jit_solver
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1420,6 +1468,7 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
 )
 target_compile_definitions(document_window_system_tests PRIVATE EDITOR_TESTING)

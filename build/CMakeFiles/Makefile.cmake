@@ -185,6 +185,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/editor_hierarchical_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_port_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/visual_scene_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/refactoring_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/node_deletion_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/multi_window_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/params_integrity_tests.dir/DependInfo.cmake"
