@@ -23,6 +23,7 @@
 #include "editor/visual/canvas_renderer.h"
 #include "editor/visual/panels/inspector_panel.h"
 #include "editor/visual/panels/document_area.h"
+#include "editor/visual/windows/sub_window_renderer.h"
 #include "editor/visual/menu/main_menu.h"
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
@@ -149,7 +150,7 @@ int main(int argc, char** argv) {
     an24::InspectorPanel inspector_panel;
     an24::DocumentArea document_area;
     an24::MainMenu main_menu;
-    an24::CanvasRenderer canvas_renderer;
+    an24::SubWindowRenderer sub_window_renderer;
     
     // Load recent files
     std::string recent_cfg = getConfigPath();
@@ -319,88 +320,8 @@ int main(int argc, char** argv) {
             ws.closeDocument(*doc_result.close_requested);
         }
 
-        // ================================================================
-        // Sub-blueprint windows (one per open collapsed group, per document)
-        // ================================================================
-        for (auto& doc : ws.documents()) {
-            doc->windowManager().removeClosedWindows();
-            for (auto& win_ptr : doc->windowManager().windows()) {
-                auto& win = *win_ptr;
-                if (win.group_id.empty()) continue;
-                if (!win.open) continue;
-
-                ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
-                // Include doc ID in window ID to prevent conflicts between documents
-                std::string win_title = win.title;
-                if (win.read_only) win_title += " [Read Only]";
-                win_title += " [" + doc->displayName() + "]###"
-                                       + doc->id() + ":" + win.group_id;
-                if (!ImGui::Begin(win_title.c_str(), &win.open,
-                        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-                    ImGui::End();
-                    continue;
-                }
-
-                // Toolbar: Fit View (always enabled) + Auto Layout + Delete (disabled for read-only)
-                if (ImGui::Button("Fit View")) {
-                    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-                    for (const auto& node : doc->blueprint().nodes) {
-                        if (node.group_id != win.group_id) continue;
-                        bmin.x = std::min(bmin.x, node.pos.x);
-                        bmin.y = std::min(bmin.y, node.pos.y);
-                        bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
-                        bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
-                    }
-                    if (bmin.x < bmax.x && bmin.y < bmax.y) {
-                        ImVec2 ws = ImGui::GetContentRegionAvail();
-                        win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
-                    }
-                }
-                ImGui::SameLine();
-                if (win.read_only) ImGui::BeginDisabled();
-                if (ImGui::Button("Auto Layout")) {
-                    doc->blueprint().auto_layout_group(win.group_id);
-                    win.scene.clearCache();
-                    Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-                    for (const auto& node : doc->blueprint().nodes) {
-                        if (node.group_id != win.group_id) continue;
-                        bmin.x = std::min(bmin.x, node.pos.x);
-                        bmin.y = std::min(bmin.y, node.pos.y);
-                        bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
-                        bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
-                    }
-                    if (bmin.x < bmax.x && bmin.y < bmax.y) {
-                        ImVec2 ws = ImGui::GetContentRegionAvail();
-                        win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
-                    }
-                }
-                ImGui::SameLine();
-                {
-                    bool has_sel = !win.input.selected_nodes().empty();
-                    if (!has_sel) ImGui::BeginDisabled();
-                    if (ImGui::Button("Delete")) {
-                        auto action = doc->applyInputResult(win.input.on_key(Key::Delete), win.group_id);
-                        ws.handleInputAction(action, *doc);
-                    }
-                    if (!has_sel) ImGui::EndDisabled();
-                }
-                if (win.read_only) ImGui::EndDisabled();
-
-                // InvisibleButton captures mouse input in content area
-                ImVec2 content_size = ImGui::GetContentRegionAvail();
-                ImGui::InvisibleButton(("##canvas_" + doc->id() + "_" + win.group_id).c_str(), content_size);
-                bool sub_hovered = ImGui::IsItemHovered();
-
-                auto sub_cmin = ImGui::GetWindowContentRegionMin();
-                auto sub_cmax = ImGui::GetWindowContentRegionMax();
-                Pt sub_min(sub_cmin.x + ImGui::GetWindowPos().x, sub_cmin.y + ImGui::GetWindowPos().y);
-                Pt sub_max(sub_cmax.x + ImGui::GetWindowPos().x, sub_cmax.y + ImGui::GetWindowPos().y);
-
-                canvas_renderer.render(win, *doc, ws, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
-
-                ImGui::End();
-            }
-        }
+        // Sub-blueprint windows
+        sub_window_renderer.renderAll(ws);
 
         // Context menu for adding components (right-click on empty space)
         if (ws.contextMenu.show) {
