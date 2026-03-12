@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include "editor/visual/node/bounds.h"
 #include "editor/visual/node/edges.h"
-#include "editor/visual/node/widget_base.h"
+#include "editor/visual/node/widget/widget_base.h"
 #include "editor/visual/scene/scene.h"
 
 // ============================================================================

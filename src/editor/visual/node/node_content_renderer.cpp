@@ -1,7 +1,7 @@
 #include "node_content_renderer.h"
 #include "editor/document.h"
 #include "editor/window/blueprint_window.h"
-#include "editor/visual/node/widget.h"
+#include "editor/visual/node/node.h"
 #include <imgui.h>
 
 

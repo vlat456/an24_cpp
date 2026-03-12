@@ -121,8 +121,18 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp

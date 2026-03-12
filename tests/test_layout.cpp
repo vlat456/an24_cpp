@@ -1,6 +1,13 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "editor/visual/node/layout.h"
+#include "editor/visual/node/widget/widget_base.h"
+#include "editor/visual/node/widget/containers/column.h"
+#include "editor/visual/node/widget/containers/row.h"
+#include "editor/visual/node/widget/containers/container.h"
+#include "editor/visual/node/widget/primitives/label.h"
+#include "editor/visual/node/widget/primitives/circle.h"
+#include "editor/visual/node/widget/primitives/spacer.h"
+#include "editor/visual/node/edges.h"
 #include "editor/visual/renderer/mock_draw_list.h"
 
 // ============================================================================

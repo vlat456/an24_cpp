@@ -3,7 +3,6 @@
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
-#include "visual/node/layout.h"
 #include "visual/scene/scene.h"
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>

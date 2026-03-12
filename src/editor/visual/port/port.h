@@ -1,6 +1,7 @@
 #pragma once
 
-#include "visual/node/widget_base.h"
+#include "visual/node/widget/widget_base.h"
+#include "visual/node/bounds.h"
 #include "data/port.h"
 #include "data/pt.h"
 #include <string>

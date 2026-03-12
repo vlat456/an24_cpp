@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bounds.h"
 #include "data/pt.h"
+#include "visual/node/bounds.h"
 
 struct IDrawList;
 

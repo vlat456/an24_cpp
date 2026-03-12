@@ -96,8 +96,18 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -163,8 +173,18 @@ add_executable(editor_render_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -200,8 +220,18 @@ add_executable(editor_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -292,8 +322,18 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -329,8 +369,18 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -729,8 +779,18 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
@@ -785,8 +845,18 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -820,8 +890,18 @@ add_executable(visual_port_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
@@ -863,8 +943,18 @@ add_executable(visual_scene_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -901,8 +991,18 @@ add_executable(refactoring_regression_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -941,8 +1041,18 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -981,8 +1091,18 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -1024,8 +1144,18 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -1083,8 +1213,18 @@ add_executable(context_menu_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
@@ -1210,8 +1350,18 @@ add_executable(node_color_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -1244,8 +1394,18 @@ add_executable(node_autosize_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
@@ -1272,9 +1432,18 @@ gtest_discover_tests(node_autosize_tests)
 # Layout primitives tests (TDD - Column/Row/Container/Label/Circle/Spacer)
 add_executable(layout_tests
     test_layout.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
 )
 target_compile_definitions(layout_tests PRIVATE EDITOR_TESTING)
 target_include_directories(layout_tests PRIVATE
@@ -1464,8 +1633,18 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp

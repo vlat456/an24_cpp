@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include "editor/visual/node/node.h"
 #include "editor/visual/node/visual_node_cache.h"
-#include "editor/visual/node/widget.h"
+#include "editor/visual/node/widget/widget_base.h"
+#include "editor/visual/node/widget/content/header_widget.h"
+#include "editor/visual/node/widget/content/voltmeter_widget.h"
 #include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/data/node.h"
 

@@ -5,7 +5,9 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/visual/port/port.h"
-#include "editor/visual/node/layout.h"
+#include "editor/visual/node/widget/containers/column.h"
+#include "editor/visual/node/widget/widget_base.h"
+#include "editor/visual/node/bounds.h"
 #include "editor/viewport/viewport.h"
 #include "json_parser/json_parser.h"
 #include <vector>

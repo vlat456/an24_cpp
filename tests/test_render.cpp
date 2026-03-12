@@ -11,7 +11,8 @@
 #include "editor/data/wire.h"
 #include "editor/viewport/viewport.h"
 #include "editor/visual/node/node.h"
-#include "editor/visual/node/widget.h"
+#include "editor/visual/node/widget/widget_base.h"
+#include "editor/visual/node/widget/content/header_widget.h"
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
