@@ -1,7 +1,7 @@
 #pragma once
 
-#include "visual/node/widget/widget_base.h"
-#include "visual/node/edges.h"
+#include "../widget_base.h"
+#include "../../edges.h"
 #include <memory>
 
 class Container : public Widget {

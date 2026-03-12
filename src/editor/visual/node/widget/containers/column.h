@@ -1,6 +1,6 @@
 #pragma once
 
-#include "visual/node/widget/widget_base.h"
+#include "../widget_base.h"
 #include <vector>
 #include <memory>
 

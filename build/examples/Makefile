@@ -869,30 +869,6 @@ __/src/editor/visual/menu/main_menu.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/menu/main_menu.cpp.s
 .PHONY : __/src/editor/visual/menu/main_menu.cpp.s
 
-__/src/editor/visual/node/layout.o: __/src/editor/visual/node/layout.cpp.o
-.PHONY : __/src/editor/visual/node/layout.o
-
-# target to build an object file
-__/src/editor/visual/node/layout.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.o
-.PHONY : __/src/editor/visual/node/layout.cpp.o
-
-__/src/editor/visual/node/layout.i: __/src/editor/visual/node/layout.cpp.i
-.PHONY : __/src/editor/visual/node/layout.i
-
-# target to preprocess a source file
-__/src/editor/visual/node/layout.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.i
-.PHONY : __/src/editor/visual/node/layout.cpp.i
-
-__/src/editor/visual/node/layout.s: __/src/editor/visual/node/layout.cpp.s
-.PHONY : __/src/editor/visual/node/layout.s
-
-# target to generate assembly for a file
-__/src/editor/visual/node/layout.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/layout.cpp.s
-.PHONY : __/src/editor/visual/node/layout.cpp.s
-
 __/src/editor/visual/node/node.o: __/src/editor/visual/node/node.cpp.o
 .PHONY : __/src/editor/visual/node/node.o
 
@@ -1061,29 +1037,293 @@ __/src/editor/visual/node/visual_node_cache.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node_cache.cpp.s
 
-__/src/editor/visual/node/widget.o: __/src/editor/visual/node/widget.cpp.o
-.PHONY : __/src/editor/visual/node/widget.o
+__/src/editor/visual/node/widget/containers/column.o: __/src/editor/visual/node/widget/containers/column.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/column.o
 
 # target to build an object file
-__/src/editor/visual/node/widget.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget.cpp.o
-.PHONY : __/src/editor/visual/node/widget.cpp.o
+__/src/editor/visual/node/widget/containers/column.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.o
 
-__/src/editor/visual/node/widget.i: __/src/editor/visual/node/widget.cpp.i
-.PHONY : __/src/editor/visual/node/widget.i
+__/src/editor/visual/node/widget/containers/column.i: __/src/editor/visual/node/widget/containers/column.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/column.i
 
 # target to preprocess a source file
-__/src/editor/visual/node/widget.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget.cpp.i
-.PHONY : __/src/editor/visual/node/widget.cpp.i
+__/src/editor/visual/node/widget/containers/column.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.i
 
-__/src/editor/visual/node/widget.s: __/src/editor/visual/node/widget.cpp.s
-.PHONY : __/src/editor/visual/node/widget.s
+__/src/editor/visual/node/widget/containers/column.s: __/src/editor/visual/node/widget/containers/column.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/column.s
 
 # target to generate assembly for a file
-__/src/editor/visual/node/widget.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget.cpp.s
-.PHONY : __/src/editor/visual/node/widget.cpp.s
+__/src/editor/visual/node/widget/containers/column.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/column.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/column.cpp.s
+
+__/src/editor/visual/node/widget/containers/container.o: __/src/editor/visual/node/widget/containers/container.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/container.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/containers/container.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/container.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/container.cpp.o
+
+__/src/editor/visual/node/widget/containers/container.i: __/src/editor/visual/node/widget/containers/container.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/container.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/containers/container.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/container.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/container.cpp.i
+
+__/src/editor/visual/node/widget/containers/container.s: __/src/editor/visual/node/widget/containers/container.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/container.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/containers/container.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/container.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/container.cpp.s
+
+__/src/editor/visual/node/widget/containers/row.o: __/src/editor/visual/node/widget/containers/row.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/row.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/containers/row.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.o
+.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.o
+
+__/src/editor/visual/node/widget/containers/row.i: __/src/editor/visual/node/widget/containers/row.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/row.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/containers/row.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.i
+.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.i
+
+__/src/editor/visual/node/widget/containers/row.s: __/src/editor/visual/node/widget/containers/row.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/row.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/containers/row.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/containers/row.cpp.s
+.PHONY : __/src/editor/visual/node/widget/containers/row.cpp.s
+
+__/src/editor/visual/node/widget/content/header_widget.o: __/src/editor/visual/node/widget/content/header_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/content/header_widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/header_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.cpp.o
+
+__/src/editor/visual/node/widget/content/header_widget.i: __/src/editor/visual/node/widget/content/header_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/content/header_widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/header_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.cpp.i
+
+__/src/editor/visual/node/widget/content/header_widget.s: __/src/editor/visual/node/widget/content/header_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/content/header_widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/header_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/header_widget.cpp.s
+
+__/src/editor/visual/node/widget/content/switch_widget.o: __/src/editor/visual/node/widget/content/switch_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/content/switch_widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/switch_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.cpp.o
+
+__/src/editor/visual/node/widget/content/switch_widget.i: __/src/editor/visual/node/widget/content/switch_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/content/switch_widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/switch_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.cpp.i
+
+__/src/editor/visual/node/widget/content/switch_widget.s: __/src/editor/visual/node/widget/content/switch_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/content/switch_widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/switch_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/switch_widget.cpp.s
+
+__/src/editor/visual/node/widget/content/type_name_widget.o: __/src/editor/visual/node/widget/content/type_name_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/content/type_name_widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/type_name_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.cpp.o
+
+__/src/editor/visual/node/widget/content/type_name_widget.i: __/src/editor/visual/node/widget/content/type_name_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/content/type_name_widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/type_name_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.cpp.i
+
+__/src/editor/visual/node/widget/content/type_name_widget.s: __/src/editor/visual/node/widget/content/type_name_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/content/type_name_widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/type_name_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/type_name_widget.cpp.s
+
+__/src/editor/visual/node/widget/content/vertical_toggle.o: __/src/editor/visual/node/widget/content/vertical_toggle.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/content/vertical_toggle.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/vertical_toggle.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.cpp.o
+
+__/src/editor/visual/node/widget/content/vertical_toggle.i: __/src/editor/visual/node/widget/content/vertical_toggle.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/content/vertical_toggle.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/vertical_toggle.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.cpp.i
+
+__/src/editor/visual/node/widget/content/vertical_toggle.s: __/src/editor/visual/node/widget/content/vertical_toggle.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/content/vertical_toggle.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/vertical_toggle.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/vertical_toggle.cpp.s
+
+__/src/editor/visual/node/widget/content/voltmeter_widget.o: __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.o
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.o
+
+__/src/editor/visual/node/widget/content/voltmeter_widget.i: __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.i
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.i
+
+__/src/editor/visual/node/widget/content/voltmeter_widget.s: __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/content/voltmeter_widget.cpp.s
+.PHONY : __/src/editor/visual/node/widget/content/voltmeter_widget.cpp.s
+
+__/src/editor/visual/node/widget/primitives/circle.o: __/src/editor/visual/node/widget/primitives/circle.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/primitives/circle.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/circle.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.cpp.o
+
+__/src/editor/visual/node/widget/primitives/circle.i: __/src/editor/visual/node/widget/primitives/circle.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/primitives/circle.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/circle.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.cpp.i
+
+__/src/editor/visual/node/widget/primitives/circle.s: __/src/editor/visual/node/widget/primitives/circle.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/primitives/circle.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/circle.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/circle.cpp.s
+
+__/src/editor/visual/node/widget/primitives/label.o: __/src/editor/visual/node/widget/primitives/label.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/label.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/primitives/label.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/label.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/label.cpp.o
+
+__/src/editor/visual/node/widget/primitives/label.i: __/src/editor/visual/node/widget/primitives/label.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/label.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/primitives/label.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/label.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/label.cpp.i
+
+__/src/editor/visual/node/widget/primitives/label.s: __/src/editor/visual/node/widget/primitives/label.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/label.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/primitives/label.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/label.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/label.cpp.s
+
+__/src/editor/visual/node/widget/primitives/spacer.o: __/src/editor/visual/node/widget/primitives/spacer.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/primitives/spacer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/spacer.cpp.o
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.cpp.o
+
+__/src/editor/visual/node/widget/primitives/spacer.i: __/src/editor/visual/node/widget/primitives/spacer.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/primitives/spacer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/spacer.cpp.i
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.cpp.i
+
+__/src/editor/visual/node/widget/primitives/spacer.s: __/src/editor/visual/node/widget/primitives/spacer.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/primitives/spacer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/primitives/spacer.cpp.s
+.PHONY : __/src/editor/visual/node/widget/primitives/spacer.cpp.s
+
+__/src/editor/visual/node/widget/widget_base.o: __/src/editor/visual/node/widget/widget_base.cpp.o
+.PHONY : __/src/editor/visual/node/widget/widget_base.o
+
+# target to build an object file
+__/src/editor/visual/node/widget/widget_base.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/widget_base.cpp.o
+.PHONY : __/src/editor/visual/node/widget/widget_base.cpp.o
+
+__/src/editor/visual/node/widget/widget_base.i: __/src/editor/visual/node/widget/widget_base.cpp.i
+.PHONY : __/src/editor/visual/node/widget/widget_base.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/widget/widget_base.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/widget_base.cpp.i
+.PHONY : __/src/editor/visual/node/widget/widget_base.cpp.i
+
+__/src/editor/visual/node/widget/widget_base.s: __/src/editor/visual/node/widget/widget_base.cpp.s
+.PHONY : __/src/editor/visual/node/widget/widget_base.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/widget/widget_base.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget/widget_base.cpp.s
+.PHONY : __/src/editor/visual/node/widget/widget_base.cpp.s
 
 __/src/editor/visual/panels/document_area.o: __/src/editor/visual/panels/document_area.cpp.o
 .PHONY : __/src/editor/visual/panels/document_area.o
@@ -1708,9 +1948,6 @@ help:
 	@echo "... __/src/editor/visual/menu/main_menu.o"
 	@echo "... __/src/editor/visual/menu/main_menu.i"
 	@echo "... __/src/editor/visual/menu/main_menu.s"
-	@echo "... __/src/editor/visual/node/layout.o"
-	@echo "... __/src/editor/visual/node/layout.i"
-	@echo "... __/src/editor/visual/node/layout.s"
 	@echo "... __/src/editor/visual/node/node.o"
 	@echo "... __/src/editor/visual/node/node.i"
 	@echo "... __/src/editor/visual/node/node.s"
@@ -1732,9 +1969,42 @@ help:
 	@echo "... __/src/editor/visual/node/visual_node_cache.o"
 	@echo "... __/src/editor/visual/node/visual_node_cache.i"
 	@echo "... __/src/editor/visual/node/visual_node_cache.s"
-	@echo "... __/src/editor/visual/node/widget.o"
-	@echo "... __/src/editor/visual/node/widget.i"
-	@echo "... __/src/editor/visual/node/widget.s"
+	@echo "... __/src/editor/visual/node/widget/containers/column.o"
+	@echo "... __/src/editor/visual/node/widget/containers/column.i"
+	@echo "... __/src/editor/visual/node/widget/containers/column.s"
+	@echo "... __/src/editor/visual/node/widget/containers/container.o"
+	@echo "... __/src/editor/visual/node/widget/containers/container.i"
+	@echo "... __/src/editor/visual/node/widget/containers/container.s"
+	@echo "... __/src/editor/visual/node/widget/containers/row.o"
+	@echo "... __/src/editor/visual/node/widget/containers/row.i"
+	@echo "... __/src/editor/visual/node/widget/containers/row.s"
+	@echo "... __/src/editor/visual/node/widget/content/header_widget.o"
+	@echo "... __/src/editor/visual/node/widget/content/header_widget.i"
+	@echo "... __/src/editor/visual/node/widget/content/header_widget.s"
+	@echo "... __/src/editor/visual/node/widget/content/switch_widget.o"
+	@echo "... __/src/editor/visual/node/widget/content/switch_widget.i"
+	@echo "... __/src/editor/visual/node/widget/content/switch_widget.s"
+	@echo "... __/src/editor/visual/node/widget/content/type_name_widget.o"
+	@echo "... __/src/editor/visual/node/widget/content/type_name_widget.i"
+	@echo "... __/src/editor/visual/node/widget/content/type_name_widget.s"
+	@echo "... __/src/editor/visual/node/widget/content/vertical_toggle.o"
+	@echo "... __/src/editor/visual/node/widget/content/vertical_toggle.i"
+	@echo "... __/src/editor/visual/node/widget/content/vertical_toggle.s"
+	@echo "... __/src/editor/visual/node/widget/content/voltmeter_widget.o"
+	@echo "... __/src/editor/visual/node/widget/content/voltmeter_widget.i"
+	@echo "... __/src/editor/visual/node/widget/content/voltmeter_widget.s"
+	@echo "... __/src/editor/visual/node/widget/primitives/circle.o"
+	@echo "... __/src/editor/visual/node/widget/primitives/circle.i"
+	@echo "... __/src/editor/visual/node/widget/primitives/circle.s"
+	@echo "... __/src/editor/visual/node/widget/primitives/label.o"
+	@echo "... __/src/editor/visual/node/widget/primitives/label.i"
+	@echo "... __/src/editor/visual/node/widget/primitives/label.s"
+	@echo "... __/src/editor/visual/node/widget/primitives/spacer.o"
+	@echo "... __/src/editor/visual/node/widget/primitives/spacer.i"
+	@echo "... __/src/editor/visual/node/widget/primitives/spacer.s"
+	@echo "... __/src/editor/visual/node/widget/widget_base.o"
+	@echo "... __/src/editor/visual/node/widget/widget_base.i"
+	@echo "... __/src/editor/visual/node/widget/widget_base.s"
 	@echo "... __/src/editor/visual/panels/document_area.o"
 	@echo "... __/src/editor/visual/panels/document_area.i"
 	@echo "... __/src/editor/visual/panels/document_area.s"

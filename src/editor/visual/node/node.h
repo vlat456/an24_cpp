@@ -19,6 +19,14 @@ enum class RenderLayer { Group, Text, Node };
 
 struct IDrawList;
 
+struct PortSlot {
+    Widget* row_container;
+    std::string name;
+    bool is_left;
+    PortType type;
+    float parent_y_offset = 0;
+};
+
 class VisualNode : public IDrawable, public ISelectable,
                    public IDraggable, public IPersistable {
 public:
@@ -82,14 +90,6 @@ protected:
     std::optional<NodeColor> custom_color_;
     Widget* content_widget_ = nullptr;
     Pt content_offset_;
-
-    struct PortSlot {
-         Widget* row_container;
-         std::string name;
-         bool is_left;
-         PortType type;
-        float parent_y_offset = 0;
-    };
     std::vector<PortSlot> port_slots_;
 
     void buildLayout(const Node& node);
