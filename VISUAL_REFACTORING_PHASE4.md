@@ -10,26 +10,25 @@ Target: ~100-150 lines per file, max 200 for `.cpp`.
 ```
 src/editor/visual/
 ├── node/
-│   ├── node.h/.cpp                  # VisualNode base class
-│   ├── layout_builder.h/.cpp        # buildLayout() + PortSlot
+│   ├── node.h/.cpp                  # VisualNode base class (97/392 lines)
 │   ├── bounds.h                     # existing
 │   ├── edges.h                      # existing
 │   ├── widget/
-│   │   ├── widget_base.h/.cpp       # Base Widget class
+│   │   ├── widget_base.h/.cpp       # Base Widget class (44/10 lines)
 │   │   ├── primitives/
-│   │   │   ├── label.h/.cpp
-│   │   │   ├── circle.h/.cpp
-│   │   │   └── spacer.h/.cpp
+│   │   │   ├── label.h/.cpp         # (24/28 lines)
+│   │   │   ├── circle.h/.cpp        # (16/16 lines)
+│   │   │   └── spacer.h/.cpp        # (11/11 lines)
 │   │   ├── containers/
-│   │   │   ├── column.h/.cpp
-│   │   │   ├── row.h/.cpp
-│   │   │   └── container.h/.cpp
+│   │   │   ├── column.h/.cpp        # (20/56 lines)
+│   │   │   ├── row.h/.cpp           # (20/56 lines)
+│   │   │   └── container.h/.cpp     # (20/31 lines)
 │   │   └── content/
-│   │       ├── header_widget.h/.cpp
-│   │       ├── type_name_widget.h/.cpp
-│   │       ├── switch_widget.h/.cpp
-│   │       ├── vertical_toggle.h/.cpp
-│   │       └── voltmeter_widget.h/.cpp
+│   │       ├── header_widget.h/.cpp # (38/40 lines)
+│   │       ├── type_name_widget.h/.cpp # (18/32 lines)
+│   │       ├── switch_widget.h/.cpp # (25/43 lines)
+│   │       ├── vertical_toggle.h/.cpp # (26/61 lines)
+│   │       └── voltmeter_widget.h/.cpp # (36/78 lines)
 │   └── types/
 │       ├── bus_node.h/.cpp          # existing
 │       ├── group_node.h/.cpp        # existing
@@ -76,21 +75,30 @@ Split `widget.h/.cpp` and `layout.h/.cpp` into individual widget files.
 - [x] Build and test
 
 **Results:**
-- 12 new widget files created
+- 12 new widget files created in 3 subdirs (primitives/, containers/, content/)
 - All files under 80 lines (target was 100-150)
-- 1430 tests pass
-- Total: 760 lines across 25 files (avg 30 lines per file)
+- All 1430 tests pass
+- Total: ~760 lines across 25 files (avg 30 lines per file)
 
-### Phase 4.2: node/layout_builder (Priority: HIGH)
+### Phase 4.2: node/layout_builder (Priority: HIGH) - DEFERRED
 
 Extract layout building logic from `node.cpp`.
 
-- [ ] Create `layout_builder.h` with `PortSlot` struct
-- [ ] Create `layout_builder.cpp` with `buildLayout()` function
-- [ ] Refactor `node.cpp` to use layout_builder
+- [ ] ~~Create `layout_builder.h` with `PortSlot` struct~~
+- [ ] ~~Create `layout_builder.cpp` with `buildLayout()` function~~
+- [ ] ~~Refactor `node.cpp` to use layout_builder~~
 - [ ] Build and test
 
-### Phase 4.3: renderer/wire/ (Priority: MEDIUM)
+**Status:** Deferred. `buildLayout()` is tightly coupled to `VisualNode` state
+(`layout_`, `port_slots_`, `content_widget_`, `node_content_`). Extraction
+would require either:
+1. Changing `layout_` from `Column` to `std::unique_ptr<Column>`
+2. Creating a builder that populates via reference
+3. Keeping as-is and documenting as technical debt
+
+Current `node.cpp` is 392 lines - acceptable for now.
+
+### Phase 4.3: renderer/wire/ (Priority: MEDIUM) - PENDING
 
 Split `wire_renderer.cpp` into focused modules.
 
@@ -101,7 +109,7 @@ Split `wire_renderer.cpp` into focused modules.
 - [ ] Update CMakeLists.txt
 - [ ] Build and test
 
-### Phase 4.4: hittest/ (Priority: MEDIUM)
+### Phase 4.4: hittest/ (Priority: MEDIUM) - PENDING
 
 Move and split hittest functionality.
 
@@ -112,7 +120,7 @@ Move and split hittest functionality.
 - [ ] Update CMakeLists.txt
 - [ ] Build and test
 
-### Phase 4.5: spatial/ (Priority: LOW)
+### Phase 4.5: spatial/ (Priority: LOW) - PENDING
 
 Extract implementation from header-only `spatial_grid.h`.
 
@@ -131,7 +139,38 @@ After each phase:
 ## Current Status
 
 **Phase 4.1:** ✅ COMPLETE
-**Phase 4.2:** PENDING
+**Phase 4.2:** ⏸️ DEFERRED (tight coupling)
 **Phase 4.3:** PENDING
 **Phase 4.4:** PENDING
 **Phase 4.5:** PENDING
+
+## File Line Counts (Phase 4.1)
+
+| File | Lines | Status |
+|------|-------|--------|
+| node.h | 97 | ✅ |
+| node.cpp | 392 | ⚠️ Above target |
+| widget/widget_base.h | 44 | ✅ |
+| widget/widget_base.cpp | 10 | ✅ |
+| widget/primitives/label.h | 24 | ✅ |
+| widget/primitives/label.cpp | 28 | ✅ |
+| widget/primitives/circle.h | 16 | ✅ |
+| widget/primitives/circle.cpp | 16 | ✅ |
+| widget/primitives/spacer.h | 11 | ✅ |
+| widget/primitives/spacer.cpp | 11 | ✅ |
+| widget/containers/column.h | 20 | ✅ |
+| widget/containers/column.cpp | 56 | ✅ |
+| widget/containers/row.h | 20 | ✅ |
+| widget/containers/row.cpp | 56 | ✅ |
+| widget/containers/container.h | 20 | ✅ |
+| widget/containers/container.cpp | 31 | ✅ |
+| widget/content/header_widget.h | 38 | ✅ |
+| widget/content/header_widget.cpp | 40 | ✅ |
+| widget/content/type_name_widget.h | 18 | ✅ |
+| widget/content/type_name_widget.cpp | 32 | ✅ |
+| widget/content/switch_widget.h | 25 | ✅ |
+| widget/content/switch_widget.cpp | 43 | ✅ |
+| widget/content/vertical_toggle.h | 26 | ✅ |
+| widget/content/vertical_toggle.cpp | 61 | ✅ |
+| widget/content/voltmeter_widget.h | 36 | ✅ |
+| widget/content/voltmeter_widget.cpp | 78 | ✅ |
