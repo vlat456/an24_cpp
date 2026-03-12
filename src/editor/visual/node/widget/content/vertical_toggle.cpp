@@ -1,6 +1,7 @@
 #include "visual/node/widget/content/vertical_toggle.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
+#include "data/node.h"
 
 VerticalToggleWidget::VerticalToggleWidget(bool state, bool tripped)
     : state_(state), tripped_(tripped)
@@ -58,4 +59,9 @@ void VerticalToggleWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     dl->add_rect_filled(Pt(cx - grip_w / 2.0f, grip_y - grip_h / 2.0f),
                         Pt(cx + grip_w / 2.0f, grip_y + grip_h / 2.0f),
                         grip_color);
+}
+
+void VerticalToggleWidget::updateFromContent(const NodeContent& content) {
+    state_ = content.state;
+    tripped_ = content.tripped;
 }

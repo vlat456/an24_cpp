@@ -4,6 +4,7 @@
 #include "visual/node/bounds.h"
 
 struct IDrawList;
+struct NodeContent;
 
 class Widget {
 public:
@@ -23,6 +24,8 @@ public:
     virtual Pt getPreferredSize(IDrawList* dl) const;
     virtual void layout(float available_width, float available_height);
     virtual void render(IDrawList* dl, Pt origin, float zoom) const = 0;
+
+    virtual void updateFromContent(const NodeContent& content);
 
     bool isFlexible() const { return flexible_; }
     void setFlexible(bool f) { flexible_ = f; }

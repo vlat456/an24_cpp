@@ -1,6 +1,7 @@
 #include "visual/node/widget/content/switch_widget.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
+#include "data/node.h"
 
 SwitchWidget::SwitchWidget(bool state, bool tripped)
     : state_(state), tripped_(tripped)
@@ -40,4 +41,9 @@ void SwitchWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     float ty = origin.y + (h - font) / 2.0f;
     uint32_t text_color = tripped_ ? 0xFFFFFFFF : render_theme::COLOR_TEXT;
     dl->add_text(Pt(tx, ty), label, text_color, font);
+}
+
+void SwitchWidget::updateFromContent(const NodeContent& content) {
+    state_ = content.state;
+    tripped_ = content.tripped;
 }

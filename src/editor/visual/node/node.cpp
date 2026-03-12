@@ -245,25 +245,12 @@ void VisualNode::updateNodeContent(const NodeContent& content) {
     node_content_ = content;
     if (node_content_.type == NodeContentType::Gauge) {
         for (size_t i = 0; i < layout_.childCount(); i++) {
-            if (auto* vw = dynamic_cast<VoltmeterWidget*>(layout_.child(i))) {
-                vw->setValue(node_content_.value);
-                break;
-            }
+            layout_.child(i)->updateFromContent(node_content_);
         }
-    }
-    if (node_content_.type == NodeContentType::Switch) {
+    } else if (content_widget_) {
         if (auto* c = dynamic_cast<Container*>(content_widget_)) {
-            if (auto* sw = dynamic_cast<SwitchWidget*>(c->child())) {
-                sw->setState(node_content_.state);
-                sw->setTripped(node_content_.tripped);
-            }
-        }
-    }
-    if (node_content_.type == NodeContentType::VerticalToggle) {
-        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
-            if (auto* vt = dynamic_cast<VerticalToggleWidget*>(c->child())) {
-                vt->setState(node_content_.state);
-                vt->setTripped(node_content_.tripped);
+            if (c->child()) {
+                c->child()->updateFromContent(node_content_);
             }
         }
     }

@@ -2,6 +2,8 @@
 
 #include "visual/node/widget/widget_base.h"
 
+struct NodeContent;
+
 class VerticalToggleWidget : public Widget {
 public:
     VerticalToggleWidget(bool state = false, bool tripped = false);
@@ -13,6 +15,7 @@ public:
 
     Pt getPreferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, Pt origin, float zoom) const override;
+    void updateFromContent(const NodeContent& content) override;
 
     static constexpr float WIDTH = 16.0f;
     static constexpr float HEIGHT = 50.0f;

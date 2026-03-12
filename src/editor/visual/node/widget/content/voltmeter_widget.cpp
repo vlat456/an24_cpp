@@ -1,6 +1,7 @@
 #include "visual/node/widget/content/voltmeter_widget.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
+#include "data/node.h"
 #include <algorithm>
 #include <cmath>
 
@@ -75,4 +76,8 @@ void VoltmeterWidget::render(IDrawList* dl, Pt origin, float zoom) const {
     Pt unit_pos(cx - unit_size.x / 2.0f,
                 value_pos.y + value_font + 2.0f * zoom);
     dl->add_text(unit_pos, unit_.c_str(), render_theme::COLOR_TEXT_DIM, unit_font);
+}
+
+void VoltmeterWidget::updateFromContent(const NodeContent& content) {
+    value_ = content.value;
 }

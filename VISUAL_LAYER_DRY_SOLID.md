@@ -2,27 +2,36 @@
 
 ## Summary
 
-**Phases 5.1-5.3 completed** with all 1453 tests passing.
+**Phases 5.1-5.4 completed** with all 1453 tests passing.
 
 ### Metrics
-- **Files modified:** 18
-- **Lines removed:** 108 lines of duplicated code
+- **Files modified:** 22
+- **Lines removed:** 121 lines of duplicated code
 - **New files:** 4 (`renderer/node_frame.h/.cpp`, `renderer/port_layout_builder.h/.cpp`)
 - **Tests:** 1453/1453 passing
+- **dynamic_cast eliminated:** 6 instances → 1 (in updateNodeContent)
 
 ### Line Count Changes
 
 | File | Before | After | Change |
 |------|--------|-------|--------|
-| `node/node.cpp` | 392 → 379 | 299 | -93 |
+| `node/node.cpp` | 392 → 379 → 299 | 286 | -106 |
 | `node/types/bus_node.cpp` | 174 | 165 | -9 |
 | `node/types/ref_node.cpp` | 60 | 54 | -6 |
+| `node/widget/widget_base.h` | 34 | 37 | +3 |
+| `node/widget/widget_base.cpp` | 10 | 14 | +4 |
+| `node/widget/content/voltmeter_widget.h` | 36 | 39 | +3 |
+| `node/widget/content/voltmeter_widget.cpp` | 78 | 83 | +5 |
+| `node/widget/content/switch_widget.h` | 25 | 28 | +3 |
+| `node/widget/content/switch_widget.cpp` | 43 | 49 | +6 |
+| `node/widget/content/vertical_toggle.h` | 26 | 29 | +3 |
+| `node/widget/content/vertical_toggle.cpp` | 61 | 67 | +6 |
 | `renderer/node_frame.h` | - | 36 | NEW |
 | `renderer/node_frame.cpp` | - | 48 | NEW |
 | `renderer/port_layout_builder.h` | - | 37 | NEW |
 | `renderer/port_layout_builder.cpp` | - | 101 | NEW |
 
-**Total: 108 lines of duplicated code eliminated.**
+**Total: 121 lines of duplicated code eliminated.**
 
 ---
 
@@ -83,16 +92,72 @@ Refactored `VisualNode::buildLayout()`:
 - Moved `PortSlot` struct to `port_layout_builder` namespace
 - `node.cpp` reduced from 379 → 299 lines
 
+### Phase 5.4: Content Widget Strategy ✅
+
+Added virtual `updateFromContent()` method to Widget base class:
+
+```cpp
+class Widget {
+public:
+    virtual void updateFromContent(const NodeContent& content);
+};
+```
+
+Overrode in content-aware widgets:
+- `VoltmeterWidget::updateFromContent()` - updates value
+- `SwitchWidget::updateFromContent()` - updates state/tripped
+- `VerticalToggleWidget::updateFromContent()` - updates state/tripped
+
+Refactored `VisualNode::updateNodeContent()`:
+- Eliminated 5 `dynamic_cast` calls (down from 6 to 1)
+- Replaced type-specific branches with polymorphic dispatch
+- `node.cpp` reduced from 299 → 286 lines
+
+**Before (26 lines with 5 dynamic_casts):**
+```cpp
+void VisualNode::updateNodeContent(const NodeContent& content) {
+    node_content_ = content;
+    if (node_content_.type == NodeContentType::Gauge) {
+        for (size_t i = 0; i < layout_.childCount(); i++) {
+            if (auto* vw = dynamic_cast<VoltmeterWidget*>(layout_.child(i))) {
+                vw->setValue(node_content_.value);
+                break;
+            }
+        }
+    }
+    if (node_content_.type == NodeContentType::Switch) {
+        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
+            if (auto* sw = dynamic_cast<SwitchWidget*>(c->child())) {
+                sw->setState(node_content_.state);
+                sw->setTripped(node_content_.tripped);
+            }
+        }
+    }
+    // ... more dynamic_cast chains
+}
+```
+
+**After (13 lines with 1 dynamic_cast):**
+```cpp
+void VisualNode::updateNodeContent(const NodeContent& content) {
+    node_content_ = content;
+    if (node_content_.type == NodeContentType::Gauge) {
+        for (size_t i = 0; i < layout_.childCount(); i++) {
+            layout_.child(i)->updateFromContent(node_content_);
+        }
+    } else if (content_widget_) {
+        if (auto* c = dynamic_cast<Container*>(content_widget_)) {
+            if (c->child()) {
+                c->child()->updateFromContent(node_content_);
+            }
+        }
+    }
+}
+```
+
 ---
 
 ## Remaining Items (Deferred)
-
-### Phase 5.4: Content Widget Strategy (Medium Priority)
-
-Replace `dynamic_cast` chains in `updateNodeContent()` with virtual method:
-- Add `virtual void updateFromContent(const NodeContent&)` to `Widget`
-- Eliminates 3 `dynamic_cast` blocks
-- Improves OCP for adding new content types
 
 ### Phase 5.5: Key Handler (Low Priority)
 

@@ -3,6 +3,8 @@
 #include "visual/node/widget/widget_base.h"
 #include <string>
 
+struct NodeContent;
+
 class VoltmeterWidget : public Widget {
 public:
     VoltmeterWidget(float value = 0.0f, float min_val = 0.0f, float max_val = 30.0f,
@@ -13,6 +15,7 @@ public:
 
     Pt getPreferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, Pt origin, float zoom) const override;
+    void updateFromContent(const NodeContent& content) override;
 
     static constexpr float GAUGE_RADIUS = 40.0f;
     static constexpr float NEEDLE_LENGTH = 32.0f;
