@@ -4,9 +4,9 @@
 #include "editor/data/pt.h"
 #include <functional>
 
-namespace an24 {
-
 class WindowSystem;
+
+namespace an24 {
 
 /// Document tabs renderer
 class DocumentTabs {
@@ -15,10 +15,7 @@ public:
         Document* close_requested = nullptr;
     };
 
-    /// Render tabs and return result
     Result render(WindowSystem& ws);
-
-    /// Get current tab bar height (for layout)
     float tabBarHeight() const { return tab_bar_height_; }
 
 private:

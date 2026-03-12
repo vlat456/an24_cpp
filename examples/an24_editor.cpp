@@ -20,6 +20,10 @@
 #include "editor/visual/renderer/blueprint_renderer.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/visual/scene/persist.h"
+#include "editor/visual/canvas_renderer.h"
+#include "editor/visual/panels/inspector_panel.h"
+#include "editor/visual/panels/document_area.h"
+#include "editor/visual/menu/main_menu.h"
 #include "editor/gl_setup.h"
 #include "editor/data/blueprint.h"
 #include "editor/imgui_theme.h"
@@ -142,6 +146,10 @@ int main(int argc, char** argv) {
 
     // Window system (manages multiple documents)
     WindowSystem ws;
+    an24::InspectorPanel inspector_panel;
+    an24::DocumentArea document_area;
+    an24::MainMenu main_menu;
+    an24::CanvasRenderer canvas_renderer;
     
     // Load recent files
     std::string recent_cfg = getConfigPath();
@@ -285,316 +293,31 @@ int main(int argc, char** argv) {
         }
 
         // ================================================================
-        // Helper lambda: render + handle input for any BlueprintWindow.
-        // Used identically for root canvas and sub-windows.
-        // ================================================================
-        auto process_window = [&](BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax,
-                                  ImDrawList* draw_list, bool hovered)
-        {
-            ImGuiDrawList dl;
-            dl.dl = draw_list;
-
-            // Update hover state (needed for wire hover highlighting)
-            if (hovered) {
-                ImVec2 mp = ImGui::GetMousePos();
-                Pt mouse_world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
-                win.input.update_hover(mouse_world);
-            } else {
-                win.input.update_hover(Pt(-1e9f, -1e9f));  // clear hover
-            }
-
-            // Grid + blueprint
-            BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
-            win.scene.render(dl, cmin, cmax,
-                             &win.input.selected_nodes(), win.input.selected_wire(),
-                             &doc.simulation(), win.input.hovered_wire());
-
-            // Tooltip
-            if (hovered) {
-                ImVec2 mp = ImGui::GetMousePos();
-                Pt world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
-                auto tooltip = win.scene.detectTooltip(world, doc.simulation(), cmin);
-                BlueprintRenderer::renderTooltip(dl, tooltip);
-            }
-
-            // Temporary wire while creating/reconnecting
-            if (win.input.has_temp_wire()) {
-                Pt start_world = win.input.temp_wire_start();
-                Pt end_world = win.input.temp_wire_end_world();
-                Pt s = win.scene.viewport().world_to_screen(start_world, cmin);
-                Pt e = win.scene.viewport().world_to_screen(end_world, cmin);
-                uint32_t color = win.input.is_reconnecting()
-                    ? IM_COL32(255, 150, 50, 200)
-                    : IM_COL32(255, 255, 100, 200);
-                dl.dl->AddLine(ImVec2(s.x, s.y), ImVec2(e.x, e.y), color, 2.0f);
-            }
-
-            // Node content widgets (read-only windows: display gauges/text but skip interactive widgets)
-            for (auto& node : doc.blueprint().nodes) {
-                if (node.group_id != win.scene.groupId()) continue;
-
-                auto* visual = win.scene.cache().getOrCreate(node, doc.blueprint().wires);
-                visual->setPosition(node.pos);
-                node.size = visual->getSize();
-
-                Pt screen_min = win.scene.viewport().world_to_screen(visual->getPosition(), cmin);
-                float zoom = win.scene.viewport().zoom;
-                NodeContentType ctype = visual->getContentType();
-                if (ctype == NodeContentType::None) continue;
-
-                Bounds cb = visual->getContentBounds();
-                float cx = screen_min.x + cb.x * zoom;
-                float cy = screen_min.y + cb.y * zoom;
-                float aw = cb.w * zoom;
-                if (aw <= 20.0f) continue;
-
-                ImGui::SetCursorScreenPos(ImVec2(cx, cy));
-                NodeContent& content = node.node_content;
-
-                switch (content.type) {
-                    case NodeContentType::Switch: {
-                        if (!win.read_only && node.type_name == "HoldButton") {
-                            bool checked = content.state;
-                            std::string id = "##hold_" + node.id;
-                            if (ImGui::Checkbox(id.c_str(), &checked)) {
-                                if (checked) doc.holdButtonPress(node.id);
-                                else doc.holdButtonRelease(node.id);
-                            }
-                        }
-                        break;
-                    }
-                    case NodeContentType::Value: {
-                        if (!win.read_only) {
-                            ImGui::SetNextItemWidth(aw);
-                            std::string id = "##v_" + node.id;
-                            ImGui::SliderFloat(id.c_str(), &content.value, content.min, content.max, "%.2f");
-                        }
-                        break;
-                    }
-                    case NodeContentType::Gauge: {
-                        float range = content.max - content.min;
-                        float progress = (range > 1e-6f) ? (content.value - content.min) / range : 0.0f;
-                        progress = std::max(0.0f, std::min(1.0f, progress));
-                        ImGui::ProgressBar(progress, ImVec2(aw, 0));
-                        break;
-                    }
-                    case NodeContentType::Text:
-                        ImGui::Text("%s", content.label.c_str());
-                        break;
-                    default: break;
-                }
-            }
-
-            // Marquee selection rectangle
-            if (win.input.is_marquee_selecting()) {
-                Pt ms = win.scene.viewport().world_to_screen(win.input.marquee_start(), cmin);
-                Pt me = win.scene.viewport().world_to_screen(win.input.marquee_end(), cmin);
-                Pt rmin(std::min(ms.x, me.x), std::min(ms.y, me.y));
-                Pt rmax(std::max(ms.x, me.x), std::max(ms.y, me.y));
-                dl.add_rect_filled(rmin, rmax, 0x4000FF00);
-                dl.add_rect(rmin, rmax, 0xFF00FF00, 1.0f);
-            }
-
-            // ---- Input handling (unified FSM) ----
-            if (!hovered) return;
-
-            Modifiers mods;
-            mods.alt  = io.KeyAlt;
-            mods.ctrl = io.KeyCtrl || io.KeySuper;
-
-            ImVec2 mp = ImGui::GetMousePos();
-            Pt screen_pos(mp.x, mp.y);
-
-            // Scroll → zoom
-            if (io.MouseWheel != 0.0f) {
-                auto action = doc.applyInputResult(win.input.on_scroll(io.MouseWheel * 10.0f, screen_pos, cmin), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-
-            // Double-click (before single click)
-            bool was_dbl = false;
-            if (ImGui::IsMouseDoubleClicked(0)) {
-                auto action = doc.applyInputResult(win.input.on_double_click(screen_pos, cmin), win.group_id);
-                ws.handleInputAction(action, doc);
-                was_dbl = true;
-            }
-
-            // Left click
-            if (!was_dbl && ImGui::IsMouseClicked(0)) {
-                auto action = doc.applyInputResult(win.input.on_mouse_down(screen_pos, MouseButton::Left, cmin, mods), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-
-            // Right click
-            if (ImGui::IsMouseClicked(1)) {
-                auto action = doc.applyInputResult(win.input.on_mouse_down(screen_pos, MouseButton::Right, cmin, mods), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-
-            // Left drag
-            if (ImGui::IsMouseDragging(0)) {
-                ImVec2 delta = ImGui::GetMouseDragDelta(0);
-                auto action = doc.applyInputResult(win.input.on_mouse_drag(MouseButton::Left, Pt(delta.x, delta.y), cmin), win.group_id);
-                ws.handleInputAction(action, doc);
-                ImGui::ResetMouseDragDelta(0);
-            }
-
-            // Left release
-            if (ImGui::IsMouseReleased(0)) {
-                auto action = doc.applyInputResult(win.input.on_mouse_up(MouseButton::Left, screen_pos, cmin), win.group_id);
-                ws.handleInputAction(action, doc);
-            }
-
-            // Keyboard (per-window: Delete/Backspace, Escape, R, brackets)
-            // Read-only windows only get Escape (clear selection); skip destructive keys.
-            if (!io.WantCaptureKeyboard) {
-                if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-                    auto action = doc.applyInputResult(win.input.on_key(Key::Escape), win.group_id);
-                    ws.handleInputAction(action, doc);
-                }
-                if (!win.read_only) {
-                    if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-                        auto action = doc.applyInputResult(win.input.on_key(Key::Delete), win.group_id);
-                        ws.handleInputAction(action, doc);
-                    }
-                    if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
-                        auto action = doc.applyInputResult(win.input.on_key(Key::Backspace), win.group_id);
-                        ws.handleInputAction(action, doc);
-                    }
-                    if (ImGui::IsKeyPressed(ImGuiKey_R)) {
-                        auto action = doc.applyInputResult(win.input.on_key(Key::R), win.group_id);
-                        ws.handleInputAction(action, doc);
-                    }
-                    if (ImGui::IsKeyPressed(ImGuiKey_LeftBracket)) {
-                        auto action = doc.applyInputResult(win.input.on_key(Key::LeftBracket), win.group_id);
-                        ws.handleInputAction(action, doc);
-                    }
-                    if (ImGui::IsKeyPressed(ImGuiKey_RightBracket)) {
-                        auto action = doc.applyInputResult(win.input.on_key(Key::RightBracket), win.group_id);
-                        ws.handleInputAction(action, doc);
-                    }
-                }
-            }
-        };
-
-        // ================================================================
-        // Inspector (docked left panel) + Root canvas with document tabs
+        // Inspector + Document Area layout
         // ================================================================
         float menu_height = ImGui::GetFrameHeight();
         float available_h = io.DisplaySize.y - menu_height;
-        static float inspector_width = 280.0f;
-        const float splitter_thickness = 4.0f;
-        const float min_inspector_w = 150.0f;
-        const float max_inspector_w = io.DisplaySize.x * 0.5f;
-        float canvas_x = 0.0f;
-
-        // Left panel: Inspector
-        if (ws.showInspector) {
-            ImGui::SetNextWindowPos(ImVec2(0, menu_height));
-            ImGui::SetNextWindowSize(ImVec2(inspector_width, available_h));
-            ImGui::Begin("Inspector", &ws.showInspector,
-                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-                ImGuiWindowFlags_NoCollapse);
-            ws.inspector().render();
-
-            // Inspector click → select + center on canvas
-            std::string sel = ws.inspector().consumeSelection();
-            if (!sel.empty() && ws.activeDocument()) {
-                ws.activeDocument()->input().selectNodeById(sel);
+        float available_w = io.DisplaySize.x;
+        
+        inspector_panel.setVisible(ws.showInspector);
+        
+        // Inspector panel (left side)
+        if (inspector_panel.visible()) {
+            auto inspector_result = inspector_panel.render(ws, menu_height, available_h, available_w);
+            if (!inspector_result.selected_node_id.empty() && ws.activeDocument()) {
+                ws.activeDocument()->input().selectNodeById(inspector_result.selected_node_id);
             }
-
-            ImGui::End();
-
-            // Splitter (invisible draggable button between inspector and canvas)
-            ImGui::SetNextWindowPos(ImVec2(inspector_width, menu_height));
-            ImGui::SetNextWindowSize(ImVec2(splitter_thickness, available_h));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowMinSize, ImVec2(splitter_thickness, splitter_thickness));
-            ImGui::Begin("##Splitter", nullptr,
-                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
-            ImGui::InvisibleButton("##splitter_btn", ImVec2(splitter_thickness, available_h));
-            if (ImGui::IsItemHovered()) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-            if (ImGui::IsItemActive()) {
-                inspector_width += io.MouseDelta.x;
-                if (inspector_width < min_inspector_w) inspector_width = min_inspector_w;
-                if (inspector_width > max_inspector_w) inspector_width = max_inspector_w;
-            }
-            ImGui::End();
-            ImGui::PopStyleVar(2);
-
-            canvas_x = inspector_width + splitter_thickness;
+            ws.showInspector = inspector_panel.visible();
         }
-
-        // Root canvas with document tabs (fills remaining space to the right)
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::SetNextWindowPos(ImVec2(canvas_x, menu_height));
-        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x - canvas_x, available_h));
-        ImGui::Begin("##DocumentArea", nullptr,
-            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
-            ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-        // Tab bar at top
-        float tab_bar_height = 0.0f;
-        if (ImGui::BeginTabBar("DocumentTabs")) {
-            tab_bar_height = ImGui::GetItemRectSize().y;
-            Document* doc_to_close = nullptr;
-            for (auto& doc : ws.documents()) {
-                bool tab_open = true;
-                std::string tab_label = doc->title() + "###" + doc->id();
-                if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, ImGuiTabItemFlags_None)) {
-                    // This tab is selected → active document
-                    if (ws.activeDocument() != doc.get()) {
-                        ws.setActiveDocument(doc.get());
-                    }
-                    ImGui::EndTabItem();
-                }
-                if (!tab_open) {
-                    doc_to_close = doc.get();
-                }
-            }
-            ImGui::EndTabBar();
-
-            if (doc_to_close) {
-                ws.closeDocument(*doc_to_close);
-            }
+        
+        float canvas_x = inspector_panel.totalWidth();
+        
+        // Document area (tabs + canvas)
+        auto doc_result = document_area.render(ws, canvas_x, menu_height, 
+                                                available_w - canvas_x, available_h);
+        if (doc_result.close_requested) {
+            ws.closeDocument(*doc_result.close_requested);
         }
-
-        // Get tab bar height after it's rendered
-        if (tab_bar_height == 0.0f) {
-            // Estimate if BeginTabBar didn't give us the size
-            tab_bar_height = ImGui::GetTextLineHeightWithSpacing();
-        }
-
-        // Child window for canvas content (below tabs)
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + tab_bar_height);
-        ImVec2 content_size(ImGui::GetContentRegionAvail().x, 
-                            ImGui::GetContentRegionAvail().y);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        if (ImGui::BeginChild("##CanvasArea", content_size, false,
-            ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-            
-            Document* active_doc = ws.activeDocument();
-            if (active_doc) {
-                auto canvas_min = ImGui::GetWindowContentRegionMin();
-                auto canvas_max = ImGui::GetWindowContentRegionMax();
-                Pt cmin(canvas_min.x + ImGui::GetWindowPos().x,
-                        canvas_min.y + ImGui::GetWindowPos().y);
-                Pt cmax(canvas_max.x + ImGui::GetWindowPos().x,
-                        canvas_max.y + ImGui::GetWindowPos().y);
-                bool hovered = ImGui::IsWindowHovered();
-
-                process_window(active_doc->root(), *active_doc, cmin, cmax,
-                              ImGui::GetWindowDrawList(), hovered);
-            }
-        }
-        ImGui::EndChild();
-        ImGui::PopStyleVar();
-
-        ImGui::End();
-        ImGui::PopStyleVar();
 
         // ================================================================
         // Sub-blueprint windows (one per open collapsed group, per document)
@@ -673,7 +396,7 @@ int main(int argc, char** argv) {
                 Pt sub_min(sub_cmin.x + ImGui::GetWindowPos().x, sub_cmin.y + ImGui::GetWindowPos().y);
                 Pt sub_max(sub_cmax.x + ImGui::GetWindowPos().x, sub_cmax.y + ImGui::GetWindowPos().y);
 
-                process_window(win, *doc, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
+                canvas_renderer.render(win, *doc, ws, sub_min, sub_max, ImGui::GetWindowDrawList(), sub_hovered);
 
                 ImGui::End();
             }

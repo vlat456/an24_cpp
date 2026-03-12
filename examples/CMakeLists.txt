@@ -122,6 +122,14 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/layout/splitter.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/inspector_panel.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/document_area.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/tabs/document_tabs.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/menu/main_menu.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/dialogs/file_dialogs.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
