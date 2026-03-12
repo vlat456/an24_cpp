@@ -1,8 +1,6 @@
 #include "visual/renderer/blueprint_renderer.h"
 
 
-using VisualNodeCache = VisualNodeCache;
-
 void BlueprintRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                                Pt canvas_min, Pt canvas_max, VisualNodeCache& cache,
                                const std::vector<size_t>* selected_nodes,

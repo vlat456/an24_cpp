@@ -142,6 +142,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/layout/splitter.cpp

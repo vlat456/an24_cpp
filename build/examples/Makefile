@@ -1517,6 +1517,30 @@ __/src/editor/visual/renderer/grid_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/grid_renderer.cpp.s
 .PHONY : __/src/editor/visual/renderer/grid_renderer.cpp.s
 
+__/src/editor/visual/renderer/node_frame.o: __/src/editor/visual/renderer/node_frame.cpp.o
+.PHONY : __/src/editor/visual/renderer/node_frame.o
+
+# target to build an object file
+__/src/editor/visual/renderer/node_frame.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/node_frame.cpp.o
+.PHONY : __/src/editor/visual/renderer/node_frame.cpp.o
+
+__/src/editor/visual/renderer/node_frame.i: __/src/editor/visual/renderer/node_frame.cpp.i
+.PHONY : __/src/editor/visual/renderer/node_frame.i
+
+# target to preprocess a source file
+__/src/editor/visual/renderer/node_frame.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/node_frame.cpp.i
+.PHONY : __/src/editor/visual/renderer/node_frame.cpp.i
+
+__/src/editor/visual/renderer/node_frame.s: __/src/editor/visual/renderer/node_frame.cpp.s
+.PHONY : __/src/editor/visual/renderer/node_frame.s
+
+# target to generate assembly for a file
+__/src/editor/visual/renderer/node_frame.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/node_frame.cpp.s
+.PHONY : __/src/editor/visual/renderer/node_frame.cpp.s
+
 __/src/editor/visual/renderer/node_renderer.o: __/src/editor/visual/renderer/node_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/node_renderer.o
 
@@ -2125,6 +2149,9 @@ help:
 	@echo "... __/src/editor/visual/renderer/grid_renderer.o"
 	@echo "... __/src/editor/visual/renderer/grid_renderer.i"
 	@echo "... __/src/editor/visual/renderer/grid_renderer.s"
+	@echo "... __/src/editor/visual/renderer/node_frame.o"
+	@echo "... __/src/editor/visual/renderer/node_frame.i"
+	@echo "... __/src/editor/visual/renderer/node_frame.s"
 	@echo "... __/src/editor/visual/renderer/node_renderer.o"
 	@echo "... __/src/editor/visual/renderer/node_renderer.i"
 	@echo "... __/src/editor/visual/renderer/node_renderer.s"

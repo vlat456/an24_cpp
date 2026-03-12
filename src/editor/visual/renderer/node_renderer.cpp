@@ -4,8 +4,6 @@
 #include "layout_constants.h"
 
 
-using VisualNodeCache = VisualNodeCache;
-
 void NodeRenderer::renderGroups(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                                 Pt canvas_min, VisualNodeCache& cache,
                                 const std::vector<size_t>* selected_nodes,
