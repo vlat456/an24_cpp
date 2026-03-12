@@ -509,6 +509,30 @@ __/src/editor/app.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app.cpp.s
 .PHONY : __/src/editor/app.cpp.s
 
+__/src/editor/app/editor_app.o: __/src/editor/app/editor_app.cpp.o
+.PHONY : __/src/editor/app/editor_app.o
+
+# target to build an object file
+__/src/editor/app/editor_app.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app/editor_app.cpp.o
+.PHONY : __/src/editor/app/editor_app.cpp.o
+
+__/src/editor/app/editor_app.i: __/src/editor/app/editor_app.cpp.i
+.PHONY : __/src/editor/app/editor_app.i
+
+# target to preprocess a source file
+__/src/editor/app/editor_app.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app/editor_app.cpp.i
+.PHONY : __/src/editor/app/editor_app.cpp.i
+
+__/src/editor/app/editor_app.s: __/src/editor/app/editor_app.cpp.s
+.PHONY : __/src/editor/app/editor_app.s
+
+# target to generate assembly for a file
+__/src/editor/app/editor_app.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app/editor_app.cpp.s
+.PHONY : __/src/editor/app/editor_app.cpp.s
+
 __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.o
 
@@ -916,6 +940,126 @@ __/src/editor/visual/node/node_content_renderer.s: __/src/editor/visual/node/nod
 __/src/editor/visual/node/node_content_renderer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/node_content_renderer.cpp.s
 .PHONY : __/src/editor/visual/node/node_content_renderer.cpp.s
+
+__/src/editor/visual/node/types/bus_node.o: __/src/editor/visual/node/types/bus_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/bus_node.o
+
+# target to build an object file
+__/src/editor/visual/node/types/bus_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/bus_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/bus_node.cpp.o
+
+__/src/editor/visual/node/types/bus_node.i: __/src/editor/visual/node/types/bus_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/bus_node.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/types/bus_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/bus_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/bus_node.cpp.i
+
+__/src/editor/visual/node/types/bus_node.s: __/src/editor/visual/node/types/bus_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/bus_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/types/bus_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/bus_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/bus_node.cpp.s
+
+__/src/editor/visual/node/types/group_node.o: __/src/editor/visual/node/types/group_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/group_node.o
+
+# target to build an object file
+__/src/editor/visual/node/types/group_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/group_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/group_node.cpp.o
+
+__/src/editor/visual/node/types/group_node.i: __/src/editor/visual/node/types/group_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/group_node.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/types/group_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/group_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/group_node.cpp.i
+
+__/src/editor/visual/node/types/group_node.s: __/src/editor/visual/node/types/group_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/group_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/types/group_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/group_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/group_node.cpp.s
+
+__/src/editor/visual/node/types/ref_node.o: __/src/editor/visual/node/types/ref_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/ref_node.o
+
+# target to build an object file
+__/src/editor/visual/node/types/ref_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/ref_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/ref_node.cpp.o
+
+__/src/editor/visual/node/types/ref_node.i: __/src/editor/visual/node/types/ref_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/ref_node.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/types/ref_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/ref_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/ref_node.cpp.i
+
+__/src/editor/visual/node/types/ref_node.s: __/src/editor/visual/node/types/ref_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/ref_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/types/ref_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/ref_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/ref_node.cpp.s
+
+__/src/editor/visual/node/types/text_node.o: __/src/editor/visual/node/types/text_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/text_node.o
+
+# target to build an object file
+__/src/editor/visual/node/types/text_node.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/text_node.cpp.o
+.PHONY : __/src/editor/visual/node/types/text_node.cpp.o
+
+__/src/editor/visual/node/types/text_node.i: __/src/editor/visual/node/types/text_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/text_node.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/types/text_node.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/text_node.cpp.i
+.PHONY : __/src/editor/visual/node/types/text_node.cpp.i
+
+__/src/editor/visual/node/types/text_node.s: __/src/editor/visual/node/types/text_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/text_node.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/types/text_node.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/types/text_node.cpp.s
+.PHONY : __/src/editor/visual/node/types/text_node.cpp.s
+
+__/src/editor/visual/node/visual_node_cache.o: __/src/editor/visual/node/visual_node_cache.cpp.o
+.PHONY : __/src/editor/visual/node/visual_node_cache.o
+
+# target to build an object file
+__/src/editor/visual/node/visual_node_cache.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node_cache.cpp.o
+.PHONY : __/src/editor/visual/node/visual_node_cache.cpp.o
+
+__/src/editor/visual/node/visual_node_cache.i: __/src/editor/visual/node/visual_node_cache.cpp.i
+.PHONY : __/src/editor/visual/node/visual_node_cache.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/visual_node_cache.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node_cache.cpp.i
+.PHONY : __/src/editor/visual/node/visual_node_cache.cpp.i
+
+__/src/editor/visual/node/visual_node_cache.s: __/src/editor/visual/node/visual_node_cache.cpp.s
+.PHONY : __/src/editor/visual/node/visual_node_cache.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/visual_node_cache.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node_cache.cpp.s
+.PHONY : __/src/editor/visual/node/visual_node_cache.cpp.s
 
 __/src/editor/visual/node/widget.o: __/src/editor/visual/node/widget.cpp.o
 .PHONY : __/src/editor/visual/node/widget.o
@@ -1495,6 +1639,9 @@ help:
 	@echo "... __/src/editor/app.o"
 	@echo "... __/src/editor/app.i"
 	@echo "... __/src/editor/app.s"
+	@echo "... __/src/editor/app/editor_app.o"
+	@echo "... __/src/editor/app/editor_app.i"
+	@echo "... __/src/editor/app/editor_app.s"
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
@@ -1546,6 +1693,21 @@ help:
 	@echo "... __/src/editor/visual/node/node_content_renderer.o"
 	@echo "... __/src/editor/visual/node/node_content_renderer.i"
 	@echo "... __/src/editor/visual/node/node_content_renderer.s"
+	@echo "... __/src/editor/visual/node/types/bus_node.o"
+	@echo "... __/src/editor/visual/node/types/bus_node.i"
+	@echo "... __/src/editor/visual/node/types/bus_node.s"
+	@echo "... __/src/editor/visual/node/types/group_node.o"
+	@echo "... __/src/editor/visual/node/types/group_node.i"
+	@echo "... __/src/editor/visual/node/types/group_node.s"
+	@echo "... __/src/editor/visual/node/types/ref_node.o"
+	@echo "... __/src/editor/visual/node/types/ref_node.i"
+	@echo "... __/src/editor/visual/node/types/ref_node.s"
+	@echo "... __/src/editor/visual/node/types/text_node.o"
+	@echo "... __/src/editor/visual/node/types/text_node.i"
+	@echo "... __/src/editor/visual/node/types/text_node.s"
+	@echo "... __/src/editor/visual/node/visual_node_cache.o"
+	@echo "... __/src/editor/visual/node/visual_node_cache.i"
+	@echo "... __/src/editor/visual/node/visual_node_cache.s"
 	@echo "... __/src/editor/visual/node/widget.o"
 	@echo "... __/src/editor/visual/node/widget.i"
 	@echo "... __/src/editor/visual/node/widget.s"
