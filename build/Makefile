@@ -1160,6 +1160,19 @@ document_window_system_tests/fast:
 .PHONY : document_window_system_tests/fast
 
 #=============================================================================
+# Target rules for targets named recent_files_tests
+
+# Build rule for target.
+recent_files_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 recent_files_tests
+.PHONY : recent_files_tests
+
+# fast build rule for target.
+recent_files_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/build
+.PHONY : recent_files_tests/fast
+
+#=============================================================================
 # Target rules for targets named blueprint_v2_tests
 
 # Build rule for target.
@@ -1266,6 +1279,7 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... recent_files_tests"
 	@echo "... sample_hold_tests"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"

@@ -71,10 +71,14 @@ examples/an24_editor.cpp (~100 lines)
 - [x] Tests (1404 passing)
 
 ### Phase 2: Canvas Refactoring
-- [ ] CanvasRenderer::render() - grid, blueprint, tooltips
-- [ ] CanvasInput::handleInput() - mouse/keyboard (split from CanvasInput class)
-- [ ] NodeContentRenderer - gauges, switches, sliders
-- [ ] Integration with existing BlueprintRenderer
+- [x] CanvasRenderer::render() - grid, blueprint, tooltips ✅
+- [x] CanvasInput::handleInput() - mouse/keyboard (split from CanvasInput class)
+- [x] NodeContentRenderer - gauges, switches, sliders
+- [x] Integration with existing BlueprintRenderer
+
+### Phase 3: Panels Extraction
+- [x] InspectorPanel - left panel with selection handling
+- [x] DocumentArea - tabs + canvas rendering
 
 ### Phase 3: Panels Extraction
 - [ ] InspectorPanel - left panel with selection handling

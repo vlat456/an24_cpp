@@ -605,6 +605,30 @@ __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
 
+__/src/editor/recent_files.o: __/src/editor/recent_files.cpp.o
+.PHONY : __/src/editor/recent_files.o
+
+# target to build an object file
+__/src/editor/recent_files.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.o
+.PHONY : __/src/editor/recent_files.cpp.o
+
+__/src/editor/recent_files.i: __/src/editor/recent_files.cpp.i
+.PHONY : __/src/editor/recent_files.i
+
+# target to preprocess a source file
+__/src/editor/recent_files.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.i
+.PHONY : __/src/editor/recent_files.cpp.i
+
+__/src/editor/recent_files.s: __/src/editor/recent_files.cpp.s
+.PHONY : __/src/editor/recent_files.s
+
+# target to generate assembly for a file
+__/src/editor/recent_files.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.s
+.PHONY : __/src/editor/recent_files.cpp.s
+
 __/src/editor/simulation.o: __/src/editor/simulation.cpp.o
 .PHONY : __/src/editor/simulation.o
 
@@ -652,6 +676,54 @@ __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
 __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
+
+__/src/editor/visual/canvas_renderer.o: __/src/editor/visual/canvas_renderer.cpp.o
+.PHONY : __/src/editor/visual/canvas_renderer.o
+
+# target to build an object file
+__/src/editor/visual/canvas_renderer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/canvas_renderer.cpp.o
+.PHONY : __/src/editor/visual/canvas_renderer.cpp.o
+
+__/src/editor/visual/canvas_renderer.i: __/src/editor/visual/canvas_renderer.cpp.i
+.PHONY : __/src/editor/visual/canvas_renderer.i
+
+# target to preprocess a source file
+__/src/editor/visual/canvas_renderer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/canvas_renderer.cpp.i
+.PHONY : __/src/editor/visual/canvas_renderer.cpp.i
+
+__/src/editor/visual/canvas_renderer.s: __/src/editor/visual/canvas_renderer.cpp.s
+.PHONY : __/src/editor/visual/canvas_renderer.s
+
+# target to generate assembly for a file
+__/src/editor/visual/canvas_renderer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/canvas_renderer.cpp.s
+.PHONY : __/src/editor/visual/canvas_renderer.cpp.s
+
+__/src/editor/visual/dialogs/file_dialogs.o: __/src/editor/visual/dialogs/file_dialogs.cpp.o
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.o
+
+# target to build an object file
+__/src/editor/visual/dialogs/file_dialogs.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/dialogs/file_dialogs.cpp.o
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.cpp.o
+
+__/src/editor/visual/dialogs/file_dialogs.i: __/src/editor/visual/dialogs/file_dialogs.cpp.i
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.i
+
+# target to preprocess a source file
+__/src/editor/visual/dialogs/file_dialogs.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/dialogs/file_dialogs.cpp.i
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.cpp.i
+
+__/src/editor/visual/dialogs/file_dialogs.s: __/src/editor/visual/dialogs/file_dialogs.cpp.s
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.s
+
+# target to generate assembly for a file
+__/src/editor/visual/dialogs/file_dialogs.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/dialogs/file_dialogs.cpp.s
+.PHONY : __/src/editor/visual/dialogs/file_dialogs.cpp.s
 
 __/src/editor/visual/hittest.o: __/src/editor/visual/hittest.cpp.o
 .PHONY : __/src/editor/visual/hittest.o
@@ -725,6 +797,54 @@ __/src/editor/visual/inspector/inspector_render.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/inspector/inspector_render.cpp.s
 .PHONY : __/src/editor/visual/inspector/inspector_render.cpp.s
 
+__/src/editor/visual/layout/splitter.o: __/src/editor/visual/layout/splitter.cpp.o
+.PHONY : __/src/editor/visual/layout/splitter.o
+
+# target to build an object file
+__/src/editor/visual/layout/splitter.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/layout/splitter.cpp.o
+.PHONY : __/src/editor/visual/layout/splitter.cpp.o
+
+__/src/editor/visual/layout/splitter.i: __/src/editor/visual/layout/splitter.cpp.i
+.PHONY : __/src/editor/visual/layout/splitter.i
+
+# target to preprocess a source file
+__/src/editor/visual/layout/splitter.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/layout/splitter.cpp.i
+.PHONY : __/src/editor/visual/layout/splitter.cpp.i
+
+__/src/editor/visual/layout/splitter.s: __/src/editor/visual/layout/splitter.cpp.s
+.PHONY : __/src/editor/visual/layout/splitter.s
+
+# target to generate assembly for a file
+__/src/editor/visual/layout/splitter.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/layout/splitter.cpp.s
+.PHONY : __/src/editor/visual/layout/splitter.cpp.s
+
+__/src/editor/visual/menu/main_menu.o: __/src/editor/visual/menu/main_menu.cpp.o
+.PHONY : __/src/editor/visual/menu/main_menu.o
+
+# target to build an object file
+__/src/editor/visual/menu/main_menu.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/menu/main_menu.cpp.o
+.PHONY : __/src/editor/visual/menu/main_menu.cpp.o
+
+__/src/editor/visual/menu/main_menu.i: __/src/editor/visual/menu/main_menu.cpp.i
+.PHONY : __/src/editor/visual/menu/main_menu.i
+
+# target to preprocess a source file
+__/src/editor/visual/menu/main_menu.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/menu/main_menu.cpp.i
+.PHONY : __/src/editor/visual/menu/main_menu.cpp.i
+
+__/src/editor/visual/menu/main_menu.s: __/src/editor/visual/menu/main_menu.cpp.s
+.PHONY : __/src/editor/visual/menu/main_menu.s
+
+# target to generate assembly for a file
+__/src/editor/visual/menu/main_menu.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/menu/main_menu.cpp.s
+.PHONY : __/src/editor/visual/menu/main_menu.cpp.s
+
 __/src/editor/visual/node/layout.o: __/src/editor/visual/node/layout.cpp.o
 .PHONY : __/src/editor/visual/node/layout.o
 
@@ -773,6 +893,30 @@ __/src/editor/visual/node/node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/node.cpp.s
 .PHONY : __/src/editor/visual/node/node.cpp.s
 
+__/src/editor/visual/node/node_content_renderer.o: __/src/editor/visual/node/node_content_renderer.cpp.o
+.PHONY : __/src/editor/visual/node/node_content_renderer.o
+
+# target to build an object file
+__/src/editor/visual/node/node_content_renderer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/node_content_renderer.cpp.o
+.PHONY : __/src/editor/visual/node/node_content_renderer.cpp.o
+
+__/src/editor/visual/node/node_content_renderer.i: __/src/editor/visual/node/node_content_renderer.cpp.i
+.PHONY : __/src/editor/visual/node/node_content_renderer.i
+
+# target to preprocess a source file
+__/src/editor/visual/node/node_content_renderer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/node_content_renderer.cpp.i
+.PHONY : __/src/editor/visual/node/node_content_renderer.cpp.i
+
+__/src/editor/visual/node/node_content_renderer.s: __/src/editor/visual/node/node_content_renderer.cpp.s
+.PHONY : __/src/editor/visual/node/node_content_renderer.s
+
+# target to generate assembly for a file
+__/src/editor/visual/node/node_content_renderer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/node_content_renderer.cpp.s
+.PHONY : __/src/editor/visual/node/node_content_renderer.cpp.s
+
 __/src/editor/visual/node/widget.o: __/src/editor/visual/node/widget.cpp.o
 .PHONY : __/src/editor/visual/node/widget.o
 
@@ -796,6 +940,102 @@ __/src/editor/visual/node/widget.s: __/src/editor/visual/node/widget.cpp.s
 __/src/editor/visual/node/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/widget.cpp.s
 .PHONY : __/src/editor/visual/node/widget.cpp.s
+
+__/src/editor/visual/panels/document_area.o: __/src/editor/visual/panels/document_area.cpp.o
+.PHONY : __/src/editor/visual/panels/document_area.o
+
+# target to build an object file
+__/src/editor/visual/panels/document_area.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/document_area.cpp.o
+.PHONY : __/src/editor/visual/panels/document_area.cpp.o
+
+__/src/editor/visual/panels/document_area.i: __/src/editor/visual/panels/document_area.cpp.i
+.PHONY : __/src/editor/visual/panels/document_area.i
+
+# target to preprocess a source file
+__/src/editor/visual/panels/document_area.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/document_area.cpp.i
+.PHONY : __/src/editor/visual/panels/document_area.cpp.i
+
+__/src/editor/visual/panels/document_area.s: __/src/editor/visual/panels/document_area.cpp.s
+.PHONY : __/src/editor/visual/panels/document_area.s
+
+# target to generate assembly for a file
+__/src/editor/visual/panels/document_area.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/document_area.cpp.s
+.PHONY : __/src/editor/visual/panels/document_area.cpp.s
+
+__/src/editor/visual/panels/inspector_panel.o: __/src/editor/visual/panels/inspector_panel.cpp.o
+.PHONY : __/src/editor/visual/panels/inspector_panel.o
+
+# target to build an object file
+__/src/editor/visual/panels/inspector_panel.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/inspector_panel.cpp.o
+.PHONY : __/src/editor/visual/panels/inspector_panel.cpp.o
+
+__/src/editor/visual/panels/inspector_panel.i: __/src/editor/visual/panels/inspector_panel.cpp.i
+.PHONY : __/src/editor/visual/panels/inspector_panel.i
+
+# target to preprocess a source file
+__/src/editor/visual/panels/inspector_panel.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/inspector_panel.cpp.i
+.PHONY : __/src/editor/visual/panels/inspector_panel.cpp.i
+
+__/src/editor/visual/panels/inspector_panel.s: __/src/editor/visual/panels/inspector_panel.cpp.s
+.PHONY : __/src/editor/visual/panels/inspector_panel.s
+
+# target to generate assembly for a file
+__/src/editor/visual/panels/inspector_panel.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/panels/inspector_panel.cpp.s
+.PHONY : __/src/editor/visual/panels/inspector_panel.cpp.s
+
+__/src/editor/visual/popups/color_picker_dialog.o: __/src/editor/visual/popups/color_picker_dialog.cpp.o
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.o
+
+# target to build an object file
+__/src/editor/visual/popups/color_picker_dialog.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/color_picker_dialog.cpp.o
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.cpp.o
+
+__/src/editor/visual/popups/color_picker_dialog.i: __/src/editor/visual/popups/color_picker_dialog.cpp.i
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.i
+
+# target to preprocess a source file
+__/src/editor/visual/popups/color_picker_dialog.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/color_picker_dialog.cpp.i
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.cpp.i
+
+__/src/editor/visual/popups/color_picker_dialog.s: __/src/editor/visual/popups/color_picker_dialog.cpp.s
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.s
+
+# target to generate assembly for a file
+__/src/editor/visual/popups/color_picker_dialog.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/color_picker_dialog.cpp.s
+.PHONY : __/src/editor/visual/popups/color_picker_dialog.cpp.s
+
+__/src/editor/visual/popups/context_menus.o: __/src/editor/visual/popups/context_menus.cpp.o
+.PHONY : __/src/editor/visual/popups/context_menus.o
+
+# target to build an object file
+__/src/editor/visual/popups/context_menus.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/context_menus.cpp.o
+.PHONY : __/src/editor/visual/popups/context_menus.cpp.o
+
+__/src/editor/visual/popups/context_menus.i: __/src/editor/visual/popups/context_menus.cpp.i
+.PHONY : __/src/editor/visual/popups/context_menus.i
+
+# target to preprocess a source file
+__/src/editor/visual/popups/context_menus.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/context_menus.cpp.i
+.PHONY : __/src/editor/visual/popups/context_menus.cpp.i
+
+__/src/editor/visual/popups/context_menus.s: __/src/editor/visual/popups/context_menus.cpp.s
+.PHONY : __/src/editor/visual/popups/context_menus.s
+
+# target to generate assembly for a file
+__/src/editor/visual/popups/context_menus.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/popups/context_menus.cpp.s
+.PHONY : __/src/editor/visual/popups/context_menus.cpp.s
 
 __/src/editor/visual/port/port.o: __/src/editor/visual/port/port.cpp.o
 .PHONY : __/src/editor/visual/port/port.o
@@ -988,6 +1228,54 @@ __/src/editor/visual/scene/wire_manager.s: __/src/editor/visual/scene/wire_manag
 __/src/editor/visual/scene/wire_manager.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/scene/wire_manager.cpp.s
 .PHONY : __/src/editor/visual/scene/wire_manager.cpp.s
+
+__/src/editor/visual/tabs/document_tabs.o: __/src/editor/visual/tabs/document_tabs.cpp.o
+.PHONY : __/src/editor/visual/tabs/document_tabs.o
+
+# target to build an object file
+__/src/editor/visual/tabs/document_tabs.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/tabs/document_tabs.cpp.o
+.PHONY : __/src/editor/visual/tabs/document_tabs.cpp.o
+
+__/src/editor/visual/tabs/document_tabs.i: __/src/editor/visual/tabs/document_tabs.cpp.i
+.PHONY : __/src/editor/visual/tabs/document_tabs.i
+
+# target to preprocess a source file
+__/src/editor/visual/tabs/document_tabs.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/tabs/document_tabs.cpp.i
+.PHONY : __/src/editor/visual/tabs/document_tabs.cpp.i
+
+__/src/editor/visual/tabs/document_tabs.s: __/src/editor/visual/tabs/document_tabs.cpp.s
+.PHONY : __/src/editor/visual/tabs/document_tabs.s
+
+# target to generate assembly for a file
+__/src/editor/visual/tabs/document_tabs.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/tabs/document_tabs.cpp.s
+.PHONY : __/src/editor/visual/tabs/document_tabs.cpp.s
+
+__/src/editor/visual/windows/sub_window_renderer.o: __/src/editor/visual/windows/sub_window_renderer.cpp.o
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.o
+
+# target to build an object file
+__/src/editor/visual/windows/sub_window_renderer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/sub_window_renderer.cpp.o
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.cpp.o
+
+__/src/editor/visual/windows/sub_window_renderer.i: __/src/editor/visual/windows/sub_window_renderer.cpp.i
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.i
+
+# target to preprocess a source file
+__/src/editor/visual/windows/sub_window_renderer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/sub_window_renderer.cpp.i
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.cpp.i
+
+__/src/editor/visual/windows/sub_window_renderer.s: __/src/editor/visual/windows/sub_window_renderer.cpp.s
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.s
+
+# target to generate assembly for a file
+__/src/editor/visual/windows/sub_window_renderer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/sub_window_renderer.cpp.s
+.PHONY : __/src/editor/visual/windows/sub_window_renderer.cpp.s
 
 __/src/editor/window/properties_window.o: __/src/editor/window/properties_window.cpp.o
 .PHONY : __/src/editor/window/properties_window.o
@@ -1219,12 +1507,21 @@ help:
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/recent_files.o"
+	@echo "... __/src/editor/recent_files.i"
+	@echo "... __/src/editor/recent_files.s"
 	@echo "... __/src/editor/simulation.o"
 	@echo "... __/src/editor/simulation.i"
 	@echo "... __/src/editor/simulation.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
+	@echo "... __/src/editor/visual/canvas_renderer.o"
+	@echo "... __/src/editor/visual/canvas_renderer.i"
+	@echo "... __/src/editor/visual/canvas_renderer.s"
+	@echo "... __/src/editor/visual/dialogs/file_dialogs.o"
+	@echo "... __/src/editor/visual/dialogs/file_dialogs.i"
+	@echo "... __/src/editor/visual/dialogs/file_dialogs.s"
 	@echo "... __/src/editor/visual/hittest.o"
 	@echo "... __/src/editor/visual/hittest.i"
 	@echo "... __/src/editor/visual/hittest.s"
@@ -1234,15 +1531,36 @@ help:
 	@echo "... __/src/editor/visual/inspector/inspector_render.o"
 	@echo "... __/src/editor/visual/inspector/inspector_render.i"
 	@echo "... __/src/editor/visual/inspector/inspector_render.s"
+	@echo "... __/src/editor/visual/layout/splitter.o"
+	@echo "... __/src/editor/visual/layout/splitter.i"
+	@echo "... __/src/editor/visual/layout/splitter.s"
+	@echo "... __/src/editor/visual/menu/main_menu.o"
+	@echo "... __/src/editor/visual/menu/main_menu.i"
+	@echo "... __/src/editor/visual/menu/main_menu.s"
 	@echo "... __/src/editor/visual/node/layout.o"
 	@echo "... __/src/editor/visual/node/layout.i"
 	@echo "... __/src/editor/visual/node/layout.s"
 	@echo "... __/src/editor/visual/node/node.o"
 	@echo "... __/src/editor/visual/node/node.i"
 	@echo "... __/src/editor/visual/node/node.s"
+	@echo "... __/src/editor/visual/node/node_content_renderer.o"
+	@echo "... __/src/editor/visual/node/node_content_renderer.i"
+	@echo "... __/src/editor/visual/node/node_content_renderer.s"
 	@echo "... __/src/editor/visual/node/widget.o"
 	@echo "... __/src/editor/visual/node/widget.i"
 	@echo "... __/src/editor/visual/node/widget.s"
+	@echo "... __/src/editor/visual/panels/document_area.o"
+	@echo "... __/src/editor/visual/panels/document_area.i"
+	@echo "... __/src/editor/visual/panels/document_area.s"
+	@echo "... __/src/editor/visual/panels/inspector_panel.o"
+	@echo "... __/src/editor/visual/panels/inspector_panel.i"
+	@echo "... __/src/editor/visual/panels/inspector_panel.s"
+	@echo "... __/src/editor/visual/popups/color_picker_dialog.o"
+	@echo "... __/src/editor/visual/popups/color_picker_dialog.i"
+	@echo "... __/src/editor/visual/popups/color_picker_dialog.s"
+	@echo "... __/src/editor/visual/popups/context_menus.o"
+	@echo "... __/src/editor/visual/popups/context_menus.i"
+	@echo "... __/src/editor/visual/popups/context_menus.s"
 	@echo "... __/src/editor/visual/port/port.o"
 	@echo "... __/src/editor/visual/port/port.i"
 	@echo "... __/src/editor/visual/port/port.s"
@@ -1267,6 +1585,12 @@ help:
 	@echo "... __/src/editor/visual/scene/wire_manager.o"
 	@echo "... __/src/editor/visual/scene/wire_manager.i"
 	@echo "... __/src/editor/visual/scene/wire_manager.s"
+	@echo "... __/src/editor/visual/tabs/document_tabs.o"
+	@echo "... __/src/editor/visual/tabs/document_tabs.i"
+	@echo "... __/src/editor/visual/tabs/document_tabs.s"
+	@echo "... __/src/editor/visual/windows/sub_window_renderer.o"
+	@echo "... __/src/editor/visual/windows/sub_window_renderer.i"
+	@echo "... __/src/editor/visual/windows/sub_window_renderer.s"
 	@echo "... __/src/editor/window/properties_window.o"
 	@echo "... __/src/editor/window/properties_window.i"
 	@echo "... __/src/editor/window/properties_window.s"

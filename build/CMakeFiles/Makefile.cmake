@@ -211,6 +211,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/spring_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/sub_blueprint_ref_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/document_window_system_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/recent_files_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/blueprint_v2_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/library_v2_tests.dir/DependInfo.cmake"
   )

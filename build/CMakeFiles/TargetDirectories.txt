@@ -165,6 +165,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/sub_blueprint_ref_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/document_window_system_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/recent_files_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_v2_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/library_v2_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir

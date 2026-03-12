@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "name": ""
+  },
+  "version": 2,
+  "viewport": {
+    "grid": 16.0,
+    "pan": [
+      0.0,
+      0.0
+    ],
+    "zoom": 1.0
+  }
+}

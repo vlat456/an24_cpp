@@ -25,6 +25,9 @@
 #include "editor/visual/panels/document_area.h"
 #include "editor/visual/windows/sub_window_renderer.h"
 #include "editor/visual/menu/main_menu.h"
+#include "editor/visual/popups/context_menus.h"
+#include "editor/visual/popups/color_picker_dialog.h"
+#include "editor/visual/popups/bake_in_dialog.h"
 #include "editor/gl_setup.h"
 #include "editor/imgui_theme.h"
 #include "editor/imgui_draw_list.h"
@@ -150,6 +153,9 @@ int main(int argc, char** argv) {
     an24::DocumentArea document_area;
     an24::MainMenu main_menu;
     an24::SubWindowRenderer sub_window_renderer;
+    an24::ContextMenus context_menus;
+    an24::ColorPickerDialog color_picker;
+    an24::BakeInDialog bake_in_dialog;
     
     // Load recent files
     std::string recent_cfg = getConfigPath();
@@ -226,163 +232,15 @@ int main(int argc, char** argv) {
         // Sub-blueprint windows
         sub_window_renderer.renderAll(ws);
 
-        // Context menu for adding components (right-click on empty space)
-        if (ws.contextMenu.show) {
-            ImGui::OpenPopup("AddComponent");
-            ws.contextMenu.show = false;
-        }
-
-        if (ImGui::BeginPopup("AddComponent")) {
-            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Add Component");
-            ImGui::Separator();
-
-            // Render hierarchical menu from library/ directory structure
-            auto menu_tree = ws.typeRegistry().build_menu_tree();
-            std::function<void(const an24::MenuTree&)> render_menu;
-            render_menu = [&](const an24::MenuTree& tree) {
-                for (const auto& [folder, subtree] : tree.children) {
-                    if (ImGui::BeginMenu(folder.c_str())) {
-                        render_menu(subtree);
-                        ImGui::EndMenu();
-                    }
-                }
-                for (const auto& classname : tree.entries) {
-                    if (ImGui::MenuItem(classname.c_str())) {
-                        Document* doc = ws.contextMenu.source_doc ? ws.contextMenu.source_doc : ws.activeDocument();
-                        if (doc) {
-                            doc->addComponent(classname, ws.contextMenu.position, ws.contextMenu.group_id, ws.typeRegistry());
-                        }
-                    }
-                }
-            };
-            render_menu(menu_tree);
-
-            ImGui::EndPopup();
-        }
-
-        // Node context menu (right-click on node)
-        if (ws.nodeContextMenu.show) {
-            ImGui::OpenPopup("NodeContextMenu");
-            ws.nodeContextMenu.show = false;
-        }
-        if (ImGui::BeginPopup("NodeContextMenu")) {
-            Document* doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : ws.activeDocument();
-            if (doc && ws.nodeContextMenu.node_index < doc->blueprint().nodes.size()) {
-                Node& node = doc->blueprint().nodes[ws.nodeContextMenu.node_index];
-                ImGui::Text("Node: %s", node.name.c_str());
-                ImGui::Separator();
-                
-                // Check if this is a read-only window
-                bool is_read_only = false;
-                if (!ws.nodeContextMenu.group_id.empty()) {
-                    BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.group_id);
-                    is_read_only = win && win->read_only;
-                }
-                
-                if (ImGui::MenuItem("Properties...")) {
-                    ws.openPropertiesForNode(ws.nodeContextMenu.node_index, *doc);
-                }
-                if (!is_read_only) {
-                    if (ImGui::MenuItem("Set Color...")) {
-                        ws.openColorPickerForNode(ws.nodeContextMenu.node_index, ws.nodeContextMenu.group_id, *doc);
-                    }
-                    if (ImGui::MenuItem("Delete")) {
-                        auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);
-                        ws.handleInputAction(action, *doc);
-                    }
-                }
-                // Show "Bake In" / "Edit Original" for non-baked-in sub-blueprints.
-                // Two cases: (1) right-click inside a sub-window (group_id is the SBI id),
-                //            (2) right-click a collapsed composite node at root (node.id is the SBI id).
-                {
-                    const std::string& sbi_id = !ws.nodeContextMenu.group_id.empty()
-                        ? ws.nodeContextMenu.group_id
-                        : node.id;
-                    auto* sb = doc->blueprint().find_sub_blueprint_instance(sbi_id);
-                    if (sb && !sb->baked_in) {
-                        if (ImGui::MenuItem("Bake In (Embed)")) {
-                            ws.pendingBakeIn.show_confirmation = true;
-                            ws.pendingBakeIn.sub_blueprint_id = sbi_id;
-                            ws.pendingBakeIn.doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : doc;
-                        }
-                        ImGui::Separator();
-                        if (ImGui::MenuItem("Edit Original")) {
-                            std::string lib_path = "library/" + sb->blueprint_path + ".json";
-                            ws.openDocument(lib_path);
-                        }
-                    }
-                }
-            }
-            ImGui::EndPopup();
-        }
+        // Context menus
+        context_menus.renderAddComponent(ws);
+        context_menus.renderNodeContext(ws);
 
         // Color picker dialog
-        if (ws.colorPicker.show) {
-            ImGui::OpenPopup("Node Color");
-            ws.colorPicker.show = false;
-        }
-        if (ImGui::BeginPopupModal("Node Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::ColorPicker4("##picker", ws.colorPicker.rgba,
-                ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayRGB);
-
-            Document* doc = ws.colorPicker.source_doc ? ws.colorPicker.source_doc : ws.activeDocument();
-            if (doc && ws.colorPicker.node_index < doc->blueprint().nodes.size()) {
-                // Find the correct window's scene for visual cache update
-                BlueprintWindow* target_win = nullptr;
-                if (!ws.colorPicker.group_id.empty()) {
-                    target_win = doc->windowManager().find(ws.colorPicker.group_id);
-                }
-                VisualScene* target_scene = target_win ? &target_win->scene : &doc->scene();
-
-                if (ImGui::Button("Apply")) {
-                    Node& node = doc->blueprint().nodes[ws.colorPicker.node_index];
-                    node.color = NodeColor{
-                        ws.colorPicker.rgba[0],
-                        ws.colorPicker.rgba[1],
-                        ws.colorPicker.rgba[2],
-                        ws.colorPicker.rgba[3]
-                    };
-                    auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
-                    if (vn) vn->setCustomColor(node.color);
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Reset")) {
-                    Node& node = doc->blueprint().nodes[ws.colorPicker.node_index];
-                    node.color = std::nullopt;
-                    auto* vn = target_scene->getVisualNode(ws.colorPicker.node_index);
-                    if (vn) vn->setCustomColor(std::nullopt);
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel")) {
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            ImGui::EndPopup();
-        }
+        color_picker.render(ws);
 
         // Bake In confirmation dialog
-        if (ws.pendingBakeIn.show_confirmation) {
-            ImGui::OpenPopup("Bake In Confirmation");
-            ws.pendingBakeIn.show_confirmation = false;
-        }
-        if (ImGui::BeginPopupModal("Bake In Confirmation", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Are you sure you want to bake in this sub-blueprint?");
-            ImGui::Text("This will embed all nodes from the library file directly into this document.");
-            ImGui::Separator();
-            if (ImGui::Button("Bake In")) {
-                if (ws.pendingBakeIn.doc) {
-                    ws.pendingBakeIn.doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
-                }
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel")) {
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
+        bake_in_dialog.render(ws);
 
         // Properties window
         ws.propertiesWindow().render();
