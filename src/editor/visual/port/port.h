@@ -29,7 +29,7 @@ public:
 
     VisualPort(const std::string& name,
                PortSide side,
-               an24::PortType type = an24::PortType::Any,
+               PortType type = PortType::Any,
                const std::string& target_port = "");
 
     // --- Identity ---
@@ -42,8 +42,8 @@ public:
     bool isAlias() const { return !target_port_.empty(); }
 
     // --- Type & Side ---
-    an24::PortType type() const { return type_; }
-    void setType(an24::PortType t) { type_ = t; }
+    PortType type() const { return type_; }
+    void setType(PortType t) { type_ = t; }
     PortSide side() const { return side_; }
 
     // --- Color ---
@@ -61,7 +61,7 @@ public:
     bool isCompatibleWith(const VisualPort& other) const;
 
     /// Check if port types are compatible (Any is wildcard)
-    static bool areTypesCompatible(an24::PortType a, an24::PortType b);
+    static bool areTypesCompatible(PortType a, PortType b);
 
     /// Check if port sides allow connection
     static bool areSidesCompatible(PortSide a, PortSide b);
@@ -82,7 +82,7 @@ private:
     std::string target_port_;
     std::string label_;
     PortSide side_;
-    an24::PortType type_;
+    PortType type_;
     Pt world_pos_;
     LabelSide label_side_ = LabelSide::None;
 };

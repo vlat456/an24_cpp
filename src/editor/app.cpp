@@ -60,9 +60,8 @@ void EditorApp::update_node_content_from_simulation() {
 // Old code had a hardcoded type list (Voltmeter, IndicatorLight, DMR400, Switch, HoldButton);
 // any new component type added to the simulation would NOT have its visual state reset.
 void EditorApp::reset_node_content() {
-    using namespace an24;
 
-    for (auto& node : scene.nodes()) {
+     for (auto& node : scene.nodes()) {
         const auto* def = type_registry.get(node.type_name);
         if (!def) continue;
         node.node_content = create_node_content_from_def(def);
@@ -102,9 +101,8 @@ void EditorApp::open_color_picker_for_node(size_t node_index) {
 }
 
 void EditorApp::add_component(const std::string& classname, Pt world_pos, const std::string& group_id) {
-    using namespace an24;
-    
-    // Check if component exists in registry
+     
+     // Check if component exists in registry
     if (!type_registry.has(classname)) {
         printf("Error: Unknown component classname '%s'\n", classname.c_str());
         return;
@@ -192,9 +190,8 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
 }
 
 void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, const std::string& group_id) {
-    using namespace an24;
 
-    // Get blueprint definition from TypeRegistry
+     // Get blueprint definition from TypeRegistry
     const auto* bp_def = type_registry.get(blueprint_name);
     if (!bp_def || bp_def->cpp_class) {
         spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);

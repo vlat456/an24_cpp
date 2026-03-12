@@ -4,7 +4,6 @@
 #include "editor/window_system.h"
 #include "editor/visual/canvas_renderer.h"
 
-namespace an24 {
 
 class SubWindowRenderer {
 public:
@@ -20,4 +19,3 @@ private:
     static void fitViewToContent(Document& doc, BlueprintWindow& win);
 };
 
-} // namespace an24

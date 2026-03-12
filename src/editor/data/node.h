@@ -66,8 +66,8 @@ struct Node {
     Pt size;                 ///< Размеры (ширина × высота)
     bool size_explicitly_set = false;  ///< True if size was set via size_wh() (not from JSON default)
 
-    std::vector<Port> inputs;    ///< Входные порты
-    std::vector<Port> outputs;   ///< Выходные порты
+    std::vector<EditorPort> inputs;    ///< Входные порты
+    std::vector<EditorPort> outputs;   ///< Выходные порты
 
     /// Parameters (optional, for overriding component defaults)
     std::unordered_map<std::string, std::string> params;
@@ -105,13 +105,13 @@ struct Node {
     }
 
     /// fluent: добавить входной порт
-    Node& input(const char* name_, an24::PortType type = an24::PortType::V) {
+    Node& input(const char* name_, PortType type = PortType::V) {
         inputs.emplace_back(name_, PortSide::Input, type);
         return *this;
     }
 
     /// fluent: добавить выходной порт
-    Node& output(const char* name_, an24::PortType type = an24::PortType::V) {
+    Node& output(const char* name_, PortType type = PortType::V) {
         outputs.emplace_back(name_, PortSide::Output, type);
         return *this;
     }
@@ -127,16 +127,14 @@ struct Node {
 // Node size utility (single source of truth)
 // =============================================================================
 
-namespace an24 {
 struct TypeDefinition;
 struct TypeRegistry;
-}  // namespace an24
 
 /// Get default node size from type definition (single source of truth)
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
 /// @param registry Type registry to look up size from JSON definitions
 /// @return Default size in pixels
-inline Pt get_default_node_size(const std::string& type_name, const an24::TypeRegistry* registry) {
+inline Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
     // Try to get size from type definition
@@ -154,7 +152,7 @@ inline Pt get_default_node_size(const std::string& type_name, const an24::TypeRe
 
 // [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp
 /// Create default NodeContent from a TypeDefinition (single source of truth)
-inline NodeContent create_node_content_from_def(const an24::TypeDefinition* def) {
+inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     NodeContent content;
     content.type = NodeContentType::None;
     if (!def) return content;

@@ -4,8 +4,6 @@
 #include "../json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 
-namespace an24 {
-
 void Systems::add_component(std::unique_ptr<Component> comp, const std::vector<Domain>& domains) {
     Component* raw_ptr = comp.get();  // Save pointer before moving
     all_components.push_back(std::move(comp));  // Centralized ownership
@@ -160,5 +158,3 @@ void Systems::pre_load() {
         }
     }
 }
-
-} // namespace an24

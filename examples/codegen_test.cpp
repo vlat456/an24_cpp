@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-using namespace an24;
+
 
 int main(int argc, char** argv) {
     if (argc < 3) {

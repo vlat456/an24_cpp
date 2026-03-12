@@ -81,7 +81,7 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
     ports_.clear();
     // Add alias ports (named by wire_id)
     for (const auto& w : wires) {
-        VisualPort vp(w.id, PortSide::InOut, an24::PortType::V, "v");
+        VisualPort vp(w.id, PortSide::InOut, PortType::V, "v");
         vp.setWorldPosition(calculatePortPosition(ports_.size()));  // Position by index
         ports_.push_back(std::move(vp));
     }

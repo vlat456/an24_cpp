@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace an24;
 
 // =============================================================================
 // Helper: build a minimal TypeRegistry from library/ on disk

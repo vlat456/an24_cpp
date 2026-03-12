@@ -9,7 +9,7 @@
 
 VisualPort::VisualPort(const std::string& name,
                        PortSide side,
-                       an24::PortType type,
+                       PortType type,
                        const std::string& target_port)
     : name_(name)
     , target_port_(target_port)
@@ -33,8 +33,8 @@ Bounds VisualPort::calcBounds() const {
 
 // --- Compatibility ---
 
-bool VisualPort::areTypesCompatible(an24::PortType a, an24::PortType b) {
-    if (a == an24::PortType::Any || b == an24::PortType::Any)
+bool VisualPort::areTypesCompatible(PortType a, PortType b) {
+    if (a == PortType::Any || b == PortType::Any)
         return true;
     return a == b;
 }

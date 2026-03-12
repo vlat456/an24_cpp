@@ -4,7 +4,6 @@
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/layout_constants.h"
 
-namespace an24 {
 
 RefVisualNode::RefVisualNode(const Node& node)
     : VisualNode(node)
@@ -13,7 +12,7 @@ RefVisualNode::RefVisualNode(const Node& node)
     ports_.clear();
 
     std::string port_name = "v";
-    an24::PortType port_type = an24::PortType::V;
+    PortType port_type = PortType::V;
     if (!node.outputs.empty()) {
         port_name = node.outputs[0].name;
         port_type = node.outputs[0].type;
@@ -59,4 +58,3 @@ void RefVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     dl->add_circle_filled(port_pos, editor_constants::PORT_RADIUS * vp.zoom, port_color, 8);
 }
 
-} // namespace an24

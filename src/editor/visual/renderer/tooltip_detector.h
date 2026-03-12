@@ -14,9 +14,9 @@ class TooltipDetector {
 public:
     /// Detect tooltip at world_pos. Returns active TooltipInfo or inactive default.
     TooltipInfo detect(const Blueprint& bp, const Viewport& vp,
-                       Pt canvas_min, an24::VisualNodeCache& cache,
+                       Pt canvas_min, VisualNodeCache& cache,
                        Pt world_pos,
-                       const an24::Simulator<an24::JIT_Solver>& sim,
+                       const Simulator<JIT_Solver>& sim,
                        const editor_spatial::SpatialGrid& grid,
                        const std::string& group_id = "") const;
 

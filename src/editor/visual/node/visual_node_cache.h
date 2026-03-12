@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <memory>
 
-namespace an24 {
 
 class VisualNodeFactory {
 public:
@@ -51,4 +50,3 @@ private:
     std::unordered_map<std::string, std::unique_ptr<VisualNode>> cache_;
 };
 
-} // namespace an24

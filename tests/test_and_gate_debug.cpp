@@ -12,7 +12,6 @@
 #include <spdlog/spdlog.h>
 #include <cstdio>
 
-using namespace an24;
 
 class ANDGateDebugTest : public ::testing::Test {
 protected:

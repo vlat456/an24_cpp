@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-namespace an24 {
 
 /// Canvas rendering constants - single source of truth
 namespace CanvasConstants {
@@ -26,4 +25,3 @@ namespace CanvasColors {
     constexpr uint32_t MARQUEE_BORDER = 0xFF00FF00;      // Green border, opaque
 }
 
-} // namespace an24

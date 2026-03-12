@@ -10,8 +10,6 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-namespace an24 {
-
 // Forward declarations
 struct DeviceInstance;
 
@@ -289,5 +287,3 @@ TypeDefinition expand_sub_blueprint_references(
     const TypeDefinition& td,
     const TypeRegistry& registry,
     std::set<std::string>& loading_stack);
-
-} // namespace an24

@@ -8,10 +8,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-using namespace an24;
-
-namespace an24 {
-
 template<typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     : build_result_(std::move(other.build_result_))
@@ -297,5 +293,3 @@ bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_i
 
 // Explicit template instantiation for JIT_Solver
 template class Simulator<JIT_Solver>;
-
-} // namespace an24

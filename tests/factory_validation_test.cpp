@@ -2,7 +2,6 @@
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/jit_solver.h"
 
-using namespace an24;
 
 // ============================================================================
 // Stage 7a: Factory Validation Tests (TDD - Failing tests first)

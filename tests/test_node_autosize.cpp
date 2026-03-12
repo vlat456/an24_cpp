@@ -5,7 +5,6 @@
 #include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/data/node.h"
 
-using an24::VisualNodeCache;
 
 // ============================================================================
 // Auto-size Tests: Node should be minimum size to fit content + ports + padding

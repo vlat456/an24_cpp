@@ -14,8 +14,6 @@
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
-using an24::VisualNodeCache;
-using an24::VisualNodeFactory;
 
 /// TDD Step 5: Rendering
 
@@ -143,7 +141,7 @@ TEST(RenderTest, WireHighlighting_EnergizedWiresAreYellow) {
     Blueprint bp = create_render_circuit();
 
     // Build and run simulation
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -181,7 +179,7 @@ TEST(RenderTest, WireHighlighting_WithoutSimulation_NoYellow) {
 TEST(RenderTest, Tooltip_PortHover_ShowsValue) {
     Blueprint bp = create_render_circuit();
 
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -245,7 +243,7 @@ TEST(RenderTest, RenderTooltip_InactiveDoesNothing) {
 TEST(RenderTest, Tooltip_WireHover_ShowsVoltage) {
     Blueprint bp = create_render_circuit();
 
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     sim.start(bp);
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -634,49 +632,41 @@ TEST(RenderTest, ContentBounds_OutputPortLabelOnRight) {
 // ============================================================================
 
 TEST(RenderTest, PortTypeColor_V) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::V);
     EXPECT_EQ(color, 0xFF5068C0) << "Voltage port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_I) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::I);
     EXPECT_EQ(color, 0xFF986850) << "Current port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_Bool) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Bool);
     EXPECT_EQ(color, 0xFF60905A) << "Bool port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_RPM) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::RPM);
     EXPECT_EQ(color, 0xFF3088C0) << "RPM port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_Temperature) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Temperature);
     EXPECT_EQ(color, 0xFF4050B0) << "Temperature port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_Pressure) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Pressure);
     EXPECT_EQ(color, 0xFF8C7848) << "Pressure port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_Position) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Position);
     EXPECT_EQ(color, 0xFFA86078) << "Position port color must match render_theme";
 }
 
 TEST(RenderTest, PortTypeColor_Any) {
-    using namespace an24;
     uint32_t color = render_theme::get_port_color(PortType::Any);
     EXPECT_EQ(color, 0xFF968685) << "Any port color must match render_theme";
 }
@@ -694,10 +684,10 @@ TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
 
     // Set port types to V (voltage)
     for (auto& port : batt.inputs) {
-        port.type = an24::PortType::V;
+        port.type = PortType::V;
     }
     for (auto& port : batt.outputs) {
-        port.type = an24::PortType::V;
+        port.type = PortType::V;
     }
 
     bp.add_node(std::move(batt));
@@ -708,7 +698,7 @@ TEST(RenderTest, PortRendering_VoltagePort_RendersRedCircle) {
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have voltage-colored circles
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::V)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::V)))
         << "Voltage ports should render with V port color";
 }
 
@@ -727,13 +717,13 @@ TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
     // Set port types
     for (auto& port : relay.inputs) {
         if (port.name == "control") {
-            port.type = an24::PortType::Bool;
+            port.type = PortType::Bool;
         } else {
-            port.type = an24::PortType::V;
+            port.type = PortType::V;
         }
     }
     for (auto& port : relay.outputs) {
-        port.type = an24::PortType::V;
+        port.type = PortType::V;
     }
 
     bp.add_node(std::move(relay));
@@ -744,7 +734,7 @@ TEST(RenderTest, PortRendering_BoolPort_RendersGreenCircle) {
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have bool-colored circles
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::Bool)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::Bool)))
         << "Boolean ports should render with Bool port color";
 }
 
@@ -763,15 +753,15 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
 
     // Set port types
     for (auto& port : apu.inputs) {
-        port.type = an24::PortType::V;
+        port.type = PortType::V;
     }
     for (auto& port : apu.outputs) {
         if (port.name == "rpm_out") {
-            port.type = an24::PortType::RPM;
+            port.type = PortType::RPM;
         } else if (port.name == "t4_out") {
-            port.type = an24::PortType::Temperature;
+            port.type = PortType::Temperature;
         } else {
-            port.type = an24::PortType::V;
+            port.type = PortType::V;
         }
     }
 
@@ -783,7 +773,7 @@ TEST(RenderTest, PortRendering_RPMPort_RendersOrangeCircle) {
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Should have RPM-colored circles
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::RPM)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::RPM)))
         << "RPM ports should render with RPM port color";
 }
 
@@ -799,13 +789,13 @@ TEST(RenderTest, WireCreation_CompatibleTypes_CanConnect) {
     batt1.id = "batt1";
     batt1.output("v_out");
     batt1.at(0, 0);
-    for (auto& p : batt1.outputs) p.type = an24::PortType::V;
+    for (auto& p : batt1.outputs) p.type = PortType::V;
 
     Node batt2;
     batt2.id = "batt2";
     batt2.input("v_in");
     batt2.at(200, 0);
-    for (auto& p : batt2.inputs) p.type = an24::PortType::V;
+    for (auto& p : batt2.inputs) p.type = PortType::V;
 
     bp.add_node(std::move(batt1));
     bp.add_node(std::move(batt2));
@@ -834,13 +824,13 @@ TEST(RenderTest, WireCreation_IncompatibleTypes_ShouldNotConnect) {
     batt.id = "batt";
     batt.output("v_out");
     batt.at(0, 0);
-    for (auto& p : batt.outputs) p.type = an24::PortType::V;
+    for (auto& p : batt.outputs) p.type = PortType::V;
 
     Node apu;
     apu.id = "apu";
     apu.input("rpm_in");
     apu.at(200, 0);
-    for (auto& p : apu.inputs) p.type = an24::PortType::RPM;
+    for (auto& p : apu.inputs) p.type = PortType::RPM;
 
     bp.add_node(std::move(batt));
     bp.add_node(std::move(apu));
@@ -869,13 +859,13 @@ TEST(RenderTest, WireCreation_BoolToV_ShouldNotConnect) {
     button.id = "button";
     button.output("state");
     button.at(0, 0);
-    for (auto& p : button.outputs) p.type = an24::PortType::Bool;
+    for (auto& p : button.outputs) p.type = PortType::Bool;
 
     Node batt;
     batt.id = "batt";
     batt.input("v_in");
     batt.at(200, 0);
-    for (auto& p : batt.inputs) p.type = an24::PortType::V;
+    for (auto& p : batt.inputs) p.type = PortType::V;
 
     bp.add_node(std::move(button));
     bp.add_node(std::move(batt));
@@ -904,13 +894,13 @@ TEST(RenderTest, WireCreation_AnyType_CanConnectToAny) {
     adaptor.id = "adaptor";
     adaptor.output("out");
     adaptor.at(0, 0);
-    for (auto& p : adaptor.outputs) p.type = an24::PortType::Any;
+    for (auto& p : adaptor.outputs) p.type = PortType::Any;
 
     Node apu;
     apu.id = "apu";
     apu.input("rpm_in");
     apu.at(200, 0);
-    for (auto& p : apu.inputs) p.type = an24::PortType::RPM;
+    for (auto& p : apu.inputs) p.type = PortType::RPM;
 
     bp.add_node(std::move(adaptor));
     bp.add_node(std::move(apu));
@@ -943,19 +933,19 @@ TEST(RenderTest, OneToOne_WireToOccupiedPort_ShouldFail) {
     bat1.id = "bat1";
     bat1.output("v_out");
     bat1.at(0, 0);
-    for (auto& p : bat1.outputs) p.type = an24::PortType::V;
+    for (auto& p : bat1.outputs) p.type = PortType::V;
 
     Node bat2;
     bat2.id = "bat2";
     bat2.output("v_out");
     bat2.at(200, 0);
-    for (auto& p : bat2.outputs) p.type = an24::PortType::V;
+    for (auto& p : bat2.outputs) p.type = PortType::V;
 
     Node load;
     load.id = "load";
     load.input("v_in");
     load.at(100, 100);
-    for (auto& p : load.inputs) p.type = an24::PortType::V;
+    for (auto& p : load.inputs) p.type = PortType::V;
 
     bp.add_node(std::move(bat1));
     bp.add_node(std::move(bat2));
@@ -1002,13 +992,13 @@ TEST(RenderTest, OneToOne_BusPort_CanHaveMultipleWires) {
     bat1.id = "bat1";
     bat1.output("v_out");
     bat1.at(0, 0);
-    for (auto& p : bat1.outputs) p.type = an24::PortType::V;
+    for (auto& p : bat1.outputs) p.type = PortType::V;
 
     Node bat2;
     bat2.id = "bat2";
     bat2.output("v_out");
     bat2.at(200, 0);
-    for (auto& p : bat2.outputs) p.type = an24::PortType::V;
+    for (auto& p : bat2.outputs) p.type = PortType::V;
 
     bp.add_node(std::move(bus));
     bp.add_node(std::move(bat1));
@@ -1632,7 +1622,7 @@ TEST(RenderTest, ResizeHandles_NotShownWhenUnselected) {
 
 TEST(RenderTest, VisualOnly_TypeRegistryGroupHasFlag) {
     // Load type registry — Group.json should have visual_only=true
-    an24::TypeRegistry reg = an24::load_type_registry();
+    TypeRegistry reg = load_type_registry();
     const auto* group_def = reg.get("Group");
     ASSERT_NE(group_def, nullptr) << "Group type must be in registry";
     EXPECT_TRUE(group_def->visual_only)
@@ -1642,7 +1632,7 @@ TEST(RenderTest, VisualOnly_TypeRegistryGroupHasFlag) {
 
 TEST(RenderTest, VisualOnly_DefaultIsFalse) {
     // Battery type should NOT have visual_only
-    an24::TypeRegistry reg = an24::load_type_registry();
+    TypeRegistry reg = load_type_registry();
     const auto* batt_def = reg.get("Battery");
     ASSERT_NE(batt_def, nullptr) << "Battery type must be in registry";
     EXPECT_FALSE(batt_def->visual_only)
@@ -1651,31 +1641,31 @@ TEST(RenderTest, VisualOnly_DefaultIsFalse) {
 
 TEST(RenderTest, VisualOnly_PropagatedToDeviceInstance) {
     // Create a TypeDefinition with visual_only=true
-    an24::TypeDefinition group_def;
+    TypeDefinition group_def;
     group_def.classname = "Group";
     group_def.visual_only = true;
 
     // Create a minimal DeviceInstance
-    an24::DeviceInstance inst;
+    DeviceInstance inst;
     inst.name = "grp1";
     inst.classname = "Group";
 
     // merge_device_instance propagates visual_only
-    auto merged = an24::merge_device_instance(inst, group_def);
+    auto merged = merge_device_instance(inst, group_def);
     EXPECT_TRUE(merged.visual_only)
         << "merge_device_instance should propagate visual_only from definition";
 }
 
 TEST(RenderTest, VisualOnly_NotPropagatedWhenFalse) {
-    an24::TypeDefinition batt_def;
+    TypeDefinition batt_def;
     batt_def.classname = "Battery";
     batt_def.visual_only = false;  // default
 
-    an24::DeviceInstance inst;
+    DeviceInstance inst;
     inst.name = "bat1";
     inst.classname = "Battery";
 
-    auto merged = an24::merge_device_instance(inst, batt_def);
+    auto merged = merge_device_instance(inst, batt_def);
     EXPECT_FALSE(merged.visual_only)
         << "Non-visual-only type should NOT mark instance as visual_only";
 }
@@ -1728,7 +1718,7 @@ TEST(RenderTest, VisualOnly_SolverSkipsGroupDevice) {
     bp.add_wire(std::move(w2));
 
     // Should NOT throw "Unknown component type: Group"
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     EXPECT_NO_THROW(sim.start(bp))
         << "Solver should skip visual_only devices like Group";
 
@@ -2034,7 +2024,7 @@ TEST(TextNode, FontSize_UnknownDefaultsToLarge) {
 // ============================================================================
 
 TEST(RenderTest, VisualOnly_TypeRegistryTextHasFlag) {
-    an24::TypeRegistry reg = an24::load_type_registry();
+    TypeRegistry reg = load_type_registry();
     const auto* text_def = reg.get("Text");
     ASSERT_NE(text_def, nullptr) << "Text type must be in registry";
     EXPECT_TRUE(text_def->visual_only)
@@ -2052,12 +2042,12 @@ TEST(RenderTest, VerticalToggle_NoDuplicatePorts) {
     node.id = "azs1";
     node.name = "azs_1";
     node.type_name = "AZS";
-    node.input("control", an24::PortType::I);
-    node.input("v_in", an24::PortType::V);
-    node.output("v_out", an24::PortType::V);
-    node.output("state", an24::PortType::Bool);
-    node.output("temp", an24::PortType::Temperature);
-    node.output("tripped", an24::PortType::Bool);
+    node.input("control", PortType::I);
+    node.input("v_in", PortType::V);
+    node.output("v_out", PortType::V);
+    node.output("state", PortType::Bool);
+    node.output("temp", PortType::Temperature);
+    node.output("tripped", PortType::Bool);
     node.node_content.type = NodeContentType::VerticalToggle;
     node.node_content.state = false;
 
@@ -2082,9 +2072,9 @@ TEST(RenderTest, VerticalToggle_OutputPortsAtRightEdge) {
     node.id = "azs2";
     node.name = "azs_2";
     node.type_name = "AZS";
-    node.input("v_in", an24::PortType::V);
-    node.output("v_out", an24::PortType::V);
-    node.output("state", an24::PortType::Bool);
+    node.input("v_in", PortType::V);
+    node.output("v_out", PortType::V);
+    node.output("state", PortType::Bool);
     node.at(100, 200);
     node.node_content.type = NodeContentType::VerticalToggle;
     node.node_content.state = false;
@@ -2115,10 +2105,10 @@ TEST(RenderTest, VerticalToggle_SamePortCountAsSwitch) {
         node.id = id;
         node.name = id;
         node.type_name = "AZS";
-        node.input("control", an24::PortType::I);
-        node.input("v_in", an24::PortType::V);
-        node.output("v_out", an24::PortType::V);
-        node.output("state", an24::PortType::Bool);
+        node.input("control", PortType::I);
+        node.input("v_in", PortType::V);
+        node.output("v_out", PortType::V);
+        node.output("state", PortType::Bool);
         node.node_content.type = type;
         node.node_content.state = false;
         return node;
@@ -2141,8 +2131,8 @@ TEST(RenderTest, VerticalToggle_CacheInvalidationOnContentTypeChange) {
     node.id = "azs_cache";
     node.name = "azs_cache";
     node.type_name = "AZS";
-    node.input("v_in", an24::PortType::V);
-    node.output("v_out", an24::PortType::V);
+    node.input("v_in", PortType::V);
+    node.output("v_out", PortType::V);
     node.node_content.type = NodeContentType::Switch;
     node.node_content.state = false;
 
@@ -2167,8 +2157,8 @@ TEST(RenderTest, VerticalToggle_HasContentBounds) {
     node.id = "azs_cb";
     node.name = "azs_cb";
     node.type_name = "AZS";
-    node.input("v_in", an24::PortType::V);
-    node.output("v_out", an24::PortType::V);
+    node.input("v_in", PortType::V);
+    node.output("v_out", PortType::V);
     node.node_content.type = NodeContentType::VerticalToggle;
     node.node_content.state = false;
 

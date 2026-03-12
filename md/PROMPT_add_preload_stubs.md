@@ -10,7 +10,7 @@
 
 **Файл:** `src/jit_solver/components/all.h`
 
-Все компоненты — шаблонные классы внутри `namespace an24 { ... }`.
+Все компоненты — шаблонные классы в файле.
 Каждый класс выглядит примерно так:
 
 ```cpp
@@ -21,7 +21,7 @@ public:
     Provider provider;
     // ... поля ...
     ИмяКласса() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     // возможно post_step, solve_thermal и т.д.
 };
 ```
@@ -82,8 +82,8 @@ public:
     float downstream_I = 0.0f;
     float v_out_old = 0.0f;
     Switch() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
 };
 ```
 
@@ -101,8 +101,8 @@ public:
     float downstream_I = 0.0f;
     float v_out_old = 0.0f;
     Switch() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -117,7 +117,7 @@ public:
     static constexpr Domain domain = Domain::Logical;
     Provider provider;
     Add() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
 };
 
 // После:
@@ -127,7 +127,7 @@ public:
     static constexpr Domain domain = Domain::Logical;
     Provider provider;
     Add() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -136,7 +136,7 @@ public:
 
 ```cpp
 // Добавь pre_load() {} в PUBLIC секцию, ПЕРЕД private:
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 
     static bool parse_table(...);

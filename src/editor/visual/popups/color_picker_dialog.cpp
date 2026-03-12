@@ -2,7 +2,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 void ColorPickerDialog::render(WindowSystem& ws) {
     if (ws.colorPicker.show) {
@@ -57,4 +56,3 @@ void ColorPickerDialog::render(WindowSystem& ws) {
     }
 }
 
-} // namespace an24

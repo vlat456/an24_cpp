@@ -446,8 +446,8 @@ public:
     Blueprint& get_blueprint() { return blueprint_; }
     const Blueprint& get_blueprint() const { return blueprint_; }
 
-    an24::Simulator<an24::JIT_Solver>& get_simulation() { return simulation_; }
-    const an24::Simulator<an24::JIT_Solver>& get_simulation() const {
+    Simulator<JIT_Solver>& get_simulation() { return simulation_; }
+    const Simulator<JIT_Solver>& get_simulation() const {
         return simulation_;
     }
 
@@ -482,8 +482,8 @@ public:
     // Node content sync
     // ========================================================================
 
-    void update_node_content_from_simulation(an24::TypeRegistry& registry);
-    void reset_node_content(an24::TypeRegistry& registry);
+    void update_node_content_from_simulation(TypeRegistry& registry);
+    void reset_node_content(TypeRegistry& registry);
 
     // ========================================================================
     // Input handling
@@ -561,7 +561,7 @@ private:
     Blueprint blueprint_;
 
     /// Simulation instance
-    an24::Simulator<an24::JIT_Solver> simulation_;
+    Simulator<JIT_Solver> simulation_;
 
     /// Simulation running state
     bool simulation_running_ = false;
@@ -576,7 +576,7 @@ private:
     std::unordered_set<std::string> held_buttons_;
 
     /// Type registry reference (set by WindowSystem)
-    an24::TypeRegistry* type_registry_ = nullptr;
+    TypeRegistry* type_registry_ = nullptr;
     friend class WindowSystem;
 };
 ```
@@ -798,7 +798,7 @@ public:
     // ========================================================================
 
     /// Type registry (shared across all documents)
-    an24::TypeRegistry& type_registry() { return type_registry_; }
+    TypeRegistry& type_registry() { return type_registry_; }
 
     /// Context menu state (tracks which document triggered it)
     struct ContextMenuState {
@@ -853,7 +853,7 @@ private:
     size_t next_document_id_ = 1;
 
     /// Type registry (loaded at startup)
-    an24::TypeRegistry type_registry_;
+    TypeRegistry type_registry_;
 
     /// Panel windows
     InspectorWindow inspector_;
@@ -1210,7 +1210,7 @@ WindowSystem::WindowSystem()
     , properties_()
 {
     // Load type registry at startup
-    type_registry_ = an24::load_type_registry();
+    type_registry_ = load_type_registry();
 
     // Create initial untitled document
     create_document();

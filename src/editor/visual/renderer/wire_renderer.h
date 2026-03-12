@@ -13,8 +13,8 @@
 class WireRenderer {
 public:
     void render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
-                Pt canvas_min, an24::VisualNodeCache& cache,
-                const an24::Simulator<an24::JIT_Solver>* sim,
+                Pt canvas_min, VisualNodeCache& cache,
+                const Simulator<JIT_Solver>* sim,
                 std::optional<size_t> selected_wire,
                 std::optional<size_t> hovered_wire = std::nullopt,
                 const std::string& group_id = "");

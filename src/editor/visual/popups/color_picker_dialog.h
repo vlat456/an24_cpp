@@ -3,7 +3,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 /// Color picker dialog
 class ColorPickerDialog {
@@ -17,4 +16,3 @@ private:
     void hide() { showing_ = false; }
 };
 
-} // namespace an24

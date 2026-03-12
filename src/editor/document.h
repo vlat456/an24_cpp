@@ -60,8 +60,8 @@ public:
 
     // ── Simulation ──
 
-    an24::Simulator<an24::JIT_Solver>& simulation() { return simulation_; }
-    const an24::Simulator<an24::JIT_Solver>& simulation() const { return simulation_; }
+    Simulator<JIT_Solver>& simulation() { return simulation_; }
+    const Simulator<JIT_Solver>& simulation() const { return simulation_; }
     bool isSimulationRunning() const { return simulation_running_; }
 
     void startSimulation();
@@ -72,7 +72,7 @@ public:
     /// Update node_content (gauges, switches, etc.) from simulation values.
     /// Needs TypeRegistry for reset_node_content logic.
     void updateNodeContentFromSimulation();
-    void resetNodeContent(const an24::TypeRegistry& registry);
+    void resetNodeContent(const TypeRegistry& registry);
 
     // ── Signal overrides (switch/button clicks) ──
 
@@ -87,10 +87,10 @@ public:
 
     void addComponent(const std::string& classname, Pt world_pos,
                       const std::string& group_id,
-                      an24::TypeRegistry& registry);
+                      TypeRegistry& registry);
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
                       const std::string& group_id,
-                      an24::TypeRegistry& registry);
+                      TypeRegistry& registry);
 
     // ── Sub-windows ──
 
@@ -119,7 +119,7 @@ private:
 
     Blueprint blueprint_;
     WindowManager window_manager_{blueprint_};
-    an24::Simulator<an24::JIT_Solver> simulation_;
+    Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 
     std::unordered_map<std::string, float> signal_overrides_;

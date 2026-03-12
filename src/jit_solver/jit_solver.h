@@ -10,8 +10,6 @@
 // DeviceInstance is defined in json_parser/json_parser.h
 #include "../json_parser/json_parser.h"
 
-namespace an24 {
-
 // Forward declarations
 struct SimulationState;
 
@@ -60,5 +58,3 @@ BuildResult build_systems_dev(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
 );
-
-} // namespace an24

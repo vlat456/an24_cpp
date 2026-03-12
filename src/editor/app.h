@@ -29,11 +29,11 @@ struct EditorApp {
     WireManager& wire_manager = window_manager.root().wire_manager;
 
     /// JIT Simulation (manages component lifecycle)
-    an24::Simulator<an24::JIT_Solver> simulation;
+    Simulator<JIT_Solver> simulation;
     bool simulation_running = false;
 
     /// Type registry (loaded from library/*.blueprint)
-    an24::TypeRegistry type_registry;
+    TypeRegistry type_registry;
 
     /// Context menu state (tracks which window triggered it)
     bool show_context_menu = false;
@@ -69,14 +69,14 @@ struct EditorApp {
         : inspector(&window_manager.root().scene)  // Inspector needs scene pointer
     {
         // Load type registry at startup
-        type_registry = an24::load_type_registry();
+        type_registry = load_type_registry();
     }
 
     /// Создать новую схему
     void new_circuit() {
         window_manager.closeAll();
         scene.reset();
-        simulation = an24::Simulator<an24::JIT_Solver>();
+        simulation = Simulator<JIT_Solver>();
         simulation_running = false;
     }
 

@@ -8,7 +8,6 @@
 
 struct ImDrawList;
 
-namespace an24 {
 
 /// Document area with tabs and canvas rendering.
 class DocumentArea {
@@ -29,4 +28,3 @@ private:
     void renderCanvas(::WindowSystem& ws, float x, float y, float width, float height);
 };
 
-} // namespace an24

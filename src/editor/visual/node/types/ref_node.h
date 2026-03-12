@@ -2,7 +2,6 @@
 
 #include "editor/visual/node/node.h"
 
-namespace an24 {
 
 class RefVisualNode : public VisualNode {
 public:
@@ -14,4 +13,3 @@ public:
                bool is_selected) const override;
 };
 
-} // namespace an24

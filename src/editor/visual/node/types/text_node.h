@@ -3,7 +3,6 @@
 #include "editor/visual/node/node.h"
 #include <string>
 
-namespace an24 {
 
 class TextVisualNode : public VisualNode {
 public:
@@ -20,4 +19,3 @@ private:
     float font_size_base_;
 };
 
-} // namespace an24

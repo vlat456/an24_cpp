@@ -6,7 +6,6 @@
 #include "editor/window/blueprint_window.h"
 #include <functional>
 
-namespace an24 {
 
 /// Renders node content widgets (gauges, switches, sliders, text)
 /// Follows SRP - only handles node content rendering, not canvas/grid/wires
@@ -33,4 +32,3 @@ private:
     bool isHoldButton(const Node& node) const;
 };
 
-} // namespace an24

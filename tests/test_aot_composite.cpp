@@ -2,7 +2,6 @@
 #include "codegen/codegen.h"
 #include "json_parser/json_parser.h"
 
-using namespace an24;
 
 // ============================================================
 // Composite Systems generation

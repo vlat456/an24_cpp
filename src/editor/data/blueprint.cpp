@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <spdlog/spdlog.h>
 
+
 // BUGFIX [e4a1b7] Runtime dedup: reject exact-duplicate wires with warning
 // [2.1] O(1) set-based dedup replaces O(n) linear scan
 size_t Blueprint::add_wire(Wire wire) {
@@ -23,9 +24,9 @@ size_t Blueprint::add_wire(Wire wire) {
 }
 
 /// Check if two port types are compatible for connection
-static bool are_ports_compatible(an24::PortType from_type, an24::PortType to_type) {
+static bool are_ports_compatible(PortType from_type, PortType to_type) {
     // Any type is wildcard - compatible with everything
-    if (from_type == an24::PortType::Any || to_type == an24::PortType::Any) {
+    if (from_type == PortType::Any || to_type == PortType::Any) {
         return true;
     }
     // Types must match exactly
@@ -33,7 +34,7 @@ static bool are_ports_compatible(an24::PortType from_type, an24::PortType to_typ
 }
 
 /// Find a port in a node's inputs or outputs
-static an24::PortType find_port_type(const Node& node, const std::string& port_name) {
+static PortType find_port_type(const Node& node, const std::string& port_name) {
     // Search inputs
     for (const auto& port : node.inputs) {
         if (port.name == port_name) {
@@ -47,7 +48,7 @@ static an24::PortType find_port_type(const Node& node, const std::string& port_n
         }
     }
     // Default to Any if not found
-    return an24::PortType::Any;
+    return PortType::Any;
 }
 
 // [SMELL-k1l2] Removed 17 fprintf debug lines — use spdlog for diagnostic logging instead
@@ -64,8 +65,8 @@ bool Blueprint::add_wire_validated(Wire wire) {
     if (!start_node || !end_node) return false;
 
     // Get port types
-    an24::PortType start_type = find_port_type(*start_node, wire.start.port_name);
-    an24::PortType end_type = find_port_type(*end_node, wire.end.port_name);
+    PortType start_type = find_port_type(*start_node, wire.start.port_name);
+    PortType end_type = find_port_type(*end_node, wire.end.port_name);
 
     // Check compatibility
     if (!are_ports_compatible(start_type, end_type)) return false;
@@ -256,9 +257,8 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
 
 // ─── Shared blueprint expansion ───
 
-Blueprint expand_type_definition(const an24::TypeDefinition& def, const an24::TypeRegistry& registry) {
-    using namespace an24;
-    Blueprint bp;
+Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& registry) {
+     Blueprint bp;
 
     for (const auto& dev : def.devices) {
         Node node;

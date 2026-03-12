@@ -176,4 +176,4 @@ struct Blueprint {
 /// Expand a TypeDefinition (blueprint) into a Blueprint with Nodes + Wires.
 /// Uses stored positions/routing_points when available; falls back to TypeRegistry for ports.
 /// This is the single code path for turning a TypeDefinition into editor-ready Nodes/Wires.
-Blueprint expand_type_definition(const an24::TypeDefinition& def, const an24::TypeRegistry& registry);
+Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& registry);

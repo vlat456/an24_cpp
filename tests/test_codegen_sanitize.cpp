@@ -7,7 +7,6 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 
-using namespace an24;
 
 // Helper: build a minimal circuit with blueprint-expanded device names
 // (names like "simple_battery_1:bat" come from hierarchical blueprint expansion)

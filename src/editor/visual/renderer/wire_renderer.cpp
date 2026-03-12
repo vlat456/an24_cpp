@@ -8,11 +8,12 @@
 #include <cmath>
 #include <unordered_map>
 
-using VisualNodeCache = an24::VisualNodeCache;
+
+using VisualNodeCache = VisualNodeCache;
 
 void WireRenderer::render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
                           Pt canvas_min, VisualNodeCache& cache,
-                          const an24::Simulator<an24::JIT_Solver>* sim,
+                          const Simulator<JIT_Solver>* sim,
                           std::optional<size_t> selected_wire,
                           std::optional<size_t> hovered_wire,
                           const std::string& group_id) {

@@ -13,10 +13,6 @@
 #include <fstream>
 #include <filesystem>
 
-using an24::BusVisualNode;
-using an24::BusOrientation;
-using an24::VisualNodeCache;
-
 /// TDD Step 2: Persist - сначала тесты
 
 TEST(PersistTest, ToJson_EmptyBlueprint) {
@@ -341,7 +337,6 @@ TEST(PersistTest, RefNode_ValueByKind_NotTypeName) {
 
 TEST(PersistTest, GetDefaultNodeSize_Bus_Returns40x40) {
     // Bus has default_size {2, 2} in JSON = 40x40 pixels
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("Bus", &registry);
@@ -351,7 +346,6 @@ TEST(PersistTest, GetDefaultNodeSize_Bus_Returns40x40) {
 
 TEST(PersistTest, GetDefaultNodeSize_RefNode_Returns40x40) {
     // RefNode has default_size {2, 2} in JSON = 40x40 pixels
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("RefNode", &registry);
@@ -361,7 +355,6 @@ TEST(PersistTest, GetDefaultNodeSize_RefNode_Returns40x40) {
 
 TEST(PersistTest, GetDefaultNodeSize_Ref_Alias_Returns40x40) {
     // Ref (alias for RefNode) - uses same size through registry
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     Pt size = get_default_node_size("RefNode", &registry);
@@ -378,8 +371,6 @@ TEST(PersistTest, GetDefaultNodeSize_UnknownComponent_Returns120x80) {
 
 TEST(PersistTest, GetDefaultNodeSize_WithRegistry) {
     // Test that default_size from component registry is used correctly
-    using namespace an24;
-
     TypeRegistry registry;
 
     // Create a mock component definition with default_size
@@ -397,8 +388,6 @@ TEST(PersistTest, GetDefaultNodeSize_WithRegistry) {
 TEST(PersistTest, GetDefaultNodeSize_Splitter_Returns60x60) {
     // Splitter has default_size {3, 3} in its JSON definition
     // 3x3 grid units = 60x60 pixels
-    using namespace an24;
-
     // Load real component registry
     TypeRegistry registry = load_type_registry("library/");
 
@@ -415,8 +404,6 @@ TEST(PersistTest, GetDefaultNodeSize_Splitter_Returns60x60) {
 
 TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
     // Test that grid unit conversion is correct: 1 unit = 20 pixels
-    using namespace an24;
-
     TypeRegistry registry;
 
     TypeDefinition def;
@@ -440,7 +427,6 @@ TEST(PersistTest, GetDefaultNodeSize_GridUnitConversion) {
 TEST(PersistTest, BusVisualNode_InitialSizeFromTypeDefinition) {
     // Bus has default_size {2, 2} in JSON = 40x40 pixels
     // Visual grid snapping (16px) snaps 40px up to 48px (3 * 16)
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     Node n;
@@ -461,7 +447,6 @@ TEST(PersistTest, BusVisualNode_InitialSizeFromTypeDefinition) {
 
 TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
     // Bus should resize when a wire is connected (port count increases)
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     // Create bus node
@@ -507,7 +492,6 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireAdded) {
 
 TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
     // Bus should resize when a wire is disconnected (port count decreases)
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     // Create bus node
@@ -570,7 +554,6 @@ TEST(PersistTest, BusVisualNode_ResizesWhenWireRemoved) {
 
 TEST(PersistTest, BusVisualNode_SizeIsGridSnapped) {
     // Bus size should always be a multiple of GRID_STEP (16px)
-    using namespace an24;
     TypeRegistry registry = load_type_registry("library/");
 
     Node n;
@@ -617,10 +600,10 @@ TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
     bus.render_hint = "bus";
     bus.at(100.0f, 100.0f);
     // Bus port is InOut with type V
-    Port bus_port;
+    EditorPort bus_port;
     bus_port.name = "v";
     bus_port.side = PortSide::InOut;
-    bus_port.type = an24::PortType::V;
+    bus_port.type = PortType::V;
     bus.inputs.push_back(bus_port);
     bus.outputs.push_back(bus_port);
     bp.add_node(std::move(bus));
@@ -630,9 +613,9 @@ TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
     dmr.name = "dmr1";
     dmr.type_name = "DMR400";
     dmr.at(200.0f, 100.0f);
-    Port vin; vin.name = "v_in"; vin.side = PortSide::Input; vin.type = an24::PortType::V;
-    Port vout; vout.name = "v_out"; vout.side = PortSide::Output; vout.type = an24::PortType::V;
-    Port lamp; lamp.name = "lamp"; lamp.side = PortSide::Output; lamp.type = an24::PortType::V;
+    EditorPort vin; vin.name = "v_in"; vin.side = PortSide::Input; vin.type = PortType::V;
+    EditorPort vout; vout.name = "v_out"; vout.side = PortSide::Output; vout.type = PortType::V;
+    EditorPort lamp; lamp.name = "lamp"; lamp.side = PortSide::Output; lamp.type = PortType::V;
     dmr.inputs.push_back(vin);
     dmr.outputs.push_back(vout);
     dmr.outputs.push_back(lamp);
@@ -659,13 +642,13 @@ TEST(PersistTest, PortType_EditorFormat_Roundtrip) {
     ASSERT_NE(loaded_dmr, nullptr);
     for (const auto& p : loaded_dmr->inputs) {
         if (p.name == "v_in")
-            EXPECT_EQ(p.type, an24::PortType::V) << "v_in port type should be V";
+            EXPECT_EQ(p.type, PortType::V) << "v_in port type should be V";
     }
     for (const auto& p : loaded_dmr->outputs) {
         if (p.name == "v_out")
-            EXPECT_EQ(p.type, an24::PortType::V) << "v_out port type should be V";
+            EXPECT_EQ(p.type, PortType::V) << "v_out port type should be V";
         if (p.name == "lamp")
-            EXPECT_EQ(p.type, an24::PortType::V) << "lamp port type should be V";
+            EXPECT_EQ(p.type, PortType::V) << "lamp port type should be V";
     }
 }
 
@@ -680,10 +663,10 @@ TEST(PersistTest, InOutPort_AllowsWireFromBothDirections) {
     bus.name = "bus1";
     bus.type_name = "Bus";
     bus.render_hint = "bus";
-    Port bus_port;
+    EditorPort bus_port;
     bus_port.name = "v";
     bus_port.side = PortSide::InOut;
-    bus_port.type = an24::PortType::V;
+    bus_port.type = PortType::V;
     bus.inputs.push_back(bus_port);
     bus.outputs.push_back(bus_port);
     bp.add_node(std::move(bus));
@@ -693,7 +676,7 @@ TEST(PersistTest, InOutPort_AllowsWireFromBothDirections) {
     dmr.id = "dmr1";
     dmr.name = "dmr1";
     dmr.type_name = "DMR400";
-    Port vout; vout.name = "v_out"; vout.side = PortSide::Output;
+    EditorPort vout; vout.name = "v_out"; vout.side = PortSide::Output;
     dmr.outputs.push_back(vout);
     bp.add_node(std::move(dmr));
 
@@ -709,7 +692,7 @@ TEST(PersistTest, InOutPort_AllowsWireFromBothDirections) {
     src.id = "src1";
     src.name = "src1";
     src.type_name = "Battery";
-    Port src_out; src_out.name = "v_out"; src_out.side = PortSide::Output;
+    EditorPort src_out; src_out.name = "v_out"; src_out.side = PortSide::Output;
     src.outputs.push_back(src_out);
     bp.add_node(std::move(src));
 
@@ -1541,14 +1524,14 @@ TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
     // for all known content types (this is what reset_node_content now uses).
 
     // Gauge type (e.g., Voltmeter)
-    an24::TypeDefinition gauge_def;
+    TypeDefinition gauge_def;
     gauge_def.content_type = "Gauge";
     NodeContent gc = create_node_content_from_def(&gauge_def);
     EXPECT_EQ(gc.type, NodeContentType::Gauge);
     EXPECT_EQ(gc.value, 0.0f);
 
     // Switch type
-    an24::TypeDefinition switch_def;
+    TypeDefinition switch_def;
     switch_def.content_type = "Switch";
     switch_def.params["closed"] = "true";
     NodeContent sc = create_node_content_from_def(&switch_def);
@@ -1556,7 +1539,7 @@ TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
     EXPECT_TRUE(sc.state) << "Switch with closed=true should default to state=true";
 
     // HoldButton type
-    an24::TypeDefinition hb_def;
+    TypeDefinition hb_def;
     hb_def.content_type = "HoldButton";
     NodeContent hc = create_node_content_from_def(&hb_def);
     EXPECT_EQ(hc.type, NodeContentType::Switch);
@@ -1564,14 +1547,14 @@ TEST(PersistTest, CreateNodeContentFromDef_ResetToDefaults) {
     EXPECT_FALSE(hc.state);
 
     // Text type (e.g., IndicatorLight)
-    an24::TypeDefinition text_def;
+    TypeDefinition text_def;
     text_def.content_type = "Text";
     NodeContent tc = create_node_content_from_def(&text_def);
     EXPECT_EQ(tc.type, NodeContentType::Text);
     EXPECT_EQ(tc.label, "OFF");
 
     // Unknown type
-    an24::TypeDefinition unk_def;
+    TypeDefinition unk_def;
     unk_def.content_type = "WeirdFutureType";
     NodeContent uc = create_node_content_from_def(&unk_def);
     EXPECT_EQ(uc.type, NodeContentType::None)

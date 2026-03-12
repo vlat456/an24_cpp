@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <fstream>
 
-using namespace an24;
 
 TEST(JsonParserTest, ParseEmptyContext) {
     std::string json = R"({"templates":{},"devices":[],"connections":[]})";

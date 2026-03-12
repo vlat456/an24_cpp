@@ -19,18 +19,18 @@ class BlueprintRenderer {
 public:
     /// Render grid + wires + nodes.
     void render(const Blueprint& bp, IDrawList& dl, const Viewport& vp,
-                Pt canvas_min, Pt canvas_max, an24::VisualNodeCache& cache,
+                Pt canvas_min, Pt canvas_max, VisualNodeCache& cache,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
-                const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
+                const Simulator<JIT_Solver>* sim = nullptr,
                 std::optional<size_t> hovered_wire = std::nullopt,
                 const std::string& group_id = "");
 
     /// Detect tooltip at hover position (call after render()).
     TooltipInfo detectTooltip(const Blueprint& bp, const Viewport& vp,
-                              Pt canvas_min, an24::VisualNodeCache& cache,
+                              Pt canvas_min, VisualNodeCache& cache,
                               Pt world_pos,
-                              const an24::Simulator<an24::JIT_Solver>& sim,
+                              const Simulator<JIT_Solver>& sim,
                               const editor_spatial::SpatialGrid& grid,
                               const std::string& group_id = "") const;
 

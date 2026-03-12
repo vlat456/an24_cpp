@@ -4,7 +4,6 @@
 #include "editor/layout_constants.h"
 #include <cmath>
 
-namespace an24 {
 namespace node_utils {
 
 inline Pt snap_to_grid(Pt pos) {
@@ -22,4 +21,3 @@ inline Pt snap_size_to_grid(Pt size) {
 }
 
 } // namespace node_utils
-} // namespace an24

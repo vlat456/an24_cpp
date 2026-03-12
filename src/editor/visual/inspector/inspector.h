@@ -70,7 +70,7 @@ private:
     std::string search_lower_;  // precomputed lowercase of search_
 
     // Data model helpers (inspector_core.cpp)
-    std::string findConnectionFor(const Node& node, const Port& port, PortSide side) const;
+    std::string findConnectionFor(const Node& node, const EditorPort& port, PortSide side) const;
     void sortDisplayTree();
     bool passesFilter(const Node& node) const;
 

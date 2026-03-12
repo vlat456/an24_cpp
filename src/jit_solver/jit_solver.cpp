@@ -9,8 +9,6 @@
 #include <optional>
 #include <vector>
 
-namespace an24 {
-
 namespace {
 
 // string_to_port_name is now auto-generated in port_registry.h
@@ -703,5 +701,3 @@ BuildResult build_systems_dev(
 
     return result;
 }
-
-} // namespace an24

@@ -671,7 +671,7 @@ TEST(Document, IsPristine_AfterLoad) {
 
 TEST(Document, IsPristine_AfterAddComponent) {
     Document doc;
-    an24::TypeRegistry registry = an24::load_type_registry();
+    TypeRegistry registry = load_type_registry();
     
     EXPECT_TRUE(doc.isPristine());
     
@@ -741,7 +741,7 @@ TEST(WindowSystem, OpenDocument_AddsTabWhenNotPristine) {
     f.close();
 
     WindowSystem ws;
-    an24::TypeRegistry registry = an24::load_type_registry();
+    TypeRegistry registry = load_type_registry();
     
     // Modify the pristine Untitled so it's no longer pristine
     ws.activeDocument()->addComponent("Battery", Pt(100, 100), "", registry);
@@ -846,7 +846,7 @@ TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
 // EDGE: Document becomes not pristine after adding a wire
 TEST(Document, IsPristine_AfterAddWire) {
     Document doc;
-    an24::TypeRegistry registry = an24::load_type_registry();
+    TypeRegistry registry = load_type_registry();
     
     EXPECT_TRUE(doc.isPristine());
     
@@ -911,7 +911,7 @@ TEST(RecentFiles, HandlesUnicodePath) {
 // EDGE: CloseDocument with sub-windows open
 TEST(WindowSystem, CloseDocument_WithSubWindowsOpen) {
     WindowSystem ws;
-    an24::TypeRegistry registry = an24::load_type_registry();
+    TypeRegistry registry = load_type_registry();
     
     // Create a document with sub-blueprint
     ws.activeDocument()->addComponent("Battery", Pt(100, 100), "", registry);

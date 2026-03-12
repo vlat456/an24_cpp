@@ -38,7 +38,7 @@ public:
 
     Inspector& inspector() { return inspector_; }
     PropertiesWindow& propertiesWindow() { return properties_window_; }
-    an24::TypeRegistry& typeRegistry() { return type_registry_; }
+    TypeRegistry& typeRegistry() { return type_registry_; }
 
     // ── Context menu state (with source document) ──
 
@@ -90,7 +90,7 @@ public:
 private:
     std::vector<std::unique_ptr<Document>> documents_;
     Document* active_document_ = nullptr;
-    an24::TypeRegistry type_registry_;
+    TypeRegistry type_registry_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
 };

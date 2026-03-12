@@ -5,7 +5,6 @@
 #include "jit_solver/components/all.h"
 #include "json_parser/json_parser.h"
 
-using namespace an24;
 
 // =============================================================================
 // Helper: create DeviceInstance with common fields

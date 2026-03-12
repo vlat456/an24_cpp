@@ -4,7 +4,6 @@
 #include "editor/input/input_types.h"
 #include <imgui.h>
 
-namespace an24 {
 
 void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& ws,
                             Pt cmin, Pt cmax, ImDrawList* draw_list, bool hovered) {
@@ -162,4 +161,3 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     }
 }
 
-} // namespace an24

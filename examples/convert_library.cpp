@@ -19,6 +19,8 @@
 #include <fstream>
 #include <iostream>
 
+using namespace v2;
+
 using json = nlohmann::json;
 
 int main(int argc, char* argv[]) {
@@ -51,13 +53,13 @@ int main(int argc, char* argv[]) {
             json j;
             file >> j;
 
-            an24::TypeDefinition td = an24::parse_type_definition(j);
+            TypeDefinition td = parse_type_definition(j);
 
             // Convert to v2
-            an24::v2::BlueprintV2 bp = an24::v2::type_definition_to_v2(td);
+            BlueprintV2 bp = type_definition_to_v2(td);
 
             // Serialize
-            std::string v2_json = an24::v2::serialize_blueprint_v2(bp);
+            std::string v2_json = serialize_blueprint_v2(bp);
 
             // Write .blueprint file
             auto blueprint_path = entry.path();

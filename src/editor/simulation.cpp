@@ -4,8 +4,6 @@
 #include <spdlog/spdlog.h>
 #include <cmath>
 
-using namespace an24;
-
 void SimulationController::build(const Blueprint& bp) {
     // With always-flatten architecture, blueprints are already expanded when added
     // No need to expand here - just convert to JSON and parse

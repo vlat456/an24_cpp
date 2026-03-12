@@ -15,7 +15,7 @@
 #include <map>
 #include <optional>
 
-namespace an24::v2 {
+namespace v2 {
 
 // ==================================================================
 // Primitives
@@ -167,4 +167,4 @@ std::optional<BlueprintV2> parse_blueprint_v2(const std::string& json_text);
 /// Serialize BlueprintV2 → pretty-printed JSON string.
 std::string serialize_blueprint_v2(const BlueprintV2& bp);
 
-} // namespace an24::v2
+} // namespace v2

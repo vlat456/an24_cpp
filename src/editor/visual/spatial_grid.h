@@ -40,7 +40,7 @@ public:
 
     // Build the grid from scratch. Call when blueprint changes structurally
     // (node added/removed, wire added/removed, node moved).
-    void rebuild(const Blueprint& bp, an24::VisualNodeCache& cache,
+    void rebuild(const Blueprint& bp, VisualNodeCache& cache,
                  const std::string& group_id) {
         clear();
 

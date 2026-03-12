@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-namespace an24 {
 
 enum class SplitterDirection { Horizontal, Vertical };
 
@@ -31,4 +30,3 @@ private:
     static uint64_t next_id_;
 };
 
-} // namespace an24

@@ -2,7 +2,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 InspectorPanel::InspectorPanel() 
     : splitter_(std::make_unique<PanelSplitter>(SplitterDirection::Horizontal, width_)) {
@@ -31,5 +30,3 @@ InspectorPanel::Result InspectorPanel::render(::WindowSystem& ws, float menu_hei
     
     return result;
 }
-
-} // namespace an24

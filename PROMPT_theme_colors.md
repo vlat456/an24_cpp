@@ -142,14 +142,14 @@ Default fallback: `{0xFF2C2322, 0xFF1C1D24}` (Surface 1 fill, Surface 0 border).
 **Replace the entire body of `get_port_color()`**:
 
 ```cpp
-case an24::PortType::V:           return 0xFF5058B8;  // Port Voltage  (muted red-slate)
-case an24::PortType::I:           return 0xFF986850;  // Port Current  (muted blue-teal)
-case an24::PortType::Bool:        return 0xFF60905A;  // Port Bool     (muted green)
-case an24::PortType::RPM:         return 0xFF387CB8;  // Port RPM      (muted orange)
-case an24::PortType::Temperature: return 0xFF4848A0;  // Port Temp     (muted rose)
-case an24::PortType::Pressure:    return 0xFF8C7848;  // Port Pressure (muted cyan-teal)
-case an24::PortType::Position:    return 0xFFA86078;  // Port Position (muted purple)
-case an24::PortType::Any:         return 0xFF706060;  // Port Any      (neutral gray)
+case PortType::V:           return 0xFF5058B8;  // Port Voltage  (muted red-slate)
+case PortType::I:           return 0xFF986850;  // Port Current  (muted blue-teal)
+case PortType::Bool:        return 0xFF60905A;  // Port Bool     (muted green)
+case PortType::RPM:         return 0xFF387CB8;  // Port RPM      (muted orange)
+case PortType::Temperature: return 0xFF4848A0;  // Port Temp     (muted rose)
+case PortType::Pressure:    return 0xFF8C7848;  // Port Pressure (muted cyan-teal)
+case PortType::Position:    return 0xFFA86078;  // Port Position (muted purple)
+case PortType::Any:         return 0xFF706060;  // Port Any      (neutral gray)
 default:                          return 0xFF706060;
 ```
 

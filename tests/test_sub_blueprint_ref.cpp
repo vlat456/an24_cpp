@@ -4,7 +4,6 @@
 #include "visual/scene/persist.h"
 #include <nlohmann/json.hpp>
 
-using namespace an24;
 
 // ============================================================
 // JSON Parsing: sub_blueprints array
@@ -36,7 +35,7 @@ TEST(SubBlueprintParse, ParseSubBlueprintsArray) {
     })";
 
     auto j = nlohmann::json::parse(json_str);
-    auto td = an24::parse_type_definition(j);
+    auto td = parse_type_definition(j);
 
     ASSERT_EQ(td.sub_blueprints.size(), 1u);
     EXPECT_EQ(td.sub_blueprints[0].id, "lamp_1");
@@ -56,7 +55,7 @@ TEST(SubBlueprintParse, NoSubBlueprintsField_EmptyVector) {
     })";
 
     auto j = nlohmann::json::parse(json_str);
-    auto td = an24::parse_type_definition(j);
+    auto td = parse_type_definition(j);
     EXPECT_TRUE(td.sub_blueprints.empty());
 }
 
@@ -65,11 +64,11 @@ TEST(SubBlueprintParse, NoSubBlueprintsField_EmptyVector) {
 // ============================================================
 
 TEST(CycleDetection, DirectSelfReference_Throws) {
-    an24::TypeRegistry registry;
-    an24::TypeDefinition td;
+    TypeRegistry registry;
+    TypeDefinition td;
     td.classname = "self_ref";
     td.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "me";
     ref.blueprint_path = "self_ref";
     ref.type_name = "self_ref";
@@ -78,28 +77,28 @@ TEST(CycleDetection, DirectSelfReference_Throws) {
 
     std::set<std::string> loading_stack;
     EXPECT_THROW(
-        an24::expand_sub_blueprint_references(td, registry, loading_stack),
+        expand_sub_blueprint_references(td, registry, loading_stack),
         std::runtime_error
     );
 }
 
 TEST(CycleDetection, IndirectCycle_Throws) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition td_a;
+    TypeDefinition td_a;
     td_a.classname = "cycle_a";
     td_a.cpp_class = false;
-    an24::SubBlueprintRef ref_b;
+    SubBlueprintRef ref_b;
     ref_b.id = "b_inst";
     ref_b.blueprint_path = "cycle_b";
     ref_b.type_name = "cycle_b";
     td_a.sub_blueprints.push_back(ref_b);
     registry.types["cycle_a"] = td_a;
 
-    an24::TypeDefinition td_b;
+    TypeDefinition td_b;
     td_b.classname = "cycle_b";
     td_b.cpp_class = false;
-    an24::SubBlueprintRef ref_a;
+    SubBlueprintRef ref_a;
     ref_a.id = "a_inst";
     ref_a.blueprint_path = "cycle_a";
     ref_a.type_name = "cycle_a";
@@ -108,7 +107,7 @@ TEST(CycleDetection, IndirectCycle_Throws) {
 
     std::set<std::string> loading_stack;
     EXPECT_THROW(
-        an24::expand_sub_blueprint_references(td_a, registry, loading_stack),
+        expand_sub_blueprint_references(td_a, registry, loading_stack),
         std::runtime_error
     );
 }
@@ -118,31 +117,31 @@ TEST(CycleDetection, IndirectCycle_Throws) {
 // ============================================================
 
 TEST(SubBlueprintExpand, SingleLevel_FlattensPrefixed) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition lamp;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_vin;  d_vin.name = "vin";  d_vin.classname = "BlueprintInput";
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
-    an24::DeviceInstance d_vout; d_vout.name = "vout"; d_vout.classname = "BlueprintOutput";
+    DeviceInstance d_vin;  d_vin.name = "vin";  d_vin.classname = "BlueprintInput";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_vout; d_vout.name = "vout"; d_vout.classname = "BlueprintOutput";
     lamp.devices = {d_vin, d_lamp, d_vout};
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
     registry.types["lamp_pass_through"] = lamp;
 
-    an24::TypeDefinition parent;
+    TypeDefinition parent;
     parent.classname = "my_circuit";
     parent.cpp_class = false;
-    an24::DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
+    DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
     parent.devices = {d_bat};
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "lamp_1";
     ref.type_name = "lamp_pass_through";
     parent.sub_blueprints.push_back(ref);
     registry.types["my_circuit"] = parent;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(parent, registry, stack);
+    auto result = expand_sub_blueprint_references(parent, registry, stack);
 
     EXPECT_EQ(result.devices.size(), 4u);
 
@@ -167,20 +166,20 @@ TEST(SubBlueprintExpand, SingleLevel_FlattensPrefixed) {
 }
 
 TEST(SubBlueprintExpand, OverrideParams_Applied) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition lamp;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
     d_lamp.params["color"] = "red";
     lamp.devices = {d_lamp};
     registry.types["lamp_pass_through"] = lamp;
 
-    an24::TypeDefinition parent;
+    TypeDefinition parent;
     parent.classname = "my_circuit";
     parent.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "lamp_1";
     ref.type_name = "lamp_pass_through";
     ref.params_override["lamp.color"] = "green";
@@ -188,7 +187,7 @@ TEST(SubBlueprintExpand, OverrideParams_Applied) {
     registry.types["my_circuit"] = parent;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(parent, registry, stack);
+    auto result = expand_sub_blueprint_references(parent, registry, stack);
 
     for (const auto& d : result.devices) {
         if (d.name == "lamp_1:lamp") {
@@ -200,36 +199,36 @@ TEST(SubBlueprintExpand, OverrideParams_Applied) {
 }
 
 TEST(SubBlueprintExpand, TwoLevelsDeep_FullyPrefixed) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition simple_bat;
+    TypeDefinition simple_bat;
     simple_bat.classname = "simple_battery";
     simple_bat.cpp_class = false;
-    an24::DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
-    an24::DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
+    DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
+    DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
     simple_bat.devices = {d_bat, d_vin};
     registry.types["simple_battery"] = simple_bat;
 
-    an24::TypeDefinition bank;
+    TypeDefinition bank;
     bank.classname = "battery_bank";
     bank.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "sb_1";
     ref.type_name = "simple_battery";
     bank.sub_blueprints.push_back(ref);
     registry.types["battery_bank"] = bank;
 
-    an24::TypeDefinition top;
+    TypeDefinition top;
     top.classname = "top";
     top.cpp_class = false;
-    an24::SubBlueprintRef ref2;
+    SubBlueprintRef ref2;
     ref2.id = "bank_1";
     ref2.type_name = "battery_bank";
     top.sub_blueprints.push_back(ref2);
     registry.types["top"] = top;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(top, registry, stack);
+    auto result = expand_sub_blueprint_references(top, registry, stack);
 
     bool found_deep = false;
     for (const auto& d : result.devices) {

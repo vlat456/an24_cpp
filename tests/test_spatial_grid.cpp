@@ -6,7 +6,6 @@
 #include "editor/visual/node/node.h"
 #include "editor/visual/node/visual_node_cache.h"
 
-using an24::VisualNodeCache;
 
 // SpatialGrid: пустая сцена не возвращает кандидатов
 TEST(SpatialGrid, Empty_NoCandidates) {

@@ -6,7 +6,6 @@
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 
-using namespace an24;
 using json = nlohmann::json;
 
 // =============================================================================

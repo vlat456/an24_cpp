@@ -4,8 +4,6 @@
 #include <chrono>
 #include <iomanip>
 
-using namespace an24;
-
 int main() {
     Systems sys;
     sys.pre_load();

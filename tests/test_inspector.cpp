@@ -6,7 +6,7 @@
 #include "editor/data/wire.h"
 #include "editor/visual/scene/scene.h"
 
-// Note: Not using "using namespace an24" to avoid ambiguity between an24::Port and editor::Port
+// Note: Not using "using namespace an24" to avoid ambiguity between Port and editor::Port
 
 // Helper to create a simple test scene
 struct InspectorTestScene {
@@ -25,31 +25,31 @@ struct InspectorTestScene {
 
         // Add default ports based on type (manually create Port structs)
         if (type == "Battery") {
-            Port p_in{"v_in", PortSide::Input, an24::PortType::V};
-            Port p_out{"v_out", PortSide::Output, an24::PortType::V};
+            EditorPort p_in; p_in.name = "v_in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = "v_out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Lamp") {
-            Port p_in{"v_in", PortSide::Input, an24::PortType::V};
-            Port p_out{"light", PortSide::Output, an24::PortType::Bool};
+            EditorPort p_in; p_in.name = "v_in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = "light"; p_out.side = PortSide::Output; p_out.type = PortType::Bool;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Switch") {
-            Port p_vin{"v_in", PortSide::Input, an24::PortType::V};
-            Port p_ctrl{"control", PortSide::Input, an24::PortType::Bool};
-            Port p_out{"v_out", PortSide::Output, an24::PortType::V};
+            EditorPort p_vin; p_vin.name = "v_in"; p_vin.side = PortSide::Input; p_vin.type = PortType::V;
+            EditorPort p_ctrl; p_ctrl.name = "control"; p_ctrl.side = PortSide::Input; p_ctrl.type = PortType::Bool;
+            EditorPort p_out; p_out.name = "v_out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_vin);
             n.inputs.push_back(p_ctrl);
             n.outputs.push_back(p_out);
         } else if (type == "Test") {
-            Port p_in{"in", PortSide::Input, an24::PortType::V};
-            Port p_out{"out", PortSide::Output, an24::PortType::V};
+            EditorPort p_in; p_in.name = "in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = "out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Zebra" || type == "Apple" || type == "Banana") {
             // For sort tests - minimal ports
-            Port p_in{"in", PortSide::Input, an24::PortType::V};
-            Port p_out{"out", PortSide::Output, an24::PortType::V};
+            EditorPort p_in; p_in.name = "in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = "out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         }
@@ -268,8 +268,8 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     root_node.name = "battery1";
     root_node.type_name = "Battery";
     root_node.group_id = "";
-    Port ri{"v_in", PortSide::Input, an24::PortType::V};
-    Port ro{"v_out", PortSide::Output, an24::PortType::V};
+EditorPort ri; ri.name = "v_in"; ri.side = PortSide::Input; ri.type = PortType::V;
+EditorPort ro; ro.name = "v_out"; ro.side = PortSide::Output; ro.type = PortType::V;
     root_node.inputs.push_back(ri);
     root_node.outputs.push_back(ro);
     bp.add_node(std::move(root_node));
@@ -289,7 +289,7 @@ TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     internal.name = "lamp1:led";
     internal.type_name = "LED";
     internal.group_id = "lamp1";
-    Port ii{"v_in", PortSide::Input, an24::PortType::V};
+EditorPort ii; ii.name = "v_in"; ii.side = PortSide::Input; ii.type = PortType::V;
     internal.inputs.push_back(ii);
     bp.add_node(std::move(internal));
 
@@ -322,7 +322,7 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     led.name = "lamp1:led";
     led.type_name = "LED";
     led.group_id = "lamp1";
-    Port li{"v_in", PortSide::Input, an24::PortType::V};
+EditorPort li; li.name = "v_in"; li.side = PortSide::Input; li.type = PortType::V;
     led.inputs.push_back(li);
     bp.add_node(std::move(led));
 
@@ -331,8 +331,8 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     res.name = "lamp1:res";
     res.type_name = "Resistor";
     res.group_id = "lamp1";
-    Port ri2{"v_in", PortSide::Input, an24::PortType::V};
-    Port ro2{"v_out", PortSide::Output, an24::PortType::V};
+EditorPort ri2; ri2.name = "v_in"; ri2.side = PortSide::Input; ri2.type = PortType::V;
+EditorPort ro2; ro2.name = "v_out"; ro2.side = PortSide::Output; ro2.type = PortType::V;
     res.inputs.push_back(ri2);
     res.outputs.push_back(ro2);
     bp.add_node(std::move(res));
@@ -359,7 +359,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     bat.name = "bat";
     bat.type_name = "Battery";
     bat.group_id = "";
-    Port bo{"v_out", PortSide::Output, an24::PortType::V};
+EditorPort bo; bo.name = "v_out"; bo.side = PortSide::Output; bo.type = PortType::V;
     bat.outputs.push_back(bo);
     bp.add_node(std::move(bat));
 
@@ -370,7 +370,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     lamp.type_name = "Lamp";
     lamp.expandable = true;
     lamp.group_id = "";
-    Port lvi{"v_in", PortSide::Input, an24::PortType::V};
+EditorPort lvi; lvi.name = "v_in"; lvi.side = PortSide::Input; lvi.type = PortType::V;
     lamp.inputs.push_back(lvi);
     bp.add_node(std::move(lamp));
 
@@ -380,8 +380,8 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     iled.name = "lamp1:led";
     iled.type_name = "LED";
     iled.group_id = "lamp1";
-    Port iledi{"v_in", PortSide::Input, an24::PortType::V};
-    Port iledo{"v_out", PortSide::Output, an24::PortType::V};
+EditorPort iledi; iledi.name = "v_in"; iledi.side = PortSide::Input; iledi.type = PortType::V;
+EditorPort iledo; iledo.name = "v_out"; iledo.side = PortSide::Output; iledo.type = PortType::V;
     iled.inputs.push_back(iledi);
     iled.outputs.push_back(iledo);
     bp.add_node(std::move(iled));
@@ -391,7 +391,7 @@ TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     ires.name = "lamp1:res";
     ires.type_name = "Resistor";
     ires.group_id = "lamp1";
-    Port iresi{"v_in", PortSide::Input, an24::PortType::V};
+EditorPort iresi; iresi.name = "v_in"; iresi.side = PortSide::Input; iresi.type = PortType::V;
     ires.inputs.push_back(iresi);
     bp.add_node(std::move(ires));
 

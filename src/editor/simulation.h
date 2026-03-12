@@ -12,10 +12,10 @@
 /// SimulationController - wraps JIT solver for real-time editor simulation
 struct SimulationController {
     /// Build result from JIT solver
-    std::optional<an24::BuildResult> build_result;
+    std::optional<BuildResult> build_result;
 
     /// Simulation state (voltages, currents)
-    an24::SimulationState state;
+    SimulationState state;
 
     /// Is simulation running?
     bool running = false;

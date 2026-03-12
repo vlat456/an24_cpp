@@ -8,7 +8,7 @@
 #include "blueprint_v2.h"
 #include "json_parser.h"
 
-namespace an24::v2 {
+namespace v2 {
 
 /// Convert a v1 TypeDefinition to a v2 BlueprintV2.
 /// Handles both C++ components (cpp_class=true) and composites (cpp_class=false).
@@ -19,4 +19,4 @@ BlueprintV2 type_definition_to_v2(const TypeDefinition& td);
 /// expand_sub_blueprint_references) can work unchanged.
 TypeDefinition v2_to_type_definition(const BlueprintV2& bp);
 
-} // namespace an24::v2
+} // namespace v2

@@ -4,7 +4,6 @@
 #include <imgui.h>
 #include <algorithm>
 
-namespace an24 {
 
 void SubWindowRenderer::renderAll(::WindowSystem& ws) {
     for (auto& doc : ws.documents()) {
@@ -92,4 +91,3 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     }
 }
 
-} // namespace an24

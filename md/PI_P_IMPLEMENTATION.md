@@ -106,8 +106,8 @@ public:
 
     PI() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
 };
 ```
 
@@ -115,7 +115,7 @@ public:
 
 ```cpp
 template <typename Provider>
-void PI<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PI<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
@@ -156,8 +156,8 @@ public:
 
     P() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
 };
 ```
 
@@ -165,7 +165,7 @@ public:
 
 ```cpp
 template <typename Provider>
-void P<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void P<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 

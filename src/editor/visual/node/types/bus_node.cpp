@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cassert>
 
-namespace an24 {
 
 BusVisualNode::BusVisualNode(const Node& node, BusOrientation orientation,
                              const std::vector<Wire>& wires)
@@ -26,13 +25,13 @@ void BusVisualNode::distributePortsInRow(const std::vector<Wire>& wires) {
 
     for (const auto& w : wires) {
         if (w.start.node_id == node_id_ || w.end.node_id == node_id_) {
-            VisualPort vp(w.id, PortSide::InOut, an24::PortType::V, "v");
+            VisualPort vp(w.id, PortSide::InOut, PortType::V, "v");
             vp.setWorldPosition(calculatePortPosition(ports_.size()));
             ports_.push_back(std::move(vp));
         }
     }
 
-    VisualPort v_port("v", PortSide::InOut, an24::PortType::V);
+    VisualPort v_port("v", PortSide::InOut, PortType::V);
     v_port.setWorldPosition(calculatePortPosition(ports_.size()));
     ports_.push_back(std::move(v_port));
 
@@ -173,4 +172,3 @@ void BusVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     }
 }
 
-} // namespace an24

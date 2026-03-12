@@ -6,12 +6,13 @@
 #include <cmath>
 #include <cstdio>
 
-using VisualNodeCache = an24::VisualNodeCache;
+
+using VisualNodeCache = VisualNodeCache;
 
 TooltipInfo TooltipDetector::detect(const Blueprint& bp, const Viewport& vp,
                                     Pt canvas_min, VisualNodeCache& cache,
                                     Pt world_pos,
-                                    const an24::Simulator<an24::JIT_Solver>& sim,
+                                    const Simulator<JIT_Solver>& sim,
                                     const editor_spatial::SpatialGrid& grid,
                                     const std::string& group_id) const {
     constexpr float TOOLTIP_RADIUS = 8.0f;

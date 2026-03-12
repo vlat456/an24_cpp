@@ -9,7 +9,6 @@
 
 struct ImDrawList;
 
-namespace an24 {
 
 /// Renders a single canvas (blueprint window) - handles grid, nodes, wires, input
 /// Uses dependency injection for testability
@@ -32,4 +31,3 @@ private:
     void handleInput(BlueprintWindow& win, Document& doc, WindowSystem& ws, Pt cmin);
 };
 
-} // namespace an24

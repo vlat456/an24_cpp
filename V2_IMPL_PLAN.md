@@ -72,7 +72,7 @@ Implement the core v2 C++ types and a standalone parse/serialize pair that can r
 #include <map>
 #include <optional>
 
-namespace an24::v2 {
+namespace v2 {
 
 struct ExposedPort {
     std::string direction;  // "In", "Out", "InOut"
@@ -175,7 +175,7 @@ std::optional<BlueprintV2> parse_blueprint_v2(const std::string& json_text);
 // Serialize BlueprintV2 → pretty JSON string
 std::string serialize_blueprint_v2(const BlueprintV2& bp);
 
-} // namespace an24::v2
+} // namespace v2
 ```
 
 ### Failing Tests First (12 tests)
@@ -369,10 +369,10 @@ Replace `blueprint_to_editor_json()` / `load_editor_format()` with v2 equivalent
 
 ```cpp
 // Editor Blueprint → BlueprintV2 (for saving)
-BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp, const an24::TypeRegistry& registry);
+BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp, const TypeRegistry& registry);
 
 // BlueprintV2 → Editor Blueprint (for loading)
-Blueprint v2_to_editor_blueprint(const BlueprintV2& v2bp, const an24::TypeRegistry& registry);
+Blueprint v2_to_editor_blueprint(const BlueprintV2& v2bp, const TypeRegistry& registry);
 ```
 
 Key mapping:
@@ -575,7 +575,7 @@ Build same Blueprint both ways (old roundtrip vs new direct) → run 10 simulati
    #include "json_parser/json_parser.h"
    #include "data/blueprint.h"
 
-   namespace an24::v2 {
+   namespace v2 {
 
    struct BuildInput {
        std::vector<DeviceInstance> devices;
@@ -587,7 +587,7 @@ Build same Blueprint both ways (old roundtrip vs new direct) → run 10 simulati
    /// Merges port/domain info from TypeRegistry.
    BuildInput extract_build_input(const Blueprint& bp, const TypeRegistry& registry);
 
-   } // namespace an24::v2
+   } // namespace v2
    ```
 
 2. **`src/v2/build_input.cpp`** (~100 lines):
@@ -600,7 +600,7 @@ Build same Blueprint both ways (old roundtrip vs new direct) → run 10 simulati
 3. **`src/editor/simulation.cpp`** — simplify `build()`:
    ```cpp
    void SimulationController::build(const Blueprint& bp) {
-       auto input = an24::v2::extract_build_input(bp, get_registry());
+       auto input = v2::extract_build_input(bp, get_registry());
        build_result = build_systems_dev(input.devices, input.connections);
        // ... rest unchanged (allocate signals, init RefNodes)
    }

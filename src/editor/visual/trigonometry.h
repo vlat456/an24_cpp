@@ -13,7 +13,7 @@ namespace editor_math {
 inline Pt get_port_position(const Node& node, const char* port_name,
                             const std::vector<Wire>& wires,
                             const char* wire_id,
-                            an24::VisualNodeCache& cache) {
+                            VisualNodeCache& cache) {
     VisualNode* visual = cache.getOrCreate(node, wires);
     const VisualPort* port = visual->resolveWirePort(port_name, wire_id);
     if (port) return port->worldPosition();

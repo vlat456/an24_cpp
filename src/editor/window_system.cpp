@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 
 WindowSystem::WindowSystem()
-    : type_registry_(an24::load_type_registry())
+    : type_registry_(load_type_registry())
     , inspector_()
 {
     createDocument();

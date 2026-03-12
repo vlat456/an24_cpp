@@ -77,7 +77,7 @@ void Inspector::buildDisplayTree() {
     sortDisplayTree();
 }
 
-std::string Inspector::findConnectionFor(const Node& node, const Port& port, PortSide side) const {
+std::string Inspector::findConnectionFor(const Node& node, const EditorPort& port, PortSide side) const {
     std::string result;
     for (const auto& wire : scene_->wires()) {
         if (!scene_->ownsWire(wire)) continue;

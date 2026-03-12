@@ -2,7 +2,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 DocumentTabs::Result DocumentTabs::render(WindowSystem& ws) {
     Result result;
@@ -33,4 +32,3 @@ DocumentTabs::Result DocumentTabs::render(WindowSystem& ws) {
     return result;
 }
 
-} // namespace an24

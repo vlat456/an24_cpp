@@ -8,7 +8,6 @@
 #include <fstream>
 #include <filesystem>
 
-using namespace an24;
 using json = nlohmann::json;
 
 // =============================================================================

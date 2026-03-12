@@ -3,7 +3,6 @@
 #include "editor/document.h"
 #include "editor/data/pt.h"
 
-namespace an24 {
 
 /// Main canvas area renderer - handles tab content and canvas rendering
 class CanvasArea {
@@ -15,4 +14,3 @@ private:
     void renderCanvasContent(Document& doc);
 };
 
-} // namespace an24

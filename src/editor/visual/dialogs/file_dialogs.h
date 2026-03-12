@@ -3,7 +3,6 @@
 #include <string>
 #include <optional>
 
-namespace an24 {
 
 /// File dialog wrappers - abstracts NFD library
 namespace dialogs {
@@ -16,4 +15,3 @@ std::optional<std::string> saveBlueprint(const std::string& defaultName = "bluep
 
 } // namespace dialogs
 
-} // namespace an24

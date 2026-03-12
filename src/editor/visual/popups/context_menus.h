@@ -3,7 +3,6 @@
 #include "editor/window_system.h"
 #include <functional>
 
-namespace an24 {
 
 /// Context menus for adding components and node actions.
 class ContextMenus {
@@ -12,4 +11,3 @@ public:
     void renderNodeContext(WindowSystem& ws);
 };
 
-} // namespace an24

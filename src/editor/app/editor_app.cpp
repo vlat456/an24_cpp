@@ -18,8 +18,6 @@
 #include <cstdio>
 #include <filesystem>
 
-namespace an24 {
-
 static std::string getConfigPath() {
 #ifdef _WIN32
     const char* appdata = getenv("APPDATA");
@@ -225,5 +223,3 @@ void EditorApp::render() {
     
     SDL_GL_SwapWindow(window_);
 }
-
-} // namespace an24

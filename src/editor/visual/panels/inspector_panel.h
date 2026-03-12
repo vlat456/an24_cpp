@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 
-namespace an24 {
 
 /// Inspector panel with window setup, splitter, and selection handling.
 class InspectorPanel {
@@ -30,4 +29,3 @@ private:
     std::unique_ptr<PanelSplitter> splitter_;
 };
 
-} // namespace an24

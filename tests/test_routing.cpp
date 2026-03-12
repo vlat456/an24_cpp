@@ -17,14 +17,14 @@ TEST(RoutingTest, HitRoutingPoint) {
     n1.id = "n1";
     n1.pos = Pt(0, 0);
     n1.size = Pt(100, 80);
-    n1.outputs.push_back(Port("out", PortSide::Output, an24::PortType::V));
+    n1.outputs.push_back(Port("out", PortSide::Output, PortType::V));
     bp.nodes.push_back(n1);
 
     Node n2;
     n2.id = "n2";
     n2.pos = Pt(300, 0);
     n2.size = Pt(100, 80);
-    n2.inputs.push_back(Port("in", PortSide::Input, an24::PortType::V));
+    n2.inputs.push_back(Port("in", PortSide::Input, PortType::V));
     bp.nodes.push_back(n2);
 
     // Создаем провод с routing point
@@ -56,14 +56,14 @@ TEST(RoutingTest, MissRoutingPoint) {
     n1.id = "n1";
     n1.pos = Pt(0, 0);
     n1.size = Pt(100, 80);
-    n1.outputs.push_back(Port("out", PortSide::Output, an24::PortType::V));
+    n1.outputs.push_back(Port("out", PortSide::Output, PortType::V));
     bp.nodes.push_back(n1);
 
     Node n2;
     n2.id = "n2";
     n2.pos = Pt(300, 0);
     n2.size = Pt(100, 80);
-    n2.inputs.push_back(Port("in", PortSide::Input, an24::PortType::V));
+    n2.inputs.push_back(Port("in", PortSide::Input, PortType::V));
     bp.nodes.push_back(n2);
 
     Wire w;

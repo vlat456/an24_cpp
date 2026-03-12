@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
-namespace an24::v2 {
+namespace v2 {
 
 // ==================================================================
 // Helper: port direction string → enum and back
@@ -302,4 +302,4 @@ TypeDefinition v2_to_type_definition(const BlueprintV2& bp) {
     return td;
 }
 
-} // namespace an24::v2
+} // namespace v2

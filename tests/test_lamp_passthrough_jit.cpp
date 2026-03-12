@@ -7,7 +7,6 @@
 #include "jit_solver/SOR_constants.h"
 #include <spdlog/spdlog.h>
 
-using namespace an24;
 
 TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
     // Circuit: Ref(0V) -> Battery.In, Battery.Out -> LampPassThrough.In, LampPassThrough.Out -> measure

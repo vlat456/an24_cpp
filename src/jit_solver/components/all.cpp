@@ -4,14 +4,12 @@
 #include <cmath>
 #include <cstring>
 
-namespace an24 {
-
 // =============================================================================
 // Battery
 // =============================================================================
 
 template <typename Provider>
-void Battery<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Battery<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_gnd = st.across[provider.get(PortNames::v_in)];
     float v_bus = st.across[provider.get(PortNames::v_out)];
     float g = inv_internal_r;
@@ -37,7 +35,7 @@ void Battery<Provider>::pre_load() {
 // =============================================================================
 
 template <typename Provider>
-void Switch<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Switch<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     if (closed && downstream_g > 0.0f) {
         st.conductance[provider.get(PortNames::v_in)] += downstream_g;
         st.through[provider.get(PortNames::v_in)] -= st.across[provider.get(PortNames::v_in)] * downstream_g;
@@ -45,7 +43,7 @@ void Switch<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/)
 }
 
 template <typename Provider>
-void Switch<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float current_control = st.across[provider.get(PortNames::control)];
 
     if (std::abs(current_control - last_control) > 0.1f) {
@@ -69,7 +67,7 @@ void Switch<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void Relay<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Relay<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
     if (closed && downstream_g > 0.0f) {
         st.conductance[provider.get(PortNames::v_in)] += downstream_g;
@@ -78,7 +76,7 @@ void Relay<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 }
 
 template <typename Provider>
-void Relay<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void Relay<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float control_voltage = st.across[provider.get(PortNames::control)];
     closed = (control_voltage > hold_threshold);
 
@@ -98,7 +96,7 @@ void Relay<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void HoldButton<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void HoldButton<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
     if (is_pressed && downstream_g > 0.0f) {
         st.conductance[provider.get(PortNames::v_in)] += downstream_g;
@@ -107,7 +105,7 @@ void HoldButton<Provider>::solve_electrical(an24::SimulationState& st, float /*d
 }
 
 template <typename Provider>
-void HoldButton<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void HoldButton<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float current = st.across[provider.get(PortNames::control)];
 
     if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
@@ -135,7 +133,7 @@ void HoldButton<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void Resistor<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Resistor<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), conductance);
 }
@@ -145,7 +143,7 @@ void Resistor<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*
 // =============================================================================
 
 template <typename Provider>
-void Load<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Load<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v = st.across[provider.get(PortNames::input)];
     float i = v * conductance;
 
@@ -158,7 +156,7 @@ void Load<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void RefNode<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void RefNode<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float g = 1.0e6f;
     st.conductance[provider.get(PortNames::v)] += g;
     st.through[provider.get(PortNames::v)] += value * g;
@@ -169,7 +167,7 @@ void RefNode<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/
 // =============================================================================
 
 template <typename Provider>
-void Bus<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Bus<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Bus is just a wire - no component behavior
 }
 
@@ -178,13 +176,13 @@ void Bus<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void BlueprintInput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void BlueprintInput<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // No-op - pass-through component (like Bus)
     // Union-find will collapse port to connected signal
 }
 
 template <typename Provider>
-void BlueprintOutput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void BlueprintOutput<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // No-op - pass-through component (like Bus)
     // Union-find will collapse port to connected signal
 }
@@ -194,7 +192,7 @@ void BlueprintOutput<Provider>::solve_electrical(an24::SimulationState& st, floa
 // =============================================================================
 
 template <typename Provider>
-void Generator<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Generator<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float g = inv_internal_r;
     float v_gnd = st.across[provider.get(PortNames::v_in)];
     float v_bus = st.across[provider.get(PortNames::v_out)];
@@ -219,7 +217,7 @@ void Generator<Provider>::pre_load() {
 // =============================================================================
 
 template <typename Provider>
-void GS24<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void GS24<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_bus = st.across[provider.get(PortNames::v_out)];
     float v_gnd = st.across[provider.get(PortNames::v_in)];
     float rpm_percent = current_rpm / target_rpm;
@@ -258,7 +256,7 @@ void GS24<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void GS24<Provider>::post_step(an24::SimulationState& st, float dt) {
+void GS24<Provider>::post_step(SimulationState& st, float dt) {
     (void)st;
 
     float rpm_percent = current_rpm / target_rpm;
@@ -303,7 +301,7 @@ void GS24<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void Transformer<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_primary = st.across[provider.get(PortNames::primary)];
     float v_secondary = v_primary * ratio;
 
@@ -321,7 +319,7 @@ void Transformer<Provider>::solve_electrical(an24::SimulationState& st, float /*
 // =============================================================================
 
 template <typename Provider>
-void Inverter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_dc = st.across[provider.get(PortNames::dc_in)];
     float v_ac = v_dc * efficiency;
 
@@ -335,7 +333,7 @@ void Inverter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*
 // =============================================================================
 
 template <typename Provider>
-void LerpNode<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void LerpNode<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_input = st.across[provider.get(PortNames::input)];
     float v_output = st.across[provider.get(PortNames::output)];
 
@@ -347,7 +345,7 @@ void LerpNode<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*
 }
 
 template <typename Provider>
-void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
+void LerpNode<Provider>::post_step(SimulationState& st, float dt) {
     (void)dt;
     float v_input = st.across[provider.get(PortNames::input)];
 
@@ -370,14 +368,14 @@ void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void PID<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PID<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // High-impedance output: the PID drives the output directly in post_step
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PID<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
@@ -412,14 +410,14 @@ void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void PD<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PD<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // High-impedance output: the PD drives the output directly in post_step
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PD<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PD<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
@@ -450,14 +448,14 @@ void PD<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void PI<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PI<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // High-impedance output: the PI drives the output directly in post_step
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PI<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PI<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
@@ -485,14 +483,14 @@ void PI<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void P<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void P<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // High-impedance output: the P controller drives the output directly in post_step
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void P<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void P<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 
@@ -513,39 +511,39 @@ void P<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void Splitter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {}
+void Splitter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Splitter<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {}
+void Splitter<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Splitter<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {}
+void Splitter<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Splitter<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {}
+void Splitter<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
 
 // =============================================================================
 // Merger (inverse of Splitter — 2-to-1, pure alias, no stamping)
 // =============================================================================
 
 template <typename Provider>
-void Merger<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {}
+void Merger<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Merger<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {}
+void Merger<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Merger<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {}
+void Merger<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
-void Merger<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {}
+void Merger<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
 
 // =============================================================================
 // IndicatorLight
 // =============================================================================
 
 template <typename Provider>
-void IndicatorLight<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void IndicatorLight<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
     float v_out = st.across[provider.get(PortNames::v_out)];
     float v_diff = v_in - v_out;
@@ -568,7 +566,7 @@ void IndicatorLight<Provider>::solve_electrical(an24::SimulationState& st, float
 // =============================================================================
 
 template <typename Provider>
-void HighPowerLoad<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void HighPowerLoad<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
     float v_out = st.across[provider.get(PortNames::v_out)];
     float v_diff = v_in - v_out;
@@ -591,7 +589,7 @@ void HighPowerLoad<Provider>::solve_electrical(an24::SimulationState& st, float 
 // =============================================================================
 
 template <typename Provider>
-void Voltmeter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Voltmeter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Voltmeter is purely visual - doesn't affect the circuit
 }
 
@@ -600,14 +598,14 @@ void Voltmeter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt
 // =============================================================================
 
 template <typename Provider>
-void Gyroscope<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Gyroscope<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_input = st.across[provider.get(PortNames::input)];
     st.conductance[provider.get(PortNames::input)] += conductance;
     st.through[provider.get(PortNames::input)] -= v_input * conductance;
 }
 
 template <typename Provider>
-void AGK47<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void AGK47<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_input = st.across[provider.get(PortNames::input)];
     st.conductance[provider.get(PortNames::input)] += conductance;
     st.through[provider.get(PortNames::input)] -= v_input * conductance;
@@ -618,7 +616,7 @@ void AGK47<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 // =============================================================================
 
 template <typename Provider>
-void ElectricPump<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void ElectricPump<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
     float g = 0.01f;
     st.conductance[provider.get(PortNames::v_in)] += g;
@@ -626,7 +624,7 @@ void ElectricPump<Provider>::solve_electrical(an24::SimulationState& st, float /
 }
 
 template <typename Provider>
-void ElectricPump<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {
+void ElectricPump<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
     float p_out = st.across[provider.get(PortNames::p_out)];
 
@@ -642,7 +640,7 @@ void ElectricPump<Provider>::solve_hydraulic(an24::SimulationState& st, float /*
 // =============================================================================
 
 template <typename Provider>
-void SolenoidValve<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {
+void SolenoidValve<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
     float ctrl = st.across[provider.get(PortNames::ctrl)];
 
     // Branchless: compute open state from control and normally_closed
@@ -660,7 +658,7 @@ void SolenoidValve<Provider>::solve_hydraulic(an24::SimulationState& st, float /
 // =============================================================================
 
 template <typename Provider>
-void InertiaNode<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {
+void InertiaNode<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {
     float v_input = st.across[provider.get(PortNames::input)];
     float v_output = st.across[provider.get(PortNames::output)];
 
@@ -683,7 +681,7 @@ void InertiaNode<Provider>::pre_load() {
 // =============================================================================
 
 template <typename Provider>
-void Spring<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/) {
+void Spring<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {
     float pA = st.across[provider.get(PortNames::pos_a)];
     float pB = st.across[provider.get(PortNames::pos_b)];
 
@@ -707,7 +705,7 @@ void Spring<Provider>::solve_mechanical(an24::SimulationState& st, float /*dt*/)
 // =============================================================================
 
 template <typename Provider>
-void TempSensor<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {
+void TempSensor<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
     float temp_in = st.across[provider.get(PortNames::temp_in)];
     st.across[provider.get(PortNames::temp_out)] = temp_in * sensitivity;
 }
@@ -717,7 +715,7 @@ void TempSensor<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/
 // =============================================================================
 
 template <typename Provider>
-void ElectricHeater<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::power)];
     float g = max_power / (v_in * v_in + 0.01f);
     st.conductance[provider.get(PortNames::power)] += g;
@@ -725,7 +723,7 @@ void ElectricHeater<Provider>::solve_electrical(an24::SimulationState& st, float
 }
 
 template <typename Provider>
-void ElectricHeater<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::power)];
     float heat_power = v_in * v_in * efficiency;
     st.through[provider.get(PortNames::heat_out)] += heat_power;
@@ -736,7 +734,7 @@ void ElectricHeater<Provider>::solve_thermal(an24::SimulationState& st, float /*
 // =============================================================================
 
 template <typename Provider>
-void RUG82<Provider>::solve_electrical(an24::SimulationState& st, float dt) {
+void RUG82<Provider>::solve_electrical(SimulationState& st, float dt) {
     float v_gen = st.across[provider.get(PortNames::v_gen)];
 
     float error = v_target - v_gen;
@@ -753,7 +751,7 @@ void RUG82<Provider>::solve_electrical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void DMR400<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void DMR400<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     if (!is_closed) {
         return;
     }
@@ -769,7 +767,7 @@ void DMR400<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/)
 }
 
 template <typename Provider>
-void DMR400<Provider>::post_step(an24::SimulationState& st, float dt) {
+void DMR400<Provider>::post_step(SimulationState& st, float dt) {
     float v_gen = st.across[provider.get(PortNames::v_gen_ref)];
     float v_bus = st.across[provider.get(PortNames::v_in)];
 
@@ -796,7 +794,7 @@ void DMR400<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void RU19A<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_start = st.across[provider.get(PortNames::v_start)];
     float v_bus = st.across[provider.get(PortNames::v_bus)];
 
@@ -841,7 +839,7 @@ void RU19A<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) 
 }
 
 template <typename Provider>
-void RU19A<Provider>::solve_mechanical(an24::SimulationState& st, float dt) {
+void RU19A<Provider>::solve_mechanical(SimulationState& st, float dt) {
     float target_rpm_local = 0.0f;
     float voltage_factor = 1.0f;
 
@@ -883,7 +881,7 @@ void RU19A<Provider>::solve_mechanical(an24::SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RU19A<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
+void RU19A<Provider>::solve_thermal(SimulationState& st, float dt) {
     (void)st;
 
     float target_temp = ambient_temp;
@@ -911,7 +909,7 @@ void RU19A<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
+void RU19A<Provider>::post_step(SimulationState& st, float dt) {
     float v_start = st.across[provider.get(PortNames::v_start)];
     float v_bus = st.across[provider.get(PortNames::v_bus)];
     timer += dt;
@@ -970,7 +968,7 @@ void RU19A<Provider>::post_step(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void Radiator<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {
+void Radiator<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
     float heat_in = st.across[provider.get(PortNames::heat_in)];
     float heat_out = st.across[provider.get(PortNames::heat_out)];
 
@@ -995,7 +993,7 @@ void AZS<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void AZS<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void AZS<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
     if (closed && downstream_g > 0.0f) {
         st.conductance[provider.get(PortNames::v_in)] += downstream_g;
@@ -1004,7 +1002,7 @@ void AZS<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void AZS<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
+void AZS<Provider>::solve_thermal(SimulationState& st, float dt) {
     // Use current computed in post_step (post-SOR, before v_out merge)
     float I = current;
     // T += (I² * r_heat - T * k_cool) * dt — vectorizable, no sqrt
@@ -1013,7 +1011,7 @@ void AZS<Provider>::solve_thermal(an24::SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void AZS<Provider>::post_step(an24::SimulationState& st, float /*dt*/) {
+void AZS<Provider>::post_step(SimulationState& st, float /*dt*/) {
     // 1. Manual toggle via control edge detection (same pattern as Switch)
     float current_control = st.across[provider.get(PortNames::control)];
     if (std::abs(current_control - last_control) > 0.1f) {
@@ -1067,7 +1065,7 @@ void Comparator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Comparator<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Comparator<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float Va = st.across[provider.get(PortNames::Va)];
     float Vb = st.across[provider.get(PortNames::Vb)];
 
@@ -1081,21 +1079,21 @@ void Comparator<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/
 }
 
 template <typename Provider>
-void Subtract<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Subtract<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = A - B;
 }
 
 template <typename Provider>
-void Multiply<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Multiply<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = A * B;
 }
 
 template <typename Provider>
-void Divide<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Divide<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     // Guard against division by zero
@@ -1103,7 +1101,7 @@ void Divide<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Add<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Add<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = A + B;
@@ -1114,7 +1112,7 @@ void Add<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void AND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void AND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     // Treat > 0.5V as TRUE, else FALSE
@@ -1125,7 +1123,7 @@ void AND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void OR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void OR<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     bool a = (A > 0.5f);
@@ -1135,7 +1133,7 @@ void OR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void XOR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void XOR<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     bool a = (A > 0.5f);
@@ -1145,7 +1143,7 @@ void XOR<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void NOT<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void NOT<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     bool a = (A > 0.5f);
     bool result = !a;
@@ -1153,7 +1151,7 @@ void NOT<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void NAND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void NAND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     bool a = (A > 0.5f);
@@ -1163,7 +1161,7 @@ void NAND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Any_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Any_V_to_Bool<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float vin = st.across[provider.get(PortNames::Vin)];
     // Convert any non-zero voltage to TRUE (including negative) using bit trick
     uint32_t b;
@@ -1173,7 +1171,7 @@ void Any_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, float /*d
 }
 
 template <typename Provider>
-void Positive_V_to_Bool<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Positive_V_to_Bool<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float vin = st.across[provider.get(PortNames::Vin)];
     // Convert positive voltage to TRUE (v > 0)
     bool result = vin > 0.0f;
@@ -1210,7 +1208,7 @@ float LUT<Provider>::interpolate(float x, const float* keys, const float* vals, 
 }
 
 template <typename Provider>
-void LUT<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void LUT<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float x = st.across[provider.get(PortNames::input)];
     const float* keys = st.lut_keys.data() + table_offset;
     const float* vals = st.lut_values.data() + table_offset;
@@ -1263,7 +1261,7 @@ void FastTMO<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void FastTMO<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1293,7 +1291,7 @@ void AsymTMO<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void AsymTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void AsymTMO<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1319,7 +1317,7 @@ void AsymTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void SlewRate<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1349,7 +1347,7 @@ void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void AsymSlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void AsymSlewRate<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1381,7 +1379,7 @@ void AsymSlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) 
 // =============================================================================
 
 template <typename Provider>
-void TimeDelay<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void TimeDelay<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -1416,7 +1414,7 @@ void TimeDelay<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void Monostable<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void Monostable<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -1439,7 +1437,7 @@ void Monostable<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void SampleHold<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void SampleHold<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t trig_idx = provider.get(PortNames::trigger);
     uint32_t out_idx = provider.get(PortNames::out);
@@ -1462,7 +1460,7 @@ void SampleHold<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/
 // =============================================================================
 
 template <typename Provider>
-void Integrator<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void Integrator<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t reset_idx = provider.get(PortNames::reset);
     uint32_t out_idx = provider.get(PortNames::out);
@@ -1488,7 +1486,7 @@ void Integrator<Provider>::solve_logical(an24::SimulationState& st, float dt) {
 // =============================================================================
 
 template <typename Provider>
-void Clamp<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Clamp<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -1510,7 +1508,7 @@ void Normalize<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Normalize<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Normalize<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -1528,14 +1526,14 @@ void Normalize<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/)
 // =============================================================================
 
 template <typename Provider>
-void Min<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Min<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = std::min(A, B);
 }
 
 template <typename Provider>
-void Max<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Max<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = std::max(A, B);
@@ -1546,7 +1544,7 @@ void Max<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 // =============================================================================
 
 template <typename Provider>
-void Greater<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Greater<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     // Branchless: результат сравнения приводится к float (1.0 или 0.0)
@@ -1554,27 +1552,25 @@ void Greater<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Lesser<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Lesser<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = (A < B) ? 1.0f : 0.0f;
 }
 
 template <typename Provider>
-void GreaterEq<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void GreaterEq<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = (A >= B) ? 1.0f : 0.0f;
 }
 
 template <typename Provider>
-void LesserEq<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void LesserEq<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = (A <= B) ? 1.0f : 0.0f;
 }
-
-} // namespace an24
 
 // =============================================================================
 // Explicit Template Instantiation for JitProvider

@@ -2,7 +2,6 @@
 #include "editor/input/input_types.h"
 #include <imgui.h>
 
-namespace an24 {
 
 void ContextMenus::renderAddComponent(WindowSystem& ws) {
     // OpenPopup is a one-shot trigger; BeginPopup must run every frame
@@ -97,4 +96,3 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     ImGui::EndPopup();
 }
 
-} // namespace an24

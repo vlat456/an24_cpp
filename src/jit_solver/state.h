@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <cmath>
 
-namespace an24 {
-
 /// Signal metadata
 struct SignalType {
     Domain domain;
@@ -164,5 +162,3 @@ AOT_ALWAYS_INLINE void stamp_voltage_source(
     conductance[idx] += g;
     through[idx] += i;
 }
-
-} // namespace an24

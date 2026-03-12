@@ -6,7 +6,6 @@
 #pragma GCC optimize("fast-math,unroll-loops")
 #endif
 
-namespace an24 {
 
 // Explicit template instantiations for AOT
 template class RefNode<AotProvider<Binding<PortNames::v, 0>>>;
@@ -1160,4 +1159,3 @@ AOT_INLINE bool Systems::check_convergence(void* state, float tolerance) const {
     return true;
 }
 
-} // namespace an24

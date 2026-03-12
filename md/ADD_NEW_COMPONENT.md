@@ -274,7 +274,7 @@ library/
 
 ## Шаг 2: Объявить C++ класс (`src/jit_solver/components/all.h`)
 
-Добавь шаблонный класс внутри `namespace an24 { ... }`.
+Добавь шаблонный класс в файл.
 
 ### Где именно вставить
 
@@ -322,12 +322,12 @@ public:
     ИмяКласса() = default;
 
     // ОБЪЯВИ ТОЛЬКО НУЖНЫЕ solve/post_step методы:
-    void solve_electrical(an24::SimulationState& st, float dt);   // для Electrical
-    void solve_logical(an24::SimulationState& st, float dt);      // для Logical
-    void solve_mechanical(an24::SimulationState& st, float dt);   // для Mechanical
-    void solve_hydraulic(an24::SimulationState& st, float dt);    // для Hydraulic
-    void solve_thermal(an24::SimulationState& st, float dt);      // для Thermal
-    void post_step(an24::SimulationState& st, float dt);          // после SOR-итерации
+    void solve_electrical(SimulationState& st, float dt);   // для Electrical
+    void solve_logical(SimulationState& st, float dt);      // для Logical
+    void solve_mechanical(SimulationState& st, float dt);   // для Mechanical
+    void solve_hydraulic(SimulationState& st, float dt);    // для Hydraulic
+    void solve_thermal(SimulationState& st, float dt);      // для Thermal
+    void post_step(SimulationState& st, float dt);          // после SOR-итерации
 
     // pre_load() — ОБЯЗАТЕЛЕН для каждого компонента:
     void pre_load() {}                                             // пустой стаб (если нет предрасчёта)
@@ -367,7 +367,7 @@ public:
     static constexpr Domain domain = Domain::Logical;
     Provider provider;
     Add() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -382,7 +382,7 @@ public:
     Provider provider;
     float conductance = 0.1f;
     Resistor() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -402,7 +402,7 @@ public:
     float inv_internal_r = 100.0f;
     float v_nominal = 28.0f;
     Battery() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load();
 };
 ```
@@ -427,8 +427,8 @@ public:
     float last_error = 0.0f;
     float d_filtered = 0.0f;
     PID() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -444,8 +444,8 @@ public:
     float max_power = 1000.0f;
     float efficiency = 0.9f;
     ElectricHeater() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -468,9 +468,9 @@ public:
     float r_heat = 0.0025f;   // 1/(i_nominal²) — precomputed in pre_load()
     float k_cool = 1.0f;
     AZS() = default;
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load();  // объявление — реализация в all.cpp
 };
 ```
@@ -489,12 +489,12 @@ public:
 // =============================================================================
 
 template <typename Provider>
-void ИмяКласса<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void ИмяКласса<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // ...
 }
 
 template <typename Provider>
-void ИмяКласса<Provider>::post_step(an24::SimulationState& st, float dt) {
+void ИмяКласса<Provider>::post_step(SimulationState& st, float dt) {
     // ...
 }
 ```
@@ -549,7 +549,7 @@ stamp_voltage_source(st.conductance.data(), st.through.data(), st.across.data(),
 
 ```cpp
 template <typename Provider>
-void Resistor<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Resistor<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), conductance);
 }
@@ -559,7 +559,7 @@ void Resistor<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*
 
 ```cpp
 template <typename Provider>
-void Load<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Load<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
                           provider.get(PortNames::input), conductance);
 }
@@ -569,7 +569,7 @@ void Load<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
 
 ```cpp
 template <typename Provider>
-void Battery<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Battery<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), inv_internal_r);
     st.through[provider.get(PortNames::v_out)] += v_nominal * inv_internal_r;
@@ -581,7 +581,7 @@ void Battery<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/
 
 ```cpp
 template <typename Provider>
-void Add<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void Add<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     st.across[provider.get(PortNames::o)] = A + B;
@@ -592,7 +592,7 @@ void Add<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 
 ```cpp
 template <typename Provider>
-void AND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
+void AND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
     bool a = (A > 0.5f);   // Порог: > 0.5V = TRUE
@@ -605,13 +605,13 @@ void AND<Provider>::solve_logical(an24::SimulationState& st, float /*dt*/) {
 
 ```cpp
 template <typename Provider>
-void PID<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PID<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Минимальная проводимость чтобы SOR "видел" выходной узел
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PID<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
     float error = setpoint - feedback;
@@ -657,7 +657,7 @@ void AZS<Provider>::pre_load() {
 
 ```cpp
 template <typename Provider>
-void Voltmeter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Voltmeter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Passive — doesn't affect the circuit
 }
 ```
@@ -666,7 +666,7 @@ void Voltmeter<Provider>::solve_electrical(an24::SimulationState& st, float /*dt
 
 ```cpp
 template <typename Provider>
-void ElectricHeater<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::power)];
     float g = max_power / (v_in * v_in + 0.01f);
     st.conductance[provider.get(PortNames::power)] += g;
@@ -674,7 +674,7 @@ void ElectricHeater<Provider>::solve_electrical(an24::SimulationState& st, float
 }
 
 template <typename Provider>
-void ElectricHeater<Provider>::solve_thermal(an24::SimulationState& st, float /*dt*/) {
+void ElectricHeater<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::power)];
     float heat_power = v_in * v_in * efficiency;
     st.through[provider.get(PortNames::heat_out)] += heat_power;
@@ -694,7 +694,7 @@ void ElectricHeater<Provider>::solve_thermal(an24::SimulationState& st, float /*
 
 ## Шаг 4: Explicit instantiation (`src/jit_solver/components/explicit_instantiations.h`)
 
-Добавь строку В КОНЕЦ списка (перед `} // namespace an24`):
+Добавь строку В КОНЕЦ списка:
 
 ```cpp
 template class ИмяКласса<JitProvider>;
@@ -705,14 +705,12 @@ template class ИмяКласса<JitProvider>;
 ### Пример текущего файла (добавь в конец списка):
 
 ```cpp
-namespace an24 {
 template class Battery<JitProvider>;
 template class Switch<JitProvider>;
 // ... (45+ строк)
 template class LUT<JitProvider>;
 // ДОБАВЬ СЮДА:
 template class ИмяКласса<JitProvider>;
-} // namespace an24
 ```
 
 ---
@@ -899,8 +897,6 @@ ctest --output-on-failure
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 
-using namespace an24;
-
 TEST(MyComponentTest, BuildAndRun) {
     const char* json = R"({
         "devices": [
@@ -934,8 +930,6 @@ TEST(MyComponentTest, BuildAndRun) {
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
-
-using namespace an24;
 
 TEST(MyComponentTest, BasicBehavior) {
     ИмяКласса<JitProvider> comp;
@@ -1050,7 +1044,7 @@ current_value += diff * factor * dz_mask;
 
 ```cpp
 template <typename Provider>
-void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void FastTMO<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1110,7 +1104,7 @@ public:
     float inv_tau = 10.0f;  // = 1/tau, вычисляется в pre_load()
 
     FastTMO() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 ```
@@ -1124,7 +1118,7 @@ void FastTMO<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void FastTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void FastTMO<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1166,7 +1160,7 @@ open_mask = std::abs(ctrl_above - nc_mask);  // XOR: 0⊕0=0, 0⊕1=1, 1⊕0=1, 
 
 ```cpp
 template <typename Provider>
-void SolenoidValve<Provider>::solve_hydraulic(an24::SimulationState& st, float /*dt*/) {
+void SolenoidValve<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
     float ctrl = st.across[provider.get(PortNames::ctrl)];
 
     float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
@@ -1206,7 +1200,7 @@ float g = i / safe_v_diff;
 
 ```cpp
 template <typename Provider>
-void HighPowerLoad<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void HighPowerLoad<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
     float v_out = st.across[provider.get(PortNames::v_out)];
     float v_diff = v_in - v_out;
@@ -1269,7 +1263,7 @@ void Generator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Generator<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void Generator<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Было: float g = 1.0f / internal_r;
     // Стало:
     float g = inv_internal_r;  // Предвычисленное, без деления
@@ -1310,13 +1304,13 @@ public:
     float first_frame_mask = 1.0f;
 
     LerpNode() = default;
-    void post_step(an24::SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
 // all.cpp
 template <typename Provider>
-void LerpNode<Provider>::post_step(an24::SimulationState& st, float dt) {
+void LerpNode<Provider>::post_step(SimulationState& st, float dt) {
     (void)dt;
     float v_input = st.across[provider.get(PortNames::input)];
 
@@ -1425,7 +1419,7 @@ public:
     float inv_tau_down = 2.0f;
 
     AsymTMO() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 ```
@@ -1440,7 +1434,7 @@ void AsymTMO<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void AsymTMO<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void AsymTMO<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];
@@ -1499,7 +1493,7 @@ public:
     float first_frame_mask = 1.0f;
 
     SlewRate() = default;
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 ```
@@ -1508,7 +1502,7 @@ public:
 
 ```cpp
 template <typename Provider>
-void SlewRate<Provider>::solve_logical(an24::SimulationState& st, float dt) {
+void SlewRate<Provider>::solve_logical(SimulationState& st, float dt) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
     float input = st.across[in_idx];

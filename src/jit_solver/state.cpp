@@ -3,8 +3,6 @@
 #include <cmath>
 #include <cstring>
 
-namespace an24 {
-
 uint32_t SimulationState::allocate_signal(float initial_value, SignalType type) {
     uint32_t idx = static_cast<uint32_t>(across.size());
 
@@ -94,5 +92,3 @@ bool SimulationState::has_converged(float tolerance) const {
     }
     return true;
 }
-
-} // namespace an24

@@ -7,7 +7,6 @@
 #include <map>
 #include <set>
 
-using namespace an24;
 
 // Helper: build state from result with proper signal remapping
 struct SimState {

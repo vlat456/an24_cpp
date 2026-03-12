@@ -4,7 +4,6 @@
 #include "editor/window_system.h"
 #include "editor/recent_files.h"
 
-namespace an24 {
 
 /// Main menu bar renderer
 class MainMenu {
@@ -22,4 +21,3 @@ private:
     void renderRecentFilesMenu(WindowSystem& ws);
 };
 
-} // namespace an24

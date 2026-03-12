@@ -17,7 +17,6 @@ namespace ImGui {
     inline void ResetMouseDragDelta(int) {}
 }
 
-using namespace an24;
 
 // ============================================================================
 // Document Tests

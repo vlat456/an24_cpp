@@ -9,8 +9,6 @@
 
 using json = nlohmann::json;
 
-namespace an24 {
-
 // Helper: convert string to Domain
 static Domain parse_domain(const std::string& s) {
     if (s == "Electrical") return Domain::Electrical;
@@ -1058,7 +1056,5 @@ std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
     for (const auto& [name, td] : types) {
         if (!td.cpp_class) visit(name);
     }
-    return result;
+     return result;
 }
-
-} // namespace an24

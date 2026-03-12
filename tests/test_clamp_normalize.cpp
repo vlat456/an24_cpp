@@ -4,7 +4,6 @@
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
 
-using namespace an24;
 
 // =============================================================================
 // Test Helpers

@@ -5,7 +5,7 @@
 #include <chrono>
 #include <vector>
 
-using namespace an24;
+
 
 // Benchmark results
 struct BenchmarkResult {

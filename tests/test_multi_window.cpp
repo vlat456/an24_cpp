@@ -362,12 +362,12 @@ TEST(WireDeselect, ClickEmptySpaceDeselectsWire) {
     Blueprint bp;
     Node n1; n1.id = "a"; n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(Port("v_out", PortSide::Output, an24::PortType::V));
+    n1.outputs.push_back(EditorPort("v_out", PortSide::Output, PortType::V));
     bp.add_node(std::move(n1));
 
     Node n2; n2.id = "b"; n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(Port("v_in", PortSide::Input, an24::PortType::V));
+    n2.inputs.push_back(EditorPort("v_in", PortSide::Input, PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;
@@ -418,12 +418,12 @@ TEST(WireDeselect, ClickNodeDeselectsWire) {
     Blueprint bp;
     Node n1; n1.id = "a"; n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(Port("v_out", PortSide::Output, an24::PortType::V));
+    n1.outputs.push_back(EditorPort("v_out", PortSide::Output, PortType::V));
     bp.add_node(std::move(n1));
 
     Node n2; n2.id = "b"; n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(Port("v_in", PortSide::Input, an24::PortType::V));
+    n2.inputs.push_back(EditorPort("v_in", PortSide::Input, PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;
@@ -466,7 +466,7 @@ TEST(TooltipCanvasMin, ScenePassesCanvasMinToDetector) {
     bp.add_node(std::move(n));
 
     VisualScene scene(bp);
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     // canvas_min at (50, 30) — simulating a sub-window offset
     Pt canvas_min(50.0f, 30.0f);

@@ -4,8 +4,6 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 
-using an24::BusVisualNode;
-using an24::BusOrientation;
 
 // ============================================================================
 // BusVisualNode::swapAliasPorts() - TDD Failing Test First

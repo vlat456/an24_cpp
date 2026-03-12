@@ -3,7 +3,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 /// Bake-in confirmation dialog for sub-blueprint embedding
 class BakeInDialog {
@@ -37,4 +36,3 @@ public:
     }
 };
 
-} // namespace an24

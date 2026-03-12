@@ -4,7 +4,6 @@
 #include <iostream>
 #include <cassert>
 
-using namespace an24;
 
 void test_aot_provider() {
     std::cout << "=== Testing AotProvider (constexpr) ===\n";

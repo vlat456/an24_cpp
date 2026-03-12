@@ -6,41 +6,43 @@
 #include <set>
 #include <map>
 
+
+
 int main() {
     spdlog::info("AN-24 C++ JIT Solver - DC Bus Test");
 
     // Create DC bus reference at 28V
-    an24::DeviceInstance dc_bus;
+    DeviceInstance dc_bus;
     dc_bus.name = "dc_bus_1";
     dc_bus.classname = "RefNode";
     dc_bus.params["value"] = "28.0";
-    dc_bus.ports["v"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
+    dc_bus.ports["v"] = Port{PortDirection::Out, PortType::V};
 
     // Create ground reference at 0V
-    an24::DeviceInstance gnd;
+    DeviceInstance gnd;
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params["value"] = "0.0";
-    gnd.ports["v"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
+    gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
 
     // Create battery
-    an24::DeviceInstance battery;
+    DeviceInstance battery;
     battery.name = "bat_main_1";
     battery.classname = "Battery";
     battery.params["v_nominal"] = "28.0";
     battery.params["internal_r"] = "0.01";
-    battery.ports["v_in"] = an24::Port{an24::PortDirection::In, an24::PortType::V};
-    battery.ports["v_out"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
+    battery.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    battery.ports["v_out"] = Port{PortDirection::Out, PortType::V};
 
     // Create a load
-    an24::DeviceInstance load;
+    DeviceInstance load;
     load.name = "load_1";
     load.classname = "Resistor";
     load.params["conductance"] = "0.1";
-    load.ports["v_in"] = an24::Port{an24::PortDirection::In, an24::PortType::V};
-    load.ports["v_out"] = an24::Port{an24::PortDirection::Out, an24::PortType::V};
+    load.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    load.ports["v_out"] = Port{PortDirection::Out, PortType::V};
 
-    std::vector<an24::DeviceInstance> devices = {dc_bus, gnd, battery, load};
+    std::vector<DeviceInstance> devices = {dc_bus, gnd, battery, load};
 
     std::vector<std::pair<std::string, std::string>> connections = {
         {"bat_main_1.v_out", "dc_bus_1.v"},
@@ -48,7 +50,7 @@ int main() {
         {"load_1.v_out", "gnd.v"},
     };
 
-    auto result = an24::build_systems_dev(devices, connections);
+    auto result = build_systems_dev(devices, connections);
 
     std::cout << "=== System ===\n";
     std::cout << "Signals: " << result.signal_count << "\n";
@@ -64,7 +66,7 @@ int main() {
     std::cout << "\n";
 
     // Allocate state
-    an24::SimulationState state;
+    SimulationState state;
 
     // First, find unique signals
     std::set<uint32_t> unique_signals;
@@ -115,7 +117,7 @@ int main() {
     // Allocate signals
     for (size_t i = 0; i < next_idx; ++i) {
         bool is_fixed = fixed_set.count(i) > 0;
-        state.allocate_signal(0.0f, {an24::Domain::Electrical, is_fixed});
+        state.allocate_signal(0.0f, {Domain::Electrical, is_fixed});
     }
 
     // Set fixed voltages

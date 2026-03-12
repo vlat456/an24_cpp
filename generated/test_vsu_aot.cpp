@@ -2,8 +2,6 @@
 #include "jit_solver/state.h"
 #include <iostream>
 
-using namespace an24;
-
 int main() {
     Systems sys;
     sys.pre_load();

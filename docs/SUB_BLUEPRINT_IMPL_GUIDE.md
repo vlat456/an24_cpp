@@ -103,8 +103,6 @@ Create `tests/test_sub_blueprint_ref.cpp`. Register in `tests/CMakeLists.txt`.
 #include "json_parser/json_parser.h"
 #include "editor/data/blueprint.h"
 
-using namespace an24;
-
 // ============================================================
 // SubBlueprintInstance struct
 // ============================================================
@@ -362,7 +360,7 @@ TEST(SubBlueprintParse, ParseSubBlueprintsArray) {
     })";
 
     auto j = nlohmann::json::parse(json_str);
-    auto td = an24::parse_type_definition(j);
+    auto td = parse_type_definition(j);
 
     ASSERT_EQ(td.sub_blueprints.size(), 1u);
     EXPECT_EQ(td.sub_blueprints[0].id, "lamp_1");
@@ -383,7 +381,7 @@ TEST(SubBlueprintParse, NoSubBlueprintsField_EmptyVector) {
     })";
 
     auto j = nlohmann::json::parse(json_str);
-    auto td = an24::parse_type_definition(j);
+    auto td = parse_type_definition(j);
     EXPECT_TRUE(td.sub_blueprints.empty());
 }
 
@@ -393,11 +391,11 @@ TEST(SubBlueprintParse, NoSubBlueprintsField_EmptyVector) {
 
 TEST(CycleDetection, DirectSelfReference_Throws) {
     // Create a TypeDefinition that references itself
-    an24::TypeRegistry registry;
-    an24::TypeDefinition td;
+    TypeRegistry registry;
+    TypeDefinition td;
     td.classname = "self_ref";
     td.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "me";
     ref.blueprint_path = "self_ref";  // references own classname
     ref.type_name = "self_ref";
@@ -406,19 +404,19 @@ TEST(CycleDetection, DirectSelfReference_Throws) {
 
     std::set<std::string> loading_stack;
     EXPECT_THROW(
-        an24::expand_sub_blueprint_references(td, registry, loading_stack),
+        expand_sub_blueprint_references(td, registry, loading_stack),
         std::runtime_error
     );
 }
 
 TEST(CycleDetection, IndirectCycle_Throws) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
     // A references B
-    an24::TypeDefinition td_a;
+    TypeDefinition td_a;
     td_a.classname = "cycle_a";
     td_a.cpp_class = false;
-    an24::SubBlueprintRef ref_b;
+    SubBlueprintRef ref_b;
     ref_b.id = "b_inst";
     ref_b.blueprint_path = "cycle_b";
     ref_b.type_name = "cycle_b";
@@ -426,10 +424,10 @@ TEST(CycleDetection, IndirectCycle_Throws) {
     registry.types["cycle_a"] = td_a;
 
     // B references A
-    an24::TypeDefinition td_b;
+    TypeDefinition td_b;
     td_b.classname = "cycle_b";
     td_b.cpp_class = false;
-    an24::SubBlueprintRef ref_a;
+    SubBlueprintRef ref_a;
     ref_a.id = "a_inst";
     ref_a.blueprint_path = "cycle_a";
     ref_a.type_name = "cycle_a";
@@ -438,7 +436,7 @@ TEST(CycleDetection, IndirectCycle_Throws) {
 
     std::set<std::string> loading_stack;
     EXPECT_THROW(
-        an24::expand_sub_blueprint_references(td_a, registry, loading_stack),
+        expand_sub_blueprint_references(td_a, registry, loading_stack),
         std::runtime_error
     );
 }
@@ -449,32 +447,32 @@ TEST(CycleDetection, IndirectCycle_Throws) {
 
 TEST(SubBlueprintExpand, SingleLevel_FlattensPrefixed) {
     // Setup: lamp_pass_through has 3 internal devices
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition lamp;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_vin;  d_vin.name = "vin";  d_vin.classname = "BlueprintInput";
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
-    an24::DeviceInstance d_vout; d_vout.name = "vout"; d_vout.classname = "BlueprintOutput";
+    DeviceInstance d_vin;  d_vin.name = "vin";  d_vin.classname = "BlueprintInput";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_vout; d_vout.name = "vout"; d_vout.classname = "BlueprintOutput";
     lamp.devices = {d_vin, d_lamp, d_vout};
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
     registry.types["lamp_pass_through"] = lamp;
 
     // Parent references lamp
-    an24::TypeDefinition parent;
+    TypeDefinition parent;
     parent.classname = "my_circuit";
     parent.cpp_class = false;
-    an24::DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
+    DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
     parent.devices = {d_bat};
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "lamp_1";
     ref.type_name = "lamp_pass_through";
     parent.sub_blueprints.push_back(ref);
     registry.types["my_circuit"] = parent;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(parent, registry, stack);
+    auto result = expand_sub_blueprint_references(parent, registry, stack);
 
     // Should have: bat (top-level) + lamp_1:vin + lamp_1:lamp + lamp_1:vout = 4 devices
     EXPECT_EQ(result.devices.size(), 4u);
@@ -504,20 +502,20 @@ TEST(SubBlueprintExpand, SingleLevel_FlattensPrefixed) {
 }
 
 TEST(SubBlueprintExpand, OverrideParams_Applied) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
-    an24::TypeDefinition lamp;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
     d_lamp.params["color"] = "red";
     lamp.devices = {d_lamp};
     registry.types["lamp_pass_through"] = lamp;
 
-    an24::TypeDefinition parent;
+    TypeDefinition parent;
     parent.classname = "my_circuit";
     parent.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "lamp_1";
     ref.type_name = "lamp_pass_through";
     ref.params_override["lamp.color"] = "green";  // Override color
@@ -525,7 +523,7 @@ TEST(SubBlueprintExpand, OverrideParams_Applied) {
     registry.types["my_circuit"] = parent;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(parent, registry, stack);
+    auto result = expand_sub_blueprint_references(parent, registry, stack);
 
     // Find the lamp device, check param was overridden
     for (const auto& d : result.devices) {
@@ -538,39 +536,39 @@ TEST(SubBlueprintExpand, OverrideParams_Applied) {
 }
 
 TEST(SubBlueprintExpand, TwoLevelsDeep_FullyPrefixed) {
-    an24::TypeRegistry registry;
+    TypeRegistry registry;
 
     // Level 2: simple_battery has bat + vin + vout
-    an24::TypeDefinition simple_bat;
+    TypeDefinition simple_bat;
     simple_bat.classname = "simple_battery";
     simple_bat.cpp_class = false;
-    an24::DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
-    an24::DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
+    DeviceInstance d_bat; d_bat.name = "bat"; d_bat.classname = "Battery";
+    DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
     simple_bat.devices = {d_bat, d_vin};
     registry.types["simple_battery"] = simple_bat;
 
     // Level 1: battery_bank references simple_battery
-    an24::TypeDefinition bank;
+    TypeDefinition bank;
     bank.classname = "battery_bank";
     bank.cpp_class = false;
-    an24::SubBlueprintRef ref;
+    SubBlueprintRef ref;
     ref.id = "sb_1";
     ref.type_name = "simple_battery";
     bank.sub_blueprints.push_back(ref);
     registry.types["battery_bank"] = bank;
 
     // Level 0: top references battery_bank
-    an24::TypeDefinition top;
+    TypeDefinition top;
     top.classname = "top";
     top.cpp_class = false;
-    an24::SubBlueprintRef ref2;
+    SubBlueprintRef ref2;
     ref2.id = "bank_1";
     ref2.type_name = "battery_bank";
     top.sub_blueprints.push_back(ref2);
     registry.types["top"] = top;
 
     std::set<std::string> stack;
-    auto result = an24::expand_sub_blueprint_references(top, registry, stack);
+    auto result = expand_sub_blueprint_references(top, registry, stack);
 
     // Expect: bank_1:sb_1:bat, bank_1:sb_1:vin
     bool found_deep = false;
@@ -788,12 +786,12 @@ TEST(SubBlueprintPersist, LoadExpandsReferences) {
     })";
 
     // Need a registry with lamp_pass_through defined
-    an24::TypeRegistry registry;
-    an24::TypeDefinition lamp;
+    TypeRegistry registry;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_vin; d_vin.name = "vin"; d_vin.classname = "BlueprintInput";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
     lamp.devices = {d_vin, d_lamp};
     lamp.connections = {{"vin.port", "lamp.v_in", {}}};
     registry.types["lamp_pass_through"] = lamp;
@@ -834,11 +832,11 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     std::string json_str = blueprint_to_editor_json(bp);
 
     // Load (with registry for expansion)
-    an24::TypeRegistry registry;
-    an24::TypeDefinition lamp;
+    TypeRegistry registry;
+    TypeDefinition lamp;
     lamp.classname = "lamp_pass_through";
     lamp.cpp_class = false;
-    an24::DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
+    DeviceInstance d_lamp; d_lamp.name = "lamp"; d_lamp.classname = "IndicatorLight";
     lamp.devices = {d_lamp};
     registry.types["lamp_pass_through"] = lamp;
 
@@ -1027,7 +1025,7 @@ New function in persist.cpp:
 static void expand_sub_blueprint_on_load(
     Blueprint& bp,
     const SubBlueprintInstance& sbi,
-    const an24::TypeRegistry& registry)
+    const TypeRegistry& registry)
 {
     const auto* td = registry.get(sbi.type_name);
     if (!td) {
@@ -1084,7 +1082,7 @@ static void expand_sub_blueprint_on_load(
     collapsed.size = sbi.size;
     // Copy exposed ports from type definition
     for (const auto& [pname, port] : td->ports) {
-        if (port.direction == an24::PortDirection::In)
+        if (port.direction == PortDirection::In)
             collapsed.inputs.emplace_back(pname.c_str(), PortSide::Input, port.type);
         else
             collapsed.outputs.emplace_back(pname.c_str(), PortSide::Output, port.type);
@@ -1627,8 +1625,6 @@ Create `tests/test_aot_composite.cpp`. Register in `tests/CMakeLists.txt`.
 #include "codegen/codegen.h"
 #include "json_parser/json_parser.h"
 
-using namespace an24;
-
 // ============================================================
 // Composite Systems generation
 // ============================================================
@@ -1882,10 +1878,10 @@ CompositeCodegenResult generate_composite_systems(
     header << "#include \"jit_solver/components/all_components.h\"\n";
     // Include headers for sub-composite Systems
     for (const auto& ref : td.sub_blueprints) {
-        header << "#include \"" << ref.type_name << "_systems.gen.h\"\n";
-    }
-    header << "\nnamespace an24 {\n\n";
-    header << "class " << class_name << " {\n";
+     header << "#include \"" << ref.type_name << "_systems.gen.h\"\n";
+     }
+     header << "\n\n";
+     header << "class " << class_name << " {\n";
 
     // Sub-composite fields (nested Systems)
     for (const auto& ref : td.sub_blueprints) {
@@ -1904,19 +1900,16 @@ CompositeCodegenResult generate_composite_systems(
            << signals.count() << ";\n";
     header << "\npublic:\n";
     header << "    void solve_step(void* state, uint32_t step, float dt);\n";
-    header << "    void pre_load();\n";
-    header << "};\n\n";
-    header << "} // namespace an24\n";
+     header << "    void pre_load();\n";
+     header << "};\n\n";
 
-    // 3. Generate source with step functions + jump table
-    source << "#include \"" << td.classname << "_systems.gen.h\"\n\n";
-    source << "namespace an24 {\n\n";
-    // Generate step_N() methods — same 60-step LCM scheduling
-    // Each step: wire signals → call sub-composite solve_step() → call primitive solve_*()
-    generate_step_functions(source, td, registry, signals, class_name);
-    // Generate jump table dispatch
-    generate_jump_table(source, class_name);
-    source << "} // namespace an24\n";
+     // 3. Generate source with step functions + jump table
+     source << "#include \"" << td.classname << "_systems.gen.h\"\n\n";
+     // Generate step_N() methods — same 60-step LCM scheduling
+     // Each step: wire signals → call sub-composite solve_step() → call primitive solve_*()
+     generate_step_functions(source, td, registry, signals, class_name);
+     // Generate jump table dispatch
+     generate_jump_table(source, class_name);
 
     return {header.str(), source.str(), class_name};
 }

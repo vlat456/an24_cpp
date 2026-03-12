@@ -10,11 +10,6 @@
 #include "editor/visual/node/visual_node_cache.h"
 #include <cmath>
 
-using an24::BusVisualNode;
-using an24::BusOrientation;
-using an24::RefVisualNode;
-using an24::VisualNodeFactory;
-
 /// TDD Step 6: Hit testing
 
 TEST(HitTest, EmptyBlueprint_ReturnsNone) {

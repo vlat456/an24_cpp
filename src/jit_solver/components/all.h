@@ -5,8 +5,6 @@
 #include <cstdint>
 #include <string>
 
-namespace an24 {
-
 // =============================================================================
 // Enums
 // =============================================================================
@@ -37,7 +35,7 @@ public:
 
     Battery() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -56,8 +54,8 @@ public:
 
     Switch() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -76,8 +74,8 @@ public:
 
     Relay() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -97,8 +95,8 @@ public:
 
     HoldButton() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -113,7 +111,7 @@ public:
 
     Resistor() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -128,7 +126,7 @@ public:
 
     Load() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -143,7 +141,7 @@ public:
 
     RefNode() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -157,7 +155,7 @@ public:
 
     Bus() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -175,7 +173,7 @@ public:
 
     BlueprintInput() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -193,7 +191,7 @@ public:
 
     BlueprintOutput() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -210,7 +208,7 @@ public:
 
     Generator() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -237,8 +235,8 @@ public:
 
     GS24() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -253,7 +251,7 @@ public:
 
     Transformer() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -269,7 +267,7 @@ public:
 
     Inverter() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -287,8 +285,8 @@ public:
 
     LerpNode() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -313,8 +311,8 @@ public:
 
     PID() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -337,8 +335,8 @@ public:
 
     PD() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -359,8 +357,8 @@ public:
 
     PI() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -379,8 +377,8 @@ public:
 
     P() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -394,10 +392,10 @@ public:
 
     Splitter() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_mechanical(an24::SimulationState& st, float dt);
-    void solve_hydraulic(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
+    void solve_hydraulic(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -411,10 +409,10 @@ public:
 
     Merger() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_mechanical(an24::SimulationState& st, float dt);
-    void solve_hydraulic(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
+    void solve_hydraulic(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -431,7 +429,7 @@ public:
 
     IndicatorLight() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -447,7 +445,7 @@ public:
 
     HighPowerLoad() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -461,7 +459,7 @@ public:
 
     Voltmeter() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -476,7 +474,7 @@ public:
 
     Gyroscope() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -491,7 +489,7 @@ public:
 
     AGK47() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -510,8 +508,8 @@ public:
 
     ElectricPump() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_hydraulic(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_hydraulic(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -527,7 +525,7 @@ public:
 
     SolenoidValve() = default;
 
-    void solve_hydraulic(an24::SimulationState& st, float dt);
+    void solve_hydraulic(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -548,7 +546,7 @@ public:
 
     InertiaNode() = default;
 
-    void solve_mechanical(an24::SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -566,7 +564,7 @@ public:
 
     Spring() = default;
 
-    void solve_mechanical(an24::SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -585,7 +583,7 @@ public:
 
     TempSensor() = default;
 
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -601,8 +599,8 @@ public:
 
     ElectricHeater() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -619,7 +617,7 @@ public:
 
     RUG82() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -638,8 +636,8 @@ public:
 
     DMR400() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -672,10 +670,10 @@ public:
     void stop() { state = APUState::STOPPING; }
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_mechanical(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -690,7 +688,7 @@ public:
 
     Radiator() = default;
 
-    void solve_thermal(an24::SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -717,9 +715,9 @@ public:
 
     AZS() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void solve_thermal(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -736,7 +734,7 @@ public:
 
     Comparator() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -750,7 +748,7 @@ public:
 
     Subtract() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -764,7 +762,7 @@ public:
 
     Multiply() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -778,7 +776,7 @@ public:
 
     Divide() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -792,7 +790,7 @@ public:
 
     Add() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -806,7 +804,7 @@ public:
 
     AND() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -820,7 +818,7 @@ public:
 
     OR() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -834,7 +832,7 @@ public:
 
     XOR() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -848,7 +846,7 @@ public:
 
     NOT() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -862,7 +860,7 @@ public:
 
     NAND() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -876,7 +874,7 @@ public:
 
     Any_V_to_Bool() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -890,7 +888,7 @@ public:
 
     Positive_V_to_Bool() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -908,7 +906,7 @@ public:
 
     LUT() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 
     /// Parse "k1:v1; k2:v2; ..." table string into keys/values vectors
@@ -936,7 +934,7 @@ public:
 
     FastTMO() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -958,7 +956,7 @@ public:
 
     AsymTMO() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -977,7 +975,7 @@ public:
 
     SlewRate() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -997,7 +995,7 @@ public:
 
     AsymSlewRate() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1019,7 +1017,7 @@ public:
 
     TimeDelay() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1037,7 +1035,7 @@ public:
 
     Monostable() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1054,7 +1052,7 @@ public:
 
     SampleHold() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1073,7 +1071,7 @@ public:
 
     Integrator() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1090,7 +1088,7 @@ public:
 
     Clamp() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1108,7 +1106,7 @@ public:
 
     Normalize() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -1122,7 +1120,7 @@ public:
 
     Min() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1136,7 +1134,7 @@ public:
 
     Max() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1150,7 +1148,7 @@ public:
 
     Greater() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1164,7 +1162,7 @@ public:
 
     Lesser() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1178,7 +1176,7 @@ public:
 
     GreaterEq() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -1192,8 +1190,6 @@ public:
 
     LesserEq() = default;
 
-    void solve_logical(an24::SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
-
-} // namespace an24

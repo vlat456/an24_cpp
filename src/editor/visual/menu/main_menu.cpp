@@ -3,7 +3,6 @@
 #include <imgui.h>
 #include <filesystem>
 
-namespace an24 {
 
 MainMenu::Result MainMenu::render(WindowSystem& ws) {
     Result result;
@@ -139,4 +138,3 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     ImGui::EndMenu();
 }
 
-} // namespace an24

@@ -20,10 +20,10 @@ EditorApp {
     VisualScene& scene;                           // root window scene
     CanvasInput& input;                           // root window input
     WireManager& wire_manager;                    // root window wire mgr
-    an24::Simulator<an24::JIT_Solver> simulation; // ONE simulation
+    Simulator<JIT_Solver> simulation; // ONE simulation
     Inspector inspector;                          // ONE inspector
     PropertiesWindow properties_window;           // ONE properties
-    an24::TypeRegistry type_registry;             // loaded from library/*.json
+    TypeRegistry type_registry;             // loaded from library/*.json
     // context menu, color picker state...
 }
 ```
@@ -37,14 +37,14 @@ WindowSystem {
     Document* active_document_;                   // currently focused
     InspectorPanel inspector_;                    // global, switches to active doc
     PropertiesPanel properties_;                  // global modal
-    an24::TypeRegistry type_registry_;            // shared read-only
+    TypeRegistry type_registry_;            // shared read-only
     // context menu, color picker state (with source document pointer)
 }
 
 Document {
     Blueprint blueprint;
     WindowManager window_manager{blueprint};
-    an24::Simulator<an24::JIT_Solver> simulation;
+    Simulator<JIT_Solver> simulation;
     bool simulation_running;
     string filepath, display_name;
     bool modified;
@@ -82,10 +82,10 @@ The codebase mixes both:
 
 ### 3. Simulator Types — Two Exist, Use the Right One
 
-- `an24::Simulator<an24::JIT_Solver>` — Template class in `src/jit_solver/simulator.h`. **This is what EditorApp uses**.
+- `Simulator<JIT_Solver>` — Template class in `src/jit_solver/simulator.h`. **This is what EditorApp uses**.
 - `SimulationController` — Older wrapper in `src/editor/simulation.h`. Used in tests only, NOT in editor.
 
-**Rule**: `Document` must use `an24::Simulator<an24::JIT_Solver>`, same as current `EditorApp`.
+**Rule**: `Document` must use `Simulator<JIT_Solver>`, same as current `EditorApp`.
 
 ### 4. Save/Load Is in VisualScene, Not Blueprint
 
@@ -138,7 +138,7 @@ The 170-line `process_window` lambda in `an24_editor.cpp` is the unified rendere
 
 ### 7. TypeRegistry Is Read-Only After Load
 
-`an24::TypeRegistry` is loaded once at startup via `an24::load_type_registry()`. After that it's only read. Safe to share across documents.
+`TypeRegistry` is loaded once at startup via `load_type_registry()`. After that it's only read. Safe to share across documents.
 
 ### 8. Inspector Takes `const VisualScene&`
 
@@ -291,8 +291,8 @@ public:
 
     // ── Simulation ──
 
-    an24::Simulator<an24::JIT_Solver>& simulation() { return simulation_; }
-    const an24::Simulator<an24::JIT_Solver>& simulation() const { return simulation_; }
+    Simulator<JIT_Solver>& simulation() { return simulation_; }
+    const Simulator<JIT_Solver>& simulation() const { return simulation_; }
     bool isSimulationRunning() const { return simulation_running_; }
 
     void startSimulation();
@@ -303,7 +303,7 @@ public:
     /// Update node_content (gauges, switches, etc.) from simulation values.
     /// Needs TypeRegistry for reset_node_content logic.
     void updateNodeContentFromSimulation();
-    void resetNodeContent(const an24::TypeRegistry& registry);
+    void resetNodeContent(const TypeRegistry& registry);
 
     // ── Signal overrides (switch/button clicks) ──
 
@@ -318,10 +318,10 @@ public:
 
     void addComponent(const std::string& classname, Pt world_pos,
                       const std::string& group_id,
-                      an24::TypeRegistry& registry);
+                      TypeRegistry& registry);
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
                       const std::string& group_id,
-                      an24::TypeRegistry& registry);
+                      TypeRegistry& registry);
 
     // ── Sub-windows ──
 
@@ -351,7 +351,7 @@ private:
 
     Blueprint blueprint_;
     WindowManager window_manager_{blueprint_};
-    an24::Simulator<an24::JIT_Solver> simulation_;
+    Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 
     std::unordered_map<std::string, float> signal_overrides_;
@@ -467,7 +467,7 @@ public:
 
     Inspector& inspector() { return inspector_; }
     PropertiesWindow& propertiesWindow() { return properties_window_; }
-    an24::TypeRegistry& typeRegistry() { return type_registry_; }
+    TypeRegistry& typeRegistry() { return type_registry_; }
 
     // ── Context menu state (with source document) ──
 
@@ -512,7 +512,7 @@ public:
 private:
     std::vector<std::unique_ptr<Document>> documents_;
     Document* active_document_ = nullptr;
-    an24::TypeRegistry type_registry_;
+    TypeRegistry type_registry_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
 };
@@ -522,7 +522,7 @@ private:
 
 ```cpp
 WindowSystem::WindowSystem()
-    : type_registry_(an24::load_type_registry())
+    : type_registry_(load_type_registry())
     , inspector_(/* needs a scene — use a placeholder, will be set by setActiveDocument */)
 {
     // Create initial empty document
@@ -536,7 +536,7 @@ WindowSystem::WindowSystem()
 
 ```cpp
 WindowSystem::WindowSystem()
-    : type_registry_(an24::load_type_registry())
+    : type_registry_(load_type_registry())
     , inspector_()  // default constructor with nullptr scene
 {
     auto& doc = createDocument();

@@ -3,7 +3,6 @@
 #include "jit_solver/components/all.cpp"
 #include "jit_solver/components/port_registry.h"
 
-using namespace an24;
 
 static Subtract<JitProvider> make_subtract() {
     Subtract<JitProvider> comp;

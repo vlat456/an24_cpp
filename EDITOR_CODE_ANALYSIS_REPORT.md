@@ -171,8 +171,8 @@ Comment `[BUGFIX [8d4e6a]]` specifically mentions mismatch between `PORT_LAYOUT_
 
 **Issue:** 
 ```cpp
-static an24::PortType parse_port_type_str(const std::string& s) {
-    if (s == "V") return an24::PortType::V;
+static PortType parse_port_type_str(const std::string& s) {
+    if (s == "V") return PortType::V;
     // ...
     spdlog::error("Unknown port type string: '{}'", s);
     std::abort();  // Hard crash on unknown type

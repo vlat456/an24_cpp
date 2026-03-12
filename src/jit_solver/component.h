@@ -6,8 +6,6 @@
 // Include shared types from json_parser
 #include "../json_parser/json_parser.h"
 
-namespace an24 {
-
 /// Forward declaration
 class SimulationState;
 
@@ -40,8 +38,6 @@ public:
     /// Pre-load initialization
     virtual void pre_load() {}
 };
-
-} // namespace an24
 
 // ============================================================================
 // PORTS Macro - Generate component port fields from registry

@@ -7,7 +7,6 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 
-using namespace an24;
 
 // =============================================================================
 // Helper: simple battery circuit (gnd → battery → resistor → gnd)

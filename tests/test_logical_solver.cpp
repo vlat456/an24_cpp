@@ -14,8 +14,6 @@
 
 TEST(LogicalSolverTest, LogicalDomain_ExistsInEnum) {
     // Logical domain should be defined in Domain enum
-    using namespace an24;
-
     // This test verifies that Domain::Logical compiles
     Domain d = Domain::Logical;
     (void)d;  // Suppress unused warning
@@ -24,8 +22,6 @@ TEST(LogicalSolverTest, LogicalDomain_ExistsInEnum) {
 
 TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
     // Logical domain should parse from JSON string "Logical"
-    using namespace an24;
-
     // Try to load component registry (which will parse domains)
     // If "Logical" domain doesn't parse, this will fail
     TypeRegistry registry = load_type_registry("library/");
@@ -51,8 +47,6 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
 
 TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     // Component should be in registry with correct structure
-    using namespace an24;
-
     TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
@@ -87,8 +81,6 @@ TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
 
 TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
     // Comparator should be registered in Logical domain
-    using namespace an24;
-
     TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
@@ -111,8 +103,6 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
 
 TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
     // Systems should have a logical component vector
-    using namespace an24;
-
     // This test will compile but we can't fully test it without
     // actually creating a blueprint with a Comparator component
     // For now, just verify the code compiles with Logical domain
@@ -125,8 +115,6 @@ TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
 
 TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
     // Component base class should have solve_logical method
-    using namespace an24;
-
     // This is a compile-time test - if solve_logical doesn't exist,
     // this won't compile
     class MockComponent : public Component {
@@ -153,8 +141,6 @@ TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
 TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     // Test basic hysteresis: output turns ON above Von, OFF below Voff
     // Using default params: Von=5.0, Voff=2.0
-    using namespace an24;
-
     Blueprint bp;
 
     // Create comparator node
@@ -212,8 +198,6 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 
 TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     // Test hysteresis with non-zero Vb
-    using namespace an24;
-
     Blueprint bp;
     Node comp;
     comp.id = "comp1";

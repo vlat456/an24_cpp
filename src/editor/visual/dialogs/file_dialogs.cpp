@@ -1,7 +1,6 @@
 #include "file_dialogs.h"
 #include <nfd.h>
 
-namespace an24 {
 namespace dialogs {
 
 std::optional<std::string> openBlueprint() {
@@ -31,4 +30,3 @@ std::optional<std::string> saveBlueprint(const std::string& defaultName) {
 }
 
 } // namespace dialogs
-} // namespace an24

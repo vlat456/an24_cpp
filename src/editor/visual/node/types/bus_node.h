@@ -4,7 +4,6 @@
 #include "editor/data/wire.h"
 #include <vector>
 
-namespace an24 {
 
 enum class BusOrientation {
     Horizontal,
@@ -41,4 +40,3 @@ private:
     Pt calculateBusSize(size_t port_count) const;
 };
 
-} // namespace an24

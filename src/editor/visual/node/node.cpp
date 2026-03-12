@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
+
 #ifndef EDITOR_TESTING
 #include <imgui.h>
 #endif
@@ -37,12 +38,12 @@ VisualNode::VisualNode(const Node& node)
     }
 
     if (!has_explicit_width && !has_explicit_height) {
-        size_ = an24::node_utils::snap_size_to_grid(preferred);
+        size_ = node_utils::snap_size_to_grid(preferred);
         spdlog::debug("[autosize] Node '{}' auto-sized to {:.1f}x{:.1f}",
                       node.name, size_.x, size_.y);
     } else {
         if (!has_explicit_width) {
-            size_.x = an24::node_utils::snap_size_to_grid(Pt(preferred.x, 0)).x;
+            size_.x = node_utils::snap_size_to_grid(Pt(preferred.x, 0)).x;
         } else if (node.size.x < preferred.x) {
             spdlog::warn("[autosize] Node '{}' explicit width {:.1f}px is too small "
                          "(minimum required: {:.1f}px). Content may be clipped.",
@@ -52,7 +53,7 @@ VisualNode::VisualNode(const Node& node)
         }
 
         if (!has_explicit_height) {
-            size_.y = an24::node_utils::snap_size_to_grid(Pt(0, preferred.y)).y;
+            size_.y = node_utils::snap_size_to_grid(Pt(0, preferred.y)).y;
         } else if (node.size.y < preferred.y) {
             spdlog::warn("[autosize] Node '{}' explicit height {:.1f}px is too small "
                          "(minimum required: {:.1f}px). Content may be clipped.",
@@ -87,7 +88,7 @@ void VisualNode::setPosition(Pt pos) {
 }
 
 void VisualNode::setSize(Pt size) {
-    size_ = an24::node_utils::snap_size_to_grid(size);
+    size_ = node_utils::snap_size_to_grid(size);
 }
 
 void VisualNode::buildLayout(const Node& node) {
@@ -152,8 +153,8 @@ void VisualNode::buildLayout(const Node& node) {
         for (size_t i = 0; i < max_ports; i++) {
             std::string left_name = (i < node.inputs.size()) ? node.inputs[i].name : "";
             std::string right_name = (i < node.outputs.size()) ? node.outputs[i].name : "";
-            an24::PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : an24::PortType::Any;
-            an24::PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : an24::PortType::Any;
+            PortType left_type = (i < node.inputs.size()) ? node.inputs[i].type : PortType::Any;
+            PortType right_type = (i < node.outputs.size()) ? node.outputs[i].type : PortType::Any;
 
             auto row = std::make_unique<Row>();
 

@@ -95,14 +95,14 @@ public:
     void render(IDrawList& dl, Pt canvas_min, Pt canvas_max,
                 const std::vector<size_t>* selected_nodes = nullptr,
                 std::optional<size_t> selected_wire = std::nullopt,
-                const an24::Simulator<an24::JIT_Solver>* sim = nullptr,
+                const Simulator<JIT_Solver>* sim = nullptr,
                 std::optional<size_t> hovered_wire = std::nullopt)
     {
         renderer_.render(*bp_, dl, vp_, canvas_min, canvas_max, cache_,
                          selected_nodes, selected_wire, sim, hovered_wire, group_id_);
     }
 
-    TooltipInfo detectTooltip(Pt world_pos, const an24::Simulator<an24::JIT_Solver>& sim, Pt canvas_min) {
+    TooltipInfo detectTooltip(Pt world_pos, const Simulator<JIT_Solver>& sim, Pt canvas_min) {
         ensureSpatialGrid();
         return renderer_.detectTooltip(*bp_, vp_, canvas_min, cache_, world_pos, sim,
                                        spatial_grid_, group_id_);

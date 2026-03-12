@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace an24;
 
 // Helper: build JIT PD with ports wired to: [0]=setpoint, [1]=feedback, [2]=output
 static PD<JitProvider> make_pd(float Kp = 1.0f, float Kd = 0.0f,

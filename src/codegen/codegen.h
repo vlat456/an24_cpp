@@ -4,8 +4,6 @@
 #include <string>
 #include <map>
 
-namespace an24 {
-
 /// Result of composite code generation
 struct CompositeCodegenResult {
     std::string header;
@@ -64,4 +62,3 @@ public:
         const TypeRegistry& registry);
 };
 
-} // namespace an24

@@ -6,8 +6,6 @@
 #include "../json_parser/json_parser.h"
 #include "SOR_constants.h"
 
-namespace an24 {
-
 /// Convert domain string to enum
 inline Domain parse_domain(const std::string& domain_str) {
     if (domain_str.find("Electrical") != std::string::npos) return Domain::Electrical;
@@ -75,5 +73,3 @@ inline std::string get_domain_mask_string(Domain mask) {
     if (result.empty()) result = "None";
     return result;
 }
-
-} // namespace an24

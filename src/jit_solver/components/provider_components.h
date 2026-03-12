@@ -5,8 +5,6 @@
 #include "../state.h"
 #include <cstdint>
 
-namespace an24 {
-
 // =============================================================================
 // Template Components with Provider Pattern
 // =============================================================================
@@ -105,5 +103,3 @@ public:
         st.across[provider.get(PortNames::o)] = output_state ? 1.0f : 0.0f;
     }
 };
-
-} // namespace an24

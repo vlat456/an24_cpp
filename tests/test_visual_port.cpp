@@ -41,19 +41,19 @@ TEST(VisualPortTest, Construction_DefaultType) {
     VisualPort port("v_in", PortSide::Input);
     EXPECT_EQ(port.name(), "v_in");
     EXPECT_EQ(port.side(), PortSide::Input);
-    EXPECT_EQ(port.type(), an24::PortType::Any);
+    EXPECT_EQ(port.type(), PortType::Any);
     EXPECT_FALSE(port.isAlias());
     EXPECT_EQ(port.logicalName(), "v_in");
 }
 
 TEST(VisualPortTest, Construction_WithType) {
-    VisualPort port("v_out", PortSide::Output, an24::PortType::V);
-    EXPECT_EQ(port.type(), an24::PortType::V);
+    VisualPort port("v_out", PortSide::Output, PortType::V);
+    EXPECT_EQ(port.type(), PortType::V);
     EXPECT_EQ(port.side(), PortSide::Output);
 }
 
 TEST(VisualPortTest, Construction_BusAlias) {
-    VisualPort port("wire_3", PortSide::InOut, an24::PortType::V, "v");
+    VisualPort port("wire_3", PortSide::InOut, PortType::V, "v");
     EXPECT_TRUE(port.isAlias());
     EXPECT_EQ(port.name(), "wire_3");
     EXPECT_EQ(port.targetPort(), "v");
@@ -65,17 +65,17 @@ TEST(VisualPortTest, Construction_BusAlias) {
 // ============================================================================
 
 TEST(VisualPortTest, Color_MatchesPortType) {
-    VisualPort v("p", PortSide::Input, an24::PortType::V);
-    EXPECT_EQ(v.color(), render_theme::get_port_color(an24::PortType::V));
+    VisualPort v("p", PortSide::Input, PortType::V);
+    EXPECT_EQ(v.color(), render_theme::get_port_color(PortType::V));
 
-    VisualPort i("p", PortSide::Input, an24::PortType::I);
-    EXPECT_EQ(i.color(), render_theme::get_port_color(an24::PortType::I));
+    VisualPort i("p", PortSide::Input, PortType::I);
+    EXPECT_EQ(i.color(), render_theme::get_port_color(PortType::I));
 
-    VisualPort b("p", PortSide::Input, an24::PortType::Bool);
-    EXPECT_EQ(b.color(), render_theme::get_port_color(an24::PortType::Bool));
+    VisualPort b("p", PortSide::Input, PortType::Bool);
+    EXPECT_EQ(b.color(), render_theme::get_port_color(PortType::Bool));
 
-    VisualPort any("p", PortSide::Input, an24::PortType::Any);
-    EXPECT_EQ(any.color(), render_theme::get_port_color(an24::PortType::Any));
+    VisualPort any("p", PortSide::Input, PortType::Any);
+    EXPECT_EQ(any.color(), render_theme::get_port_color(PortType::Any));
 }
 
 // ============================================================================
@@ -83,20 +83,20 @@ TEST(VisualPortTest, Color_MatchesPortType) {
 // ============================================================================
 
 TEST(VisualPortTest, TypeCompat_AnyIsWildcard) {
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::Any, an24::PortType::V));
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::V, an24::PortType::Any));
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::Any, an24::PortType::Any));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::Any, PortType::V));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::V, PortType::Any));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::Any, PortType::Any));
 }
 
 TEST(VisualPortTest, TypeCompat_SameTypeMatch) {
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::V, an24::PortType::V));
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::I, an24::PortType::I));
-    EXPECT_TRUE(VisualPort::areTypesCompatible(an24::PortType::Bool, an24::PortType::Bool));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::V, PortType::V));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::I, PortType::I));
+    EXPECT_TRUE(VisualPort::areTypesCompatible(PortType::Bool, PortType::Bool));
 }
 
 TEST(VisualPortTest, TypeCompat_DifferentTypeReject) {
-    EXPECT_FALSE(VisualPort::areTypesCompatible(an24::PortType::V, an24::PortType::I));
-    EXPECT_FALSE(VisualPort::areTypesCompatible(an24::PortType::Bool, an24::PortType::RPM));
+    EXPECT_FALSE(VisualPort::areTypesCompatible(PortType::V, PortType::I));
+    EXPECT_FALSE(VisualPort::areTypesCompatible(PortType::Bool, PortType::RPM));
 }
 
 // ============================================================================
@@ -126,33 +126,33 @@ TEST(VisualPortTest, SideCompat_SameSideReject) {
 // ============================================================================
 
 TEST(VisualPortTest, Compatible_VoltageInToVoltageOut) {
-    VisualPort a("a", PortSide::Output, an24::PortType::V);
-    VisualPort b("b", PortSide::Input, an24::PortType::V);
+    VisualPort a("a", PortSide::Output, PortType::V);
+    VisualPort b("b", PortSide::Input, PortType::V);
     EXPECT_TRUE(a.isCompatibleWith(b));
     EXPECT_TRUE(b.isCompatibleWith(a));
 }
 
 TEST(VisualPortTest, Incompatible_VoltageToCurrentReject) {
-    VisualPort a("a", PortSide::Output, an24::PortType::V);
-    VisualPort b("b", PortSide::Input, an24::PortType::I);
+    VisualPort a("a", PortSide::Output, PortType::V);
+    VisualPort b("b", PortSide::Input, PortType::I);
     EXPECT_FALSE(a.isCompatibleWith(b));
 }
 
 TEST(VisualPortTest, Incompatible_SameSideReject) {
-    VisualPort a("a", PortSide::Output, an24::PortType::V);
-    VisualPort b("b", PortSide::Output, an24::PortType::V);
+    VisualPort a("a", PortSide::Output, PortType::V);
+    VisualPort b("b", PortSide::Output, PortType::V);
     EXPECT_FALSE(a.isCompatibleWith(b));
 }
 
 TEST(VisualPortTest, Compatible_InOutBusToOutput) {
-    VisualPort bus("v", PortSide::InOut, an24::PortType::V);
-    VisualPort out("v_out", PortSide::Output, an24::PortType::V);
+    VisualPort bus("v", PortSide::InOut, PortType::V);
+    VisualPort out("v_out", PortSide::Output, PortType::V);
     EXPECT_TRUE(bus.isCompatibleWith(out));
 }
 
 TEST(VisualPortTest, Compatible_AnyTypeAcceptsAll) {
-    VisualPort any("x", PortSide::Input, an24::PortType::Any);
-    VisualPort v("y", PortSide::Output, an24::PortType::V);
+    VisualPort any("x", PortSide::Input, PortType::Any);
+    VisualPort v("y", PortSide::Output, PortType::V);
     EXPECT_TRUE(any.isCompatibleWith(v));
 }
 
@@ -161,7 +161,7 @@ TEST(VisualPortTest, Compatible_AnyTypeAcceptsAll) {
 // ============================================================================
 
 TEST(VisualPortTest, CalcBounds_CenteredOnWorldPos) {
-    VisualPort port("v", PortSide::Input, an24::PortType::V);
+    VisualPort port("v", PortSide::Input, PortType::V);
     port.setWorldPosition(Pt(100.0f, 200.0f));
 
     Bounds b = port.calcBounds();
@@ -194,7 +194,7 @@ TEST(VisualPortTest, WorldPosition_SetGet) {
 // ============================================================================
 
 TEST(VisualPortTest, Render_DrawsCircle) {
-    VisualPort port("v_in", PortSide::Input, an24::PortType::V);
+    VisualPort port("v_in", PortSide::Input, PortType::V);
 
     PortTestDrawList dl;
     Pt origin(100.0f, 200.0f);
@@ -206,11 +206,11 @@ TEST(VisualPortTest, Render_DrawsCircle) {
     EXPECT_FLOAT_EQ(dl.circles[0].center.x, 100.0f);
     EXPECT_FLOAT_EQ(dl.circles[0].center.y, 200.0f);
     EXPECT_FLOAT_EQ(dl.circles[0].radius, VisualPort::RADIUS);
-    EXPECT_EQ(dl.circles[0].color, render_theme::get_port_color(an24::PortType::V));
+    EXPECT_EQ(dl.circles[0].color, render_theme::get_port_color(PortType::V));
 }
 
 TEST(VisualPortTest, Render_WithLabelRight) {
-    VisualPort port("v_in", PortSide::Input, an24::PortType::V);
+    VisualPort port("v_in", PortSide::Input, PortType::V);
     port.setLabel("v_in");
     port.setLabelSide(VisualPort::LabelSide::Right);
 
@@ -225,7 +225,7 @@ TEST(VisualPortTest, Render_WithLabelRight) {
 }
 
 TEST(VisualPortTest, Render_WithLabelLeft) {
-    VisualPort port("v_out", PortSide::Output, an24::PortType::V);
+    VisualPort port("v_out", PortSide::Output, PortType::V);
     port.setLabel("v_out");
     port.setLabelSide(VisualPort::LabelSide::Left);
 
@@ -238,7 +238,7 @@ TEST(VisualPortTest, Render_WithLabelLeft) {
 }
 
 TEST(VisualPortTest, Render_NoLabelByDefault) {
-    VisualPort port("v_in", PortSide::Input, an24::PortType::V);
+    VisualPort port("v_in", PortSide::Input, PortType::V);
     // Default label_side_ is None — should not draw text
 
     PortTestDrawList dl;
@@ -249,7 +249,7 @@ TEST(VisualPortTest, Render_NoLabelByDefault) {
 }
 
 TEST(VisualPortTest, Render_ZoomScales) {
-    VisualPort port("p", PortSide::Input, an24::PortType::V);
+    VisualPort port("p", PortSide::Input, PortType::V);
 
     PortTestDrawList dl;
     port.render(&dl, Pt(0, 0), 2.0f);
@@ -263,15 +263,15 @@ TEST(VisualPortTest, Render_ZoomScales) {
 // ============================================================================
 
 TEST(VisualPortTest, BusAlias_LogicalNameIsTargetPort) {
-    VisualPort alias("wire_5", PortSide::InOut, an24::PortType::V, "v");
+    VisualPort alias("wire_5", PortSide::InOut, PortType::V, "v");
     EXPECT_EQ(alias.logicalName(), "v");
     EXPECT_EQ(alias.name(), "wire_5");
     EXPECT_TRUE(alias.isAlias());
 }
 
 TEST(VisualPortTest, BusAlias_CompatibleWithOutputV) {
-    VisualPort bus_alias("wire_1", PortSide::InOut, an24::PortType::V, "v");
-    VisualPort battery_out("v_out", PortSide::Output, an24::PortType::V);
+    VisualPort bus_alias("wire_1", PortSide::InOut, PortType::V, "v");
+    VisualPort battery_out("v_out", PortSide::Output, PortType::V);
     EXPECT_TRUE(bus_alias.isCompatibleWith(battery_out));
 }
 
@@ -280,9 +280,9 @@ TEST(VisualPortTest, BusAlias_CompatibleWithOutputV) {
 // ============================================================================
 
 TEST(VisualPortTest, SetType_UpdatesColor) {
-    VisualPort port("p", PortSide::Input, an24::PortType::Any);
-    EXPECT_EQ(port.color(), render_theme::get_port_color(an24::PortType::Any));
+    VisualPort port("p", PortSide::Input, PortType::Any);
+    EXPECT_EQ(port.color(), render_theme::get_port_color(PortType::Any));
 
-    port.setType(an24::PortType::V);
-    EXPECT_EQ(port.color(), render_theme::get_port_color(an24::PortType::V));
+    port.setType(PortType::V);
+    EXPECT_EQ(port.color(), render_theme::get_port_color(PortType::V));
 }

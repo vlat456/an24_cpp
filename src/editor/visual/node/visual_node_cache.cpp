@@ -1,7 +1,6 @@
 #include "visual_node_cache.h"
 #include "editor/visual/node/node_utils.h"
 
-namespace an24 {
 
 VisualNode* VisualNodeCache::getOrCreate(const Node& node, const std::vector<Wire>& wires) {
     auto it = cache_.find(node.id);
@@ -53,4 +52,3 @@ void VisualNodeCache::onWireDeleted(const Wire& wire, const std::vector<Node>& a
     }
 }
 
-} // namespace an24

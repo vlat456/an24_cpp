@@ -9,7 +9,6 @@
 #include <iomanip>
 #include <vector>
 
-using namespace an24;
 
 // Benchmark result structure
 struct BenchResult {

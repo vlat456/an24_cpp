@@ -13,11 +13,6 @@
 #include "editor/layout_constants.h"
 #include "editor/visual/renderer/render_theme.h"
 
-using an24::BusVisualNode;
-using an24::BusOrientation;
-using an24::RefVisualNode;
-using an24::VisualNodeFactory;
-
 // ============================================================================
 // Detailed MockDrawList for recording draw calls
 // ============================================================================

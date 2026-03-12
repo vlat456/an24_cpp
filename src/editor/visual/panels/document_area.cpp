@@ -2,7 +2,6 @@
 #include "editor/window_system.h"
 #include <imgui.h>
 
-namespace an24 {
 
 DocumentArea::DocumentArea() = default;
 
@@ -60,4 +59,3 @@ void DocumentArea::renderCanvas(::WindowSystem& ws, float, float,
                             ImGui::GetWindowDrawList(), hovered);
 }
 
-} // namespace an24

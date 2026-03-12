@@ -16,16 +16,16 @@
 
 using json = nlohmann::json;
 
-static std::string port_type_str(an24::PortType t) {
-    switch (t) {
-        case an24::PortType::V: return "V";
-        case an24::PortType::I: return "I";
-        case an24::PortType::Bool: return "Bool";
-        case an24::PortType::RPM: return "RPM";
-        case an24::PortType::Temperature: return "Temperature";
-        case an24::PortType::Pressure: return "Pressure";
-        case an24::PortType::Position: return "Position";
-        case an24::PortType::Any: return "Any";
+static std::string port_type_str(PortType t) {
+     switch (t) {
+         case PortType::V: return "V";
+         case PortType::I: return "I";
+         case PortType::Bool: return "Bool";
+         case PortType::RPM: return "RPM";
+         case PortType::Temperature: return "Temperature";
+         case PortType::Pressure: return "Pressure";
+         case PortType::Position: return "Position";
+         case PortType::Any: return "Any";
     }
     spdlog::error("Unknown PortType enum value: {}", static_cast<int>(t));
     std::abort();
@@ -33,15 +33,15 @@ static std::string port_type_str(an24::PortType t) {
 
 // BUGFIX [e2c8d4] Return optional instead of aborting on unknown port type.
 // A single malformed blueprint file should not crash the entire application.
-static std::optional<an24::PortType> parse_port_type_str(const std::string& s) {
-    if (s == "V") return an24::PortType::V;
-    if (s == "I") return an24::PortType::I;
-    if (s == "Bool") return an24::PortType::Bool;
-    if (s == "RPM") return an24::PortType::RPM;
-    if (s == "Temperature") return an24::PortType::Temperature;
-    if (s == "Pressure") return an24::PortType::Pressure;
-    if (s == "Position") return an24::PortType::Position;
-    if (s == "Any") return an24::PortType::Any;
+static std::optional<PortType> parse_port_type_str(const std::string& s) {
+    if (s == "V") return PortType::V;
+    if (s == "I") return PortType::I;
+    if (s == "Bool") return PortType::Bool;
+    if (s == "RPM") return PortType::RPM;
+    if (s == "Temperature") return PortType::Temperature;
+    if (s == "Pressure") return PortType::Pressure;
+    if (s == "Position") return PortType::Position;
+    if (s == "Any") return PortType::Any;
     spdlog::error("Unknown port type string: '{}'", s);
     return std::nullopt;
 }
@@ -305,8 +305,8 @@ static NodeContentType string_to_content_type(const std::string& s) {
 }
 
 /// Convert editor Node → v2 NodeV2
-static an24::v2::NodeV2 node_to_v2(const Node& n) {
-    an24::v2::NodeV2 nv;
+static v2::NodeV2 node_to_v2(const Node& n) {
+    v2::NodeV2 nv;
     nv.type = n.type_name;
     nv.pos = {n.pos.x, n.pos.y};
     nv.size = {n.size.x, n.size.y};
@@ -318,7 +318,7 @@ static an24::v2::NodeV2 node_to_v2(const Node& n) {
 
     // Content
     if (n.node_content.type != NodeContentType::None) {
-        an24::v2::ContentV2 c;
+        v2::ContentV2 c;
         c.kind = content_type_to_string(n.node_content.type);
         c.label = n.node_content.label;
         c.value = n.node_content.value;
@@ -331,7 +331,7 @@ static an24::v2::NodeV2 node_to_v2(const Node& n) {
 
     // Color
     if (n.color.has_value()) {
-        an24::v2::NodeColorV2 c;
+        v2::NodeColorV2 c;
         c.r = n.color->r;
         c.g = n.color->g;
         c.b = n.color->b;
@@ -352,8 +352,8 @@ static an24::v2::NodeV2 node_to_v2(const Node& n) {
 }
 
 /// Convert editor Wire → v2 WireV2
-static an24::v2::WireV2 wire_to_v2(const Wire& w) {
-    an24::v2::WireV2 wv;
+static v2::WireV2 wire_to_v2(const Wire& w) {
+    v2::WireV2 wv;
     wv.id = w.id;
     wv.from = {w.start.node_id, w.start.port_name};
     wv.to = {w.end.node_id, w.end.port_name};
@@ -364,9 +364,9 @@ static an24::v2::WireV2 wire_to_v2(const Wire& w) {
 }
 
 /// Convert editor SubBlueprintInstance → v2 SubBlueprintV2
-static an24::v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
+static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
                                            const Blueprint& bp) {
-    an24::v2::SubBlueprintV2 sb;
+    v2::SubBlueprintV2 sb;
 
     if (!sbi.blueprint_path.empty()) {
         sb.template_path = sbi.blueprint_path;
@@ -377,7 +377,7 @@ static an24::v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
     sb.collapsed = true;  // Currently always collapsed in save
 
     // Build overrides
-    an24::v2::OverridesV2 ov;
+    v2::OverridesV2 ov;
     for (const auto& [k, v] : sbi.params_override) {
         ov.params[k] = v;
     }
@@ -404,7 +404,7 @@ static an24::v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
         ov.layout[k] = {pt.x, pt.y};
     }
     for (const auto& [k, pts] : sbi.internal_routing) {
-        std::vector<an24::v2::Pos> v2pts;
+        std::vector<v2::Pos> v2pts;
         for (const auto& pt : pts) {
             v2pts.push_back({pt.x, pt.y});
         }
@@ -440,15 +440,15 @@ static an24::v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
 }
 
 /// Convert full editor Blueprint → BlueprintV2 (for editor save)
-static an24::v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
-    an24::v2::BlueprintV2 bpv2;
+static v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
+    v2::BlueprintV2 bpv2;
     bpv2.version = 2;
 
     // Meta (minimal for editor saves — no component-level metadata)
     bpv2.meta.name = "";
 
     // Viewport
-    an24::v2::ViewportV2 vp;
+    v2::ViewportV2 vp;
     vp.pan = {bp.pan.x, bp.pan.y};
     vp.zoom = bp.zoom;
     vp.grid = bp.grid_step;
@@ -513,7 +513,7 @@ static an24::v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
 }
 
 /// Convert v2 BlueprintV2 → editor Blueprint (for editor load)
-static std::optional<Blueprint> v2_to_editor_blueprint(const an24::v2::BlueprintV2& bpv2) {
+static std::optional<Blueprint> v2_to_editor_blueprint(const v2::BlueprintV2& bpv2) {
     Blueprint bp;
 
     // Viewport
@@ -580,26 +580,26 @@ static std::optional<Blueprint> v2_to_editor_blueprint(const an24::v2::Blueprint
     }
 
     // Enrich nodes from type registry (ports, params, render_hint)
-    static an24::TypeRegistry registry = an24::load_type_registry();
+    static TypeRegistry registry = load_type_registry();
     for (auto& n : bp.nodes) {
         const auto* def = registry.get(n.type_name);
         if (def) {
             // Reconstruct ports from registry
             for (const auto& [port_name, port_def] : def->ports) {
-                Port p;
+                EditorPort p;
                 p.name = port_name;
                 p.type = port_def.type;
-                if (port_def.direction == an24::PortDirection::In) {
+                if (port_def.direction == PortDirection::In) {
                     p.side = PortSide::Input;
                     n.inputs.push_back(p);
-                } else if (port_def.direction == an24::PortDirection::Out) {
+                } else if (port_def.direction == PortDirection::Out) {
                     p.side = PortSide::Output;
                     n.outputs.push_back(p);
-                } else if (port_def.direction == an24::PortDirection::InOut) {
+                } else if (port_def.direction == PortDirection::InOut) {
                     // InOut: add to both inputs and outputs
                     p.side = PortSide::Input;
                     n.inputs.push_back(p);
-                    Port p_out = p;
+                    EditorPort p_out = p;
                     p_out.side = PortSide::Output;
                     n.outputs.push_back(p_out);
                 }
@@ -779,7 +779,7 @@ static std::optional<Blueprint> v2_to_editor_blueprint(const an24::v2::Blueprint
 
 std::string blueprint_to_editor_json(const Blueprint& bp) {
     auto bpv2 = editor_blueprint_to_v2(bp);
-    return an24::v2::serialize_blueprint_v2(bpv2);
+    return v2::serialize_blueprint_v2(bpv2);
 }
 
 // BUGFIX [f2c8d4] Removed ~200 lines of dead code:
@@ -792,7 +792,7 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
 
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
     // Try v2 format first
-    auto bpv2 = an24::v2::parse_blueprint_v2(json_str);
+    auto bpv2 = v2::parse_blueprint_v2(json_str);
     if (bpv2.has_value()) {
         return v2_to_editor_blueprint(*bpv2);
     }

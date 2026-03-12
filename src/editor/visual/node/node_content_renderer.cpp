@@ -4,7 +4,6 @@
 #include "editor/visual/node/widget.h"
 #include <imgui.h>
 
-namespace an24 {
 
 void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     float zoom = win.scene.viewport().zoom;
@@ -88,4 +87,3 @@ bool NodeContentRenderer::isHoldButton(const Node& node) const {
     return node.type_name == "HoldButton";
 }
 
-} // namespace an24

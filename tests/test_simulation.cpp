@@ -250,7 +250,7 @@ TEST(SimulationTest, StepWithoutBuild_NoCrash) {
 
 // [simulator-001] Simulator should start empty (no components built)
 TEST(SimulatorTest, StartsEmpty) {
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     EXPECT_FALSE(sim.is_running());
     EXPECT_FALSE(sim.is_built());
 }
@@ -258,7 +258,7 @@ TEST(SimulatorTest, StartsEmpty) {
 // [simulator-002] start() should build components from blueprint
 TEST(SimulatorTest, StartBuildsComponents) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
 
@@ -269,7 +269,7 @@ TEST(SimulatorTest, StartBuildsComponents) {
 // [simulator-003] stop() should destroy components
 TEST(SimulatorTest, StopDestroysComponents) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
     EXPECT_TRUE(sim.is_built());
@@ -282,7 +282,7 @@ TEST(SimulatorTest, StopDestroysComponents) {
 // [simulator-004] Multiple start/stop cycles should work
 TEST(SimulatorTest, MultipleStartStopCycles) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     // First cycle
     sim.start(bp);
@@ -304,7 +304,7 @@ TEST(SimulatorTest, MultipleStartStopCycles) {
 // [simulator-005] After stop, get_voltage returns 0 (no component state)
 TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
 
@@ -324,7 +324,7 @@ TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
 // [simulator-006] step() should do nothing if not running
 TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     // Don't start simulation
     EXPECT_FALSE(sim.is_running());

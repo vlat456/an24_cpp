@@ -82,10 +82,10 @@ protected:
     Pt content_offset_;
 
     struct PortSlot {
-        Widget* row_container;
-        std::string name;
-        bool is_left;
-        an24::PortType type;
+         Widget* row_container;
+         std::string name;
+         bool is_left;
+         PortType type;
         float parent_y_offset = 0;
     };
     std::vector<PortSlot> port_slots_;

@@ -2,7 +2,6 @@
 #include "jit_solver/state.h"
 #include "jit_solver/components/all.h"
 
-using namespace an24;
 
 TEST(BlueprintInput, PassThroughLikeBus) {
     // BlueprintInput should behave like Bus (no-op component)

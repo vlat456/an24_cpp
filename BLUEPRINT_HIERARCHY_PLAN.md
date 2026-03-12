@@ -88,7 +88,7 @@ public:
 
     BlueprintInput() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
 };
 
 /// BlueprintOutput - output port marker for nested blueprints
@@ -105,20 +105,20 @@ public:
 
     BlueprintOutput() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
 };
 ```
 
 **File:** `src/jit_solver/components/all.cpp`
 ```cpp
 template <typename Provider>
-void BlueprintInput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void BlueprintInput<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // No-op - pass-through component (like Bus)
     // Union-find will collapse port to connected signal
 }
 
 template <typename Provider>
-void BlueprintOutput<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void BlueprintOutput<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // No-op - pass-through component (like Bus)
     // Union-find will collapse port to connected signal
 }

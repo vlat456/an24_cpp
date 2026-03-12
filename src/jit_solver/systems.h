@@ -5,8 +5,6 @@
 #include <vector>
 #include <memory>
 
-namespace an24 {
-
 /// Systems container - groups components by domain
 class Systems {
 public:
@@ -60,5 +58,3 @@ public:
     /// Pre-load initialization
     void pre_load();
 };
-
-} // namespace an24

@@ -16,7 +16,6 @@
 #include <filesystem>
 
 using json = nlohmann::json;
-using namespace an24;
 
 // Helper to get signal voltage by port name
 static float get_voltage(const SimulationState& state, const BuildResult& result,
@@ -41,8 +40,8 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     collapsed.blueprint_path = "blueprints/lamp_pass_through.json";
     collapsed.pos = pos;
     collapsed.size = Pt(120.0f, 80.0f);
-    collapsed.inputs.push_back(::Port("vin", PortSide::Input, an24::PortType::V));
-    collapsed.outputs.push_back(::Port("vout", PortSide::Output, an24::PortType::V));
+    collapsed.inputs.push_back(::EditorPort("vin", PortSide::Input, PortType::V));
+    collapsed.outputs.push_back(::EditorPort("vout", PortSide::Output, PortType::V));
     bp.add_node(std::move(collapsed));
 
     // Internal BlueprintInput
@@ -52,8 +51,8 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     vin.type_name = "BlueprintInput";
     vin.pos = pos;
     vin.size = Pt(40.0f, 40.0f);
-    vin.outputs.push_back(::Port("port", PortSide::Output, an24::PortType::V));
-    vin.inputs.push_back(::Port("ext", PortSide::Input, an24::PortType::Any));
+    vin.outputs.push_back(::EditorPort("port", PortSide::Output, PortType::V));
+    vin.inputs.push_back(::EditorPort("ext", PortSide::Input, PortType::Any));
     bp.add_node(std::move(vin));
 
     // Internal IndicatorLight
@@ -63,8 +62,8 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     lamp.type_name = "IndicatorLight";
     lamp.pos = pos;
     lamp.size = Pt(80.0f, 60.0f);
-    lamp.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
-    lamp.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
+    lamp.inputs.push_back(::EditorPort("v_in", PortSide::Input, PortType::V));
+    lamp.outputs.push_back(::EditorPort("v_out", PortSide::Output, PortType::V));
     bp.add_node(std::move(lamp));
 
     // Internal BlueprintOutput
@@ -74,8 +73,8 @@ static void add_lamp_pass_through(Blueprint& bp, const std::string& id,
     vout.type_name = "BlueprintOutput";
     vout.pos = pos;
     vout.size = Pt(40.0f, 40.0f);
-    vout.inputs.push_back(::Port("port", PortSide::Input, an24::PortType::V));
-    vout.outputs.push_back(::Port("ext", PortSide::Output, an24::PortType::Any));
+    vout.inputs.push_back(::EditorPort("port", PortSide::Input, PortType::V));
+    vout.outputs.push_back(::EditorPort("ext", PortSide::Output, PortType::Any));
     bp.add_node(std::move(vout));
 
     // Internal wires
@@ -120,8 +119,8 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     collapsed.blueprint_path = "blueprints/simple_battery.json";
     collapsed.pos = pos;
     collapsed.size = Pt(120.0f, 80.0f);
-    collapsed.inputs.push_back(::Port("vin", PortSide::Input, an24::PortType::V));
-    collapsed.outputs.push_back(::Port("vout", PortSide::Output, an24::PortType::V));
+    collapsed.inputs.push_back(::EditorPort("vin", PortSide::Input, PortType::V));
+    collapsed.outputs.push_back(::EditorPort("vout", PortSide::Output, PortType::V));
     bp.add_node(std::move(collapsed));
 
     // Internal RefNode (ground reference — required for SOR solver to work)
@@ -143,8 +142,8 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     vin.type_name = "BlueprintInput";
     vin.pos = pos;
     vin.size = Pt(40.0f, 40.0f);
-    vin.outputs.push_back(::Port("port", PortSide::Output, an24::PortType::V));
-    vin.inputs.push_back(::Port("ext", PortSide::Input, an24::PortType::Any));
+    vin.outputs.push_back(::EditorPort("port", PortSide::Output, PortType::V));
+    vin.inputs.push_back(::EditorPort("ext", PortSide::Input, PortType::Any));
     bp.add_node(std::move(vin));
 
     Node bat;
@@ -153,8 +152,8 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     bat.type_name = "Battery";
     bat.pos = pos;
     bat.size = Pt(80.0f, 60.0f);
-    bat.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
-    bat.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
+    bat.inputs.push_back(::EditorPort("v_in", PortSide::Input, PortType::V));
+    bat.outputs.push_back(::EditorPort("v_out", PortSide::Output, PortType::V));
     bp.add_node(std::move(bat));
 
     Node vout;
@@ -163,8 +162,8 @@ static void add_simple_battery(Blueprint& bp, const std::string& id,
     vout.type_name = "BlueprintOutput";
     vout.pos = pos;
     vout.size = Pt(40.0f, 40.0f);
-    vout.inputs.push_back(::Port("port", PortSide::Input, an24::PortType::V));
-    vout.outputs.push_back(::Port("ext", PortSide::Output, an24::PortType::Any));
+    vout.inputs.push_back(::EditorPort("port", PortSide::Input, PortType::V));
+    vout.outputs.push_back(::EditorPort("ext", PortSide::Output, PortType::Any));
     bp.add_node(std::move(vout));
 
     // Internal wires (matching simple_battery.json)
@@ -240,8 +239,8 @@ TEST(CollapsedNode, ExposedPorts_RenderOnBoundary) {
     n.blueprint_path = "blueprints/simple_battery.json";  // FAIL: No such field
 
     // Exposed ports from blueprint
-    n.inputs.push_back(::Port("vin", PortSide::Input, an24::PortType::V));
-    n.outputs.push_back(::Port("vout", PortSide::Output, an24::PortType::V));
+    n.inputs.push_back(::EditorPort("vin", PortSide::Input, PortType::V));
+    n.outputs.push_back(::EditorPort("vout", PortSide::Output, PortType::V));
 
     n.pos = Pt(100.0f, 50.0f);
     n.size = Pt(120.0f, 80.0f);
@@ -270,10 +269,10 @@ TEST(CollapsedNode, PortColors_MatchExposedType) {
     n.collapsed = true;
 
     // Different port types for color testing
-    n.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));      // Red
-    n.inputs.push_back(::Port("i_in", PortSide::Input, an24::PortType::I));      // Blue
-    n.inputs.push_back(::Port("bool_in", PortSide::Input, an24::PortType::Bool)); // Green
-    n.outputs.push_back(::Port("rpm_out", PortSide::Output, an24::PortType::RPM)); // Orange
+    n.inputs.push_back(::EditorPort("v_in", PortSide::Input, PortType::V));      // Red
+    n.inputs.push_back(::EditorPort("i_in", PortSide::Input, PortType::I));      // Blue
+    n.inputs.push_back(::EditorPort("bool_in", PortSide::Input, PortType::Bool)); // Green
+    n.outputs.push_back(::EditorPort("rpm_out", PortSide::Output, PortType::RPM)); // Orange
 
     n.pos = Pt(100.0f, 50.0f);
     n.size = Pt(140.0f, 80.0f);
@@ -286,13 +285,13 @@ TEST(CollapsedNode, PortColors_MatchExposedType) {
     BlueprintRenderer renderer; renderer.render(bp, dl, vp, Pt(0.0f, 0.0f), Pt(800.0f, 600.0f), cache);
 
     // Check for specific port type colors from render_theme::get_port_color()
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::V)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::V)))
         << "V port color must match render_theme";
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::I)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::I)))
         << "I port color must match render_theme";
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::Bool)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::Bool)))
         << "Bool port color must match render_theme";
-    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(an24::PortType::RPM)))
+    EXPECT_TRUE(dl.has_circle_with_color(render_theme::get_port_color(PortType::RPM)))
         << "RPM port color must match render_theme";
 }
 
@@ -326,7 +325,7 @@ TEST(CollapsedNode, VisualIndicator_IconOrBadge) {
 
 TEST(ExposedPorts, LoadFromBlueprint_ExtractExposedPorts) {
     // Verify we can extract exposed ports from a blueprint TypeDefinition
-    auto registry = an24::load_type_registry();
+    auto registry = load_type_registry();
     const auto* def = registry.get("simple_battery");
     ASSERT_NE(def, nullptr) << "simple_battery should be in TypeRegistry";
     ASSERT_FALSE(def->cpp_class) << "simple_battery should be a blueprint";
@@ -358,15 +357,15 @@ TEST(ExposedPorts, LoadFromBlueprint_ExtractExposedPorts) {
     EXPECT_EQ(exposed_ports.size(), 2u) << "simple_battery should have 2 exposed ports";
 
     EXPECT_TRUE(exposed_ports.count("vin")) << "Should have 'vin' exposed port";
-    EXPECT_EQ(exposed_ports["vin"].direction, an24::PortDirection::In)
+    EXPECT_EQ(exposed_ports["vin"].direction, PortDirection::In)
         << "vin should be Input (data flows into blueprint)";
-    EXPECT_EQ(exposed_ports["vin"].type, an24::PortType::V)
+    EXPECT_EQ(exposed_ports["vin"].type, PortType::V)
         << "vin should be Voltage type";
 
     EXPECT_TRUE(exposed_ports.count("vout")) << "Should have 'vout' exposed port";
-    EXPECT_EQ(exposed_ports["vout"].direction, an24::PortDirection::Out)
+    EXPECT_EQ(exposed_ports["vout"].direction, PortDirection::Out)
         << "vout should be Output (data flows out of blueprint)";
-    EXPECT_EQ(exposed_ports["vout"].type, an24::PortType::V)
+    EXPECT_EQ(exposed_ports["vout"].type, PortType::V)
         << "vout should be Voltage type";
 }
 
@@ -376,7 +375,7 @@ TEST(ExposedPorts, PopulateNodePorts_FromExposedPorts) {
     std::string classname = "simple_battery";
 
     // Load from TypeRegistry
-    auto registry = an24::load_type_registry();
+    auto registry = load_type_registry();
     const auto* def = registry.get(classname);
     ASSERT_NE(def, nullptr) << "simple_battery should be in TypeRegistry";
 
@@ -413,9 +412,9 @@ TEST(ExposedPorts, PopulateNodePorts_FromExposedPorts) {
     // Populate inputs/outputs from exposed_ports
     for (const auto& [name, port] : exposed_ports) {
         if (port.direction == PortDirection::In) {
-            node.inputs.push_back(::Port(name.c_str(), PortSide::Input, port.type));
+            node.inputs.push_back(::EditorPort(name.c_str(), PortSide::Input, port.type));
         } else {
-            node.outputs.push_back(::Port(name.c_str(), PortSide::Output, port.type));
+            node.outputs.push_back(::EditorPort(name.c_str(), PortSide::Output, port.type));
         }
     }
     EXPECT_EQ(node.inputs.size(), 1u) << "Should have 1 input port (vin)";
@@ -423,12 +422,12 @@ TEST(ExposedPorts, PopulateNodePorts_FromExposedPorts) {
 
     if (!node.inputs.empty()) {
         EXPECT_EQ(node.inputs[0].name, "vin");
-        EXPECT_EQ(node.inputs[0].type, an24::PortType::V);
+        EXPECT_EQ(node.inputs[0].type, PortType::V);
     }
 
     if (!node.outputs.empty()) {
         EXPECT_EQ(node.outputs[0].name, "vout");
-        EXPECT_EQ(node.outputs[0].type, an24::PortType::V);
+        EXPECT_EQ(node.outputs[0].type, PortType::V);
     }
 }
 
@@ -544,7 +543,7 @@ TEST(Persistence, CollapsedState_LoadsFromJson) {
     gnd.params["value"] = "0.0";
     gnd.pos = Pt(50.0f, 100.0f);
     gnd.size = Pt(80.0f, 60.0f);
-    gnd.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    gnd.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     original.add_node(std::move(gnd));
 
     // Save and reload
@@ -585,7 +584,7 @@ TEST(Persistence, RoundTrip_SaveLoad_PreservesCollapsedBlueprint) {
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
-    source.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    source.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     original.add_node(std::move(source));
 
     add_lamp_pass_through(original, "lamp1");
@@ -647,7 +646,7 @@ TEST(VoltageFlow, CollapsedBlueprint_PassesVoltage) {
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
-    source.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    source.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     bp.add_node(std::move(source));
 
     // Expanded lamp_pass_through (collapsed node + 3 internal nodes + SubBlueprintInstance)
@@ -703,7 +702,7 @@ TEST(VoltageFlow, NestedBlueprintWithBattery) {
     gnd.pos = Pt(50.0f, 200.0f);
     gnd.size = Pt(80.0f, 60.0f);
     gnd.params["value"] = "0.0";
-    gnd.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    gnd.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     bp.add_node(std::move(gnd));
 
     // Expanded simple_battery
@@ -752,7 +751,7 @@ TEST(VoltageFlow, RefNode_NonZeroValue_IsFixedSignal) {
     ref28.pos = Pt(50.0f, 100.0f);
     ref28.size = Pt(80.0f, 60.0f);
     ref28.params["value"] = "28.0";
-    ref28.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    ref28.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     bp.add_node(std::move(ref28));
 
     SimulationController sim;
@@ -794,7 +793,7 @@ TEST(VoltageFlow, MultipleRefNodes_AllFixed) {
         n.pos = Pt(50.0f, 100.0f);
         n.size = Pt(80.0f, 60.0f);
         n.params["value"] = value;
-        n.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+        n.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
         bp.add_node(std::move(n));
     };
 
@@ -948,7 +947,7 @@ TEST(Regression, WireRewriting_ExternalWiresToBlueprintNode) {
     source.pos = Pt(50.0f, 100.0f);
     source.size = Pt(80.0f, 60.0f);
     source.params["value"] = "28.0";
-    source.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    source.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     bp.add_node(std::move(source));
 
     add_lamp_pass_through(bp, "lamp1");
@@ -1414,8 +1413,8 @@ TEST(EditorPersistence, AddedSubNodePersistsRoundtrip) {
     res.pos = Pt(300, 100);
     res.size = Pt(120, 80);
     res.group_id = "lpt";  // added to sub-blueprint
-    res.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
-    res.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
+    res.inputs.push_back(::EditorPort("v_in", PortSide::Input, PortType::V));
+    res.outputs.push_back(::EditorPort("v_out", PortSide::Output, PortType::V));
     bp.add_node(std::move(res));
 
     // Keep sub_blueprint_instances in sync (as the fixed add_component does)
@@ -1524,7 +1523,7 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     gnd.render_hint = "ref";
     gnd.pos = Pt(100, 400);
     gnd.size = Pt(48, 32);
-    gnd.outputs.push_back(::Port("v", PortSide::Output, an24::PortType::V));
+    gnd.outputs.push_back(::EditorPort("v", PortSide::Output, PortType::V));
     original.add_node(std::move(gnd));
 
     Node bat;
@@ -1533,8 +1532,8 @@ TEST(EditorPersistence, EditorFormatRoundtrip) {
     bat.type_name = "Battery";
     bat.pos = Pt(100, 100);
     bat.size = Pt(120, 80);
-    bat.inputs.push_back(::Port("v_in", PortSide::Input, an24::PortType::V));
-    bat.outputs.push_back(::Port("v_out", PortSide::Output, an24::PortType::V));
+    bat.inputs.push_back(::EditorPort("v_in", PortSide::Input, PortType::V));
+    bat.outputs.push_back(::EditorPort("v_out", PortSide::Output, PortType::V));
     original.add_node(std::move(bat));
 
     // Add lamp_pass_through blueprint (creates lamp1 + internals)
@@ -1706,7 +1705,7 @@ TEST(BlueprintSignalFlow, SimpleBattery_SOR_Stability_JIT) {
              w3.end = WireEnd("sbat", "vin", PortSide::Input); bp.add_wire(w3);
 
     // Use the full Simulator<JIT_Solver> like the editor does
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     sim.start(bp);
 
     // Run 500 steps (should converge, not explode)
@@ -1929,7 +1928,7 @@ TEST(BlueprintSignalFlow, BlueprintFile_JIT_Simulator) {
     Blueprint& bp = *bp_opt;
 
     // Use actual Simulator<JIT_Solver> - same as the editor
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     sim.start(bp);
 
     // Run 500 steps (like the editor would)

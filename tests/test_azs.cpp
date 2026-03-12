@@ -3,7 +3,7 @@
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
 
-using namespace an24;
+
 
 // =============================================================================
 // AZS (Автомат Защиты Сети) — Circuit Breaker Tests

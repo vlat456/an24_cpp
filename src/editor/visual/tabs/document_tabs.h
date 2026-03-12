@@ -4,7 +4,6 @@
 #include "editor/window_system.h"
 #include <functional>
 
-namespace an24 {
 
 /// Document tabs renderer
 class DocumentTabs {
@@ -20,4 +19,3 @@ private:
     float tab_bar_height_ = 0.0f;
 };
 
-} // namespace an24

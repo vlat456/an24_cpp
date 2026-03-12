@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace an24;
 
 // Helper: build JIT PID with ports wired to: [0]=setpoint, [1]=feedback, [2]=output
 static PID<JitProvider> make_pid(float Kp = 1.0f, float Ki = 0.0f, float Kd = 0.0f,

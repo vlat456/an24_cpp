@@ -13,8 +13,6 @@
 struct SDL_Window;
 typedef void* SDL_GLContext;
 
-namespace an24 {
-
 /// Editor application - encapsulates entire app lifecycle
 class EditorApp {
 public:
@@ -51,5 +49,3 @@ private:
     ColorPickerDialog color_picker_;
     BakeInDialog bake_in_dialog_;
 };
-
-} // namespace an24

@@ -4,7 +4,6 @@
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/layout_constants.h"
 
-namespace an24 {
 
 GroupVisualNode::GroupVisualNode(const Node& node)
     : VisualNode(node)
@@ -62,4 +61,3 @@ void GroupVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     }
 }
 
-} // namespace an24

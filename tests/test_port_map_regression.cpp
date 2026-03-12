@@ -9,7 +9,6 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
 
-using namespace an24;
 
 // =============================================================================
 // Regression: string_to_port_name covers every port in every component

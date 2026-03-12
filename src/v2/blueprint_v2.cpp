@@ -9,7 +9,7 @@
 
 using json = nlohmann::json;
 
-namespace an24::v2 {
+namespace v2 {
 
 // ==================================================================
 // Parse helpers
@@ -545,4 +545,4 @@ std::string serialize_blueprint_v2(const BlueprintV2& bp) {
     return j.dump(2);
 }
 
-} // namespace an24::v2
+} // namespace v2

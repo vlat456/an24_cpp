@@ -4,7 +4,6 @@
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/layout_constants.h"
 
-namespace an24 {
 
 TextVisualNode::TextVisualNode(const Node& node)
     : VisualNode(node)
@@ -64,4 +63,3 @@ void TextVisualNode::render(IDrawList* dl, const Viewport& vp, Pt canvas_min,
     }
 }
 
-} // namespace an24

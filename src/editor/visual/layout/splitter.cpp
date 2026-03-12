@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <algorithm>
 
-namespace an24 {
 
 uint64_t PanelSplitter::next_id_ = 0;
 
@@ -63,4 +62,3 @@ void PanelSplitter::render(float available_width, float available_height) {
     ImGui::PopStyleVar(2);
 }
 
-} // namespace an24

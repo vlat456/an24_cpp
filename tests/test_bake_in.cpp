@@ -2,7 +2,6 @@
 #include "editor/data/blueprint.h"
 #include "json_parser/json_parser.h"
 
-using namespace an24;
 
 // ============================================================
 // Bake-In: Convert SubBlueprintInstance from reference to embedded

@@ -146,7 +146,7 @@ void Document::updateNodeContentFromSimulation() {
     }
 }
 
-void Document::resetNodeContent(const an24::TypeRegistry& registry) {
+void Document::resetNodeContent(const TypeRegistry& registry) {
     for (auto& node : scene().nodes()) {
         const auto* def = registry.get(node.type_name);
         if (!def) continue;
@@ -172,11 +172,10 @@ void Document::holdButtonRelease(const std::string& node_id) {
 }
 
 void Document::addComponent(const std::string& classname, Pt world_pos,
-                             const std::string& group_id,
-                             an24::TypeRegistry& registry) {
-    using namespace an24;
+                              const std::string& group_id,
+                              TypeRegistry& registry) {
 
-    // Check if component exists in registry
+     // Check if component exists in registry
     if (!registry.has(classname)) {
         printf("Error: Unknown component classname '%s'\n", classname.c_str());
         return;
@@ -255,11 +254,10 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                             const std::string& group_id,
-                             an24::TypeRegistry& registry) {
-    using namespace an24;
+                              const std::string& group_id,
+                              TypeRegistry& registry) {
 
-    const auto* bp_def = registry.get(blueprint_name);
+     const auto* bp_def = registry.get(blueprint_name);
     if (!bp_def || bp_def->cpp_class) {
         spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
         return;

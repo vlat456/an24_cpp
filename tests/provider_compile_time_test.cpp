@@ -2,7 +2,6 @@
 #include <iostream>
 #include <cassert>
 
-using namespace an24;
 
 // Test that AotProvider::get() is constexpr
 void test_constexpr() {

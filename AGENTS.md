@@ -43,8 +43,6 @@ ctest -R "editor_data" --output-on-failure
 ### File Organization
 - Use `#pragma once` as header guard (not `#ifndef` guards)
 - Headers first (relative paths without angle brackets), then system headers
-- All code in `namespace an24 { }`
-- Close namespace with comment: `} // namespace an24`
 
 ### Naming Conventions
 | Context | Style | Examples |

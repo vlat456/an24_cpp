@@ -7,8 +7,6 @@
 // Can be included after template definitions are visible (e.g., after all.cpp)
 // =============================================================================
 
-namespace an24 {
-
 template class AZS<JitProvider>;
 template class Battery<JitProvider>;
 template class Switch<JitProvider>;
@@ -75,6 +73,4 @@ template class Greater<JitProvider>;
 template class Lesser<JitProvider>;
 template class GreaterEq<JitProvider>;
 template class LesserEq<JitProvider>;
-
-} // namespace an24
 

@@ -8,8 +8,6 @@
 #include <optional>
 #include <unordered_map>
 
-namespace an24 {
-
 /// Empty tag type for JIT solver specialization
 struct JIT_Solver {};
 
@@ -96,5 +94,3 @@ private:
 
 // Type alias for backward compatibility
 using JIT_Simulator = Simulator<JIT_Solver>;
-
-} // namespace an24

@@ -3,7 +3,6 @@
 #include "jit_solver/component.h"
 #include <type_traits>
 
-using namespace an24;
 
 // Test component using PORTS macro
 struct TestComponentWithPorts {
