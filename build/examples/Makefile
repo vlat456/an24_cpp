@@ -749,29 +749,53 @@ __/src/editor/visual/dialogs/file_dialogs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/dialogs/file_dialogs.cpp.s
 .PHONY : __/src/editor/visual/dialogs/file_dialogs.cpp.s
 
-__/src/editor/visual/hittest.o: __/src/editor/visual/hittest.cpp.o
-.PHONY : __/src/editor/visual/hittest.o
+__/src/editor/visual/hittest/nodes.o: __/src/editor/visual/hittest/nodes.cpp.o
+.PHONY : __/src/editor/visual/hittest/nodes.o
 
 # target to build an object file
-__/src/editor/visual/hittest.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest.cpp.o
-.PHONY : __/src/editor/visual/hittest.cpp.o
+__/src/editor/visual/hittest/nodes.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/nodes.cpp.o
+.PHONY : __/src/editor/visual/hittest/nodes.cpp.o
 
-__/src/editor/visual/hittest.i: __/src/editor/visual/hittest.cpp.i
-.PHONY : __/src/editor/visual/hittest.i
+__/src/editor/visual/hittest/nodes.i: __/src/editor/visual/hittest/nodes.cpp.i
+.PHONY : __/src/editor/visual/hittest/nodes.i
 
 # target to preprocess a source file
-__/src/editor/visual/hittest.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest.cpp.i
-.PHONY : __/src/editor/visual/hittest.cpp.i
+__/src/editor/visual/hittest/nodes.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/nodes.cpp.i
+.PHONY : __/src/editor/visual/hittest/nodes.cpp.i
 
-__/src/editor/visual/hittest.s: __/src/editor/visual/hittest.cpp.s
-.PHONY : __/src/editor/visual/hittest.s
+__/src/editor/visual/hittest/nodes.s: __/src/editor/visual/hittest/nodes.cpp.s
+.PHONY : __/src/editor/visual/hittest/nodes.s
 
 # target to generate assembly for a file
-__/src/editor/visual/hittest.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest.cpp.s
-.PHONY : __/src/editor/visual/hittest.cpp.s
+__/src/editor/visual/hittest/nodes.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/nodes.cpp.s
+.PHONY : __/src/editor/visual/hittest/nodes.cpp.s
+
+__/src/editor/visual/hittest/ports.o: __/src/editor/visual/hittest/ports.cpp.o
+.PHONY : __/src/editor/visual/hittest/ports.o
+
+# target to build an object file
+__/src/editor/visual/hittest/ports.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/ports.cpp.o
+.PHONY : __/src/editor/visual/hittest/ports.cpp.o
+
+__/src/editor/visual/hittest/ports.i: __/src/editor/visual/hittest/ports.cpp.i
+.PHONY : __/src/editor/visual/hittest/ports.i
+
+# target to preprocess a source file
+__/src/editor/visual/hittest/ports.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/ports.cpp.i
+.PHONY : __/src/editor/visual/hittest/ports.cpp.i
+
+__/src/editor/visual/hittest/ports.s: __/src/editor/visual/hittest/ports.cpp.s
+.PHONY : __/src/editor/visual/hittest/ports.s
+
+# target to generate assembly for a file
+__/src/editor/visual/hittest/ports.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/hittest/ports.cpp.s
+.PHONY : __/src/editor/visual/hittest/ports.cpp.s
 
 __/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/inspector_core.cpp.o
 .PHONY : __/src/editor/visual/inspector/inspector_core.o
@@ -1541,6 +1565,78 @@ __/src/editor/visual/renderer/tooltip_detector.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/tooltip_detector.cpp.s
 .PHONY : __/src/editor/visual/renderer/tooltip_detector.cpp.s
 
+__/src/editor/visual/renderer/wire/arc_draw.o: __/src/editor/visual/renderer/wire/arc_draw.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.o
+
+# target to build an object file
+__/src/editor/visual/renderer/wire/arc_draw.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/arc_draw.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.cpp.o
+
+__/src/editor/visual/renderer/wire/arc_draw.i: __/src/editor/visual/renderer/wire/arc_draw.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.i
+
+# target to preprocess a source file
+__/src/editor/visual/renderer/wire/arc_draw.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/arc_draw.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.cpp.i
+
+__/src/editor/visual/renderer/wire/arc_draw.s: __/src/editor/visual/renderer/wire/arc_draw.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.s
+
+# target to generate assembly for a file
+__/src/editor/visual/renderer/wire/arc_draw.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/arc_draw.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/arc_draw.cpp.s
+
+__/src/editor/visual/renderer/wire/polyline_builder.o: __/src/editor/visual/renderer/wire/polyline_builder.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.o
+
+# target to build an object file
+__/src/editor/visual/renderer/wire/polyline_builder.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_builder.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.cpp.o
+
+__/src/editor/visual/renderer/wire/polyline_builder.i: __/src/editor/visual/renderer/wire/polyline_builder.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.i
+
+# target to preprocess a source file
+__/src/editor/visual/renderer/wire/polyline_builder.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_builder.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.cpp.i
+
+__/src/editor/visual/renderer/wire/polyline_builder.s: __/src/editor/visual/renderer/wire/polyline_builder.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.s
+
+# target to generate assembly for a file
+__/src/editor/visual/renderer/wire/polyline_builder.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_builder.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/polyline_builder.cpp.s
+
+__/src/editor/visual/renderer/wire/polyline_draw.o: __/src/editor/visual/renderer/wire/polyline_draw.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.o
+
+# target to build an object file
+__/src/editor/visual/renderer/wire/polyline_draw.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_draw.cpp.o
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.cpp.o
+
+__/src/editor/visual/renderer/wire/polyline_draw.i: __/src/editor/visual/renderer/wire/polyline_draw.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.i
+
+# target to preprocess a source file
+__/src/editor/visual/renderer/wire/polyline_draw.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_draw.cpp.i
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.cpp.i
+
+__/src/editor/visual/renderer/wire/polyline_draw.s: __/src/editor/visual/renderer/wire/polyline_draw.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.s
+
+# target to generate assembly for a file
+__/src/editor/visual/renderer/wire/polyline_draw.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/renderer/wire/polyline_draw.cpp.s
+.PHONY : __/src/editor/visual/renderer/wire/polyline_draw.cpp.s
+
 __/src/editor/visual/renderer/wire_renderer.o: __/src/editor/visual/renderer/wire_renderer.cpp.o
 .PHONY : __/src/editor/visual/renderer/wire_renderer.o
 
@@ -1933,9 +2029,12 @@ help:
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.o"
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.i"
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.s"
-	@echo "... __/src/editor/visual/hittest.o"
-	@echo "... __/src/editor/visual/hittest.i"
-	@echo "... __/src/editor/visual/hittest.s"
+	@echo "... __/src/editor/visual/hittest/nodes.o"
+	@echo "... __/src/editor/visual/hittest/nodes.i"
+	@echo "... __/src/editor/visual/hittest/nodes.s"
+	@echo "... __/src/editor/visual/hittest/ports.o"
+	@echo "... __/src/editor/visual/hittest/ports.i"
+	@echo "... __/src/editor/visual/hittest/ports.s"
 	@echo "... __/src/editor/visual/inspector/inspector_core.o"
 	@echo "... __/src/editor/visual/inspector/inspector_core.i"
 	@echo "... __/src/editor/visual/inspector/inspector_core.s"
@@ -2032,6 +2131,15 @@ help:
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.o"
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.i"
 	@echo "... __/src/editor/visual/renderer/tooltip_detector.s"
+	@echo "... __/src/editor/visual/renderer/wire/arc_draw.o"
+	@echo "... __/src/editor/visual/renderer/wire/arc_draw.i"
+	@echo "... __/src/editor/visual/renderer/wire/arc_draw.s"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_builder.o"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_builder.i"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_builder.s"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_draw.o"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_draw.i"
+	@echo "... __/src/editor/visual/renderer/wire/polyline_draw.s"
 	@echo "... __/src/editor/visual/renderer/wire_renderer.o"
 	@echo "... __/src/editor/visual/renderer/wire_renderer.i"
 	@echo "... __/src/editor/visual/renderer/wire_renderer.s"

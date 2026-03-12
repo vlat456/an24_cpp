@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/wire_module_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/wire_module_tests[1]_tests.cmake")
+else()
+  add_test(wire_module_tests_NOT_BUILT wire_module_tests_NOT_BUILT)
+endif()

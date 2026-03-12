@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/visual/spatial_grid.h"
+#include "editor/visual/spatial/grid.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"

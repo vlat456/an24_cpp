@@ -3,7 +3,7 @@
 #include "data/pt.h"
 #include "data/wire.h"
 #include "data/port.h"
-#include "visual/hittest.h"
+#include "visual/hittest/hittest.h"
 #include <optional>
 #include <string>
 #include <vector>

@@ -4,7 +4,7 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "visual/node/visual_node_cache.h"
-#include "visual/spatial_grid.h"
+#include "visual/spatial/grid.h"
 #include "jit_solver/simulator.h"
 #include <vector>
 

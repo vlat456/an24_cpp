@@ -212,4 +212,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/recent_files_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/flat_blueprint_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/library_v2_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/wire_module_tests.dir/DependInfo.cmake"
   )

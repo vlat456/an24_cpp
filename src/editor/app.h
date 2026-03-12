@@ -4,7 +4,7 @@
 #include "viewport/viewport.h"
 #include "input/input_types.h"
 #include "input/canvas_input.h"
-#include "visual/hittest.h"
+#include "visual/hittest/hittest.h"
 #include "visual/scene/scene.h"
 #include "visual/scene/wire_manager.h"
 #include "window/window_manager.h"

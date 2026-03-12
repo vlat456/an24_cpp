@@ -161,6 +161,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/recent_files_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/flat_blueprint_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/library_v2_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/wire_module_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

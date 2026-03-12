@@ -1,7 +1,7 @@
 #include "input/canvas_input.h"
 #include "visual/scene/scene.h"
 #include "visual/scene/wire_manager.h"
-#include "visual/hittest.h"
+#include "visual/hittest/hittest.h"
 #include "visual/trigonometry.h"
 #include "visual/node/node.h"
 #include "debug.h"

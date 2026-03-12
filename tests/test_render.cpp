@@ -3,7 +3,7 @@
 #include "editor/visual/renderer/render_theme.h"
 #include "editor/visual/renderer/mock_draw_list.h"
 #include "editor/visual/renderer/handle_renderer.h"
-#include "editor/visual/spatial_grid.h"
+#include "editor/visual/spatial/grid.h"
 #include "editor/layout_constants.h"
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"

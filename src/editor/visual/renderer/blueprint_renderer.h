@@ -5,7 +5,7 @@
 #include "visual/renderer/node_renderer.h"
 #include "visual/renderer/tooltip_detector.h"
 #include "visual/renderer/grid_renderer.h"
-#include "visual/spatial_grid.h"
+#include "visual/spatial/grid.h"
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "visual/node/visual_node_cache.h"

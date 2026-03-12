@@ -3,10 +3,10 @@
 #include "data/blueprint.h"
 #include "viewport/viewport.h"
 #include "visual/node/visual_node_cache.h"
-#include "visual/hittest.h"
+#include "visual/hittest/hittest.h"
 #include "visual/renderer/blueprint_renderer.h"
 #include "visual/trigonometry.h"
-#include "visual/spatial_grid.h"
+#include "visual/spatial/grid.h"
 #include <cassert>
 #include <string>
 #include <unordered_set>

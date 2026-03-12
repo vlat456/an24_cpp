@@ -1198,6 +1198,19 @@ library_v2_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
 .PHONY : library_v2_tests/fast
 
+#=============================================================================
+# Target rules for targets named wire_module_tests
+
+# Build rule for target.
+wire_module_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 wire_module_tests
+.PHONY : wire_module_tests
+
+# fast build rule for target.
+wire_module_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/wire_module_tests.dir/build.make tests/CMakeFiles/wire_module_tests.dir/build
+.PHONY : wire_module_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1290,6 +1303,7 @@ help:
 	@echo "... v_to_bool_tests"
 	@echo "... visual_port_tests"
 	@echo "... visual_scene_tests"
+	@echo "... wire_module_tests"
 .PHONY : help
 
 

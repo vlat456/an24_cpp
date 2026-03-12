@@ -88,7 +88,8 @@ add_executable(editor_persist_tests
     test_persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
@@ -110,6 +111,9 @@ add_executable(editor_persist_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -161,6 +165,9 @@ gtest_discover_tests(editor_viewport_tests)
 add_executable(editor_render_tests
     test_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -206,8 +213,12 @@ gtest_discover_tests(editor_render_tests)
 # Editor hit test tests (TDD Step 6)
 add_executable(editor_hittest_tests
     test_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -336,6 +347,9 @@ add_executable(editor_router_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -383,6 +397,9 @@ add_executable(editor_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -772,7 +789,8 @@ gtest_discover_tests(pi_p_tests)
 add_executable(inspector_tests
     test_inspector.cpp
     ../src/editor/visual/inspector/inspector_core.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
@@ -796,6 +814,9 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -859,6 +880,9 @@ add_executable(editor_hierarchical_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -886,6 +910,9 @@ add_executable(visual_port_tests
     test_visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -929,8 +956,12 @@ gtest_discover_tests(visual_port_tests)
 # VisualScene tests
 add_executable(visual_scene_tests
     test_visual_scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -977,8 +1008,12 @@ gtest_discover_tests(visual_scene_tests)
 # Refactoring regression tests (audit: extracted types, [[nodiscard]], dependency decoupling)
 add_executable(refactoring_regression_tests
     test_refactoring_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1027,8 +1062,12 @@ add_executable(node_deletion_tests
     test_node_deletion.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1077,8 +1116,12 @@ add_executable(multi_window_tests
     test_multi_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1130,8 +1173,12 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1199,8 +1246,12 @@ add_executable(context_menu_tests
     test_context_menu.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1364,6 +1415,9 @@ add_executable(node_color_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1408,6 +1462,9 @@ add_executable(node_autosize_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1619,8 +1676,12 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
@@ -1706,3 +1767,45 @@ target_link_libraries(library_v2_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(library_v2_tests)
+
+# Wire module unit tests (Phase 4.3: polyline_builder, polyline_draw, arc_draw)
+add_executable(wire_module_tests
+    test_wire_modules.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/column.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/row.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_compile_definitions(wire_module_tests PRIVATE EDITOR_TESTING)
+target_include_directories(wire_module_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(wire_module_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(wire_module_tests)

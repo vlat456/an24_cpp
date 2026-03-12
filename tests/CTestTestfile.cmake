@@ -68,3 +68,4 @@ include("/Users/vladimir/an24_cpp/tests/document_window_system_tests[1]_include.
 include("/Users/vladimir/an24_cpp/tests/recent_files_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/flat_blueprint_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/library_v2_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/wire_module_tests[1]_include.cmake")

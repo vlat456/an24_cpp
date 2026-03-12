@@ -5,8 +5,8 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/pt.h"
 #include "editor/data/port.h"
-#include "editor/visual/hittest.h"
-#include "editor/visual/spatial_grid.h"
+#include "editor/visual/hittest/hittest.h"
+#include "editor/visual/spatial/grid.h"
 #include "editor/visual/node/node.h"
 
 TEST(RoutingTest, HitRoutingPoint) {

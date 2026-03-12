@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "editor/visual/hittest.h"
-#include "editor/visual/spatial_grid.h"
+#include "editor/visual/hittest/hittest.h"
+#include "editor/visual/spatial/grid.h"
 #include "editor/visual/trigonometry.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
