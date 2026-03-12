@@ -188,5 +188,5 @@ target_include_directories(convert_library PRIVATE
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(convert_library PRIVATE json_parser blueprint_v2 nlohmann_json::nlohmann_json spdlog::spdlog)
+target_link_libraries(convert_library PRIVATE json_parser json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
 

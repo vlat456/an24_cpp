@@ -5,21 +5,19 @@
 ///
 /// For each .json file in the library directory:
 /// 1. Parse as v1 TypeDefinition (using parse_type_definition)
-/// 2. Convert to BlueprintV2 (using type_definition_to_v2)
-/// 3. Serialize to JSON (using serialize_blueprint_v2)
+/// 2. Convert to FlatBlueprint (using type_definition_to_flat)
+/// 3. Serialize to JSON (using serialize_flat_blueprint)
 /// 4. Write to .blueprint file (same directory, same base name)
 ///
 /// Does NOT delete the .json files — that's a manual step.
 
 #include "json_parser.h"
-#include "blueprint_v2.h"
-#include "convert.h"
+#include "editor/data/flat_blueprint.h"
+#include "editor/data/type_def_convert.h"
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-
-using namespace v2;
 
 using json = nlohmann::json;
 
@@ -56,10 +54,10 @@ int main(int argc, char* argv[]) {
             TypeDefinition td = parse_type_definition(j);
 
             // Convert to v2
-            BlueprintV2 bp = type_definition_to_v2(td);
+            FlatBlueprint bp = type_definition_to_flat(td);
 
             // Serialize
-            std::string v2_json = serialize_blueprint_v2(bp);
+            std::string v2_json = serialize_flat_blueprint(bp);
 
             // Write .blueprint file
             auto blueprint_path = entry.path();

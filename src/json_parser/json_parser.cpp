@@ -4,8 +4,8 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
-#include "blueprint_v2.h"
-#include "convert.h"
+#include "editor/data/flat_blueprint.h"
+#include "editor/data/type_def_convert.h"
 
 using json = nlohmann::json;
 
@@ -806,7 +806,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                                      std::istreambuf_iterator<char>());
 
                 // Parse v2 blueprint
-                auto bp_opt = v2::parse_blueprint_v2(content);
+                auto bp_opt = parse_flat_blueprint(content);
                 if (!bp_opt.has_value()) {
                     spdlog::error("[json_parser] Failed to parse v2 blueprint '{}'",
                                   entry.path().string());
@@ -814,7 +814,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 }
 
                 // Convert to TypeDefinition
-                TypeDefinition def = v2::v2_to_type_definition(*bp_opt);
+                TypeDefinition def = flat_to_type_definition(*bp_opt);
 
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {

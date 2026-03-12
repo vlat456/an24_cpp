@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = -DSPDLOG_COMPILED_LIB
 
-CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/v2 -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include
+CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include
 
 CXX_FLAGSarm64 = -g -std=gnu++20 -arch arm64
 

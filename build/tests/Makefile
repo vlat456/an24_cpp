@@ -1026,18 +1026,18 @@ recent_files_tests/fast:
 .PHONY : recent_files_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/blueprint_v2_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/blueprint_v2_tests.dir/rule
-.PHONY : tests/CMakeFiles/blueprint_v2_tests.dir/rule
+tests/CMakeFiles/flat_blueprint_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/flat_blueprint_tests.dir/rule
+.PHONY : tests/CMakeFiles/flat_blueprint_tests.dir/rule
 
 # Convenience name for target.
-blueprint_v2_tests: tests/CMakeFiles/blueprint_v2_tests.dir/rule
-.PHONY : blueprint_v2_tests
+flat_blueprint_tests: tests/CMakeFiles/flat_blueprint_tests.dir/rule
+.PHONY : flat_blueprint_tests
 
 # fast build rule for target.
-blueprint_v2_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/build
-.PHONY : blueprint_v2_tests/fast
+flat_blueprint_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
+.PHONY : flat_blueprint_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/library_v2_tests.dir/rule:
@@ -3023,7 +3023,7 @@ test_blueprint_v2.o: test_blueprint_v2.cpp.o
 
 # target to build an object file
 test_blueprint_v2.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.o
 .PHONY : test_blueprint_v2.cpp.o
 
 test_blueprint_v2.i: test_blueprint_v2.cpp.i
@@ -3031,7 +3031,7 @@ test_blueprint_v2.i: test_blueprint_v2.cpp.i
 
 # target to preprocess a source file
 test_blueprint_v2.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.i
 .PHONY : test_blueprint_v2.cpp.i
 
 test_blueprint_v2.s: test_blueprint_v2.cpp.s
@@ -3039,7 +3039,7 @@ test_blueprint_v2.s: test_blueprint_v2.cpp.s
 
 # target to generate assembly for a file
 test_blueprint_v2.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/test_blueprint_v2.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.s
 .PHONY : test_blueprint_v2.cpp.s
 
 test_bus_port_swap.o: test_bus_port_swap.cpp.o
@@ -4241,7 +4241,6 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
-	@echo "... blueprint_v2_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -4260,6 +4259,7 @@ help:
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
 	@echo "... expand_typedef_tests"
+	@echo "... flat_blueprint_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
 	@echo "... json_parser_tests"

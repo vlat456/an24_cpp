@@ -8,7 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/vladimir/an24_cpp/src/v2/convert.cpp" "src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/editor/data/flat_blueprint.cpp" "src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/editor/data/type_def_convert.cpp" "src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/json_parser/json_parser.cpp" "src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o" "gcc" "src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o.d"
   )
 

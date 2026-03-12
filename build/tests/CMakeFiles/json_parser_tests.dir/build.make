@@ -97,7 +97,6 @@ tests/json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/json_parser_test
 tests/json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/build.make
 tests/json_parser_tests: src/json_parser/libjson_parser.a
 tests/json_parser_tests: lib/libgtest_main.a
-tests/json_parser_tests: src/v2/libblueprint_v2.a
 tests/json_parser_tests: _deps/spdlog-build/libspdlogd.a
 tests/json_parser_tests: lib/libgtest.a
 tests/json_parser_tests: tests/CMakeFiles/json_parser_tests.dir/link.txt

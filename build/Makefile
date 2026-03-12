@@ -276,19 +276,6 @@ json_parser/fast:
 .PHONY : json_parser/fast
 
 #=============================================================================
-# Target rules for targets named blueprint_v2
-
-# Build rule for target.
-blueprint_v2: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_v2
-.PHONY : blueprint_v2
-
-# fast build rule for target.
-blueprint_v2/fast:
-	$(MAKE) $(MAKESILENT) -f src/v2/CMakeFiles/blueprint_v2.dir/build.make src/v2/CMakeFiles/blueprint_v2.dir/build
-.PHONY : blueprint_v2/fast
-
-#=============================================================================
 # Target rules for targets named hello_world
 
 # Build rule for target.
@@ -1173,17 +1160,17 @@ recent_files_tests/fast:
 .PHONY : recent_files_tests/fast
 
 #=============================================================================
-# Target rules for targets named blueprint_v2_tests
+# Target rules for targets named flat_blueprint_tests
 
 # Build rule for target.
-blueprint_v2_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_v2_tests
-.PHONY : blueprint_v2_tests
+flat_blueprint_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 flat_blueprint_tests
+.PHONY : flat_blueprint_tests
 
 # fast build rule for target.
-blueprint_v2_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_v2_tests.dir/build.make tests/CMakeFiles/blueprint_v2_tests.dir/build
-.PHONY : blueprint_v2_tests/fast
+flat_blueprint_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
+.PHONY : flat_blueprint_tests/fast
 
 #=============================================================================
 # Target rules for targets named library_v2_tests
@@ -1225,8 +1212,6 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
-	@echo "... blueprint_v2"
-	@echo "... blueprint_v2_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -1247,6 +1232,7 @@ help:
 	@echo "... editor_viewport_tests"
 	@echo "... editor_widget_tests"
 	@echo "... expand_typedef_tests"
+	@echo "... flat_blueprint_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"

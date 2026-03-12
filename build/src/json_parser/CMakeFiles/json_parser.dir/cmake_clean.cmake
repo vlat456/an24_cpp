@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/json_parser.dir/__/v2/convert.cpp.o"
-  "CMakeFiles/json_parser.dir/__/v2/convert.cpp.o.d"
+  "CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.o"
+  "CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.o.d"
+  "CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o"
+  "CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o.d"
   "CMakeFiles/json_parser.dir/json_parser.cpp.o"
   "CMakeFiles/json_parser.dir/json_parser.cpp.o.d"
   "libjson_parser.a"

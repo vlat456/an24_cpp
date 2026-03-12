@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/v2 -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest
+CXX_INCLUDES = -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest
 
 CXX_FLAGSarm64 = -g -std=gnu++20 -arch arm64
 

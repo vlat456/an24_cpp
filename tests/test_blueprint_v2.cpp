@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
-#include "blueprint_v2.h"
+#include "editor/data/flat_blueprint.h"
 #include <nlohmann/json.hpp>
-
-using namespace v2;
 
 // ==================================================================
 // Helper: raw JSON strings for each test scenario
@@ -168,8 +166,8 @@ static const char* kPortWithAlias = R"({
 // Parse tests
 // ==================================================================
 
-TEST(BlueprintV2Parse, MinimalCppComponent) {
-    auto bp = v2::parse_blueprint_v2(kMinimalCppComponent);
+TEST(FlatBlueprintParse, MinimalCppComponent) {
+    auto bp = parse_flat_blueprint(kMinimalCppComponent);
     ASSERT_TRUE(bp.has_value()) << "Failed to parse minimal C++ component";
 
     EXPECT_EQ(bp->version, 2);
@@ -199,8 +197,8 @@ TEST(BlueprintV2Parse, MinimalCppComponent) {
     EXPECT_FALSE(bp->viewport.has_value());
 }
 
-TEST(BlueprintV2Parse, CompositeBlueprint) {
-    auto bp = v2::parse_blueprint_v2(kCompositeBlueprint);
+TEST(FlatBlueprintParse, CompositeBlueprint) {
+    auto bp = parse_flat_blueprint(kCompositeBlueprint);
     ASSERT_TRUE(bp.has_value()) << "Failed to parse composite blueprint";
 
     EXPECT_EQ(bp->meta.name, "lamp_pass_through");
@@ -231,8 +229,8 @@ TEST(BlueprintV2Parse, CompositeBlueprint) {
     EXPECT_EQ(bp->wires[1].from.port, "v_out");
 }
 
-TEST(BlueprintV2Parse, RootDocument) {
-    auto bp = v2::parse_blueprint_v2(kRootDocument);
+TEST(FlatBlueprintParse, RootDocument) {
+    auto bp = parse_flat_blueprint(kRootDocument);
     ASSERT_TRUE(bp.has_value()) << "Failed to parse root document";
 
     // Meta
@@ -284,8 +282,8 @@ TEST(BlueprintV2Parse, RootDocument) {
     EXPECT_FALSE(sb.is_embedded());
 }
 
-TEST(BlueprintV2Parse, SubBlueprintReference) {
-    auto bp = v2::parse_blueprint_v2(kRootDocument);
+TEST(FlatBlueprintParse, SubBlueprintReference) {
+    auto bp = parse_flat_blueprint(kRootDocument);
     ASSERT_TRUE(bp.has_value());
 
     const auto& sb = bp->sub_blueprints.at("lamp_1");
@@ -307,8 +305,8 @@ TEST(BlueprintV2Parse, SubBlueprintReference) {
     EXPECT_FLOAT_EQ(sb.overrides->routing.at("w_in")[0][1], 110.0f);
 }
 
-TEST(BlueprintV2Parse, SubBlueprintEmbedded) {
-    auto bp = v2::parse_blueprint_v2(kSubBlueprintEmbedded);
+TEST(FlatBlueprintParse, SubBlueprintEmbedded) {
+    auto bp = parse_flat_blueprint(kSubBlueprintEmbedded);
     ASSERT_TRUE(bp.has_value());
 
     ASSERT_EQ(bp->sub_blueprints.size(), 1u);
@@ -335,8 +333,8 @@ TEST(BlueprintV2Parse, SubBlueprintEmbedded) {
     EXPECT_FALSE(sb.collapsed);
 }
 
-TEST(BlueprintV2Parse, WireEndpointsAsArrays) {
-    auto bp = v2::parse_blueprint_v2(kCompositeBlueprint);
+TEST(FlatBlueprintParse, WireEndpointsAsArrays) {
+    auto bp = parse_flat_blueprint(kCompositeBlueprint);
     ASSERT_TRUE(bp.has_value());
 
     // Wire endpoints are parsed from ["node", "port"] arrays
@@ -347,8 +345,8 @@ TEST(BlueprintV2Parse, WireEndpointsAsArrays) {
     EXPECT_EQ(w.to.port, "v_in");
 }
 
-TEST(BlueprintV2Parse, PositionsAsArrays) {
-    auto bp = v2::parse_blueprint_v2(kRootDocument);
+TEST(FlatBlueprintParse, PositionsAsArrays) {
+    auto bp = parse_flat_blueprint(kRootDocument);
     ASSERT_TRUE(bp.has_value());
 
     // Positions parsed from [x, y] arrays
@@ -358,8 +356,8 @@ TEST(BlueprintV2Parse, PositionsAsArrays) {
     EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size[1], 80.0f);
 }
 
-TEST(BlueprintV2Parse, NodeContent) {
-    auto bp = v2::parse_blueprint_v2(kNodeWithContent);
+TEST(FlatBlueprintParse, NodeContent) {
+    auto bp = parse_flat_blueprint(kNodeWithContent);
     ASSERT_TRUE(bp.has_value());
 
     const auto& node = bp->nodes.at("voltmeter1");
@@ -372,8 +370,8 @@ TEST(BlueprintV2Parse, NodeContent) {
     EXPECT_FLOAT_EQ(node.content->value, 12.5f);
 }
 
-TEST(BlueprintV2Parse, NodeColor) {
-    auto bp = v2::parse_blueprint_v2(kNodeWithColor);
+TEST(FlatBlueprintParse, NodeColor) {
+    auto bp = parse_flat_blueprint(kNodeWithColor);
     ASSERT_TRUE(bp.has_value());
 
     const auto& node = bp->nodes.at("bat1");
@@ -384,8 +382,8 @@ TEST(BlueprintV2Parse, NodeColor) {
     EXPECT_FLOAT_EQ(node.color->a, 0.8f);
 }
 
-TEST(BlueprintV2Parse, PortAlias) {
-    auto bp = v2::parse_blueprint_v2(kPortWithAlias);
+TEST(FlatBlueprintParse, PortAlias) {
+    auto bp = parse_flat_blueprint(kPortWithAlias);
     ASSERT_TRUE(bp.has_value());
 
     // v_in has no alias
@@ -398,20 +396,20 @@ TEST(BlueprintV2Parse, PortAlias) {
     EXPECT_EQ(*bp->exposes.at("v_out2").alias, "v_in");
 }
 
-TEST(BlueprintV2Parse, InvalidVersionReturnsNullopt) {
+TEST(FlatBlueprintParse, InvalidVersionReturnsNullopt) {
     const char* v1_json = R"({"version": 1, "meta": {"name": "old"}})";
-    auto bp = v2::parse_blueprint_v2(v1_json);
+    auto bp = parse_flat_blueprint(v1_json);
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2Parse, MalformedJsonReturnsNullopt) {
-    auto bp = v2::parse_blueprint_v2("not json at all {{{");
+TEST(FlatBlueprintParse, MalformedJsonReturnsNullopt) {
+    auto bp = parse_flat_blueprint("not json at all {{{");
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2Parse, MissingVersionReturnsNullopt) {
+TEST(FlatBlueprintParse, MissingVersionReturnsNullopt) {
     const char* no_version = R"({"meta": {"name": "test"}})";
-    auto bp = v2::parse_blueprint_v2(no_version);
+    auto bp = parse_flat_blueprint(no_version);
     EXPECT_FALSE(bp.has_value());
 }
 
@@ -419,44 +417,44 @@ TEST(BlueprintV2Parse, MissingVersionReturnsNullopt) {
 // Serialize tests
 // ==================================================================
 
-TEST(BlueprintV2Serialize, Roundtrip) {
-    // Build a BlueprintV2 programmatically
-    BlueprintV2 bp;
+TEST(FlatBlueprintSerialize, Roundtrip) {
+    // Build a FlatBlueprint programmatically
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "roundtrip_test";
     bp.meta.description = "Tests roundtrip fidelity";
     bp.meta.domains = {"Electrical", "Thermal"};
     bp.meta.cpp_class = false;
 
-    bp.exposes["vin"] = ExposedPort{"In", "V", std::nullopt};
-    bp.exposes["vout"] = ExposedPort{"Out", "V", std::nullopt};
+    bp.exposes["vin"] = FlatPort{"In", "V", std::nullopt};
+    bp.exposes["vout"] = FlatPort{"Out", "V", std::nullopt};
 
-    NodeV2 bat;
+    FlatNode bat;
     bat.type = "Battery";
     bat.pos = {100.0f, 200.0f};
     bat.size = {128.0f, 80.0f};
     bat.params["v_nominal"] = "28.0";
     bp.nodes["bat1"] = bat;
 
-    NodeV2 bus;
+    FlatNode bus;
     bus.type = "Bus";
     bus.pos = {300.0f, 50.0f};
     bp.nodes["bus1"] = bus;
 
-    WireV2 w;
+    FlatWire w;
     w.id = "w1";
     w.from = {"bat1", "v_out"};
     w.to = {"bus1", "v"};
     w.routing = {{200.0f, 150.0f}, {250.0f, 100.0f}};
     bp.wires.push_back(w);
 
-    bp.viewport = ViewportV2{{70.5f, -100.0f}, 0.85f, 16.0f};
+    bp.viewport = FlatViewport{{70.5f, -100.0f}, 0.85f, 16.0f};
 
     // Serialize → parse → compare
-    std::string json = v2::serialize_blueprint_v2(bp);
+    std::string json = serialize_flat_blueprint(bp);
     ASSERT_FALSE(json.empty()) << "Serialization produced empty string";
 
-    auto parsed = v2::parse_blueprint_v2(json);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value()) << "Failed to re-parse serialized JSON:\n" << json;
 
     EXPECT_EQ(parsed->version, 2);
@@ -499,39 +497,39 @@ TEST(BlueprintV2Serialize, Roundtrip) {
     EXPECT_FLOAT_EQ(parsed->viewport->grid, 16.0f);
 }
 
-TEST(BlueprintV2Serialize, RoundtripWithSubBlueprints) {
-    BlueprintV2 bp;
+TEST(FlatBlueprintSerialize, RoundtripWithSubBlueprints) {
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "sub_bp_roundtrip";
     bp.meta.domains = {"Electrical"};
 
     // Reference sub-blueprint
-    SubBlueprintV2 ref;
+    FlatSubBlueprint ref;
     ref.template_path = "library/systems/lamp_pass_through";
     ref.pos = {400.0f, 300.0f};
     ref.size = {200.0f, 150.0f};
     ref.collapsed = true;
-    ref.overrides = OverridesV2{};
+    ref.overrides = FlatOverrides{};
     ref.overrides->params["lamp.color"] = "green";
     ref.overrides->layout["lamp"] = {250.0f, 100.0f};
     bp.sub_blueprints["lamp_ref"] = ref;
 
     // Embedded sub-blueprint
-    SubBlueprintV2 emb;
+    FlatSubBlueprint emb;
     emb.template_path = "library/systems/lamp_pass_through";
     emb.pos = {600.0f, 300.0f};
     emb.size = {200.0f, 150.0f};
     emb.collapsed = false;
-    NodeV2 n1;
+    FlatNode n1;
     n1.type = "BlueprintInput";
     n1.pos = {50.0f, 100.0f};
     emb.nodes["vin"] = n1;
-    NodeV2 n2;
+    FlatNode n2;
     n2.type = "IndicatorLight";
     n2.pos = {250.0f, 100.0f};
     n2.params["color"] = "red";
     emb.nodes["lamp"] = n2;
-    WireV2 ew;
+    FlatWire ew;
     ew.id = "ew1";
     ew.from = {"vin", "port"};
     ew.to = {"lamp", "v_in"};
@@ -539,8 +537,8 @@ TEST(BlueprintV2Serialize, RoundtripWithSubBlueprints) {
     bp.sub_blueprints["lamp_emb"] = emb;
 
     // Serialize → parse → compare
-    std::string json = v2::serialize_blueprint_v2(bp);
-    auto parsed = v2::parse_blueprint_v2(json);
+    std::string json = serialize_flat_blueprint(bp);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value()) << "Failed roundtrip:\n" << json;
 
     // Reference sub-blueprint
@@ -568,16 +566,16 @@ TEST(BlueprintV2Serialize, RoundtripWithSubBlueprints) {
     EXPECT_EQ(*pemb.template_path, "library/systems/lamp_pass_through");
 }
 
-TEST(BlueprintV2Serialize, OmitsEmptySections) {
+TEST(FlatBlueprintSerialize, OmitsEmptySections) {
     // A cpp_class component should not have nodes, wires, sub_blueprints, viewport in output
-    BlueprintV2 bp;
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "Battery";
     bp.meta.cpp_class = true;
     bp.meta.domains = {"Electrical"};
-    bp.exposes["v_out"] = ExposedPort{"Out", "V", std::nullopt};
+    bp.exposes["v_out"] = FlatPort{"Out", "V", std::nullopt};
 
-    std::string json = v2::serialize_blueprint_v2(bp);
+    std::string json = serialize_flat_blueprint(bp);
 
     // The serialized JSON should not contain empty optional sections
     // Parse as raw JSON to check structure
@@ -596,21 +594,21 @@ TEST(BlueprintV2Serialize, OmitsEmptySections) {
     EXPECT_TRUE(json.find("\"exposes\"") != std::string::npos);
 }
 
-TEST(BlueprintV2Serialize, RoundtripNodeContentAndColor) {
-    BlueprintV2 bp;
+TEST(FlatBlueprintSerialize, RoundtripNodeContentAndColor) {
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "content_color_test";
     bp.meta.domains = {"Electrical"};
 
-    NodeV2 node;
+    FlatNode node;
     node.type = "Voltmeter";
     node.pos = {100.0f, 200.0f};
-    node.content = ContentV2{"gauge", "V", 12.5f, 0.0f, 30.0f, "V", false};
-    node.color = NodeColorV2{0.1f, 0.2f, 0.3f, 0.9f};
+    node.content = FlatContent{"gauge", "V", 12.5f, 0.0f, 30.0f, "V", false};
+    node.color = FlatColor{0.1f, 0.2f, 0.3f, 0.9f};
     bp.nodes["vm1"] = node;
 
-    std::string json = v2::serialize_blueprint_v2(bp);
-    auto parsed = v2::parse_blueprint_v2(json);
+    std::string json = serialize_flat_blueprint(bp);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value());
 
     const auto& pn = parsed->nodes.at("vm1");
@@ -629,17 +627,17 @@ TEST(BlueprintV2Serialize, RoundtripNodeContentAndColor) {
     EXPECT_FLOAT_EQ(pn.color->a, 0.9f);
 }
 
-TEST(BlueprintV2Serialize, RoundtripPortAlias) {
-    BlueprintV2 bp;
+TEST(FlatBlueprintSerialize, RoundtripPortAlias) {
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "alias_test";
     bp.meta.cpp_class = true;
     bp.meta.domains = {"Electrical"};
-    bp.exposes["v_in"] = ExposedPort{"In", "V", std::nullopt};
-    bp.exposes["v_out"] = ExposedPort{"Out", "V", "v_in"};
+    bp.exposes["v_in"] = FlatPort{"In", "V", std::nullopt};
+    bp.exposes["v_out"] = FlatPort{"Out", "V", "v_in"};
 
-    std::string json = v2::serialize_blueprint_v2(bp);
-    auto parsed = v2::parse_blueprint_v2(json);
+    std::string json = serialize_flat_blueprint(bp);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value());
 
     EXPECT_FALSE(parsed->exposes.at("v_in").alias.has_value());
@@ -651,8 +649,8 @@ TEST(BlueprintV2Serialize, RoundtripPortAlias) {
 // Edge Case Tests
 // ==================================================================
 
-TEST(BlueprintV2EdgeCase, EmptyBlueprint) {
-    auto bp = v2::parse_blueprint_v2(R"({"version": 2, "meta": {"name": ""}})");
+TEST(FlatBlueprintEdgeCase, EmptyBlueprint) {
+    auto bp = parse_flat_blueprint(R"({"version": 2, "meta": {"name": ""}})");
     ASSERT_TRUE(bp.has_value());
     EXPECT_TRUE(bp->nodes.empty());
     EXPECT_TRUE(bp->wires.empty());
@@ -661,34 +659,34 @@ TEST(BlueprintV2EdgeCase, EmptyBlueprint) {
     EXPECT_FALSE(bp->viewport.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, MissingMeta) {
-    auto bp = v2::parse_blueprint_v2(R"({"version": 2})");
+TEST(FlatBlueprintEdgeCase, MissingMeta) {
+    auto bp = parse_flat_blueprint(R"({"version": 2})");
     ASSERT_TRUE(bp.has_value());
     EXPECT_TRUE(bp->meta.name.empty());
 }
 
-TEST(BlueprintV2EdgeCase, WrongVersion) {
-    auto bp = v2::parse_blueprint_v2(R"({"version": 1, "meta": {"name": "old"}})");
+TEST(FlatBlueprintEdgeCase, WrongVersion) {
+    auto bp = parse_flat_blueprint(R"({"version": 1, "meta": {"name": "old"}})");
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, MissingVersion) {
-    auto bp = v2::parse_blueprint_v2(R"({"meta": {"name": "nover"}})");
+TEST(FlatBlueprintEdgeCase, MissingVersion) {
+    auto bp = parse_flat_blueprint(R"({"meta": {"name": "nover"}})");
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, InvalidJson) {
-    auto bp = v2::parse_blueprint_v2("{not valid json");
+TEST(FlatBlueprintEdgeCase, InvalidJson) {
+    auto bp = parse_flat_blueprint("{not valid json");
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, EmptyString) {
-    auto bp = v2::parse_blueprint_v2("");
+TEST(FlatBlueprintEdgeCase, EmptyString) {
+    auto bp = parse_flat_blueprint("");
     EXPECT_FALSE(bp.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, NodeWithNoParams) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, NodeWithNoParams) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "nodes": { "n1": {"type": "Bus", "pos": [0, 0]} }
     })");
@@ -697,8 +695,8 @@ TEST(BlueprintV2EdgeCase, NodeWithNoParams) {
     EXPECT_TRUE(bp->nodes.at("n1").params.empty());
 }
 
-TEST(BlueprintV2EdgeCase, NodeWithNoPos) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, NodeWithNoPos) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "nodes": { "n1": {"type": "Bus"} }
     })");
@@ -707,8 +705,8 @@ TEST(BlueprintV2EdgeCase, NodeWithNoPos) {
     EXPECT_FLOAT_EQ(bp->nodes.at("n1").pos[1], 0.0f);
 }
 
-TEST(BlueprintV2EdgeCase, WireWithEmptyRouting) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, WireWithEmptyRouting) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "wires": [{"id": "w1", "from": ["a", "p1"], "to": ["b", "p2"], "routing": []}]
     })");
@@ -717,8 +715,8 @@ TEST(BlueprintV2EdgeCase, WireWithEmptyRouting) {
     EXPECT_TRUE(bp->wires[0].routing.empty());
 }
 
-TEST(BlueprintV2EdgeCase, WireWithNoRouting) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, WireWithNoRouting) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "wires": [{"id": "w1", "from": ["a", "p1"], "to": ["b", "p2"]}]
     })");
@@ -726,8 +724,8 @@ TEST(BlueprintV2EdgeCase, WireWithNoRouting) {
     EXPECT_TRUE(bp->wires[0].routing.empty());
 }
 
-TEST(BlueprintV2EdgeCase, SubBlueprintReferenceNoOverrides) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, SubBlueprintReferenceNoOverrides) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "sub_blueprints": {
             "lamp_1": {
@@ -743,8 +741,8 @@ TEST(BlueprintV2EdgeCase, SubBlueprintReferenceNoOverrides) {
     EXPECT_FALSE(sb.overrides.has_value());
 }
 
-TEST(BlueprintV2EdgeCase, SubBlueprintEmptyOverrides) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, SubBlueprintEmptyOverrides) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "sub_blueprints": {
             "lamp_1": {
@@ -762,8 +760,8 @@ TEST(BlueprintV2EdgeCase, SubBlueprintEmptyOverrides) {
     EXPECT_TRUE(sb.overrides->routing.empty());
 }
 
-TEST(BlueprintV2EdgeCase, EmbeddedSubBlueprintDetected) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, EmbeddedSubBlueprintDetected) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "sub_blueprints": {
             "grp1": {
@@ -782,8 +780,8 @@ TEST(BlueprintV2EdgeCase, EmbeddedSubBlueprintDetected) {
     EXPECT_EQ(sb.nodes.at("a").type, "Battery");
 }
 
-TEST(BlueprintV2EdgeCase, MultipleRoutingPoints) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintEdgeCase, MultipleRoutingPoints) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "wires": [{
             "id": "w1", "from": ["a", "out"], "to": ["b", "in"],
@@ -799,8 +797,8 @@ TEST(BlueprintV2EdgeCase, MultipleRoutingPoints) {
 // Regression Tests
 // ==================================================================
 
-TEST(BlueprintV2Regression, OverrideKeysAreUnprefixed) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintRegression, OverrideKeysAreUnprefixed) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "sub_blueprints": {
             "lamp_1": {
@@ -826,24 +824,24 @@ TEST(BlueprintV2Regression, OverrideKeysAreUnprefixed) {
     EXPECT_FALSE(ov.routing.count("lamp_1:w_in"));
 }
 
-TEST(BlueprintV2Regression, OverrideKeysRoundtrip) {
-    BlueprintV2 bp;
+TEST(FlatBlueprintRegression, OverrideKeysRoundtrip) {
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "override_key_test";
 
-    SubBlueprintV2 sb;
+    FlatSubBlueprint sb;
     sb.template_path = "library/systems/lamp_pass_through";
     sb.pos = {400.0f, 300.0f};
     sb.size = {200.0f, 150.0f};
-    OverridesV2 ov;
+    FlatOverrides ov;
     ov.layout["vin"] = {50.0f, 100.0f};
     ov.layout["lamp"] = {250.0f, 100.0f};
     ov.routing["w_in"] = {{100.0f, 110.0f}};
     sb.overrides = ov;
     bp.sub_blueprints["lamp_1"] = sb;
 
-    std::string json = v2::serialize_blueprint_v2(bp);
-    auto parsed = v2::parse_blueprint_v2(json);
+    std::string json = serialize_flat_blueprint(bp);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value());
 
     const auto& pov = *parsed->sub_blueprints.at("lamp_1").overrides;
@@ -852,26 +850,26 @@ TEST(BlueprintV2Regression, OverrideKeysRoundtrip) {
     EXPECT_EQ(pov.routing.at("w_in").size(), 1);
 }
 
-TEST(BlueprintV2Regression, ContentKindIsLowercase) {
-    BlueprintV2 bp;
+TEST(FlatBlueprintRegression, ContentKindIsLowercase) {
+    FlatBlueprint bp;
     bp.version = 2;
     bp.meta.name = "kind_case_test";
-    NodeV2 node;
+    FlatNode node;
     node.type = "Voltmeter";
-    node.content = ContentV2{"gauge", "V", 0.0f, 0.0f, 30.0f, "V", false};
+    node.content = FlatContent{"gauge", "V", 0.0f, 0.0f, 30.0f, "V", false};
     bp.nodes["vm"] = node;
 
-    std::string json = v2::serialize_blueprint_v2(bp);
+    std::string json = serialize_flat_blueprint(bp);
     auto j = nlohmann::json::parse(json);
     EXPECT_EQ(j["nodes"]["vm"]["content"]["kind"], "gauge");
 
-    auto parsed = v2::parse_blueprint_v2(json);
+    auto parsed = parse_flat_blueprint(json);
     ASSERT_TRUE(parsed.has_value());
     EXPECT_EQ(parsed->nodes.at("vm").content->kind, "gauge");
 }
 
-TEST(BlueprintV2Regression, MalformedColorIgnored) {
-    auto bp = v2::parse_blueprint_v2(R"({
+TEST(FlatBlueprintRegression, MalformedColorIgnored) {
+    auto bp = parse_flat_blueprint(R"({
         "version": 2, "meta": {"name": ""},
         "nodes": {
             "n1": {"type": "Bus", "pos": [0, 0], "color": "red"},

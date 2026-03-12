@@ -185,29 +185,53 @@ json_parser/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/build
 .PHONY : json_parser/fast
 
-__/v2/convert.o: __/v2/convert.cpp.o
-.PHONY : __/v2/convert.o
+__/editor/data/flat_blueprint.o: __/editor/data/flat_blueprint.cpp.o
+.PHONY : __/editor/data/flat_blueprint.o
 
 # target to build an object file
-__/v2/convert.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.o
-.PHONY : __/v2/convert.cpp.o
+__/editor/data/flat_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.o
+.PHONY : __/editor/data/flat_blueprint.cpp.o
 
-__/v2/convert.i: __/v2/convert.cpp.i
-.PHONY : __/v2/convert.i
+__/editor/data/flat_blueprint.i: __/editor/data/flat_blueprint.cpp.i
+.PHONY : __/editor/data/flat_blueprint.i
 
 # target to preprocess a source file
-__/v2/convert.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.i
-.PHONY : __/v2/convert.cpp.i
+__/editor/data/flat_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.i
+.PHONY : __/editor/data/flat_blueprint.cpp.i
 
-__/v2/convert.s: __/v2/convert.cpp.s
-.PHONY : __/v2/convert.s
+__/editor/data/flat_blueprint.s: __/editor/data/flat_blueprint.cpp.s
+.PHONY : __/editor/data/flat_blueprint.s
 
 # target to generate assembly for a file
-__/v2/convert.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/v2/convert.cpp.s
-.PHONY : __/v2/convert.cpp.s
+__/editor/data/flat_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/flat_blueprint.cpp.s
+.PHONY : __/editor/data/flat_blueprint.cpp.s
+
+__/editor/data/type_def_convert.o: __/editor/data/type_def_convert.cpp.o
+.PHONY : __/editor/data/type_def_convert.o
+
+# target to build an object file
+__/editor/data/type_def_convert.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o
+.PHONY : __/editor/data/type_def_convert.cpp.o
+
+__/editor/data/type_def_convert.i: __/editor/data/type_def_convert.cpp.i
+.PHONY : __/editor/data/type_def_convert.i
+
+# target to preprocess a source file
+__/editor/data/type_def_convert.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.i
+.PHONY : __/editor/data/type_def_convert.cpp.i
+
+__/editor/data/type_def_convert.s: __/editor/data/type_def_convert.cpp.s
+.PHONY : __/editor/data/type_def_convert.s
+
+# target to generate assembly for a file
+__/editor/data/type_def_convert.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/json_parser/CMakeFiles/json_parser.dir/build.make src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.s
+.PHONY : __/editor/data/type_def_convert.cpp.s
 
 json_parser.o: json_parser.cpp.o
 .PHONY : json_parser.o
@@ -247,9 +271,12 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... json_parser"
-	@echo "... __/v2/convert.o"
-	@echo "... __/v2/convert.i"
-	@echo "... __/v2/convert.s"
+	@echo "... __/editor/data/flat_blueprint.o"
+	@echo "... __/editor/data/flat_blueprint.i"
+	@echo "... __/editor/data/flat_blueprint.s"
+	@echo "... __/editor/data/type_def_convert.o"
+	@echo "... __/editor/data/type_def_convert.i"
+	@echo "... __/editor/data/type_def_convert.s"
 	@echo "... json_parser.o"
 	@echo "... json_parser.i"
 	@echo "... json_parser.s"

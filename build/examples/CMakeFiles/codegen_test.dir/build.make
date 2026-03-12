@@ -99,8 +99,6 @@ examples/codegen_test: examples/liban24_codegen.a
 examples/codegen_test: src/json_parser/libjson_parser.a
 examples/codegen_test: src/jit_solver/libjit_solver.a
 examples/codegen_test: _deps/spdlog-build/libspdlogd.a
-examples/codegen_test: src/v2/libblueprint_v2.a
-examples/codegen_test: _deps/spdlog-build/libspdlogd.a
 examples/codegen_test: examples/CMakeFiles/codegen_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable codegen_test"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/codegen_test.dir/link.txt --verbose=$(VERBOSE)

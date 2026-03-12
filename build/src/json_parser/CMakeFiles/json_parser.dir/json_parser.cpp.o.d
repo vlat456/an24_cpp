@@ -536,5 +536,5 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/details/synchronous_factory.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/fstream \
-  /Users/vladimir/an24_cpp/src/v2/blueprint_v2.h \
-  /Users/vladimir/an24_cpp/src/v2/convert.h
+  /Users/vladimir/an24_cpp/src/editor/data/flat_blueprint.h \
+  /Users/vladimir/an24_cpp/src/editor/data/type_def_convert.h

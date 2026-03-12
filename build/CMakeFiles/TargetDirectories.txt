@@ -83,14 +83,6 @@
 /Users/vladimir/an24_cpp/build/src/json_parser/CMakeFiles/install.dir
 /Users/vladimir/an24_cpp/build/src/json_parser/CMakeFiles/install/local.dir
 /Users/vladimir/an24_cpp/build/src/json_parser/CMakeFiles/install/strip.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/blueprint_v2.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/test.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/edit_cache.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/rebuild_cache.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/list_install_components.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/install.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/install/local.dir
-/Users/vladimir/an24_cpp/build/src/v2/CMakeFiles/install/strip.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/hello_world.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_codegen.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/codegen_test.dir
@@ -166,7 +158,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/sub_blueprint_ref_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/document_window_system_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/recent_files_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_v2_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/flat_blueprint_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/library_v2_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir

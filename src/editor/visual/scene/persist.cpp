@@ -2,7 +2,7 @@
 #include "router/router.h"
 #include "json_parser/json_parser.h"
 #include "data/node.h"
-#include "v2/blueprint_v2.h"
+#include "editor/data/flat_blueprint.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <sstream>
@@ -305,8 +305,8 @@ static NodeContentType string_to_content_type(const std::string& s) {
 }
 
 /// Convert editor Node → v2 NodeV2
-static v2::NodeV2 node_to_v2(const Node& n) {
-    v2::NodeV2 nv;
+static FlatNode node_to_flat(const Node& n) {
+    FlatNode nv;
     nv.type = n.type_name;
     nv.pos = {n.pos.x, n.pos.y};
     nv.size = {n.size.x, n.size.y};
@@ -318,7 +318,7 @@ static v2::NodeV2 node_to_v2(const Node& n) {
 
     // Content
     if (n.node_content.type != NodeContentType::None) {
-        v2::ContentV2 c;
+        FlatContent c;
         c.kind = content_type_to_string(n.node_content.type);
         c.label = n.node_content.label;
         c.value = n.node_content.value;
@@ -331,7 +331,7 @@ static v2::NodeV2 node_to_v2(const Node& n) {
 
     // Color
     if (n.color.has_value()) {
-        v2::NodeColorV2 c;
+        FlatColor c;
         c.r = n.color->r;
         c.g = n.color->g;
         c.b = n.color->b;
@@ -352,8 +352,8 @@ static v2::NodeV2 node_to_v2(const Node& n) {
 }
 
 /// Convert editor Wire → v2 WireV2
-static v2::WireV2 wire_to_v2(const Wire& w) {
-    v2::WireV2 wv;
+static FlatWire wire_to_flat(const Wire& w) {
+    FlatWire wv;
     wv.id = w.id;
     wv.from = {w.start.node_id, w.start.port_name};
     wv.to = {w.end.node_id, w.end.port_name};
@@ -364,9 +364,9 @@ static v2::WireV2 wire_to_v2(const Wire& w) {
 }
 
 /// Convert editor SubBlueprintInstance → v2 SubBlueprintV2
-static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
-                                           const Blueprint& bp) {
-    v2::SubBlueprintV2 sb;
+static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi,
+                                            const Blueprint& bp) {
+    FlatSubBlueprint sb;
 
     if (!sbi.blueprint_path.empty()) {
         sb.template_path = sbi.blueprint_path;
@@ -377,7 +377,7 @@ static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
     sb.collapsed = true;  // Currently always collapsed in save
 
     // Build overrides
-    v2::OverridesV2 ov;
+    FlatOverrides ov;
     for (const auto& [k, v] : sbi.params_override) {
         ov.params[k] = v;
     }
@@ -404,7 +404,7 @@ static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
         ov.layout[k] = {pt.x, pt.y};
     }
     for (const auto& [k, pts] : sbi.internal_routing) {
-        std::vector<v2::Pos> v2pts;
+        std::vector<FlatPos> v2pts;
         for (const auto& pt : pts) {
             v2pts.push_back({pt.x, pt.y});
         }
@@ -420,7 +420,7 @@ static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
     if (sbi.baked_in) {
         for (const auto& nid : sbi.internal_node_ids) {
             if (const Node* n = bp.find_node(nid.c_str())) {
-                sb.nodes[strip_prefix(nid)] = node_to_v2(*n);
+                sb.nodes[strip_prefix(nid)] = node_to_flat(*n);
             }
         }
         // Collect wires where both endpoints are internal
@@ -428,7 +428,7 @@ static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
                                            sbi.internal_node_ids.end());
         for (const auto& w : bp.wires) {
             if (internal_set.count(w.start.node_id) && internal_set.count(w.end.node_id)) {
-                auto wv = wire_to_v2(w);
+                auto wv = wire_to_flat(w);
                 wv.from.node = strip_prefix(w.start.node_id);
                 wv.to.node = strip_prefix(w.end.node_id);
                 sb.wires.push_back(std::move(wv));
@@ -440,15 +440,15 @@ static v2::SubBlueprintV2 sbi_to_v2(const SubBlueprintInstance& sbi,
 }
 
 /// Convert full editor Blueprint → BlueprintV2 (for editor save)
-static v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
-    v2::BlueprintV2 bpv2;
+static FlatBlueprint editor_blueprint_to_flat(const Blueprint& bp) {
+    FlatBlueprint bpv2;
     bpv2.version = 2;
 
     // Meta (minimal for editor saves — no component-level metadata)
     bpv2.meta.name = "";
 
     // Viewport
-    v2::ViewportV2 vp;
+    FlatViewport vp;
     vp.pan = {bp.pan.x, bp.pan.y};
     vp.zoom = bp.zoom;
     vp.grid = bp.grid_step;
@@ -477,7 +477,7 @@ static v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
             continue;
         }
 
-        bpv2.nodes[n.id] = node_to_v2(n);
+        bpv2.nodes[n.id] = node_to_flat(n);
     }
 
     // Wires
@@ -499,21 +499,21 @@ static v2::BlueprintV2 editor_blueprint_to_v2(const Blueprint& bp) {
             continue;
         }
 
-        bpv2.wires.push_back(wire_to_v2(w));
+        bpv2.wires.push_back(wire_to_flat(w));
     }
 
     // Sub-blueprints
     std::set<std::string> emitted_group_ids;
     for (const auto& sbi : bp.sub_blueprint_instances) {
         if (!emitted_group_ids.insert(sbi.id).second) continue;
-        bpv2.sub_blueprints[sbi.id] = sbi_to_v2(sbi, bp);
+        bpv2.sub_blueprints[sbi.id] = sbi_to_flat(sbi, bp);
     }
 
     return bpv2;
 }
 
 /// Convert v2 BlueprintV2 → editor Blueprint (for editor load)
-static std::optional<Blueprint> v2_to_editor_blueprint(const v2::BlueprintV2& bpv2) {
+static std::optional<Blueprint> flat_to_editor_blueprint(const FlatBlueprint& bpv2) {
     Blueprint bp;
 
     // Viewport
@@ -778,8 +778,8 @@ static std::optional<Blueprint> v2_to_editor_blueprint(const v2::BlueprintV2& bp
 }
 
 std::string blueprint_to_editor_json(const Blueprint& bp) {
-    auto bpv2 = editor_blueprint_to_v2(bp);
-    return v2::serialize_blueprint_v2(bpv2);
+    auto bpv2 = editor_blueprint_to_flat(bp);
+    return serialize_flat_blueprint(bpv2);
 }
 
 // BUGFIX [f2c8d4] Removed ~200 lines of dead code:
@@ -788,13 +788,13 @@ std::string blueprint_to_editor_json(const Blueprint& bp) {
 // - create_node_content() — duplicate wrapper, replaced by create_node_content_from_def
 // - auto_layout() / port_center() / classify_node() / NodeRole — never called
 // - snap() / LAYOUT_GRID — only used by dead auto_layout
-// [Phase 3] Removed v1 load_editor_format() and helpers — replaced by v2_to_editor_blueprint()
+// [Phase 3] Removed v1 load_editor_format() and helpers — replaced by flat_to_editor_blueprint()
 
 std::optional<Blueprint> blueprint_from_json(const std::string& json_str) {
     // Try v2 format first
-    auto bpv2 = v2::parse_blueprint_v2(json_str);
+    auto bpv2 = parse_flat_blueprint(json_str);
     if (bpv2.has_value()) {
-        return v2_to_editor_blueprint(*bpv2);
+        return flat_to_editor_blueprint(*bpv2);
     }
 
     // v2 parse failed — this is not a valid v2 blueprint

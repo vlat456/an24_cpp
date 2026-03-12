@@ -1,19 +1,17 @@
-/// Phase 2 tests: Library v1 ↔ v2 conversion
+/// Phase 2 tests: Library v1 ↔ Flat conversion
 ///
-/// Tests that TypeDefinition can be converted to BlueprintV2 and back,
+/// Tests that TypeDefinition can be converted to FlatBlueprint and back,
 /// and that load_type_registry() works with .blueprint files.
 
 #include <gtest/gtest.h>
-#include "blueprint_v2.h"
-#include "convert.h"
+#include "editor/data/flat_blueprint.h"
+#include "editor/data/type_def_convert.h"
 #include "json_parser.h"
 #include <filesystem>
 #include <fstream>
 
-using namespace v2;
-
 // ==================================================================
-// Test 1: ConvertCppComponent — Battery → BlueprintV2 roundtrip
+// Test 1: ConvertCppComponent — Battery → FlatBlueprint roundtrip
 // ==================================================================
 
 TEST(LibraryV2, ConvertCppComponent) {
@@ -31,7 +29,7 @@ TEST(LibraryV2, ConvertCppComponent) {
     td.critical = true;
 
     // Convert to v2
-    BlueprintV2 bp = v2::type_definition_to_v2(td);
+    FlatBlueprint bp = type_definition_to_flat(td);
 
     // Assert v2 structure
     EXPECT_EQ(bp.version, 2);
@@ -61,7 +59,7 @@ TEST(LibraryV2, ConvertCppComponent) {
     EXPECT_TRUE(bp.wires.empty());
 
     // Roundtrip back to TypeDefinition
-    TypeDefinition td2 = v2::v2_to_type_definition(bp);
+    TypeDefinition td2 = flat_to_type_definition(bp);
     EXPECT_EQ(td2.classname, "Battery");
     EXPECT_TRUE(td2.cpp_class);
     EXPECT_EQ(td2.priority, "high");
@@ -118,7 +116,7 @@ TEST(LibraryV2, ConvertComposite) {
     td.connections.push_back(Connection{"lamp.v_out", "vout.port", {}});
 
     // Convert to v2
-    BlueprintV2 bp = v2::type_definition_to_v2(td);
+    FlatBlueprint bp = type_definition_to_flat(td);
 
     // Assert v2 nodes
     ASSERT_EQ(bp.nodes.size(), 3u);
@@ -150,7 +148,7 @@ TEST(LibraryV2, ConvertComposite) {
     EXPECT_TRUE(bp.params.empty());
 
     // Roundtrip back
-    TypeDefinition td2 = v2::v2_to_type_definition(bp);
+    TypeDefinition td2 = flat_to_type_definition(bp);
     EXPECT_EQ(td2.classname, "lamp_pass_through");
     EXPECT_FALSE(td2.cpp_class);
     ASSERT_EQ(td2.devices.size(), 3u);
@@ -176,7 +174,7 @@ TEST(LibraryV2, PortAliasPreserved) {
     td.size = {3.0f, 3.0f};
 
     // Convert to v2
-    BlueprintV2 bp = v2::type_definition_to_v2(td);
+    FlatBlueprint bp = type_definition_to_flat(td);
 
     // Assert aliases preserved
     EXPECT_FALSE(bp.exposes.at("i").alias.has_value());
@@ -194,7 +192,7 @@ TEST(LibraryV2, PortAliasPreserved) {
     ASSERT_EQ(bp.meta.domains.size(), 4u);
 
     // Roundtrip
-    TypeDefinition td2 = v2::v2_to_type_definition(bp);
+    TypeDefinition td2 = flat_to_type_definition(bp);
     ASSERT_TRUE(td2.ports.at("o1").alias.has_value());
     EXPECT_EQ(*td2.ports.at("o1").alias, "i");
     ASSERT_TRUE(td2.ports.at("o2").alias.has_value());
@@ -216,35 +214,35 @@ TEST(LibraryV2, LoadRegistryFromBlueprint) {
 
     // Write a C++ component .blueprint
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "TestBattery";
         bp.meta.description = "Test battery";
         bp.meta.cpp_class = true;
         bp.meta.domains = {"Electrical"};
         bp.meta.priority = "high";
         bp.meta.critical = true;
-        bp.exposes["v_in"] = ExposedPort{"In", "V", std::nullopt};
-        bp.exposes["v_out"] = ExposedPort{"Out", "V", std::nullopt};
-        bp.params["v_nominal"] = ParamDef{"float", "28.0"};
+        bp.exposes["v_in"] = FlatPort{"In", "V", std::nullopt};
+        bp.exposes["v_out"] = FlatPort{"Out", "V", std::nullopt};
+        bp.params["v_nominal"] = FlatParam{"float", "28.0"};
 
         std::ofstream f(temp_dir / "electrical" / "TestBattery.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     // Write a composite .blueprint
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "TestComposite";
         bp.meta.description = "Test composite";
         bp.meta.cpp_class = false;
         bp.meta.domains = {"Electrical"};
-        bp.exposes["vin"] = ExposedPort{"In", "V", std::nullopt};
-        NodeV2 node;
+        bp.exposes["vin"] = FlatPort{"In", "V", std::nullopt};
+        FlatNode node;
         node.type = "TestBattery";
         bp.nodes["bat"] = node;
 
         std::ofstream f(temp_dir / "TestComposite.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     // Load registry
@@ -284,28 +282,28 @@ TEST(LibraryV2, LoadRegistryPreservesCategories) {
 
     // Write electrical component
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "CatBattery";
         bp.meta.cpp_class = true;
         bp.meta.domains = {"Electrical"};
-        bp.exposes["v_out"] = ExposedPort{"Out", "V", std::nullopt};
+        bp.exposes["v_out"] = FlatPort{"Out", "V", std::nullopt};
 
         std::ofstream f(temp_dir / "electrical" / "CatBattery.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     // Write systems composite
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "CatSystem";
         bp.meta.cpp_class = false;
         bp.meta.domains = {"Electrical"};
-        NodeV2 node;
+        FlatNode node;
         node.type = "CatBattery";
         bp.nodes["bat"] = node;
 
         std::ofstream f(temp_dir / "systems" / "CatSystem.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     TypeRegistry registry = load_type_registry(temp_dir.string());
@@ -326,29 +324,29 @@ TEST(LibraryV2, LoadRegistryCompositesHaveDevices) {
 
     // Write a composite with nodes and wires
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "CompWithDevices";
         bp.meta.cpp_class = false;
         bp.meta.domains = {"Electrical"};
 
-        NodeV2 input_node;
+        FlatNode input_node;
         input_node.type = "BlueprintInput";
         input_node.params["exposed_type"] = "V";
         bp.nodes["vin"] = input_node;
 
-        NodeV2 output_node;
+        FlatNode output_node;
         output_node.type = "BlueprintOutput";
         output_node.params["exposed_type"] = "V";
         bp.nodes["vout"] = output_node;
 
-        WireV2 wire;
+        FlatWire wire;
         wire.id = "w0";
         wire.from = {"vin", "port"};
         wire.to = {"vout", "port"};
         bp.wires.push_back(wire);
 
         std::ofstream f(temp_dir / "CompWithDevices.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     TypeRegistry registry = load_type_registry(temp_dir.string());
@@ -402,14 +400,14 @@ TEST(LibraryV2, RoundtripRegistryThroughV2) {
     std::filesystem::create_directories(temp_dir / "electrical");
 
     {
-        BlueprintV2 bp = v2::type_definition_to_v2(bat);
+        FlatBlueprint bp = type_definition_to_flat(bat);
         std::ofstream f(temp_dir / "electrical" / "RoundBattery.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
     {
-        BlueprintV2 bp = v2::type_definition_to_v2(comp);
+        FlatBlueprint bp = type_definition_to_flat(comp);
         std::ofstream f(temp_dir / "RoundComposite.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     // Load registry from v2 files
@@ -452,12 +450,12 @@ TEST(LibraryV2, BlueprintExtensionOnly) {
 
     // Write a .blueprint file (should be loaded)
     {
-        BlueprintV2 bp;
+        FlatBlueprint bp;
         bp.meta.name = "NewFormat";
         bp.meta.cpp_class = true;
 
         std::ofstream f(temp_dir / "NewFormat.blueprint");
-        f << v2::serialize_blueprint_v2(bp);
+        f << serialize_flat_blueprint(bp);
     }
 
     TypeRegistry registry = load_type_registry(temp_dir.string());
