@@ -26,7 +26,6 @@
 #include "editor/visual/windows/sub_window_renderer.h"
 #include "editor/visual/menu/main_menu.h"
 #include "editor/gl_setup.h"
-#include "editor/data/blueprint.h"
 #include "editor/imgui_theme.h"
 #include "editor/imgui_draw_list.h"
 #include "debug.h"
