@@ -73,9 +73,11 @@ public:
     void renderTree(IDrawList* dl, const RenderContext& ctx) const;
 
     Widget* parent() const { return static_cast<Widget*>(ui::Widget<Scene>::parent()); }
+    Scene* scene() const { return scene_; }
 
 protected:
     friend class Scene;
+    Scene* scene_ = nullptr;
     void updateGridRecursive(Widget* w);
 };
 

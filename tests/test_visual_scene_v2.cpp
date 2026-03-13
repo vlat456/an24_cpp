@@ -68,7 +68,7 @@ TEST(SceneTest, WidgetPropagatesToChildren) {
     EXPECT_NE(p, nullptr);
     EXPECT_EQ(p->scene(), &scene);
     EXPECT_EQ(p->children().size(), 1u);
-    EXPECT_EQ(p->children()[0]->scene(), &scene);
+    EXPECT_EQ(static_cast<visual::Widget*>(p->children()[0].get())->scene(), &scene);
 }
 
 TEST(SceneTest, GridTracksClickableWidgets) {

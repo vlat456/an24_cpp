@@ -18,8 +18,15 @@ public:
     /// Insert a widget sorted by RenderLayer (stable within same layer).
     Widget* add(std::unique_ptr<Widget> w) override;
     
+    /// Clear all widgets and reset scene pointers.
+    void clear();
+    
     /// Render all root widgets with domain-specific RenderContext.
     void render(IDrawList* dl, const RenderContext& ctx);
+
+protected:
+    void attachWidget(Widget* w);
+    void detachWidget(Widget* w);
 };
 
 } // namespace visual

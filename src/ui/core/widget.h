@@ -50,7 +50,6 @@ public:
                world_p.y >= mn.y && world_p.y <= mx.y;
     }
     
-    SceneT* scene() const { return scene_; }
     Widget* parent() const { return parent_; }
     
     void addChild(std::unique_ptr<Widget> child) {
@@ -105,15 +104,8 @@ protected:
     float z_order_ = 0.0f;
     bool flexible_ = false;
     
-    SceneT* scene_ = nullptr;
     Widget* parent_ = nullptr;
     std::vector<std::unique_ptr<Widget>> children_;
-    
-    friend SceneT;
-    
-    // Also befriend the base Scene template so propagateScene / detachScene
-    // can access scene_ even when SceneT is a derived class (e.g. visual::Scene).
-    template<typename> friend class Scene;
 };
 
 /// The default "pure UI" widget type, using the default ui::Scene.

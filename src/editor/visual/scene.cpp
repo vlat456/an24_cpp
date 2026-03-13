@@ -6,7 +6,7 @@ namespace visual {
 
 Widget* Scene::add(std::unique_ptr<Widget> w) {
     auto* ptr = w.get();
-    propagateScene(ptr);
+    attachWidget(ptr);
 
     // Insert at sorted position by renderLayer (stable: preserves insertion
     // order within the same layer). This keeps roots_ in draw order so
@@ -24,6 +24,29 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     for (const auto& r : roots_) {
         r->renderTree(dl, ctx);
     }
+}
+
+void Scene::clear() {
+    pending_removals_.clear();
+    for (auto& r : roots_) detachWidget(r.get());
+    roots_.clear();
+    grid_.clear();
+}
+
+void Scene::attachWidget(Widget* w) {
+    w->scene_ = this;
+    if (w->isClickable()) grid_.insert(w);
+    for (auto& c : w->children()) {
+        attachWidget(static_cast<Widget*>(c.get()));
+    }
+}
+
+void Scene::detachWidget(Widget* w) {
+    if (w->isClickable()) grid_.remove(w);
+    for (auto& c : w->children()) {
+        detachWidget(static_cast<Widget*>(c.get()));
+    }
+    w->scene_ = nullptr;
 }
 
 } // namespace visual
