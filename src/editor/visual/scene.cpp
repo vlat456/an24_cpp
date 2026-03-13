@@ -6,7 +6,7 @@ namespace visual {
 
 Widget* Scene::add(std::unique_ptr<Widget> w) {
     auto* ptr = w.get();
-    attachWidget(ptr);
+    propagateScene(ptr);
 
     // Insert at sorted position by renderLayer (stable: preserves insertion
     // order within the same layer). This keeps roots_ in draw order so
@@ -26,26 +26,13 @@ void Scene::render(IDrawList* dl, const RenderContext& ctx) {
     }
 }
 
-void Scene::clear() {
-    pending_removals_.clear();
-    for (auto& r : roots_) detachWidget(r.get());
-    roots_.clear();
-    grid_.clear();
-}
-
-void Scene::attachWidget(Widget* w) {
+void Scene::propagateScene(Widget* w) {
     w->scene_ = this;
-    if (w->isClickable()) grid_.insert(w);
-    for (auto& c : w->children()) {
-        attachWidget(static_cast<Widget*>(c.get()));
-    }
+    ui::Scene<Widget>::propagateScene(w);  // base handles grid insert
 }
 
-void Scene::detachWidget(Widget* w) {
-    if (w->isClickable()) grid_.remove(w);
-    for (auto& c : w->children()) {
-        detachWidget(static_cast<Widget*>(c.get()));
-    }
+void Scene::detachScene(Widget* w) {
+    ui::Scene<Widget>::detachScene(w);  // base handles grid remove
     w->scene_ = nullptr;
 }
 

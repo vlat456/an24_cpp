@@ -11,8 +11,8 @@
 namespace ui {
 
 /// Generic scene that owns and manages a tree of widgets.
-/// Template parameter WidgetType must inherit from ui::Widget<SceneType>
-/// and expose a `using SceneType = ...` alias.
+/// Template parameter WidgetType must inherit from ui::Widget.
+/// Subclasses can override propagateScene/detachScene for custom attach/detach behavior.
 template<typename WidgetType>
 class Scene {
 public:
@@ -92,14 +92,18 @@ protected:
     std::vector<std::unique_ptr<WidgetType>> roots_;
     std::vector<WidgetType*> pending_removals_;
     
-    void propagateScene(WidgetType* w) {
+    /// Virtual hook for attaching a widget to this scene.
+    /// Override in derived scenes to set widget->scene_ pointer.
+    virtual void propagateScene(WidgetType* w) {
         if (w->isClickable()) grid_.insert(w);
         for (auto& c : w->children()) {
             propagateScene(static_cast<WidgetType*>(c.get()));
         }
     }
     
-    void detachScene(WidgetType* w) {
+    /// Virtual hook for detaching a widget from this scene.
+    /// Override in derived scenes to clear widget->scene_ pointer.
+    virtual void detachScene(WidgetType* w) {
         if (w->isClickable()) grid_.remove(w);
         for (auto& c : w->children()) {
             detachScene(static_cast<WidgetType*>(c.get()));
