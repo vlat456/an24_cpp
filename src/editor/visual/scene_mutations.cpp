@@ -215,14 +215,17 @@ bool add_wire(Scene& scene, Blueprint& bp, ::Wire wire,
         bus->connectWire(wire);
     }
 
+    // Save wire data for potential rollback (wire will be moved)
+    const ::Wire wire_copy = wire;
+
     // Add to Blueprint with validation (dedup, type compatibility)
     bool ok = bp.add_wire_validated(std::move(wire));
     if (!ok) {
-        // Rollback bus alias ports
+        // Rollback bus alias ports (use copy since wire was moved-from)
         if (auto* bus = dynamic_cast<BusNodeWidget*>(start_widget))
-            bus->disconnectWire(wire);
+            bus->disconnectWire(wire_copy);
         if (auto* bus = dynamic_cast<BusNodeWidget*>(end_widget))
-            bus->disconnectWire(wire);
+            bus->disconnectWire(wire_copy);
         // Recreate orphaned wires after rollback
         if (!bus_start_id.empty())
             recreate_bus_wires(scene, bp, bus_start_id);
