@@ -1,6 +1,7 @@
 #include "canvas_renderer.h"
 #include "editor/visual/renderer/grid_renderer.h"
 #include "editor/visual/render_context.h"
+#include "editor/visual/wire/wire.h"
 #include "editor/imgui_draw_list.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
@@ -60,6 +61,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     ctx.hovered_routing_point = win.input.hovered_routing_point();
     ctx.energized_wires = energized_buf.empty() ? nullptr : &energized_buf;
 
+    visual::compute_wire_crossings(win.scene);
     win.scene.render(&dl, ctx);
 }
 

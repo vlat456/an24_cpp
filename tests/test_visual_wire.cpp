@@ -86,12 +86,12 @@ TEST(WireTest, PolylineBasic) {
 
     auto pl = wire.polyline();
     ASSERT_EQ(pl.size(), 2u);
-    // start world = node_a(0,0) + port(100,30) + wireEnd(0,0)
-    EXPECT_FLOAT_EQ(pl[0].x, 100.0f);
-    EXPECT_FLOAT_EQ(pl[0].y, 30.0f);
-    // end world = node_b(200,0) + port(0,30) + wireEnd(0,0)
-    EXPECT_FLOAT_EQ(pl[1].x, 200.0f);
-    EXPECT_FLOAT_EQ(pl[1].y, 30.0f);
+    // start world = node_a(0,0) + port(100,30) + wireEnd(RADIUS,RADIUS)
+    EXPECT_FLOAT_EQ(pl[0].x, 104.0f);
+    EXPECT_FLOAT_EQ(pl[0].y, 34.0f);
+    // end world = node_b(200,0) + port(0,30) + wireEnd(RADIUS,RADIUS)
+    EXPECT_FLOAT_EQ(pl[1].x, 204.0f);
+    EXPECT_FLOAT_EQ(pl[1].y, 34.0f);
 }
 
 TEST(WireTest, PolylineWithRouting) {
@@ -120,10 +120,10 @@ TEST(WireTest, PolylineWithRouting) {
 
     auto pl = wire.polyline();
     ASSERT_EQ(pl.size(), 3u);
-    EXPECT_FLOAT_EQ(pl[0].x, 100.0f);   // start
+    EXPECT_FLOAT_EQ(pl[0].x, 104.0f);   // start (port center)
     EXPECT_FLOAT_EQ(pl[1].x, 150.0f);   // routing point (worldPos = wire(0,0) + rp(150,50))
     EXPECT_FLOAT_EQ(pl[1].y, 50.0f);
-    EXPECT_FLOAT_EQ(pl[2].x, 200.0f);   // end
+    EXPECT_FLOAT_EQ(pl[2].x, 204.0f);   // end (port center)
 }
 
 TEST(WireTest, PolylineNullStart) {
@@ -140,8 +140,8 @@ TEST(WireTest, PolylineNullStart) {
     visual::Wire wire("w1", nullptr, we);
     auto pl = wire.polyline();
     ASSERT_EQ(pl.size(), 1u);
-    EXPECT_FLOAT_EQ(pl[0].x, 200.0f);
-    EXPECT_FLOAT_EQ(pl[0].y, 30.0f);
+    EXPECT_FLOAT_EQ(pl[0].x, 204.0f);
+    EXPECT_FLOAT_EQ(pl[0].y, 34.0f);
 }
 
 TEST(WireTest, PolylineNullBoth) {
@@ -177,15 +177,15 @@ TEST(WireTest, BoundsFromPolyline) {
 
     visual::Wire wire("w1", ws, we);
 
-    // Polyline: (100,100) -> (300,200)
-    // worldMin = (100-4, 100-4) = (96, 96)
-    // worldMax = (300+4, 200+4) = (304, 204)
+    // Polyline: (104,104) -> (304,204) — port center offsets
+    // worldMin = (104-4, 104-4) = (100, 100)
+    // worldMax = (304+4, 204+4) = (308, 208)
     Pt mn = wire.worldMin();
     Pt mx = wire.worldMax();
-    EXPECT_FLOAT_EQ(mn.x, 96.0f);
-    EXPECT_FLOAT_EQ(mn.y, 96.0f);
-    EXPECT_FLOAT_EQ(mx.x, 304.0f);
-    EXPECT_FLOAT_EQ(mx.y, 204.0f);
+    EXPECT_FLOAT_EQ(mn.x, 100.0f);
+    EXPECT_FLOAT_EQ(mn.y, 100.0f);
+    EXPECT_FLOAT_EQ(mx.x, 308.0f);
+    EXPECT_FLOAT_EQ(mx.y, 208.0f);
 }
 
 TEST(WireTest, BoundsEmptyPolyline) {
@@ -215,8 +215,8 @@ TEST(WireTest, BoundsVirtualDispatch) {
 
     // Via base pointer, should still get Wire's override
     Pt mn = w->worldMin();
-    EXPECT_FLOAT_EQ(mn.x, 96.0f);
-    EXPECT_FLOAT_EQ(mn.y, 96.0f);
+    EXPECT_FLOAT_EQ(mn.x, 100.0f);
+    EXPECT_FLOAT_EQ(mn.y, 100.0f);
 }
 
 // ============================================================

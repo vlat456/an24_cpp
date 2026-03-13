@@ -1,6 +1,7 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
+#include "router/crossings.h"
 #include <vector>
 #include <string>
 
@@ -10,6 +11,7 @@ namespace visual {
 
 class WireEnd;
 class RoutingPoint;
+class Scene;
 
 /// Wire is a root-level widget in the Scene.
 /// Connects two WireEnds (which live as children of Ports).
@@ -51,6 +53,11 @@ public:
     /// Called by WireEnd destructor — triggers deferred self-removal
     void onEndpointDestroyed(WireEnd* end);
 
+    /// Crossing points where other wires cross over this wire.
+    /// Set externally by compute_wire_crossings() before rendering.
+    void setCrossings(std::vector<WireCrossing> crossings) { crossings_ = std::move(crossings); }
+    const std::vector<WireCrossing>& crossings() const { return crossings_; }
+
     static constexpr float WIRE_THICKNESS = 1.5f;
     static constexpr uint32_t WIRE_COLOR = 0xFFCCCCCC;
 
@@ -58,6 +65,7 @@ private:
     std::string id_;
     WireEnd* start_;
     WireEnd* end_;
+    std::vector<WireCrossing> crossings_;
 
     static constexpr float BBOX_PADDING = 4.0f;
 
@@ -73,5 +81,11 @@ private:
     mutable Pt cached_start_pos_{0, 0};
     mutable Pt cached_end_pos_{0, 0};
 };
+
+/// Compute wire crossings for all wires in a scene.
+/// Collects Wire polylines, detects intersections, and stores
+/// crossing data on each Wire via setCrossings().
+/// Call this before Scene::render() each frame.
+void compute_wire_crossings(Scene& scene);
 
 } // namespace visual

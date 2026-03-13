@@ -6,6 +6,8 @@
 #include "editor/visual/wire/wire_end.h"
 #include "editor/visual/wire/routing_point.h"
 #include "editor/visual/port/visual_port.h"
+#include "editor/visual/node/group_node_widget.h"
+#include "data/node.h"
 
 // ============================================================
 // Helpers
@@ -549,4 +551,98 @@ TEST(SceneHitTest, ResizeHandle_JustOutsideRadius) {
     auto r = visual::hit_test(scene, Pt(150, 180));
     ASSERT_TRUE(holds<visual::HitNode>(r))
         << "Point far from corners should return HitNode";
+}
+
+// ============================================================
+// Regression: GroupNodeWidget resize handles
+// ============================================================
+// Group nodes use containsBorder() which rejects interior clicks.
+// Resize handles at corners must still be detected even when the
+// click point is beyond the 6px border margin but within the 10px
+// resize handle hit radius.
+
+static Node make_group_data(const std::string& id, Pt pos, Pt sz) {
+    Node n;
+    n.id = id;
+    n.name = "TestGroup";
+    n.type_name = "group";
+    n.render_hint = "group";
+    n.pos = pos;
+    n.size = sz;
+    return n;
+}
+
+TEST(SceneHitTest, GroupNode_ResizeHandle_BottomRight) {
+    visual::Scene scene;
+    // Size 192 is a multiple of PORT_LAYOUT_GRID (16), so no snap adjustment.
+    // Corners: TL=(100,100), BR=(292,292)
+    Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
+    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto* gptr = group.get();
+    scene.add(std::move(group));
+
+    // Bottom-right corner at (292, 292). Click 7px inside on both axes.
+    // Distance from corner = sqrt(49+49) ≈ 9.9 < 10 (within handle radius)
+    // but 7px > 6px border margin, so containsBorder would reject this.
+    auto r = visual::hit_test(scene, Pt(285, 285));
+    ASSERT_TRUE(holds<visual::HitResizeHandle>(r))
+        << "Group resize handle should be detected even beyond border margin";
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).widget, gptr);
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).corner, ResizeCorner::BottomRight);
+}
+
+TEST(SceneHitTest, GroupNode_ResizeHandle_TopLeft) {
+    visual::Scene scene;
+    Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
+    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto* gptr = group.get();
+    scene.add(std::move(group));
+
+    // Top-left corner at (100, 100). Click at exact corner.
+    auto r = visual::hit_test(scene, Pt(100, 100));
+    ASSERT_TRUE(holds<visual::HitResizeHandle>(r))
+        << "Group top-left resize handle should be detected";
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).widget, gptr);
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).corner, ResizeCorner::TopLeft);
+}
+
+TEST(SceneHitTest, GroupNode_ResizeHandle_BottomLeft) {
+    visual::Scene scene;
+    Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
+    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto* gptr = group.get();
+    scene.add(std::move(group));
+
+    // Bottom-left corner at (100, 292). Click 7px diagonally inside.
+    auto r = visual::hit_test(scene, Pt(107, 285));
+    ASSERT_TRUE(holds<visual::HitResizeHandle>(r))
+        << "Group bottom-left resize handle should be detected";
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).widget, gptr);
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).corner, ResizeCorner::BottomLeft);
+}
+
+TEST(SceneHitTest, GroupNode_ResizeHandle_TopRight) {
+    visual::Scene scene;
+    Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
+    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto* gptr = group.get();
+    scene.add(std::move(group));
+
+    // Top-right corner at (292, 100). Click 5px offset.
+    auto r = visual::hit_test(scene, Pt(287, 105));
+    ASSERT_TRUE(holds<visual::HitResizeHandle>(r))
+        << "Group top-right resize handle should be detected";
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).widget, gptr);
+    EXPECT_EQ(get<visual::HitResizeHandle>(r).corner, ResizeCorner::TopRight);
+}
+
+TEST(SceneHitTest, GroupNode_InteriorPassesThrough) {
+    visual::Scene scene;
+    Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
+    scene.add(std::make_unique<visual::GroupNodeWidget>(data));
+
+    // Click in group interior (far from borders and corners) → should pass through
+    auto r = visual::hit_test(scene, Pt(196, 196));
+    EXPECT_TRUE(holds<visual::HitEmpty>(r))
+        << "Interior click on group should pass through (not hit the group)";
 }

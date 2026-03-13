@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include "visual/node/visual_node.h"
+#include "visual/port/visual_port.h"
+#include "visual/primitives/primitives.h"
 #include "visual/scene.h"
+#include "editor/layout_constants.h"
 #include "data/node.h"
 
 // ============================================================================
@@ -485,4 +488,186 @@ TEST(VisualNodeWidget, RenderDoesNotCrashWithNullDrawList) {
     ctx.zoom = 1.0f;
     ctx.pan = Pt(0, 0);
     nw.render(nullptr, ctx);
+}
+
+// ============================================================================
+// Regression: port placement at node edges (bug: ports not centered on edge)
+// ============================================================================
+
+TEST(VisualNodeWidget, InputPortCenterAtLeftEdge) {
+    Node node;
+    node.id = "n1";
+    node.name = "Test";
+    node.type_name = "T";
+    node.input("in1", PortType::V);
+    node.output("out1", PortType::V);
+    node.at(100, 200);
+
+    visual::NodeWidget nw(node);
+
+    auto* in_port = nw.port("in1");
+    ASSERT_NE(in_port, nullptr);
+
+    // Port circle center = worldPos + (RADIUS, RADIUS)
+    float center_x = in_port->worldPos().x + visual::Port::RADIUS;
+    // Must be at node's left edge
+    EXPECT_FLOAT_EQ(center_x, nw.worldPos().x);
+}
+
+TEST(VisualNodeWidget, OutputPortCenterAtRightEdge) {
+    Node node;
+    node.id = "n1";
+    node.name = "Test";
+    node.type_name = "T";
+    node.input("in1", PortType::V);
+    node.output("out1", PortType::V);
+    node.at(100, 200);
+
+    visual::NodeWidget nw(node);
+
+    auto* out_port = nw.port("out1");
+    ASSERT_NE(out_port, nullptr);
+
+    float center_x = out_port->worldPos().x + visual::Port::RADIUS;
+    // Must be at node's right edge
+    EXPECT_FLOAT_EQ(center_x, nw.worldPos().x + nw.size().x);
+}
+
+TEST(VisualNodeWidget, MultiplePortsAllAtEdges) {
+    Node node;
+    node.id = "n1";
+    node.name = "Multi";
+    node.type_name = "T";
+    node.input("a", PortType::V);
+    node.input("b", PortType::I);
+    node.output("c", PortType::V);
+    node.output("d", PortType::Bool);
+    node.at(50, 50);
+
+    visual::NodeWidget nw(node);
+
+    float left_edge = nw.worldPos().x;
+    float right_edge = nw.worldPos().x + nw.size().x;
+
+    for (auto* p : nw.ports()) {
+        float cx = p->worldPos().x + visual::Port::RADIUS;
+        if (p->side() == PortSide::Input) {
+            EXPECT_FLOAT_EQ(cx, left_edge)
+                << "Input port '" << p->name() << "' center not at left edge";
+        } else {
+            EXPECT_FLOAT_EQ(cx, right_edge)
+                << "Output port '" << p->name() << "' center not at right edge";
+        }
+    }
+}
+
+TEST(VisualNodeWidget, PortRowsHavePaddingBelowHeader) {
+    Node node;
+    node.id = "n1";
+    node.name = "Test";
+    node.type_name = "T";
+    node.input("in1", PortType::V);
+    node.output("out1", PortType::V);
+    node.at(0, 0);
+
+    visual::NodeWidget nw(node);
+
+    // Header height is 24, port row should have vertical padding
+    // v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2 = (16 - 9) / 2 = 3.5
+    constexpr float header_h = 24.0f;
+    constexpr float v_pad = (editor_constants::PORT_ROW_HEIGHT
+                             - editor_constants::PORT_LABEL_FONT_SIZE) / 2.0f;
+
+    auto* in_port = nw.port("in1");
+    ASSERT_NE(in_port, nullptr);
+
+    // Port top-left y should be at header + v_pad (port is inside padded container)
+    float port_y = in_port->worldPos().y;
+    EXPECT_GT(port_y, header_h)
+        << "Port should be below header with padding, not flush";
+    EXPECT_NEAR(port_y, header_h + v_pad, 1.0f)
+        << "Port should have ~3.5px padding below header";
+}
+
+TEST(VisualNodeWidget, VerticalTogglePortsAtEdges) {
+    Node node;
+    node.id = "azs1";
+    node.name = "AZS";
+    node.type_name = "AZS";
+    node.input("control", PortType::Bool);
+    node.input("v_in", PortType::V);
+    node.output("v_out", PortType::V);
+    node.output("tripped", PortType::Bool);
+    node.at(100, 100);
+
+    NodeContent content;
+    content.type = NodeContentType::VerticalToggle;
+    content.state = false;
+    node.with_content(content);
+
+    visual::NodeWidget nw(node);
+
+    float left_edge = nw.worldPos().x;
+    float right_edge = nw.worldPos().x + nw.size().x;
+
+    for (auto* p : nw.ports()) {
+        float cx = p->worldPos().x + visual::Port::RADIUS;
+        if (p->side() == PortSide::Input) {
+            EXPECT_FLOAT_EQ(cx, left_edge)
+                << "Input port '" << p->name() << "' not at left edge";
+        } else {
+            EXPECT_FLOAT_EQ(cx, right_edge)
+                << "Output port '" << p->name() << "' not at right edge";
+        }
+    }
+}
+
+// Regression: right-column output labels in vertical toggle layout must be
+// right-aligned. Before the fix, buildPortInColumn() created a Row with just
+// a Label (no Spacer), so the label was left-aligned in the column.
+TEST(VisualNodeWidget, VerticalToggleOutputLabelsRightAligned) {
+    Node node;
+    node.id = "azs1";
+    node.name = "AZS";
+    node.type_name = "AZS";
+    node.input("control", PortType::Bool);
+    node.output("v_out", PortType::V);
+    node.output("tripped", PortType::Bool);
+    node.at(100, 100);
+
+    NodeContent content;
+    content.type = NodeContentType::VerticalToggle;
+    content.state = false;
+    node.with_content(content);
+
+    visual::NodeWidget nw(node);
+
+    float node_right = nw.worldPos().x + nw.size().x;
+    float indent = editor_constants::PORT_RADIUS * 2 + editor_constants::PORT_LABEL_GAP;
+
+    // For each output port label, its right edge (worldPos.x + size.x) should be
+    // close to the node right edge minus the port indent.
+    float expected_right = node_right - indent;
+
+    // Collect labels by walking widget tree
+    std::function<void(const visual::Widget&)> visit;
+    int right_labels_found = 0;
+    visit = [&](const visual::Widget& w) {
+        if (auto* label = dynamic_cast<const visual::Label*>(&w)) {
+            float label_right = label->worldPos().x + label->size().x;
+            float node_center = nw.worldPos().x + nw.size().x / 2.0f;
+            if (label->worldPos().x > node_center) {
+                // Right-column label — its right edge should be flush
+                EXPECT_NEAR(label_right, expected_right, 1.0f)
+                    << "Right-column label right edge should be flush with column edge";
+                right_labels_found++;
+            }
+        }
+        for (const auto& child : w.children()) {
+            visit(*child);
+        }
+    };
+    visit(nw);
+
+    EXPECT_EQ(right_labels_found, 2) << "Should find 2 output labels (v_out, tripped)";
 }

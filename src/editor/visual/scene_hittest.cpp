@@ -55,7 +55,35 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
         }
     }
 
-    // --- Pass 3: Nodes / generic clickable widgets (AABB) ---
+    // --- Pass 3: Resize handles on resizable widgets ---
+    // Must run before the node-body pass because GroupNodeWidget's
+    // containsBorder() rejects interior clicks, which can filter out
+    // clicks near corners that fall within the resize-handle radius
+    // but outside the narrow border margin.
+    {
+        constexpr float R = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
+        for (Widget* w : candidates) {
+            if (!w->isResizable()) continue;
+
+            Pt mn = w->worldMin();
+            Pt mx = w->worldMax();
+
+            struct { Pt center; ResizeCorner corner; } corners[] = {
+                {{mn.x, mn.y}, ResizeCorner::TopLeft},
+                {{mx.x, mn.y}, ResizeCorner::TopRight},
+                {{mn.x, mx.y}, ResizeCorner::BottomLeft},
+                {{mx.x, mx.y}, ResizeCorner::BottomRight},
+            };
+
+            for (const auto& c : corners) {
+                if (hit_math::distance(world_pos, c.center) <= R) {
+                    return HitResizeHandle{w, c.corner};
+                }
+            }
+        }
+    }
+
+    // --- Pass 4: Nodes / generic clickable widgets (AABB) ---
     // Skip Wires, Ports, and RoutingPoints — they have their own passes.
     // Among multiple hits, prefer the widget with the highest renderLayer
     // (frontmost in draw order).
@@ -78,30 +106,10 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
         }
     }
     if (best) {
-        // Check resize corners for resizable widgets before returning HitNode
-        if (best->isResizable()) {
-            constexpr float R = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
-            Pt mn = best->worldMin();
-            Pt mx = best->worldMax();
-
-            // Four corner centers
-            struct { Pt center; ResizeCorner corner; } corners[] = {
-                {{mn.x, mn.y}, ResizeCorner::TopLeft},
-                {{mx.x, mn.y}, ResizeCorner::TopRight},
-                {{mn.x, mx.y}, ResizeCorner::BottomLeft},
-                {{mx.x, mx.y}, ResizeCorner::BottomRight},
-            };
-
-            for (const auto& c : corners) {
-                if (hit_math::distance(world_pos, c.center) <= R) {
-                    return HitResizeHandle{best, c.corner};
-                }
-            }
-        }
         return HitNode{best};
     }
 
-    // --- Pass 4: Wire segments (lowest priority, fine-grained) ---
+    // --- Pass 5: Wire segments (lowest priority, fine-grained) ---
     for (Widget* w : candidates) {
         if (auto* wire = dynamic_cast<Wire*>(w)) {
             const auto& pts = wire->polyline();

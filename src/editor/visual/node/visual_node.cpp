@@ -47,8 +47,7 @@ NodeWidget::NodeWidget(const ::Node& data)
     w = snap(w);
     h = snap(h);
 
-    setSize(Pt(w, h));
-    layout_->layout(w, h);
+    layout(w, h);
 }
 
 // ============================================================================
@@ -141,17 +140,17 @@ void NodeWidget::buildPortRow(const std::string* left_name, PortType left_type,
                               const std::string* right_name, PortType right_type) {
     using namespace editor_constants;
 
-    // Build port row: [Port? Label? Spacer Label? Port?]
-    // Wrapped in Container for vertical padding to center within PORT_ROW_HEIGHT
-    auto* row_container = layout_->emplaceChild<Container>(Edges{0, 0, 0, 0});
+    // Build port row: [Label? Spacer Label?] inside padded container.
+    // Port widgets are added as extra children of row_container (outside Row flow)
+    // and positioned by post-layout snap in layout().
+    constexpr float v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2.0f;
+    constexpr float label_indent = PORT_RADIUS * 2 + PORT_LABEL_GAP;
+    auto* row_container = layout_->emplaceChild<Container>(
+        Edges{label_indent, v_pad, label_indent, v_pad});
     auto* row = row_container->emplaceChild<Row>();
 
-    // Left port (input)
+    // Left label (input)
     if (left_name) {
-        auto* port_w = row->emplaceChild<Port>(*left_name, PortSide::Input, left_type);
-        port_w->setLocalPos(Pt(-PORT_RADIUS, 0));
-        ports_.push_back(port_w);
-
         row->emplaceChild<Label>(*left_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
     }
 
@@ -165,13 +164,20 @@ void NodeWidget::buildPortRow(const std::string* left_name, PortType left_type,
         row->emplaceChild<Spacer>();
     }
 
-    // Right port (output)
+    // Right label (output)
     if (right_name) {
         row->emplaceChild<Label>(*right_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
                                  TextAlign::Right);
+    }
 
-        auto* port_w = row->emplaceChild<Port>(*right_name, PortSide::Output, right_type);
-        port_w->setLocalPos(Pt(PORT_RADIUS, 0));
+    // Port circles are added outside the Row so they don't affect label layout.
+    // Post-layout snap in layout() positions them at node edges.
+    if (left_name) {
+        auto* port_w = row_container->emplaceChild<Port>(*left_name, PortSide::Input, left_type);
+        ports_.push_back(port_w);
+    }
+    if (right_name) {
+        auto* port_w = row_container->emplaceChild<Port>(*right_name, PortSide::Output, right_type);
         ports_.push_back(port_w);
     }
 }
@@ -180,21 +186,23 @@ void NodeWidget::buildPortInColumn(Widget* col, const std::string& name,
                                    PortType type, bool is_left) {
     using namespace editor_constants;
 
-    auto* container = col->emplaceChild<Container>(Edges{0, 0, 0, 0});
+    constexpr float v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2.0f;
+    constexpr float label_indent = PORT_RADIUS * 2 + PORT_LABEL_GAP;
+    auto* container = col->emplaceChild<Container>(
+        Edges{label_indent, v_pad, label_indent, v_pad});
     auto* row = container->emplaceChild<Row>();
 
     if (is_left) {
-        auto* port_w = row->emplaceChild<Port>(name, PortSide::Input, type);
-        port_w->setLocalPos(Pt(-PORT_RADIUS, 0));
-        ports_.push_back(port_w);
         row->emplaceChild<Label>(name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
     } else {
+        row->emplaceChild<Spacer>();
         row->emplaceChild<Label>(name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
                                  TextAlign::Right);
-        auto* port_w = row->emplaceChild<Port>(name, PortSide::Output, type);
-        port_w->setLocalPos(Pt(PORT_RADIUS, 0));
-        ports_.push_back(port_w);
     }
+
+    auto* port_w = container->emplaceChild<Port>(name,
+        is_left ? PortSide::Input : PortSide::Output, type);
+    ports_.push_back(port_w);
 }
 
 // ============================================================================
@@ -243,6 +251,27 @@ void NodeWidget::layout(float w, float h) {
     setSize(Pt(w, h));
     if (layout_) {
         layout_->layout(w, h);
+    }
+    // Post-layout: snap port circle centers to node edges and vertically center.
+    // Ports live as extra children of their row container (outside Row flow),
+    // so they need explicit positioning after layout completes.
+    Pt np = worldPos();
+    for (auto* p : ports_) {
+        Pt wp = p->worldPos();
+        Pt lp = p->localPos();
+        // Horizontal: snap circle center to node edge
+        float current_cx = wp.x + Port::RADIUS;
+        if (p->side() == PortSide::Input) {
+            lp.x += np.x - current_cx;
+        } else if (p->side() == PortSide::Output) {
+            lp.x += (np.x + w) - current_cx;
+        }
+        // Vertical: center port in its parent container
+        if (p->parent()) {
+            float parent_h = p->parent()->size().y;
+            lp.y = (parent_h - Port::RADIUS * 2) / 2.0f;
+        }
+        p->setLocalPos(lp);
     }
 }
 
