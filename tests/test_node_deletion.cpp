@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 #include "editor/data/blueprint.h"
-#include "editor/visual/scene/scene.h"
-#include "editor/visual/scene/persist.h"
+#include "editor/visual/scene.h"
+#include "editor/visual/scene_mutations.h"
+#include "editor/visual/persist.h"
 #include "editor/input/canvas_input.h"
-#include "editor/visual/scene/wire_manager.h"
 #include "editor/window/window_manager.h"
+#include "editor/viewport/viewport.h"
 
 // ============================================================================
 // Node Deletion Tests (TDD)
@@ -30,13 +31,20 @@ static Blueprint make_three_node_bp() {
     return bp;
 }
 
+// Helper: create a visual::Scene from a Blueprint and rebuild
+static visual::Scene make_scene(const Blueprint& bp, const std::string& group_id = "") {
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, group_id);
+    return scene;
+}
+
 // ---- 1. Single node deletion removes connected wires ----
 
 TEST(NodeDeletion, RemoveNode_RemovesConnectedWires) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
-    scene.removeNode(1);  // remove "b"
+    visual::mutations::remove_nodes(scene, bp, {1});  // remove "b"
     EXPECT_EQ(bp.nodes.size(), 2u);
     EXPECT_EQ(bp.wires.size(), 0u);  // both w1 and w2 reference "b"
 }
@@ -45,11 +53,11 @@ TEST(NodeDeletion, RemoveNode_RemovesConnectedWires) {
 
 TEST(NodeDeletion, RemoveNodes_BatchRemovesWires) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     // Delete "a" (index 0) and "c" (index 2) — sorted desc
     std::vector<size_t> indices = {2, 0};
-    scene.removeNodes(indices);
+    visual::mutations::remove_nodes(scene, bp, indices);
 
     EXPECT_EQ(bp.nodes.size(), 1u);
     EXPECT_EQ(bp.nodes[0].id, "b");
@@ -70,8 +78,8 @@ TEST(NodeDeletion, RemoveNode_RoutingPointsDeletedWithWire) {
     bp.add_wire(std::move(w));
     ASSERT_EQ(bp.wires[0].routing_points.size(), 2u);
 
-    VisualScene scene(bp);
-    scene.removeNode(0);  // remove "a"
+    auto scene = make_scene(bp);
+    visual::mutations::remove_nodes(scene, bp, {0});  // remove "a"
 
     EXPECT_EQ(bp.wires.size(), 0u);  // wire + its routing points gone
 }
@@ -80,9 +88,9 @@ TEST(NodeDeletion, RemoveNode_RoutingPointsDeletedWithWire) {
 
 TEST(NodeDeletion, RemoveNode_UnrelatedWiresSurvive) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
-    scene.removeNode(0);  // remove "a"
+    visual::mutations::remove_nodes(scene, bp, {0});  // remove "a"
     EXPECT_EQ(bp.nodes.size(), 2u);
     // w1 (a→b) removed, w2 (b→c) survives
     ASSERT_EQ(bp.wires.size(), 1u);
@@ -112,7 +120,7 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
     g.internal_node_ids = {"lamp1:led", "lamp1:res"};
     bp.sub_blueprint_instances.push_back(g);
 
-    VisualScene scene(bp, "lamp1");  // sub-window for this group
+    auto scene = make_scene(bp, "lamp1");  // sub-window for this group
 
     // Find index of "lamp1:led" in bp.nodes
     size_t led_idx = SIZE_MAX;
@@ -120,7 +128,7 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
         if (bp.nodes[i].id == "lamp1:led") { led_idx = i; break; }
     ASSERT_NE(led_idx, SIZE_MAX);
 
-    scene.removeNodes({led_idx});
+    visual::mutations::remove_nodes(scene, bp, {led_idx});
 
     // Node gone, wire gone
     EXPECT_EQ(bp.find_node("lamp1:led"), nullptr);
@@ -143,12 +151,16 @@ TEST(NodeDeletion, Backspace_DeletesSelectedNodes) {
     bp.add_node(std::move(b));
     bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
 
-    VisualScene scene(bp);
-    WireManager wm(scene);
-    CanvasInput input(scene, wm);
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
 
-    // Select node 0 ("a")
-    input.add_node_selection(0);
+    // Select node "a" widget
+    auto* widget_a = scene.find("a");
+    ASSERT_NE(widget_a, nullptr);
+    input.add_node_selection(widget_a);
     ASSERT_EQ(input.selected_nodes().size(), 1u);
 
     InputResult result = input.on_key(Key::Backspace);
@@ -170,11 +182,15 @@ TEST(NodeDeletion, Delete_DeletesSelectedNodes) {
     bp.add_node(std::move(b));
     bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
 
-    VisualScene scene(bp);
-    WireManager wm(scene);
-    CanvasInput input(scene, wm);
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
 
-    input.add_node_selection(0);
+    auto* widget_a = scene.find("a");
+    ASSERT_NE(widget_a, nullptr);
+    input.add_node_selection(widget_a);
     InputResult result = input.on_key(Key::Delete);
 
     EXPECT_EQ(bp.nodes.size(), 1u);
@@ -186,13 +202,15 @@ TEST(NodeDeletion, Delete_DeletesSelectedNodes) {
 
 TEST(NodeDeletion, MultiSelect_DeleteAll) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
-    WireManager wm(scene);
-    CanvasInput input(scene, wm);
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
 
-    input.add_node_selection(0);
-    input.add_node_selection(1);
-    input.add_node_selection(2);
+    input.add_node_selection(scene.find("a"));
+    input.add_node_selection(scene.find("b"));
+    input.add_node_selection(scene.find("c"));
 
     input.on_key(Key::Delete);
 
@@ -205,9 +223,11 @@ TEST(NodeDeletion, MultiSelect_DeleteAll) {
 
 TEST(NodeDeletion, DeleteWithNoSelection_Noop) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
-    WireManager wm(scene);
-    CanvasInput input(scene, wm);
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
 
     InputResult result = input.on_key(Key::Delete);
 
@@ -221,9 +241,9 @@ TEST(NodeDeletion, DeleteWithNoSelection_Noop) {
 
 TEST(NodeDeletion, Persist_DeletedNodeNotInJson) {
     Blueprint bp = make_three_node_bp();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
-    scene.removeNode(1);  // remove "b"
+    visual::mutations::remove_nodes(scene, bp, {1});  // remove "b"
 
     std::string json = bp.serialize();
 
@@ -286,17 +306,16 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     bp.sub_blueprint_instances.push_back(g);
 
     // Sub-window scene for lamp1
-    VisualScene sub_scene(bp, "lamp1");
-    WireManager wm(sub_scene);
-    CanvasInput sub_input(sub_scene, wm);
+    visual::Scene sub_scene;
+    Viewport vp;
+    std::string sub_group_id = "lamp1";
+    visual::mutations::rebuild(sub_scene, bp, sub_group_id);
+    CanvasInput sub_input(sub_scene, vp, bp, sub_group_id);
 
-    // Find index of "lamp1:a"
-    size_t idx = SIZE_MAX;
-    for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1:a") { idx = i; break; }
-    ASSERT_NE(idx, SIZE_MAX);
-
-    sub_input.add_node_selection(idx);
+    // Select "lamp1:a" widget
+    auto* widget = sub_scene.find("lamp1:a");
+    ASSERT_NE(widget, nullptr);
+    sub_input.add_node_selection(widget);
     InputResult result = sub_input.on_key(Key::Backspace);
 
     EXPECT_TRUE(result.rebuild_simulation);
@@ -352,7 +371,7 @@ static Blueprint make_bp_with_sub_blueprint() {
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
     Blueprint bp = make_bp_with_sub_blueprint();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     // Find lamp1 index
     size_t lamp_idx = SIZE_MAX;
@@ -360,7 +379,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
         if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
-    scene.removeNodes({lamp_idx});
+    visual::mutations::remove_nodes(scene, bp, {lamp_idx});
 
     // lamp1 node gone
     EXPECT_EQ(bp.find_node("lamp1"), nullptr);
@@ -376,14 +395,14 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
     Blueprint bp = make_bp_with_sub_blueprint();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     size_t lamp_idx = SIZE_MAX;
     for (size_t i = 0; i < bp.nodes.size(); ++i)
         if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
-    scene.removeNodes({lamp_idx});
+    visual::mutations::remove_nodes(scene, bp, {lamp_idx});
 
     // Both ext_w (bat->lamp1) and int_w (led->res) should be gone
     EXPECT_EQ(bp.wires.size(), 0u);
@@ -394,14 +413,14 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesSubBlueprintInstance) {
     Blueprint bp = make_bp_with_sub_blueprint();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     size_t lamp_idx = SIZE_MAX;
     for (size_t i = 0; i < bp.nodes.size(); ++i)
         if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
-    scene.removeNodes({lamp_idx});
+    visual::mutations::remove_nodes(scene, bp, {lamp_idx});
 
     EXPECT_EQ(bp.sub_blueprint_instances.size(), 0u)
         << "SubBlueprintInstance for deleted sub-blueprint should be removed";
@@ -453,7 +472,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
     ASSERT_EQ(bp.wires.size(), 3u);
     ASSERT_EQ(bp.sub_blueprint_instances.size(), 2u);
 
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     // Delete sys1 — should cascade to sys1:sub2 and sys1:sub2:leaf
     size_t sys1_idx = SIZE_MAX;
@@ -461,7 +480,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
         if (bp.nodes[i].id == "sys1") { sys1_idx = i; break; }
     ASSERT_NE(sys1_idx, SIZE_MAX);
 
-    scene.removeNodes({sys1_idx});
+    visual::mutations::remove_nodes(scene, bp, {sys1_idx});
 
     // Only "top" remains
     EXPECT_EQ(bp.nodes.size(), 1u);
@@ -484,13 +503,13 @@ TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
     EXPECT_EQ(wm.count(), 2u);
 
     // Delete lamp1 via root scene
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
     size_t lamp_idx = SIZE_MAX;
     for (size_t i = 0; i < bp.nodes.size(); ++i)
         if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
-    scene.removeNodes({lamp_idx});
+    visual::mutations::remove_nodes(scene, bp, {lamp_idx});
     wm.removeOrphanedWindows();
 
     EXPECT_EQ(wm.count(), 1u) << "Sub-window for deleted group should be closed";
@@ -501,7 +520,7 @@ TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
 
 TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
     Blueprint bp = make_bp_with_sub_blueprint();
-    VisualScene scene(bp);
+    auto scene = make_scene(bp);
 
     // Delete "bat" (regular node, not a Blueprint)
     size_t bat_idx = SIZE_MAX;
@@ -509,7 +528,7 @@ TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
         if (bp.nodes[i].id == "bat") { bat_idx = i; break; }
     ASSERT_NE(bat_idx, SIZE_MAX);
 
-    scene.removeNodes({bat_idx});
+    visual::mutations::remove_nodes(scene, bp, {bat_idx});
 
     // bat gone, ext_w gone, but lamp1 and internals survive
     EXPECT_EQ(bp.find_node("bat"), nullptr);

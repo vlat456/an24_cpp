@@ -51,14 +51,14 @@ public:
 
     struct NodeContextMenuState {
         bool show = false;
-        size_t node_index = 0;
+        std::string node_id;
         std::string group_id;
         Document* source_doc = nullptr;
     } nodeContextMenu;
 
     struct ColorPickerState {
         bool show = false;
-        size_t node_index = 0;
+        std::string node_id;
         std::string group_id;
         Document* source_doc = nullptr;
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -79,10 +79,10 @@ public:
     void removeClosedDocuments();
 
     /// Open properties for a node in the active document
-    void openPropertiesForNode(size_t node_index, Document& doc);
+    void openPropertiesForNode(const std::string& node_id, Document& doc);
 
     /// Open color picker for a node
-    void openColorPickerForNode(size_t node_index, const std::string& group_id, Document& doc);
+    void openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc);
 
     /// Dispatch InputResultAction from a document to the window system
     void handleInputAction(const Document::InputResultAction& action, Document& doc);

@@ -4,6 +4,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "editor/visual/scene_mutations.h"
 #include "json_parser/json_parser.h"
 #include <fstream>
 
@@ -54,8 +55,8 @@ TEST(Document, SceneSharesBlueprint) {
     n.pos = Pt(50, 50);
     n.size = Pt(100, 80);
     doc.blueprint().add_node(std::move(n));
-    // Scene should see the same nodes
-    EXPECT_EQ(doc.scene().nodeCount(), 1u);
+    // Blueprint should see the same nodes
+    EXPECT_EQ(doc.blueprint().nodes.size(), 1u);
 }
 
 TEST(Document, SimulationStartStop) {
@@ -115,11 +116,11 @@ TEST(Document, ApplyInputResultNodeContextMenu) {
     Document doc;
     InputResult r;
     r.show_node_context_menu = true;
-    r.context_menu_node_index = 5;
+    r.context_menu_node_id = "node_5";
 
     auto action = doc.applyInputResult(r, "grp");
     EXPECT_TRUE(action.show_node_context_menu);
-    EXPECT_EQ(action.context_menu_node_index, 5u);
+    EXPECT_EQ(action.context_menu_node_id, "node_5");
     EXPECT_EQ(action.node_context_menu_group_id, "grp");
 }
 
@@ -368,13 +369,13 @@ TEST(WindowSystem, HandleInputActionSetsNodeContextMenu) {
 
     Document::InputResultAction action;
     action.show_node_context_menu = true;
-    action.context_menu_node_index = 3;
+    action.context_menu_node_id = "node_3";
     action.node_context_menu_group_id = "sub1";
 
     ws.handleInputAction(action, *doc);
 
     EXPECT_TRUE(ws.nodeContextMenu.show);
-    EXPECT_EQ(ws.nodeContextMenu.node_index, 3u);
+    EXPECT_EQ(ws.nodeContextMenu.node_id, "node_3");
     EXPECT_EQ(ws.nodeContextMenu.group_id, "sub1");
     EXPECT_EQ(ws.nodeContextMenu.source_doc, doc);
 }
@@ -601,6 +602,9 @@ TEST(OpenSubWindowRegression, DoubleClick_RootExpandableNode_ReturnsOpenSubWindo
     Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(vin));
+
+    // Rebuild the visual scene so hit-testing sees the new nodes
+    visual::mutations::rebuild(doc.scene(), doc.blueprint(), "");
 
     // Double-click on the collapsed node (center ~160, 140)
     Pt canvas_min(0, 0);

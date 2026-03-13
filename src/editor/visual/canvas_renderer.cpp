@@ -1,9 +1,11 @@
 #include "canvas_renderer.h"
-#include "editor/visual/renderer/blueprint_renderer.h"
+#include "editor/visual/renderer/grid_renderer.h"
+#include "editor/visual/render_context.h"
 #include "editor/imgui_draw_list.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
 #include <imgui.h>
+#include <unordered_set>
 
 static ImGuiDrawList make_dl(ImDrawList* raw) {
     ImGuiDrawList dl;
@@ -17,7 +19,7 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     
     if (hovered) {
         ImVec2 mp = ImGui::GetMousePos();
-        Pt mouse_world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
+        Pt mouse_world = win.viewport.screen_to_world(Pt(mp.x, mp.y), cmin);
         win.input.update_hover(mouse_world);
     } else {
         win.input.update_hover(Pt(CanvasConstants::HOVER_CLEAR_X, CanvasConstants::HOVER_CLEAR_Y));
@@ -37,23 +39,35 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
 
 void CanvasRenderer::renderGrid(BlueprintWindow& win, Pt cmin, Pt cmax, ImDrawList* draw_list) {
     auto dl = make_dl(draw_list);
-    BlueprintRenderer::renderGrid(dl, win.scene.viewport(), cmin, cmax);
+    GridRenderer grid;
+    grid.render(dl, win.viewport, cmin, cmax);
 }
 
 void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmin, Pt cmax, ImDrawList* draw_list) {
     auto dl = make_dl(draw_list);
-    win.scene.render(dl, cmin, cmax,
-                     &win.input.selected_nodes(), win.input.selected_wire(),
-                     &doc.simulation(), win.input.hovered_wire());
+
+    // Build energized wire set from simulation (reuse buffer across frames)
+    static thread_local std::unordered_set<std::string> energized_buf;
+    doc.buildEnergizedWireSet(energized_buf, win.group_id);
+
+    visual::RenderContext ctx;
+    ctx.zoom = win.viewport.zoom;
+    ctx.pan = win.viewport.pan;
+    ctx.canvas_min = cmin;
+    ctx.selected_nodes = &win.input.selected_nodes();
+    ctx.selected_wire = win.input.selected_wire();
+    ctx.hovered_wire = win.input.hovered_wire();
+    ctx.hovered_routing_point = win.input.hovered_routing_point();
+    ctx.energized_wires = energized_buf.empty() ? nullptr : &energized_buf;
+
+    win.scene.render(&dl, ctx);
 }
 
 void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin, ImDrawList* draw_list) {
-    auto dl = make_dl(draw_list);
-    
-    ImVec2 mp = ImGui::GetMousePos();
-    Pt world = win.scene.viewport().screen_to_world(Pt(mp.x, mp.y), cmin);
-    auto tooltip = win.scene.detectTooltip(world, doc.simulation(), cmin);
-    BlueprintRenderer::renderTooltip(dl, tooltip);
+    // TODO: re-implement tooltip detection using widget-based hit testing
+    // The legacy TooltipDetector relied on VisualNodeCache + editor_spatial::SpatialGrid
+    // which are no longer available in the new visual::Scene architecture.
+    (void)win; (void)doc; (void)cmin; (void)draw_list;
 }
 
 void CanvasRenderer::renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* draw_list) {
@@ -61,8 +75,8 @@ void CanvasRenderer::renderTempWire(BlueprintWindow& win, Pt cmin, ImDrawList* d
     
     Pt start_world = win.input.temp_wire_start();
     Pt end_world = win.input.temp_wire_end_world();
-    Pt s = win.scene.viewport().world_to_screen(start_world, cmin);
-    Pt e = win.scene.viewport().world_to_screen(end_world, cmin);
+    Pt s = win.viewport.world_to_screen(start_world, cmin);
+    Pt e = win.viewport.world_to_screen(end_world, cmin);
     uint32_t color = win.input.is_reconnecting()
         ? CanvasColors::TEMP_WIRE_RECONNECT
         : CanvasColors::TEMP_WIRE_NEW;
@@ -74,8 +88,8 @@ void CanvasRenderer::renderMarquee(BlueprintWindow& win, Pt cmin, ImDrawList* dr
     
     auto dl = make_dl(draw_list);
     
-    Pt ms = win.scene.viewport().world_to_screen(win.input.marquee_start(), cmin);
-    Pt me = win.scene.viewport().world_to_screen(win.input.marquee_end(), cmin);
+    Pt ms = win.viewport.world_to_screen(win.input.marquee_start(), cmin);
+    Pt me = win.viewport.world_to_screen(win.input.marquee_end(), cmin);
     Pt rmin(std::min(ms.x, me.x), std::min(ms.y, me.y));
     Pt rmax(std::max(ms.x, me.x), std::max(ms.y, me.y));
     dl.add_rect_filled(rmin, rmax, CanvasColors::MARQUEE_FILL);

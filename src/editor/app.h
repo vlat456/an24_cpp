@@ -4,9 +4,8 @@
 #include "viewport/viewport.h"
 #include "input/input_types.h"
 #include "input/canvas_input.h"
-#include "visual/hittest/hittest.h"
-#include "visual/scene/scene.h"
-#include "visual/scene/wire_manager.h"
+#include "visual/scene.h"
+#include "visual/scene_mutations.h"
 #include "window/window_manager.h"
 #include "window/properties_window.h"
 #include "visual/inspector/inspector.h"
@@ -24,9 +23,8 @@ struct EditorApp {
     WindowManager window_manager{blueprint};
 
     /// Convenience accessors for the root window
-    VisualScene& scene = window_manager.root().scene;
+    visual::Scene& scene = window_manager.root().scene;
     CanvasInput& input = window_manager.root().input;
-    WireManager& wire_manager = window_manager.root().wire_manager;
 
     /// JIT Simulation (manages component lifecycle)
     Simulator<JIT_Solver> simulation;
@@ -42,12 +40,12 @@ struct EditorApp {
 
     /// Node context menu state (right-click on node)
     bool show_node_context_menu = false;
-    size_t context_menu_node_index = 0;
+    std::string context_menu_node_id;
     std::string node_context_menu_group_id;  ///< Which window the right-click came from
 
     /// Color picker state
     bool show_color_picker = false;
-    size_t color_picker_node_index = 0;
+    std::string color_picker_node_id;
     std::string color_picker_group_id;  ///< Which window the color picker targets
     float color_picker_rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 
@@ -66,7 +64,7 @@ struct EditorApp {
     std::unordered_set<std::string> held_buttons;
 
     EditorApp()
-        : inspector(&window_manager.root().scene)  // Inspector needs scene pointer
+        : inspector(&blueprint)  // Inspector needs blueprint pointer
     {
         // Load type registry at startup
         type_registry = load_type_registry();
@@ -75,7 +73,8 @@ struct EditorApp {
     /// Создать новую схему
     void new_circuit() {
         window_manager.closeAll();
-        scene.reset();
+        blueprint = Blueprint();
+        scene.clear();
         simulation = Simulator<JIT_Solver>();
         simulation_running = false;
     }
@@ -85,7 +84,7 @@ struct EditorApp {
         if (simulation_running) {
             // If running, restart to rebuild components
             simulation.stop();
-            simulation.start(scene.blueprint());
+            simulation.start(blueprint);
         }
         // If not running, components will be built on next start()
     }
@@ -93,7 +92,7 @@ struct EditorApp {
     /// Запустить симуляцию
     void start_simulation() {
         if (!simulation_running) {
-            simulation.start(scene.blueprint());  // Creates components!
+            simulation.start(blueprint);  // Creates components!
             simulation_running = true;
         }
     }
@@ -134,7 +133,7 @@ struct EditorApp {
         }
         if (r.show_node_context_menu) {
             show_node_context_menu = true;
-            context_menu_node_index = r.context_menu_node_index;
+            context_menu_node_id = r.context_menu_node_id;
             node_context_menu_group_id = group_id;
         }
         if (!r.open_sub_window.empty()) open_sub_window(r.open_sub_window);
@@ -160,10 +159,10 @@ struct EditorApp {
     void open_sub_window(const std::string& sub_blueprint_id);
 
     /// Open properties window for a specific node
-    void open_properties_for_node(size_t node_index);
+    void open_properties_for_node(const std::string& node_id);
 
     /// Open color picker for a specific node
-    void open_color_picker_for_node(size_t node_index);
+    void open_color_picker_for_node(const std::string& node_id);
 
 private:
 };

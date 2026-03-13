@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/visual_primitives_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/visual_primitives_tests[1]_tests.cmake")
+else()
+  add_test(visual_primitives_tests_NOT_BUILT visual_primitives_tests_NOT_BUILT)
+endif()

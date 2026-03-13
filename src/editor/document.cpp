@@ -1,9 +1,11 @@
 #include "document.h"
-#include "visual/node/node.h"
+#include "visual/scene_mutations.h"
+#include "visual/persist.h"
+#include "visual/snap.h"
+#include "visual/node/visual_node.h"
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
-#include "visual/scene/scene.h"
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -21,7 +23,7 @@ std::string Document::title() const {
 
 bool Document::save(const std::string& path) {
     // Sync viewport state into blueprint before saving
-    auto& vp = scene().viewport();
+    auto& vp = viewport();
     blueprint_.pan = vp.pan;
     blueprint_.zoom = vp.zoom;
     blueprint_.grid_step = vp.grid_step;
@@ -50,14 +52,14 @@ bool Document::load(const std::string& path) {
     blueprint_ = std::move(*bp);
     blueprint_.rebuild_wire_index();
 
-    auto& vp = scene().viewport();
+    auto& vp = viewport();
     vp.pan = blueprint_.pan;
     vp.zoom = blueprint_.zoom;
     vp.grid_step = blueprint_.grid_step;
     vp.clamp_zoom();
 
-    scene().clearCache();
-    scene().invalidateSpatialGrid();
+    // Rebuild visual widgets from new blueprint data
+    visual::mutations::rebuild(scene(), blueprint_, root().group_id);
 
     filepath_ = path;
     auto pos = path.find_last_of("/\\");
@@ -67,7 +69,7 @@ bool Document::load(const std::string& path) {
 
 void Document::startSimulation() {
     if (!simulation_running_) {
-        simulation_.start(scene().blueprint());
+        simulation_.start(blueprint_);
         simulation_running_ = true;
     }
 }
@@ -81,7 +83,7 @@ void Document::stopSimulation() {
 void Document::rebuildSimulation() {
     if (simulation_running_) {
         simulation_.stop();
-        simulation_.start(scene().blueprint());
+        simulation_.start(blueprint_);
     }
 }
 
@@ -107,7 +109,7 @@ void Document::updateSimulationStep(float dt) {
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
-    for (auto& node : scene().nodes()) {
+    for (auto& node : blueprint_.nodes) {
         // Update Voltmeter gauge voltage
         if (node.type_name == "Voltmeter") {
             float voltage = simulation_.get_port_value(node.id, "v_in");
@@ -143,13 +145,46 @@ void Document::updateNodeContentFromSimulation() {
             node.node_content.tripped = (tripped_voltage > 0.5f);
         }
     }
+
+    // Push updated content to visual widgets in all windows
+    for (const auto& win : window_manager_.windows()) {
+        for (const auto& node : blueprint_.nodes) {
+            if (node.node_content.type == NodeContentType::None) continue;
+            if (node.group_id != win->group_id) continue;
+            auto* widget = win->scene.find(node.id);
+            if (!widget) continue;
+            auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+            if (nw) nw->updateContent(node.node_content);
+        }
+    }
 }
 
 void Document::resetNodeContent(const TypeRegistry& registry) {
-    for (auto& node : scene().nodes()) {
+    for (auto& node : blueprint_.nodes) {
         const auto* def = registry.get(node.type_name);
         if (!def) continue;
         node.node_content = create_node_content_from_def(def);
+    }
+}
+
+void Document::buildEnergizedWireSet(std::unordered_set<std::string>& out,
+                                      const std::string& group_id) const {
+    out.clear();
+    if (!simulation_running_) return;
+
+    for (const auto& w : blueprint_.wires) {
+        // Filter wires to the active group
+        // A wire belongs to a group if both endpoints are in that group
+        if (!group_id.empty()) {
+            const auto* start_node = blueprint_.find_node(w.start.node_id.c_str());
+            if (!start_node || start_node->group_id != group_id) continue;
+        }
+
+        // Check either endpoint's port for voltage
+        std::string port_key = w.start.node_id + "." + w.start.port_name;
+        if (simulation_.wire_is_energized(port_key)) {
+            out.insert(w.id);
+        }
     }
 }
 
@@ -200,10 +235,10 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene().findNode(unique_id.c_str()) != nullptr);
+    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
 
     // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene().gridStep());
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
 
     // Create node
     Node node;
@@ -233,7 +268,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.params = def->params;
     node.node_content = create_node_content_from_def(def);
 
-    scene().addNode(node);
+    visual::mutations::add_node(scene(), blueprint_, std::move(node), group_id);
 
     // Keep sub_blueprint_instances.internal_node_ids in sync
     if (!group_id.empty()) {
@@ -269,9 +304,9 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene().findNode(unique_id.c_str()) != nullptr);
+    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
 
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene().gridStep());
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
 
     std::string category;
     auto cat_it = registry.categories.find(blueprint_name);
@@ -288,14 +323,14 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         node.name = node.id;
         if (!has_layout) node.pos = snapped_pos;
         internal_node_ids.push_back(node.id);
-        scene().blueprint().add_node(std::move(node));
+        blueprint_.add_node(std::move(node));
     }
 
     for (auto& wire : sub_bp.wires) {
         wire.start.node_id = unique_id + ":" + wire.start.node_id;
         wire.end.node_id = unique_id + ":" + wire.end.node_id;
         wire.id = unique_id + ":" + wire.id;
-        scene().blueprint().add_wire(std::move(wire));
+        blueprint_.add_wire(std::move(wire));
     }
 
     // Create COLLAPSED Blueprint node
@@ -321,7 +356,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         }
     }
 
-    scene().blueprint().add_node(collapsed_node);
+    blueprint_.add_node(collapsed_node);
 
     SubBlueprintInstance sbi;
     sbi.id = unique_id;
@@ -331,15 +366,16 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     sbi.size = Pt(120.0f, height);
     sbi.baked_in = false;
     sbi.internal_node_ids = internal_node_ids;
-    scene().blueprint().sub_blueprint_instances.push_back(sbi);
+    blueprint_.sub_blueprint_instances.push_back(sbi);
 
-    scene().blueprint().recompute_group_ids();
+    blueprint_.recompute_group_ids();
 
     if (!has_layout) {
-        scene().blueprint().auto_layout_group(unique_id);
+        blueprint_.auto_layout_group(unique_id);
     }
 
-    scene().cache().clear();
+    // Full rebuild since we added multiple nodes/wires directly to Blueprint
+    visual::mutations::rebuild(scene(), blueprint_, root().group_id);
     rebuildSimulation();
 
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
@@ -384,7 +420,7 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
     }
     if (r.show_node_context_menu) {
         action.show_node_context_menu = true;
-        action.context_menu_node_index = r.context_menu_node_index;
+        action.context_menu_node_id = r.context_menu_node_id;
         action.node_context_menu_group_id = group_id;
     }
     if (!r.open_sub_window.empty()) {

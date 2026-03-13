@@ -12,6 +12,235 @@
 
 include(GoogleTest)
 
+# Visual Widget tests (Phase 1 of Scene Graph Refactoring)
+add_executable(visual_widget_tests
+    test_visual_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+)
+target_include_directories(visual_widget_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(visual_widget_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_widget_tests)
+
+# Visual Grid tests (Phase 2 of Scene Graph Refactoring)
+add_executable(visual_grid_tests
+    test_visual_grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+)
+target_include_directories(visual_grid_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(visual_grid_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_grid_tests)
+
+# Visual Scene tests (Phase 3 of Scene Graph Refactoring)
+add_executable(visual_scene_v2_tests
+    test_visual_scene_v2.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+)
+target_include_directories(visual_scene_v2_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(visual_scene_v2_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_scene_v2_tests)
+
+# Visual Wire tests (Phase 6: Wire as scene-graph widget)
+add_executable(visual_wire_tests
+    test_visual_wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+)
+target_include_directories(visual_wire_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(visual_wire_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_wire_tests)
+
+# Visual Hit Test (Phase 7: Scene-graph hit testing)
+add_executable(visual_hittest_tests
+    test_visual_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+)
+target_include_directories(visual_hittest_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(visual_hittest_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_hittest_tests)
+
+# Visual Container tests (Phase 2 of Scene Graph Refactoring - containers)
+add_executable(visual_container_tests
+    test_visual_container.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+)
+target_include_directories(visual_container_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(visual_container_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_container_tests)
+
+# Visual Primitives tests (Phase 3 - leaf widgets)
+add_executable(visual_primitives_tests
+    test_visual_primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+)
+target_include_directories(visual_primitives_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(visual_primitives_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_primitives_tests)
+
+# Visual Content Widgets tests (Phase 3 - content widgets)
+# BLOCKED: Circular dependency with nlohmann/json via data/node.h
+# Tests are written but disabled until dependency issue is resolved.
+# See SCENE_GRAPH_PROGRESS.md for details.
+# add_executable(visual_content_widgets_tests
+#     test_visual_content_widgets.cpp
+#     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+#     ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+#     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+# )
+# target_include_directories(visual_content_widgets_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/editor
+# )
+# target_link_libraries(visual_content_widgets_tests PRIVATE
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(visual_content_widgets_tests)
+
+# Visual NodeWidget tests (Phase 4-5 of Scene Graph Refactoring)
+# Integrated test: includes json_parser for data/node.h dependency
+add_executable(visual_node_widget_tests
+    test_visual_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+)
+target_include_directories(visual_node_widget_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(visual_node_widget_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(visual_node_widget_tests)
+
+# Specialized node widget tests (Phase 9.2 of Scene Graph Refactoring)
+# Tests for RefNodeWidget, TextNodeWidget, GroupNodeWidget, BusNodeWidget, NodeFactory
+add_executable(specialized_node_widget_tests
+    test_specialized_node_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+)
+target_include_directories(specialized_node_widget_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(specialized_node_widget_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(specialized_node_widget_tests)
+
+# Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
+add_executable(scene_mutations_tests
+    test_scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(scene_mutations_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(scene_mutations_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(scene_mutations_tests)
+
 # Port registry tests (TDD for codegen)
 add_executable(port_registry_tests
     port_registry_test.cpp
@@ -83,56 +312,6 @@ target_link_libraries(editor_data_tests PRIVATE
 )
 gtest_discover_tests(editor_data_tests)
 
-# Editor persist tests (TDD Step 2)
-add_executable(editor_persist_tests
-    test_persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(editor_persist_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_persist_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_persist_tests PRIVATE
-    json_parser
-    jit_solver
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_persist_tests)
 
 # Editor viewport tests (TDD Step 3)
 add_executable(editor_viewport_tests
@@ -162,104 +341,7 @@ gtest_discover_tests(editor_viewport_tests)
 # gtest_discover_tests(editor_interaction_tests)
 
 # Editor render tests
-add_executable(editor_render_tests
-    test_render.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(editor_render_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_render_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_render_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_render_tests)
 
-# Editor hit test tests (TDD Step 6)
-add_executable(editor_hittest_tests
-    test_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(editor_hittest_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_hittest_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_hittest_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_hittest_tests)
 
 # Editor event tests (TDD Step 7) - Disabled for AOT-only refactor
 # add_executable(editor_event_tests
@@ -324,108 +406,13 @@ gtest_discover_tests(json_parser_tests)
 # gtest_discover_tests(editor_routing_tests)
 
 # A* Router tests
-add_executable(editor_router_tests
-    test_router.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(editor_router_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_router_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_router_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_router_tests)
 
-# Widget & Layout tests
-add_executable(editor_widget_tests
-    test_widget.cpp
-    test_bus_port_swap.cpp
-    test_spatial_grid.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(editor_widget_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_widget_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_widget_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_widget_tests)
 
 # Editor simulation tests (TDD - integration with JIT solver)
 add_executable(editor_simulation_tests
     test_simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(editor_simulation_tests PRIVATE
@@ -475,7 +462,7 @@ gtest_discover_tests(azs_tests)
 # Logical solver tests (TDD - Comparator component)
 add_executable(logical_solver_tests
     test_logical_solver.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(logical_solver_tests PRIVATE
@@ -789,38 +776,7 @@ gtest_discover_tests(pi_p_tests)
 add_executable(inspector_tests
     test_inspector.cpp
     ../src/editor/visual/inspector/inspector_core.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
@@ -857,245 +813,36 @@ target_link_libraries(lamp_passthrough_jit_test PRIVATE
 gtest_discover_tests(lamp_passthrough_jit_test)
 
 # Editor hierarchical blueprint tests (TDD - collapsed node rendering, navigation, persistence)
-add_executable(editor_hierarchical_tests
-    test_editor_hierarchical.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(editor_hierarchical_tests PRIVATE EDITOR_TESTING)
-target_include_directories(editor_hierarchical_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(editor_hierarchical_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_hierarchical_tests)
 
 # VisualPort tests (TDD - OOP port refactor)
-add_executable(visual_port_tests
-    test_visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(visual_port_tests PRIVATE EDITOR_TESTING)
-target_include_directories(visual_port_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(visual_port_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(visual_port_tests)
 
-# VisualScene tests
-add_executable(visual_scene_tests
-    test_visual_scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(visual_scene_tests PRIVATE EDITOR_TESTING)
-target_include_directories(visual_scene_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(visual_scene_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(visual_scene_tests)
 
 # Refactoring regression tests (audit: extracted types, [[nodiscard]], dependency decoupling)
-add_executable(refactoring_regression_tests
-    test_refactoring_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(refactoring_regression_tests PRIVATE EDITOR_TESTING)
-target_include_directories(refactoring_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(refactoring_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(refactoring_regression_tests)
 
 # Node deletion tests
 add_executable(node_deletion_tests
     test_node_deletion.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    # New widget-based visual scene graph
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(node_deletion_tests PRIVATE EDITOR_TESTING)
 target_include_directories(node_deletion_tests PRIVATE
@@ -1115,41 +862,26 @@ gtest_discover_tests(node_deletion_tests)
 add_executable(multi_window_tests
     test_multi_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    # New widget-based visual scene graph
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(multi_window_tests PRIVATE EDITOR_TESTING)
 target_include_directories(multi_window_tests PRIVATE
@@ -1172,41 +904,26 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    # New widget-based visual scene graph
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(params_integrity_tests PRIVATE EDITOR_TESTING)
 target_include_directories(params_integrity_tests PRIVATE
@@ -1241,62 +958,6 @@ target_link_libraries(expand_typedef_tests PRIVATE
 )
 gtest_discover_tests(expand_typedef_tests)
 
-# Context menu tests (Phase 1: right-click on node)
-add_executable(context_menu_tests
-    test_context_menu.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-)
-target_compile_definitions(context_menu_tests PRIVATE
-    EDITOR_TESTING
-    TEST_DATA_DIR="${CMAKE_SOURCE_DIR}"
-)
-target_include_directories(context_menu_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(context_menu_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(context_menu_tests)
 
 # Properties window tests (Phase 2: PropertiesWindow logic)
 add_executable(properties_window_tests
@@ -1320,7 +981,7 @@ gtest_discover_tests(properties_window_tests)
 add_executable(dt_regression_tests
     test_dt_regression.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(dt_regression_tests PRIVATE
@@ -1391,126 +1052,9 @@ target_link_libraries(bake_in_tests PRIVATE
 gtest_discover_tests(bake_in_tests)
 
 # Node color tests (Phase 1: data model, persistence, visual node)
-add_executable(node_color_tests
-    test_node_color.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(node_color_tests PRIVATE EDITOR_TESTING)
-target_include_directories(node_color_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(node_color_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(node_color_tests)
 
 # Node auto-size tests (TDD - dynamic resize based on ports + content)
-add_executable(node_autosize_tests
-    test_node_autosize.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(node_autosize_tests PRIVATE EDITOR_TESTING)
-target_include_directories(node_autosize_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(node_autosize_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(node_autosize_tests)
 
-# Layout primitives tests (TDD - Column/Row/Container/Label/Circle/Spacer)
-add_executable(layout_tests
-    test_layout.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-)
-target_compile_definitions(layout_tests PRIVATE EDITOR_TESTING)
-target_include_directories(layout_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(layout_tests PRIVATE
-    GTest::gtest_main
-)
-gtest_discover_tests(layout_tests)
 
 # =============================================================================
 # New component tests (AsymSlewRate, TimeDelay, Monostable, SampleHold, Integrator)
@@ -1650,7 +1194,7 @@ add_executable(sub_blueprint_ref_tests
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(sub_blueprint_ref_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1673,41 +1217,26 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    # New widget-based visual scene graph
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(document_window_system_tests PRIVATE EDITOR_TESTING)
 target_include_directories(document_window_system_tests PRIVATE
@@ -1766,44 +1295,3 @@ target_link_libraries(library_v2_tests PRIVATE
 )
 gtest_discover_tests(library_v2_tests)
 
-# Wire module unit tests (Phase 4.3: polyline_builder, polyline_draw, arc_draw)
-add_executable(wire_module_tests
-    test_wire_modules.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(wire_module_tests PRIVATE EDITOR_TESTING)
-target_include_directories(wire_module_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(wire_module_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(wire_module_tests)

@@ -1,4 +1,5 @@
 #include "window_system.h"
+#include "visual/scene_mutations.h"
 #include "data/blueprint.h"
 #include <spdlog/spdlog.h>
 
@@ -100,7 +101,7 @@ bool WindowSystem::closeDocument(Document& doc) {
         }
     } else {
         // Force inspector update (setActiveDocument skips if pointer unchanged)
-        inspector_.setScene(active_document_->scene());
+        inspector_.setBlueprint(active_document_->blueprint());
         inspector_.markDirty();
     }
 
@@ -119,7 +120,7 @@ void WindowSystem::setActiveDocument(Document* doc) {
     if (active_document_ != doc) {
         active_document_ = doc;
         if (doc) {
-            inspector_.setScene(doc->scene());
+            inspector_.setBlueprint(doc->blueprint());
             inspector_.markDirty();
             spdlog::debug("[WindowSystem] Active document: {}", doc->displayName());
         }
@@ -140,15 +141,18 @@ void WindowSystem::removeClosedDocuments() {
     // This method exists for future deferred removal if needed
 }
 
-void WindowSystem::openPropertiesForNode(size_t node_index, Document& doc) {
-    if (node_index >= doc.blueprint().nodes.size()) return;
-    Node& node = doc.blueprint().nodes[node_index];
+void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& doc) {
+    Node* node = doc.blueprint().find_node(node_id.c_str());
+    if (!node) return;
     Document* doc_ptr = &doc;
-    properties_window_.open(node, [this, doc_ptr](const std::string& node_id) {
+    properties_window_.open(*node, [this, doc_ptr](const std::string& nid) {
         // Verify document still exists before using the pointer
         for (const auto& d : documents_) {
             if (d.get() == doc_ptr) {
-                doc_ptr->scene().cache().invalidate(node_id);
+                // Rebuild visual widgets from updated blueprint data
+                visual::mutations::rebuild(doc_ptr->scene(),
+                                           doc_ptr->blueprint(),
+                                           doc_ptr->root().group_id);
                 inspector_.markDirty();
                 doc_ptr->rebuildSimulation();
                 return;
@@ -159,20 +163,20 @@ void WindowSystem::openPropertiesForNode(size_t node_index, Document& doc) {
     });
 }
 
-void WindowSystem::openColorPickerForNode(size_t node_index, const std::string& group_id, Document& doc) {
-    if (node_index >= doc.blueprint().nodes.size()) return;
+void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc) {
+    Node* node = doc.blueprint().find_node(node_id.c_str());
+    if (!node) return;
 
-    colorPicker.node_index = node_index;
+    colorPicker.node_id = node_id;
     colorPicker.group_id = group_id;
     colorPicker.source_doc = &doc;
     colorPicker.show = true;
 
-    const Node& node = doc.blueprint().nodes[node_index];
-    if (node.color.has_value()) {
-        colorPicker.rgba[0] = node.color->r;
-        colorPicker.rgba[1] = node.color->g;
-        colorPicker.rgba[2] = node.color->b;
-        colorPicker.rgba[3] = node.color->a;
+    if (node->color.has_value()) {
+        colorPicker.rgba[0] = node->color->r;
+        colorPicker.rgba[1] = node->color->g;
+        colorPicker.rgba[2] = node->color->b;
+        colorPicker.rgba[3] = node->color->a;
     } else {
         colorPicker.rgba[0] = 0.19f;
         colorPicker.rgba[1] = 0.19f;
@@ -190,7 +194,7 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     }
     if (action.show_node_context_menu) {
         nodeContextMenu.show = true;
-        nodeContextMenu.node_index = action.context_menu_node_index;
+        nodeContextMenu.node_id = action.context_menu_node_id;
         nodeContextMenu.group_id = action.node_context_menu_group_id;
         nodeContextMenu.source_doc = &doc;
     }

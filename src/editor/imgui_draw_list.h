@@ -83,11 +83,9 @@ public:
         if (count < 2) return;
         ImU32 c = IM_COL32((color >> 0) & 0xFF, (color >> 8) & 0xFF,
                            (color >> 16) & 0xFF, (color >> 24) & 0xFF);
-        ImVector<ImVec2> im_points;
-        im_points.resize(count);
-        for (size_t i = 0; i < count; i++) {
-            im_points[i] = ImVec2(points[i].x, points[i].y);
-        }
-        dl->AddPolyline(im_points.Data, (int)count, c, false, thickness);
+        // Pt and ImVec2 are both {float x, float y} — layout-compatible.
+        static_assert(sizeof(Pt) == sizeof(ImVec2), "Pt and ImVec2 must have same layout");
+        const auto* im_pts = reinterpret_cast<const ImVec2*>(points);
+        dl->AddPolyline(im_pts, (int)count, c, false, thickness);
     }
 };

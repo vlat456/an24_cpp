@@ -1,5 +1,6 @@
 #include "app.h"
-#include "visual/node/node.h"
+#include "visual/scene_mutations.h"
+#include "visual/snap.h"
 #include "debug.h"
 #include "data/wire.h"
 #include "data/node.h"
@@ -13,7 +14,7 @@
 void EditorApp::update_node_content_from_simulation() {
     if (!simulation_running) return;
 
-    for (auto& node : scene.nodes()) {
+    for (auto& node : blueprint.nodes) {
         // Update Voltmeter gauge voltage
         if (node.type_name == "Voltmeter") {
             float voltage = simulation.get_port_value(node.id, "v_in");
@@ -61,36 +62,35 @@ void EditorApp::update_node_content_from_simulation() {
 // any new component type added to the simulation would NOT have its visual state reset.
 void EditorApp::reset_node_content() {
 
-    for (auto& node : scene.nodes()) {
+    for (auto& node : blueprint.nodes) {
         const auto* def = type_registry.get(node.type_name);
         if (!def) continue;
         node.node_content = create_node_content_from_def(def);
     }
 }
 
-void EditorApp::open_properties_for_node(size_t node_index) {
-    if (node_index >= blueprint.nodes.size()) return;
-    Node& node = blueprint.nodes[node_index];
-    properties_window.open(node, [this](const std::string& node_id) {
-        scene.cache().invalidate(node_id);
+void EditorApp::open_properties_for_node(const std::string& node_id) {
+    Node* node = blueprint.find_node(node_id.c_str());
+    if (!node) return;
+    properties_window.open(*node, [this](const std::string& nid) {
         inspector.markDirty();
         rebuild_simulation();
     });
 }
 
-void EditorApp::open_color_picker_for_node(size_t node_index) {
-    if (node_index >= blueprint.nodes.size()) return;
-    color_picker_node_index = node_index;
+void EditorApp::open_color_picker_for_node(const std::string& node_id) {
+    const Node* node = blueprint.find_node(node_id.c_str());
+    if (!node) return;
+    color_picker_node_id = node_id;
     color_picker_group_id = node_context_menu_group_id;
     show_color_picker = true;
 
     // Pre-fill with existing custom color or theme default
-    const Node& node = blueprint.nodes[node_index];
-    if (node.color.has_value()) {
-        color_picker_rgba[0] = node.color->r;
-        color_picker_rgba[1] = node.color->g;
-        color_picker_rgba[2] = node.color->b;
-        color_picker_rgba[3] = node.color->a;
+    if (node->color.has_value()) {
+        color_picker_rgba[0] = node->color->r;
+        color_picker_rgba[1] = node->color->g;
+        color_picker_rgba[2] = node->color->b;
+        color_picker_rgba[3] = node->color->a;
     } else {
         // Use body fill default as starting color (COLOR_BODY_FILL = 0xFF303040)
         color_picker_rgba[0] = 0.19f;  // 0x40/255 ≈ 0.19
@@ -129,10 +129,10 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene.findNode(unique_id.c_str()) != nullptr);
+    } while (blueprint.find_node(unique_id.c_str()) != nullptr);
     
     // Snap position to grid
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
     
     // Create node
     Node node;
@@ -168,8 +168,8 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     // BUGFIX [dc3a7f] Removed dead create_node_content wrapper, call factory directly
     node.node_content = create_node_content_from_def(def);
 
-    // Add node to scene
-    scene.addNode(node);
+    // Add node to blueprint and visual scene
+    visual::mutations::add_node(scene, blueprint, std::move(node), group_id);
 
     // Keep sub_blueprint_instances.internal_node_ids in sync
     if (!group_id.empty()) {
@@ -206,9 +206,9 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     std::string unique_id;
     do {
         unique_id = base_id + "_" + std::to_string(counter++);
-    } while (scene.findNode(unique_id.c_str()) != nullptr);
+    } while (blueprint.find_node(unique_id.c_str()) != nullptr);
 
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, scene.gridStep());
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint.grid_step);
 
     // Look up category for blueprint_path (e.g., "systems/lamp_pass_through")
     std::string category;
@@ -221,21 +221,21 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
                                   [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
 
-    // Merge into parent scene with prefix
+    // Merge into parent blueprint with prefix
     std::vector<std::string> internal_node_ids;
     for (auto& node : sub_bp.nodes) {
         node.id = unique_id + ":" + node.id;
         node.name = node.id;
         if (!has_layout) node.pos = snapped_pos;
         internal_node_ids.push_back(node.id);
-        scene.blueprint().add_node(std::move(node));
+        blueprint.add_node(std::move(node));
     }
 
     for (auto& wire : sub_bp.wires) {
         wire.start.node_id = unique_id + ":" + wire.start.node_id;
         wire.end.node_id = unique_id + ":" + wire.end.node_id;
         wire.id = unique_id + ":" + wire.id;
-        scene.blueprint().add_wire(std::move(wire));
+        blueprint.add_wire(std::move(wire));
     }
 
     // Create COLLAPSED Blueprint node (visible in parent view)
@@ -261,7 +261,7 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
         }
     }
 
-    scene.blueprint().add_node(collapsed_node);
+    blueprint.add_node(collapsed_node);
 
     // Create SubBlueprintInstance for editor-only visual collapsing
     SubBlueprintInstance sbi;
@@ -272,15 +272,16 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     sbi.size = Pt(120.0f, height);
     sbi.internal_node_ids = internal_node_ids;
     sbi.baked_in = false;
-    scene.blueprint().sub_blueprint_instances.push_back(sbi);
+    blueprint.sub_blueprint_instances.push_back(sbi);
 
-    scene.blueprint().recompute_group_ids();
+    blueprint.recompute_group_ids();
 
     if (!has_layout) {
-        scene.blueprint().auto_layout_group(unique_id);
+        blueprint.auto_layout_group(unique_id);
     }
 
-    scene.cache().clear();
+    // Rebuild visual scene from updated blueprint data
+    visual::mutations::rebuild(scene, blueprint, group_id);
     rebuild_simulation();
 
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",

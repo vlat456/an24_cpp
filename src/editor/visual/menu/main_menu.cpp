@@ -123,15 +123,15 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     if (active_doc) {
         ImGui::Separator();
         if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-            active_doc->scene().viewport().zoom *= 1.1f;
-            active_doc->scene().viewport().clamp_zoom();
+            active_doc->viewport().zoom *= 1.1f;
+            active_doc->viewport().clamp_zoom();
         }
         if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-            active_doc->scene().viewport().zoom /= 1.1f;
-            active_doc->scene().viewport().clamp_zoom();
+            active_doc->viewport().zoom /= 1.1f;
+            active_doc->viewport().clamp_zoom();
         }
         if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
-            active_doc->scene().viewport().zoom = 1.0f;
+            active_doc->viewport().zoom = 1.0f;
         }
     }
 

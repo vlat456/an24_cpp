@@ -2,7 +2,7 @@
 #include <imgui.h>
 
 void Inspector::render() {
-    if (!scene_) {
+    if (!bp_) {
         ImGui::TextDisabled("No document loaded");
         return;
     }

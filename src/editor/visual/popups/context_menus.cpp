@@ -48,8 +48,9 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     if (!ImGui::BeginPopup("NodeContextMenu")) return;
     
     Document* doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : ws.activeDocument();
-    if (doc && ws.nodeContextMenu.node_index < doc->blueprint().nodes.size()) {
-        Node& node = doc->blueprint().nodes[ws.nodeContextMenu.node_index];
+    Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id.c_str()) : nullptr;
+    if (doc && node_ptr) {
+        Node& node = *node_ptr;
         ImGui::Text("Node: %s", node.name.c_str());
         ImGui::Separator();
         
@@ -60,11 +61,11 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         if (ImGui::MenuItem("Properties...")) {
-            ws.openPropertiesForNode(ws.nodeContextMenu.node_index, *doc);
+            ws.openPropertiesForNode(ws.nodeContextMenu.node_id, *doc);
         }
         if (!is_read_only) {
             if (ImGui::MenuItem("Set Color...")) {
-                ws.openColorPickerForNode(ws.nodeContextMenu.node_index, ws.nodeContextMenu.group_id, *doc);
+                ws.openColorPickerForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.group_id, *doc);
             }
             if (ImGui::MenuItem("Delete")) {
                 auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);

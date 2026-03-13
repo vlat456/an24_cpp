@@ -6,7 +6,7 @@
 #include <optional>
 #include <vector>
 
-class VisualPort;
+namespace visual { class Port; }
 struct NodeColor;
 
 namespace node_frame {
@@ -22,7 +22,7 @@ ScreenBounds world_to_screen(Pt world_pos, Pt world_size,
                              const Viewport& vp, Pt canvas_min);
 
 void render_ports(IDrawList& dl, const Viewport& vp, Pt canvas_min,
-                  const std::vector<VisualPort>& ports);
+                  const std::vector<visual::Port>& ports);
 
 void render_border(IDrawList& dl, const ScreenBounds& bounds,
                    float rounding, bool is_selected);

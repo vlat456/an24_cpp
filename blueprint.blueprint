@@ -143,6 +143,83 @@
       ],
       "type": "HoldButton"
     },
+    "lamp_pass_through_1": {
+      "blueprint_path": "systems/lamp_pass_through",
+      "expandable": true,
+      "pos": [
+        384.0,
+        -208.0
+      ],
+      "size": [
+        120.0,
+        96.0
+      ],
+      "type": "lamp_pass_through"
+    },
+    "lamp_pass_through_1:lamp": {
+      "color": {
+        "a": 1.0,
+        "b": 0.7533632516860962,
+        "g": 0.44593721628189087,
+        "r": 0.44593697786331177
+      },
+      "content": {
+        "kind": "text",
+        "label": "OFF",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 0.0
+      },
+      "display_name": "Лампочка",
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "color": "red",
+        "conductance": "1.0",
+        "max_brightness": "100.0"
+      },
+      "pos": [
+        288.0,
+        192.0
+      ],
+      "size": [
+        120.0,
+        80.0
+      ],
+      "type": "IndicatorLight"
+    },
+    "lamp_pass_through_1:vin": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "pos": [
+        80.0,
+        80.0
+      ],
+      "size": [
+        20.0,
+        20.0
+      ],
+      "type": "BlueprintInput"
+    },
+    "lamp_pass_through_1:vout": {
+      "group_id": "lamp_pass_through_1",
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "pos": [
+        480.0,
+        80.0
+      ],
+      "size": [
+        20.0,
+        20.0
+      ],
+      "type": "BlueprintOutput"
+    },
     "lerpnode_1": {
       "params": {
         "deadzone": "0.001",
@@ -196,8 +273,8 @@
         "r": 0.30135926604270935
       },
       "pos": [
-        288.0,
-        -80.0
+        272.0,
+        -96.0
       ],
       "render_hint": "bus",
       "size": [
@@ -273,7 +350,7 @@
         "max": 30.0,
         "min": 0.0,
         "unit": "V",
-        "value": 339.6324462890625
+        "value": 20.0
       },
       "pos": [
         848.0,
@@ -292,7 +369,7 @@
         "max": 30.0,
         "min": 0.0,
         "unit": "V",
-        "value": 59.99647903442383
+        "value": 0.0
       },
       "pos": [
         976.0,
@@ -325,14 +402,119 @@
       "type": "RU19A"
     }
   },
+  "sub_blueprints": {
+    "lamp_pass_through_1": {
+      "collapsed": true,
+      "nodes": {
+        "lamp": {
+          "color": {
+            "a": 1.0,
+            "b": 0.7533632516860962,
+            "g": 0.44593721628189087,
+            "r": 0.44593697786331177
+          },
+          "content": {
+            "kind": "text",
+            "label": "OFF",
+            "max": 1.0,
+            "min": 0.0,
+            "unit": "",
+            "value": 0.0
+          },
+          "display_name": "Лампочка",
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "color": "red",
+            "conductance": "1.0",
+            "max_brightness": "100.0"
+          },
+          "pos": [
+            288.0,
+            192.0
+          ],
+          "size": [
+            120.0,
+            80.0
+          ],
+          "type": "IndicatorLight"
+        },
+        "vin": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "In",
+            "exposed_type": "V"
+          },
+          "pos": [
+            80.0,
+            80.0
+          ],
+          "size": [
+            20.0,
+            20.0
+          ],
+          "type": "BlueprintInput"
+        },
+        "vout": {
+          "group_id": "lamp_pass_through_1",
+          "params": {
+            "exposed_direction": "Out",
+            "exposed_type": "V"
+          },
+          "pos": [
+            480.0,
+            80.0
+          ],
+          "size": [
+            20.0,
+            20.0
+          ],
+          "type": "BlueprintOutput"
+        }
+      },
+      "pos": [
+        384.0,
+        -208.0
+      ],
+      "size": [
+        120.0,
+        96.0
+      ],
+      "template": "systems/lamp_pass_through",
+      "type_name": "lamp_pass_through",
+      "wires": [
+        {
+          "from": [
+            "vin",
+            "port"
+          ],
+          "id": "lamp_pass_through_1:vin.port->lamp.v_in",
+          "to": [
+            "lamp",
+            "v_in"
+          ]
+        },
+        {
+          "from": [
+            "lamp",
+            "v_out"
+          ],
+          "id": "lamp_pass_through_1:lamp.v_out->vout.port",
+          "to": [
+            "vout",
+            "port"
+          ]
+        }
+      ]
+    }
+  },
   "version": 2,
   "viewport": {
     "grid": 16.0,
     "pan": [
-      4.745240688323975,
-      -250.93869018554688
+      80.01300048828125,
+      -210.19223022460938
     ],
-    "zoom": 0.9995304346084595
+    "zoom": 1.231786847114563
   },
   "wires": [
     {
@@ -696,6 +878,28 @@
       "to": [
         "voltmeter_2",
         "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1:vin",
+        "port"
+      ],
+      "id": "lamp_pass_through_1:vin.port->lamp.v_in",
+      "to": [
+        "lamp_pass_through_1:lamp",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp_pass_through_1:lamp",
+        "v_out"
+      ],
+      "id": "lamp_pass_through_1:lamp.v_out->vout.port",
+      "to": [
+        "lamp_pass_through_1:vout",
+        "port"
       ]
     }
   ]

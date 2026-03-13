@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="51" failures="0" disabled="0" errors="0" time="0.476" timestamp="2026-03-13T00:56:47.300" name="AllTests">
+  <testsuite name="Document" tests="18" failures="0" disabled="0" skipped="0" errors="0" time="0.094" timestamp="2026-03-13T00:56:47.300">
+    <testcase name="ConstructionGeneratesUniqueId" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="15" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="DefaultState" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="23" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="BlueprintAccess" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="30" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="WindowManagerAccess" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="43" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="SceneSharesBlueprint" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="50" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="SimulationStartStop" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="62" status="run" result="completed" time="0.023" timestamp="2026-03-13T00:56:47.300" classname="Document" />
+    <testcase name="SimulationDoubleStartIsNoop" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="71" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.323" classname="Document" />
+    <testcase name="SignalOverridesAndHeldButtons" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="80" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.338" classname="Document" />
+    <testcase name="TriggerSwitchSetsOverride" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="93" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.338" classname="Document" />
+    <testcase name="ApplyInputResultContextMenu" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="101" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="ApplyInputResultNodeContextMenu" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="115" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="OpenSubWindowForMissingGroupDoesNotCrash" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="127" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="OpenSubWindowCreatesWindow" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="135" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="NonCopyable" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="150" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="IsPristine_NewDocument" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="643" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="IsPristine_AfterLoad" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="648" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.352" classname="Document" />
+    <testcase name="IsPristine_AfterAddComponent" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="676" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.367" classname="Document" />
+    <testcase name="IsPristine_AfterAddWire" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="851" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.381" classname="Document" />
+  </testsuite>
+  <testsuite name="WindowSystem" tests="25" failures="0" disabled="0" skipped="0" errors="0" time="0.38" timestamp="2026-03-13T00:56:47.394">
+    <testcase name="ConstructionCreatesOneDocument" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="161" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.394" classname="WindowSystem" />
+    <testcase name="CreateDocumentIncrementsCount" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="167" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.408" classname="WindowSystem" />
+    <testcase name="CreateDocumentSetsActive" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="176" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.422" classname="WindowSystem" />
+    <testcase name="SetActiveDocumentUpdatesPointer" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="184" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.435" classname="WindowSystem" />
+    <testcase name="CloseDocumentRemovesIt" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="196" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.449" classname="WindowSystem" />
+    <testcase name="CloseActiveDocumentSwitchesToNext" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="208" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.463" classname="WindowSystem" />
+    <testcase name="CloseMiddleDocumentSwitchesCorrectly" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="229" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.476" classname="WindowSystem" />
+    <testcase name="CloseLastDocumentCreatesNew" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="245" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.490" classname="WindowSystem" />
+    <testcase name="CloseActiveDocumentUpdatesInspectorScene" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="259" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.504" classname="WindowSystem" />
+    <testcase name="CloseDocumentClearsContextMenuPointers" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="283" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.517" classname="WindowSystem" />
+    <testcase name="CloseDocumentKeepsOtherContextMenuPointers" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="302" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.531" classname="WindowSystem" />
+    <testcase name="CloseAllDocumentsOneByOne" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="318" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.544" classname="WindowSystem" />
+    <testcase name="CloseAllDocumentsMethod" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="337" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.558" classname="WindowSystem" />
+    <testcase name="HandleInputActionSetsContextMenu" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="348" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.573" classname="WindowSystem" />
+    <testcase name="HandleInputActionSetsNodeContextMenu" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="366" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.586" classname="WindowSystem" />
+    <testcase name="OpenDocumentDuplicatePathReturnsExisting" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="383" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.600" classname="WindowSystem" />
+    <testcase name="InspectorUpdatedOnActiveDocumentChange" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="393" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.614" classname="WindowSystem" />
+    <testcase name="RapidCreateCloseDoesNotLeak" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="628" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.627" classname="WindowSystem" />
+    <testcase name="OpenDocument_ReplacesPristineUntitled" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="691" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.642" classname="WindowSystem" />
+    <testcase name="OpenDocument_AddsTabWhenNotPristine" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="729" status="run" result="completed" time="0.028" timestamp="2026-03-13T00:56:47.656" classname="WindowSystem" />
+    <testcase name="OpenDocument_AddsToRecentFiles" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="769" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.685" classname="WindowSystem" />
+    <testcase name="OpenDocument_DuplicatePath_UpdatesRecentFiles" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="798" status="run" result="completed" time="0.014" timestamp="2026-03-13T00:56:47.699" classname="WindowSystem" />
+    <testcase name="OpenDocument_InvalidPath" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="874" status="run" result="completed" time="0.013" timestamp="2026-03-13T00:56:47.714" classname="WindowSystem" />
+    <testcase name="CloseDocument_WithSubWindowsOpen" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="916" status="run" result="completed" time="0.027" timestamp="2026-03-13T00:56:47.727" classname="WindowSystem" />
+    <testcase name="RapidOpenCloseCycles" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="929" status="run" result="completed" time="0.019" timestamp="2026-03-13T00:56:47.755" classname="WindowSystem" />
+  </testsuite>
+  <testsuite name="BakeInMenuRegression" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-13T00:56:47.775">
+    <testcase name="FindSBI_ByNodeId_AtRootLevel" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="429" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="BakeInMenuRegression" />
+  </testsuite>
+  <testsuite name="EditOriginalRegression" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-13T00:56:47.775">
+    <testcase name="SBI_HasBlueprintPath_AtRootLevel" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="485" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="EditOriginalRegression" />
+  </testsuite>
+  <testsuite name="OpenSubWindowRegression" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-13T00:56:47.775">
+    <testcase name="NonBakedIn_CreatesReadOnlyWindow" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="522" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="OpenSubWindowRegression" />
+    <testcase name="BakedIn_CreatesEditableWindow" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="555" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="OpenSubWindowRegression" />
+    <testcase name="DoubleClick_RootExpandableNode_ReturnsOpenSubWindow" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="583" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="OpenSubWindowRegression" />
+  </testsuite>
+  <testsuite name="RecentFiles" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-03-13T00:56:47.775">
+    <testcase name="HandlesEmptyString" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="884" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="RecentFiles" />
+    <testcase name="HandlesUnicodePath" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="893" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.775" classname="RecentFiles" />
+    <testcase name="MaxLimitExact" file="/Users/vladimir/an24_cpp/tests/test_document_window_system.cpp" line="957" status="run" result="completed" time="0." timestamp="2026-03-13T00:56:47.776" classname="RecentFiles" />
+  </testsuite>
+</testsuites>

@@ -2,10 +2,8 @@
 
 #include "data/blueprint.h"
 #include "window/window_manager.h"
-#include "visual/scene/scene.h"
-#include "visual/scene/persist.h"
+#include "visual/scene.h"
 #include "input/canvas_input.h"
-#include "visual/scene/wire_manager.h"
 #include "jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <string>
@@ -54,9 +52,9 @@ public:
 
     /// Root window convenience accessors
     BlueprintWindow& root() { return window_manager_.root(); }
-    VisualScene& scene() { return root().scene; }
+    visual::Scene& scene() { return root().scene; }
+    Viewport& viewport() { return root().viewport; }
     CanvasInput& input() { return root().input; }
-    WireManager& wireManager() { return root().wire_manager; }
 
     // ── Simulation ──
 
@@ -73,6 +71,11 @@ public:
     /// Needs TypeRegistry for reset_node_content logic.
     void updateNodeContentFromSimulation();
     void resetNodeContent(const TypeRegistry& registry);
+
+    /// Build a set of wire IDs that are energized (have non-zero voltage).
+    /// Used by the renderer to visually highlight powered wires.
+    void buildEnergizedWireSet(std::unordered_set<std::string>& out,
+                               const std::string& group_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
 
@@ -107,7 +110,7 @@ public:
         std::string context_menu_group_id;
 
         bool show_node_context_menu = false;
-        size_t context_menu_node_index = 0;
+        std::string context_menu_node_id;
         std::string node_context_menu_group_id;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");

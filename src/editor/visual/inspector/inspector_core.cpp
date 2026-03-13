@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <cctype>
 
-Inspector::Inspector(const VisualScene* scene) : scene_(scene) {}
+Inspector::Inspector(const Blueprint* bp, const std::string& group_id)
+    : bp_(bp), group_id_(group_id) {}
 
 std::string Inspector::consumeSelection() {
     std::string result;
@@ -28,9 +29,9 @@ void Inspector::setSortMode(SortMode mode) {
 }
 
 bool Inspector::detectSceneChange() {
-    if (!scene_) return false;
-    size_t nc = scene_->nodes().size();
-    size_t wc = scene_->wires().size();
+    if (!bp_) return false;
+    size_t nc = bp_->nodes.size();
+    size_t wc = bp_->wires.size();
     if (nc != last_node_count_ || wc != last_wire_count_) {
         last_node_count_ = nc;
         last_wire_count_ = wc;
@@ -39,12 +40,21 @@ bool Inspector::detectSceneChange() {
     return dirty_;
 }
 
+bool Inspector::ownsWire(const Wire& w) const {
+    if (!bp_) return false;
+    auto belongs = [&](const std::string& node_id) {
+        const Node* n = bp_->find_node(node_id.c_str());
+        return n && n->group_id == group_id_;
+    };
+    return belongs(w.start.node_id) && belongs(w.end.node_id);
+}
+
 void Inspector::buildDisplayTree() {
     display_tree_.clear();
-    if (!scene_) return;
+    if (!bp_) return;
 
-    for (const auto& node : scene_->nodes()) {
-        if (!scene_->ownsNode(node)) continue;
+    for (const auto& node : bp_->nodes) {
+        if (!ownsNode(node)) continue;
         if (!passesFilter(node)) continue;
 
         DisplayNode dn;
@@ -52,10 +62,10 @@ void Inspector::buildDisplayTree() {
         dn.name = node.name;
         dn.type_name = node.type_name;
 
-        // Count connections (only wires owned by this scene)
+        // Count connections (only wires owned by this group)
         size_t conn_count = 0;
-        for (const auto& wire : scene_->wires()) {
-            if (!scene_->ownsWire(wire)) continue;
+        for (const auto& wire : bp_->wires) {
+            if (!ownsWire(wire)) continue;
             if (wire.start.node_id == node.id || wire.end.node_id == node.id)
                 conn_count++;
         }
@@ -79,15 +89,15 @@ void Inspector::buildDisplayTree() {
 
 std::string Inspector::findConnectionFor(const Node& node, const EditorPort& port, PortSide side) const {
     std::string result;
-    for (const auto& wire : scene_->wires()) {
-        if (!scene_->ownsWire(wire)) continue;
+    for (const auto& wire : bp_->wires) {
+        if (!ownsWire(wire)) continue;
 
         // Match the port's side: inputs match wire.end, outputs match wire.start
         const WireEnd& local = (side == PortSide::Input) ? wire.end : wire.start;
         const WireEnd& remote = (side == PortSide::Input) ? wire.start : wire.end;
 
         if (local.node_id == node.id && local.port_name == port.name) {
-            const Node* other = scene_->findNode(remote.node_id.c_str());
+            const Node* other = bp_->find_node(remote.node_id.c_str());
             if (other) {
                 if (!result.empty()) result += ", ";
                 result += other->name + "." + remote.port_name;

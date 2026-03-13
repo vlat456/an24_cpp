@@ -1,6 +1,7 @@
 #include "sub_window_renderer.h"
 #include "editor/window_system.h"
 #include "editor/input/input_types.h"
+#include "editor/visual/scene_mutations.h"
 #include <imgui.h>
 #include <algorithm>
 
@@ -46,7 +47,7 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     
     if (ImGui::Button("Auto Layout")) {
         doc.blueprint().auto_layout_group(win.group_id);
-        win.scene.clearCache();
+        visual::mutations::rebuild(win.scene, doc.blueprint(), win.group_id);
         fitViewToContent(doc, win);
     }
     
@@ -87,7 +88,7 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     }
     if (bmin.x < bmax.x && bmin.y < bmax.y) {
         ImVec2 ws = ImGui::GetContentRegionAvail();
-        win.scene.viewport().fit_content(bmin, bmax, ws.x, ws.y);
+        win.viewport.fit_content(bmin, bmax, ws.x, ws.y);
     }
 }
 

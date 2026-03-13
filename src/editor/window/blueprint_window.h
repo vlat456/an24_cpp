@@ -1,21 +1,24 @@
 #pragma once
 
-#include "visual/scene/scene.h"
-#include "visual/scene/wire_manager.h"
+#include "visual/scene.h"
+#include "visual/scene_mutations.h"
+#include "viewport/viewport.h"
 #include "input/canvas_input.h"
+#include "data/blueprint.h"
 #include <string>
 
 /// A single editor window showing one nesting level of a blueprint.
-/// Each window has its own viewport, visual cache, input handler,
-/// and wire manager — but shares a single Blueprint with other windows.
+/// Each window has its own viewport, visual scene, and input handler
+/// — but shares a single Blueprint with other windows.
 struct BlueprintWindow {
     std::string title;       ///< ImGui window title
     std::string group_id;    ///< Which collapsed group this window shows ("" = root)
     bool open = true;        ///< Whether the window is open (closable by user)
 
-    VisualScene scene;
-    WireManager wire_manager;
-    CanvasInput input;
+    Blueprint& bp;           ///< Shared blueprint data (non-owning)
+    visual::Scene scene;     ///< Widget-based visual scene
+    Viewport viewport;       ///< Pan / zoom / grid state
+    CanvasInput input;       ///< FSM-based input handler
 
     /// Whether the window is read-only (non-baked-in sub-blueprints).
     /// Synced to CanvasInput::read_only so the FSM enforces it.
@@ -23,13 +26,20 @@ struct BlueprintWindow {
     void set_read_only(bool v) { read_only = v; input.read_only = v; }
 
     /// Construct a window viewing a specific group of a shared blueprint.
-    BlueprintWindow(Blueprint& bp, const std::string& group_id_,
+    BlueprintWindow(Blueprint& bp_, const std::string& group_id_,
                     const std::string& title_)
         : title(title_)
         , group_id(group_id_)
-        , scene(bp, group_id_)
-        , wire_manager(scene)
-        , input(scene, wire_manager) {}
+        , bp(bp_)
+        , scene()
+        , viewport()
+        , input(scene, viewport, bp_, group_id)
+    {
+        // Sync viewport grid_step from blueprint
+        viewport.grid_step = bp_.grid_step;
+        // Build initial visual widgets from blueprint data
+        visual::mutations::rebuild(scene, bp_, group_id_);
+    }
 
     // Non-copyable, non-movable (contains references)
     BlueprintWindow(const BlueprintWindow&) = delete;

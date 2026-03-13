@@ -7,13 +7,24 @@
 #include <string>
 #include <vector>
 
-class VisualScene;
-class WireManager;
+namespace visual {
+class Scene;
+class Widget;
+class Wire;
+class Port;
+class RoutingPoint;
+} // namespace visual
+
+struct Viewport;
+struct Blueprint;
 
 /// Unified canvas input handler — one per editor window.
 /// Owns selection + FSM state, processes raw mouse/key events.
 /// Returns InputResult so the host can perform app-level actions
 /// (rebuild simulation, open sub-window, show context menu).
+///
+/// Selection is tracked by Widget* pointers into the visual::Scene.
+/// Wire selection/hover is tracked by visual::Wire* pointers.
 ///
 /// When read_only is true, only non-destructive operations are allowed:
 /// panning, zooming, selection (for inspection), double-click to open
@@ -22,7 +33,8 @@ class WireManager;
 /// manipulation are all suppressed.
 class CanvasInput {
 public:
-    CanvasInput(VisualScene& scene, WireManager& wire_manager);
+    CanvasInput(visual::Scene& scene, Viewport& viewport,
+                Blueprint& bp, const std::string& group_id);
 
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
@@ -40,9 +52,17 @@ public:
 
     InputState state() const { return state_; }
 
-    const std::vector<size_t>& selected_nodes() const { return selected_nodes_; }
-    std::optional<size_t> selected_wire() const { return selected_wire_; }
-    std::optional<size_t> hovered_wire() const { return hovered_wire_; }
+    /// Selected node widgets (pointers into visual::Scene).
+    const std::vector<visual::Widget*>& selected_nodes() const { return selected_nodes_; }
+
+    /// Selected wire widget (pointer into visual::Scene), or nullptr.
+    visual::Wire* selected_wire() const { return selected_wire_; }
+
+    /// Wire currently under mouse cursor, or nullptr.
+    visual::Wire* hovered_wire() const { return hovered_wire_; }
+
+    /// Routing point currently under mouse cursor, or nullptr.
+    visual::RoutingPoint* hovered_routing_point() const { return hovered_routing_point_; }
 
     bool is_marquee_selecting() const { return state_ == InputState::MarqueeSelect; }
     Pt marquee_start() const { return marquee_start_; }
@@ -57,8 +77,8 @@ public:
     // ---- Selection helpers ----
 
     void clear_selection();
-    void add_node_selection(size_t idx);
-    bool is_node_selected(size_t idx) const;
+    void add_node_selection(visual::Widget* w);
+    bool is_node_selected(visual::Widget* w) const;
 
     /// Select a node by its ID and center the viewport on it.
     /// Returns true if found and selected.
@@ -70,24 +90,25 @@ public:
     void update_hover(Pt world_pos);
 
 private:
-    VisualScene& scene_;
-    WireManager& wire_mgr_;
+    visual::Scene& scene_;
+    Viewport& viewport_;
+    Blueprint& bp_;
+    const std::string& group_id_;
 
     InputState state_ = InputState::Idle;
 
     // Selection
-    std::vector<size_t> selected_nodes_;
-    std::optional<size_t> selected_wire_;
-    std::optional<size_t> hovered_wire_;  ///< Wire currently under mouse cursor
+    std::vector<visual::Widget*> selected_nodes_;
+    visual::Wire* selected_wire_ = nullptr;
+    visual::Wire* hovered_wire_ = nullptr;
+    visual::RoutingPoint* hovered_routing_point_ = nullptr;
 
     // Drag state (shared by DraggingNode / DraggingRoutingPoint)
     Pt drag_anchor_;
     std::vector<Pt> drag_offsets_;
 
     // Wire creation
-    std::string wire_start_node_;
-    std::string wire_start_port_;
-    PortSide wire_start_side_ = PortSide::Input;
+    visual::Port* wire_start_port_ = nullptr;
     Pt wire_start_pos_;
 
     // Wire reconnection
@@ -97,11 +118,12 @@ private:
     PortSide reconnect_fixed_side_ = PortSide::Input;
 
     // Routing-point drag
-    size_t rp_wire_ = 0;
+    visual::Wire* rp_wire_ = nullptr;
+    visual::RoutingPoint* rp_point_ = nullptr;
     size_t rp_index_ = 0;
 
     // Resize drag
-    size_t resize_node_idx_ = 0;
+    visual::Widget* resize_widget_ = nullptr;
     ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
     Pt resize_original_pos_;
     Pt resize_original_size_;
@@ -115,11 +137,10 @@ private:
 
     // ---- Internal transition helpers ----
     void enter_panning();
-    void enter_drag_node(size_t node_index, bool add_to_selection, bool ctrl);
-    void enter_drag_routing_point(size_t wire_idx, size_t rp_idx);
-    void enter_resize_node(size_t node_index, ResizeCorner corner);
-    void enter_create_wire(const std::string& node_id, const std::string& port_name,
-                           PortSide side, Pt port_pos);
+    void enter_drag_node(visual::Widget* widget, bool add_to_selection, bool ctrl);
+    void enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx);
+    void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
+    void enter_create_wire(visual::Port* port, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, PortSide fixed_side);
     void enter_marquee(Pt world_pos);
@@ -128,4 +149,21 @@ private:
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
+
+    // ---- Utility ----
+
+    /// Find the data-layer index of a wire by its visual::Wire pointer.
+    size_t find_wire_index(visual::Wire* wire) const;
+
+    /// Find the data-layer index of a node by its widget ID.
+    size_t find_node_index(const std::string& node_id) const;
+
+    /// Look up the data-layer wire index for a port (for reconnection).
+    struct WirePortMatch {
+        size_t wire_index;
+        bool detach_start;
+        Pt anchor_pos;
+        PortSide fixed_side;
+    };
+    std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;
 };

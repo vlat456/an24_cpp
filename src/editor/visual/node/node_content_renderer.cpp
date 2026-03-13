@@ -1,25 +1,27 @@
 #include "node_content_renderer.h"
 #include "editor/document.h"
 #include "editor/window/blueprint_window.h"
-#include "editor/visual/node/node.h"
+#include "editor/visual/node/visual_node.h"
 #include <imgui.h>
 
 
 void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
-    float zoom = win.scene.viewport().zoom;
+    float zoom = win.viewport.zoom;
     
     for (auto& node : doc.blueprint().nodes) {
-        if (node.group_id != win.scene.groupId()) continue;
+        if (node.group_id != win.group_id) continue;
 
-        auto* visual = win.scene.cache().getOrCreate(node, doc.blueprint().wires);
-        visual->setPosition(node.pos);
-        node.size = visual->getSize();
+        // Find the corresponding widget in the scene tree
+        auto* widget = win.scene.find(node.id);
+        if (!widget) continue;
+        auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
+        if (!node_widget) continue;
 
-        Pt screen_min = win.scene.viewport().world_to_screen(visual->getPosition(), cmin);
-        NodeContentType ctype = visual->getContentType();
+        NodeContentType ctype = node.node_content.type;
         if (ctype == NodeContentType::None) continue;
 
-        Bounds cb = visual->getContentBounds();
+        Pt screen_min = win.viewport.world_to_screen(node_widget->worldPos(), cmin);
+        Bounds cb = node_widget->contentBounds();
         float cx = screen_min.x + cb.x * zoom;
         float cy = screen_min.y + cb.y * zoom;
         float aw = cb.w * zoom;
@@ -73,10 +75,11 @@ void NodeContentRenderer::renderValue(NodeContent& content, float width, bool re
 }
 
 void NodeContentRenderer::renderGauge(const NodeContent& content, float width) {
-    float range = content.max - content.min;
-    float progress = (range > 1e-6f) ? (content.value - content.min) / range : 0.0f;
-    progress = std::max(0.0f, std::min(1.0f, progress));
-    ImGui::ProgressBar(progress, ImVec2(width, 0));
+    // Gauge is now rendered by VoltmeterWidget in the scene graph.
+    // No ImGui overlay needed — the analog needle gauge replaces
+    // the old progress bar.
+    (void)content;
+    (void)width;
 }
 
 void NodeContentRenderer::renderText(const NodeContent& content) {

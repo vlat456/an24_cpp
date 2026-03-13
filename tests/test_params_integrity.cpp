@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/visual/scene/persist.h"
+#include "editor/visual/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/app.h"

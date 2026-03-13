@@ -106,44 +106,29 @@ find_package(OpenGL REQUIRED)
 add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/recent_files.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/nodes.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest/ports.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node_cache.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/bus_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/ref_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/group_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/types/text_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/widget_base.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/label.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/circle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/primitives/spacer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/containers/container.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/header_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/type_name_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/switch_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/vertical_toggle.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget/content/voltmeter_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_builder.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/polyline_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire/arc_draw.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_frame.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/port_layout_builder.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/layout/splitter.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/inspector_panel.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/document_area.cpp
@@ -154,8 +139,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp

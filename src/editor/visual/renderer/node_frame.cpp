@@ -1,5 +1,5 @@
 #include "visual/renderer/node_frame.h"
-#include "visual/port/port.h"
+#include "visual/port/visual_port.h"
 #include "visual/renderer/render_theme.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
@@ -15,10 +15,10 @@ ScreenBounds world_to_screen(Pt world_pos, Pt world_size,
 }
 
 void render_ports(IDrawList& dl, const Viewport& vp, Pt canvas_min,
-                  const std::vector<VisualPort>& ports) {
+                  const std::vector<visual::Port>& ports) {
     float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
     for (const auto& port : ports) {
-        Pt screen_pos = vp.world_to_screen(port.worldPosition(), canvas_min);
+        Pt screen_pos = vp.world_to_screen(port.worldPos(), canvas_min);
         uint32_t port_color = render_theme::get_port_color(port.type());
         dl.add_circle_filled(screen_pos, port_radius, port_color, 8);
     }

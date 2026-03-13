@@ -921,13 +921,13 @@ New tests to write:
 
 ## Checklist
 
-- [ ] Phase 1: Widget base class (`visual::Widget`)
-- [ ] Phase 2: Grid (`visual::Grid`)
-- [ ] Phase 3: Scene (`visual::Scene`)
+- [x] Phase 1: Widget base class (`visual::Widget`)
+- [x] Phase 2: Grid (`visual::Grid`)
+- [x] Phase 3: Scene (`visual::Scene`)
 - [ ] Phase 4: Node (`visual::Node`)
 - [ ] Phase 5: Port (`visual::Port`)
 - [ ] Phase 6: Wire + WireEnd + RoutingPoint
 - [ ] Phase 7: Hit testing
-- [ ] Phase 8: Migrate leaf widgets
+- [x] Phase 8: Migrate leaf widgets (containers, primitives, content widgets — see SCENE_GRAPH_PROGRESS.md)
 - [ ] Phase 9: Delete old code
-- [ ] All tests pass
+- [ ] All tests pass (47/47 visual tests passing; content widget tests blocked — see SCENE_GRAPH_PROGRESS.md)

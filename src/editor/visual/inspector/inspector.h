@@ -1,7 +1,7 @@
 #pragma once
 
 #include "visual/inspector/display_tree.h"
-#include "visual/scene/scene.h"
+#include "data/blueprint.h"
 #include <string>
 #include <vector>
 
@@ -18,15 +18,16 @@ class Inspector {
 public:
     enum class SortMode { Name, Type, Connections };
 
-    /// Default constructor (scene can be set later via setScene)
-    Inspector() : scene_(nullptr) {}
+    /// Default constructor (blueprint can be set later via setBlueprint)
+    Inspector() = default;
 
-    /// Constructor with scene pointer
-    Inspector(const VisualScene* scene);
+    /// Constructor with blueprint pointer and group filter
+    Inspector(const Blueprint* bp, const std::string& group_id = "");
 
-    /// Set the scene to inspect (for switching between documents)
-    void setScene(const VisualScene& scene) {
-        scene_ = &scene;
+    /// Set the blueprint to inspect (for switching between documents)
+    void setBlueprint(const Blueprint& bp, const std::string& group_id = "") {
+        bp_ = &bp;
+        group_id_ = group_id;
         markDirty();
     }
 
@@ -53,13 +54,19 @@ public:
     void buildDisplayTree();
 
 private:
-    const VisualScene* scene_;
+    const Blueprint* bp_ = nullptr;
+    std::string group_id_;
     std::vector<DisplayNode> display_tree_;
 
     // Dirty tracking
     bool dirty_ = true;
     size_t last_node_count_ = 0;
     size_t last_wire_count_ = 0;
+
+    /// Check whether a node belongs to this inspector's group
+    bool ownsNode(const Node& n) const { return n.group_id == group_id_; }
+    /// Check whether a wire belongs to this inspector's group (both endpoints)
+    bool ownsWire(const Wire& w) const;
 
     /// Check scene topology and mark dirty if changed. Returns true if rebuild needed.
     bool detectSceneChange();
