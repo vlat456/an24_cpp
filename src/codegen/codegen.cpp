@@ -580,7 +580,7 @@ std::string CodeGen::generate_source(
         {
             static const std::unordered_set<std::string> has_post_step = {
                 "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-                "PID", "PD", "PI", "P"
+                "PID", "PD", "PI", "P", "AZS"
             };
             for (const auto& dev : devices) {
                 if (has_post_step.count(dev.classname)) {

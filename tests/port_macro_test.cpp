@@ -176,7 +176,37 @@ TEST(PortMacroTest, PORTS_Supports32Ports) {
     // Verify first and last few ports exist
     EXPECT_EQ(comp.p1_idx, 0);
     EXPECT_EQ(comp.p2_idx, 0);
+    // Verify p21-p24 are correctly declared (previously skipped in PORTS_25-32)
+    EXPECT_EQ(comp.p21_idx, 0);
+    EXPECT_EQ(comp.p22_idx, 0);
+    EXPECT_EQ(comp.p23_idx, 0);
+    EXPECT_EQ(comp.p24_idx, 0);
+    // Verify p25-p32 range (previously had missing ## token-pasting bugs)
+    EXPECT_EQ(comp.p25_idx, 0);
+    EXPECT_EQ(comp.p26_idx, 0);
+    EXPECT_EQ(comp.p27_idx, 0);
+    EXPECT_EQ(comp.p28_idx, 0);
+    EXPECT_EQ(comp.p29_idx, 0);
     EXPECT_EQ(comp.p30_idx, 0);
     EXPECT_EQ(comp.p31_idx, 0);
     EXPECT_EQ(comp.p32_idx, 0);
+}
+
+// Verify PORTS_25 specifically declares all 25 ports including p21-p24
+struct ComponentWith25Ports {
+    PORTS(ComponentWith25,
+           a1, a2, a3, a4, a5, a6, a7, a8,
+           a9, a10, a11, a12, a13, a14, a15, a16,
+           a17, a18, a19, a20, a21, a22, a23, a24,
+           a25)
+};
+
+TEST(PortMacroTest, PORTS25_DeclaresAllPorts) {
+    ComponentWith25Ports comp;
+    // These were previously silently dropped by the broken PORTS_25 macro
+    EXPECT_EQ(comp.a21_idx, 0);
+    EXPECT_EQ(comp.a22_idx, 0);
+    EXPECT_EQ(comp.a23_idx, 0);
+    EXPECT_EQ(comp.a24_idx, 0);
+    EXPECT_EQ(comp.a25_idx, 0);
 }

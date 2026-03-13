@@ -77,11 +77,6 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
         comp->solve_electrical(state, safe_dt);
     }
 
-    // Logical: every step (runs every frame like electrical)
-    for (auto& comp : logical) {
-        comp->solve_logical(state, safe_dt);
-    }
-
     // Mechanical: every 3rd step - use accumulated time, then reset
     if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
         size_t bucket = (step / DomainSchedule::MECHANICAL_PERIOD) % DomainSchedule::MECHANICAL_PERIOD;
@@ -108,6 +103,12 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
             }
         }
         accumulator_thermal = 0.0f;  // Reset after use
+    }
+
+    // Logical: AFTER all other domains + SOR/post_step so logical gates
+    // read converged values and their outputs are final
+    for (auto& comp : logical) {
+        comp->solve_logical(state, safe_dt);
     }
 }
 
