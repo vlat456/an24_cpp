@@ -10,7 +10,7 @@ public:
 }
 
 TEST(UIGrid, InsertAndQuery) {
-    ui::Grid<ui::BaseWidget> grid;
+    ui::Grid grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -25,7 +25,7 @@ TEST(UIGrid, InsertAndQuery) {
 }
 
 TEST(UIGrid, Remove) {
-    ui::Grid<ui::BaseWidget> grid;
+    ui::Grid grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -40,7 +40,7 @@ TEST(UIGrid, Remove) {
 }
 
 TEST(UIGrid, QueryWithMargin) {
-    ui::Grid<ui::BaseWidget> grid;
+    ui::Grid grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -54,7 +54,7 @@ TEST(UIGrid, QueryWithMargin) {
 }
 
 TEST(UIGrid, Clear) {
-    ui::Grid<ui::BaseWidget> grid;
+    ui::Grid grid;
     
     auto w1 = std::make_unique<ClickableWidget>();
     w1->setLocalPos(ui::Pt{0, 0});
