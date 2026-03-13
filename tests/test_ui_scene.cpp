@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 namespace {
-class TestWidget : public ui::BaseWidget {
+class TestWidget : public ui::Widget {
 public:
     ui::Pt last_render_size;
     void render(ui::IDrawList*) const override {
@@ -49,7 +49,7 @@ TEST(UIScene, Clear) {
 TEST(UIScene, FindById) {
     ui::BaseScene scene;
     
-    class NamedWidget : public ui::BaseWidget {
+    class NamedWidget : public ui::Widget {
     public:
         std::string id_;
         NamedWidget(std::string_view id) : id_(id) {}

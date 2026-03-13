@@ -367,6 +367,110 @@ convert_library/fast:
 .PHONY : convert_library/fast
 
 #=============================================================================
+# Target rules for targets named ui_math_tests
+
+# Build rule for target.
+ui_math_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_math_tests
+.PHONY : ui_math_tests
+
+# fast build rule for target.
+ui_math_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/build
+.PHONY : ui_math_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_layout_tests
+
+# Build rule for target.
+ui_layout_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_layout_tests
+.PHONY : ui_layout_tests
+
+# fast build rule for target.
+ui_layout_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/build
+.PHONY : ui_layout_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_renderer_tests
+
+# Build rule for target.
+ui_renderer_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_renderer_tests
+.PHONY : ui_renderer_tests
+
+# fast build rule for target.
+ui_renderer_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/build
+.PHONY : ui_renderer_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_widget_purity_tests
+
+# Build rule for target.
+ui_widget_purity_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_widget_purity_tests
+.PHONY : ui_widget_purity_tests
+
+# fast build rule for target.
+ui_widget_purity_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/build
+.PHONY : ui_widget_purity_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_scene_tests
+
+# Build rule for target.
+ui_scene_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_scene_tests
+.PHONY : ui_scene_tests
+
+# fast build rule for target.
+ui_scene_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/build
+.PHONY : ui_scene_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_grid_tests
+
+# Build rule for target.
+ui_grid_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_grid_tests
+.PHONY : ui_grid_tests
+
+# fast build rule for target.
+ui_grid_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/build
+.PHONY : ui_grid_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_render_context_tests
+
+# Build rule for target.
+ui_render_context_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_render_context_tests
+.PHONY : ui_render_context_tests
+
+# fast build rule for target.
+ui_render_context_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/build
+.PHONY : ui_render_context_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_linear_layout_tests
+
+# Build rule for target.
+ui_linear_layout_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_linear_layout_tests
+.PHONY : ui_linear_layout_tests
+
+# fast build rule for target.
+ui_linear_layout_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/build
+.PHONY : ui_linear_layout_tests/fast
+
+#=============================================================================
 # Target rules for targets named visual_widget_tests
 
 # Build rule for target.
@@ -1239,6 +1343,14 @@ help:
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
+	@echo "... ui_grid_tests"
+	@echo "... ui_layout_tests"
+	@echo "... ui_linear_layout_tests"
+	@echo "... ui_math_tests"
+	@echo "... ui_render_context_tests"
+	@echo "... ui_renderer_tests"
+	@echo "... ui_scene_tests"
+	@echo "... ui_widget_purity_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"

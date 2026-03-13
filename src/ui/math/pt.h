@@ -27,5 +27,3 @@ struct Pt {
 };
 
 } // namespace ui
-
-using ui::Pt;

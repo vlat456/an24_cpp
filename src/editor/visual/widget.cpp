@@ -6,7 +6,7 @@
 namespace visual {
 
 Widget::~Widget() {
-    // Ensure we're removed from the visual::Grid on destruction.
+    // Ensure we're removed from the grid on destruction.
     if (scene_) {
         scene_->grid().remove(this);
     }

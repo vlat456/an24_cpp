@@ -100,9 +100,8 @@ protected:
     
     Widget* parent_ = nullptr;
     std::vector<std::unique_ptr<Widget>> children_;
+    
+    std::vector<std::unique_ptr<Widget>>& mutableChildren() { return children_; }
 };
-
-/// The default "pure UI" widget type.
-using BaseWidget = Widget;
 
 } // namespace ui

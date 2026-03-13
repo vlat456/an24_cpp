@@ -9,12 +9,12 @@
 #include <optional>
 #include <cstdint>
 
-using ui::Pt;
-using ui::IDrawList;
-
 struct NodeContent;
 
 namespace visual {
+
+using ui::Pt;
+using ui::IDrawList;
 
 class Scene;
 class Port;
@@ -31,18 +31,8 @@ class Widget : public ui::Widget {
 public:
     virtual ~Widget();
     
-    virtual std::string_view id() const override { return {}; }
-    
     /// Render layer for Z-ordering. Override in subclasses to change draw order.
     virtual RenderLayer renderLayer() const { return RenderLayer::Normal; }
-    
-    virtual Pt worldMin() const override { return worldPos(); }
-    virtual Pt worldMax() const override { return worldPos() + size_; }
-    
-    virtual bool isClickable() const override { return false; }
-    
-    /// Whether the widget supports resizing (group nodes, text annotations).
-    virtual bool isResizable() const override { return false; }
     
     /// Find a port child by name. For bus widgets, wire_id selects the alias port.
     /// Default returns nullptr (widget has no ports).
@@ -59,14 +49,11 @@ public:
     /// Override in node widget subclasses that support custom coloring.
     virtual void setCustomColor(std::optional<uint32_t> c) { (void)c; }
     virtual std::optional<uint32_t> customColor() const { return std::nullopt; }
-    
-    virtual Pt preferredSize(IDrawList* dl) const override { return size_; }
-    virtual void layout(float w, float h) override { size_ = Pt(w, h); }
-    
-    virtual void render(IDrawList* dl) const override {}
-    virtual void renderPost(IDrawList* dl) const override {}
 
-    // Legacy render methods for visual::Widget
+    // Note: render(IDrawList*) and renderTree(IDrawList*) are inherited from ui::Widget
+    // but are visual-specific. Visual widgets should be rendered via render(IDrawList*, const RenderContext&)
+    // which is called by visual::Scene::render(IDrawList*, const RenderContext&).
+    // The IDrawList*-only methods exist for interface compatibility with the generic ui::Scene.
     virtual void render(IDrawList* dl, const RenderContext& ctx) const {}
     virtual void renderPost(IDrawList* dl, const RenderContext& ctx) const {}
     

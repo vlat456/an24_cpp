@@ -172,6 +172,118 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+tests/CMakeFiles/ui_math_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_math_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_math_tests.dir/rule
+
+# Convenience name for target.
+ui_math_tests: tests/CMakeFiles/ui_math_tests.dir/rule
+.PHONY : ui_math_tests
+
+# fast build rule for target.
+ui_math_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/build
+.PHONY : ui_math_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_layout_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_layout_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_layout_tests.dir/rule
+
+# Convenience name for target.
+ui_layout_tests: tests/CMakeFiles/ui_layout_tests.dir/rule
+.PHONY : ui_layout_tests
+
+# fast build rule for target.
+ui_layout_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/build
+.PHONY : ui_layout_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_renderer_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_renderer_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_renderer_tests.dir/rule
+
+# Convenience name for target.
+ui_renderer_tests: tests/CMakeFiles/ui_renderer_tests.dir/rule
+.PHONY : ui_renderer_tests
+
+# fast build rule for target.
+ui_renderer_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/build
+.PHONY : ui_renderer_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_widget_purity_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_widget_purity_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_widget_purity_tests.dir/rule
+
+# Convenience name for target.
+ui_widget_purity_tests: tests/CMakeFiles/ui_widget_purity_tests.dir/rule
+.PHONY : ui_widget_purity_tests
+
+# fast build rule for target.
+ui_widget_purity_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/build
+.PHONY : ui_widget_purity_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_scene_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_scene_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_scene_tests.dir/rule
+
+# Convenience name for target.
+ui_scene_tests: tests/CMakeFiles/ui_scene_tests.dir/rule
+.PHONY : ui_scene_tests
+
+# fast build rule for target.
+ui_scene_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/build
+.PHONY : ui_scene_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_grid_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_grid_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_grid_tests.dir/rule
+
+# Convenience name for target.
+ui_grid_tests: tests/CMakeFiles/ui_grid_tests.dir/rule
+.PHONY : ui_grid_tests
+
+# fast build rule for target.
+ui_grid_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/build
+.PHONY : ui_grid_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_render_context_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_render_context_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_render_context_tests.dir/rule
+
+# Convenience name for target.
+ui_render_context_tests: tests/CMakeFiles/ui_render_context_tests.dir/rule
+.PHONY : ui_render_context_tests
+
+# fast build rule for target.
+ui_render_context_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/build
+.PHONY : ui_render_context_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/ui_linear_layout_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_linear_layout_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_linear_layout_tests.dir/rule
+
+# Convenience name for target.
+ui_linear_layout_tests: tests/CMakeFiles/ui_linear_layout_tests.dir/rule
+.PHONY : ui_linear_layout_tests
+
+# fast build rule for target.
+ui_linear_layout_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/build
+.PHONY : ui_linear_layout_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/visual_widget_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/visual_widget_tests.dir/rule
 .PHONY : tests/CMakeFiles/visual_widget_tests.dir/rule
@@ -1304,69 +1416,6 @@ __/src/editor/viewport/viewport.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
 
-__/src/editor/visual/grid.o: __/src/editor/visual/grid.cpp.o
-.PHONY : __/src/editor/visual/grid.o
-
-# target to build an object file
-__/src/editor/visual/grid.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/grid.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/grid.cpp.o
-.PHONY : __/src/editor/visual/grid.cpp.o
-
-__/src/editor/visual/grid.i: __/src/editor/visual/grid.cpp.i
-.PHONY : __/src/editor/visual/grid.i
-
-# target to preprocess a source file
-__/src/editor/visual/grid.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/grid.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/grid.cpp.i
-.PHONY : __/src/editor/visual/grid.cpp.i
-
-__/src/editor/visual/grid.s: __/src/editor/visual/grid.cpp.s
-.PHONY : __/src/editor/visual/grid.s
-
-# target to generate assembly for a file
-__/src/editor/visual/grid.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/grid.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/grid.cpp.s
-.PHONY : __/src/editor/visual/grid.cpp.s
-
 __/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/inspector_core.cpp.o
 .PHONY : __/src/editor/visual/inspector/inspector_core.o
 
@@ -2140,6 +2189,39 @@ __/src/json_parser/json_parser.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/json_parser/json_parser.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/json_parser/json_parser.cpp.s
 .PHONY : __/src/json_parser/json_parser.cpp.s
+
+__/src/ui/core/widget.o: __/src/ui/core/widget.cpp.o
+.PHONY : __/src/ui/core/widget.o
+
+# target to build an object file
+__/src/ui/core/widget.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/__/src/ui/core/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/__/src/ui/core/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.o
+.PHONY : __/src/ui/core/widget.cpp.o
+
+__/src/ui/core/widget.i: __/src/ui/core/widget.cpp.i
+.PHONY : __/src/ui/core/widget.i
+
+# target to preprocess a source file
+__/src/ui/core/widget.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/__/src/ui/core/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/__/src/ui/core/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.i
+.PHONY : __/src/ui/core/widget.cpp.i
+
+__/src/ui/core/widget.s: __/src/ui/core/widget.cpp.s
+.PHONY : __/src/ui/core/widget.s
+
+# target to generate assembly for a file
+__/src/ui/core/widget.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/__/src/ui/core/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/__/src/ui/core/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.s
+.PHONY : __/src/ui/core/widget.cpp.s
 
 editor_componentvariant_test.o: editor_componentvariant_test.cpp.o
 .PHONY : editor_componentvariant_test.o
@@ -3365,6 +3447,198 @@ test_time_delay.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.s
 .PHONY : test_time_delay.cpp.s
 
+test_ui_grid.o: test_ui_grid.cpp.o
+.PHONY : test_ui_grid.o
+
+# target to build an object file
+test_ui_grid.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.o
+.PHONY : test_ui_grid.cpp.o
+
+test_ui_grid.i: test_ui_grid.cpp.i
+.PHONY : test_ui_grid.i
+
+# target to preprocess a source file
+test_ui_grid.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.i
+.PHONY : test_ui_grid.cpp.i
+
+test_ui_grid.s: test_ui_grid.cpp.s
+.PHONY : test_ui_grid.s
+
+# target to generate assembly for a file
+test_ui_grid.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.s
+.PHONY : test_ui_grid.cpp.s
+
+test_ui_layout.o: test_ui_layout.cpp.o
+.PHONY : test_ui_layout.o
+
+# target to build an object file
+test_ui_layout.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/test_ui_layout.cpp.o
+.PHONY : test_ui_layout.cpp.o
+
+test_ui_layout.i: test_ui_layout.cpp.i
+.PHONY : test_ui_layout.i
+
+# target to preprocess a source file
+test_ui_layout.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/test_ui_layout.cpp.i
+.PHONY : test_ui_layout.cpp.i
+
+test_ui_layout.s: test_ui_layout.cpp.s
+.PHONY : test_ui_layout.s
+
+# target to generate assembly for a file
+test_ui_layout.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/test_ui_layout.cpp.s
+.PHONY : test_ui_layout.cpp.s
+
+test_ui_linear_layout.o: test_ui_linear_layout.cpp.o
+.PHONY : test_ui_linear_layout.o
+
+# target to build an object file
+test_ui_linear_layout.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/test_ui_linear_layout.cpp.o
+.PHONY : test_ui_linear_layout.cpp.o
+
+test_ui_linear_layout.i: test_ui_linear_layout.cpp.i
+.PHONY : test_ui_linear_layout.i
+
+# target to preprocess a source file
+test_ui_linear_layout.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/test_ui_linear_layout.cpp.i
+.PHONY : test_ui_linear_layout.cpp.i
+
+test_ui_linear_layout.s: test_ui_linear_layout.cpp.s
+.PHONY : test_ui_linear_layout.s
+
+# target to generate assembly for a file
+test_ui_linear_layout.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/test_ui_linear_layout.cpp.s
+.PHONY : test_ui_linear_layout.cpp.s
+
+test_ui_math.o: test_ui_math.cpp.o
+.PHONY : test_ui_math.o
+
+# target to build an object file
+test_ui_math.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.o
+.PHONY : test_ui_math.cpp.o
+
+test_ui_math.i: test_ui_math.cpp.i
+.PHONY : test_ui_math.i
+
+# target to preprocess a source file
+test_ui_math.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.i
+.PHONY : test_ui_math.cpp.i
+
+test_ui_math.s: test_ui_math.cpp.s
+.PHONY : test_ui_math.s
+
+# target to generate assembly for a file
+test_ui_math.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.s
+.PHONY : test_ui_math.cpp.s
+
+test_ui_render_context.o: test_ui_render_context.cpp.o
+.PHONY : test_ui_render_context.o
+
+# target to build an object file
+test_ui_render_context.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/test_ui_render_context.cpp.o
+.PHONY : test_ui_render_context.cpp.o
+
+test_ui_render_context.i: test_ui_render_context.cpp.i
+.PHONY : test_ui_render_context.i
+
+# target to preprocess a source file
+test_ui_render_context.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/test_ui_render_context.cpp.i
+.PHONY : test_ui_render_context.cpp.i
+
+test_ui_render_context.s: test_ui_render_context.cpp.s
+.PHONY : test_ui_render_context.s
+
+# target to generate assembly for a file
+test_ui_render_context.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/test_ui_render_context.cpp.s
+.PHONY : test_ui_render_context.cpp.s
+
+test_ui_renderer.o: test_ui_renderer.cpp.o
+.PHONY : test_ui_renderer.o
+
+# target to build an object file
+test_ui_renderer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/test_ui_renderer.cpp.o
+.PHONY : test_ui_renderer.cpp.o
+
+test_ui_renderer.i: test_ui_renderer.cpp.i
+.PHONY : test_ui_renderer.i
+
+# target to preprocess a source file
+test_ui_renderer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/test_ui_renderer.cpp.i
+.PHONY : test_ui_renderer.cpp.i
+
+test_ui_renderer.s: test_ui_renderer.cpp.s
+.PHONY : test_ui_renderer.s
+
+# target to generate assembly for a file
+test_ui_renderer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/test_ui_renderer.cpp.s
+.PHONY : test_ui_renderer.cpp.s
+
+test_ui_scene.o: test_ui_scene.cpp.o
+.PHONY : test_ui_scene.o
+
+# target to build an object file
+test_ui_scene.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/test_ui_scene.cpp.o
+.PHONY : test_ui_scene.cpp.o
+
+test_ui_scene.i: test_ui_scene.cpp.i
+.PHONY : test_ui_scene.i
+
+# target to preprocess a source file
+test_ui_scene.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/test_ui_scene.cpp.i
+.PHONY : test_ui_scene.cpp.i
+
+test_ui_scene.s: test_ui_scene.cpp.s
+.PHONY : test_ui_scene.s
+
+# target to generate assembly for a file
+test_ui_scene.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/test_ui_scene.cpp.s
+.PHONY : test_ui_scene.cpp.s
+
+test_ui_widget_purity.o: test_ui_widget_purity.cpp.o
+.PHONY : test_ui_widget_purity.o
+
+# target to build an object file
+test_ui_widget_purity.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.o
+.PHONY : test_ui_widget_purity.cpp.o
+
+test_ui_widget_purity.i: test_ui_widget_purity.cpp.i
+.PHONY : test_ui_widget_purity.i
+
+# target to preprocess a source file
+test_ui_widget_purity.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.i
+.PHONY : test_ui_widget_purity.cpp.i
+
+test_ui_widget_purity.s: test_ui_widget_purity.cpp.s
+.PHONY : test_ui_widget_purity.s
+
+# target to generate assembly for a file
+test_ui_widget_purity.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.s
+.PHONY : test_ui_widget_purity.cpp.s
+
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
 
@@ -3670,6 +3944,14 @@ help:
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
+	@echo "... ui_grid_tests"
+	@echo "... ui_layout_tests"
+	@echo "... ui_linear_layout_tests"
+	@echo "... ui_math_tests"
+	@echo "... ui_render_context_tests"
+	@echo "... ui_renderer_tests"
+	@echo "... ui_scene_tests"
+	@echo "... ui_widget_purity_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"
@@ -3703,9 +3985,6 @@ help:
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
-	@echo "... __/src/editor/visual/grid.o"
-	@echo "... __/src/editor/visual/grid.i"
-	@echo "... __/src/editor/visual/grid.s"
 	@echo "... __/src/editor/visual/inspector/inspector_core.o"
 	@echo "... __/src/editor/visual/inspector/inspector_core.i"
 	@echo "... __/src/editor/visual/inspector/inspector_core.s"
@@ -3763,6 +4042,9 @@ help:
 	@echo "... __/src/json_parser/json_parser.o"
 	@echo "... __/src/json_parser/json_parser.i"
 	@echo "... __/src/json_parser/json_parser.s"
+	@echo "... __/src/ui/core/widget.o"
+	@echo "... __/src/ui/core/widget.i"
+	@echo "... __/src/ui/core/widget.s"
 	@echo "... editor_componentvariant_test.o"
 	@echo "... editor_componentvariant_test.i"
 	@echo "... editor_componentvariant_test.s"
@@ -3916,6 +4198,30 @@ help:
 	@echo "... test_time_delay.o"
 	@echo "... test_time_delay.i"
 	@echo "... test_time_delay.s"
+	@echo "... test_ui_grid.o"
+	@echo "... test_ui_grid.i"
+	@echo "... test_ui_grid.s"
+	@echo "... test_ui_layout.o"
+	@echo "... test_ui_layout.i"
+	@echo "... test_ui_layout.s"
+	@echo "... test_ui_linear_layout.o"
+	@echo "... test_ui_linear_layout.i"
+	@echo "... test_ui_linear_layout.s"
+	@echo "... test_ui_math.o"
+	@echo "... test_ui_math.i"
+	@echo "... test_ui_math.s"
+	@echo "... test_ui_render_context.o"
+	@echo "... test_ui_render_context.i"
+	@echo "... test_ui_render_context.s"
+	@echo "... test_ui_renderer.o"
+	@echo "... test_ui_renderer.i"
+	@echo "... test_ui_renderer.s"
+	@echo "... test_ui_scene.o"
+	@echo "... test_ui_scene.i"
+	@echo "... test_ui_scene.s"
+	@echo "... test_ui_widget_purity.o"
+	@echo "... test_ui_widget_purity.i"
+	@echo "... test_ui_widget_purity.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"

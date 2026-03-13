@@ -12,5 +12,3 @@ struct Edges {
 };
 
 } // namespace ui
-
-using ui::Edges;

@@ -13,6 +13,8 @@
 #include <unordered_set>
 #include <optional>
 
+using ui::Pt;
+
 struct FlatBlueprint;  // Forward declaration
 
 /// Instance of a sub-blueprint — reference (baked_in=false) or embedded (baked_in=true).

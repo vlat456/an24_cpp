@@ -1,3 +1,7 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "visual/node/visual_node.h"
 #include "visual/port/visual_port.h"

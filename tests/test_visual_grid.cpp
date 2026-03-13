@@ -1,6 +1,10 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "editor/visual/widget.h"
-#include "editor/visual/grid.h"
+#include "ui/core/grid.h"
 #include "editor/visual/render_context.h"
 
 namespace visual {
@@ -18,13 +22,13 @@ public:
 } // namespace visual
 
 TEST(GridTest, EmptyGrid) {
-    visual::Grid g;
+    ui::Grid g;
     auto result = g.query(Pt(0, 0), 10.0f);
     EXPECT_TRUE(result.empty());
 }
 
 TEST(GridTest, InsertWidget) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -34,7 +38,7 @@ TEST(GridTest, InsertWidget) {
 }
 
 TEST(GridTest, RemoveWidget) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -44,7 +48,7 @@ TEST(GridTest, RemoveWidget) {
 }
 
 TEST(GridTest, UpdateWidget) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -59,7 +63,7 @@ TEST(GridTest, UpdateWidget) {
 }
 
 TEST(GridTest, QueryWithMargin) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -69,7 +73,7 @@ TEST(GridTest, QueryWithMargin) {
 }
 
 TEST(GridTest, QueryOutsideMargin) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -81,7 +85,7 @@ TEST(GridTest, QueryOutsideMargin) {
 }
 
 TEST(GridTest, MultipleWidgets) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w1(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     visual::ClickableWidget w2(Pt(200.0f, 200.0f), Pt(50.0f, 50.0f));
     
@@ -96,7 +100,7 @@ TEST(GridTest, MultipleWidgets) {
 }
 
 TEST(GridTest, ClearGrid) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);
@@ -107,7 +111,7 @@ TEST(GridTest, ClearGrid) {
 }
 
 TEST(GridTest, QueryAsType) {
-    visual::Grid g;
+    ui::Grid g;
     visual::ClickableWidget w(Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
     g.insert(&w);

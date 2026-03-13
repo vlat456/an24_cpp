@@ -12,6 +12,9 @@
 /// Each handle is a filled circle with a dark outline.
 namespace handle_renderer {
 
+using ui::IDrawList;
+using ui::Pt;
+
 inline void draw_handle(IDrawList& dl, Pt screen_pos, float radius,
                         uint32_t fill_color, uint32_t outline_color = 0xFF000000,
                         int segments = 12) {

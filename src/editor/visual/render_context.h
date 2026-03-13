@@ -4,9 +4,9 @@
 #include <unordered_set>
 #include <string>
 
-using ui::Pt;
-
 namespace visual {
+
+using ui::Pt;
 
 class Widget;
 class Wire;

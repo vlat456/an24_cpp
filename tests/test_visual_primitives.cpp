@@ -1,3 +1,7 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "editor/visual/primitives/primitives.h"
 #include "editor/visual/container/linear_layout.h"

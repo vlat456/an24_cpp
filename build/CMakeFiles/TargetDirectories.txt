@@ -97,6 +97,14 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/local.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/strip.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_math_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_layout_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_renderer_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_widget_purity_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_scene_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_grid_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_render_context_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_linear_layout_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_grid_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_scene_v2_tests.dir

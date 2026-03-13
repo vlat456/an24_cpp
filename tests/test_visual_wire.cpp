@@ -1,6 +1,10 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "editor/visual/widget.h"
-#include "editor/visual/grid.h"
+#include "ui/core/grid.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/wire/wire.h"
 #include "editor/visual/wire/wire_end.h"

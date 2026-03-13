@@ -1,3 +1,7 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "visual/node/ref_node_widget.h"
 #include "visual/node/text_node_widget.h"

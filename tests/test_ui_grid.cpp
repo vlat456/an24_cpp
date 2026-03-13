@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 namespace {
-class ClickableWidget : public ui::BaseWidget {
+class ClickableWidget : public ui::Widget {
 public:
     bool isClickable() const override { return true; }
 };
@@ -21,7 +21,7 @@ TEST(UIGrid, InsertAndQuery) {
     
     auto results = grid.query(ui::Pt{50, 50}, 0);
     EXPECT_EQ(results.size(), 1u);
-    EXPECT_EQ(results[0], (ui::BaseWidget*)ptr);
+    EXPECT_EQ(results[0], (ui::Widget*)ptr);
 }
 
 TEST(UIGrid, Remove) {

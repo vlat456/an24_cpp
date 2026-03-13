@@ -7,8 +7,6 @@
 #include <unordered_map>
 #include <optional>
 
-using ui::Pt;
-
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
     None,
@@ -64,8 +62,8 @@ struct Node {
     /// Empty string = root (top-level). "lamp1" = inside collapsed group "lamp1".
     std::string group_id;
 
-    Pt pos;                  ///< Позиция (верхний левый угол)
-    Pt size;                 ///< Размеры (ширина × высота)
+    ui::Pt pos;                  ///< Позиция (верхний левый угол)
+    ui::Pt size;                 ///< Размеры (ширина × высота)
     bool size_explicitly_set = false;  ///< True if size was set via size_wh() (not from JSON default)
 
     std::vector<EditorPort> inputs;    ///< Входные порты
@@ -86,7 +84,7 @@ struct Node {
         , collapsed(true)
         , blueprint_path()
         , group_id()
-        , pos(Pt::zero())
+        , pos(ui::Pt::zero())
         , size(120.0f, 80.0f)
         , inputs()
         , outputs()
@@ -95,13 +93,13 @@ struct Node {
 
     /// fluent: задать позицию
     Node& at(float x, float y) {
-        pos = Pt(x, y);
+        pos = ui::Pt(x, y);
         return *this;
     }
 
     /// fluent: задать размеры
     Node& size_wh(float w, float h) {
-        size = Pt(w, h);
+        size = ui::Pt(w, h);
         size_explicitly_set = true;  // Mark as explicitly set by user
         return *this;
     }
@@ -136,20 +134,20 @@ struct TypeRegistry;
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
 /// @param registry Type registry to look up size from JSON definitions
 /// @return Default size in pixels
-inline Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
+inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
     // Try to get size from type definition
     if (registry) {
         const auto* def = registry->get(type_name);
         if (def && def->size.has_value()) {
-            return Pt(def->size->first * GRID_UNIT,
+            return ui::Pt(def->size->first * GRID_UNIT,
                      def->size->second * GRID_UNIT);
         }
     }
 
     // Default fallback for regular nodes (types without size in JSON)
-    return Pt(120, 80);
+    return ui::Pt(120, 80);
 }
 
 // [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp

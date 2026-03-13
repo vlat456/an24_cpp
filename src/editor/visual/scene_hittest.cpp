@@ -1,6 +1,6 @@
 #include "scene_hittest.h"
 #include "scene.h"
-#include "grid.h"
+#include "ui/core/grid.h"
 #include "widget.h"
 #include "wire/wire.h"
 #include "wire/wire_end.h"

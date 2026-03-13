@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 #include "editor/data/port.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"

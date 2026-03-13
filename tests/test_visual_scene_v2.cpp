@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 #include "editor/visual/widget.h"
-#include "editor/visual/grid.h"
+#include "ui/core/grid.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/render_context.h"
+
+using ui::Pt;
 
 namespace visual {
 

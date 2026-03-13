@@ -1,6 +1,10 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "editor/viewport/viewport.h"
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 
 /// TDD Step 3: Viewport - сначала тесты
 

@@ -13,21 +13,17 @@
 #include "input/input_types.h"  // ResizeCorner
 #include <variant>
 #include <cstddef>
+#include <cmath>
 
 namespace visual {
+
+using ui::Pt;
 
 class Scene;
 class Widget;
 class Wire;
 class RoutingPoint;
-
-} // namespace visual
-
-namespace visual {
 class Port;
-} // namespace visual
-
-namespace visual {
 
 // ============================================================
 // Hit result types
@@ -90,7 +86,7 @@ namespace hit_math {
 inline float distance(Pt a, Pt b) {
     float dx = a.x - b.x;
     float dy = a.y - b.y;
-    return __builtin_sqrtf(dx * dx + dy * dy);
+    return std::sqrt(dx * dx + dy * dy);
 }
 
 inline float distance_to_segment(Pt p, Pt a, Pt b) {

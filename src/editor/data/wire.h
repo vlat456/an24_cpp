@@ -6,8 +6,6 @@
 #include <vector>
 #include <functional>
 
-using ui::Pt;
-
 /// Конец провода - ссылка на порт узла
 struct WireEnd {
     std::string node_id;     ///< ID узла
@@ -26,7 +24,7 @@ struct Wire {
     WireEnd end;                          ///< Конец провода
 
     /// Опциональные точки изгиба провода (для ручного размещения)
-    std::vector<Pt> routing_points;
+    std::vector<ui::Pt> routing_points;
 
     Wire() : id(), start(), end(), routing_points() {}
 
@@ -40,7 +38,7 @@ struct Wire {
     }
 
     /// fluent: добавить точку изгиба
-    Wire& add_routing_point(Pt pt) {
+    Wire& add_routing_point(ui::Pt pt) {
         routing_points.push_back(pt);
         return *this;
     }

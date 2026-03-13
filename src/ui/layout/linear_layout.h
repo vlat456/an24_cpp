@@ -8,7 +8,7 @@ namespace ui {
 enum class Axis { Horizontal, Vertical };
 
 template <Axis axis>
-class LinearLayout : public BaseWidget {
+class LinearLayout : public Widget {
 public:
     Pt preferredSize(IDrawList* dl) const override {
         float sum = 0;
@@ -41,7 +41,7 @@ public:
         float flex_size = flex_count > 0 ? remaining / flex_count : 0;
 
         float pos = 0;
-        for (auto& c : const_cast<std::vector<std::unique_ptr<BaseWidget>>&>(this->children())) {
+        for (auto& c : mutableChildren()) {
             float child_main = c->isFlexible() ? flex_size : main(c->preferredSize(nullptr));
             if constexpr (axis == Axis::Horizontal) {
                 c->setLocalPos(Pt(pos, 0));

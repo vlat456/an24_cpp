@@ -265,12 +265,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/grid.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/visual/port/visual_port.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/port/visual_port.cpp.o"
@@ -451,6 +445,78 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_math.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_math.cpp",
+  "output": "tests/CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_layout_tests.dir/test_ui_layout.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_layout.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_layout.cpp",
+  "output": "tests/CMakeFiles/ui_layout_tests.dir/test_ui_layout.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_renderer_tests.dir/test_ui_renderer.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_renderer.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_renderer.cpp",
+  "output": "tests/CMakeFiles/ui_renderer_tests.dir/test_ui_renderer.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_widget_purity.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_widget_purity.cpp",
+  "output": "tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_widget_purity_tests.dir/__/src/ui/core/widget.cpp.o -c /Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "output": "tests/CMakeFiles/ui_widget_purity_tests.dir/__/src/ui/core/widget.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_scene_tests.dir/test_ui_scene.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_scene.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_scene.cpp",
+  "output": "tests/CMakeFiles/ui_scene_tests.dir/test_ui_scene.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_scene_tests.dir/__/src/ui/core/widget.cpp.o -c /Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "output": "tests/CMakeFiles/ui_scene_tests.dir/__/src/ui/core/widget.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_grid.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_grid.cpp",
+  "output": "tests/CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.o -c /Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "output": "tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_render_context_tests.dir/test_ui_render_context.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_render_context.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_render_context.cpp",
+  "output": "tests/CMakeFiles/ui_render_context_tests.dir/test_ui_render_context.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_linear_layout_tests.dir/test_ui_linear_layout.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_linear_layout.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_ui_linear_layout.cpp",
+  "output": "tests/CMakeFiles/ui_linear_layout_tests.dir/test_ui_linear_layout.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.o -c /Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/ui/core/widget.cpp",
+  "output": "tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_widget_tests.dir/test_visual_widget.cpp.o -c /Users/vladimir/an24_cpp/tests/test_visual_widget.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_visual_widget.cpp",
   "output": "tests/CMakeFiles/visual_widget_tests.dir/test_visual_widget.cpp.o"
@@ -460,12 +526,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_widget_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -487,12 +547,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_grid_tests.dir/__/src/editor/visual/grid.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_scene_v2_tests.dir/test_visual_scene_v2.cpp.o -c /Users/vladimir/an24_cpp/tests/test_visual_scene_v2.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_visual_scene_v2.cpp",
   "output": "tests/CMakeFiles/visual_scene_v2_tests.dir/test_visual_scene_v2.cpp.o"
@@ -502,12 +556,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_scene_v2_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -526,12 +574,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -568,12 +610,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -625,12 +661,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_container_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_container_tests.dir/__/src/editor/visual/grid.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_primitives_tests.dir/test_visual_primitives.cpp.o -c /Users/vladimir/an24_cpp/tests/test_visual_primitives.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_visual_primitives.cpp",
   "output": "tests/CMakeFiles/visual_primitives_tests.dir/test_visual_primitives.cpp.o"
@@ -640,12 +670,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_primitives_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -664,12 +688,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -712,12 +730,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -802,12 +814,6 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1159,12 +1165,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/grid.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_mutations.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/scene_mutations.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/scene_mutations.cpp",
   "output": "tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/scene_mutations.cpp.o"
@@ -1282,12 +1282,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/multi_window_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1426,12 +1420,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1744,12 +1732,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widget.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/widget.cpp",
   "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/widget.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/grid.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/grid.cpp",
-  "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/grid.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

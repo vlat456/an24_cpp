@@ -1,3 +1,7 @@
+#include "ui/math/pt.h"
+
+using ui::Pt;
+
 #include <gtest/gtest.h>
 #include "editor/visual/widget.h"
 #include "editor/visual/scene.h"

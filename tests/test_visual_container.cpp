@@ -3,6 +3,9 @@
 #include "editor/visual/container/container.h"
 #include "editor/visual/render_context.h"
 
+using ui::Pt;
+using ui::Edges;
+
 namespace visual {
 
 class LeafWidget : public Widget {

@@ -3,14 +3,14 @@
 #include <gtest/gtest.h>
 
 namespace {
-class FixedWidget : public ui::BaseWidget {
+class FixedWidget : public ui::Widget {
 public:
     ui::Pt pref_size;
     FixedWidget(ui::Pt size) : pref_size(size) {}
     ui::Pt preferredSize(ui::IDrawList*) const override { return pref_size; }
 };
 
-class FlexWidget : public ui::BaseWidget {
+class FlexWidget : public ui::Widget {
 public:
     FlexWidget() { setFlexible(true); }
 };

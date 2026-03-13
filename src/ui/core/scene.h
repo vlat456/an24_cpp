@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <string_view>
+#include <cassert>
 
 namespace ui {
 
@@ -97,6 +98,7 @@ protected:
     virtual void propagateScene(WidgetType* w) {
         if (w->isClickable()) grid_.insert(w);
         for (auto& c : w->children()) {
+            assert(dynamic_cast<WidgetType*>(c.get()) && "Child must be WidgetType");
             propagateScene(static_cast<WidgetType*>(c.get()));
         }
     }
@@ -106,12 +108,13 @@ protected:
     virtual void detachScene(WidgetType* w) {
         if (w->isClickable()) grid_.remove(w);
         for (auto& c : w->children()) {
+            assert(dynamic_cast<WidgetType*>(c.get()) && "Child must be WidgetType");
             detachScene(static_cast<WidgetType*>(c.get()));
         }
     }
 };
 
 /// Concrete scene for the default pure-UI widget type.
-class BaseScene : public Scene<BaseWidget> {};
+class BaseScene : public Scene<Widget> {};
 
 } // namespace ui

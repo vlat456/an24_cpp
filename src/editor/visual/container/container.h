@@ -5,6 +5,8 @@
 
 namespace visual {
 
+using ui::Edges;
+
 class Container : public Widget {
 public:
     Container(Edges margins = {}) : margins_(margins) {}

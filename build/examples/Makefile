@@ -725,30 +725,6 @@ __/src/editor/visual/dialogs/file_dialogs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/dialogs/file_dialogs.cpp.s
 .PHONY : __/src/editor/visual/dialogs/file_dialogs.cpp.s
 
-__/src/editor/visual/grid.o: __/src/editor/visual/grid.cpp.o
-.PHONY : __/src/editor/visual/grid.o
-
-# target to build an object file
-__/src/editor/visual/grid.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/grid.cpp.o
-.PHONY : __/src/editor/visual/grid.cpp.o
-
-__/src/editor/visual/grid.i: __/src/editor/visual/grid.cpp.i
-.PHONY : __/src/editor/visual/grid.i
-
-# target to preprocess a source file
-__/src/editor/visual/grid.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/grid.cpp.i
-.PHONY : __/src/editor/visual/grid.cpp.i
-
-__/src/editor/visual/grid.s: __/src/editor/visual/grid.cpp.s
-.PHONY : __/src/editor/visual/grid.s
-
-# target to generate assembly for a file
-__/src/editor/visual/grid.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/grid.cpp.s
-.PHONY : __/src/editor/visual/grid.cpp.s
-
 __/src/editor/visual/inspector/inspector_core.o: __/src/editor/visual/inspector/inspector_core.cpp.o
 .PHONY : __/src/editor/visual/inspector/inspector_core.o
 
@@ -1642,9 +1618,6 @@ help:
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.o"
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.i"
 	@echo "... __/src/editor/visual/dialogs/file_dialogs.s"
-	@echo "... __/src/editor/visual/grid.o"
-	@echo "... __/src/editor/visual/grid.i"
-	@echo "... __/src/editor/visual/grid.s"
 	@echo "... __/src/editor/visual/inspector/inspector_core.o"
 	@echo "... __/src/editor/visual/inspector/inspector_core.i"
 	@echo "... __/src/editor/visual/inspector/inspector_core.s"

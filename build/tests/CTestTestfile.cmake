@@ -4,6 +4,14 @@
 # 
 # This file includes the relevant testing commands required for 
 # testing this directory and lists subdirectories to be tested as well.
+include("/Users/vladimir/an24_cpp/build/tests/ui_math_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_layout_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_renderer_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_widget_purity_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_scene_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_grid_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_render_context_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/ui_linear_layout_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/visual_widget_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/visual_grid_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/visual_scene_v2_tests[1]_include.cmake")

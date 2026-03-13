@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+using ui::Pt;
+
 namespace visual {
 class Scene;
 class Widget;

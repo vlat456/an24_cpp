@@ -2132,10 +2132,10 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/editor/layout_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/ui/math/pt.h \
   /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
   /Users/vladimir/an24_cpp/src/editor/data/node.h \
   /Users/vladimir/an24_cpp/src/editor/data/port.h \
-  /Users/vladimir/an24_cpp/src/editor/data/pt.h \
   /Users/vladimir/an24_cpp/src/editor/data/wire.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
@@ -3789,6 +3789,8 @@ _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill.h:
 
+/Users/vladimir/an24_cpp/src/ui/math/pt.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/pointer_to_unary_function.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/signal.h:
@@ -4014,8 +4016,6 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_zero.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_null.h:
-
-/Users/vladimir/an24_cpp/src/editor/data/pt.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fd_set.h:
 

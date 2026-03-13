@@ -5,6 +5,8 @@
 #include <optional>
 #include <cmath>
 
+using ui::Pt;
+
 /// Direction of the wire segment at a crossing point
 enum class SegDir { Horiz, Vert, Unknown };
 
