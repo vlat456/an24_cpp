@@ -1,9 +1,12 @@
 #include "bus_node_widget.h"
+#include "visual/scene.h"
 #include "visual/render_context.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
+#include "visual/wire/wire.h"
 #include "visual/wire/wire_end.h"
+#include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
 #include <algorithm>
@@ -37,11 +40,8 @@ BusNodeWidget::BusNodeWidget(const ::Node& data, BusOrientation orientation,
     }
 
     // Initial size from data (will be recalculated in rebuildPorts)
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-    setSize(Pt(snap(data.size.x), snap(data.size.y)));
+    Pt snapped = editor_math::snap_size_to_layout_grid(data.size);
+    setSize(snapped);
 
     rebuildPorts();
 }
@@ -52,16 +52,31 @@ BusNodeWidget::BusNodeWidget(const ::Node& data, BusOrientation orientation,
 
 void BusNodeWidget::rebuildPorts() {
     // Clear wire back-pointers on all WireEnd children BEFORE destroying
-    // ports.  Without this, destroying a Port destroys its WireEnd children,
+    // ports. Without this, destroying a Port destroys its WireEnd children,
     // whose destructors call Wire::onEndpointDestroyed → scene()->remove(wire),
     // cascading into the removal of ALL visual wires on this bus node.
+    //
+    // clearWire() breaks the connection in both directions, preventing
+    // dangling pointers when the Wire is later destroyed in flushRemovals().
     for (auto* port : ports_) {
         for (auto& child : port->children()) {
-            if (auto* we = dynamic_cast<WireEnd*>(child.get()))
+            if (auto* we = dynamic_cast<WireEnd*>(child.get())) {
                 we->clearWire();
+            }
         }
     }
     ports_.clear();
+
+    // Detach old ports from the scene (grid + id_index) BEFORE destroying
+    // them. Without this, removeChild() drops the unique_ptr, but the scene's
+    // spatial grid and id index still hold raw pointers to the freed memory,
+    // causing use-after-free crashes in hit_test().
+    auto* sc = scene();
+    if (sc) {
+        for (auto& child : children()) {
+            sc->detachFromScene(child.get());
+        }
+    }
 
     // Remove all children (ports are the only children of a bus node)
     while (!children().empty()) {
@@ -86,6 +101,14 @@ void BusNodeWidget::rebuildPorts() {
     // Position all ports
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i]->setLocalPos(calculatePortLocalPos(i));
+    }
+
+    // Attach new ports to the scene (grid + id_index) so they are visible
+    // to hit testing and findable by ID.
+    if (sc) {
+        for (auto* port : ports_) {
+            sc->attachToScene(port);
+        }
     }
 }
 

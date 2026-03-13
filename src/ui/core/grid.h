@@ -60,6 +60,18 @@ public:
         return result;
     }
 
+    /// Iterate all non-empty cells, calling fn(const std::vector<Widget*>&)
+    /// for each cell's widget list. Useful for broadphase pair detection:
+    /// widgets sharing a cell are spatial neighbors.
+    template<typename Fn>
+    void forEachCell(Fn&& fn) const {
+        for (const auto& [k, cell] : cells_) {
+            if (!cell.widgets.empty()) {
+                fn(cell.widgets);
+            }
+        }
+    }
+
 private:
     static constexpr float CELL_SIZE = 64.0f;
     

@@ -82,3 +82,27 @@ struct WireKeyHash {
         return seed;
     }
 };
+
+/// Key for port occupancy index: identifies a single port on a node.
+struct PortKey {
+    std::string node_id;
+    std::string port_name;
+
+    PortKey() = default;
+    PortKey(const std::string& node, const std::string& port)
+        : node_id(node), port_name(port) {}
+
+    bool operator==(const PortKey& o) const {
+        return node_id == o.node_id && port_name == o.port_name;
+    }
+};
+
+/// Hash for PortKey (combine 2 string hashes)
+struct PortKeyHash {
+    size_t operator()(const PortKey& k) const {
+        std::hash<std::string> h;
+        size_t seed = h(k.node_id);
+        seed ^= h(k.port_name) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        return seed;
+    }
+};

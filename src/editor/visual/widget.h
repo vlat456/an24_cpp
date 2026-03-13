@@ -6,6 +6,7 @@
 #include <string_view>
 #include <vector>
 #include <memory>
+#include <cassert>
 #include <optional>
 #include <cstdint>
 
@@ -50,10 +51,14 @@ public:
     virtual void setCustomColor(std::optional<uint32_t> c) { (void)c; }
     virtual std::optional<uint32_t> customColor() const { return std::nullopt; }
 
-    // Note: render(IDrawList*) and renderTree(IDrawList*) are inherited from ui::Widget
-    // but are visual-specific. Visual widgets should be rendered via render(IDrawList*, const RenderContext&)
-    // which is called by visual::Scene::render(IDrawList*, const RenderContext&).
-    // The IDrawList*-only methods exist for interface compatibility with the generic ui::Scene.
+    // The context-free render path (inherited from ui::Widget) is not meaningful
+    // for visual widgets. Override to catch accidental misuse in debug builds.
+    // Visual widgets must be rendered via render(IDrawList*, const RenderContext&).
+    void render(IDrawList*) const override {
+        assert(false && "visual::Widget::render(IDrawList*) called without RenderContext — "
+                        "use render(IDrawList*, const RenderContext&) instead");
+    }
+
     virtual void render(IDrawList* dl, const RenderContext& ctx) const {}
     virtual void renderPost(IDrawList* dl, const RenderContext& ctx) const {}
     

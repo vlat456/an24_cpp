@@ -66,6 +66,7 @@ struct InspectorTestScene {
 
     void rebuild() {
         bp.rebuild_wire_index();
+        bp.rebuild_port_occupancy_index();
     }
 };
 
@@ -292,6 +293,7 @@ EditorPort ii; ii.name = "v_in"; ii.side = PortSide::Input; ii.type = PortType::
     bp.add_node(std::move(internal));
 
     bp.rebuild_wire_index();
+    bp.rebuild_port_occupancy_index();
 
     Inspector inspector(&bp);  // root group
     inspector.buildDisplayTree();
@@ -335,6 +337,7 @@ EditorPort ro2; ro2.name = "v_out"; ro2.side = PortSide::Output; ro2.type = Port
     bp.add_node(std::move(res));
 
     bp.rebuild_wire_index();
+    bp.rebuild_port_occupancy_index();
 
     // Sub-blueprint inspector for "lamp1" group
     Inspector sub_inspector(&bp, "lamp1");
@@ -404,6 +407,7 @@ EditorPort iresi; iresi.name = "v_in"; iresi.side = PortSide::Input; iresi.type 
     bp.add_wire(iw);
 
     bp.rebuild_wire_index();
+    bp.rebuild_port_occupancy_index();
 
     // Root inspector: bat should have 1 connection (root wire), not 2
     Inspector root_inspector(&bp);  // root group

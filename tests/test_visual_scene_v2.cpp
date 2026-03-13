@@ -28,10 +28,10 @@ TEST(SceneTest, AddWidget) {
     visual::Scene scene;
     auto w = std::make_unique<visual::ClickableWidget>("widget1", Pt(100.0f, 100.0f), Pt(50.0f, 50.0f));
     
-    auto* ptr = scene.add(std::move(w));
+    scene.add(std::move(w));
     
     EXPECT_EQ(scene.roots().size(), 1u);
-    EXPECT_EQ(ptr->scene(), &scene);
+    EXPECT_EQ(scene.find("widget1")->scene(), &scene);
 }
 
 TEST(SceneTest, FindWidget) {

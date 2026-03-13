@@ -7,4 +7,11 @@ WireEnd::~WireEnd() {
     if (wire_) wire_->onEndpointDestroyed(this);
 }
 
+void WireEnd::clearWire() {
+    if (wire_) {
+        wire_->detachEndpoint(this);
+        wire_ = nullptr;
+    }
+}
+
 } // namespace visual

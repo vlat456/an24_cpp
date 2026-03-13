@@ -2,6 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "router/crossings.h"
+#include "ui/core/small_vector.h"
 #include <vector>
 #include <string>
 
@@ -51,19 +52,25 @@ public:
     /// Called by WireEnd destructor — triggers deferred self-removal
     void onEndpointDestroyed(WireEnd* end);
 
+    /// Silently detach a WireEnd pointer without triggering self-removal.
+    /// Used by BusNodeWidget::rebuildPorts() to prevent dangling pointers
+    /// when ports are rebuilt. Unlike onEndpointDestroyed(), this does NOT
+    /// queue the wire for scene removal.
+    void detachEndpoint(WireEnd* end);
+
     /// Crossing points where other wires cross over this wire.
-    /// Set externally by compute_wire_crossings() before rendering.
-    void setCrossings(std::vector<WireCrossing> crossings) { crossings_ = std::move(crossings); }
-    const std::vector<WireCrossing>& crossings() const { return crossings_; }
+    /// Populated by compute_wire_crossings() before rendering each frame.
+    void clearCrossings() { crossings_.clear(); }
+    void appendCrossing(const WireCrossing& c) { crossings_.push_back(c); }
+    const ui::SmallVector<WireCrossing, 4>& crossings() const { return crossings_; }
 
     static constexpr float WIRE_THICKNESS = 1.5f;
-    static constexpr uint32_t WIRE_COLOR = 0xFFCCCCCC;
 
 private:
     std::string id_;
     WireEnd* start_;
     WireEnd* end_;
-    std::vector<WireCrossing> crossings_;
+    ui::SmallVector<WireCrossing, 4> crossings_;
 
     static constexpr float BBOX_PADDING = 4.0f;
 
@@ -81,8 +88,8 @@ private:
 };
 
 /// Compute wire crossings for all wires in a scene.
-/// Collects Wire polylines, detects intersections, and stores
-/// crossing data on each Wire via setCrossings().
+/// Uses the spatial Grid for broadphase: only wire pairs sharing a
+/// Grid cell are tested for segment intersections.
 /// Call this before Scene::render() each frame.
 void compute_wire_crossings(Scene& scene);
 

@@ -7,8 +7,12 @@
 #include "visual/renderer/handle_renderer.h"
 #include "visual/render_context.h"
 #include "router/crossings.h"
+#include "ui/core/small_vector.h"
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 namespace visual {
 
@@ -104,9 +108,14 @@ RoutingPoint* Wire::addRoutingPoint(Pt pos, size_t index) {
 
     invalidateGeometry();
 
-    // Update Grid entry if in scene (bounds changed)
-    if (scene() && isClickable()) {
-        scene()->grid().update(this);
+    // Register the new routing point in the scene (Grid + id index)
+    // so it is discoverable by hit testing.
+    if (scene()) {
+        scene()->attachToScene(ptr);
+        // Also update the Wire's own Grid entry (bounds changed)
+        if (isClickable()) {
+            scene()->grid().update(this);
+        }
     }
 
     return ptr;
@@ -114,11 +123,18 @@ RoutingPoint* Wire::addRoutingPoint(Pt pos, size_t index) {
 
 void Wire::removeRoutingPoint(size_t index) {
     if (index < children().size()) {
-        removeChild(children()[index].get());
+        auto* rp = children()[index].get();
+
+        // Detach from scene (Grid + id index) before destroying
+        if (scene()) {
+            scene()->detachFromScene(rp);
+        }
+
+        removeChild(rp);
 
         invalidateGeometry();
 
-        // Update Grid entry if in scene (bounds changed)
+        // Update the Wire's own Grid entry (bounds changed)
         if (scene() && isClickable()) {
             scene()->grid().update(this);
         }
@@ -132,6 +148,11 @@ void Wire::onEndpointDestroyed(WireEnd* end) {
     invalidateGeometry();
 
     if (scene()) scene()->remove(this);
+}
+
+void Wire::detachEndpoint(WireEnd* end) {
+    if (end == start_) start_ = nullptr;
+    if (end == end_) end_ = nullptr;
 }
 
 void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
@@ -169,8 +190,14 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
             Pt pos;
             SegDir my_seg_dir;
         };
-        std::vector<CrossOnSeg> segs;
+        ui::SmallVector<CrossOnSeg, 8> segs;
         for (const auto& c : crossings_) {
+            // Only arc-crossings (draw_arc==true) need cuts in the polyline.
+            // The arc bridges the gap so the wire appears to jump over.
+            // Gap-only crossings (draw_arc==false) mean this wire goes
+            // underneath — it is drawn straight through, no cut needed.
+            if (!c.draw_arc) continue;
+
             for (size_t i = 0; i + 1 < world_pts.size(); ++i) {
                 Pt a = world_pts[i], b = world_pts[i + 1];
                 float seg_len_sq = (b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y);
@@ -194,14 +221,14 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
 
         // Draw polyline with gaps at crossings
         float gap_r = render_theme::ARC_RADIUS_WORLD;
-        std::vector<Pt> current_sub;
+        ui::SmallVector<Pt, 16> current_sub;
         size_t cross_i = 0;
 
         for (size_t seg = 0; seg + 1 < world_pts.size(); ++seg) {
             Pt a = world_pts[seg], b = world_pts[seg + 1];
             float seg_len = std::sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
 
-            std::vector<float> seg_ts;
+            ui::SmallVector<float, 4> seg_ts;
             while (cross_i < segs.size() && segs[cross_i].seg_idx == seg) {
                 seg_ts.push_back(segs[cross_i].t);
                 cross_i++;
@@ -214,10 +241,18 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
             } else {
                 if (current_sub.empty())
                     current_sub.push_back(ctx.world_to_screen(a));
+
+                float last_gap_end_t = -1.0f; // tracks the end of the previous gap
                 for (float ct : seg_ts) {
                     float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
                     float t_before = ct - gap_t;
                     float t_after  = ct + gap_t;
+
+                    // Skip overlapping gap (previous gap hasn't ended yet)
+                    if (t_before < last_gap_end_t) {
+                        last_gap_end_t = std::max(last_gap_end_t, t_after);
+                        continue;
+                    }
 
                     if (t_before > 0.001f) {
                         Pt p_before(a.x + t_before * (b.x - a.x), a.y + t_before * (b.y - a.y));
@@ -232,13 +267,12 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
                         Pt p_after(a.x + t_after * (b.x - a.x), a.y + t_after * (b.y - a.y));
                         current_sub.push_back(ctx.world_to_screen(p_after));
                     }
+                    last_gap_end_t = t_after;
                 }
 
-                if (current_sub.empty()) {
-                    float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
-                    float last_after = seg_ts.back() + gap_t;
-                    if (last_after < 1.0f) {
-                        Pt p(a.x + last_after * (b.x - a.x), a.y + last_after * (b.y - a.y));
+                if (current_sub.empty() && last_gap_end_t > 0.0f) {
+                    if (last_gap_end_t < 1.0f) {
+                        Pt p(a.x + last_gap_end_t * (b.x - a.x), a.y + last_gap_end_t * (b.y - a.y));
                         current_sub.push_back(ctx.world_to_screen(p));
                     }
                 }
@@ -249,8 +283,10 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         if (current_sub.size() >= 2)
             dl->add_polyline(current_sub.data(), current_sub.size(), color, thickness);
 
-        // Jump arcs at crossings
+        // Jump arcs at crossings (only for crossings where this wire "jumps over")
         for (const auto& crossing : crossings_) {
+            if (!crossing.draw_arc) continue;  // gap-only crossing, no arc
+
             Pt screen_cross = ctx.world_to_screen(crossing.pos);
             float arc_radius = render_theme::ARC_RADIUS_WORLD * ctx.zoom;
 
@@ -287,21 +323,81 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
 }
 
 void compute_wire_crossings(Scene& scene) {
-    std::vector<Wire*> wires;
-    std::vector<std::vector<Pt>> polylines;
-
+    // Collect all wires and clear their crossings for this frame.
+    ui::SmallVector<Wire*, 64> wires;
     for (const auto& r : scene.roots()) {
-        if (r->renderLayer() == RenderLayer::Wire) {
+        if (static_cast<Widget*>(r.get())->renderLayer() == RenderLayer::Wire) {
             if (auto* w = dynamic_cast<Wire*>(r.get())) {
+                w->clearCrossings();
                 wires.push_back(w);
-                polylines.push_back(w->polyline());
             }
         }
     }
 
+    if (wires.size() < 2) return;
+
+    // Build pointer → index map for stable arc/gap ordering.
+    // Higher-index wire draws the arc; lower-index wire gets the gap.
+    std::unordered_map<Wire*, size_t> wire_index;
+    wire_index.reserve(wires.size());
     for (size_t i = 0; i < wires.size(); ++i) {
-        wires[i]->setCrossings(find_wire_crossings(i, polylines));
+        wire_index[wires[i]] = i;
     }
+
+    // Broadphase via spatial Grid: only test wire pairs sharing a cell.
+    // Pack (i,j) with i<j into a flat set for deduplication across cells.
+    struct PairHash {
+        size_t operator()(std::pair<size_t, size_t> p) const {
+            return std::hash<size_t>()(p.first) ^ (std::hash<size_t>()(p.second) * 2654435761u);
+        }
+    };
+    std::unordered_set<std::pair<size_t, size_t>, PairHash> checked;
+
+    scene.grid().forEachCell([&](const std::vector<ui::Widget*>& cell_widgets) {
+        // Collect wires present in this cell
+        ui::SmallVector<Wire*, 8> cell_wires;
+        for (auto* widget : cell_widgets) {
+            auto it = wire_index.find(static_cast<Wire*>(widget));
+            if (it != wire_index.end()) {
+                cell_wires.push_back(static_cast<Wire*>(widget));
+            }
+        }
+
+        // Check all wire pairs in this cell
+        for (size_t a = 0; a < cell_wires.size(); ++a) {
+            for (size_t b = a + 1; b < cell_wires.size(); ++b) {
+                size_t idx_a = wire_index[cell_wires[a]];
+                size_t idx_b = wire_index[cell_wires[b]];
+                size_t lo = idx_a < idx_b ? idx_a : idx_b;
+                size_t hi = idx_a < idx_b ? idx_b : idx_a;
+
+                if (!checked.emplace(lo, hi).second) continue;
+
+                Wire* w_lo = wires[lo];
+                Wire* w_hi = wires[hi];
+                const auto& poly_lo = w_lo->polyline();
+                const auto& poly_hi = w_hi->polyline();
+                if (poly_lo.size() < 2 || poly_hi.size() < 2) continue;
+
+                // Check all segment pairs between the two wires
+                for (size_t i = 0; i + 1 < poly_lo.size(); ++i) {
+                    for (size_t j = 0; j + 1 < poly_hi.size(); ++j) {
+                        auto pt = segment_crosses(poly_lo[i], poly_lo[i + 1],
+                                                  poly_hi[j], poly_hi[j + 1]);
+                        if (pt) {
+                            // Lower-index wire gets gap (draw_arc=false)
+                            SegDir lo_dir = segment_direction(poly_lo[i], poly_lo[i + 1]);
+                            w_lo->appendCrossing({*pt, lo_dir, false});
+
+                            // Higher-index wire draws arc (draw_arc=true)
+                            SegDir hi_dir = segment_direction(poly_hi[j], poly_hi[j + 1]);
+                            w_hi->appendCrossing({*pt, hi_dir, true});
+                        }
+                    }
+                }
+            }
+        }
+    });
 }
 
 } // namespace visual

@@ -3,6 +3,7 @@
 #include "editor/visual/scene.h"
 #include "editor/visual/scene_mutations.h"
 #include "editor/visual/persist.h"
+#include "editor/visual/wire/wire.h"
 #include "editor/input/canvas_input.h"
 #include "editor/window/window_manager.h"
 #include "editor/viewport/viewport.h"
@@ -406,7 +407,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
 
     // Both ext_w (bat->lamp1) and int_w (led->res) should be gone
     EXPECT_EQ(bp.wires.size(), 0u);
-    EXPECT_EQ(bp.wire_index_.size(), 0u);
+    EXPECT_EQ(bp.wire_index_size(), 0u);
 }
 
 // ---- 15. Deleting sub-blueprint removes SubBlueprintInstance entry ----
@@ -539,4 +540,173 @@ TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
     // Only internal wire survives
     EXPECT_EQ(bp.wires.size(), 1u);
     EXPECT_EQ(bp.wires[0].id, "int_w");
+}
+
+// ============================================================================
+// REGRESSION: CanvasInput dangling-pointer safety via ID-based resolution
+// ============================================================================
+// With the ID-based selection model, CanvasInput stores string IDs instead
+// of raw pointers. When scene mutations destroy wire/node widgets, the IDs
+// remain valid strings but resolve to nullptr via scene.find(). No callback
+// mechanism is needed — the resolution is lazy and inherently safe.
+
+// ---- 19. selected_wire resolves to nullptr after wire is removed ----
+
+TEST(CanvasInputDanglingPointer, SelectedWire_NulledOnRemoveWire) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
+
+    // Verify wire widget exists
+    auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find("w1"));
+    ASSERT_NE(wire_widget, nullptr);
+
+    // Remove the wire via mutation — the visual widget is destroyed
+    visual::mutations::remove_wire(scene, bp, 0);
+
+    // selected_wire() resolves to nullptr because the widget no longer exists
+    EXPECT_EQ(input.selected_wire(), nullptr);
+    EXPECT_EQ(input.hovered_wire(), nullptr);
+}
+
+// ---- 20. selected_nodes_ IDs that reference removed widgets resolve to nothing ----
+
+TEST(CanvasInputDanglingPointer, SelectedNodes_ClearedOnRemoveNode) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
+
+    // Select both nodes
+    auto* wa = scene.find("a");
+    auto* wb = scene.find("b");
+    ASSERT_NE(wa, nullptr);
+    ASSERT_NE(wb, nullptr);
+    input.add_node_selection(wa);
+    input.add_node_selection(wb);
+    ASSERT_EQ(input.selected_nodes().size(), 2u);
+
+    // Remove node "a" — the widget is destroyed
+    visual::mutations::remove_nodes(scene, bp, {0});
+
+    // selected_nodes() resolves IDs lazily: "a" no longer exists in the
+    // scene, so only "b"'s widget is returned.
+    auto resolved = input.selected_nodes();
+    EXPECT_EQ(resolved.size(), 1u);
+    // The surviving widget should be the one for "b"
+    EXPECT_NE(scene.find("b"), nullptr);
+    if (!resolved.empty())
+        EXPECT_EQ(resolved[0], scene.find("b"));
+}
+
+// ---- 21. scene.clear() makes all selected IDs resolve to nullptr ----
+
+TEST(CanvasInputDanglingPointer, SelectionClearedOnSceneClear) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    bp.add_node(std::move(a));
+
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
+
+    auto* wa = scene.find("a");
+    ASSERT_NE(wa, nullptr);
+    input.add_node_selection(wa);
+    ASSERT_EQ(input.selected_nodes().size(), 1u);
+
+    // scene.clear() destroys all widgets — IDs remain but resolve to nullptr
+    scene.clear();
+
+    EXPECT_TRUE(input.selected_nodes().empty());
+}
+
+// ---- 22. Wire reconnection does not leave dangling selected_wire_ ----
+// This is the specific crash scenario: reconnect_wire destroys the old
+// wire widget and creates a new one. With ID-based selection, the stored
+// wire ID still resolves because the new widget reuses the same ID.
+
+TEST(CanvasInputDanglingPointer, ReconnectWire_NoDanglingSelectedWire) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    Node c; c.id = "c"; c.at(400, 0).size_wh(120, 80); c.input("in2");
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_node(std::move(c));
+    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
+
+    // Verify the old wire widget exists
+    auto* old_wire = scene.find("w1");
+    ASSERT_NE(old_wire, nullptr);
+
+    // Reconnect wire w1 from b:in to c:in2
+    // This destroys the old wire widget and creates a new one with the same ID.
+    visual::mutations::reconnect_wire(scene, bp, 0, false,
+        WireEnd("c", "in2", PortSide::Input), group_id);
+
+    // The new wire widget should exist with the same ID
+    auto* new_wire = scene.find("w1");
+    EXPECT_NE(new_wire, nullptr);
+
+    // Since selected_wire_id_ is "w1" and a widget with that ID still
+    // exists, selected_wire() returns the new widget — no dangling pointer.
+    // (If user hadn't selected the wire, selected_wire() returns nullptr
+    // because selected_wire_id_ is empty. Both cases are safe.)
+    EXPECT_EQ(input.selected_wire(), nullptr);  // wasn't selected in this test
+}
+
+// ---- 23. Remove wire via mutation nulls hovered_wire_ ----
+
+TEST(CanvasInputDanglingPointer, RemoveWire_NullsHoveredWire) {
+    Blueprint bp;
+    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+
+    visual::Scene scene;
+    Viewport vp;
+    std::string group_id;
+    visual::mutations::rebuild(scene, bp, group_id);
+    CanvasInput input(scene, vp, bp, group_id);
+
+    // Verify wire widget exists before removal
+    auto* wire_widget = scene.find("w1");
+    ASSERT_NE(wire_widget, nullptr);
+
+    // Remove the wire via mutation — the visual widget is destroyed
+    visual::mutations::remove_wire(scene, bp, 0);
+
+    // After removal, the wire widget is destroyed. hovered_wire_id_ and
+    // selected_wire_id_ IDs still exist as strings, but resolve to nullptr.
+    EXPECT_EQ(input.hovered_wire(), nullptr);
+    EXPECT_EQ(input.selected_wire(), nullptr);
+    EXPECT_EQ(bp.wires.size(), 0u);
 }

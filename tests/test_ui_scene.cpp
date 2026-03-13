@@ -13,7 +13,7 @@ public:
 }
 
 TEST(UIScene, AddWidget) {
-    ui::BaseScene scene;
+    ui::Scene scene;
     auto w = std::make_unique<TestWidget>();
     w->setSize(ui::Pt{100, 50});
     auto* ptr = w.get();
@@ -25,7 +25,7 @@ TEST(UIScene, AddWidget) {
 }
 
 TEST(UIScene, RemoveWidget) {
-    ui::BaseScene scene;
+    ui::Scene scene;
     auto w = std::make_unique<TestWidget>();
     auto* ptr = w.get();
     scene.add(std::move(w));
@@ -37,7 +37,7 @@ TEST(UIScene, RemoveWidget) {
 }
 
 TEST(UIScene, Clear) {
-    ui::BaseScene scene;
+    ui::Scene scene;
     scene.add(std::make_unique<TestWidget>());
     scene.add(std::make_unique<TestWidget>());
     
@@ -47,7 +47,7 @@ TEST(UIScene, Clear) {
 }
 
 TEST(UIScene, FindById) {
-    ui::BaseScene scene;
+    ui::Scene scene;
     
     class NamedWidget : public ui::Widget {
     public:
@@ -66,7 +66,7 @@ TEST(UIScene, FindById) {
 
 
 TEST(UIScene, RenderWithoutRenderContext) {
-    ui::BaseScene scene;
+    ui::Scene scene;
     auto w = std::make_unique<TestWidget>();
     w->setSize(ui::Pt{100, 50});
     scene.add(std::move(w));
@@ -74,4 +74,97 @@ TEST(UIScene, RenderWithoutRenderContext) {
     scene.render(nullptr);
     
     EXPECT_EQ(scene.roots()[0]->size().x, 100.0f);
+}
+
+// ============================================================================
+// FlushGuard tests
+// ============================================================================
+
+TEST(UIScene, FlushGuard_AutoFlushOnDestruction) {
+    ui::Scene scene;
+    auto w = std::make_unique<TestWidget>();
+    auto* ptr = w.get();
+    scene.add(std::move(w));
+    
+    EXPECT_EQ(scene.roots().size(), 1u);
+    
+    {
+        auto guard = scene.flushGuard();
+        scene.remove(ptr);
+        // Widget still present (deferred removal)
+        EXPECT_EQ(scene.roots().size(), 1u);
+    }
+    // Guard destructor called flushRemovals()
+    EXPECT_EQ(scene.roots().size(), 0u);
+}
+
+TEST(UIScene, FlushGuard_NoFlushWhenReleased) {
+    ui::Scene scene;
+    auto w = std::make_unique<TestWidget>();
+    auto* ptr = w.get();
+    scene.add(std::move(w));
+    
+    {
+        auto guard = scene.flushGuard();
+        scene.remove(ptr);
+        guard.release();  // Cancel auto-flush
+    }
+    // Guard was released, so no flush happened
+    EXPECT_EQ(scene.roots().size(), 1u);
+    
+    // Manual flush still works
+    scene.flushRemovals();
+    EXPECT_EQ(scene.roots().size(), 0u);
+}
+
+TEST(UIScene, FlushGuard_MoveSemantics) {
+    ui::Scene scene;
+    auto w = std::make_unique<TestWidget>();
+    auto* ptr = w.get();
+    scene.add(std::move(w));
+    
+    scene.remove(ptr);
+    
+    {
+        auto guard1 = scene.flushGuard();
+        auto guard2 = std::move(guard1);  // Move construct
+        // guard1 is now null, guard2 owns the flush responsibility
+    }
+    // guard2's destructor flushed
+    EXPECT_EQ(scene.roots().size(), 0u);
+}
+
+TEST(UIScene, FlushGuard_MultipleRemovals) {
+    ui::Scene scene;
+    auto* ptr1 = scene.add(std::make_unique<TestWidget>());
+    auto* ptr2 = scene.add(std::make_unique<TestWidget>());
+    auto* ptr3 = scene.add(std::make_unique<TestWidget>());
+    
+    EXPECT_EQ(scene.roots().size(), 3u);
+    
+    {
+        auto guard = scene.flushGuard();
+        scene.remove(ptr1);
+        scene.remove(ptr2);
+        scene.remove(ptr3);
+    }
+    
+    EXPECT_EQ(scene.roots().size(), 0u);
+}
+
+TEST(UIScene, FlushGuard_EarlyReturn) {
+    ui::Scene scene;
+    auto* ptr = scene.add(std::make_unique<TestWidget>());
+    
+    auto remove_and_return = [&]() -> bool {
+        auto guard = scene.flushGuard();
+        scene.remove(ptr);
+        return true;
+        // Guard flushes here even on early return
+    };
+    
+    EXPECT_EQ(scene.roots().size(), 1u);
+    bool result = remove_and_return();
+    EXPECT_TRUE(result);
+    EXPECT_EQ(scene.roots().size(), 0u);  // Flushed despite early return
 }

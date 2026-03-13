@@ -60,23 +60,31 @@ static void destroy_wire_widget(Scene& scene, const std::string& wire_id) {
 /// Must be called after rebuildPorts() on a bus, because port rebuild
 /// destroys all WireEnd children, leaving existing wire widgets orphaned.
 /// \p exclude_wire_id  Skip this wire (caller handles it separately).
+/// Uses bus_wire_index_ for O(1) lookup instead of scanning all wires.
 static void recreate_bus_wires(Scene& scene, const Blueprint& bp,
                                const std::string& bus_node_id,
                                const std::string& exclude_wire_id = {}) {
-    for (const auto& w : bp.wires) {
-        if (w.id == exclude_wire_id) continue;
-        if (w.start.node_id != bus_node_id && w.end.node_id != bus_node_id) continue;
-
-        // Destroy old orphaned widget (if any)
-        destroy_wire_widget(scene, w.id);
+    // Copy wire IDs to avoid holding a reference into bus_wire_index_
+    // across scene mutations (widget destructors could theoretically
+    // trigger Blueprint modifications in the future).
+    const auto wire_ids = bp.busWires(bus_node_id);  // copy
+    
+    // Phase 1: Destroy orphaned wire widgets
+    {
+        auto guard = scene.flushGuard();
+        for (const auto& wid : wire_ids) {
+            if (wid == exclude_wire_id) continue;
+            destroy_wire_widget(scene, wid);
+        }
     }
-    scene.flushRemovals();
 
-    for (const auto& w : bp.wires) {
-        if (w.id == exclude_wire_id) continue;
-        if (w.start.node_id != bus_node_id && w.end.node_id != bus_node_id) continue;
-
-        create_wire_widget(scene, w);
+    // Phase 2: Recreate wire widgets from Blueprint data via O(1) lookup
+    for (const auto& wid : wire_ids) {
+        if (wid == exclude_wire_id) continue;
+        const auto* w = bp.find_wire(wid);
+        if (w) {
+            create_wire_widget(scene, *w);
+        }
     }
 }
 
@@ -85,6 +93,8 @@ static void recreate_bus_wires(Scene& scene, const Blueprint& bp,
 // ============================================================================
 
 void rebuild(Scene& scene, const Blueprint& bp, const std::string& group_id) {
+    auto guard = scene.flushGuard();
+    
     scene.clear();
 
     // 1) Create node widgets for all nodes in this group
@@ -103,8 +113,6 @@ void rebuild(Scene& scene, const Blueprint& bp, const std::string& group_id) {
 
         create_wire_widget(scene, wire);
     }
-
-    scene.flushRemovals();
 }
 
 size_t add_node(Scene& scene, Blueprint& bp, Node node,
@@ -143,17 +151,21 @@ void remove_nodes(Scene& scene, Blueprint& bp,
 
     // Remove wires from scene first (before nodes, so WireEnd destructors
     // find their parent ports still alive)
-    for (const auto& wid : wire_ids_to_remove) {
-        destroy_wire_widget(scene, wid);
+    {
+        auto guard = scene.flushGuard();
+        for (const auto& wid : wire_ids_to_remove) {
+            destroy_wire_widget(scene, wid);
+        }
     }
-    scene.flushRemovals();
 
     // Remove node widgets from scene
-    for (const auto& nid : deleted_ids) {
-        auto* w = scene.find(nid);
-        if (w) scene.remove(w);
+    {
+        auto guard = scene.flushGuard();
+        for (const auto& nid : deleted_ids) {
+            auto* w = scene.find(nid);
+            if (w) scene.remove(w);
+        }
     }
-    scene.flushRemovals();
 
     // Mutate Blueprint data: remove nodes
     for (int i = static_cast<int>(bp.nodes.size()) - 1; i >= 0; --i) {
@@ -190,7 +202,11 @@ void remove_nodes(Scene& scene, Blueprint& bp,
             g.internal_node_ids.end());
     }
 
+    bp.rebuild_node_index();
     bp.rebuild_wire_index();
+    bp.rebuild_wire_id_index();
+    bp.rebuild_bus_wire_index();
+    bp.rebuild_port_occupancy_index();
 }
 
 bool add_wire(Scene& scene, Blueprint& bp, ::Wire wire,
@@ -254,8 +270,10 @@ void remove_wire(Scene& scene, Blueprint& bp, size_t index) {
     ::Wire copy = bp.wires[index];
 
     // Remove visual wire widget
-    destroy_wire_widget(scene, copy.id);
-    scene.flushRemovals();
+    {
+        auto guard = scene.flushGuard();
+        destroy_wire_widget(scene, copy.id);
+    }
 
     // Notify bus nodes to remove alias ports.
     // rebuildPorts() orphans surviving wire widgets — recreate them below.
@@ -272,8 +290,7 @@ void remove_wire(Scene& scene, Blueprint& bp, size_t index) {
     }
 
     // Remove from Blueprint
-    bp.wires.erase(bp.wires.begin() + static_cast<long>(index));
-    bp.wire_index_.erase(WireKey(copy));
+    bp.remove_wire_at(index);
 
     // Recreate orphaned wire widgets on affected bus nodes
     if (!bus_start_id.empty())
@@ -302,21 +319,25 @@ void reconnect_wire(Scene& scene, Blueprint& bp,
     }
 
     // Destroy old visual wire
-    destroy_wire_widget(scene, wire_id);
-    scene.flushRemovals();
+    {
+        auto guard = scene.flushGuard();
+        destroy_wire_widget(scene, wire_id);
+    }
 
     // Recreate orphaned wire widgets on the old bus (ports were rebuilt)
     if (!old_bus_id.empty())
         recreate_bus_wires(scene, bp, old_bus_id, wire_id);
 
     // Update Blueprint data
-    bp.wire_index_.erase(WireKey(wire));
+    ::Wire old_wire = wire;  // snapshot before modification
     if (reconnect_start)
         wire.start = new_end;
     else
         wire.end = new_end;
     wire.routing_points.clear();
-    bp.wire_index_.insert(WireKey(wire));
+    bp.rekey_wire(old_wire, wire);
+    bp.updateBusIndexForEndpoints(old_wire, wire);
+    bp.updatePortOccupancyForEndpoints(old_wire, wire);
 
     // Notify new bus node to add alias port
     std::string new_bus_id;

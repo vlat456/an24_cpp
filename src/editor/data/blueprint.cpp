@@ -2,9 +2,11 @@
 #include "port.h"
 #include "layout_constants.h"
 #include "flat_blueprint.h"
+#include "visual/snap.h"
 #include <set>
 #include <map>
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -22,7 +24,10 @@ size_t Blueprint::add_wire(Wire wire) {
         return SIZE_MAX;
     }
     size_t idx = wires.size();
+    wire_id_index_[wire.id] = idx;
     wires.push_back(std::move(wire));
+    addToBusIndex(wires.back());
+    addToPortOccupancy(wires.back());
     return idx;
 }
 
@@ -56,14 +61,9 @@ static PortType find_port_type(const Node& node, const std::string& port_name) {
 
 // [SMELL-k1l2] Removed 17 fprintf debug lines — use spdlog for diagnostic logging instead
 bool Blueprint::add_wire_validated(Wire wire) {
-    // Find the start and end nodes
-    Node* start_node = nullptr;
-    Node* end_node = nullptr;
-
-    for (auto& n : nodes) {
-        if (n.id == wire.start.node_id) start_node = &n;
-        if (n.id == wire.end.node_id) end_node = &n;
-    }
+    // Find the start and end nodes via O(1) index
+    Node* start_node = find_node(wire.start.node_id.c_str());
+    Node* end_node   = find_node(wire.end.node_id.c_str());
 
     if (!start_node || !end_node) return false;
 
@@ -80,27 +80,143 @@ bool Blueprint::add_wire_validated(Wire wire) {
     bool end_allows_multiple = (end_node->type_name == "Bus" ||
                                  end_node->type_name == "RefNode");
 
-    // Check if start port is already occupied
-    if (!start_allows_multiple) {
-        for (const auto& w : wires) {
-            if ((w.start.node_id == wire.start.node_id && w.start.port_name == wire.start.port_name) ||
-                (w.end.node_id == wire.start.node_id && w.end.port_name == wire.start.port_name))
-                return false;
-        }
-    }
+    // O(1) port occupancy check via port_occupancy_index_
+    if (!start_allows_multiple &&
+        is_port_occupied(wire.start.node_id, wire.start.port_name))
+        return false;
 
-    // Check if end port is already occupied
-    if (!end_allows_multiple) {
-        for (const auto& w : wires) {
-            if ((w.end.node_id == wire.end.node_id && w.end.port_name == wire.end.port_name) ||
-                (w.start.node_id == wire.end.node_id && w.start.port_name == wire.end.port_name))
-                return false;
-        }
-    }
+    if (!end_allows_multiple &&
+        is_port_occupied(wire.end.node_id, wire.end.port_name))
+        return false;
 
     wires.push_back(std::move(wire));
     wire_index_.insert(WireKey(wires.back()));
+    wire_id_index_[wires.back().id] = wires.size() - 1;
+    addToBusIndex(wires.back());
+    addToPortOccupancy(wires.back());
     return true;
+}
+
+Wire Blueprint::remove_wire_at(size_t index) {
+    assert(index < wires.size());
+    Wire removed = std::move(wires[index]);
+    removeFromBusIndex(removed);
+    removeFromPortOccupancy(removed);
+    wire_id_index_.erase(removed.id);
+    wires.erase(wires.begin() + static_cast<long>(index));
+    wire_index_.erase(WireKey(removed));
+    // Fix shifted indices in wire_id_index_
+    for (size_t i = index; i < wires.size(); ++i) {
+        wire_id_index_[wires[i].id] = i;
+    }
+    return removed;
+}
+
+void Blueprint::rekey_wire(const Wire& old_wire, const Wire& new_wire) {
+    wire_index_.erase(WireKey(old_wire));
+    wire_index_.insert(WireKey(new_wire));
+}
+
+void Blueprint::updateBusIndexForEndpoints(const Wire& old_wire, const Wire& new_wire) {
+    // Remove from old bus entries if endpoint changed
+    if (old_wire.start.node_id != new_wire.start.node_id ||
+        old_wire.start.port_name != new_wire.start.port_name) {
+        const Node* sn = find_node(old_wire.start.node_id.c_str());
+        if (sn && sn->type_name == "Bus") {
+            auto it = bus_wire_index_.find(old_wire.start.node_id);
+            if (it != bus_wire_index_.end()) {
+                auto& vec = it->second;
+                vec.erase(std::remove(vec.begin(), vec.end(), old_wire.id), vec.end());
+                if (vec.empty()) bus_wire_index_.erase(it);
+            }
+        }
+    }
+    if (old_wire.end.node_id != new_wire.end.node_id ||
+        old_wire.end.port_name != new_wire.end.port_name) {
+        const Node* en = find_node(old_wire.end.node_id.c_str());
+        if (en && en->type_name == "Bus") {
+            auto it = bus_wire_index_.find(old_wire.end.node_id);
+            if (it != bus_wire_index_.end()) {
+                auto& vec = it->second;
+                vec.erase(std::remove(vec.begin(), vec.end(), old_wire.id), vec.end());
+                if (vec.empty()) bus_wire_index_.erase(it);
+            }
+        }
+    }
+    // Add to new bus entries if endpoint changed
+    if (old_wire.start.node_id != new_wire.start.node_id ||
+        old_wire.start.port_name != new_wire.start.port_name) {
+        const Node* sn = find_node(new_wire.start.node_id.c_str());
+        if (sn && sn->type_name == "Bus") {
+            bus_wire_index_[new_wire.start.node_id].push_back(new_wire.id);
+        }
+    }
+    if (old_wire.end.node_id != new_wire.end.node_id ||
+        old_wire.end.port_name != new_wire.end.port_name) {
+        const Node* en = find_node(new_wire.end.node_id.c_str());
+        if (en && en->type_name == "Bus") {
+            bus_wire_index_[new_wire.end.node_id].push_back(new_wire.id);
+        }
+    }
+}
+
+void Blueprint::updatePortOccupancyForEndpoints(const Wire& old_wire, const Wire& new_wire) {
+    // Helper: remove wire ID from old port entry, add to new port entry
+    auto update_endpoint = [&](const std::string& old_node, const std::string& old_port,
+                               const std::string& new_node, const std::string& new_port) {
+        if (old_node == new_node && old_port == new_port) return;
+        // Remove from old
+        auto it = port_occupancy_index_.find(PortKey(old_node, old_port));
+        if (it != port_occupancy_index_.end()) {
+            it->second.erase(new_wire.id);
+            if (it->second.empty()) port_occupancy_index_.erase(it);
+        }
+        // Add to new
+        port_occupancy_index_[PortKey(new_node, new_port)].insert(new_wire.id);
+    };
+    update_endpoint(old_wire.start.node_id, old_wire.start.port_name,
+                    new_wire.start.node_id, new_wire.start.port_name);
+    update_endpoint(old_wire.end.node_id, old_wire.end.port_name,
+                    new_wire.end.node_id, new_wire.end.port_name);
+}
+
+void Blueprint::rebuild_bus_wire_index() {
+    bus_wire_index_.clear();
+    for (const auto& w : wires) {
+        addToBusIndex(w);
+    }
+}
+
+void Blueprint::addToBusIndex(const Wire& w) {
+    const Node* sn = find_node(w.start.node_id.c_str());
+    const Node* en = find_node(w.end.node_id.c_str());
+    if (sn && sn->type_name == "Bus") {
+        bus_wire_index_[w.start.node_id].push_back(w.id);
+    }
+    if (en && en->type_name == "Bus") {
+        bus_wire_index_[w.end.node_id].push_back(w.id);
+    }
+}
+
+void Blueprint::removeFromBusIndex(const Wire& w) {
+    const Node* sn = find_node(w.start.node_id.c_str());
+    const Node* en = find_node(w.end.node_id.c_str());
+    if (sn && sn->type_name == "Bus") {
+        auto it = bus_wire_index_.find(w.start.node_id);
+        if (it != bus_wire_index_.end()) {
+            auto& vec = it->second;
+            vec.erase(std::remove(vec.begin(), vec.end(), w.id), vec.end());
+            if (vec.empty()) bus_wire_index_.erase(it);
+        }
+    }
+    if (en && en->type_name == "Bus") {
+        auto it = bus_wire_index_.find(w.end.node_id);
+        if (it != bus_wire_index_.end()) {
+            auto& vec = it->second;
+            vec.erase(std::remove(vec.begin(), vec.end(), w.id), vec.end());
+            if (vec.empty()) bus_wire_index_.erase(it);
+        }
+    }
 }
 
 // ─── SubBlueprintInstance helpers ───
@@ -197,11 +313,6 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
 
 // ─── Auto-layout for a single group ───
 
-static Pt layout_snap(Pt p) {
-    return Pt(std::round(p.x / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID,
-              std::round(p.y / editor_constants::PORT_LAYOUT_GRID) * editor_constants::PORT_LAYOUT_GRID);
-}
-
 void Blueprint::auto_layout_group(const std::string& group_id) {
     // BUGFIX [a2d7c5] BlueprintInput → leftmost column, BlueprintOutput → rightmost
     // Collect indices of nodes in this group by role
@@ -241,21 +352,21 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
     float bpo_x = col;
 
     for (size_t i = 0; i < bp_inputs.size(); i++)
-        nodes[bp_inputs[i]].pos = layout_snap(Pt(bpi_x, origin_y + i * row_spacing));
+        nodes[bp_inputs[i]].pos = editor_math::snap_to_layout_grid(Pt(bpi_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < sources.size(); i++)
-        nodes[sources[i]].pos = layout_snap(Pt(src_x, origin_y + i * row_spacing));
+        nodes[sources[i]].pos = editor_math::snap_to_layout_grid(Pt(src_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < buses.size(); i++)
-        nodes[buses[i]].pos = layout_snap(Pt(bus_x, origin_y + i * row_spacing));
+        nodes[buses[i]].pos = editor_math::snap_to_layout_grid(Pt(bus_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < loads.size(); i++)
-        nodes[loads[i]].pos = layout_snap(Pt(load_x, origin_y + i * row_spacing));
+        nodes[loads[i]].pos = editor_math::snap_to_layout_grid(Pt(load_x, origin_y + i * row_spacing));
     for (size_t i = 0; i < bp_outputs.size(); i++)
-        nodes[bp_outputs[i]].pos = layout_snap(Pt(bpo_x, origin_y + i * row_spacing));
+        nodes[bp_outputs[i]].pos = editor_math::snap_to_layout_grid(Pt(bpo_x, origin_y + i * row_spacing));
 
     size_t max_rows = std::max({bp_inputs.size(), sources.size(), buses.size(),
                                 loads.size(), bp_outputs.size(), size_t(1)});
     float ground_y = origin_y + max_rows * row_spacing;
     for (size_t i = 0; i < grounds.size(); i++)
-        nodes[grounds[i]].pos = layout_snap(Pt(bus_x, ground_y + i * row_spacing));
+        nodes[grounds[i]].pos = editor_math::snap_to_layout_grid(Pt(bus_x, ground_y + i * row_spacing));
 }
 
 // ─── Shared blueprint expansion ───
@@ -553,6 +664,7 @@ static std::string content_type_to_string(NodeContentType t) {
         case NodeContentType::Value:          return "value";
         case NodeContentType::Text:           return "text";
     }
+    spdlog::error("Unknown NodeContentType enum value: {}", static_cast<int>(t));
     return "none";
 }
 
@@ -865,7 +977,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
         bp.wires.push_back(std::move(w));
     }
+    bp.rebuild_node_index();
     bp.rebuild_wire_index();
+    bp.rebuild_wire_id_index();
+    bp.rebuild_bus_wire_index();
+    bp.rebuild_port_occupancy_index();
 
     std::set<std::string> loaded_group_ids;
     for (const auto& [id, sb] : bpv2.sub_blueprints) {
@@ -971,7 +1087,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
                 bp.auto_layout_group(sbi.id);
         }
     }
+    bp.rebuild_node_index();
     bp.rebuild_wire_index();
+    bp.rebuild_wire_id_index();
+    bp.rebuild_bus_wire_index();
+    bp.rebuild_port_occupancy_index();
 
     bp.next_wire_id = static_cast<int>(bp.wires.size());
     for (const auto& w : bp.wires) {

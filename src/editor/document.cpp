@@ -50,7 +50,10 @@ bool Document::load(const std::string& path) {
     }
 
     blueprint_ = std::move(*bp);
+    blueprint_.rebuild_node_index();
     blueprint_.rebuild_wire_index();
+    blueprint_.rebuild_bus_wire_index();
+    blueprint_.rebuild_port_occupancy_index();
 
     auto& vp = viewport();
     vp.pan = blueprint_.pan;

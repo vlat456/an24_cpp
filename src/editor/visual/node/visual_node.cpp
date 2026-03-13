@@ -5,6 +5,7 @@
 #include "visual/render_context.h"
 #include "editor/layout_constants.h"
 #include "visual/node/bounds.h"
+#include "visual/snap.h"
 #include "data/node.h"
 #include <algorithm>
 #include <cmath>
@@ -40,12 +41,9 @@ NodeWidget::NodeWidget(const ::Node& data)
     }
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-    w = snap(w);
-    h = snap(h);
+    Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
+    w = snapped.x;
+    h = snapped.y;
 
     layout(w, h);
 }

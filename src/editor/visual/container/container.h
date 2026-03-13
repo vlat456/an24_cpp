@@ -29,11 +29,8 @@ public:
         }
     }
 
-    void render(IDrawList* dl, const RenderContext& ctx) const override {
-        for (const auto& c : children()) {
-            static_cast<const Widget*>(c.get())->render(dl, ctx);
-        }
-    }
+    // Rendering handled by Widget::renderTree() — no manual child iteration needed.
+    void render(IDrawList* dl, const RenderContext& ctx) const override {}
 
 private:
     Edges margins_;

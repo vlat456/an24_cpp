@@ -25,8 +25,9 @@ struct Blueprint;
 /// Returns InputResult so the host can perform app-level actions
 /// (rebuild simulation, open sub-window, show context menu).
 ///
-/// Selection is tracked by Widget* pointers into the visual::Scene.
-/// Wire selection/hover is tracked by visual::Wire* pointers.
+/// Selection is tracked by widget ID strings, resolved to pointers
+/// via the scene's O(1) index only when needed. This eliminates
+/// dangling pointer bugs when widgets are destroyed and recreated.
 ///
 /// When read_only is true, only non-destructive operations are allowed:
 /// panning, zooming, selection (for inspection), double-click to open
@@ -54,16 +55,21 @@ public:
 
     InputState state() const { return state_; }
 
-    /// Selected node widgets (pointers into visual::Scene).
-    const std::vector<visual::Widget*>& selected_nodes() const { return selected_nodes_; }
+    /// Selected node IDs.
+    const std::vector<std::string>& selected_node_ids() const { return selected_node_ids_; }
 
-    /// Selected wire widget (pointer into visual::Scene), or nullptr.
-    visual::Wire* selected_wire() const { return selected_wire_; }
+    /// Resolve selected node IDs to widget pointers (for rendering).
+    /// Returns only widgets that still exist in the scene.
+    std::vector<visual::Widget*> selected_nodes() const;
 
-    /// Wire currently under mouse cursor, or nullptr.
-    visual::Wire* hovered_wire() const { return hovered_wire_; }
+    /// Selected wire widget (resolved from ID), or nullptr.
+    visual::Wire* selected_wire() const;
+
+    /// Wire currently under mouse cursor (resolved from ID), or nullptr.
+    visual::Wire* hovered_wire() const;
 
     /// Routing point currently under mouse cursor, or nullptr.
+    /// Valid only during Idle/hover state (transient pointer).
     visual::RoutingPoint* hovered_routing_point() const { return hovered_routing_point_; }
 
     bool is_marquee_selecting() const { return state_ == InputState::MarqueeSelect; }
@@ -99,17 +105,19 @@ private:
 
     InputState state_ = InputState::Idle;
 
-    // Selection
-    std::vector<visual::Widget*> selected_nodes_;
-    visual::Wire* selected_wire_ = nullptr;
-    visual::Wire* hovered_wire_ = nullptr;
+    // Selection — stored as IDs, resolved via scene.find() when needed.
+    std::vector<std::string> selected_node_ids_;
+    std::string selected_wire_id_;
+    std::string hovered_wire_id_;
+
+    // Hover — routing point is transient (only valid during current frame).
     visual::RoutingPoint* hovered_routing_point_ = nullptr;
 
     // Drag state (shared by DraggingNode / DraggingRoutingPoint)
     Pt drag_anchor_;
     std::vector<Pt> drag_offsets_;
 
-    // Wire creation
+    // Wire creation — transient (port pointer valid only during CreatingWire state)
     visual::Port* wire_start_port_ = nullptr;
     Pt wire_start_pos_;
 
@@ -119,13 +127,13 @@ private:
     Pt reconnect_anchor_pos_;
     PortSide reconnect_fixed_side_ = PortSide::Input;
 
-    // Routing-point drag
-    visual::Wire* rp_wire_ = nullptr;
+    // Routing-point drag — transient (pointers valid only during DraggingRoutingPoint)
+    std::string rp_wire_id_;
     visual::RoutingPoint* rp_point_ = nullptr;
     size_t rp_index_ = 0;
 
-    // Resize drag
-    visual::Widget* resize_widget_ = nullptr;
+    // Resize drag — stored as ID
+    std::string resize_widget_id_;
     ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
     Pt resize_original_pos_;
     Pt resize_original_size_;
@@ -136,6 +144,14 @@ private:
 
     // Last known world-space cursor (updated on every event)
     Pt last_world_pos_;
+
+    // ---- Internal helpers ----
+
+    /// Resolve a wire ID to a visual::Wire* (nullptr if not found).
+    visual::Wire* resolve_wire(const std::string& id) const;
+
+    /// Resolve a node ID to a visual::Widget* (nullptr if not found).
+    visual::Widget* resolve_node(const std::string& id) const;
 
     // ---- Internal transition helpers ----
     void enter_panning();
@@ -154,8 +170,8 @@ private:
 
     // ---- Utility ----
 
-    /// Find the data-layer index of a wire by its visual::Wire pointer.
-    size_t find_wire_index(visual::Wire* wire) const;
+    /// Find the data-layer index of a wire by its visual ID.
+    size_t find_wire_index(const std::string& wire_id) const;
 
     /// Find the data-layer index of a node by its widget ID.
     size_t find_node_index(const std::string& node_id) const;

@@ -19,7 +19,11 @@ public:
 
     Wire* wire() const { return wire_; }
     void setWire(Wire* w) { wire_ = w; }
-    void clearWire() { wire_ = nullptr; }
+    
+    /// Break the connection to the Wire in both directions.
+    /// Clears this->wire_ and also calls wire->detachEndpoint(this).
+    /// Safe to call multiple times (idempotent).
+    void clearWire();
 
 private:
     Wire* wire_;

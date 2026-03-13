@@ -2,6 +2,8 @@
 #include "visual/renderer/render_theme.h"
 #include <cmath>
 
+namespace visual {
+
 void GridRenderer::render(IDrawList& dl, const Viewport& vp, Pt canvas_min, Pt canvas_max) const {
     float step = vp.grid_step;
 
@@ -31,3 +33,5 @@ void GridRenderer::render(IDrawList& dl, const Viewport& vp, Pt canvas_min, Pt c
                     render_theme::COLOR_GRID, line_width);
     }
 }
+
+} // namespace visual

@@ -8,7 +8,6 @@
 #include "visual/port/visual_port.h"
 #include "visual/node/group_node_widget.h"
 #include "visual/node/visual_node.h"
-#include "visual/node/node_utils.h"
 #include "visual/snap.h"
 #include "viewport/viewport.h"
 #include "data/blueprint.h"
@@ -23,29 +22,67 @@
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          Blueprint& bp, const std::string& group_id)
-    : scene_(scene), viewport_(viewport), bp_(bp), group_id_(group_id) {}
+    : scene_(scene), viewport_(viewport), bp_(bp), group_id_(group_id)
+{
+}
+
+// ============================================================================
+// ID → pointer resolution helpers
+// ============================================================================
+
+visual::Wire* CanvasInput::resolve_wire(const std::string& id) const {
+    if (id.empty()) return nullptr;
+    return dynamic_cast<visual::Wire*>(scene_.find(id));
+}
+
+visual::Widget* CanvasInput::resolve_node(const std::string& id) const {
+    if (id.empty()) return nullptr;
+    return scene_.find(id);
+}
 
 // ============================================================================
 // Selection helpers
 // ============================================================================
 
 void CanvasInput::clear_selection() {
-    selected_nodes_.clear();
-    selected_wire_ = nullptr;
+    selected_node_ids_.clear();
+    selected_wire_id_.clear();
 }
 
 void CanvasInput::add_node_selection(visual::Widget* w) {
     if (!w) return;
-    if (std::find(selected_nodes_.begin(), selected_nodes_.end(), w) == selected_nodes_.end())
-        selected_nodes_.push_back(w);
+    std::string wid(w->id());
+    if (wid.empty()) return;
+    if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), wid) == selected_node_ids_.end())
+        selected_node_ids_.push_back(std::move(wid));
 }
 
 bool CanvasInput::is_node_selected(visual::Widget* w) const {
-    return std::find(selected_nodes_.begin(), selected_nodes_.end(), w) != selected_nodes_.end();
+    if (!w) return false;
+    std::string wid(w->id());
+    return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), wid) != selected_node_ids_.end();
+}
+
+std::vector<visual::Widget*> CanvasInput::selected_nodes() const {
+    std::vector<visual::Widget*> result;
+    result.reserve(selected_node_ids_.size());
+    for (const auto& nid : selected_node_ids_) {
+        auto* w = resolve_node(nid);
+        if (w) result.push_back(w);
+    }
+    return result;
+}
+
+visual::Wire* CanvasInput::selected_wire() const {
+    return resolve_wire(selected_wire_id_);
+}
+
+visual::Wire* CanvasInput::hovered_wire() const {
+    return resolve_wire(hovered_wire_id_);
 }
 
 bool CanvasInput::selectNodeById(const std::string& node_id) {
-    auto* widget = scene_.find(node_id);
+    auto* widget = resolve_node(node_id);
     if (!widget) return false;
 
     clear_selection();
@@ -70,7 +107,7 @@ void CanvasInput::update_hover(Pt world_pos) {
         state_ == InputState::CreatingWire ||
         state_ == InputState::ReconnectingWire ||
         state_ == InputState::ResizingNode) {
-        hovered_wire_ = nullptr;
+        hovered_wire_id_.clear();
         hovered_routing_point_ = nullptr;
         return;
     }
@@ -78,13 +115,13 @@ void CanvasInput::update_hover(Pt world_pos) {
     // Check for wire/routing-point hover
     auto hit = visual::hit_test(scene_, world_pos);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
-        hovered_wire_ = h->wire;
+        hovered_wire_id_ = std::string(h->wire->id());
         hovered_routing_point_ = nullptr;
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
-        hovered_wire_ = h->wire;
+        hovered_wire_id_ = std::string(h->wire->id());
         hovered_routing_point_ = h->point;
     } else {
-        hovered_wire_ = nullptr;
+        hovered_wire_id_.clear();
         hovered_routing_point_ = nullptr;
     }
 }
@@ -124,15 +161,16 @@ void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection,
     state_ = InputState::DraggingNode;
     drag_anchor_ = primary_pos;
     drag_offsets_.clear();
-    for (auto* sel : selected_nodes_) {
+    auto nodes = selected_nodes();
+    for (auto* sel : nodes) {
         drag_offsets_.push_back(sel->worldPos() - primary_pos);
     }
 }
 
 void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx) {
     state_ = InputState::DraggingRoutingPoint;
-    selected_wire_ = wire;
-    rp_wire_ = wire;
+    selected_wire_id_ = std::string(wire->id());
+    rp_wire_id_ = std::string(wire->id());
     rp_point_ = rp;
     rp_index_ = rp_idx;
     drag_anchor_ = rp->worldPos();
@@ -142,7 +180,7 @@ void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner)
     state_ = InputState::ResizingNode;
     clear_selection();
     add_node_selection(widget);
-    resize_widget_ = widget;
+    resize_widget_id_ = std::string(widget->id());
     resize_corner_ = corner;
     resize_original_pos_ = widget->worldPos();
     resize_original_size_ = widget->size();
@@ -248,7 +286,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             enter_drag_routing_point(hrp->wire, hrp->point, hrp->index);
         } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
             clear_selection();
-            selected_wire_ = hw->wire;
+            selected_wire_id_ = std::string(hw->wire->id());
         } else {
             // Empty space → panning
             clear_selection();
@@ -287,8 +325,9 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::DraggingNode: {
                 drag_anchor_ = drag_anchor_ + world_delta;
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
-                for (size_t i = 0; i < selected_nodes_.size(); i++) {
-                    auto* widget = selected_nodes_[i];
+                auto nodes = selected_nodes();
+                for (size_t i = 0; i < nodes.size(); i++) {
+                    auto* widget = nodes[i];
                     Pt offset = (i < drag_offsets_.size()) ? drag_offsets_[i] : Pt(0, 0);
                     Pt new_pos = snapped + offset;
 
@@ -308,7 +347,8 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
                 // Update data layer
-                size_t wire_idx = find_wire_index(rp_wire_);
+                auto* rp_wire = resolve_wire(rp_wire_id_);
+                size_t wire_idx = find_wire_index(rp_wire_id_);
                 if (wire_idx < bp_.wires.size()) {
                     auto& wire = bp_.wires[wire_idx];
                     if (rp_index_ < wire.routing_points.size()) {
@@ -319,7 +359,12 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 // Update visual widget
                 if (rp_point_) {
                     rp_point_->setLocalPos(snapped);
-                    if (rp_wire_) rp_wire_->invalidateGeometry();
+                    if (rp_wire) {
+                        rp_wire->invalidateGeometry();
+                        // Update Wire's Grid entry too (bounds changed)
+                        if (rp_wire->scene() && rp_wire->isClickable())
+                            rp_wire->scene()->grid().update(rp_wire);
+                    }
                     if (rp_point_->scene())
                         rp_point_->scene()->grid().update(rp_point_);
                 }
@@ -337,7 +382,8 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 
             case InputState::ResizingNode: {
                 drag_anchor_ = drag_anchor_ + world_delta;
-                if (!resize_widget_) break;
+                auto* resize_widget = resolve_node(resize_widget_id_);
+                if (!resize_widget) break;
 
                 float grid = viewport_.grid_step;
                 Pt orig_pos = resize_original_pos_;
@@ -383,11 +429,11 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 new_size = editor_math::snap_to_grid(new_size, grid);
 
                 // Update visual widget
-                resize_widget_->setLocalPos(new_pos);
-                resize_widget_->setSize(new_size);
+                resize_widget->setLocalPos(new_pos);
+                resize_widget->setSize(new_size);
 
                 // Update data layer
-                std::string nid(resize_widget_->id());
+                std::string nid(resize_widget->id());
                 Node* node = bp_.find_node(nid.c_str());
                 if (node) {
                     node->pos = new_pos;
@@ -454,7 +500,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // 1. Routing-point removal (editing operation — skip in read-only)
     if (!read_only) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            size_t wire_idx = find_wire_index(hrp->wire);
+            size_t wire_idx = find_wire_index(std::string(hrp->wire->id()));
             if (wire_idx < bp_.wires.size() && hrp->index < bp_.wires[wire_idx].routing_points.size()) {
                 bp_.wires[wire_idx].routing_points.erase(
                     bp_.wires[wire_idx].routing_points.begin() + static_cast<long>(hrp->index));
@@ -480,7 +526,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // 3. Wire hit → add routing point (editing operation — skip in read-only)
     if (!read_only) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-            size_t wire_idx = find_wire_index(hw->wire);
+            size_t wire_idx = find_wire_index(std::string(hw->wire->id()));
             if (wire_idx < bp_.wires.size()) {
                 // Find nearest segment and insert routing point
                 auto& wire = bp_.wires[wire_idx];
@@ -522,12 +568,12 @@ InputResult CanvasInput::on_key(Key key) {
 
         case Key::Delete:
         case Key::Backspace: {
-            if (selected_nodes_.empty()) break;
+            if (selected_node_ids_.empty()) break;
 
             // Collect node indices for deletion (sorted descending for stable removal)
             std::vector<size_t> indices;
-            for (auto* w : selected_nodes_) {
-                size_t idx = find_node_index(std::string(w->id()));
+            for (const auto& nid : selected_node_ids_) {
+                size_t idx = find_node_index(nid);
                 if (idx < bp_.nodes.size())
                     indices.push_back(idx);
             }
@@ -703,21 +749,22 @@ void CanvasInput::finish_marquee() {
     float max_y = std::max(marquee_start_.y, marquee_end_.y);
 
     for (const auto& root : scene_.roots()) {
+        auto* vroot = static_cast<visual::Widget*>(root.get());
         // Only select node widgets (skip wires)
-        if (root->renderLayer() == visual::RenderLayer::Wire) continue;
+        if (vroot->renderLayer() == visual::RenderLayer::Wire) continue;
         // Only select nodes that have an ID (i.e., are actual node widgets)
-        if (root->id().empty()) continue;
+        if (vroot->id().empty()) continue;
 
         // Verify this node belongs to our group
-        const Node* node = bp_.find_node(std::string(root->id()).c_str());
+        const Node* node = bp_.find_node(std::string(vroot->id()).c_str());
         if (!node || node->group_id != group_id_) continue;
 
-        Pt pos = root->worldPos();
-        Pt sz = root->size();
+        Pt pos = vroot->worldPos();
+        Pt sz = vroot->size();
         float cx = pos.x + sz.x / 2;
         float cy = pos.y + sz.y / 2;
         if (cx >= min_x && cx <= max_x && cy >= min_y && cy <= max_y)
-            add_node_selection(root.get());
+            add_node_selection(vroot);
     }
 }
 
@@ -725,9 +772,8 @@ void CanvasInput::finish_marquee() {
 // Utility helpers
 // ============================================================================
 
-size_t CanvasInput::find_wire_index(visual::Wire* wire) const {
-    if (!wire) return SIZE_MAX;
-    std::string wire_id(wire->id());
+size_t CanvasInput::find_wire_index(const std::string& wire_id) const {
+    if (wire_id.empty()) return SIZE_MAX;
     for (size_t i = 0; i < bp_.wires.size(); ++i) {
         if (bp_.wires[i].id == wire_id) return i;
     }
