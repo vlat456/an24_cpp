@@ -3,14 +3,14 @@
 #include <gtest/gtest.h>
 
 namespace {
-class ClickableWidget : public ui::Widget {
+class ClickableWidget : public ui::BaseWidget {
 public:
     bool isClickable() const override { return true; }
 };
 }
 
 TEST(UIGrid, InsertAndQuery) {
-    ui::Grid grid;
+    ui::Grid<ui::BaseWidget> grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -21,11 +21,11 @@ TEST(UIGrid, InsertAndQuery) {
     
     auto results = grid.query(ui::Pt{50, 50}, 0);
     EXPECT_EQ(results.size(), 1u);
-    EXPECT_EQ(results[0], ptr);
+    EXPECT_EQ(results[0], (ui::BaseWidget*)ptr);
 }
 
 TEST(UIGrid, Remove) {
-    ui::Grid grid;
+    ui::Grid<ui::BaseWidget> grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -40,7 +40,7 @@ TEST(UIGrid, Remove) {
 }
 
 TEST(UIGrid, QueryWithMargin) {
-    ui::Grid grid;
+    ui::Grid<ui::BaseWidget> grid;
     
     auto w = std::make_unique<ClickableWidget>();
     w->setLocalPos(ui::Pt{0, 0});
@@ -54,7 +54,7 @@ TEST(UIGrid, QueryWithMargin) {
 }
 
 TEST(UIGrid, Clear) {
-    ui::Grid grid;
+    ui::Grid<ui::BaseWidget> grid;
     
     auto w1 = std::make_unique<ClickableWidget>();
     w1->setLocalPos(ui::Pt{0, 0});
@@ -71,3 +71,4 @@ TEST(UIGrid, Clear) {
     auto results = grid.query(ui::Pt{50, 50}, 0);
     EXPECT_EQ(results.size(), 0u);
 }
+

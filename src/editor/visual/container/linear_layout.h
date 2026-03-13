@@ -41,7 +41,7 @@ public:
         float flex_size = flex_count > 0 ? remaining / flex_count : 0;
 
         float pos = 0;
-        for (auto& c : const_cast<std::vector<std::unique_ptr<Widget>>&>(children())) {
+        for (auto& c : children()) {
             float child_main = c->isFlexible() ? flex_size : main(c->preferredSize(nullptr));
             if constexpr (axis == Axis::Horizontal) {
                 c->setLocalPos(Pt(pos, 0));
@@ -56,7 +56,7 @@ public:
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
         for (const auto& c : children()) {
-            c->render(dl, ctx);
+            static_cast<const Widget*>(c.get())->render(dl, ctx);
         }
     }
 

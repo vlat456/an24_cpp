@@ -664,7 +664,7 @@ TEST(VisualNodeWidget, VerticalToggleOutputLabelsRightAligned) {
             }
         }
         for (const auto& child : w.children()) {
-            visit(*child);
+            visit(static_cast<const visual::Widget&>(*child));
         }
     };
     visit(nw);

@@ -3,17 +3,17 @@
 #include <gtest/gtest.h>
 
 namespace {
-class TestWidget : public ui::Widget {
+class TestWidget : public ui::BaseWidget {
 public:
     ui::Pt last_render_size;
     void render(ui::IDrawList*) const override {
-        const_cast<TestWidget*>(this)->last_render_size = size();
+        const_cast<TestWidget*>(this)->last_render_size = size_;
     }
 };
 }
 
 TEST(UIScene, AddWidget) {
-    ui::Scene scene;
+    ui::BaseScene scene;
     auto w = std::make_unique<TestWidget>();
     w->setSize(ui::Pt{100, 50});
     auto* ptr = w.get();
@@ -25,7 +25,7 @@ TEST(UIScene, AddWidget) {
 }
 
 TEST(UIScene, RemoveWidget) {
-    ui::Scene scene;
+    ui::BaseScene scene;
     auto w = std::make_unique<TestWidget>();
     auto* ptr = w.get();
     scene.add(std::move(w));
@@ -37,7 +37,7 @@ TEST(UIScene, RemoveWidget) {
 }
 
 TEST(UIScene, Clear) {
-    ui::Scene scene;
+    ui::BaseScene scene;
     scene.add(std::make_unique<TestWidget>());
     scene.add(std::make_unique<TestWidget>());
     
@@ -47,9 +47,9 @@ TEST(UIScene, Clear) {
 }
 
 TEST(UIScene, FindById) {
-    ui::Scene scene;
+    ui::BaseScene scene;
     
-    class NamedWidget : public ui::Widget {
+    class NamedWidget : public ui::BaseWidget {
     public:
         std::string id_;
         NamedWidget(std::string_view id) : id_(id) {}
@@ -64,8 +64,9 @@ TEST(UIScene, FindById) {
     EXPECT_EQ(scene.find("widget_c"), nullptr);
 }
 
+
 TEST(UIScene, RenderWithoutRenderContext) {
-    ui::Scene scene;
+    ui::BaseScene scene;
     auto w = std::make_unique<TestWidget>();
     w->setSize(ui::Pt{100, 50});
     scene.add(std::move(w));

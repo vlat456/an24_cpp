@@ -93,7 +93,8 @@ RoutingPoint* Wire::addRoutingPoint(Pt pos, size_t index) {
         // Insert at specific position: remove tail, add new, re-add tail
         std::vector<std::unique_ptr<Widget>> tail;
         while (children().size() > index) {
-            tail.push_back(removeChild(children().back().get()));
+            auto child = removeChild(children().back().get());
+            tail.push_back(std::unique_ptr<Widget>(static_cast<Widget*>(child.release())));
         }
         addChild(std::move(rp));
         for (auto it = tail.rbegin(); it != tail.rend(); ++it) {

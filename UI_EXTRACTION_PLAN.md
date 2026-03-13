@@ -424,10 +424,10 @@ TEST(EditorScene, HasDomainMethods) {
 | 3.1 | Numeric Z-Order | ✅ Complete (done in 2.1) |
 | 3.2 | ui::RenderContext | ✅ Complete |
 | 4.1 | LinearLayout | ✅ Complete |
-| 5.1 | editor::NodeWidget | ⬜ Pending |
-| 5.2 | editor::EditorScene | ⬜ Pending |
-| 6.1 | Cleanup old files | ⬜ Pending |
-| 6.2 | Update CMake | ⬜ Pending |
+| 5.1 | visual::Widget inherits ui::Widget\<Scene\> | ✅ Complete |
+| 5.2 | visual::Scene inherits ui::Scene\<Widget\> | ✅ Complete |
+| 6.1 | Cleanup old files | ✅ Complete |
+| 6.2 | Update CMake | ✅ Complete |
 
 ---
 

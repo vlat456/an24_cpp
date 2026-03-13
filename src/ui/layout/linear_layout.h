@@ -8,12 +8,12 @@ namespace ui {
 enum class Axis { Horizontal, Vertical };
 
 template <Axis axis>
-class LinearLayout : public Widget {
+class LinearLayout : public BaseWidget {
 public:
     Pt preferredSize(IDrawList* dl) const override {
         float sum = 0;
         float cross_max = 0;
-        for (const auto& c : children()) {
+        for (const auto& c : this->children()) {
             Pt ps = c->preferredSize(dl);
             sum += main(ps);
             cross_max = std::max(cross_max, cross(ps));
@@ -22,14 +22,14 @@ public:
     }
 
     void layout(float available_width, float available_height) override {
-        setSize(Pt(available_width, available_height));
+        this->setSize(Pt(available_width, available_height));
 
         float available_main = main_dim(available_width, available_height);
         float available_cross = cross_dim(available_width, available_height);
 
         float fixed_total = 0;
         int flex_count = 0;
-        for (const auto& c : children()) {
+        for (const auto& c : this->children()) {
             if (c->isFlexible()) {
                 flex_count++;
             } else {
@@ -41,7 +41,7 @@ public:
         float flex_size = flex_count > 0 ? remaining / flex_count : 0;
 
         float pos = 0;
-        for (auto& c : const_cast<std::vector<std::unique_ptr<Widget>>&>(children())) {
+        for (auto& c : const_cast<std::vector<std::unique_ptr<BaseWidget>>&>(this->children())) {
             float child_main = c->isFlexible() ? flex_size : main(c->preferredSize(nullptr));
             if constexpr (axis == Axis::Horizontal) {
                 c->setLocalPos(Pt(pos, 0));
@@ -55,7 +55,7 @@ public:
     }
 
     void render(IDrawList* dl) const override {
-        for (const auto& c : children()) {
+        for (const auto& c : this->children()) {
             c->render(dl);
         }
     }

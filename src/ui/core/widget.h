@@ -6,14 +6,21 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <algorithm>
 
 namespace ui {
 
-class Scene;
+/// Forward declare the default Scene template.
+template<typename WidgetType> class Scene;
 
+/// Base widget with geometry, hierarchy, and scene integration.
+/// SceneT is the concrete scene type (e.g. ui::Scene<BaseWidget> or visual::Scene).
+template<typename SceneT>
 class Widget {
 public:
-    virtual ~Widget();
+    using SceneType = SceneT;
+
+    virtual ~Widget() = default;
     
     virtual std::string_view id() const { return {}; }
     
@@ -21,7 +28,12 @@ public:
     void setZOrder(float z) { z_order_ = z; }
     
     Pt localPos() const { return local_pos_; }
-    void setLocalPos(Pt p);
+    void setLocalPos(Pt p) { 
+        local_pos_ = p; 
+        onLocalPosChanged();
+    }
+    
+    virtual void onLocalPosChanged() {}
     
     Pt size() const { return size_; }
     void setSize(Pt s) { size_ = s; }
@@ -38,11 +50,24 @@ public:
                world_p.y >= mn.y && world_p.y <= mx.y;
     }
     
-    Scene* scene() const { return scene_; }
+    SceneT* scene() const { return scene_; }
     Widget* parent() const { return parent_; }
     
-    void addChild(std::unique_ptr<Widget> child);
-    std::unique_ptr<Widget> removeChild(Widget* child);
+    void addChild(std::unique_ptr<Widget> child) {
+        child->parent_ = this;
+        children_.push_back(std::move(child));
+    }
+
+    std::unique_ptr<Widget> removeChild(Widget* child) {
+        auto it = std::find_if(children_.begin(), children_.end(),
+            [child](const auto& p) { return p.get() == child; });
+        if (it == children_.end()) return nullptr;
+        
+        auto result = std::move(*it);
+        children_.erase(it);
+        result->parent_ = nullptr;
+        return result;
+    }
     
     template<typename T, typename... Args>
     T* emplaceChild(Args&&... args) {
@@ -65,7 +90,14 @@ public:
     
     virtual void render(IDrawList* dl) const {}
     virtual void renderPost(IDrawList* dl) const {}
-    void renderTree(IDrawList* dl) const;
+    
+    void renderTree(IDrawList* dl) const {
+        render(dl);
+        for (const auto& c : children_) {
+            c->renderTree(dl);
+        }
+        renderPost(dl);
+    }
     
 protected:
     Pt local_pos_{0, 0};
@@ -73,11 +105,19 @@ protected:
     float z_order_ = 0.0f;
     bool flexible_ = false;
     
-    Scene* scene_ = nullptr;
+    SceneT* scene_ = nullptr;
     Widget* parent_ = nullptr;
     std::vector<std::unique_ptr<Widget>> children_;
     
-    friend class Scene;
+    friend SceneT;
+    
+    // Also befriend the base Scene template so propagateScene / detachScene
+    // can access scene_ even when SceneT is a derived class (e.g. visual::Scene).
+    template<typename> friend class Scene;
 };
+
+/// The default "pure UI" widget type, using the default ui::Scene.
+class BaseScene;
+using BaseWidget = Widget<BaseScene>;
 
 } // namespace ui

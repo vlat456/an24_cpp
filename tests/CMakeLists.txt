@@ -65,8 +65,6 @@ gtest_discover_tests(ui_widget_purity_tests)
 add_executable(ui_scene_tests
     test_ui_scene.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/ui/core/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/ui/core/grid.cpp
 )
 target_include_directories(ui_scene_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -80,7 +78,6 @@ gtest_discover_tests(ui_scene_tests)
 add_executable(ui_grid_tests
     test_ui_grid.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/ui/core/grid.cpp
 )
 target_include_directories(ui_grid_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -119,7 +116,6 @@ gtest_discover_tests(ui_linear_layout_tests)
 add_executable(visual_widget_tests
     test_visual_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
 )
 target_include_directories(visual_widget_tests PRIVATE
@@ -135,7 +131,6 @@ gtest_discover_tests(visual_widget_tests)
 add_executable(visual_grid_tests
     test_visual_grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
 )
 target_include_directories(visual_grid_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -150,7 +145,6 @@ gtest_discover_tests(visual_grid_tests)
 add_executable(visual_scene_v2_tests
     test_visual_scene_v2.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
 )
 target_include_directories(visual_scene_v2_tests PRIVATE
@@ -166,7 +160,6 @@ gtest_discover_tests(visual_scene_v2_tests)
 add_executable(visual_wire_tests
     test_visual_wire.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
@@ -188,7 +181,6 @@ gtest_discover_tests(visual_wire_tests)
 add_executable(visual_hittest_tests
     test_visual_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
@@ -212,7 +204,6 @@ gtest_discover_tests(visual_hittest_tests)
 add_executable(visual_container_tests
     test_visual_container.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
 )
 target_include_directories(visual_container_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -227,7 +218,6 @@ gtest_discover_tests(visual_container_tests)
 add_executable(visual_primitives_tests
     test_visual_primitives.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
 )
 target_include_directories(visual_primitives_tests PRIVATE
@@ -246,7 +236,6 @@ gtest_discover_tests(visual_primitives_tests)
 # add_executable(visual_content_widgets_tests
 #     test_visual_content_widgets.cpp
 #     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-#     ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
 #     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
 # )
 # target_include_directories(visual_content_widgets_tests PRIVATE
@@ -263,7 +252,6 @@ gtest_discover_tests(visual_primitives_tests)
 add_executable(visual_node_widget_tests
     test_visual_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
@@ -287,7 +275,6 @@ gtest_discover_tests(visual_node_widget_tests)
 add_executable(specialized_node_widget_tests
     test_specialized_node_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
@@ -317,7 +304,6 @@ add_executable(scene_mutations_tests
     test_scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
@@ -929,7 +915,6 @@ add_executable(node_deletion_tests
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
@@ -968,7 +953,6 @@ add_executable(multi_window_tests
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
@@ -1010,7 +994,6 @@ add_executable(params_integrity_tests
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
@@ -1323,7 +1306,6 @@ add_executable(document_window_system_tests
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/grid.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp

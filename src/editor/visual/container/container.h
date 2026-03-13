@@ -21,15 +21,15 @@ public:
         if (!children().empty()) {
             float w = available_width - margins_.left - margins_.right;
             float h = available_height - margins_.top - margins_.bottom;
-            auto& child_ptr = const_cast<std::vector<std::unique_ptr<Widget>>&>(children())[0];
-            child_ptr->setLocalPos(Pt(margins_.left, margins_.top));
-            child_ptr->layout(w, h);
+            auto& child = children()[0];
+            child->setLocalPos(Pt(margins_.left, margins_.top));
+            child->layout(w, h);
         }
     }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override {
         for (const auto& c : children()) {
-            c->render(dl, ctx);
+            static_cast<const Widget*>(c.get())->render(dl, ctx);
         }
     }
 

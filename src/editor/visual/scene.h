@@ -1,6 +1,6 @@
 #pragma once
 #include "widget.h"
-#include "grid.h"
+#include "ui/core/scene.h"
 #include <memory>
 #include <vector>
 
@@ -8,35 +8,18 @@ namespace visual {
 
 struct RenderContext;
 
-class Scene {
+/// Editor scene inheriting generic ui::Scene behaviour.
+/// Overrides add() to sort by RenderLayer instead of numeric z-order,
+/// and provides a render() overload that passes RenderContext.
+class Scene : public ui::Scene<Widget> {
 public:
     Scene() = default;
     
-    Grid& grid() { return grid_; }
-    const Grid& grid() const { return grid_; }
+    /// Insert a widget sorted by RenderLayer (stable within same layer).
+    Widget* add(std::unique_ptr<Widget> w) override;
     
-    Widget* add(std::unique_ptr<Widget> w);
-    
-    void remove(Widget* w);
-    
-    void flushRemovals();
-    
-    /// Remove all root widgets and clear the grid.
-    void clear();
-    
-    const std::vector<std::unique_ptr<Widget>>& roots() const { return roots_; }
-    
-    Widget* find(std::string_view id) const;
-    
+    /// Render all root widgets with domain-specific RenderContext.
     void render(IDrawList* dl, const RenderContext& ctx);
-
-private:
-    Grid grid_;
-    std::vector<std::unique_ptr<Widget>> roots_;
-    std::vector<Widget*> pending_removals_;
-    
-    void propagateScene(Widget* w);
-    void detachScene(Widget* w);
 };
 
 } // namespace visual

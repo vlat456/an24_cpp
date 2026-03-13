@@ -226,7 +226,7 @@ TEST(VisualWidgetTest, DestructorRemovesFromGrid) {
     auto w = std::make_unique<visual::ClickableTestWidget>(Pt(20.0f, 20.0f), Pt(40.0f, 40.0f));
     
     // Attach to scene manually (simulating what Scene::add does internally)
-    w->propagateSceneToChildren(&scene);
+    scene.attachToScene(w.get());
     
     // Verify widget is in grid
     auto hits = scene.grid().query(Pt(30.0f, 30.0f), 1.0f);
