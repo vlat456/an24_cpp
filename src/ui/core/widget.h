@@ -10,16 +10,10 @@
 
 namespace ui {
 
-/// Forward declare the default Scene template.
-template<typename WidgetType> class Scene;
-
-/// Base widget with geometry, hierarchy, and scene integration.
-/// SceneT is the concrete scene type (e.g. ui::Scene<BaseWidget> or visual::Scene).
-template<typename SceneT>
+/// Base widget with geometry and hierarchy.
+/// Domain-specific widgets (e.g. visual::Widget) inherit from this.
 class Widget {
 public:
-    using SceneType = SceneT;
-
     virtual ~Widget() = default;
     
     virtual std::string_view id() const { return {}; }
@@ -108,8 +102,7 @@ protected:
     std::vector<std::unique_ptr<Widget>> children_;
 };
 
-/// The default "pure UI" widget type, using the default ui::Scene.
-class BaseScene;
-using BaseWidget = Widget<BaseScene>;
+/// The default "pure UI" widget type.
+using BaseWidget = Widget;
 
 } // namespace ui

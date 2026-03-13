@@ -27,7 +27,7 @@ enum class RenderLayer : uint8_t {
     Normal = 3    ///< Default (component nodes, resize handles)
 };
 
-class Widget : public ui::Widget<Scene> {
+class Widget : public ui::Widget {
 public:
     virtual ~Widget();
     
@@ -72,7 +72,7 @@ public:
     
     void renderTree(IDrawList* dl, const RenderContext& ctx) const;
 
-    Widget* parent() const { return static_cast<Widget*>(ui::Widget<Scene>::parent()); }
+    Widget* parent() const { return static_cast<Widget*>(ui::Widget::parent()); }
     Scene* scene() const { return scene_; }
 
 protected:

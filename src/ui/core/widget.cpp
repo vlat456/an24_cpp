@@ -3,8 +3,7 @@
 
 namespace ui {
 
-// Widget is fully header-only (template).
-// This file ensures BaseScene / BaseWidget are instantiated in at least one TU.
-template class Widget<BaseScene>;
+// Widget is now non-templated.
+// This file kept for CMake source list compatibility.
 
 } // namespace ui
