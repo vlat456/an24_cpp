@@ -26,7 +26,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     auto candidates = scene.grid().query(world_pos, margin);
 
     // --- Pass 1: Ports (highest priority) ---
-    for (Widget* w : candidates) {
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
         if (auto* port = dynamic_cast<Port*>(w)) {
             Pt center = port->worldPos() + Pt(Port::RADIUS, Port::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {
@@ -36,7 +37,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     }
 
     // --- Pass 2: Routing points ---
-    for (Widget* w : candidates) {
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
         if (auto* rp = dynamic_cast<RoutingPoint*>(w)) {
             if (hit_math::distance(world_pos, rp->worldPos()) <= hit_constants::ROUTING_POINT_RADIUS) {
                 // Find the owning Wire and index
@@ -62,7 +64,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     // but outside the narrow border margin.
     {
         constexpr float R = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
-        for (Widget* w : candidates) {
+        for (ui::Widget* uw : candidates) {
+            auto* w = static_cast<Widget*>(uw);
             if (!w->isResizable()) continue;
 
             Pt mn = w->worldMin();
@@ -88,7 +91,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     // Among multiple hits, prefer the widget with the highest renderLayer
     // (frontmost in draw order).
     Widget* best = nullptr;
-    for (Widget* w : candidates) {
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
         if (dynamic_cast<Wire*>(w)) continue;
         if (dynamic_cast<Port*>(w)) continue;
         if (dynamic_cast<RoutingPoint*>(w)) continue;
@@ -110,7 +114,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     }
 
     // --- Pass 5: Wire segments (lowest priority, fine-grained) ---
-    for (Widget* w : candidates) {
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
         if (auto* wire = dynamic_cast<Wire*>(w)) {
             const auto& pts = wire->polyline();
             if (pts.size() < 2) continue;
@@ -134,7 +139,8 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
 HitResult hit_test_ports(const Scene& scene, Pt world_pos) {
     auto candidates = scene.grid().query(world_pos, hit_constants::PORT_RADIUS);
 
-    for (Widget* w : candidates) {
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
         if (auto* port = dynamic_cast<Port*>(w)) {
             Pt center = port->worldPos() + Pt(Port::RADIUS, Port::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {

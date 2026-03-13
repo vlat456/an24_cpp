@@ -25,8 +25,8 @@ public:
     Scene(Scene&&) = default;
     Scene& operator=(Scene&&) = default;
     
-    Grid<WidgetType>& grid() { return grid_; }
-    const Grid<WidgetType>& grid() const { return grid_; }
+    Grid& grid() { return grid_; }
+    const Grid& grid() const { return grid_; }
     
     virtual WidgetType* add(std::unique_ptr<WidgetType> w) {
         auto* ptr = w.get();
@@ -88,12 +88,11 @@ public:
     void attachToScene(WidgetType* w) { propagateScene(w); }
 
 protected:
-    Grid<WidgetType> grid_;
+    Grid grid_;
     std::vector<std::unique_ptr<WidgetType>> roots_;
     std::vector<WidgetType*> pending_removals_;
     
     void propagateScene(WidgetType* w) {
-        w->scene_ = static_cast<typename WidgetType::SceneType*>(this);
         if (w->isClickable()) grid_.insert(w);
         for (auto& c : w->children()) {
             propagateScene(static_cast<WidgetType*>(c.get()));
@@ -105,7 +104,6 @@ protected:
         for (auto& c : w->children()) {
             detachScene(static_cast<WidgetType*>(c.get()));
         }
-        w->scene_ = nullptr;
     }
 };
 
