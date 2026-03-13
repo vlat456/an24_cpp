@@ -1,7 +1,7 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
-#include "visual/node/edges.h"
+#include "ui/layout/edges.h"
 
 namespace visual {
 

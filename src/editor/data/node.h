@@ -1,11 +1,13 @@
 #pragma once
 
-#include "pt.h"
+#include "../../ui/math/pt.h"
 #include "port.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <optional>
+
+using ui::Pt;
 
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {

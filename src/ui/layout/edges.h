@@ -1,5 +1,7 @@
 #pragma once
 
+namespace ui {
+
 struct Edges {
     float left = 0, top = 0, right = 0, bottom = 0;
 
@@ -8,3 +10,7 @@ struct Edges {
         return {horizontal, vertical, horizontal, vertical};
     }
 };
+
+} // namespace ui
+
+using ui::Edges;

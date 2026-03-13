@@ -5,8 +5,6 @@
 #include <string>
 #include <cstdint>
 
-struct IDrawList;
-
 namespace visual {
 
 /// Port widget in the new scene graph.

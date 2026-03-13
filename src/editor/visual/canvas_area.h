@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor/document.h"
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 
 
 /// Main canvas area renderer - handles tab content and canvas rendering

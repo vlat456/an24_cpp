@@ -2,7 +2,7 @@
 
 #include "algorithm.h"
 #include "path.h"
-#include "data/pt.h"
+#include "ui/math/pt.h"
 #include "data/node.h"
 #include "data/wire.h"
 #include "data/port.h"

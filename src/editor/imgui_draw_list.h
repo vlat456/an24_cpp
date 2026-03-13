@@ -1,8 +1,10 @@
 #pragma once
 
-#include "visual/renderer/draw_list.h"
-#include "data/pt.h"
+#include "ui/renderer/idraw_list.h"
+#include "ui/math/pt.h"
 #include <imgui.h>
+
+using ui::IDrawList;
 
 /// ImGui adapter for IDrawList interface
 /// Wraps ImDrawList* from ImGui for use with the blueprint renderer

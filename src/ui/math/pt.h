@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+namespace ui {
+
 /// Точка в 2D пространстве (x, y)
 /// Используется для позиций, размеров, смещений
 struct Pt {
@@ -23,3 +25,7 @@ struct Pt {
 
     bool operator!=(const Pt& o) const { return !(*this == o); }
 };
+
+} // namespace ui
+
+using ui::Pt;

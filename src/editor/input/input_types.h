@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/pt.h"
+#include "ui/math/pt.h"
 #include <string>
 
 /// Mouse buttons

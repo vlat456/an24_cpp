@@ -1,10 +1,12 @@
 #pragma once
 
-#include "pt.h"
+#include "../../ui/math/pt.h"
 #include "port.h"
 #include <string>
 #include <vector>
 #include <functional>
+
+using ui::Pt;
 
 /// Конец провода - ссылка на порт узла
 struct WireEnd {

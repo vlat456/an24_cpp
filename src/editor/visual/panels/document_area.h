@@ -3,7 +3,7 @@
 #include "editor/visual/canvas_renderer.h"
 #include "editor/visual/tabs/document_tabs.h"
 #include "editor/window_system.h"
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 #include <memory>
 
 struct ImDrawList;

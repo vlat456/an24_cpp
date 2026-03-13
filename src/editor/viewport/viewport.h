@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/pt.h"
+#include "ui/math/pt.h"
 
 /// Viewport - состояние канвы (pan, zoom, grid)
 ///

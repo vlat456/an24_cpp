@@ -1,10 +1,12 @@
 #pragma once
 
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 #include "editor/layout_constants.h"
 #include <cmath>
 
 namespace node_utils {
+
+using ui::Pt;
 
 inline Pt snap_to_grid(Pt pos) {
     return Pt(

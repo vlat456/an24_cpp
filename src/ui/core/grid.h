@@ -1,13 +1,12 @@
 #pragma once
+
 #include "ui/math/pt.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 #include <cmath>
 
-using ui::Pt;
-
-namespace visual {
+namespace ui {
 
 class Widget;
 
@@ -47,4 +46,4 @@ private:
     void removeFromCells(Widget* w, const Bounds& b);
 };
 
-} // namespace visual
+} // namespace ui

@@ -5,7 +5,7 @@
 #include "visual/render_context.h"
 #include "visual/renderer/render_theme.h"
 #include "editor/layout_constants.h"
-#include "data/pt.h"
+#include "ui/math/pt.h"
 #include <cstdint>
 
 /// Unified visual handle drawing — DRY for routing points, resize handles, etc.

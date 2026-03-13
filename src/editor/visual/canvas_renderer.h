@@ -1,7 +1,7 @@
 #pragma once
 
 #include "editor/document.h"
-#include "editor/data/pt.h"
+#include "ui/math/pt.h"
 #include "editor/window/blueprint_window.h"
 #include "editor/window_system.h"
 #include "editor/visual/node/node_content_renderer.h"

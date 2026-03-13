@@ -5,8 +5,6 @@
 #include <vector>
 #include <string>
 
-struct IDrawList;
-
 namespace visual {
 
 class WireEnd;

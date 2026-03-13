@@ -12,6 +12,109 @@
 
 include(GoogleTest)
 
+# UI Math tests (Phase 1.1 of UI Library Extraction)
+add_executable(ui_math_tests
+    test_ui_math.cpp
+)
+target_include_directories(ui_math_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_math_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_math_tests)
+
+# UI Layout tests (Phase 1.2 of UI Library Extraction)
+add_executable(ui_layout_tests
+    test_ui_layout.cpp
+)
+target_include_directories(ui_layout_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_layout_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_layout_tests)
+
+# UI Renderer tests (Phase 1.3 of UI Library Extraction)
+add_executable(ui_renderer_tests
+    test_ui_renderer.cpp
+)
+target_include_directories(ui_renderer_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_renderer_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_renderer_tests)
+
+# UI Widget purity tests (Phase 2.1 of UI Library Extraction)
+add_executable(ui_widget_purity_tests
+    test_ui_widget_purity.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
+)
+target_include_directories(ui_widget_purity_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_widget_purity_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_widget_purity_tests)
+
+# UI Scene tests (Phase 2.2 of UI Library Extraction)
+add_executable(ui_scene_tests
+    test_ui_scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/grid.cpp
+)
+target_include_directories(ui_scene_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_scene_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_scene_tests)
+
+# UI Grid tests (Phase 2.3 of UI Library Extraction)
+add_executable(ui_grid_tests
+    test_ui_grid.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/grid.cpp
+)
+target_include_directories(ui_grid_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_grid_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_grid_tests)
+
+# UI RenderContext tests (Phase 3.2 of UI Library Extraction)
+add_executable(ui_render_context_tests
+    test_ui_render_context.cpp
+)
+target_include_directories(ui_render_context_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_render_context_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_render_context_tests)
+
+# UI LinearLayout tests (Phase 4.1 of UI Library Extraction)
+add_executable(ui_linear_layout_tests
+    test_ui_linear_layout.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/core/widget.cpp
+)
+target_include_directories(ui_linear_layout_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_linear_layout_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_linear_layout_tests)
+
 # Visual Widget tests (Phase 1 of Scene Graph Refactoring)
 add_executable(visual_widget_tests
     test_visual_widget.cpp
