@@ -438,6 +438,12 @@
   "output": "examples/CMakeFiles/convert_library.dir/convert_library.cpp.o"
 },
 {
+  "directory": "/Users/vladimir/an24_cpp/build/tools",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/update_port_registry.dir/update_port_registry.cpp.o -c /Users/vladimir/an24_cpp/tools/update_port_registry.cpp",
+  "file": "/Users/vladimir/an24_cpp/tools/update_port_registry.cpp",
+  "output": "tools/CMakeFiles/update_port_registry.dir/update_port_registry.cpp.o"
+},
+{
   "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/ui_math_tests.dir/test_ui_math.cpp.o -c /Users/vladimir/an24_cpp/tests/test_ui_math.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_ui_math.cpp",
@@ -952,6 +958,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/azs_tests.dir/test_azs.cpp.o -c /Users/vladimir/an24_cpp/tests/test_azs.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_azs.cpp",
   "output": "tests/CMakeFiles/azs_tests.dir/test_azs.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.o -c /Users/vladimir/an24_cpp/tests/factory_validation_test.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/factory_validation_test.cpp",
+  "output": "tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

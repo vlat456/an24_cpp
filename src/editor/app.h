@@ -11,7 +11,9 @@
 #include "visual/inspector/inspector.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
+#include <spdlog/spdlog.h>
 #include <optional>
+#include <stdexcept>
 #include <unordered_set>
 
 /// Главное приложение редактора
@@ -84,7 +86,12 @@ struct EditorApp {
         if (simulation_running) {
             // If running, restart to rebuild components
             simulation.stop();
-            simulation.start(blueprint);
+            try {
+                simulation.start(blueprint);
+            } catch (const std::runtime_error& e) {
+                spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
+                simulation_running = false;
+            }
         }
         // If not running, components will be built on next start()
     }
@@ -92,8 +99,13 @@ struct EditorApp {
     /// Запустить симуляцию
     void start_simulation() {
         if (!simulation_running) {
-            simulation.start(blueprint);  // Creates components!
-            simulation_running = true;
+            try {
+                simulation.start(blueprint);  // Creates components!
+                simulation_running = true;
+            } catch (const std::runtime_error& e) {
+                spdlog::error("[sim] Failed to start simulation: {}", e.what());
+                simulation.stop();
+            }
         }
     }
 

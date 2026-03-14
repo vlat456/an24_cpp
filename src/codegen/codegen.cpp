@@ -14,7 +14,7 @@ namespace {
 
 std::string to_upper(const std::string& s) {
     std::string result = s;
-    for (char& c : result) c = std::toupper(c);
+    for (char& c : result) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return result;
 }
 
@@ -446,13 +446,13 @@ std::string CodeGen::generate_source(
     }
     oss << "}\n\n";
 
-    // Jump table dispatch - COMPUTED GOTO (faster than switch, branchless)
-    // Uses GCC/Clang labels-as-values extension
+    // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
     oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
     oss << "    // Accumulate dt for sub-rate domain scheduling\n";
     oss << "    acc_mechanical_ += dt;\n";
     oss << "    acc_hydraulic_  += dt;\n";
     oss << "    acc_thermal_    += dt;\n\n";
+    oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
     oss << "    static const void* dispatch_table[" << DomainSchedule::CYCLE_LENGTH << "] = {\n";
     for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
@@ -466,6 +466,14 @@ std::string CodeGen::generate_source(
         oss << "        step_" << i << "(state, dt);\n";
         oss << "        return;\n\n";
     }
+    oss << "#else\n";
+    oss << "    // MSVC fallback: switch-based dispatch\n";
+    oss << "    switch (step % " << DomainSchedule::CYCLE_LENGTH << ") {\n";
+    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+        oss << "        case " << i << ": step_" << i << "(state, dt); return;\n";
+    }
+    oss << "    }\n";
+    oss << "#endif\n";
     oss << "}\n\n";
 
     // Generate CYCLE_LENGTH step methods with domain scheduling
@@ -764,10 +772,9 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "// Component type enumeration\n";
     oss << "enum class ComponentType {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << all_components[i].classname;
-        if (i < all_components.size() - 1) oss << ",\n";
-        else oss << "\n";
+        oss << "    " << all_components[i].classname << ",\n";
     }
+    oss << "    _COUNT  // sentinel — must be last\n";
     oss << "};\n";
     oss << "\n";
 
@@ -858,6 +865,13 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "        component.post_step(st, dt);\n";
     oss << "    }\n";
     oss << "};\n\n";
+
+    // Compile-time guard: ComponentType enum and ComponentVariant must stay in sync
+    oss << "// Compile-time guard: ComponentType and ComponentVariant must stay in sync\n";
+    oss << "static_assert(\n";
+    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),\n";
+    oss << "    \"ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
+    oss << ");\n\n";
 
     // Write to file
     std::ofstream out(output_path);

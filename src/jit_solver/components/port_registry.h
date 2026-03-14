@@ -87,6 +87,7 @@ enum class ComponentType {
     BlueprintInput,
     BlueprintOutput,
     Bus,
+    Clamp,
     Comparator,
     DMR400,
     Divide,
@@ -95,6 +96,8 @@ enum class ComponentType {
     FastTMO,
     GS24,
     Generator,
+    Greater,
+    GreaterEq,
     Gyroscope,
     HighPowerLoad,
     HoldButton,
@@ -104,12 +107,17 @@ enum class ComponentType {
     Inverter,
     LUT,
     LerpNode,
+    Lesser,
+    LesserEq,
     Load,
+    Max,
     Merger,
+    Min,
     Monostable,
     Multiply,
     NAND,
     NOT,
+    Normalize,
     OR,
     P,
     PD,
@@ -126,13 +134,15 @@ enum class ComponentType {
     SlewRate,
     SolenoidValve,
     Splitter,
+    Spring,
     Subtract,
     Switch,
     TempSensor,
     TimeDelay,
     Transformer,
     Voltmeter,
-    XOR
+    XOR,
+    _COUNT  // sentinel — must be last
 };
 
 // Port count for each component
@@ -147,6 +157,7 @@ constexpr size_t Battery_PORT_COUNT = 2;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
+constexpr size_t Clamp_PORT_COUNT = 2;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
@@ -155,6 +166,8 @@ constexpr size_t ElectricPump_PORT_COUNT = 2;
 constexpr size_t FastTMO_PORT_COUNT = 2;
 constexpr size_t GS24_PORT_COUNT = 3;
 constexpr size_t Generator_PORT_COUNT = 2;
+constexpr size_t Greater_PORT_COUNT = 3;
+constexpr size_t GreaterEq_PORT_COUNT = 3;
 constexpr size_t Gyroscope_PORT_COUNT = 1;
 constexpr size_t HighPowerLoad_PORT_COUNT = 2;
 constexpr size_t HoldButton_PORT_COUNT = 4;
@@ -164,12 +177,17 @@ constexpr size_t Integrator_PORT_COUNT = 3;
 constexpr size_t Inverter_PORT_COUNT = 2;
 constexpr size_t LUT_PORT_COUNT = 2;
 constexpr size_t LerpNode_PORT_COUNT = 2;
+constexpr size_t Lesser_PORT_COUNT = 3;
+constexpr size_t LesserEq_PORT_COUNT = 3;
 constexpr size_t Load_PORT_COUNT = 1;
+constexpr size_t Max_PORT_COUNT = 3;
 constexpr size_t Merger_PORT_COUNT = 3;
+constexpr size_t Min_PORT_COUNT = 3;
 constexpr size_t Monostable_PORT_COUNT = 2;
 constexpr size_t Multiply_PORT_COUNT = 3;
 constexpr size_t NAND_PORT_COUNT = 3;
 constexpr size_t NOT_PORT_COUNT = 2;
+constexpr size_t Normalize_PORT_COUNT = 2;
 constexpr size_t OR_PORT_COUNT = 3;
 constexpr size_t P_PORT_COUNT = 3;
 constexpr size_t PD_PORT_COUNT = 3;
@@ -186,6 +204,7 @@ constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
+constexpr size_t Spring_PORT_COUNT = 3;
 constexpr size_t Subtract_PORT_COUNT = 3;
 constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
@@ -243,6 +262,10 @@ constexpr const char* BlueprintOutput_PORTS[] = {
 constexpr const char* Bus_PORTS[] = {
     "v"
 };
+constexpr const char* Clamp_PORTS[] = {
+    "in",
+    "out"
+};
 constexpr const char* Comparator_PORTS[] = {
     "Va",
     "Vb",
@@ -279,6 +302,16 @@ constexpr const char* GS24_PORTS[] = {
 constexpr const char* Generator_PORTS[] = {
     "v_in",
     "v_out"
+};
+constexpr const char* Greater_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
+constexpr const char* GreaterEq_PORTS[] = {
+    "A",
+    "B",
+    "o"
 };
 constexpr const char* Gyroscope_PORTS[] = {
     "input"
@@ -319,12 +352,32 @@ constexpr const char* LerpNode_PORTS[] = {
     "input",
     "output"
 };
+constexpr const char* Lesser_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
+constexpr const char* LesserEq_PORTS[] = {
+    "A",
+    "B",
+    "o"
+};
 constexpr const char* Load_PORTS[] = {
     "input"
+};
+constexpr const char* Max_PORTS[] = {
+    "A",
+    "B",
+    "o"
 };
 constexpr const char* Merger_PORTS[] = {
     "i1",
     "i2",
+    "o"
+};
+constexpr const char* Min_PORTS[] = {
+    "A",
+    "B",
     "o"
 };
 constexpr const char* Monostable_PORTS[] = {
@@ -344,6 +397,10 @@ constexpr const char* NAND_PORTS[] = {
 constexpr const char* NOT_PORTS[] = {
     "A",
     "o"
+};
+constexpr const char* Normalize_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* OR_PORTS[] = {
     "A",
@@ -420,6 +477,11 @@ constexpr const char* Splitter_PORTS[] = {
     "o1",
     "o2"
 };
+constexpr const char* Spring_PORTS[] = {
+    "force_out",
+    "pos_a",
+    "pos_b"
+};
 constexpr const char* Subtract_PORTS[] = {
     "A",
     "B",
@@ -471,6 +533,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"feedback", PortNames::feedback},
         {"flow_in", PortNames::flow_in},
         {"flow_out", PortNames::flow_out},
+        {"force_out", PortNames::force_out},
         {"heat_in", PortNames::heat_in},
         {"heat_out", PortNames::heat_out},
         {"i", PortNames::i},
@@ -487,6 +550,8 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"output", PortNames::output},
         {"p_out", PortNames::p_out},
         {"port", PortNames::port},
+        {"pos_a", PortNames::pos_a},
+        {"pos_b", PortNames::pos_b},
         {"power", PortNames::power},
         {"primary", PortNames::primary},
         {"reset", PortNames::reset},
@@ -527,6 +592,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
+        {"Clamp", {"in", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
@@ -535,6 +601,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"FastTMO", {"in", "out"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},
         {"Generator", {"v_in", "v_out"}},
+        {"Greater", {"A", "B", "o"}},
+        {"GreaterEq", {"A", "B", "o"}},
         {"Gyroscope", {"input"}},
         {"HighPowerLoad", {"v_in", "v_out"}},
         {"HoldButton", {"control", "state", "v_in", "v_out"}},
@@ -544,12 +612,17 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Inverter", {"ac_out", "dc_in"}},
         {"LUT", {"input", "output"}},
         {"LerpNode", {"input", "output"}},
+        {"Lesser", {"A", "B", "o"}},
+        {"LesserEq", {"A", "B", "o"}},
         {"Load", {"input"}},
+        {"Max", {"A", "B", "o"}},
         {"Merger", {"i1", "i2", "o"}},
+        {"Min", {"A", "B", "o"}},
         {"Monostable", {"in", "out"}},
         {"Multiply", {"A", "B", "o"}},
         {"NAND", {"A", "B", "o"}},
         {"NOT", {"A", "o"}},
+        {"Normalize", {"in", "out"}},
         {"OR", {"A", "B", "o"}},
         {"P", {"feedback", "output", "setpoint"}},
         {"PD", {"feedback", "output", "setpoint"}},
@@ -566,6 +639,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"SlewRate", {"in", "out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
+        {"Spring", {"force_out", "pos_a", "pos_b"}},
         {"Subtract", {"A", "B", "o"}},
         {"Switch", {"control", "state", "v_in", "v_out"}},
         {"TempSensor", {"temp_in", "temp_out"}},
@@ -612,7 +686,6 @@ using ComponentVariant = std::variant<
     HoldButton<JitProvider>,
     IndicatorLight<JitProvider>,
     InertiaNode<JitProvider>,
-    Spring<JitProvider>,
     Integrator<JitProvider>,
     Inverter<JitProvider>,
     LUT<JitProvider>,
@@ -620,14 +693,14 @@ using ComponentVariant = std::variant<
     Lesser<JitProvider>,
     LesserEq<JitProvider>,
     Load<JitProvider>,
-    Merger<JitProvider>,
     Max<JitProvider>,
+    Merger<JitProvider>,
     Min<JitProvider>,
     Monostable<JitProvider>,
     Multiply<JitProvider>,
-    Normalize<JitProvider>,
     NAND<JitProvider>,
     NOT<JitProvider>,
+    Normalize<JitProvider>,
     OR<JitProvider>,
     P<JitProvider>,
     PD<JitProvider>,
@@ -644,6 +717,7 @@ using ComponentVariant = std::variant<
     SlewRate<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
+    Spring<JitProvider>,
     Subtract<JitProvider>,
     Switch<JitProvider>,
     TempSensor<JitProvider>,
@@ -670,3 +744,10 @@ inline auto post_step_visitor = [](auto& component, SimulationState& st, float d
         component.post_step(st, dt);
     }
 };
+
+// Compile-time guard: ComponentType and ComponentVariant must stay in sync
+static_assert(
+    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),
+    "ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h"
+);
+

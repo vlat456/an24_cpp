@@ -564,6 +564,20 @@ azs_tests/fast:
 .PHONY : azs_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/factory_validation_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : tests/CMakeFiles/factory_validation_tests.dir/rule
+
+# Convenience name for target.
+factory_validation_tests: tests/CMakeFiles/factory_validation_tests.dir/rule
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/logical_solver_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/logical_solver_tests.dir/rule
 .PHONY : tests/CMakeFiles/logical_solver_tests.dir/rule
@@ -2232,6 +2246,30 @@ editor_componentvariant_test.s: editor_componentvariant_test.cpp.s
 editor_componentvariant_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_componentvariant_tests.dir/build.make tests/CMakeFiles/editor_componentvariant_tests.dir/editor_componentvariant_test.cpp.s
 .PHONY : editor_componentvariant_test.cpp.s
+
+factory_validation_test.o: factory_validation_test.cpp.o
+.PHONY : factory_validation_test.o
+
+# target to build an object file
+factory_validation_test.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.o
+.PHONY : factory_validation_test.cpp.o
+
+factory_validation_test.i: factory_validation_test.cpp.i
+.PHONY : factory_validation_test.i
+
+# target to preprocess a source file
+factory_validation_test.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.i
+.PHONY : factory_validation_test.cpp.i
+
+factory_validation_test.s: factory_validation_test.cpp.s
+.PHONY : factory_validation_test.s
+
+# target to generate assembly for a file
+factory_validation_test.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/factory_validation_test.cpp.s
+.PHONY : factory_validation_test.cpp.s
 
 json_parser_test.o: json_parser_test.cpp.o
 .PHONY : json_parser_test.o
@@ -3948,6 +3986,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... expand_typedef_tests"
+	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
@@ -4081,6 +4120,9 @@ help:
 	@echo "... editor_componentvariant_test.o"
 	@echo "... editor_componentvariant_test.i"
 	@echo "... editor_componentvariant_test.s"
+	@echo "... factory_validation_test.o"
+	@echo "... factory_validation_test.i"
+	@echo "... factory_validation_test.s"
 	@echo "... json_parser_test.o"
 	@echo "... json_parser_test.i"
 	@echo "... json_parser_test.s"

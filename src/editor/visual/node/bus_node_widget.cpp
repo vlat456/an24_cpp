@@ -22,8 +22,7 @@ BusNodeWidget::BusNodeWidget(const ::Node& data,
                              const ui::StringInterner& interner,
                              PortEdge port_edge,
                              const std::vector<::Wire>& wires)
-    : node_id_(interner.resolve(data.id))
-    , node_iid_(data.id)
+    : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
     , type_name_(data.type_name)

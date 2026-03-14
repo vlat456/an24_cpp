@@ -367,6 +367,32 @@ convert_library/fast:
 .PHONY : convert_library/fast
 
 #=============================================================================
+# Target rules for targets named update_port_registry
+
+# Build rule for target.
+update_port_registry: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 update_port_registry
+.PHONY : update_port_registry
+
+# fast build rule for target.
+update_port_registry/fast:
+	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/update_port_registry.dir/build.make tools/CMakeFiles/update_port_registry.dir/build
+.PHONY : update_port_registry/fast
+
+#=============================================================================
+# Target rules for targets named regenerate_port_registry
+
+# Build rule for target.
+regenerate_port_registry: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 regenerate_port_registry
+.PHONY : regenerate_port_registry
+
+# fast build rule for target.
+regenerate_port_registry/fast:
+	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/regenerate_port_registry.dir/build.make tools/CMakeFiles/regenerate_port_registry.dir/build
+.PHONY : regenerate_port_registry/fast
+
+#=============================================================================
 # Target rules for targets named ui_math_tests
 
 # Build rule for target.
@@ -729,6 +755,19 @@ azs_tests: cmake_check_build_system
 azs_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
 .PHONY : azs_tests/fast
+
+#=============================================================================
+# Target rules for targets named factory_validation_tests
+
+# Build rule for target.
+factory_validation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 factory_validation_tests
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
 
 #=============================================================================
 # Target rules for targets named logical_solver_tests
@@ -1302,6 +1341,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... regenerate_port_registry"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
@@ -1330,6 +1370,7 @@ help:
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... expand_typedef_tests"
+	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
@@ -1379,6 +1420,7 @@ help:
 	@echo "... ui_renderer_tests"
 	@echo "... ui_scene_tests"
 	@echo "... ui_widget_purity_tests"
+	@echo "... update_port_registry"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"

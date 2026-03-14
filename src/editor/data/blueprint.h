@@ -256,8 +256,9 @@ public:
         return find_node(iid);
     }
     const Node* find_node(const char* id) const {
-        // const_cast to allow interning — find_node(const char*) may add to interner
-        auto iid = const_cast<ui::StringInterner&>(interner_).intern(id);
+        // Use lookup (const, no mutation) — if string isn't interned, no node can have that ID
+        auto iid = interner_.lookup(id);
+        if (iid.empty()) return nullptr;
         return find_node(iid);
     }
 

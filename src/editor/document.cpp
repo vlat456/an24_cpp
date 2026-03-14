@@ -8,6 +8,7 @@
 #include "data/node.h"
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
+#include <stdexcept>
 #include <algorithm>
 #include <iostream>
 
@@ -72,8 +73,13 @@ bool Document::load(const std::string& path) {
 
 void Document::startSimulation() {
     if (!simulation_running_) {
-        simulation_.start(blueprint_);
-        simulation_running_ = true;
+        try {
+            simulation_.start(blueprint_);
+            simulation_running_ = true;
+        } catch (const std::runtime_error& e) {
+            spdlog::error("[sim] Failed to start simulation: {}", e.what());
+            simulation_.stop();
+        }
     }
 }
 
@@ -86,7 +92,12 @@ void Document::stopSimulation() {
 void Document::rebuildSimulation() {
     if (simulation_running_) {
         simulation_.stop();
-        simulation_.start(blueprint_);
+        try {
+            simulation_.start(blueprint_);
+        } catch (const std::runtime_error& e) {
+            spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
+            simulation_running_ = false;
+        }
     }
 }
 

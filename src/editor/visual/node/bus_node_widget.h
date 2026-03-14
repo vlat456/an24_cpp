@@ -32,10 +32,10 @@ public:
                   PortEdge port_edge = PortEdge::Bottom,
                   const std::vector<::Wire>& wires = {});
 
-    std::string_view id() const override { return node_id_; }
+    std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
 
-    std::string_view nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return interner_->resolve(node_iid_); }
     const std::string& name() const { return name_; }
     PortEdge portEdge() const { return port_edge_; }
 
@@ -67,7 +67,6 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    std::string_view node_id_;
     ui::InternedId node_iid_;           ///< Cached InternedId for efficient comparison
     const ui::StringInterner* interner_; ///< For resolving InternedId → string
     std::string name_;

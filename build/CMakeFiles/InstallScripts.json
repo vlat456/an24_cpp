@@ -13,6 +13,7 @@
 		"/Users/vladimir/an24_cpp/build/src/jit_solver/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/src/json_parser/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/examples/cmake_install.cmake",
+		"/Users/vladimir/an24_cpp/build/tools/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/tests/cmake_install.cmake",
 		"/Users/vladimir/an24_cpp/build/benchmarks/cmake_install.cmake"
 	],

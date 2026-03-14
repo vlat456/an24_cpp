@@ -27,10 +27,9 @@ void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult
             if (port_enum) {
                 comp.provider.set(*port_enum, it->second);
             } else {
-                spdlog::critical("[build] FATAL: unknown port name '{}' on device '{}'. "
-                    "Re-run codegen to update port_registry.h!",
-                    port_name, dev.name);
-                std::abort();
+                throw std::runtime_error(
+                    "[build] Unknown port name '" + port_name + "' on device '" + dev.name +
+                    "'. Re-run codegen to update port_registry.h, or fix the blueprint.");
             }
         }
     }

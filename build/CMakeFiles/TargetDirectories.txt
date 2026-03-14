@@ -97,6 +97,15 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/local.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/install/strip.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/update_port_registry.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/regenerate_port_registry.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/test.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/edit_cache.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/rebuild_cache.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/list_install_components.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/install.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/install/local.dir
+/Users/vladimir/an24_cpp/build/tools/CMakeFiles/install/strip.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_math_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_layout_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_renderer_tests.dir
@@ -125,6 +134,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/json_parser_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/azs_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/factory_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_ports_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_integration_tests.dir

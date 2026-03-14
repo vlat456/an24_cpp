@@ -558,21 +558,21 @@ target_link_libraries(azs_tests PRIVATE
 )
 gtest_discover_tests(azs_tests)
 
-# Factory validation tests (TDD - Task 2) - Disabled (uses old create_component API)
-# add_executable(factory_validation_tests
-#     factory_validation_test.cpp
-# )
-# target_include_directories(factory_validation_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(factory_validation_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(factory_validation_tests)
+# Factory validation tests
+add_executable(factory_validation_tests
+    factory_validation_test.cpp
+)
+target_include_directories(factory_validation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(factory_validation_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(factory_validation_tests)
 
 # Logical solver tests (TDD - Comparator component)
 add_executable(logical_solver_tests

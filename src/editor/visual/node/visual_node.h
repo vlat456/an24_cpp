@@ -26,10 +26,10 @@ class NodeWidget : public Widget {
 public:
     explicit NodeWidget(const ::Node& data, const ui::StringInterner& interner);
 
-    std::string_view id() const override { return node_id_; }
+    std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
 
-    std::string_view nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return interner_->resolve(node_iid_); }
     const std::string& name() const { return name_; }
     const std::string& typeName() const { return type_name_; }
 
@@ -56,7 +56,8 @@ public:
     std::optional<uint32_t> customColor() const override { return custom_fill_; }
 
 private:
-    std::string_view node_id_;
+    ui::InternedId node_iid_;
+    const ui::StringInterner* interner_;
     std::string name_;
     std::string type_name_;
 

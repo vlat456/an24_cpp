@@ -19,11 +19,11 @@ class GroupNodeWidget : public Widget {
 public:
     explicit GroupNodeWidget(const ::Node& data, const ui::StringInterner& interner);
 
-    std::string_view id() const override { return node_id_; }
+    std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
     RenderLayer renderLayer() const override { return RenderLayer::Group; }
 
-    std::string_view nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return interner_->resolve(node_iid_); }
     const std::string& name() const { return name_; }
 
     bool isResizable() const override { return true; }
@@ -41,7 +41,8 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    std::string_view node_id_;
+    ui::InternedId node_iid_;
+    const ui::StringInterner* interner_;
     std::string name_;
     std::optional<uint32_t> custom_fill_;
 };

@@ -815,7 +815,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
     bool is_bus = hit_node && (hit_node->render_hint == "bus");
 
     // Intern the port identifiers for O(1) comparison against wire InternedIds
-    auto& I = const_cast<ui::StringInterner&>(bp_.interner());
+    auto& I = bp_.interner();
     ui::InternedId port_node_iid = I.intern(port_node_id);
     ui::InternedId port_name_iid = I.intern(port_name_sv);
 
