@@ -104,6 +104,7 @@ int main(int argc, char** argv) {
         state.precompute_inv_conductance();
         state.solve_signals_balance(omega);
         result.systems.post_step(state, dt);
+        result.systems.solve_logical(state, dt);
     }
     std::cout << "Warmup complete.\n\n";
 
@@ -118,9 +119,11 @@ int main(int argc, char** argv) {
             state.precompute_inv_conductance();
             state.solve_signals_balance(omega);
             result.systems.post_step(state, dt);
+            result.systems.solve_logical(state, dt);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
+
         double total_ms = std::chrono::duration<double, std::milli>(end - start).count();
         double per_step_ns = (total_ms * 1e6) / bench_steps;
         double steps_per_sec = bench_steps / (total_ms / 1000.0);
@@ -182,6 +185,7 @@ int main(int argc, char** argv) {
                 state.solve_signals_balance(omega);
             }
             result.systems.post_step(state, dt);
+            result.systems.solve_logical(state, dt);
         }
 
         auto end = std::chrono::high_resolution_clock::now();

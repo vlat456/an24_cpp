@@ -49,8 +49,12 @@ public:
     /// Total component count
     [[nodiscard]] size_t component_count() const;
 
-    /// Run one solver step
+    /// Run one solver step (all domains except logical)
     void solve_step(SimulationState& state, size_t step, float dt);
+
+    /// Solve logical domain - must be called AFTER SOR + post_step
+    /// so logical gates read converged electrical values
+    void solve_logical(SimulationState& state, float dt);
 
     /// Post-step updates
     void post_step(SimulationState& state, float dt);

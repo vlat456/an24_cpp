@@ -137,6 +137,9 @@ int main(int argc, char** argv) {
 
         // Apply post-step constraints (relay contacts, etc.) after SOR update
         result.systems.post_step(state, dt);
+
+        // Logical: after SOR + post_step so gates read converged values
+        result.systems.solve_logical(state, dt);
     }
 
     // Print results

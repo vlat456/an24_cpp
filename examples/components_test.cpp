@@ -93,6 +93,9 @@ static void run_simulation(SimState& sim, Systems& systems, int steps = 100) {
 
         // Post-step: relay switches copy voltage
         systems.post_step(sim.state, 1.0f / 60.0f);
+
+        // Logical: after SOR + post_step so gates read converged values
+        systems.solve_logical(sim.state, 1.0f / 60.0f);
     }
 }
 

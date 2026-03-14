@@ -105,10 +105,15 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
         accumulator_thermal = 0.0f;  // Reset after use
     }
 
-    // Logical: AFTER all other domains + SOR/post_step so logical gates
-    // read converged values and their outputs are final
+    // NOTE: Logical domain is NOT run here. Callers must invoke solve_logical()
+    // AFTER SOR + post_step so logical gates read converged values.
+    // See Simulator::step() for the correct ordering:
+    //   electrical -> mechanical -> hydraulic -> thermal -> SOR -> post_step -> logical
+}
+
+void Systems::solve_logical(SimulationState& state, float dt) {
     for (auto& comp : logical) {
-        comp->solve_logical(state, safe_dt);
+        comp->solve_logical(state, dt);
     }
 }
 
