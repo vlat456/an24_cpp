@@ -16,6 +16,10 @@ public:
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
+    /// Ports are looked up via portByName(), not scene.find().
+    /// Returning false prevents alias-port IDs from shadowing wire IDs
+    /// in the scene's id_index_.
+    bool isIndexable() const override { return false; }
 
     const std::string& name() const { return name_; }
     PortSide side() const { return side_; }

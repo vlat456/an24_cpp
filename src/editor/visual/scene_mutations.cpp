@@ -2,7 +2,6 @@
 #include "scene.h"
 #include "node/node_factory.h"
 #include "wire/wire.h"
-#include "wire/wire_end.h"
 #include "wire/routing_point.h"
 #include <algorithm>
 #include <cassert>
@@ -26,17 +25,16 @@ static Port* resolve_port(Scene& scene, const ::WireEnd& we,
 /// Create a visual::Wire widget from a data Wire and add it to the scene.
 /// Returns the added Wire widget, or nullptr if ports could not be resolved.
 static visual::Wire* create_wire_widget(Scene& scene, const ::Wire& data_wire) {
+    // Validate that both endpoint ports exist before creating the widget
     Port* start_port = resolve_port(scene, data_wire.start, data_wire.id);
     Port* end_port = resolve_port(scene, data_wire.end, data_wire.id);
-
     if (!start_port || !end_port) return nullptr;
 
-    // Create WireEnd children on the ports
-    auto* start_end = start_port->emplaceChild<visual::WireEnd>(nullptr);
-    auto* end_end = end_port->emplaceChild<visual::WireEnd>(nullptr);
-
-    // Create the Wire widget (it links itself to the WireEnds)
-    auto wire_widget = std::make_unique<visual::Wire>(data_wire.id, start_end, end_end);
+    // Create the Wire widget (stores endpoint IDs, resolves positions dynamically)
+    auto wire_widget = std::make_unique<visual::Wire>(
+        data_wire.id,
+        data_wire.start.node_id, data_wire.start.port_name,
+        data_wire.end.node_id, data_wire.end.port_name);
     auto* wire_ptr = wire_widget.get();
 
     // Add routing points as children of the wire
@@ -49,7 +47,6 @@ static visual::Wire* create_wire_widget(Scene& scene, const ::Wire& data_wire) {
 }
 
 /// Remove a visual::Wire widget from the scene by id.
-/// Also removes the WireEnd children from their parent ports.
 static void destroy_wire_widget(Scene& scene, const std::string& wire_id) {
     auto* w = scene.find(wire_id);
     if (!w) return;
@@ -58,22 +55,29 @@ static void destroy_wire_widget(Scene& scene, const std::string& wire_id) {
 
 /// Recreate visual wire widgets for all wires connected to a bus node.
 /// Must be called after rebuildPorts() on a bus, because port rebuild
-/// destroys all WireEnd children, leaving existing wire widgets orphaned.
+/// may change alias port mappings.
 /// \p exclude_wire_id  Skip this wire (caller handles it separately).
+/// \p already_recreated  Set of wire IDs that were already recreated by a
+///    prior call (e.g. when both endpoints are bus nodes). Pass-through to
+///    avoid creating duplicate Wire widgets in roots_. Newly recreated
+///    wire IDs are inserted into this set.
 /// Uses bus_wire_index_ for O(1) lookup instead of scanning all wires.
 static void recreate_bus_wires(Scene& scene, const Blueprint& bp,
                                const std::string& bus_node_id,
-                               const std::string& exclude_wire_id = {}) {
+                               const std::string& exclude_wire_id = {},
+                               std::unordered_set<std::string>* already_recreated = nullptr) {
     // Copy wire IDs to avoid holding a reference into bus_wire_index_
     // across scene mutations (widget destructors could theoretically
     // trigger Blueprint modifications in the future).
     const auto wire_ids = bp.busWires(bus_node_id);  // copy
     
-    // Phase 1: Destroy orphaned wire widgets
+    // Phase 1: Destroy orphaned wire widgets (skip wires already recreated
+    // by a prior call — they are live and valid, not orphaned).
     {
         auto guard = scene.flushGuard();
         for (const auto& wid : wire_ids) {
             if (wid == exclude_wire_id) continue;
+            if (already_recreated && already_recreated->count(wid)) continue;
             destroy_wire_widget(scene, wid);
         }
     }
@@ -81,9 +85,11 @@ static void recreate_bus_wires(Scene& scene, const Blueprint& bp,
     // Phase 2: Recreate wire widgets from Blueprint data via O(1) lookup
     for (const auto& wid : wire_ids) {
         if (wid == exclude_wire_id) continue;
+        if (already_recreated && already_recreated->count(wid)) continue;
         const auto* w = bp.find_wire(wid);
         if (w) {
             create_wire_widget(scene, *w);
+            if (already_recreated) already_recreated->insert(wid);
         }
     }
 }
@@ -242,11 +248,15 @@ bool add_wire(Scene& scene, Blueprint& bp, ::Wire wire,
             bus->disconnectWire(wire_copy);
         if (auto* bus = dynamic_cast<BusNodeWidget*>(end_widget))
             bus->disconnectWire(wire_copy);
-        // Recreate orphaned wires after rollback
-        if (!bus_start_id.empty())
-            recreate_bus_wires(scene, bp, bus_start_id);
-        if (!bus_end_id.empty() && bus_end_id != bus_start_id)
-            recreate_bus_wires(scene, bp, bus_end_id);
+        // Recreate orphaned wires after rollback.
+        // Use a shared set to avoid double-creating wires that touch both buses.
+        if (!bus_start_id.empty() || !bus_end_id.empty()) {
+            std::unordered_set<std::string> already_recreated;
+            if (!bus_start_id.empty())
+                recreate_bus_wires(scene, bp, bus_start_id, {}, &already_recreated);
+            if (!bus_end_id.empty() && bus_end_id != bus_start_id)
+                recreate_bus_wires(scene, bp, bus_end_id, {}, &already_recreated);
+        }
         return false;
     }
 
@@ -255,11 +265,15 @@ bool add_wire(Scene& scene, Blueprint& bp, ::Wire wire,
     // Create visual wire widget for the new wire
     create_wire_widget(scene, added_wire);
 
-    // Recreate orphaned wire widgets on affected bus nodes
-    if (!bus_start_id.empty())
-        recreate_bus_wires(scene, bp, bus_start_id, added_wire.id);
-    if (!bus_end_id.empty() && bus_end_id != bus_start_id)
-        recreate_bus_wires(scene, bp, bus_end_id, added_wire.id);
+    // Recreate orphaned wire widgets on affected bus nodes.
+    // Use a shared set to avoid double-creating wires that touch both buses.
+    if (!bus_start_id.empty() || !bus_end_id.empty()) {
+        std::unordered_set<std::string> already_recreated;
+        if (!bus_start_id.empty())
+            recreate_bus_wires(scene, bp, bus_start_id, added_wire.id, &already_recreated);
+        if (!bus_end_id.empty() && bus_end_id != bus_start_id)
+            recreate_bus_wires(scene, bp, bus_end_id, added_wire.id, &already_recreated);
+    }
 
     return true;
 }
@@ -292,11 +306,15 @@ void remove_wire(Scene& scene, Blueprint& bp, size_t index) {
     // Remove from Blueprint
     bp.remove_wire_at(index);
 
-    // Recreate orphaned wire widgets on affected bus nodes
-    if (!bus_start_id.empty())
-        recreate_bus_wires(scene, bp, bus_start_id);
-    if (!bus_end_id.empty() && bus_end_id != bus_start_id)
-        recreate_bus_wires(scene, bp, bus_end_id);
+    // Recreate orphaned wire widgets on affected bus nodes.
+    // Use a shared set to avoid double-creating wires that touch both buses.
+    if (!bus_start_id.empty() || !bus_end_id.empty()) {
+        std::unordered_set<std::string> already_recreated;
+        if (!bus_start_id.empty())
+            recreate_bus_wires(scene, bp, bus_start_id, {}, &already_recreated);
+        if (!bus_end_id.empty() && bus_end_id != bus_start_id)
+            recreate_bus_wires(scene, bp, bus_end_id, {}, &already_recreated);
+    }
 }
 
 void reconnect_wire(Scene& scene, Blueprint& bp,
@@ -324,9 +342,11 @@ void reconnect_wire(Scene& scene, Blueprint& bp,
         destroy_wire_widget(scene, wire_id);
     }
 
-    // Recreate orphaned wire widgets on the old bus (ports were rebuilt)
+    // Recreate orphaned wire widgets on the old bus (ports were rebuilt).
+    // Track recreated wires to avoid duplicates if the new bus shares wires.
+    std::unordered_set<std::string> already_recreated;
     if (!old_bus_id.empty())
-        recreate_bus_wires(scene, bp, old_bus_id, wire_id);
+        recreate_bus_wires(scene, bp, old_bus_id, wire_id, &already_recreated);
 
     // Update Blueprint data
     ::Wire old_wire = wire;  // snapshot before modification
@@ -352,20 +372,23 @@ void reconnect_wire(Scene& scene, Blueprint& bp,
 
     // Recreate orphaned wire widgets on the new bus (if different from old)
     if (!new_bus_id.empty() && new_bus_id != old_bus_id)
-        recreate_bus_wires(scene, bp, new_bus_id, wire_id);
+        recreate_bus_wires(scene, bp, new_bus_id, wire_id, &already_recreated);
 }
 
 bool swap_wire_ports_on_bus(Scene& scene, Blueprint& bp,
                             const std::string& bus_node_id,
                             const std::string& wire_id_a,
                             const std::string& wire_id_b) {
-    // Find wire indices in Blueprint
-    size_t idx_a = SIZE_MAX, idx_b = SIZE_MAX;
-    for (size_t i = 0; i < bp.wires.size(); ++i) {
-        if (bp.wires[i].id == wire_id_a) idx_a = i;
-        if (bp.wires[i].id == wire_id_b) idx_b = i;
-    }
-    if (idx_a == SIZE_MAX || idx_b == SIZE_MAX) return false;
+    if (wire_id_a == wire_id_b) return false;  // no-op: same wire
+
+    // Find wire indices in Blueprint via O(1) index lookup
+    const auto* wa = bp.find_wire(wire_id_a);
+    const auto* wb = bp.find_wire(wire_id_b);
+    if (!wa || !wb) return false;
+
+    // find_wire returns a pointer into bp.wires; compute indices from that
+    size_t idx_a = static_cast<size_t>(wa - bp.wires.data());
+    size_t idx_b = static_cast<size_t>(wb - bp.wires.data());
 
     // Find the bus widget and swap its alias ports.
     // swapAliasPorts → rebuildPorts orphans existing wire widgets.
@@ -375,6 +398,7 @@ bool swap_wire_ports_on_bus(Scene& scene, Blueprint& bp,
 
     // Swap wires in Blueprint to maintain order consistency
     std::swap(bp.wires[idx_a], bp.wires[idx_b]);
+    bp.rebuild_wire_id_index();
 
     // Recreate orphaned wire widgets on the bus
     recreate_bus_wires(scene, bp, bus_node_id);

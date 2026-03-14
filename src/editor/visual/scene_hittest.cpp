@@ -3,7 +3,6 @@
 #include "ui/core/grid.h"
 #include "widget.h"
 #include "wire/wire.h"
-#include "wire/wire_end.h"
 #include "wire/routing_point.h"
 #include "port/visual_port.h"
 #include "node/group_node_widget.h"

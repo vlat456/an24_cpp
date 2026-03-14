@@ -7,7 +7,6 @@ using ui::Pt;
 #include "editor/visual/scene.h"
 #include "editor/visual/widget.h"
 #include "editor/visual/wire/wire.h"
-#include "editor/visual/wire/wire_end.h"
 #include "editor/visual/wire/routing_point.h"
 #include "editor/visual/port/visual_port.h"
 #include "editor/visual/node/group_node_widget.h"
@@ -26,6 +25,17 @@ public:
     }
     std::string_view id() const override { return id_; }
     bool isClickable() const override { return true; }
+
+    /// Resolve child Port by name so Wire::resolveEndpoint() can find ports.
+    visual::Port* portByName(std::string_view port_name,
+                             std::string_view /*wire_id*/ = {}) const override {
+        for (const auto& c : children()) {
+            if (auto* p = dynamic_cast<visual::Port*>(c.get())) {
+                if (p->name() == port_name) return p;
+            }
+        }
+        return nullptr;
+    }
 private:
     std::string id_;
 };
@@ -157,29 +167,18 @@ TEST(SceneHitTest, HitWireSegment) {
     auto node_a = std::make_unique<TestNode>("a", Pt(0, 0), Pt(100, 60));
     auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
     port_a->setLocalPos(Pt(100, 30));
-    auto* pa = port_a.get();
     node_a->addChild(std::move(port_a));
 
     auto node_b = std::make_unique<TestNode>("b", Pt(300, 0), Pt(100, 60));
     auto port_b = std::make_unique<visual::Port>("in", PortSide::Input, PortType::V);
     port_b->setLocalPos(Pt(0, 30));
-    auto* pb = port_b.get();
     node_b->addChild(std::move(port_b));
 
     scene.add(std::move(node_a));
     scene.add(std::move(node_b));
 
-    // Create wire ends as children of ports
-    auto we_s = std::make_unique<visual::WireEnd>(nullptr);
-    auto we_e = std::make_unique<visual::WireEnd>(nullptr);
-    auto* ws = we_s.get();
-    auto* we = we_e.get();
-    pa->addChild(std::move(we_s));
-    pb->addChild(std::move(we_e));
-
-    // Wire polyline: (100,30) + (RADIUS,RADIUS) -> (300,30) + (RADIUS,RADIUS)
-    // But WireEnd worldPos = port worldPos + (0,0) = (100,30) and (300,30)
-    auto wire = std::make_unique<visual::Wire>("w1", ws, we);
+    // Wire resolves endpoints dynamically via node_id + port_name
+    auto wire = std::make_unique<visual::Wire>("w1", "a", "out", "b", "in");
     auto* wptr = wire.get();
     scene.add(std::move(wire));
 
@@ -196,26 +195,17 @@ TEST(SceneHitTest, MissWireSegment) {
     auto node_a = std::make_unique<TestNode>("a", Pt(0, 0), Pt(100, 60));
     auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
     port_a->setLocalPos(Pt(100, 30));
-    auto* pa = port_a.get();
     node_a->addChild(std::move(port_a));
 
     auto node_b = std::make_unique<TestNode>("b", Pt(300, 0), Pt(100, 60));
     auto port_b = std::make_unique<visual::Port>("in", PortSide::Input, PortType::V);
     port_b->setLocalPos(Pt(0, 30));
-    auto* pb = port_b.get();
     node_b->addChild(std::move(port_b));
 
     scene.add(std::move(node_a));
     scene.add(std::move(node_b));
 
-    auto we_s = std::make_unique<visual::WireEnd>(nullptr);
-    auto we_e = std::make_unique<visual::WireEnd>(nullptr);
-    auto* ws = we_s.get();
-    auto* we = we_e.get();
-    pa->addChild(std::move(we_s));
-    pb->addChild(std::move(we_e));
-
-    auto wire = std::make_unique<visual::Wire>("w1", ws, we);
+    auto wire = std::make_unique<visual::Wire>("w1", "a", "out", "b", "in");
     scene.add(std::move(wire));
 
     // Click far from wire (y=200, wire is at y=30)
@@ -230,7 +220,7 @@ TEST(SceneHitTest, MissWireSegment) {
 TEST(SceneHitTest, HitRoutingPoint) {
     visual::Scene scene;
 
-    auto wire = std::make_unique<visual::Wire>("w1", nullptr, nullptr);
+    auto wire = std::make_unique<visual::Wire>("w1", "", "", "", "");
     auto* wptr = wire.get();
     wire->addRoutingPoint(Pt(150, 80), 0);
     scene.add(std::move(wire));
@@ -250,26 +240,17 @@ TEST(SceneHitTest, RoutingPointPriorityOverWire) {
     auto node_a = std::make_unique<TestNode>("a", Pt(0, 0), Pt(10, 10));
     auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
     port_a->setLocalPos(Pt(0, 0));
-    auto* pa = port_a.get();
     node_a->addChild(std::move(port_a));
 
     auto node_b = std::make_unique<TestNode>("b", Pt(300, 0), Pt(10, 10));
     auto port_b = std::make_unique<visual::Port>("in", PortSide::Input, PortType::V);
     port_b->setLocalPos(Pt(0, 0));
-    auto* pb = port_b.get();
     node_b->addChild(std::move(port_b));
 
     scene.add(std::move(node_a));
     scene.add(std::move(node_b));
 
-    auto we_s = std::make_unique<visual::WireEnd>(nullptr);
-    auto we_e = std::make_unique<visual::WireEnd>(nullptr);
-    auto* ws = we_s.get();
-    auto* we = we_e.get();
-    pa->addChild(std::move(we_s));
-    pb->addChild(std::move(we_e));
-
-    auto wire = std::make_unique<visual::Wire>("w1", ws, we);
+    auto wire = std::make_unique<visual::Wire>("w1", "a", "out", "b", "in");
     // Routing point is ON the wire's path
     wire->addRoutingPoint(Pt(150, 0), 0);
     scene.add(std::move(wire));
@@ -290,26 +271,17 @@ TEST(SceneHitTest, WireSegmentIndex) {
     auto node_a = std::make_unique<TestNode>("a", Pt(0, 50), Pt(10, 10));
     auto port_a = std::make_unique<visual::Port>("out", PortSide::Output, PortType::V);
     port_a->setLocalPos(Pt(0, 0));
-    auto* pa = port_a.get();
     node_a->addChild(std::move(port_a));
 
     auto node_b = std::make_unique<TestNode>("b", Pt(400, 50), Pt(10, 10));
     auto port_b = std::make_unique<visual::Port>("in", PortSide::Input, PortType::V);
     port_b->setLocalPos(Pt(0, 0));
-    auto* pb = port_b.get();
     node_b->addChild(std::move(port_b));
 
     scene.add(std::move(node_a));
     scene.add(std::move(node_b));
 
-    auto we_s = std::make_unique<visual::WireEnd>(nullptr);
-    auto we_e = std::make_unique<visual::WireEnd>(nullptr);
-    auto* ws = we_s.get();
-    auto* we = we_e.get();
-    pa->addChild(std::move(we_s));
-    pb->addChild(std::move(we_e));
-
-    auto wire = std::make_unique<visual::Wire>("w1", ws, we);
+    auto wire = std::make_unique<visual::Wire>("w1", "a", "out", "b", "in");
     auto* wptr = wire.get();
     // Polyline: (0,50) -> (200,100) -> (400,50)
     wire->addRoutingPoint(Pt(200, 100), 0);
@@ -330,7 +302,7 @@ TEST(SceneHitTest, WireSegmentIndex) {
 TEST(SceneHitTest, MultipleRoutingPoints) {
     visual::Scene scene;
 
-    auto wire = std::make_unique<visual::Wire>("w1", nullptr, nullptr);
+    auto wire = std::make_unique<visual::Wire>("w1", "", "", "", "");
     auto* wptr = wire.get();
     wire->addRoutingPoint(Pt(100, 100), 0);
     wire->addRoutingPoint(Pt(200, 200), 1);
@@ -377,7 +349,7 @@ TEST(HitMath, DistanceToSegment) {
 
 TEST(SceneHitTest, NullEndpointWireNoCrash) {
     visual::Scene scene;
-    auto wire = std::make_unique<visual::Wire>("w1", nullptr, nullptr);
+    auto wire = std::make_unique<visual::Wire>("w1", "", "", "", "");
     scene.add(std::move(wire));
 
     // No crash, just empty (no polyline points)

@@ -5,7 +5,6 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
 #include "visual/wire/wire.h"
-#include "visual/wire/wire_end.h"
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
@@ -19,12 +18,12 @@ namespace visual {
 // Construction
 // ============================================================================
 
-BusNodeWidget::BusNodeWidget(const ::Node& data, BusOrientation orientation,
+BusNodeWidget::BusNodeWidget(const ::Node& data, PortEdge port_edge,
                              const std::vector<::Wire>& wires)
     : node_id_(data.id)
     , name_(data.name)
     , type_name_(data.type_name)
-    , orientation_(orientation)
+    , port_edge_(port_edge)
 {
     if (data.color.has_value()) {
         custom_fill_ = data.color->to_uint32();
@@ -51,20 +50,8 @@ BusNodeWidget::BusNodeWidget(const ::Node& data, BusOrientation orientation,
 // ============================================================================
 
 void BusNodeWidget::rebuildPorts() {
-    // Clear wire back-pointers on all WireEnd children BEFORE destroying
-    // ports. Without this, destroying a Port destroys its WireEnd children,
-    // whose destructors call Wire::onEndpointDestroyed → scene()->remove(wire),
-    // cascading into the removal of ALL visual wires on this bus node.
-    //
-    // clearWire() breaks the connection in both directions, preventing
-    // dangling pointers when the Wire is later destroyed in flushRemovals().
-    for (auto* port : ports_) {
-        for (auto& child : port->children()) {
-            if (auto* we = dynamic_cast<WireEnd*>(child.get())) {
-                we->clearWire();
-            }
-        }
-    }
+    // Ports no longer own WireEnd children — Wire stores endpoint IDs
+    // and resolves positions dynamically. Just clear the port list.
     ports_.clear();
 
     // Detach old ports from the scene (grid + id_index) BEFORE destroying
@@ -115,12 +102,16 @@ void BusNodeWidget::rebuildPorts() {
 Pt BusNodeWidget::calculateBusSize(size_t port_count) const {
     constexpr float g = editor_constants::PORT_LAYOUT_GRID;
     Pt sz;
-    if (orientation_ == BusOrientation::Horizontal) {
-        sz = Pt((port_count + 2) * g, g * 2);
-    } else {
-        sz = Pt(g * 2, (port_count + 2) * g);
+    switch (port_edge_) {
+        case PortEdge::Bottom:
+        case PortEdge::Top:
+            sz = Pt((port_count + 2) * g, g * 2);
+            break;
+        case PortEdge::Left:
+        case PortEdge::Right:
+            sz = Pt(g * 2, (port_count + 2) * g);
+            break;
     }
-    // Snap to grid
     sz.x = std::ceil(sz.x / g) * g;
     sz.y = std::ceil(sz.y / g) * g;
     return sz;
@@ -132,21 +123,20 @@ Pt BusNodeWidget::calculatePortLocalPos(size_t index) const {
                   size().y / 2.0f - editor_constants::PORT_RADIUS);
     }
 
-    // Determine port edge from aspect ratio
-    bool ports_on_bottom = (size().x > size().y);
     float step = editor_constants::PORT_LAYOUT_GRID;
+    float offset = step * (index + 1) - editor_constants::PORT_RADIUS;
 
-    if (ports_on_bottom) {
-        // Ports along bottom edge — offset so circle center sits on the edge
-        float x = step * (index + 1) - editor_constants::PORT_RADIUS;
-        float y = size().y - editor_constants::PORT_RADIUS;
-        return Pt(x, y);
-    } else {
-        // Ports along right edge — offset so circle center sits on the edge
-        float x = size().x - editor_constants::PORT_RADIUS;
-        float y = step * (index + 1) - editor_constants::PORT_RADIUS;
-        return Pt(x, y);
+    switch (port_edge_) {
+        case PortEdge::Bottom:
+            return Pt(offset, size().y - editor_constants::PORT_RADIUS);
+        case PortEdge::Top:
+            return Pt(offset, -editor_constants::PORT_RADIUS);
+        case PortEdge::Right:
+            return Pt(size().x - editor_constants::PORT_RADIUS, offset);
+        case PortEdge::Left:
+            return Pt(-editor_constants::PORT_RADIUS, offset);
     }
+    return Pt(0, 0);
 }
 
 Port* BusNodeWidget::resolveWirePort(const std::string& port_name,

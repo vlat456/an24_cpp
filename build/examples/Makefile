@@ -1349,30 +1349,6 @@ __/src/editor/visual/wire/wire.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire.cpp.s
 .PHONY : __/src/editor/visual/wire/wire.cpp.s
 
-__/src/editor/visual/wire/wire_end.o: __/src/editor/visual/wire/wire_end.cpp.o
-.PHONY : __/src/editor/visual/wire/wire_end.o
-
-# target to build an object file
-__/src/editor/visual/wire/wire_end.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire_end.cpp.o
-.PHONY : __/src/editor/visual/wire/wire_end.cpp.o
-
-__/src/editor/visual/wire/wire_end.i: __/src/editor/visual/wire/wire_end.cpp.i
-.PHONY : __/src/editor/visual/wire/wire_end.i
-
-# target to preprocess a source file
-__/src/editor/visual/wire/wire_end.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire_end.cpp.i
-.PHONY : __/src/editor/visual/wire/wire_end.cpp.i
-
-__/src/editor/visual/wire/wire_end.s: __/src/editor/visual/wire/wire_end.cpp.s
-.PHONY : __/src/editor/visual/wire/wire_end.s
-
-# target to generate assembly for a file
-__/src/editor/visual/wire/wire_end.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire_end.cpp.s
-.PHONY : __/src/editor/visual/wire/wire_end.cpp.s
-
 __/src/editor/window/properties_window.o: __/src/editor/window/properties_window.cpp.o
 .PHONY : __/src/editor/window/properties_window.o
 
@@ -1696,9 +1672,6 @@ help:
 	@echo "... __/src/editor/visual/wire/wire.o"
 	@echo "... __/src/editor/visual/wire/wire.i"
 	@echo "... __/src/editor/visual/wire/wire.s"
-	@echo "... __/src/editor/visual/wire/wire_end.o"
-	@echo "... __/src/editor/visual/wire/wire_end.i"
-	@echo "... __/src/editor/visual/wire/wire_end.s"
 	@echo "... __/src/editor/window/properties_window.o"
 	@echo "... __/src/editor/window/properties_window.i"
 	@echo "... __/src/editor/window/properties_window.s"

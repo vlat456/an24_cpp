@@ -8,12 +8,19 @@
 
 namespace visual {
 
-class WireEnd;
 class RoutingPoint;
 class Scene;
 
+/// Endpoint descriptor: identifies a port by node ID + port name.
+/// The Wire resolves world positions dynamically via scene_->find(node_id)->portByName(...).
+struct WireEndpoint {
+    std::string node_id;
+    std::string port_name;
+    std::string wire_id;   ///< Passed to portByName() for bus alias port resolution.
+};
+
 /// Wire is a root-level widget in the Scene.
-/// Connects two WireEnds (which live as children of Ports).
+/// Stores endpoint IDs and resolves world positions dynamically.
 /// Owns RoutingPoint children for polyline bends.
 ///
 /// Bounding box: overrides worldMin()/worldMax() to compute from polyline.
@@ -21,15 +28,17 @@ class Scene;
 /// RoutingPoints store absolute world coords in their local_pos_.
 class Wire : public Widget {
 public:
-    Wire(const std::string& id, WireEnd* start, WireEnd* end);
-    ~Wire() override;
+    Wire(const std::string& id,
+         const std::string& start_node, const std::string& start_port,
+         const std::string& end_node, const std::string& end_port);
+    ~Wire() override = default;
 
     std::string_view id() const override { return id_; }
     bool isClickable() const override { return true; }
     RenderLayer renderLayer() const override { return RenderLayer::Wire; }
 
-    WireEnd* start() const { return start_; }
-    WireEnd* end() const { return end_; }
+    const WireEndpoint& startEndpoint() const { return start_; }
+    const WireEndpoint& endEndpoint() const { return end_; }
 
     /// Build polyline: start -> routing points -> end (world coords).
     /// Result is cached; use invalidateGeometry() to force recomputation.
@@ -43,20 +52,10 @@ public:
     void removeRoutingPoint(size_t index);
 
     /// Mark cached geometry (polyline + bounding box) as stale.
-    /// Called automatically on routing-point add/remove and endpoint destruction.
     /// External callers (e.g. node drag) should call this when wire endpoints move.
     void invalidateGeometry() const { dirty_ = true; }
 
     void render(IDrawList* dl, const RenderContext& ctx) const override;
-
-    /// Called by WireEnd destructor — triggers deferred self-removal
-    void onEndpointDestroyed(WireEnd* end);
-
-    /// Silently detach a WireEnd pointer without triggering self-removal.
-    /// Used by BusNodeWidget::rebuildPorts() to prevent dangling pointers
-    /// when ports are rebuilt. Unlike onEndpointDestroyed(), this does NOT
-    /// queue the wire for scene removal.
-    void detachEndpoint(WireEnd* end);
 
     /// Crossing points where other wires cross over this wire.
     /// Populated by compute_wire_crossings() before rendering each frame.
@@ -68,11 +67,16 @@ public:
 
 private:
     std::string id_;
-    WireEnd* start_;
-    WireEnd* end_;
+    WireEndpoint start_;
+    WireEndpoint end_;
     ui::SmallVector<WireCrossing, 4> crossings_;
 
     static constexpr float BBOX_PADDING = 4.0f;
+
+    /// Resolve a WireEndpoint to a world position via the scene graph.
+    /// Returns the port center (port worldPos + Port::RADIUS offset).
+    /// Returns nullopt if the node or port cannot be found.
+    std::optional<Pt> resolveEndpoint(const WireEndpoint& ep) const;
 
     /// Rebuild cached_polyline_, cached_min_, cached_max_ if dirty.
     void rebuildGeometry() const;

@@ -124,7 +124,6 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp

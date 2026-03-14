@@ -374,7 +374,7 @@ TEST(BusNodeWidget, ConstructWithWires) {
         wire_output("bus1", "v"),
         wire_input("load1", "v_in")));
 
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     // 2 alias ports (w1, w2) + 1 base "v" port = 3
     EXPECT_EQ(bw.ports().size(), 3u);
@@ -395,7 +395,7 @@ TEST(BusNodeWidget, ResolveWirePort) {
         wire_output("bat1", "v_out"),
         wire_input("bus1", "v")));
 
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     // Asking for "v" with wire_id "w1" should return the alias port
     auto* alias = bw.resolveWirePort("v", "w1");
@@ -443,7 +443,7 @@ TEST(BusNodeWidget, DisconnectWire) {
         wire_input("load1", "v_in"));
 
     std::vector<Wire> wires = {w1, w2};
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     EXPECT_EQ(bw.ports().size(), 3u);
 
@@ -470,7 +470,7 @@ TEST(BusNodeWidget, SwapAliasPorts) {
         wire_input("load1", "v_in"));
 
     std::vector<Wire> wires = {w1, w2};
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     // Get positions before swap
     auto* p1_before = bw.port("w1");
@@ -513,9 +513,9 @@ TEST(BusNodeWidget, HorizontalOrientation) {
     node.render_hint = "bus";
     node.size_wh(160, 32);
 
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom);
 
-    EXPECT_EQ(bw.orientation(), visual::BusOrientation::Horizontal);
+    EXPECT_EQ(bw.portEdge(), visual::PortEdge::Bottom);
 }
 
 TEST(BusNodeWidget, VerticalOrientation) {
@@ -526,9 +526,9 @@ TEST(BusNodeWidget, VerticalOrientation) {
     node.render_hint = "bus";
     node.size_wh(32, 160);
 
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Vertical);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Right);
 
-    EXPECT_EQ(bw.orientation(), visual::BusOrientation::Vertical);
+    EXPECT_EQ(bw.portEdge(), visual::PortEdge::Right);
 }
 
 TEST(BusNodeWidget, IgnoresUnrelatedWires) {
@@ -544,7 +544,7 @@ TEST(BusNodeWidget, IgnoresUnrelatedWires) {
         wire_output("bat1", "v_out"),
         wire_input("load1", "v_in")));
 
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     // Only the base "v" port
     EXPECT_EQ(bw.ports().size(), 1u);
@@ -824,7 +824,7 @@ TEST(BusNodeWidget, DisconnectOneWirePreservesOthers) {
         wire_input("bus1", "v"));
 
     std::vector<Wire> wires = {w1, w2, w3};
-    visual::BusNodeWidget bw(node, visual::BusOrientation::Horizontal, wires);
+    visual::BusNodeWidget bw(node, visual::PortEdge::Bottom, wires);
 
     // 3 alias ports + 1 base = 4
     EXPECT_EQ(bw.ports().size(), 4u);

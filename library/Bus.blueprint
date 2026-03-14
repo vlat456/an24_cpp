@@ -21,5 +21,11 @@
       2.0
     ]
   },
+  "params": {
+    "port_edge": {
+      "default": "bottom",
+      "type": "string"
+    }
+  },
   "version": 2
 }

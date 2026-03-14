@@ -166,10 +166,14 @@ protected:
     }
 
     /// Add a widget (and its children) to the id index.
+    /// Respects isIndexable(): widgets that return false are skipped
+    /// to avoid shadowing root-level widgets with the same ID.
     void indexWidget(Widget* w) {
-        auto wid = w->id();
-        if (!wid.empty()) {
-            id_index_[wid] = w;
+        if (w->isIndexable()) {
+            auto wid = w->id();
+            if (!wid.empty()) {
+                id_index_[wid] = w;
+            }
         }
         for (auto& c : w->children()) {
             indexWidget(c.get());
@@ -177,10 +181,13 @@ protected:
     }
     
     /// Remove a widget (and its children) from the id index.
+    /// Only erases entries for widgets that are indexable, mirroring indexWidget.
     void unindexWidget(Widget* w) {
-        auto wid = w->id();
-        if (!wid.empty()) {
-            id_index_.erase(wid);
+        if (w->isIndexable()) {
+            auto wid = w->id();
+            if (!wid.empty()) {
+                id_index_.erase(wid);
+            }
         }
         for (auto& c : w->children()) {
             unindexWidget(c.get());

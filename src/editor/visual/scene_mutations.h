@@ -2,7 +2,7 @@
 
 /// Free functions for mutating Blueprint data and keeping visual::Scene in sync.
 /// This is the only translation unit that includes concrete widget headers
-/// (NodeFactory, Wire, WireEnd). All other code stays type-agnostic.
+/// (NodeFactory, Wire). All other code stays type-agnostic.
 
 #include "data/blueprint.h"
 #include <string>

@@ -277,12 +277,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/wire/wire_end.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/visual/primitives/primitives.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/primitives/primitives.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/primitives/primitives.cpp",
   "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/primitives/primitives.cpp.o"
@@ -589,12 +583,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/port/visual_port.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "output": "tests/CMakeFiles/visual_wire_tests.dir/__/src/editor/visual/port/visual_port.cpp.o"
@@ -628,12 +616,6 @@
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -757,12 +739,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
@@ -874,12 +850,6 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1183,12 +1153,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/visual_port.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/port/visual_port.cpp",
   "output": "tests/CMakeFiles/node_deletion_tests.dir/__/src/editor/visual/port/visual_port.cpp.o"
@@ -1300,12 +1264,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/multi_window_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1438,12 +1396,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1750,12 +1702,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire.cpp",
   "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/visual/wire/wire_end.cpp",
-  "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/wire/wire_end.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

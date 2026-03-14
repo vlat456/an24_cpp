@@ -1,7 +1,7 @@
 #include "visual/wire/wire.h"
-#include "visual/wire/wire_end.h"
 #include "visual/wire/routing_point.h"
 #include "visual/scene.h"
+#include "visual/port/visual_port.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/handle_renderer.h"
@@ -10,22 +10,39 @@
 #include "ui/core/small_vector.h"
 #include <algorithm>
 #include <cmath>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
 namespace visual {
 
-Wire::Wire(const std::string& id, WireEnd* start, WireEnd* end)
-    : id_(id), start_(start), end_(end)
+Wire::Wire(const std::string& id,
+           const std::string& start_node, const std::string& start_port,
+           const std::string& end_node, const std::string& end_port)
+    : id_(id)
 {
-    if (start_) start_->setWire(this);
-    if (end_) end_->setWire(this);
+    start_.node_id = start_node;
+    start_.port_name = start_port;
+    start_.wire_id = id;
+    end_.node_id = end_node;
+    end_.port_name = end_port;
+    end_.wire_id = id;
 }
 
-Wire::~Wire() {
-    if (start_) start_->clearWire();
-    if (end_) end_->clearWire();
+std::optional<Pt> Wire::resolveEndpoint(const WireEndpoint& ep) const {
+    if (ep.node_id.empty()) return std::nullopt;
+    if (!scene_) return std::nullopt;
+
+    auto* node_widget = scene_->find(ep.node_id);
+    if (!node_widget) return std::nullopt;
+
+    auto* port = node_widget->portByName(ep.port_name, ep.wire_id);
+    if (!port) return std::nullopt;
+
+    // Port center = port worldPos + (RADIUS, RADIUS)
+    Pt pos = port->worldPos();
+    return Pt(pos.x + Port::RADIUS, pos.y + Port::RADIUS);
 }
 
 const std::vector<Pt>& Wire::polyline() const {
@@ -44,10 +61,13 @@ Pt Wire::worldMax() const {
 }
 
 void Wire::rebuildGeometry() const {
-    // Auto-detect endpoint movement: if the WireEnd world positions
-    // changed since last rebuild, treat the cache as dirty.
-    Pt cur_start = start_ ? start_->worldPos() : Pt(0, 0);
-    Pt cur_end   = end_   ? end_->worldPos()   : Pt(0, 0);
+    // Resolve current endpoint positions
+    auto opt_start = resolveEndpoint(start_);
+    auto opt_end   = resolveEndpoint(end_);
+    Pt cur_start = opt_start.value_or(Pt(0, 0));
+    Pt cur_end   = opt_end.value_or(Pt(0, 0));
+
+    // Auto-detect endpoint movement
     if (!dirty_) {
         if (cur_start.x != cached_start_pos_.x || cur_start.y != cached_start_pos_.y ||
             cur_end.x   != cached_end_pos_.x   || cur_end.y   != cached_end_pos_.y) {
@@ -58,11 +78,11 @@ void Wire::rebuildGeometry() const {
 
     // Rebuild polyline
     cached_polyline_.clear();
-    if (start_) cached_polyline_.push_back(cur_start);
+    if (opt_start) cached_polyline_.push_back(cur_start);
     for (const auto& c : children()) {
         cached_polyline_.push_back(c->worldPos());
     }
-    if (end_) cached_polyline_.push_back(cur_end);
+    if (opt_end) cached_polyline_.push_back(cur_end);
 
     cached_start_pos_ = cur_start;
     cached_end_pos_   = cur_end;
@@ -141,20 +161,6 @@ void Wire::removeRoutingPoint(size_t index) {
     }
 }
 
-void Wire::onEndpointDestroyed(WireEnd* end) {
-    if (end == start_) start_ = nullptr;
-    if (end == end_) end_ = nullptr;
-
-    invalidateGeometry();
-
-    if (scene()) scene()->remove(this);
-}
-
-void Wire::detachEndpoint(WireEnd* end) {
-    if (end == start_) start_ = nullptr;
-    if (end == end_) end_ = nullptr;
-}
-
 void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
     if (!dl) return;
     const auto& world_pts = polyline();
@@ -170,7 +176,7 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         color = render_theme::COLOR_WIRE_HOVER;
         thickness = 2.0f * ctx.zoom;
     } else if (ctx.energized_wires &&
-               ctx.energized_wires->count(std::string(id_)) > 0) {
+               ctx.energized_wires->count(id_) > 0) {
         color = render_theme::COLOR_WIRE_CURRENT;
         thickness = 2.0f * ctx.zoom;
     }
@@ -192,10 +198,6 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         };
         ui::SmallVector<CrossOnSeg, 8> segs;
         for (const auto& c : crossings_) {
-            // Only arc-crossings (draw_arc==true) need cuts in the polyline.
-            // The arc bridges the gap so the wire appears to jump over.
-            // Gap-only crossings (draw_arc==false) mean this wire goes
-            // underneath — it is drawn straight through, no cut needed.
             if (!c.draw_arc) continue;
 
             for (size_t i = 0; i + 1 < world_pts.size(); ++i) {
@@ -242,13 +244,12 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
                 if (current_sub.empty())
                     current_sub.push_back(ctx.world_to_screen(a));
 
-                float last_gap_end_t = -1.0f; // tracks the end of the previous gap
+                float last_gap_end_t = -1.0f;
                 for (float ct : seg_ts) {
                     float gap_t = (seg_len > 1e-3f) ? gap_r / seg_len : 0.5f;
                     float t_before = ct - gap_t;
                     float t_after  = ct + gap_t;
 
-                    // Skip overlapping gap (previous gap hasn't ended yet)
                     if (t_before < last_gap_end_t) {
                         last_gap_end_t = std::max(last_gap_end_t, t_after);
                         continue;
@@ -283,9 +284,9 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         if (current_sub.size() >= 2)
             dl->add_polyline(current_sub.data(), current_sub.size(), color, thickness);
 
-        // Jump arcs at crossings (only for crossings where this wire "jumps over")
+        // Jump arcs at crossings
         for (const auto& crossing : crossings_) {
-            if (!crossing.draw_arc) continue;  // gap-only crossing, no arc
+            if (!crossing.draw_arc) continue;
 
             Pt screen_cross = ctx.world_to_screen(crossing.pos);
             float arc_radius = render_theme::ARC_RADIUS_WORLD * ctx.zoom;
@@ -336,16 +337,14 @@ void compute_wire_crossings(Scene& scene) {
 
     if (wires.size() < 2) return;
 
-    // Build pointer → index map for stable arc/gap ordering.
-    // Higher-index wire draws the arc; lower-index wire gets the gap.
+    // Build pointer -> index map for stable arc/gap ordering.
     std::unordered_map<Wire*, size_t> wire_index;
     wire_index.reserve(wires.size());
     for (size_t i = 0; i < wires.size(); ++i) {
         wire_index[wires[i]] = i;
     }
 
-    // Broadphase via spatial Grid: only test wire pairs sharing a cell.
-    // Pack (i,j) with i<j into a flat set for deduplication across cells.
+    // Broadphase via spatial Grid
     struct PairHash {
         size_t operator()(std::pair<size_t, size_t> p) const {
             return std::hash<size_t>()(p.first) ^ (std::hash<size_t>()(p.second) * 2654435761u);
@@ -354,7 +353,6 @@ void compute_wire_crossings(Scene& scene) {
     std::unordered_set<std::pair<size_t, size_t>, PairHash> checked;
 
     scene.grid().forEachCell([&](const std::vector<ui::Widget*>& cell_widgets) {
-        // Collect wires present in this cell
         ui::SmallVector<Wire*, 8> cell_wires;
         for (auto* widget : cell_widgets) {
             auto it = wire_index.find(static_cast<Wire*>(widget));
@@ -363,7 +361,6 @@ void compute_wire_crossings(Scene& scene) {
             }
         }
 
-        // Check all wire pairs in this cell
         for (size_t a = 0; a < cell_wires.size(); ++a) {
             for (size_t b = a + 1; b < cell_wires.size(); ++b) {
                 size_t idx_a = wire_index[cell_wires[a]];
@@ -379,17 +376,14 @@ void compute_wire_crossings(Scene& scene) {
                 const auto& poly_hi = w_hi->polyline();
                 if (poly_lo.size() < 2 || poly_hi.size() < 2) continue;
 
-                // Check all segment pairs between the two wires
                 for (size_t i = 0; i + 1 < poly_lo.size(); ++i) {
                     for (size_t j = 0; j + 1 < poly_hi.size(); ++j) {
                         auto pt = segment_crosses(poly_lo[i], poly_lo[i + 1],
                                                   poly_hi[j], poly_hi[j + 1]);
                         if (pt) {
-                            // Lower-index wire gets gap (draw_arc=false)
                             SegDir lo_dir = segment_direction(poly_lo[i], poly_lo[i + 1]);
                             w_lo->appendCrossing({*pt, lo_dir, false});
 
-                            // Higher-index wire draws arc (draw_arc=true)
                             SegDir hi_dir = segment_direction(poly_hi[j], poly_hi[j + 1]);
                             w_hi->appendCrossing({*pt, hi_dir, true});
                         }

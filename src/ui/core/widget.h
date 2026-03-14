@@ -74,6 +74,10 @@ public:
     
     virtual bool isClickable() const { return false; }
     virtual bool isResizable() const { return false; }
+    /// Whether this widget should participate in the scene's id_index_.
+    /// Override to return false for child widgets (e.g. ports) whose IDs
+    /// may collide with root-level widgets (e.g. wires).
+    virtual bool isIndexable() const { return true; }
     
     bool isFlexible() const { return flexible_; }
     void setFlexible(bool f) { flexible_ = f; }

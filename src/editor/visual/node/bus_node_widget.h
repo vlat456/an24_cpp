@@ -12,10 +12,12 @@ struct Node;
 
 namespace visual {
 
-/// Bus orientation (wide = horizontal ports on bottom, tall = vertical ports on right).
-enum class BusOrientation {
-    Horizontal,
-    Vertical
+/// Port strip edge placement for bus nodes.
+enum class PortEdge {
+    Bottom,
+    Top,
+    Left,
+    Right
 };
 
 /// Electrical bus widget (render_hint="bus").
@@ -24,7 +26,7 @@ enum class BusOrientation {
 class BusNodeWidget : public Widget {
 public:
     BusNodeWidget(const ::Node& data,
-                  BusOrientation orientation = BusOrientation::Horizontal,
+                  PortEdge port_edge = PortEdge::Bottom,
                   const std::vector<::Wire>& wires = {});
 
     std::string_view id() const override { return node_id_; }
@@ -32,7 +34,7 @@ public:
 
     const std::string& nodeId() const { return node_id_; }
     const std::string& name() const { return name_; }
-    BusOrientation orientation() const { return orientation_; }
+    PortEdge portEdge() const { return port_edge_; }
 
     /// Resolve a wire's port: bus maps wire_id -> alias port.
     /// If port_name is "v" and wire_id is given, returns the alias port for that wire.
@@ -66,7 +68,7 @@ private:
     std::string name_;
     std::string type_name_;
 
-    BusOrientation orientation_;
+    PortEdge port_edge_;
     std::vector<::Wire> wires_;     ///< Connected wires (for alias port tracking)
     std::vector<Port*> ports_;    ///< Non-owning: alias ports + base "v" port
 

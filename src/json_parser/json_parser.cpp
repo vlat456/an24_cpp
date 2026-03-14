@@ -664,10 +664,14 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    // Parse params
+    // Parse params (supports both "key": "value" and "key": {"default": "value", ...})
     if (j.contains("params")) {
         for (auto& [key, val] : j["params"].items()) {
-            def.params[key] = val.get<std::string>();
+            if (val.is_string()) {
+                def.params[key] = val.get<std::string>();
+            } else if (val.is_object() && val.contains("default")) {
+                def.params[key] = val["default"].get<std::string>();
+            }
         }
     }
 

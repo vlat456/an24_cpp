@@ -162,7 +162,6 @@ add_executable(visual_wire_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
 )
 target_include_directories(visual_wire_tests PRIVATE
@@ -184,7 +183,6 @@ add_executable(visual_hittest_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
 )
@@ -279,7 +277,6 @@ add_executable(specialized_node_widget_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
@@ -314,7 +311,6 @@ add_executable(scene_mutations_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(scene_mutations_tests PRIVATE
@@ -918,7 +914,6 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
@@ -956,7 +951,6 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
@@ -997,7 +991,6 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
@@ -1309,7 +1302,6 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire_end.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp

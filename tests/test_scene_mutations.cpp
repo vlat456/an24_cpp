@@ -3,7 +3,6 @@
 #include "visual/scene.h"
 #include "visual/node/node_factory.h"
 #include "visual/wire/wire.h"
-#include "visual/wire/wire_end.h"
 #include "visual/wire/routing_point.h"
 #include "visual/node/bus_node_widget.h"
 #include "data/blueprint.h"
@@ -1145,4 +1144,198 @@ TEST(SceneMutations, PortOccupancy_ConsistentAfterRemoveNodes) {
     // bat1's port should still be occupied (w1 to lamp2 survived)
     EXPECT_TRUE(bp.is_port_occupied("bat1", "v_out"));
     EXPECT_TRUE(bp.is_port_occupied("lamp2", "v_in"));
+}
+
+// ============================================================================
+// Two-bus-node scenarios (shared wires should not be double-created)
+// ============================================================================
+
+// REGRESSION: Adding a wire between two bus nodes that share other wires
+// must not create duplicate Wire widgets for the shared wires.
+TEST(SceneMutations, AddWireTwoBusNodes_NoDoubleCreation) {
+    Blueprint bp;
+
+    // Bus A
+    Node busA;
+    busA.id = "busA"; busA.name = "BusA"; busA.type_name = "Bus";
+    busA.render_hint = "bus";
+    busA.group_id = "";
+    busA.size_wh(200, 40);
+    busA.input("v", PortType::V);
+    bp.add_node(std::move(busA));
+
+    // Bus B
+    Node busB;
+    busB.id = "busB"; busB.name = "BusB"; busB.type_name = "Bus";
+    busB.render_hint = "bus";
+    busB.group_id = "";
+    busB.size_wh(200, 40);
+    busB.input("v", PortType::V);
+    bp.add_node(std::move(busB));
+
+    // Regular node
+    Node bat;
+    bat.id = "bat1"; bat.name = "Bat"; bat.type_name = "Battery";
+    bat.group_id = "";
+    bat.output("v_out", PortType::V);
+    bp.add_node(std::move(bat));
+
+    // Wire linking the two buses (shared wire)
+    bp.add_wire(Wire::make("w0",
+        wire_output("busA", "v"),
+        wire_input("busB", "v")));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, "");
+
+    // 3 nodes + 1 wire
+    EXPECT_EQ(scene.roots().size(), 4u);
+    EXPECT_NE(scene.find("w0"), nullptr);
+
+    // Add a second wire: bat1 -> busA. This triggers rebuildPorts on busA,
+    // which orphans w0. recreate_bus_wires is called for busA and busB.
+    // Without the fix, w0 would be recreated TWICE (once per bus).
+    bool ok = visual::mutations::add_wire(scene, bp,
+        Wire::make("w1", wire_output("bat1", "v_out"), wire_input("busA", "v")),
+        "");
+    EXPECT_TRUE(ok);
+
+    scene.flushRemovals();
+
+    // Should have: 3 nodes + 2 wires = 5 roots (not 6!)
+    EXPECT_EQ(scene.roots().size(), 5u);
+
+    // Both wires must be findable
+    EXPECT_NE(scene.find("w0"), nullptr);
+    EXPECT_NE(scene.find("w1"), nullptr);
+
+    // Count Wire widgets explicitly — there should be exactly 2
+    size_t wire_count = 0;
+    for (const auto& r : scene.roots()) {
+        if (dynamic_cast<visual::Wire*>(r.get())) wire_count++;
+    }
+    EXPECT_EQ(wire_count, 2u);
+}
+
+// REGRESSION: Removing a wire between two bus nodes that share other wires
+// must not create duplicate Wire widgets.
+TEST(SceneMutations, RemoveWireTwoBusNodes_NoDoubleCreation) {
+    Blueprint bp;
+
+    // Two bus nodes
+    Node busA;
+    busA.id = "busA"; busA.name = "BusA"; busA.type_name = "Bus";
+    busA.render_hint = "bus";
+    busA.group_id = "";
+    busA.size_wh(200, 40);
+    busA.input("v", PortType::V);
+    bp.add_node(std::move(busA));
+
+    Node busB;
+    busB.id = "busB"; busB.name = "BusB"; busB.type_name = "Bus";
+    busB.render_hint = "bus";
+    busB.group_id = "";
+    busB.size_wh(200, 40);
+    busB.input("v", PortType::V);
+    bp.add_node(std::move(busB));
+
+    Node bat;
+    bat.id = "bat1"; bat.name = "Bat"; bat.type_name = "Battery";
+    bat.group_id = "";
+    bat.output("v_out", PortType::V);
+    bp.add_node(std::move(bat));
+
+    // Two wires: one linking buses, one from bat to busA
+    bp.add_wire(Wire::make("w0",
+        wire_output("busA", "v"),
+        wire_input("busB", "v")));
+    bp.add_wire(Wire::make("w1",
+        wire_output("bat1", "v_out"),
+        wire_input("busA", "v")));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, "");
+
+    EXPECT_EQ(scene.roots().size(), 5u); // 3 nodes + 2 wires
+
+    // Remove w1 (bat->busA). Both buses are notified (busA has w1 removed,
+    // busB shares w0 with busA). Without fix, w0 would be double-created.
+    visual::mutations::remove_wire(scene, bp, 1); // w1 is at index 1
+
+    scene.flushRemovals();
+
+    // 3 nodes + 1 wire = 4 roots
+    EXPECT_EQ(scene.roots().size(), 4u);
+    EXPECT_NE(scene.find("w0"), nullptr);
+    EXPECT_EQ(scene.find("w1"), nullptr);
+
+    size_t wire_count = 0;
+    for (const auto& r : scene.roots()) {
+        if (dynamic_cast<visual::Wire*>(r.get())) wire_count++;
+    }
+    EXPECT_EQ(wire_count, 1u);
+}
+
+// Bus swap with alias port ID collision: scene.find(wire_id) must return
+// the Wire widget, not the alias Port, after rebuildPorts + recreate.
+TEST(SceneMutations, SwapBusWirePorts_FindReturnsWireNotPort) {
+    Blueprint bp;
+
+    Node bus;
+    bus.id = "bus1"; bus.name = "Bus"; bus.type_name = "Bus";
+    bus.render_hint = "bus";
+    bus.group_id = "";
+    bus.size_wh(200, 40);
+    bus.input("v", PortType::V);
+    bp.add_node(std::move(bus));
+
+    Node bat;
+    bat.id = "bat1"; bat.name = "Bat"; bat.type_name = "Battery";
+    bat.group_id = "";
+    bat.output("v_out", PortType::V);
+    bp.add_node(std::move(bat));
+
+    Node lamp;
+    lamp.id = "lamp1"; lamp.name = "Lamp"; lamp.type_name = "Lamp";
+    lamp.group_id = "";
+    lamp.input("v_in", PortType::V);
+    bp.add_node(std::move(lamp));
+
+    bp.add_wire(Wire::make("w0",
+        wire_output("bat1", "v_out"),
+        wire_input("bus1", "v")));
+    bp.add_wire(Wire::make("w1",
+        wire_output("bus1", "v"),
+        wire_input("lamp1", "v_in")));
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, bp, "");
+
+    // After rebuild, wire widgets should be findable and be actual Wires
+    auto* w0 = scene.find("w0");
+    ASSERT_NE(w0, nullptr);
+    EXPECT_NE(dynamic_cast<visual::Wire*>(w0), nullptr);
+
+    auto* w1 = scene.find("w1");
+    ASSERT_NE(w1, nullptr);
+    EXPECT_NE(dynamic_cast<visual::Wire*>(w1), nullptr);
+
+    // Swap — this triggers rebuildPorts (destroys/recreates alias ports)
+    bool ok = visual::mutations::swap_wire_ports_on_bus(scene, bp, "bus1", "w0", "w1");
+    EXPECT_TRUE(ok);
+
+    scene.flushRemovals();
+
+    // After swap, find() must still return Wire*, not Port*
+    auto* w0_after = scene.find("w0");
+    ASSERT_NE(w0_after, nullptr);
+    EXPECT_NE(dynamic_cast<visual::Wire*>(w0_after), nullptr)
+        << "scene.find('w0') returned a Port instead of a Wire (isIndexable bug)";
+
+    auto* w1_after = scene.find("w1");
+    ASSERT_NE(w1_after, nullptr);
+    EXPECT_NE(dynamic_cast<visual::Wire*>(w1_after), nullptr)
+        << "scene.find('w1') returned a Port instead of a Wire (isIndexable bug)";
+
+    EXPECT_EQ(scene.roots().size(), 5u); // 3 nodes + 2 wires
 }

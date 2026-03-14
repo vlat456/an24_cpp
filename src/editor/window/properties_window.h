@@ -35,6 +35,9 @@ private:
     void applyAndClose();
     void cancelAndClose();
 
+    /// Render a dropdown for "port_edge" param (Bus nodes)
+    void renderPortEdgeParam(const std::string& key);
+
     /// Render an ImGui table editor for a LUT "table" param
     void renderTableParam(const std::string& key);
 };

@@ -104,6 +104,10 @@ void PropertiesWindow::render() {
                 }
                 continue;
             }
+            if (key == "port_edge") {
+                renderPortEdgeParam(key);
+                continue;
+            }
             char buf[256];
             strncpy(buf, target_->params[key].c_str(), sizeof(buf) - 1);
             buf[sizeof(buf) - 1] = '\0';
@@ -128,6 +132,35 @@ void PropertiesWindow::render() {
     // Window closed via X button
     if (!window_open) {
         cancelAndClose();
+    }
+#endif
+}
+
+void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
+#ifndef EDITOR_TESTING
+    const char* options[] = {"bottom", "top", "left", "right"};
+    const char* labels[] = {"Bottom", "Top", "Left", "Right"};
+    
+    std::string& value = target_->params[key];
+    int current = 0;
+    for (int i = 0; i < 4; ++i) {
+        if (value == options[i]) {
+            current = i;
+            break;
+        }
+    }
+    
+    if (ImGui::BeginCombo(key.c_str(), labels[current])) {
+        for (int i = 0; i < 4; ++i) {
+            bool selected = (current == i);
+            if (ImGui::Selectable(labels[i], selected)) {
+                value = options[i];
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
     }
 #endif
 }

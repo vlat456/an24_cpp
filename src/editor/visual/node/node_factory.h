@@ -20,11 +20,14 @@ struct NodeFactory {
     static std::unique_ptr<Widget> create(const ::Node& node,
                                            const std::vector<::Wire>& wires = {}) {
         if (node.render_hint == "bus") {
-            // Determine orientation from aspect ratio
-            BusOrientation orient = (node.size.x >= node.size.y)
-                ? BusOrientation::Horizontal
-                : BusOrientation::Vertical;
-            return std::make_unique<BusNodeWidget>(node, orient, wires);
+            PortEdge edge = PortEdge::Bottom;
+            auto it = node.params.find("port_edge");
+            if (it != node.params.end()) {
+                if (it->second == "top") edge = PortEdge::Top;
+                else if (it->second == "left") edge = PortEdge::Left;
+                else if (it->second == "right") edge = PortEdge::Right;
+            }
+            return std::make_unique<BusNodeWidget>(node, edge, wires);
         }
         if (node.render_hint == "ref") {
             return std::make_unique<RefNodeWidget>(node);
