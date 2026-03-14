@@ -7,6 +7,8 @@
 #include "editor/input/canvas_input.h"
 #include "editor/window/window_manager.h"
 #include "editor/viewport/viewport.h"
+#include "ui/core/interned_id.h"
+
 
 // ============================================================================
 // Node Deletion Tests (TDD)
@@ -15,20 +17,21 @@
 // Helper: build a small blueprint with 3 nodes and 2 wires
 static Blueprint make_three_node_bp() {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80);
-    a.output("out");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80);
+    a.output(I.intern("out"));
     bp.add_node(std::move(a));
 
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80);
-    b.input("in").output("out");
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80);
+    b.input(I.intern("in")).output(I.intern("out"));
     bp.add_node(std::move(b));
 
-    Node c; c.id = "c"; c.at(400, 0).size_wh(120, 80);
-    c.input("in");
+    Node c; c.id = I.intern("c"); c.at(400, 0).size_wh(120, 80);
+    c.input(I.intern("in"));
     bp.add_node(std::move(c));
 
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
-    bp.add_wire(Wire::make("w2", wire_output("b", "out"), wire_input("c", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
+    bp.add_wire(Wire::make(I.intern("w2"), wire_output(I.intern("b"), I.intern("out")), wire_input(I.intern("c"), I.intern("in"))));
     return bp;
 }
 
@@ -43,6 +46,7 @@ static visual::Scene make_scene(const Blueprint& bp, const std::string& group_id
 
 TEST(NodeDeletion, RemoveNode_RemovesConnectedWires) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     visual::mutations::remove_nodes(scene, bp, {1});  // remove "b"
@@ -54,6 +58,7 @@ TEST(NodeDeletion, RemoveNode_RemovesConnectedWires) {
 
 TEST(NodeDeletion, RemoveNodes_BatchRemovesWires) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     // Delete "a" (index 0) and "c" (index 2) — sorted desc
@@ -61,7 +66,7 @@ TEST(NodeDeletion, RemoveNodes_BatchRemovesWires) {
     visual::mutations::remove_nodes(scene, bp, indices);
 
     EXPECT_EQ(bp.nodes.size(), 1u);
-    EXPECT_EQ(bp.nodes[0].id, "b");
+    EXPECT_EQ(bp.nodes[0].id, I.intern("b"));
     EXPECT_EQ(bp.wires.size(), 0u);  // both wires touched a or c
 }
 
@@ -69,12 +74,13 @@ TEST(NodeDeletion, RemoveNodes_BatchRemovesWires) {
 
 TEST(NodeDeletion, RemoveNode_RoutingPointsDeletedWithWire) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(400, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(400, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
 
-    Wire w = Wire::make("w1", wire_output("a", "out"), wire_input("b", "in"));
+    Wire w = Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in")));
     w.add_routing_point(Pt(150, 50)).add_routing_point(Pt(250, -20));
     bp.add_wire(std::move(w));
     ASSERT_EQ(bp.wires[0].routing_points.size(), 2u);
@@ -89,33 +95,35 @@ TEST(NodeDeletion, RemoveNode_RoutingPointsDeletedWithWire) {
 
 TEST(NodeDeletion, RemoveNode_UnrelatedWiresSurvive) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     visual::mutations::remove_nodes(scene, bp, {0});  // remove "a"
     EXPECT_EQ(bp.nodes.size(), 2u);
     // w1 (a→b) removed, w2 (b→c) survives
     ASSERT_EQ(bp.wires.size(), 1u);
-    EXPECT_EQ(bp.wires[0].id, "w2");
+    EXPECT_EQ(bp.wires[0].id, I.intern("w2"));
 }
 
 // ---- 5. Deletion of node inside a collapsed group ----
 
 TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
     Blueprint bp;
-    Node root; root.id = "lamp1"; root.expandable = true;
+    auto& I = bp.interner();
+    Node root; root.id = I.intern("lamp1"); root.expandable = true;
     root.at(0, 0).size_wh(120, 80);
     bp.add_node(std::move(root));
 
-    Node n1; n1.id = "lamp1:led"; n1.group_id = "lamp1";
-    n1.at(0, 0).size_wh(80, 60); n1.input("in").output("out");
+    Node n1; n1.id = I.intern("lamp1:led"); n1.group_id = "lamp1";
+    n1.at(0, 0).size_wh(80, 60); n1.input(I.intern("in")).output(I.intern("out"));
     bp.add_node(std::move(n1));
 
-    Node n2; n2.id = "lamp1:res"; n2.group_id = "lamp1";
-    n2.at(200, 0).size_wh(80, 60); n2.input("in");
+    Node n2; n2.id = I.intern("lamp1:res"); n2.group_id = "lamp1";
+    n2.at(200, 0).size_wh(80, 60); n2.input(I.intern("in"));
     bp.add_node(std::move(n2));
 
-    bp.add_wire(Wire::make("gw1", wire_output("lamp1:led", "out"),
-                            wire_input("lamp1:res", "in")));
+    bp.add_wire(Wire::make(I.intern("gw1"), wire_output(I.intern("lamp1:led"), I.intern("out")),
+                            wire_input(I.intern("lamp1:res"), I.intern("in"))));
 
     SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:led", "lamp1:res"};
@@ -125,8 +133,9 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
 
     // Find index of "lamp1:led" in bp.nodes
     size_t led_idx = SIZE_MAX;
+    auto led_id = I.intern("lamp1:led");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1:led") { led_idx = i; break; }
+        if (bp.nodes[i].id == led_id) { led_idx = i; break; }
     ASSERT_NE(led_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {led_idx});
@@ -146,11 +155,12 @@ TEST(NodeDeletion, RemoveNode_InGroup_CleansInternalNodeIds) {
 
 TEST(NodeDeletion, Backspace_DeletesSelectedNodes) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;
@@ -167,7 +177,7 @@ TEST(NodeDeletion, Backspace_DeletesSelectedNodes) {
     InputResult result = input.on_key(Key::Backspace);
 
     EXPECT_EQ(bp.nodes.size(), 1u);
-    EXPECT_EQ(bp.nodes[0].id, "b");
+    EXPECT_EQ(bp.nodes[0].id, I.intern("b"));
     EXPECT_EQ(bp.wires.size(), 0u);
     EXPECT_TRUE(input.selected_nodes().empty());
     EXPECT_TRUE(result.rebuild_simulation);
@@ -177,11 +187,12 @@ TEST(NodeDeletion, Backspace_DeletesSelectedNodes) {
 
 TEST(NodeDeletion, Delete_DeletesSelectedNodes) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;
@@ -203,6 +214,7 @@ TEST(NodeDeletion, Delete_DeletesSelectedNodes) {
 
 TEST(NodeDeletion, MultiSelect_DeleteAll) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     visual::Scene scene;
     Viewport vp;
     std::string group_id;
@@ -224,6 +236,7 @@ TEST(NodeDeletion, MultiSelect_DeleteAll) {
 
 TEST(NodeDeletion, DeleteWithNoSelection_Noop) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     visual::Scene scene;
     Viewport vp;
     std::string group_id;
@@ -242,6 +255,7 @@ TEST(NodeDeletion, DeleteWithNoSelection_Noop) {
 
 TEST(NodeDeletion, Persist_DeletedNodeNotInJson) {
     Blueprint bp = make_three_node_bp();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     visual::mutations::remove_nodes(scene, bp, {1});  // remove "b"
@@ -260,14 +274,15 @@ TEST(NodeDeletion, Persist_DeletedNodeNotInJson) {
 
 TEST(NodeDeletion, Persist_StaleWiresCleanedOnSave) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     // Manually corrupt: add a stale wire referencing nonexistent node
-    bp.add_wire(Wire::make("stale", wire_output("ghost", "p"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("stale"), wire_output(I.intern("ghost"), I.intern("p")), wire_input(I.intern("b"), I.intern("in"))));
     ASSERT_EQ(bp.wires.size(), 2u);
 
     std::string json = bp.serialize();
@@ -276,7 +291,8 @@ TEST(NodeDeletion, Persist_StaleWiresCleanedOnSave) {
 
     // The stale wire should NOT survive the roundtrip
     for (const auto& w : loaded->wires) {
-        EXPECT_NE(w.start.node_id, "ghost")
+        auto node_name = loaded->interner().resolve(w.start.node_id);
+        EXPECT_NE(node_name, "ghost")
             << "Stale wire referencing nonexistent node 'ghost' should be cleaned";
     }
 }
@@ -285,22 +301,23 @@ TEST(NodeDeletion, Persist_StaleWiresCleanedOnSave) {
 
 TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     Blueprint bp;
+    auto& I = bp.interner();
     // Root node (collapsed blueprint)
-    Node root; root.id = "lamp1"; root.expandable = true;
+    Node root; root.id = I.intern("lamp1"); root.expandable = true;
     root.at(0, 0).size_wh(120, 80);
     bp.add_node(std::move(root));
 
     // Internal nodes
-    Node n1; n1.id = "lamp1:a"; n1.group_id = "lamp1";
-    n1.at(0, 0).size_wh(80, 60); n1.output("out");
+    Node n1; n1.id = I.intern("lamp1:a"); n1.group_id = "lamp1";
+    n1.at(0, 0).size_wh(80, 60); n1.output(I.intern("out"));
     bp.add_node(std::move(n1));
 
-    Node n2; n2.id = "lamp1:b"; n2.group_id = "lamp1";
-    n2.at(200, 0).size_wh(80, 60); n2.input("in");
+    Node n2; n2.id = I.intern("lamp1:b"); n2.group_id = "lamp1";
+    n2.at(200, 0).size_wh(80, 60); n2.input(I.intern("in"));
     bp.add_node(std::move(n2));
 
-    bp.add_wire(Wire::make("gw", wire_output("lamp1:a", "out"),
-                            wire_input("lamp1:b", "in")));
+    bp.add_wire(Wire::make(I.intern("gw"), wire_output(I.intern("lamp1:a"), I.intern("out")),
+                            wire_input(I.intern("lamp1:b"), I.intern("in"))));
 
     SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:a", "lamp1:b"};
@@ -335,31 +352,32 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
 // Helper: build blueprint with sub-blueprint "lamp1" containing 2 internal nodes + 1 wire
 static Blueprint make_bp_with_sub_blueprint() {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Root-level nodes
-    Node bat; bat.id = "bat"; bat.type_name = "Battery"; bat.at(0, 0).size_wh(120, 80);
-    bat.output("v_out");
+    Node bat; bat.id = I.intern("bat"); bat.type_name = "Battery"; bat.at(0, 0).size_wh(120, 80);
+    bat.output(I.intern("v_out"));
     bp.add_node(std::move(bat));
 
     // Collapsed blueprint node
-    Node lamp; lamp.id = "lamp1"; lamp.type_name = "lamp"; lamp.expandable = true;
+    Node lamp; lamp.id = I.intern("lamp1"); lamp.type_name = "lamp"; lamp.expandable = true;
     lamp.at(200, 0).size_wh(120, 80);
-    lamp.input("vin").output("vout");
+    lamp.input(I.intern("vin")).output(I.intern("vout"));
     bp.add_node(std::move(lamp));
 
     // Internal nodes of lamp1
-    Node led; led.id = "lamp1:led"; led.type_name = "IndicatorLight"; led.group_id = "lamp1";
-    led.at(0, 0).size_wh(80, 60); led.input("in").output("out");
+    Node led; led.id = I.intern("lamp1:led"); led.type_name = "IndicatorLight"; led.group_id = "lamp1";
+    led.at(0, 0).size_wh(80, 60); led.input(I.intern("in")).output(I.intern("out"));
     bp.add_node(std::move(led));
 
-    Node res; res.id = "lamp1:res"; res.type_name = "Resistor"; res.group_id = "lamp1";
-    res.at(200, 0).size_wh(80, 60); res.input("in").output("out");
+    Node res; res.id = I.intern("lamp1:res"); res.type_name = "Resistor"; res.group_id = "lamp1";
+    res.at(200, 0).size_wh(80, 60); res.input(I.intern("in")).output(I.intern("out"));
     bp.add_node(std::move(res));
 
     // External wire: bat -> lamp1
-    bp.add_wire(Wire::make("ext_w", wire_output("bat", "v_out"), wire_input("lamp1", "vin")));
+    bp.add_wire(Wire::make(I.intern("ext_w"), wire_output(I.intern("bat"), I.intern("v_out")), wire_input(I.intern("lamp1"), I.intern("vin"))));
     // Internal wire: led -> res
-    bp.add_wire(Wire::make("int_w", wire_output("lamp1:led", "out"), wire_input("lamp1:res", "in")));
+    bp.add_wire(Wire::make(I.intern("int_w"), wire_output(I.intern("lamp1:led"), I.intern("out")), wire_input(I.intern("lamp1:res"), I.intern("in"))));
 
     SubBlueprintInstance g("lamp1", "blueprints/lamp.json", "lamp");
     g.internal_node_ids = {"lamp1:led", "lamp1:res"};
@@ -372,12 +390,14 @@ static Blueprint make_bp_with_sub_blueprint() {
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
     Blueprint bp = make_bp_with_sub_blueprint();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     // Find lamp1 index
     size_t lamp_idx = SIZE_MAX;
+    auto lamp1_id = I.intern("lamp1");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+        if (bp.nodes[i].id == lamp1_id) { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {lamp_idx});
@@ -389,18 +409,20 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalNodes) {
     EXPECT_EQ(bp.find_node("lamp1:res"), nullptr);
     // Only "bat" remains
     EXPECT_EQ(bp.nodes.size(), 1u);
-    EXPECT_EQ(bp.nodes[0].id, "bat");
+    EXPECT_EQ(bp.nodes[0].id, I.intern("bat"));
 }
 
 // ---- 14. Deleting sub-blueprint removes internal wires ----
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
     Blueprint bp = make_bp_with_sub_blueprint();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     size_t lamp_idx = SIZE_MAX;
+    auto lamp1_id = I.intern("lamp1");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+        if (bp.nodes[i].id == lamp1_id) { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {lamp_idx});
@@ -414,11 +436,13 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesInternalWires) {
 
 TEST(NodeDeletion, DeleteSubBlueprint_RemovesSubBlueprintInstance) {
     Blueprint bp = make_bp_with_sub_blueprint();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     size_t lamp_idx = SIZE_MAX;
+    auto lamp1_id = I.intern("lamp1");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+        if (bp.nodes[i].id == lamp1_id) { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {lamp_idx});
@@ -431,32 +455,33 @@ TEST(NodeDeletion, DeleteSubBlueprint_RemovesSubBlueprintInstance) {
 
 TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Root node
-    Node root; root.id = "top"; root.at(0, 0).size_wh(120, 80); root.output("out");
+    Node root; root.id = I.intern("top"); root.at(0, 0).size_wh(120, 80); root.output(I.intern("out"));
     bp.add_node(std::move(root));
 
     // Level 1: sub-blueprint "sys1"
-    Node sys1; sys1.id = "sys1"; sys1.expandable = true;
-    sys1.at(200, 0).size_wh(120, 80); sys1.input("in");
+    Node sys1; sys1.id = I.intern("sys1"); sys1.expandable = true;
+    sys1.at(200, 0).size_wh(120, 80); sys1.input(I.intern("in"));
     bp.add_node(std::move(sys1));
 
     // Level 2: inside sys1, another sub-blueprint "sys1:sub2"
-    Node sub2; sub2.id = "sys1:sub2"; sub2.expandable = true;
+    Node sub2; sub2.id = I.intern("sys1:sub2"); sub2.expandable = true;
     sub2.group_id = "sys1";
-    sub2.at(0, 0).size_wh(100, 60); sub2.input("in");
+    sub2.at(0, 0).size_wh(100, 60); sub2.input(I.intern("in"));
     bp.add_node(std::move(sub2));
 
     // Level 3: inside sys1:sub2, a leaf node
-    Node leaf; leaf.id = "sys1:sub2:leaf"; leaf.type_name = "Resistor";
+    Node leaf; leaf.id = I.intern("sys1:sub2:leaf"); leaf.type_name = "Resistor";
     leaf.group_id = "sys1:sub2";
-    leaf.at(0, 0).size_wh(80, 60); leaf.input("in");
+    leaf.at(0, 0).size_wh(80, 60); leaf.input(I.intern("in"));
     bp.add_node(std::move(leaf));
 
     // Wires at each level
-    bp.add_wire(Wire::make("w0", wire_output("top", "out"), wire_input("sys1", "in")));
-    bp.add_wire(Wire::make("w1", wire_output("sys1", "in"), wire_input("sys1:sub2", "in")));
-    bp.add_wire(Wire::make("w2", wire_output("sys1:sub2", "in"), wire_input("sys1:sub2:leaf", "in")));
+    bp.add_wire(Wire::make(I.intern("w0"), wire_output(I.intern("top"), I.intern("out")), wire_input(I.intern("sys1"), I.intern("in"))));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("sys1"), I.intern("in")), wire_input(I.intern("sys1:sub2"), I.intern("in"))));
+    bp.add_wire(Wire::make(I.intern("w2"), wire_output(I.intern("sys1:sub2"), I.intern("in")), wire_input(I.intern("sys1:sub2:leaf"), I.intern("in"))));
 
     // Sub-blueprint instances
     SubBlueprintInstance g1("sys1", "blueprints/sys1.json", "sys1");
@@ -477,15 +502,16 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
 
     // Delete sys1 — should cascade to sys1:sub2 and sys1:sub2:leaf
     size_t sys1_idx = SIZE_MAX;
+    auto sys1_id = I.intern("sys1");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "sys1") { sys1_idx = i; break; }
+        if (bp.nodes[i].id == sys1_id) { sys1_idx = i; break; }
     ASSERT_NE(sys1_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {sys1_idx});
 
     // Only "top" remains
     EXPECT_EQ(bp.nodes.size(), 1u);
-    EXPECT_EQ(bp.nodes[0].id, "top");
+    EXPECT_EQ(bp.nodes[0].id, I.intern("top"));
     // All wires gone
     EXPECT_EQ(bp.wires.size(), 0u);
     // All collapsed groups gone
@@ -496,6 +522,7 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
 
 TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
     Blueprint bp = make_bp_with_sub_blueprint();
+    auto& I = bp.interner();
     WindowManager wm(bp);
     EXPECT_EQ(wm.count(), 1u);  // root only
 
@@ -506,8 +533,9 @@ TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
     // Delete lamp1 via root scene
     auto scene = make_scene(bp);
     size_t lamp_idx = SIZE_MAX;
+    auto lamp1_id = I.intern("lamp1");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "lamp1") { lamp_idx = i; break; }
+        if (bp.nodes[i].id == lamp1_id) { lamp_idx = i; break; }
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {lamp_idx});
@@ -521,12 +549,14 @@ TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
 
 TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
     Blueprint bp = make_bp_with_sub_blueprint();
+    auto& I = bp.interner();
     auto scene = make_scene(bp);
 
     // Delete "bat" (regular node, not a Blueprint)
     size_t bat_idx = SIZE_MAX;
+    auto bat_id = I.intern("bat");
     for (size_t i = 0; i < bp.nodes.size(); ++i)
-        if (bp.nodes[i].id == "bat") { bat_idx = i; break; }
+        if (bp.nodes[i].id == bat_id) { bat_idx = i; break; }
     ASSERT_NE(bat_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {bat_idx});
@@ -539,7 +569,7 @@ TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
     EXPECT_EQ(bp.sub_blueprint_instances.size(), 1u);
     // Only internal wire survives
     EXPECT_EQ(bp.wires.size(), 1u);
-    EXPECT_EQ(bp.wires[0].id, "int_w");
+    EXPECT_EQ(bp.wires[0].id, I.intern("int_w"));
 }
 
 // ============================================================================
@@ -554,11 +584,12 @@ TEST(NodeDeletion, DeleteRegularNode_NoRecursiveEffect) {
 
 TEST(CanvasInputDanglingPointer, SelectedWire_NulledOnRemoveWire) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;
@@ -582,11 +613,12 @@ TEST(CanvasInputDanglingPointer, SelectedWire_NulledOnRemoveWire) {
 
 TEST(CanvasInputDanglingPointer, SelectedNodes_ClearedOnRemoveNode) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;
@@ -620,7 +652,8 @@ TEST(CanvasInputDanglingPointer, SelectedNodes_ClearedOnRemoveNode) {
 
 TEST(CanvasInputDanglingPointer, SelectionClearedOnSceneClear) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
     bp.add_node(std::move(a));
 
     visual::Scene scene;
@@ -647,13 +680,14 @@ TEST(CanvasInputDanglingPointer, SelectionClearedOnSceneClear) {
 
 TEST(CanvasInputDanglingPointer, ReconnectWire_NoDanglingSelectedWire) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
-    Node c; c.id = "c"; c.at(400, 0).size_wh(120, 80); c.input("in2");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
+    Node c; c.id = I.intern("c"); c.at(400, 0).size_wh(120, 80); c.input(I.intern("in2"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
     bp.add_node(std::move(c));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;
@@ -668,7 +702,7 @@ TEST(CanvasInputDanglingPointer, ReconnectWire_NoDanglingSelectedWire) {
     // Reconnect wire w1 from b:in to c:in2
     // This destroys the old wire widget and creates a new one with the same ID.
     visual::mutations::reconnect_wire(scene, bp, 0, false,
-        WireEnd("c", "in2", PortSide::Input), group_id);
+        WireEnd(I.intern("c"), I.intern("in2"), PortSide::Input), group_id);
 
     // The new wire widget should exist with the same ID
     auto* new_wire = scene.find("w1");
@@ -685,11 +719,12 @@ TEST(CanvasInputDanglingPointer, ReconnectWire_NoDanglingSelectedWire) {
 
 TEST(CanvasInputDanglingPointer, RemoveWire_NullsHoveredWire) {
     Blueprint bp;
-    Node a; a.id = "a"; a.at(0, 0).size_wh(120, 80); a.output("out");
-    Node b; b.id = "b"; b.at(200, 0).size_wh(120, 80); b.input("in");
+    auto& I = bp.interner();
+    Node a; a.id = I.intern("a"); a.at(0, 0).size_wh(120, 80); a.output(I.intern("out"));
+    Node b; b.id = I.intern("b"); b.at(200, 0).size_wh(120, 80); b.input(I.intern("in"));
     bp.add_node(std::move(a));
     bp.add_node(std::move(b));
-    bp.add_wire(Wire::make("w1", wire_output("a", "out"), wire_input("b", "in")));
+    bp.add_wire(Wire::make(I.intern("w1"), wire_output(I.intern("a"), I.intern("out")), wire_input(I.intern("b"), I.intern("in"))));
 
     visual::Scene scene;
     Viewport vp;

@@ -74,11 +74,13 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         if (node.expandable && ImGui::MenuItem("Open in New Window")) {
-            doc->openSubWindow(node.id);
+            std::string node_id_str(doc->blueprint().interner().resolve(node.id));
+            doc->openSubWindow(node_id_str);
         }
         
+        std::string node_id_str_for_sbi(doc->blueprint().interner().resolve(node.id));
         const std::string& sbi_id = !ws.nodeContextMenu.group_id.empty()
-            ? ws.nodeContextMenu.group_id : node.id;
+            ? ws.nodeContextMenu.group_id : node_id_str_for_sbi;
         auto* sb = doc->blueprint().find_sub_blueprint_instance(sbi_id);
         if (sb && !sb->baked_in) {
             if (ImGui::MenuItem("Bake In (Embed)")) {

@@ -143,15 +143,17 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     // Using default params: Von=5.0, Voff=2.0
     Blueprint bp;
 
+    auto& I = bp.interner();
+
     // Create comparator node
     Node comp;
-    comp.id = "comp1";
+    comp.id = I.intern("comp1");
     comp.name = "Comparator";
     comp.type_name = "Comparator";
     comp.at(0, 0);
-    comp.input("Va");
-    comp.input("Vb");
-    comp.output("o");
+    comp.input(I.intern("Va"));
+    comp.input(I.intern("Vb"));
+    comp.output(I.intern("o"));
     bp.add_node(std::move(comp));
 
     // Create simulator and start
@@ -199,14 +201,16 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     // Test hysteresis with non-zero Vb
     Blueprint bp;
+    auto& I = bp.interner();
+
     Node comp;
-    comp.id = "comp1";
+    comp.id = I.intern("comp1");
     comp.name = "Comparator";
     comp.type_name = "Comparator";
     comp.at(0, 0);
-    comp.input("Va");
-    comp.input("Vb");
-    comp.output("o");
+    comp.input(I.intern("Va"));
+    comp.input(I.intern("Vb"));
+    comp.output(I.intern("o"));
     bp.add_node(std::move(comp));
 
     Simulator<JIT_Solver> simulator;

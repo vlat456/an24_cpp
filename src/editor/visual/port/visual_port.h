@@ -2,7 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "data/port.h"
-#include <string>
+#include <string_view>
 #include <cstdint>
 
 namespace visual {
@@ -12,7 +12,7 @@ namespace visual {
 /// Renders as a filled circle with type-based color.
 class Port : public Widget {
 public:
-    Port(const std::string& name, PortSide side, PortType type);
+    Port(std::string_view name, PortSide side, PortType type);
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
@@ -21,7 +21,7 @@ public:
     /// in the scene's id_index_.
     bool isIndexable() const override { return false; }
 
-    const std::string& name() const { return name_; }
+    std::string_view name() const { return name_; }
     PortSide side() const { return side_; }
     PortType type() const { return type_; }
 
@@ -47,7 +47,7 @@ public:
     static constexpr float LABEL_FONT_SIZE = 9.0f;
 
 private:
-    std::string name_;
+    std::string_view name_;
     PortSide side_;
     PortType type_;
 };

@@ -42,9 +42,9 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
     return oss.str();
 }
 
-void PropertiesWindow::open(Node& node, PropertyCallback on_apply) {
+void PropertiesWindow::open(Node& node, const std::string& node_id_str, PropertyCallback on_apply) {
     target_ = &node;
-    target_node_id_ = node.id;
+    target_node_id_ = node_id_str;
     on_apply_ = std::move(on_apply);
 
     // Snapshot for cancel/revert

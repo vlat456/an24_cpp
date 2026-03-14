@@ -102,6 +102,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_renderer_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_widget_purity_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_scene_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_interning_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_grid_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_render_context_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/ui_linear_layout_tests.dir
@@ -119,6 +120,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_componentvariant_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_interning_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_viewport_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/json_parser_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_simulation_tests.dir

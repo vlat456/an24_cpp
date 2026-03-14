@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../ui/math/pt.h"
+#include "../../ui/core/interned_id.h"
 #include "port.h"
 #include <string>
 #include <vector>
@@ -48,7 +49,7 @@ struct NodeColor {
 
 /// Узел в схеме - компонент (батарея, насос, и т.д.)
 struct Node {
-    std::string id;          ///< Уникальный ID
+    ui::InternedId id;       ///< Уникальный ID (interned)
     std::string name;        ///< Отображаемое имя
     std::string type_name;   ///< Тип (Battery, Pump, Bus, etc.)
     std::string render_hint; ///< Visual hint for rendering ("bus", "ref", or empty)
@@ -105,13 +106,13 @@ struct Node {
     }
 
     /// fluent: добавить входной порт
-    Node& input(const char* name_, PortType type = PortType::V) {
+    Node& input(ui::InternedId name_, PortType type = PortType::V) {
         inputs.emplace_back(name_, PortSide::Input, type);
         return *this;
     }
 
     /// fluent: добавить выходной порт
-    Node& output(const char* name_, PortType type = PortType::V) {
+    Node& output(ui::InternedId name_, PortType type = PortType::V) {
         outputs.emplace_back(name_, PortSide::Output, type);
         return *this;
     }

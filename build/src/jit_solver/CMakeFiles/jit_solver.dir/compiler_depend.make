@@ -2132,6 +2132,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   _deps/spdlog-src/include/spdlog/version.h \
   /Users/vladimir/an24_cpp/src/editor/layout_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/ui/core/interned_id.h \
   /Users/vladimir/an24_cpp/src/ui/math/pt.h \
   /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
   /Users/vladimir/an24_cpp/src/editor/data/node.h \
@@ -3870,6 +3871,8 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/memory:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_useconds_t.h:
+
+/Users/vladimir/an24_cpp/src/ui/core/interned_id.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/default_sentinel.h:
 

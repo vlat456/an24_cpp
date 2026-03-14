@@ -5,6 +5,14 @@
 #include "editor/visual/scene.h"
 #include "editor/visual/wire/wire.h"
 #include "jit_solver/simulator.h"
+#include "ui/core/interned_id.h"
+
+// Allow gtest to print InternedId values on assertion failure
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 // ============================================================================
 // BlueprintWindow tests
@@ -23,27 +31,29 @@ TEST(BlueprintWindow, ConstructWithGroupId) {
 
 TEST(BlueprintWindow, SceneReferencesSharedBlueprint) {
     Blueprint bp;
-    Node n; n.id = "n1"; n.at(0, 0).size_wh(100, 50);
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("n1"); n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
     BlueprintWindow win(bp, "", "Root");
 
     // Window's scene sees the shared blueprint's nodes
     EXPECT_EQ(win.bp.nodes.size(), 1u);
-    EXPECT_EQ(win.bp.find_node("n1")->id, "n1");
+    EXPECT_EQ(win.bp.find_node("n1")->id, I.intern("n1"));
 
     // Adding a node through the blueprint is visible in the window
-    Node n2; n2.id = "n2"; n2.at(200, 0).size_wh(100, 50);
+    Node n2; n2.id = I.intern("n2"); n2.at(200, 0).size_wh(100, 50);
     bp.add_node(std::move(n2));
     EXPECT_EQ(win.bp.nodes.size(), 2u);
 }
 
 TEST(BlueprintWindow, TwoWindowsSeeSharedData) {
     Blueprint bp;
-    Node root_node; root_node.id = "r1"; root_node.at(0, 0).size_wh(100, 50);
+    auto& I = bp.interner();
+    Node root_node; root_node.id = I.intern("r1"); root_node.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(root_node));
 
-    Node internal; internal.id = "lamp1:vin"; internal.group_id = "lamp1";
+    Node internal; internal.id = I.intern("lamp1:vin"); internal.group_id = "lamp1";
     internal.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(internal));
 
@@ -75,7 +85,8 @@ TEST(BlueprintWindow, IndependentViewports) {
 
 TEST(BlueprintWindow, IndependentInteraction) {
     Blueprint bp;
-    Node n; n.id = "n1"; n.at(0, 0).size_wh(100, 50);
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("n1"); n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
     BlueprintWindow win1(bp, "", "Root");
@@ -187,7 +198,8 @@ TEST(WindowManager, RemoveClosedWindows) {
 
 TEST(WindowManager, SubWindowSeesSharedBlueprint) {
     Blueprint bp;
-    Node n; n.id = "lamp1:vin"; n.group_id = "lamp1";
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("lamp1:vin"); n.group_id = "lamp1";
     n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
@@ -195,7 +207,7 @@ TEST(WindowManager, SubWindowSeesSharedBlueprint) {
     auto* win = mgr.open("lamp1", "Lamp");
 
     // Sub-window sees the node in shared blueprint
-    EXPECT_EQ(win->bp.find_node("lamp1:vin")->id, "lamp1:vin");
+    EXPECT_EQ(win->bp.find_node("lamp1:vin")->id, I.intern("lamp1:vin"));
     EXPECT_EQ(bp.find_node("lamp1:vin")->group_id, win->group_id);
 }
 
@@ -218,22 +230,23 @@ TEST(WindowManager, MultipleWindowsIndependentViewports) {
 
 TEST(AutoLayoutGroup, LayoutsNodesInGroup) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Root node
-    Node root; root.id = "r1"; root.at(0, 0).size_wh(120, 80);
+    Node root; root.id = I.intern("r1"); root.at(0, 0).size_wh(120, 80);
     root.type_name = "RefNode"; root.render_hint = "ref";
     bp.add_node(std::move(root));
 
     // Internal nodes all at same position (simulates add_blueprint behavior)
-    Node vin; vin.id = "lamp1:vin"; vin.group_id = "lamp1";
+    Node vin; vin.id = I.intern("lamp1:vin"); vin.group_id = "lamp1";
     vin.type_name = "BlueprintInput"; vin.at(50, 50).size_wh(100, 60);
     bp.add_node(std::move(vin));
 
-    Node lamp; lamp.id = "lamp1:lamp"; lamp.group_id = "lamp1";
+    Node lamp; lamp.id = I.intern("lamp1:lamp"); lamp.group_id = "lamp1";
     lamp.type_name = "IndicatorLight"; lamp.at(50, 50).size_wh(100, 60);
     bp.add_node(std::move(lamp));
 
-    Node vout; vout.id = "lamp1:vout"; vout.group_id = "lamp1";
+    Node vout; vout.id = I.intern("lamp1:vout"); vout.group_id = "lamp1";
     vout.type_name = "BlueprintOutput"; vout.at(50, 50).size_wh(100, 60);
     bp.add_node(std::move(vout));
 
@@ -261,7 +274,8 @@ TEST(AutoLayoutGroup, LayoutsNodesInGroup) {
 
 TEST(AutoLayoutGroup, EmptyGroupIsNoOp) {
     Blueprint bp;
-    Node n; n.id = "n1"; n.at(100, 200).size_wh(80, 60);
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("n1"); n.at(100, 200).size_wh(80, 60);
     bp.add_node(std::move(n));
 
     bp.auto_layout_group("nonexistent");
@@ -279,21 +293,22 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
     // Scenario: a collapsed Blueprint node placed inside a sub-window
     // (group_id = parent group) should NOT be reset to "" by recompute_group_ids.
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Root-level battery
-    Node battery; battery.id = "bat1"; battery.at(0, 0).size_wh(100, 60);
+    Node battery; battery.id = I.intern("bat1"); battery.at(0, 0).size_wh(100, 60);
     bp.add_node(std::move(battery));
 
     // Collapsed group "vsu1" at root level
-    Node vsu_collapsed; vsu_collapsed.id = "vsu1"; vsu_collapsed.at(200, 0).size_wh(120, 80);
+    Node vsu_collapsed; vsu_collapsed.id = I.intern("vsu1"); vsu_collapsed.at(200, 0).size_wh(120, 80);
     vsu_collapsed.expandable = true;
     vsu_collapsed.collapsed = true;
     bp.add_node(std::move(vsu_collapsed));
 
     // Internal nodes of vsu1
-    Node vin; vin.id = "vsu1:vin"; vin.at(0, 0).size_wh(60, 40);
+    Node vin; vin.id = I.intern("vsu1:vin"); vin.at(0, 0).size_wh(60, 40);
     bp.add_node(std::move(vin));
-    Node lamp; lamp.id = "vsu1:lamp"; lamp.at(100, 0).size_wh(60, 40);
+    Node lamp; lamp.id = I.intern("vsu1:lamp"); lamp.at(100, 0).size_wh(60, 40);
     bp.add_node(std::move(lamp));
 
     SubBlueprintInstance vsu_group;
@@ -303,14 +318,14 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
     bp.sub_blueprint_instances.push_back(vsu_group);
 
     // Now add a nested blueprint INSIDE vsu1's sub-window
-    Node nested; nested.id = "nested1"; nested.at(300, 0).size_wh(120, 80);
+    Node nested; nested.id = I.intern("nested1"); nested.at(300, 0).size_wh(120, 80);
     nested.expandable = true;
     nested.collapsed = true;
     nested.group_id = "vsu1";  // Placed inside vsu1's sub-window
     bp.add_node(std::move(nested));
 
     // Internal nodes of nested1
-    Node n_int; n_int.id = "nested1:r1"; n_int.at(0, 0).size_wh(60, 40);
+    Node n_int; n_int.id = I.intern("nested1:r1"); n_int.at(0, 0).size_wh(60, 40);
     bp.add_node(std::move(n_int));
 
     SubBlueprintInstance nested_group;
@@ -333,14 +348,15 @@ TEST(RecomputeGroupIds, PreservesCollapsedNodeGroupId) {
 TEST(RecomputeGroupIds, TopLevelCollapsedNodeStaysRoot) {
     // Top-level collapsed Blueprint nodes with group_id="" should stay at root.
     Blueprint bp;
+    auto& I = bp.interner();
 
-    Node collapsed; collapsed.id = "bp1"; collapsed.at(0, 0).size_wh(120, 80);
+    Node collapsed; collapsed.id = I.intern("bp1"); collapsed.at(0, 0).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.group_id = "";  // top-level
     bp.add_node(std::move(collapsed));
 
-    Node internal; internal.id = "bp1:r1"; internal.at(0, 0).size_wh(60, 40);
+    Node internal; internal.id = I.intern("bp1:r1"); internal.at(0, 0).size_wh(60, 40);
     bp.add_node(std::move(internal));
 
     SubBlueprintInstance g;
@@ -362,20 +378,21 @@ TEST(RecomputeGroupIds, TopLevelCollapsedNodeStaysRoot) {
 TEST(WireDeselect, ClickEmptySpaceDeselectsWire) {
     // Setup: two nodes with a horizontal wire between them
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Resistor";
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(EditorPort("v_out", PortSide::Output, PortType::V));
+    n1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
     bp.add_node(std::move(n1));
 
-    Node n2; n2.id = "b"; n2.type_name = "Resistor";
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(EditorPort("v_in", PortSide::Input, PortType::V));
+    n2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;
-    w.id = "w1";
-    w.start = WireEnd("a", "v_out", PortSide::Output);
-    w.end = WireEnd("b", "v_in", PortSide::Input);
+    w.id = I.intern("w1");
+    w.start = WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output);
+    w.end = WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(w);
 
     BlueprintWindow win(bp, "", "Test");
@@ -414,20 +431,21 @@ TEST(WireDeselect, ClickEmptySpaceDeselectsWire) {
 TEST(WireDeselect, ClickNodeDeselectsWire) {
     // Clicking a node while a wire is selected should deselect the wire
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Resistor";
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Resistor";
     n1.at(0, 0).size_wh(100, 60);
-    n1.outputs.push_back(EditorPort("v_out", PortSide::Output, PortType::V));
+    n1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
     bp.add_node(std::move(n1));
 
-    Node n2; n2.id = "b"; n2.type_name = "Resistor";
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Resistor";
     n2.at(300, 0).size_wh(100, 60);
-    n2.inputs.push_back(EditorPort("v_in", PortSide::Input, PortType::V));
+    n2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
     bp.add_node(std::move(n2));
 
     Wire w;
-    w.id = "w1";
-    w.start = WireEnd("a", "v_out", PortSide::Output);
-    w.end = WireEnd("b", "v_in", PortSide::Input);
+    w.id = I.intern("w1");
+    w.start = WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output);
+    w.end = WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(w);
 
     BlueprintWindow win(bp, "", "Test");
@@ -458,7 +476,8 @@ TEST(TooltipCanvasMin, ScenePassesCanvasMinToDetector) {
     // Full rendering test requires ImGui, so just verify the call compiles
     // and returns inactive when no nodes are near.
     Blueprint bp;
-    Node n; n.id = "n1"; n.at(100, 100).size_wh(80, 60);
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("n1"); n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
     BlueprintWindow win(bp, "", "Test");
@@ -480,19 +499,20 @@ TEST(TooltipCanvasMin, ScenePassesCanvasMinToDetector) {
 
 TEST(RPDrag, DraggingRoutingPointSelectsWire) {
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Battery";
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Battery";
     n1.at(0, 0).size_wh(120, 80);
-    n1.output("v_out");
+    n1.output(I.intern("v_out"));
     bp.add_node(std::move(n1));
 
-    Node n2; n2.id = "b"; n2.type_name = "Load";
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Load";
     n2.at(400, 0).size_wh(120, 80);
-    n2.input("v_in");
+    n2.input(I.intern("v_in"));
     bp.add_node(std::move(n2));
 
-    Wire w = Wire::make("w1",
-        WireEnd("a", "v_out", PortSide::Output),
-        WireEnd("b", "v_in", PortSide::Input));
+    Wire w = Wire::make(I.intern("w1"),
+        WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output),
+        WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input));
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
@@ -530,15 +550,16 @@ TEST(RPDrag, DraggingRoutingPointSelectsWire) {
 
 TEST(WireHover, HoverNearRoutingPoint_SetsHoveredWire) {
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Battery";
-    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output(I.intern("v_out"));
     bp.add_node(std::move(n1));
-    Node n2; n2.id = "b"; n2.type_name = "Load";
-    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input(I.intern("v_in"));
     bp.add_node(std::move(n2));
-    Wire w = Wire::make("w1",
-        WireEnd("a", "v_out", PortSide::Output),
-        WireEnd("b", "v_in", PortSide::Input));
+    Wire w = Wire::make(I.intern("w1"),
+        WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output),
+        WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input));
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
@@ -557,15 +578,16 @@ TEST(WireHover, HoverNearRoutingPoint_SetsHoveredWire) {
 
 TEST(WireHover, HoverClears_WhenCursorMovesAway) {
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Battery";
-    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output(I.intern("v_out"));
     bp.add_node(std::move(n1));
-    Node n2; n2.id = "b"; n2.type_name = "Load";
-    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input(I.intern("v_in"));
     bp.add_node(std::move(n2));
-    Wire w = Wire::make("w1",
-        WireEnd("a", "v_out", PortSide::Output),
-        WireEnd("b", "v_in", PortSide::Input));
+    Wire w = Wire::make(I.intern("w1"),
+        WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output),
+        WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input));
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
@@ -589,15 +611,16 @@ TEST(WireHover, HoverClears_WhenCursorMovesAway) {
 
 TEST(RPDoubleClick, DoubleClickOnRP_RemovesIt) {
     Blueprint bp;
-    Node n1; n1.id = "a"; n1.type_name = "Battery";
-    n1.at(0, 0).size_wh(120, 80); n1.output("v_out");
+    auto& I = bp.interner();
+    Node n1; n1.id = I.intern("a"); n1.type_name = "Battery";
+    n1.at(0, 0).size_wh(120, 80); n1.output(I.intern("v_out"));
     bp.add_node(std::move(n1));
-    Node n2; n2.id = "b"; n2.type_name = "Load";
-    n2.at(400, 0).size_wh(120, 80); n2.input("v_in");
+    Node n2; n2.id = I.intern("b"); n2.type_name = "Load";
+    n2.at(400, 0).size_wh(120, 80); n2.input(I.intern("v_in"));
     bp.add_node(std::move(n2));
-    Wire w = Wire::make("w1",
-        WireEnd("a", "v_out", PortSide::Output),
-        WireEnd("b", "v_in", PortSide::Input));
+    Wire w = Wire::make(I.intern("w1"),
+        WireEnd(I.intern("a"), I.intern("v_out"), PortSide::Output),
+        WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input));
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
@@ -628,7 +651,8 @@ TEST(RPDoubleClick, DoubleClickOnRP_RemovesIt) {
 
 TEST(ReadOnlyPan, LeftDragPanWorksOnReadOnlyWindow) {
     Blueprint bp;
-    Node n; n.id = "lamp1:r1"; n.group_id = "lamp1";
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("lamp1:r1"); n.group_id = "lamp1";
     n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
@@ -661,7 +685,8 @@ TEST(ReadOnlyPan, LeftDragPanWorksOnReadOnlyWindow) {
 
 TEST(ReadOnlyPan, ScrollZoomWorksOnReadOnlyWindow) {
     Blueprint bp;
-    Node n; n.id = "lamp1:r1"; n.group_id = "lamp1";
+    auto& I = bp.interner();
+    Node n; n.id = I.intern("lamp1:r1"); n.group_id = "lamp1";
     n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
@@ -689,9 +714,10 @@ TEST(ReadOnlyPan, ScrollZoomWorksOnReadOnlyWindow) {
 
 TEST(ReadOnlyDoubleClick, ExpandableNodeReturnsOpenSubWindow) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Collapsed expandable node visible in the sub-window
-    Node nested; nested.id = "nested1"; nested.group_id = "lamp1";
+    Node nested; nested.id = I.intern("nested1"); nested.group_id = "lamp1";
     nested.at(50, 50).size_wh(120, 80);
     nested.expandable = true;
     nested.collapsed = true;
@@ -712,6 +738,7 @@ TEST(ReadOnlyDoubleClick, ExpandableNodeReturnsOpenSubWindow) {
 
 TEST(SubBlueprintWindow, NonBakedIn_IsReadOnly) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -721,7 +748,7 @@ TEST(SubBlueprintWindow, NonBakedIn_IsReadOnly) {
     bp.sub_blueprint_instances.push_back(sbi);
 
     Node vin;
-    vin.id = "lamp_1:vin";
+    vin.id = I.intern("lamp_1:vin");
     vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     bp.add_node(std::move(vin));
@@ -737,6 +764,7 @@ TEST(SubBlueprintWindow, NonBakedIn_IsReadOnly) {
 
 TEST(SubBlueprintWindow, BakedIn_IsNotReadOnly) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -747,7 +775,7 @@ TEST(SubBlueprintWindow, BakedIn_IsNotReadOnly) {
     bp.sub_blueprint_instances.push_back(sbi);
 
     Node vin;
-    vin.id = "lamp_1:vin";
+    vin.id = I.intern("lamp_1:vin");
     vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     bp.add_node(std::move(vin));

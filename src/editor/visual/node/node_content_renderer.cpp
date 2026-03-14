@@ -7,12 +7,14 @@
 
 void NodeContentRenderer::render(Document& doc, BlueprintWindow& win, Pt cmin) {
     float zoom = win.viewport.zoom;
+    const auto& interner = doc.blueprint().interner();
     
     for (auto& node : doc.blueprint().nodes) {
         if (node.group_id != win.group_id) continue;
 
         // Find the corresponding widget in the scene tree
-        auto* widget = win.scene.find(node.id);
+        std::string_view node_id_sv = interner.resolve(node.id);
+        auto* widget = win.scene.find(node_id_sv);
         if (!widget) continue;
         auto* node_widget = dynamic_cast<visual::NodeWidget*>(widget);
         if (!node_widget) continue;
@@ -55,13 +57,15 @@ void NodeContentRenderer::renderSwitch(const Node& node, NodeContent& content,
     
     if (isHoldButton(node)) {
         bool checked = content.state;
-        std::string id = "##hold_" + node.id;
+        // Resolve node.id (InternedId) to string for ImGui ID and callbacks
+        std::string node_id_str(doc.blueprint().interner().resolve(node.id));
+        std::string id = "##hold_" + node_id_str;
         if (ImGui::Checkbox(id.c_str(), &checked)) {
             if (holdButtonCallback_) {
-                holdButtonCallback_(node.id, checked);
+                holdButtonCallback_(node_id_str, checked);
             } else {
-                if (checked) doc.holdButtonPress(node.id);
-                else doc.holdButtonRelease(node.id);
+                if (checked) doc.holdButtonPress(node_id_str);
+                else doc.holdButtonRelease(node_id_str);
             }
         }
     }
@@ -89,4 +93,3 @@ void NodeContentRenderer::renderText(const NodeContent& content) {
 bool NodeContentRenderer::isHoldButton(const Node& node) const {
     return node.type_name == "HoldButton";
 }
-

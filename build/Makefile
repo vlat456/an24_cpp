@@ -432,6 +432,19 @@ ui_scene_tests/fast:
 .PHONY : ui_scene_tests/fast
 
 #=============================================================================
+# Target rules for targets named ui_interning_tests
+
+# Build rule for target.
+ui_interning_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_interning_tests
+.PHONY : ui_interning_tests
+
+# fast build rule for target.
+ui_interning_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/build
+.PHONY : ui_interning_tests/fast
+
+#=============================================================================
 # Target rules for targets named ui_grid_tests
 
 # Build rule for target.
@@ -651,6 +664,19 @@ editor_data_tests: cmake_check_build_system
 editor_data_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/build
 .PHONY : editor_data_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_data_interning_tests
+
+# Build rule for target.
+editor_data_interning_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_data_interning_tests
+.PHONY : editor_data_interning_tests
+
+# fast build rule for target.
+editor_data_interning_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/build
+.PHONY : editor_data_interning_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_viewport_tests
@@ -1299,6 +1325,7 @@ help:
 	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
+	@echo "... editor_data_interning_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
@@ -1344,6 +1371,7 @@ help:
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
 	@echo "... ui_grid_tests"
+	@echo "... ui_interning_tests"
 	@echo "... ui_layout_tests"
 	@echo "... ui_linear_layout_tests"
 	@echo "... ui_math_tests"

@@ -6,7 +6,15 @@
 #include "editor/data/wire.h"
 #include "editor/visual/scene_mutations.h"
 #include "json_parser/json_parser.h"
+#include "ui/core/interned_id.h"
 #include <fstream>
+
+// Allow gtest to print InternedId values on assertion failure
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 // ============================================================================
 // Document tests
@@ -29,15 +37,16 @@ TEST(Document, DefaultState) {
 
 TEST(Document, BlueprintAccess) {
     Document doc;
+    auto& I = doc.blueprint().interner();
     // Should be able to add nodes to the blueprint
     Node n;
-    n.id = "test1";
+    n.id = I.intern("test1");
     n.name = "test1";
     n.pos = Pt(0, 0);
     n.size = Pt(100, 80);
     doc.blueprint().add_node(std::move(n));
     EXPECT_EQ(doc.blueprint().nodes.size(), 1u);
-    EXPECT_EQ(doc.blueprint().nodes[0].id, "test1");
+    EXPECT_EQ(doc.blueprint().nodes[0].id, I.intern("test1"));
 }
 
 TEST(Document, WindowManagerAccess) {
@@ -49,8 +58,9 @@ TEST(Document, WindowManagerAccess) {
 
 TEST(Document, SceneSharesBlueprint) {
     Document doc;
+    auto& I = doc.blueprint().interner();
     Node n;
-    n.id = "n1";
+    n.id = I.intern("n1");
     n.name = "n1";
     n.pos = Pt(50, 50);
     n.size = Pt(100, 80);
@@ -259,10 +269,11 @@ TEST(WindowSystem, CloseLastDocumentCreatesNew) {
 TEST(WindowSystem, CloseActiveDocumentUpdatesInspectorScene) {
     WindowSystem ws;
     Document& d2 = ws.createDocument();
+    auto& I = d2.blueprint().interner();
 
     // Add a node to d2 so its scene is non-trivial
     Node n;
-    n.id = "crash_test";
+    n.id = I.intern("crash_test");
     n.name = "crash_test";
     n.pos = Pt(0, 0);
     n.size = Pt(100, 80);
@@ -394,8 +405,9 @@ TEST(WindowSystem, InspectorUpdatedOnActiveDocumentChange) {
     WindowSystem ws;
     // Add a node to the first document
     Document* d1 = ws.activeDocument();
+    auto& I = d1->blueprint().interner();
     Node n;
-    n.id = "node1";
+    n.id = I.intern("node1");
     n.name = "node1";
     n.pos = Pt(0, 0);
     n.size = Pt(100, 80);
@@ -428,6 +440,7 @@ TEST(WindowSystem, InspectorUpdatedOnActiveDocumentChange) {
 
 TEST(BakeInMenuRegression, FindSBI_ByNodeId_AtRootLevel) {
     Document doc;
+    auto& I = doc.blueprint().interner();
 
     // Create a non-baked-in SBI with collapsed node at root level
     SubBlueprintInstance sbi;
@@ -440,7 +453,7 @@ TEST(BakeInMenuRegression, FindSBI_ByNodeId_AtRootLevel) {
 
     // Collapsed node at root
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.at(100, 100).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
@@ -448,11 +461,11 @@ TEST(BakeInMenuRegression, FindSBI_ByNodeId_AtRootLevel) {
     doc.blueprint().add_node(std::move(collapsed));
 
     // Internal nodes
-    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    Node vin; vin.id = I.intern("lamp_1:vin"); vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(vin));
 
-    Node lamp; lamp.id = "lamp_1:lamp"; lamp.group_id = "lamp_1";
+    Node lamp; lamp.id = I.intern("lamp_1:lamp"); lamp.group_id = "lamp_1";
     lamp.at(200, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(lamp));
 
@@ -484,6 +497,7 @@ TEST(BakeInMenuRegression, FindSBI_ByNodeId_AtRootLevel) {
 
 TEST(EditOriginalRegression, SBI_HasBlueprintPath_AtRootLevel) {
     Document doc;
+    auto& I = doc.blueprint().interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -493,7 +507,7 @@ TEST(EditOriginalRegression, SBI_HasBlueprintPath_AtRootLevel) {
     doc.blueprint().sub_blueprint_instances.push_back(sbi);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.at(0, 0).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
@@ -521,6 +535,7 @@ TEST(EditOriginalRegression, SBI_HasBlueprintPath_AtRootLevel) {
 
 TEST(OpenSubWindowRegression, NonBakedIn_CreatesReadOnlyWindow) {
     Document doc;
+    auto& I = doc.blueprint().interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -531,13 +546,13 @@ TEST(OpenSubWindowRegression, NonBakedIn_CreatesReadOnlyWindow) {
     doc.blueprint().sub_blueprint_instances.push_back(sbi);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.at(0, 0).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
     doc.blueprint().add_node(std::move(collapsed));
 
-    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    Node vin; vin.id = I.intern("lamp_1:vin"); vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(vin));
 
@@ -554,6 +569,7 @@ TEST(OpenSubWindowRegression, NonBakedIn_CreatesReadOnlyWindow) {
 
 TEST(OpenSubWindowRegression, BakedIn_CreatesEditableWindow) {
     Document doc;
+    auto& I = doc.blueprint().interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -563,13 +579,13 @@ TEST(OpenSubWindowRegression, BakedIn_CreatesEditableWindow) {
     doc.blueprint().sub_blueprint_instances.push_back(sbi);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.at(0, 0).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
     doc.blueprint().add_node(std::move(collapsed));
 
-    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    Node vin; vin.id = I.intern("lamp_1:vin"); vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(vin));
 
@@ -582,6 +598,7 @@ TEST(OpenSubWindowRegression, BakedIn_CreatesEditableWindow) {
 
 TEST(OpenSubWindowRegression, DoubleClick_RootExpandableNode_ReturnsOpenSubWindow) {
     Document doc;
+    auto& I = doc.blueprint().interner();
 
     SubBlueprintInstance sbi;
     sbi.id = "lamp_1";
@@ -592,14 +609,14 @@ TEST(OpenSubWindowRegression, DoubleClick_RootExpandableNode_ReturnsOpenSubWindo
 
     // Collapsed node at root
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.at(100, 100).size_wh(120, 80);
     collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.group_id = "";
     doc.blueprint().add_node(std::move(collapsed));
 
-    Node vin; vin.id = "lamp_1:vin"; vin.group_id = "lamp_1";
+    Node vin; vin.id = I.intern("lamp_1:vin"); vin.group_id = "lamp_1";
     vin.at(0, 0).size_wh(100, 60);
     doc.blueprint().add_node(std::move(vin));
 
@@ -859,12 +876,13 @@ TEST(Document, IsPristine_AfterAddWire) {
     doc.addComponent("Lamp", Pt(300, 100), "", registry);
     
     // Add wire - should make not pristine
+    auto& I = doc.blueprint().interner();
     Wire w;
-    w.id = "wire_1";
+    w.id = I.intern("wire_1");
     w.start.node_id = doc.blueprint().nodes[0].id;
-    w.start.port_name = "v_out";
+    w.start.port_name = I.intern("v_out");
     w.end.node_id = doc.blueprint().nodes[1].id;
-    w.end.port_name = "v_in";
+    w.end.port_name = I.intern("v_in");
     doc.blueprint().wires.push_back(w);
     
     EXPECT_FALSE(doc.isPristine());

@@ -242,6 +242,20 @@ ui_scene_tests/fast:
 .PHONY : ui_scene_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/ui_interning_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_interning_tests.dir/rule
+.PHONY : tests/CMakeFiles/ui_interning_tests.dir/rule
+
+# Convenience name for target.
+ui_interning_tests: tests/CMakeFiles/ui_interning_tests.dir/rule
+.PHONY : ui_interning_tests
+
+# fast build rule for target.
+ui_interning_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/build
+.PHONY : ui_interning_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/ui_grid_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/ui_grid_tests.dir/rule
 .PHONY : tests/CMakeFiles/ui_grid_tests.dir/rule
@@ -478,6 +492,20 @@ editor_data_tests: tests/CMakeFiles/editor_data_tests.dir/rule
 editor_data_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/build
 .PHONY : editor_data_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/editor_data_interning_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_data_interning_tests.dir/rule
+.PHONY : tests/CMakeFiles/editor_data_interning_tests.dir/rule
+
+# Convenience name for target.
+editor_data_interning_tests: tests/CMakeFiles/editor_data_interning_tests.dir/rule
+.PHONY : editor_data_interning_tests
+
+# fast build rule for target.
+editor_data_interning_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/build
+.PHONY : editor_data_interning_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/editor_viewport_tests.dir/rule:
@@ -1201,6 +1229,7 @@ __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.o
@@ -1221,6 +1250,7 @@ __/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
 __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.i
@@ -1241,6 +1271,7 @@ __/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
 __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/data/blueprint.cpp.s
@@ -2682,6 +2713,30 @@ test_data.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/test_data.cpp.s
 .PHONY : test_data.cpp.s
 
+test_data_interning.o: test_data_interning.cpp.o
+.PHONY : test_data_interning.o
+
+# target to build an object file
+test_data_interning.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.o
+.PHONY : test_data_interning.cpp.o
+
+test_data_interning.i: test_data_interning.cpp.i
+.PHONY : test_data_interning.i
+
+# target to preprocess a source file
+test_data_interning.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.i
+.PHONY : test_data_interning.cpp.i
+
+test_data_interning.s: test_data_interning.cpp.s
+.PHONY : test_data_interning.s
+
+# target to generate assembly for a file
+test_data_interning.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/test_data_interning.cpp.s
+.PHONY : test_data_interning.cpp.s
+
 test_document_window_system.o: test_document_window_system.cpp.o
 .PHONY : test_document_window_system.o
 
@@ -3426,6 +3481,30 @@ test_ui_grid.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/test_ui_grid.cpp.s
 .PHONY : test_ui_grid.cpp.s
 
+test_ui_interning.o: test_ui_interning.cpp.o
+.PHONY : test_ui_interning.o
+
+# target to build an object file
+test_ui_interning.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/test_ui_interning.cpp.o
+.PHONY : test_ui_interning.cpp.o
+
+test_ui_interning.i: test_ui_interning.cpp.i
+.PHONY : test_ui_interning.i
+
+# target to preprocess a source file
+test_ui_interning.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/test_ui_interning.cpp.i
+.PHONY : test_ui_interning.cpp.i
+
+test_ui_interning.s: test_ui_interning.cpp.s
+.PHONY : test_ui_interning.s
+
+# target to generate assembly for a file
+test_ui_interning.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/test_ui_interning.cpp.s
+.PHONY : test_ui_interning.cpp.s
+
 test_ui_layout.o: test_ui_layout.cpp.o
 .PHONY : test_ui_layout.o
 
@@ -3864,6 +3943,7 @@ help:
 	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
+	@echo "... editor_data_interning_tests"
 	@echo "... editor_data_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
@@ -3900,6 +3980,7 @@ help:
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
 	@echo "... ui_grid_tests"
+	@echo "... ui_interning_tests"
 	@echo "... ui_layout_tests"
 	@echo "... ui_linear_layout_tests"
 	@echo "... ui_math_tests"
@@ -4060,6 +4141,9 @@ help:
 	@echo "... test_data.o"
 	@echo "... test_data.i"
 	@echo "... test_data.s"
+	@echo "... test_data_interning.o"
+	@echo "... test_data_interning.i"
+	@echo "... test_data_interning.s"
 	@echo "... test_document_window_system.o"
 	@echo "... test_document_window_system.i"
 	@echo "... test_document_window_system.s"
@@ -4153,6 +4237,9 @@ help:
 	@echo "... test_ui_grid.o"
 	@echo "... test_ui_grid.i"
 	@echo "... test_ui_grid.s"
+	@echo "... test_ui_interning.o"
+	@echo "... test_ui_interning.i"
+	@echo "... test_ui_interning.s"
 	@echo "... test_ui_layout.o"
 	@echo "... test_ui_layout.i"
 	@echo "... test_ui_layout.s"

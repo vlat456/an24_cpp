@@ -6,21 +6,28 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "ui/core/interned_id.h"
 
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 // =============================================================================
 // Helper: simple battery circuit (gnd → battery → resistor → gnd)
 // =============================================================================
 static Blueprint make_battery_circuit() {
     Blueprint bp;
+    auto& I = bp.interner();
     bp.grid_step = 16.0f;
 
     Node gnd;
-    gnd.id = "gnd";
+    gnd.id = I.intern("gnd");
     gnd.name = "Ground";
     gnd.type_name = "RefNode";
     gnd.render_hint = "ref";
-    gnd.output("v");
+    gnd.output(I.intern("v"));
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -28,38 +35,38 @@ static Blueprint make_battery_circuit() {
     bp.add_node(std::move(gnd));
 
     Node batt;
-    batt.id = "bat";
+    batt.id = I.intern("bat");
     batt.name = "Battery";
     batt.type_name = "Battery";
-    batt.input("v_in");
-    batt.output("v_out");
+    batt.input(I.intern("v_in"));
+    batt.output(I.intern("v_out"));
     batt.at(80, 80);
     batt.size_wh(120, 80);
     bp.add_node(std::move(batt));
 
     Node res;
-    res.id = "res";
+    res.id = I.intern("res");
     res.name = "Resistor";
     res.type_name = "Resistor";
-    res.input("v_in");
-    res.output("v_out");
+    res.input(I.intern("v_in"));
+    res.output(I.intern("v_out"));
     res.at(320, 80);
     res.size_wh(120, 80);
     bp.add_node(std::move(res));
 
     Wire w1;
-    w1.start.node_id = "gnd"; w1.start.port_name = "v";
-    w1.end.node_id = "bat";   w1.end.port_name = "v_in";
+    w1.start.node_id = I.intern("gnd"); w1.start.port_name = I.intern("v");
+    w1.end.node_id = I.intern("bat");   w1.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w1));
 
     Wire w2;
-    w2.start.node_id = "bat"; w2.start.port_name = "v_out";
-    w2.end.node_id = "res";   w2.end.port_name = "v_in";
+    w2.start.node_id = I.intern("bat"); w2.start.port_name = I.intern("v_out");
+    w2.end.node_id = I.intern("res");   w2.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w2));
 
     Wire w3;
-    w3.start.node_id = "res"; w3.start.port_name = "v_out";
-    w3.end.node_id = "gnd";   w3.end.port_name = "v";
+    w3.start.node_id = I.intern("res"); w3.start.port_name = I.intern("v_out");
+    w3.end.node_id = I.intern("gnd");   w3.end.port_name = I.intern("v");
     bp.add_wire(std::move(w3));
 
     return bp;
@@ -225,25 +232,26 @@ TEST(DtRegression, Simulator_UsesDtParameterNotConstant) {
 
 TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     Node gnd;
-    gnd.id = "gnd"; gnd.name = "GND"; gnd.type_name = "RefNode";
+    gnd.id = I.intern("gnd"); gnd.name = "GND"; gnd.type_name = "RefNode";
     gnd.render_hint = "ref";
-    gnd.output("v");
+    gnd.output(I.intern("v"));
     gnd.at(0, 0); gnd.size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
     gnd.node_content.value = 0.0f;
     bp.add_node(std::move(gnd));
 
     Node comp;
-    comp.id = "comp1"; comp.name = "Comparator"; comp.type_name = "Comparator";
-    comp.input("Va"); comp.input("Vb"); comp.output("o");
+    comp.id = I.intern("comp1"); comp.name = "Comparator"; comp.type_name = "Comparator";
+    comp.input(I.intern("Va")); comp.input(I.intern("Vb")); comp.output(I.intern("o"));
     comp.at(100, 0); comp.size_wh(120, 80);
     bp.add_node(std::move(comp));
 
     Wire w1;
-    w1.start.node_id = "gnd"; w1.start.port_name = "v";
-    w1.end.node_id = "comp1"; w1.end.port_name = "Vb";
+    w1.start.node_id = I.intern("gnd"); w1.start.port_name = I.intern("v");
+    w1.end.node_id = I.intern("comp1"); w1.end.port_name = I.intern("Vb");
     bp.add_wire(std::move(w1));
 
     Simulator<JIT_Solver> sim;

@@ -133,14 +133,15 @@ TEST(ParamsIntegrity, UserOverridesPreservedOnLoad) {
 TEST(ParamsIntegrity, SavedParamsRoundtrip) {
     // Create a blueprint with a Battery with modified params
     Blueprint bp;
+    auto& I = bp.interner();
     Node n;
-    n.id = "batt1";
+    n.id = I.intern("batt1");
     n.name = "batt1";
     n.type_name = "Battery";
     n.pos = Pt(100, 100);
     n.size = Pt(120, 80);
-    n.input("v_in");
-    n.output("v_out");
+    n.input(I.intern("v_in"));
+    n.output(I.intern("v_out"));
     n.params = {
         {"v_nominal", "24.0"},
         {"internal_r", "0.05"},

@@ -18,9 +18,13 @@ namespace visual {
 // Construction
 // ============================================================================
 
-BusNodeWidget::BusNodeWidget(const ::Node& data, PortEdge port_edge,
+BusNodeWidget::BusNodeWidget(const ::Node& data,
+                             const ui::StringInterner& interner,
+                             PortEdge port_edge,
                              const std::vector<::Wire>& wires)
-    : node_id_(data.id)
+    : node_id_(interner.resolve(data.id))
+    , node_iid_(data.id)
+    , interner_(&interner)
     , name_(data.name)
     , type_name_(data.type_name)
     , port_edge_(port_edge)
@@ -33,7 +37,7 @@ BusNodeWidget::BusNodeWidget(const ::Node& data, PortEdge port_edge,
 
     // Collect wires connected to this node
     for (const auto& w : wires) {
-        if (w.start.node_id == node_id_ || w.end.node_id == node_id_) {
+        if (w.start.node_id == node_iid_ || w.end.node_id == node_iid_) {
             wires_.push_back(w);
         }
     }
@@ -70,9 +74,12 @@ void BusNodeWidget::rebuildPorts() {
         removeChild(children().back().get());
     }
 
-    // Create one alias port per connected wire
+    // Create one alias port per connected wire.
+    // Port stores a string_view, so the name must point to stable storage
+    // (the interner) — never to a local std::string.
     for (const auto& w : wires_) {
-        auto* p = emplaceChild<Port>(w.id, PortSide::InOut, PortType::V);
+        std::string_view wire_id = interner_->resolve(w.id);
+        auto* p = emplaceChild<Port>(wire_id, PortSide::InOut, PortType::V);
         ports_.push_back(p);
     }
 
@@ -139,8 +146,8 @@ Pt BusNodeWidget::calculatePortLocalPos(size_t index) const {
     return Pt(0, 0);
 }
 
-Port* BusNodeWidget::resolveWirePort(const std::string& port_name,
-                                      const std::string& wire_id) const {
+Port* BusNodeWidget::resolveWirePort(std::string_view port_name,
+                                      std::string_view wire_id) const {
     // If asking for "v" with a specific wire_id, return the alias port
     if (port_name == "v" && !wire_id.empty()) {
         for (auto* p : ports_) {
@@ -150,7 +157,7 @@ Port* BusNodeWidget::resolveWirePort(const std::string& port_name,
     return port(port_name);
 }
 
-Port* BusNodeWidget::port(const std::string& name) const {
+Port* BusNodeWidget::port(std::string_view name) const {
     for (auto* p : ports_) {
         if (p->name() == name) return p;
     }
@@ -172,7 +179,7 @@ Port* BusNodeWidget::portByName(std::string_view port_name,
 }
 
 void BusNodeWidget::connectWire(const ::Wire& wire) {
-    if (wire.start.node_id == node_id_ || wire.end.node_id == node_id_) {
+    if (wire.start.node_id == node_iid_ || wire.end.node_id == node_iid_) {
         wires_.push_back(wire);
         rebuildPorts();
     }
@@ -186,8 +193,8 @@ void BusNodeWidget::disconnectWire(const ::Wire& wire) {
     rebuildPorts();
 }
 
-bool BusNodeWidget::swapAliasPorts(const std::string& wire_id_a,
-                                    const std::string& wire_id_b) {
+bool BusNodeWidget::swapAliasPorts(ui::InternedId wire_id_a,
+                                    ui::InternedId wire_id_b) {
     size_t idx_a = SIZE_MAX, idx_b = SIZE_MAX;
     for (size_t i = 0; i < wires_.size(); i++) {
         if (wires_[i].id == wire_id_a) idx_a = i;

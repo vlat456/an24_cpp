@@ -5,7 +5,7 @@
 
 namespace visual {
 
-Port::Port(const std::string& name, PortSide side, PortType type)
+Port::Port(std::string_view name, PortSide side, PortType type)
     : name_(name), side_(side), type_(type)
 {
     setSize(Pt(RADIUS * 2, RADIUS * 2));

@@ -13,14 +13,18 @@
 
 using json = nlohmann::json;
 
+// Helper: resolve an InternedId to string_view through the blueprint interner.
+// Returns empty string_view for empty IDs.
+#define R(id) interner_.resolve(id)
+
 // BUGFIX [e4a1b7] Runtime dedup: reject exact-duplicate wires with warning
 // [2.1] O(1) set-based dedup replaces O(n) linear scan
 size_t Blueprint::add_wire(Wire wire) {
     WireKey key(wire);
     if (!wire_index_.insert(key).second) {
         spdlog::warn("[dedup] Runtime duplicate wire rejected: {}.{} → {}.{}",
-            wire.start.node_id, wire.start.port_name,
-            wire.end.node_id, wire.end.port_name);
+            R(wire.start.node_id), R(wire.start.port_name),
+            R(wire.end.node_id), R(wire.end.port_name));
         return SIZE_MAX;
     }
     size_t idx = wires.size();
@@ -42,7 +46,7 @@ static bool are_ports_compatible(PortType from_type, PortType to_type) {
 }
 
 /// Find a port in a node's inputs or outputs
-static PortType find_port_type(const Node& node, const std::string& port_name) {
+static PortType find_port_type(const Node& node, ui::InternedId port_name) {
     // Search inputs
     for (const auto& port : node.inputs) {
         if (port.name == port_name) {
@@ -62,8 +66,8 @@ static PortType find_port_type(const Node& node, const std::string& port_name) {
 // [SMELL-k1l2] Removed 17 fprintf debug lines — use spdlog for diagnostic logging instead
 bool Blueprint::add_wire_validated(Wire wire) {
     // Find the start and end nodes via O(1) index
-    Node* start_node = find_node(wire.start.node_id.c_str());
-    Node* end_node   = find_node(wire.end.node_id.c_str());
+    Node* start_node = find_node(wire.start.node_id);
+    Node* end_node   = find_node(wire.end.node_id);
 
     if (!start_node || !end_node) return false;
 
@@ -121,7 +125,7 @@ void Blueprint::updateBusIndexForEndpoints(const Wire& old_wire, const Wire& new
     // Remove from old bus entries if endpoint changed
     if (old_wire.start.node_id != new_wire.start.node_id ||
         old_wire.start.port_name != new_wire.start.port_name) {
-        const Node* sn = find_node(old_wire.start.node_id.c_str());
+        const Node* sn = find_node(old_wire.start.node_id);
         if (sn && sn->type_name == "Bus") {
             auto it = bus_wire_index_.find(old_wire.start.node_id);
             if (it != bus_wire_index_.end()) {
@@ -133,7 +137,7 @@ void Blueprint::updateBusIndexForEndpoints(const Wire& old_wire, const Wire& new
     }
     if (old_wire.end.node_id != new_wire.end.node_id ||
         old_wire.end.port_name != new_wire.end.port_name) {
-        const Node* en = find_node(old_wire.end.node_id.c_str());
+        const Node* en = find_node(old_wire.end.node_id);
         if (en && en->type_name == "Bus") {
             auto it = bus_wire_index_.find(old_wire.end.node_id);
             if (it != bus_wire_index_.end()) {
@@ -146,14 +150,14 @@ void Blueprint::updateBusIndexForEndpoints(const Wire& old_wire, const Wire& new
     // Add to new bus entries if endpoint changed
     if (old_wire.start.node_id != new_wire.start.node_id ||
         old_wire.start.port_name != new_wire.start.port_name) {
-        const Node* sn = find_node(new_wire.start.node_id.c_str());
+        const Node* sn = find_node(new_wire.start.node_id);
         if (sn && sn->type_name == "Bus") {
             bus_wire_index_[new_wire.start.node_id].push_back(new_wire.id);
         }
     }
     if (old_wire.end.node_id != new_wire.end.node_id ||
         old_wire.end.port_name != new_wire.end.port_name) {
-        const Node* en = find_node(new_wire.end.node_id.c_str());
+        const Node* en = find_node(new_wire.end.node_id);
         if (en && en->type_name == "Bus") {
             bus_wire_index_[new_wire.end.node_id].push_back(new_wire.id);
         }
@@ -162,8 +166,8 @@ void Blueprint::updateBusIndexForEndpoints(const Wire& old_wire, const Wire& new
 
 void Blueprint::updatePortOccupancyForEndpoints(const Wire& old_wire, const Wire& new_wire) {
     // Helper: remove wire ID from old port entry, add to new port entry
-    auto update_endpoint = [&](const std::string& old_node, const std::string& old_port,
-                               const std::string& new_node, const std::string& new_port) {
+    auto update_endpoint = [&](ui::InternedId old_node, ui::InternedId old_port,
+                               ui::InternedId new_node, ui::InternedId new_port) {
         if (old_node == new_node && old_port == new_port) return;
         // Remove from old
         auto it = port_occupancy_index_.find(PortKey(old_node, old_port));
@@ -188,8 +192,8 @@ void Blueprint::rebuild_bus_wire_index() {
 }
 
 void Blueprint::addToBusIndex(const Wire& w) {
-    const Node* sn = find_node(w.start.node_id.c_str());
-    const Node* en = find_node(w.end.node_id.c_str());
+    const Node* sn = find_node(w.start.node_id);
+    const Node* en = find_node(w.end.node_id);
     if (sn && sn->type_name == "Bus") {
         bus_wire_index_[w.start.node_id].push_back(w.id);
     }
@@ -199,8 +203,8 @@ void Blueprint::addToBusIndex(const Wire& w) {
 }
 
 void Blueprint::removeFromBusIndex(const Wire& w) {
-    const Node* sn = find_node(w.start.node_id.c_str());
-    const Node* en = find_node(w.end.node_id.c_str());
+    const Node* sn = find_node(w.start.node_id);
+    const Node* en = find_node(w.end.node_id);
     if (sn && sn->type_name == "Bus") {
         auto it = bus_wire_index_.find(w.start.node_id);
         if (it != bus_wire_index_.end()) {
@@ -275,20 +279,26 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
     }
 
     for (auto& wire : wires) {
-        if (wire.start.node_id.size() <= prefix.size() || 
-            wire.start.node_id.substr(0, prefix.size()) != prefix) {
+        // Resolve InternedId to string for prefix comparison
+        std::string start_nid(R(wire.start.node_id));
+        std::string end_nid(R(wire.end.node_id));
+
+        if (start_nid.size() <= prefix.size() ||
+            start_nid.substr(0, prefix.size()) != prefix) {
             continue;
         }
-        if (wire.end.node_id.size() <= prefix.size() || 
-            wire.end.node_id.substr(0, prefix.size()) != prefix) {
+        if (end_nid.size() <= prefix.size() ||
+            end_nid.substr(0, prefix.size()) != prefix) {
             continue;
         }
-        std::string start_unprefixed = wire.start.node_id.substr(prefix.size());
-        std::string end_unprefixed = wire.end.node_id.substr(prefix.size());
+        std::string start_unprefixed = start_nid.substr(prefix.size());
+        std::string end_unprefixed = end_nid.substr(prefix.size());
+        std::string start_port(R(wire.start.port_name));
+        std::string end_port(R(wire.end.port_name));
         std::string wk = start_unprefixed + "." +
-                         wire.start.port_name + "->" +
+                         start_port + "->" +
                          end_unprefixed + "." +
-                         wire.end.port_name;
+                         end_port;
         auto rt_it = sbi.internal_routing.find(wk);
         if (rt_it != sbi.internal_routing.end()) {
             wire.routing_points = rt_it->second;
@@ -297,8 +307,9 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
 
     std::vector<std::string> internal_ids;
     for (const auto& n : nodes) {
-        if (n.group_id == sbi.id && n.id != sbi.id) {
-            internal_ids.push_back(n.id);
+        std::string nid_str(R(n.id));
+        if (n.group_id == sbi.id && nid_str != sbi.id) {
+            internal_ids.push_back(nid_str);
         }
     }
 
@@ -373,10 +384,11 @@ void Blueprint::auto_layout_group(const std::string& group_id) {
 
 Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& registry) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     for (const auto& dev : def.devices) {
         Node node;
-        node.id = dev.name;
+        node.id = I.intern(dev.name);
         node.name = dev.name;
         node.type_name = dev.classname;
 
@@ -400,10 +412,11 @@ Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& 
         const auto& port_source = !dev.ports.empty() ? dev.ports
                                 : (inner_def ? inner_def->ports : dev.ports);
         for (const auto& [port_name, port] : port_source) {
+            auto interned_port = I.intern(port_name);
             if (port.direction == PortDirection::In || port.direction == PortDirection::InOut)
-                node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+                node.inputs.emplace_back(interned_port, PortSide::Input, port.type);
             if (port.direction == PortDirection::Out || port.direction == PortDirection::InOut)
-                node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+                node.outputs.emplace_back(interned_port, PortSide::Output, port.type);
         }
 
         // Params: registry defaults + device overrides
@@ -417,17 +430,17 @@ Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& 
 
     for (const auto& conn : def.connections) {
         Wire wire;
-        wire.id = conn.from + "->" + conn.to;
+        wire.id = I.intern(conn.from + "->" + conn.to);
 
         size_t dot = conn.from.find('.');
         if (dot != std::string::npos) {
-            wire.start.node_id = conn.from.substr(0, dot);
-            wire.start.port_name = conn.from.substr(dot + 1);
+            wire.start.node_id = I.intern(conn.from.substr(0, dot));
+            wire.start.port_name = I.intern(conn.from.substr(dot + 1));
         }
         dot = conn.to.find('.');
         if (dot != std::string::npos) {
-            wire.end.node_id = conn.to.substr(0, dot);
-            wire.end.port_name = conn.to.substr(dot + 1);
+            wire.end.node_id = I.intern(conn.to.substr(0, dot));
+            wire.end.port_name = I.intern(conn.to.substr(dot + 1));
         }
 
         for (const auto& [x, y] : conn.routing_points)
@@ -458,19 +471,21 @@ static std::string port_type_str(PortType t) {
     std::abort();
 }
 
-static json serialize_ports(const Node& n) {
+static json serialize_ports(const Node& n, const ui::StringInterner& interner) {
     std::set<std::string> input_names, output_names;
-    for (const auto& p : n.inputs) input_names.insert(p.name);
-    for (const auto& p : n.outputs) output_names.insert(p.name);
+    for (const auto& p : n.inputs) input_names.emplace(interner.resolve(p.name));
+    for (const auto& p : n.outputs) output_names.emplace(interner.resolve(p.name));
 
     json ports = json::object();
     for (const auto& p : n.inputs) {
-        bool is_inout = output_names.count(p.name) > 0;
-        ports[p.name] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
+        std::string pname(interner.resolve(p.name));
+        bool is_inout = output_names.count(pname) > 0;
+        ports[pname] = {{"direction", is_inout ? "InOut" : "In"}, {"type", port_type_str(p.type)}};
     }
     for (const auto& p : n.outputs) {
-        if (input_names.count(p.name) > 0) continue;
-        ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
+        std::string pname(interner.resolve(p.name));
+        if (input_names.count(pname) > 0) continue;
+        ports[pname] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
     }
     return ports;
 }
@@ -490,6 +505,7 @@ static json serialize_content(const Node& n) {
 }
 
 std::string Blueprint::to_simulator_json() const {
+    const auto& I = interner_;
     json j = json::object();
 
     j["templates"] = json::object();
@@ -499,13 +515,14 @@ std::string Blueprint::to_simulator_json() const {
     for (const auto& n : nodes) {
         if (n.expandable) continue;
 
-        if (!emitted_ids.insert(n.id).second) {
-            spdlog::warn("[dedup] Duplicate node '{}' on sim export", n.id);
+        std::string nid(I.resolve(n.id));
+        if (!emitted_ids.insert(nid).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on sim export", nid);
             continue;
         }
 
         json device = json::object();
-        device["name"] = n.id;
+        device["name"] = nid;
         device["template_name"] = "";
         device["classname"] = n.type_name;
         if (!n.render_hint.empty())
@@ -515,7 +532,7 @@ std::string Blueprint::to_simulator_json() const {
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
-        device["ports"] = serialize_ports(n);
+        device["ports"] = serialize_ports(n, I);
         
         if (!n.params.empty()) {
             json params = json::object();
@@ -538,16 +555,16 @@ std::string Blueprint::to_simulator_json() const {
     std::set<std::string> blueprint_node_ids;
     for (const auto& n : nodes) {
         if (n.expandable)
-            blueprint_node_ids.insert(n.id);
+            blueprint_node_ids.emplace(I.resolve(n.id));
     }
 
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
     for (const auto& w : wires) {
-        std::string from_node = w.start.node_id;
-        std::string from_port = w.start.port_name;
-        std::string to_node = w.end.node_id;
-        std::string to_port = w.end.port_name;
+        std::string from_node(I.resolve(w.start.node_id));
+        std::string from_port(I.resolve(w.start.port_name));
+        std::string to_node(I.resolve(w.end.node_id));
+        std::string to_port(I.resolve(w.end.port_name));
 
         bool start_is_bp = blueprint_node_ids.count(from_node) > 0;
         bool end_is_bp = blueprint_node_ids.count(to_node) > 0;
@@ -585,16 +602,16 @@ std::string Blueprint::to_simulator_json() const {
     for (const auto& n : nodes) {
         if (!n.expandable) continue;
         json device = json::object();
-        device["name"] = n.id;
+        device["name"] = std::string(I.resolve(n.id));
         device["expandable"] = true;
         device["type_name"] = n.type_name;
         if (!n.blueprint_path.empty())
             device["blueprint_path"] = n.blueprint_path;
         json ports = json::object();
         for (const auto& p : n.inputs)
-            ports[p.name] = {{"direction", "In"}, {"type", port_type_str(p.type)}};
+            ports[std::string(I.resolve(p.name))] = {{"direction", "In"}, {"type", port_type_str(p.type)}};
         for (const auto& p : n.outputs)
-            ports[p.name] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
+            ports[std::string(I.resolve(p.name))] = {{"direction", "Out"}, {"type", port_type_str(p.type)}};
         device["ports"] = ports;
         editor_devices.push_back(device);
     }
@@ -611,15 +628,17 @@ std::string Blueprint::to_simulator_json() const {
             node_state["content"] = serialize_content(n);
         }
 
-        node_states[n.id] = node_state;
+        node_states[std::string(I.resolve(n.id))] = node_state;
     }
     editor["nodes"] = node_states;
 
     json wire_states = json::array();
     for (const auto& w : wires) {
         json wire_state = json::object();
-        wire_state["from"] = w.start.node_id + "." + w.start.port_name;
-        wire_state["to"] = w.end.node_id + "." + w.end.port_name;
+        wire_state["from"] = std::string(I.resolve(w.start.node_id)) + "." +
+                             std::string(I.resolve(w.start.port_name));
+        wire_state["to"] = std::string(I.resolve(w.end.node_id)) + "." +
+                           std::string(I.resolve(w.end.port_name));
         json rps = json::array();
         for (const auto& pt : w.routing_points) {
             rps.push_back({{"x", pt.x}, {"y", pt.y}});
@@ -678,7 +697,7 @@ static NodeContentType string_to_content_type(const std::string& s) {
     return NodeContentType::None;
 }
 
-static FlatNode node_to_flat(const Node& n) {
+static FlatNode node_to_flat(const Node& n, const ui::StringInterner& interner) {
     FlatNode nv;
     nv.type = n.type_name;
     nv.pos = {n.pos.x, n.pos.y};
@@ -709,7 +728,8 @@ static FlatNode node_to_flat(const Node& n) {
         nv.color = c;
     }
 
-    if (n.name != n.id) {
+    std::string nid(interner.resolve(n.id));
+    if (n.name != nid) {
         nv.display_name = n.name;
     }
     nv.render_hint = n.render_hint;
@@ -720,11 +740,13 @@ static FlatNode node_to_flat(const Node& n) {
     return nv;
 }
 
-static FlatWire wire_to_flat(const Wire& w) {
+static FlatWire wire_to_flat(const Wire& w, const ui::StringInterner& interner) {
     FlatWire wv;
-    wv.id = w.id;
-    wv.from = {w.start.node_id, w.start.port_name};
-    wv.to = {w.end.node_id, w.end.port_name};
+    wv.id = std::string(interner.resolve(w.id));
+    wv.from = {std::string(interner.resolve(w.start.node_id)),
+               std::string(interner.resolve(w.start.port_name))};
+    wv.to = {std::string(interner.resolve(w.end.node_id)),
+             std::string(interner.resolve(w.end.port_name))};
     for (const auto& pt : w.routing_points) {
         wv.routing.push_back({pt.x, pt.y});
     }
@@ -733,6 +755,7 @@ static FlatWire wire_to_flat(const Wire& w) {
 
 static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Blueprint& bp) {
     FlatSubBlueprint sb;
+    const auto& I = bp.interner();
 
     if (!sbi.blueprint_path.empty()) {
         sb.template_path = sbi.blueprint_path;
@@ -780,16 +803,18 @@ static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Bluep
     if (sbi.baked_in) {
         for (const auto& nid : sbi.internal_node_ids) {
             if (const Node* n = bp.find_node(nid.c_str())) {
-                sb.nodes[strip_prefix(nid)] = node_to_flat(*n);
+                sb.nodes[strip_prefix(nid)] = node_to_flat(*n, I);
             }
         }
         std::set<std::string> internal_set(sbi.internal_node_ids.begin(),
                                            sbi.internal_node_ids.end());
         for (const auto& w : bp.wires) {
-            if (internal_set.count(w.start.node_id) && internal_set.count(w.end.node_id)) {
-                auto wv = wire_to_flat(w);
-                wv.from.node = strip_prefix(w.start.node_id);
-                wv.to.node = strip_prefix(w.end.node_id);
+            std::string w_start(I.resolve(w.start.node_id));
+            std::string w_end(I.resolve(w.end.node_id));
+            if (internal_set.count(w_start) && internal_set.count(w_end)) {
+                auto wv = wire_to_flat(w, I);
+                wv.from.node = strip_prefix(w_start);
+                wv.to.node = strip_prefix(w_end);
                 sb.wires.push_back(std::move(wv));
             }
         }
@@ -799,6 +824,7 @@ static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Bluep
 }
 
 FlatBlueprint Blueprint::to_flat() const {
+    const auto& I = interner_;
     FlatBlueprint bpv2;
     bpv2.version = 2;
     bpv2.meta.name = "";
@@ -820,33 +846,39 @@ FlatBlueprint Blueprint::to_flat() const {
 
     std::set<std::string> emitted_ids;
     for (const auto& n : nodes) {
-        if (non_baked_in_internals.count(n.id) > 0) continue;
+        std::string nid(I.resolve(n.id));
+        if (non_baked_in_internals.count(nid) > 0) continue;
 
-        if (!emitted_ids.insert(n.id).second) {
-            spdlog::warn("[dedup] Duplicate node '{}' on editor save", n.id);
+        if (!emitted_ids.insert(nid).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on editor save", nid);
             continue;
         }
 
-        bpv2.nodes[n.id] = node_to_flat(n);
+        bpv2.nodes[nid] = node_to_flat(n, I);
     }
 
     std::set<std::string> emitted_wire_keys;
     for (const auto& w : wires) {
-        if (non_baked_in_internals.count(w.start.node_id) > 0 &&
-            non_baked_in_internals.count(w.end.node_id) > 0) {
+        std::string w_start_node(I.resolve(w.start.node_id));
+        std::string w_start_port(I.resolve(w.start.port_name));
+        std::string w_end_node(I.resolve(w.end.node_id));
+        std::string w_end_port(I.resolve(w.end.port_name));
+
+        if (non_baked_in_internals.count(w_start_node) > 0 &&
+            non_baked_in_internals.count(w_end_node) > 0) {
             continue;
         }
-        if (!emitted_ids.count(w.start.node_id) || !emitted_ids.count(w.end.node_id))
+        if (!emitted_ids.count(w_start_node) || !emitted_ids.count(w_end_node))
             continue;
 
-        std::string key = w.start.node_id + "." + w.start.port_name + "→" +
-                          w.end.node_id + "." + w.end.port_name;
+        std::string key = w_start_node + "." + w_start_port + "→" +
+                          w_end_node + "." + w_end_port;
         if (!emitted_wire_keys.insert(key).second) {
             spdlog::warn("[dedup] Duplicate wire on save: {}", key);
             continue;
         }
 
-        bpv2.wires.push_back(wire_to_flat(w));
+        bpv2.wires.push_back(wire_to_flat(w, I));
     }
 
     std::set<std::string> emitted_group_ids;
@@ -860,6 +892,7 @@ FlatBlueprint Blueprint::to_flat() const {
 
 std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     if (bpv2.viewport.has_value()) {
         bp.pan = Pt(bpv2.viewport->pan[0], bpv2.viewport->pan[1]);
@@ -875,7 +908,7 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         }
 
         Node n;
-        n.id = id;
+        n.id = I.intern(id);
         n.type_name = nv.type;
         n.name = nv.display_name.empty() ? id : nv.display_name;
         n.render_hint = nv.render_hint;
@@ -924,7 +957,7 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         if (def) {
             for (const auto& [port_name, port_def] : def->ports) {
                 EditorPort p;
-                p.name = port_name;
+                p.name = I.intern(port_name);
                 p.type = port_def.type;
                 if (port_def.direction == PortDirection::In) {
                     p.side = PortSide::Input;
@@ -963,12 +996,13 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         }
 
         Wire w;
-        w.id = wv.id.empty() ? key : wv.id;
-        w.start.node_id = wv.from.node;
-        w.start.port_name = wv.from.port;
+        std::string wire_id_str = wv.id.empty() ? key : wv.id;
+        w.id = I.intern(wire_id_str);
+        w.start.node_id = I.intern(wv.from.node);
+        w.start.port_name = I.intern(wv.from.port);
         w.start.side = PortSide::Output;
-        w.end.node_id = wv.to.node;
-        w.end.port_name = wv.to.port;
+        w.end.node_id = I.intern(wv.to.node);
+        w.end.port_name = I.intern(wv.to.port);
         w.end.side = PortSide::Input;
 
         for (const auto& pt : wv.routing) {
@@ -996,8 +1030,9 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         sbi.size = Pt(sb.size[0], sb.size[1]);
 
         for (const auto& n : bp.nodes) {
+            std::string nid(I.resolve(n.id));
             if (n.group_id == id) {
-                sbi.internal_node_ids.push_back(n.id);
+                sbi.internal_node_ids.push_back(nid);
             }
         }
 
@@ -1018,7 +1053,8 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         }
 
         for (const auto& n : bp.nodes) {
-            if (n.id == id && n.expandable) {
+            std::string nid(I.resolve(n.id));
+            if (nid == id && n.expandable) {
                 sbi.pos = n.pos;
                 sbi.size = n.size;
                 break;
@@ -1042,15 +1078,28 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
         std::vector<std::string> internal_ids;
         for (auto& node : sub_bp.nodes) {
-            node.id = sbi.id + ":" + node.id;
-            node.name = node.id;
+            // Resolve from sub_bp interner, re-intern into bp interner
+            std::string old_id(sub_bp.interner().resolve(node.id));
+            std::string new_id = sbi.id + ":" + old_id;
+            node.id = I.intern(new_id);
+            node.name = new_id;
             node.group_id = sbi.id;
-            internal_ids.push_back(node.id);
+            internal_ids.push_back(new_id);
 
-            std::string local_id = node.id.substr(sbi.id.size() + 1);
+            std::string local_id = old_id;  // already unprefixed
             auto it = sbi.layout_override.find(local_id);
             if (it != sbi.layout_override.end())
                 node.pos = it->second;
+
+            // Re-intern ports from sub_bp interner into bp interner
+            for (auto& p : node.inputs) {
+                std::string pname(sub_bp.interner().resolve(p.name));
+                p.name = I.intern(pname);
+            }
+            for (auto& p : node.outputs) {
+                std::string pname(sub_bp.interner().resolve(p.name));
+                p.name = I.intern(pname);
+            }
 
             bp.nodes.push_back(std::move(node));
         }
@@ -1065,9 +1114,18 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         }
 
         for (auto& wire : sub_bp.wires) {
-            wire.start.node_id = sbi.id + ":" + wire.start.node_id;
-            wire.end.node_id = sbi.id + ":" + wire.end.node_id;
-            wire.id = sbi.id + ":" + wire.id;
+            // Resolve from sub_bp interner, re-intern into bp interner
+            std::string old_start(sub_bp.interner().resolve(wire.start.node_id));
+            std::string old_end(sub_bp.interner().resolve(wire.end.node_id));
+            std::string old_wid(sub_bp.interner().resolve(wire.id));
+            std::string old_start_port(sub_bp.interner().resolve(wire.start.port_name));
+            std::string old_end_port(sub_bp.interner().resolve(wire.end.port_name));
+
+            wire.start.node_id = I.intern(sbi.id + ":" + old_start);
+            wire.end.node_id = I.intern(sbi.id + ":" + old_end);
+            wire.id = I.intern(sbi.id + ":" + old_wid);
+            wire.start.port_name = I.intern(old_start_port);
+            wire.end.port_name = I.intern(old_end_port);
             bp.wires.push_back(std::move(wire));
         }
 
@@ -1095,8 +1153,9 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
     bp.next_wire_id = static_cast<int>(bp.wires.size());
     for (const auto& w : bp.wires) {
-        if (w.id.compare(0, 5, "wire_") == 0) {
-            int num = std::atoi(w.id.c_str() + 5);
+        std::string wid(I.resolve(w.id));
+        if (wid.compare(0, 5, "wire_") == 0) {
+            int num = std::atoi(wid.c_str() + 5);
             if (num >= bp.next_wire_id) bp.next_wire_id = num + 1;
         }
     }
@@ -1119,3 +1178,5 @@ std::optional<Blueprint> Blueprint::deserialize(const std::string& json_str) {
     spdlog::error("Blueprint::deserialize: not a valid v2 blueprint (version field missing or != 2)");
     return std::nullopt;
 }
+
+#undef R

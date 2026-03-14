@@ -1,6 +1,16 @@
 #include <gtest/gtest.h>
 #include "editor/window/properties_window.h"
 #include "editor/data/node.h"
+#include "ui/core/interned_id.h"
+
+// Allow gtest to print InternedId values on assertion failure
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
+
+static ui::StringInterner g_interner;
 
 // =============================================================================
 // Phase 2: PropertiesWindow Tests — TDD
@@ -8,26 +18,26 @@
 
 TEST(PropertiesWindow, OpenSetsTarget) {
     Node n;
-    n.id = "bat1";
+    n.id = g_interner.intern("bat1");
     n.name = "bat1";
     n.params = {{"v", "28.0"}, {"r", "0.01"}};
 
     PropertiesWindow win;
     EXPECT_FALSE(win.isOpen());
 
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
     EXPECT_TRUE(win.isOpen());
     EXPECT_EQ(win.targetNodeId(), "bat1");
 }
 
 TEST(PropertiesWindow, CancelRevertsParams) {
     Node n;
-    n.id = "bat1";
+    n.id = g_interner.intern("bat1");
     n.name = "bat1";
     n.params = {{"v", "28.0"}, {"r", "0.01"}};
 
     PropertiesWindow win;
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
 
     // Simulate user editing params directly
     n.params["v"] = "12.0";
@@ -44,12 +54,12 @@ TEST(PropertiesWindow, CancelRevertsParams) {
 
 TEST(PropertiesWindow, CancelRevertsAddedParam) {
     Node n;
-    n.id = "bat1";
+    n.id = g_interner.intern("bat1");
     n.name = "bat1";
     n.params = {{"v", "28.0"}};
 
     PropertiesWindow win;
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
 
     // User adds a param that wasn't in the original
     n.params["new_key"] = "new_value";
@@ -65,20 +75,20 @@ TEST(PropertiesWindow, CancelRevertsAddedParam) {
 
 TEST(PropertiesWindow, OpenTwiceOverwritesSnapshot) {
     Node n;
-    n.id = "bat1";
+    n.id = g_interner.intern("bat1");
     n.name = "bat1";
     n.params = {{"v", "28.0"}};
 
     PropertiesWindow win;
 
     // First open
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
 
     // User edits
     n.params["v"] = "12.0";
 
     // Open again (re-snapshot)
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
 
     // Cancel now should revert to the second snapshot (v=12.0)
     win.close();
@@ -88,11 +98,11 @@ TEST(PropertiesWindow, OpenTwiceOverwritesSnapshot) {
 
 TEST(PropertiesWindow, ClosedWindowIsNotOpen) {
     Node n;
-    n.id = "bat1";
+    n.id = g_interner.intern("bat1");
     n.params = {};
 
     PropertiesWindow win;
-    win.open(n, [](const std::string&) {});
+    win.open(n, "bat1", [](const std::string&) {});
     EXPECT_TRUE(win.isOpen());
 
     win.close();

@@ -74,6 +74,18 @@ target_link_libraries(ui_scene_tests PRIVATE
 )
 gtest_discover_tests(ui_scene_tests)
 
+# UI Interning tests (InternedId + StringInterner)
+add_executable(ui_interning_tests
+    test_ui_interning.cpp
+)
+target_include_directories(ui_interning_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(ui_interning_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(ui_interning_tests)
+
 # UI Grid tests (Phase 2.3 of UI Library Extraction)
 add_executable(ui_grid_tests
     test_ui_grid.cpp
@@ -396,6 +408,24 @@ target_link_libraries(editor_data_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_data_tests)
+
+# Editor data interning tests (InternedId migration)
+add_executable(editor_data_interning_tests
+    test_data_interning.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(editor_data_interning_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_data_interning_tests PRIVATE
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_data_interning_tests)
 
 
 # Editor viewport tests (TDD Step 3)

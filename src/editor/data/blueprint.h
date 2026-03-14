@@ -3,6 +3,7 @@
 #include "node.h"
 #include "wire.h"
 #include "../../ui/math/pt.h"
+#include "../../ui/core/interned_id.h"
 #include "layout_constants.h"
 #include "../../json_parser/json_parser.h"
 #include <vector>
@@ -46,12 +47,17 @@ struct SubBlueprintInstance {
 /// В отличие от Circuit - более общее название.
 /// Содержит узлы и провода (wires) между портами.
 struct Blueprint {
+    /// String interner — owns all interned ID strings for this blueprint.
+    /// All InternedId values in nodes/wires/indices are valid within this interner.
+    ui::StringInterner& interner() { return interner_; }
+    const ui::StringInterner& interner() const { return interner_; }
+
     /// Все узлы в схеме
     std::vector<Node> nodes;
 
     /// O(1) node lookup by ID: node_id → index in nodes vector.
     /// Maintained by add_node(), rebuild_node_index().
-    std::unordered_map<std::string, size_t> node_index_;
+    std::unordered_map<ui::InternedId, size_t> node_index_;
 
     /// Все провода (соединения между портами)
     std::vector<Wire> wires;
@@ -61,7 +67,7 @@ struct Blueprint {
 
     /// O(1) wire lookup by ID: wire_id → index in wires vector.
     /// Maintained by add_wire(), remove_wire_at(), rebuild_wire_id_index().
-    std::unordered_map<std::string, size_t> wire_id_index_;
+    std::unordered_map<ui::InternedId, size_t> wire_id_index_;
 
     /// [2.1] Rebuild wire_index_ from wires vector (after bulk modifications)
     void rebuild_wire_index() {
@@ -84,16 +90,16 @@ struct Blueprint {
     /// Index: bus node ID → wire IDs touching that bus.
     /// Used by recreate_bus_wires to avoid O(N) scan of all wires.
     /// Wire IDs are stored (not indices) to avoid shift problems on removal.
-    std::unordered_map<std::string, std::vector<std::string>> bus_wire_index_;
+    std::unordered_map<ui::InternedId, std::vector<ui::InternedId>> bus_wire_index_;
 
     /// O(1) port occupancy index: (node_id, port_name) → set of wire IDs.
     /// Used by add_wire_validated to avoid O(N) scan for occupied ports.
     /// Tracks ALL ports (Bus/RefNode included); caller decides whether to allow multiple.
-    std::unordered_map<PortKey, std::unordered_set<std::string>, PortKeyHash> port_occupancy_index_;
+    std::unordered_map<PortKey, std::unordered_set<ui::InternedId>, PortKeyHash> port_occupancy_index_;
 
     /// Get all wire IDs that touch a bus node. O(1) lookup.
-    const std::vector<std::string>& busWires(const std::string& bus_id) const {
-        static const std::vector<std::string> empty;
+    const std::vector<ui::InternedId>& busWires(ui::InternedId bus_id) const {
+        static const std::vector<ui::InternedId> empty;
         auto it = bus_wire_index_.find(bus_id);
         return it != bus_wire_index_.end() ? it->second : empty;
     }
@@ -110,7 +116,7 @@ struct Blueprint {
     }
 
     /// Check if a port is occupied by any wire. O(1).
-    bool is_port_occupied(const std::string& node_id, const std::string& port_name) const {
+    bool is_port_occupied(ui::InternedId node_id, ui::InternedId port_name) const {
         auto it = port_occupancy_index_.find(PortKey(node_id, port_name));
         return it != port_occupancy_index_.end() && !it->second.empty();
     }
@@ -191,19 +197,22 @@ struct Blueprint {
     /// Number of wires in the dedup index (for testing).
     size_t wire_index_size() const { return wire_index_.size(); }
 
-    /// Find wire by ID (O(1) via wire_id_index_).
-    Wire* find_wire(const std::string& id) {
+    /// Find wire by InternedId (O(1) via wire_id_index_).
+    Wire* find_wire(ui::InternedId id) {
         auto it = wire_id_index_.find(id);
         if (it == wire_id_index_.end()) return nullptr;
         return &wires[it->second];
     }
-    const Wire* find_wire(const std::string& id) const {
+    const Wire* find_wire(ui::InternedId id) const {
         auto it = wire_id_index_.find(id);
         if (it == wire_id_index_.end()) return nullptr;
         return &wires[it->second];
     }
 
 private:
+    /// The string interner for this blueprint.
+    ui::StringInterner interner_;
+
     /// Add a wire's ID to bus_wire_index_ if it touches a bus node.
     void addToBusIndex(const Wire& w);
     /// Remove a wire's ID from bus_wire_index_ if it touches a bus node.
@@ -216,7 +225,7 @@ private:
     }
     /// Remove a wire's ID from port_occupancy_index_ for both endpoints.
     void removeFromPortOccupancy(const Wire& w) {
-        auto remove_entry = [&](const std::string& node_id, const std::string& port_name) {
+        auto remove_entry = [&](ui::InternedId node_id, ui::InternedId port_name) {
             auto it = port_occupancy_index_.find(PortKey(node_id, port_name));
             if (it != port_occupancy_index_.end()) {
                 it->second.erase(w.id);
@@ -229,16 +238,27 @@ private:
 
 public:
 
-    /// Найти узел по ID (O(1) via node_index_)
-    Node* find_node(const char* id) {
+    /// Найти узел по InternedId (O(1) via node_index_)
+    Node* find_node(ui::InternedId id) {
         auto it = node_index_.find(id);
         if (it == node_index_.end()) return nullptr;
         return &nodes[it->second];
     }
-    const Node* find_node(const char* id) const {
+    const Node* find_node(ui::InternedId id) const {
         auto it = node_index_.find(id);
         if (it == node_index_.end()) return nullptr;
         return &nodes[it->second];
+    }
+
+    /// Convenience: find node by string (interns on-the-fly)
+    Node* find_node(const char* id) {
+        auto iid = interner_.intern(id);
+        return find_node(iid);
+    }
+    const Node* find_node(const char* id) const {
+        // const_cast to allow interning — find_node(const char*) may add to interner
+        auto iid = const_cast<ui::StringInterner&>(interner_).intern(id);
+        return find_node(iid);
     }
 
     /// Recompute group_id for all nodes from sub_blueprint_instances.
@@ -256,13 +276,11 @@ public:
         }
 
         for (auto& n : nodes) {
-            auto it = node_to_group.find(n.id);
+            std::string nid_str(interner_.resolve(n.id));
+            auto it = node_to_group.find(nid_str);
             if (it != node_to_group.end()) {
                 n.group_id = it->second;
             } else if (!n.expandable) {
-                // Non-expandable nodes not in any group are top-level.
-                // Expandable (collapsed) nodes keep their group_id as-is
-                // because it was set explicitly when added to a sub-window.
                 n.group_id = "";
             }
         }
@@ -274,13 +292,11 @@ public:
     void collect_group_internals(const std::string& group_id,
                                  std::unordered_set<std::string>& out_node_ids,
                                  std::unordered_set<std::string>& out_group_ids) const {
-        // Find the SubBlueprintInstance for this group_id
         for (const auto& g : sub_blueprint_instances) {
             if (g.id != group_id) continue;
             out_group_ids.insert(g.id);
             for (const auto& nid : g.internal_node_ids) {
                 out_node_ids.insert(nid);
-                // If this internal node is itself a Blueprint, recurse
                 const Node* n = find_node(nid.c_str());
                 if (n && n->expandable) {
                     collect_group_internals(nid, out_node_ids, out_group_ids);

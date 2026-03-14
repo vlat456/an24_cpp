@@ -1,7 +1,9 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
+#include "ui/core/interned_id.h"
 #include <string>
+#include <string_view>
 #include <optional>
 #include <cstdint>
 
@@ -15,13 +17,13 @@ namespace visual {
 /// allowing clicks to pass through to nodes inside the group.
 class GroupNodeWidget : public Widget {
 public:
-    explicit GroupNodeWidget(const ::Node& data);
+    explicit GroupNodeWidget(const ::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return node_id_; }
     bool isClickable() const override { return true; }
     RenderLayer renderLayer() const override { return RenderLayer::Group; }
 
-    const std::string& nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return node_id_; }
     const std::string& name() const { return name_; }
 
     bool isResizable() const override { return true; }
@@ -39,7 +41,7 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    std::string node_id_;
+    std::string_view node_id_;
     std::string name_;
     std::optional<uint32_t> custom_fill_;
 };

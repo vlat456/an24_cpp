@@ -145,7 +145,7 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
     Node* node = doc.blueprint().find_node(node_id.c_str());
     if (!node) return;
     Document* doc_ptr = &doc;
-    properties_window_.open(*node, [this, doc_ptr](const std::string& nid) {
+    properties_window_.open(*node, node_id, [this, doc_ptr](const std::string& nid) {
         // Verify document still exists before using the pointer
         for (const auto& d : documents_) {
             if (d.get() == doc_ptr) {

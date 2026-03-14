@@ -1,8 +1,16 @@
 #include <gtest/gtest.h>
 #include "data/blueprint.h"
 #include "json_parser/json_parser.h"
+#include "ui/core/interned_id.h"
 #include <filesystem>
 #include <fstream>
+
+// Allow gtest to print InternedId values on assertion failure
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 
 // =============================================================================
@@ -111,8 +119,9 @@ TEST(ExpandTypeDef, PortsFallbackToRegistry) {
 
     // Check specific port names
     bool has_v_in = false, has_v_out = false;
-    for (const auto& p : bat->inputs) if (p.name == "v_in") has_v_in = true;
-    for (const auto& p : bat->outputs) if (p.name == "v_out") has_v_out = true;
+    auto& I = bp.interner();
+    for (const auto& p : bat->inputs) if (I.resolve(p.name) == "v_in") has_v_in = true;
+    for (const auto& p : bat->outputs) if (I.resolve(p.name) == "v_out") has_v_out = true;
     EXPECT_TRUE(has_v_in) << "Battery should have v_in input port";
     EXPECT_TRUE(has_v_out) << "Battery should have v_out output port";
 }
@@ -168,11 +177,13 @@ TEST(ExpandTypeDef, WireEndpoints_Correct) {
 
     Blueprint bp = expand_type_definition(def, reg);
 
+    auto& I = bp.interner();
+
     // Find wire "vin.port" -> "bat.v_in"
     bool found = false;
     for (const auto& w : bp.wires) {
-        if (w.start.node_id == "vin" && w.start.port_name == "port" &&
-            w.end.node_id == "bat" && w.end.port_name == "v_in") {
+        if (w.start.node_id == I.intern("vin") && w.start.port_name == I.intern("port") &&
+            w.end.node_id == I.intern("bat") && w.end.port_name == I.intern("v_in")) {
             found = true;
             break;
         }
@@ -400,8 +411,9 @@ TEST(ExpandTypeDef, InlinePorts_PreferredOverRegistry) {
     ASSERT_NE(n, nullptr);
 
     bool has_custom_in = false, has_custom_out = false;
-    for (const auto& p : n->inputs) if (p.name == "custom_in") has_custom_in = true;
-    for (const auto& p : n->outputs) if (p.name == "custom_out") has_custom_out = true;
+    auto& I = bp.interner();
+    for (const auto& p : n->inputs) if (I.resolve(p.name) == "custom_in") has_custom_in = true;
+    for (const auto& p : n->outputs) if (I.resolve(p.name) == "custom_out") has_custom_out = true;
 
     EXPECT_TRUE(has_custom_in) << "Should use inline port custom_in, not registry ports";
     EXPECT_TRUE(has_custom_out) << "Should use inline port custom_out, not registry ports";

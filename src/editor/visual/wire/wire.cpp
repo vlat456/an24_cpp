@@ -17,9 +17,9 @@
 
 namespace visual {
 
-Wire::Wire(const std::string& id,
-           const std::string& start_node, const std::string& start_port,
-           const std::string& end_node, const std::string& end_port)
+Wire::Wire(std::string_view id,
+           std::string_view start_node, std::string_view start_port,
+           std::string_view end_node, std::string_view end_port)
     : id_(id)
 {
     start_.node_id = start_node;

@@ -16,7 +16,7 @@ public:
     static constexpr float HEIGHT = 24.0f;
     static constexpr float VISUAL_HEIGHT = 20.0f;
 
-    static float estimateTextWidth(const std::string& text) {
+    static float estimateTextWidth(std::string_view text) {
         if (text.empty()) return 0;
         size_t codepoints = 0;
         for (size_t i = 0; i < text.size(); ) {

@@ -3,6 +3,14 @@
 #include "json_parser/json_parser.h"
 #include "visual/persist.h"
 #include <nlohmann/json.hpp>
+#include "ui/core/interned_id.h"
+
+// Allow gtest to print InternedId values on assertion failure
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 
 // ============================================================
@@ -464,37 +472,38 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
 
 TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Add a regular node
     Node bat;
-    bat.id = "bat";
+    bat.id = I.intern("bat");
     bat.type_name = "Battery";
     bat.pos = {100.0f, 200.0f};
     bat.size = {120.0f, 80.0f};
-    bat.output("v_out");
+    bat.output(I.intern("v_out"));
     bp.add_node(bat);
 
     // Add an expandable (collapsed) node for the sub-blueprint
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.type_name = "lamp_pass_through";
     collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.pos = {400.0f, 300.0f};
     collapsed.size = {120.0f, 80.0f};
-    collapsed.input("vin");
+    collapsed.input(I.intern("vin"));
     bp.add_node(collapsed);
 
     // Internal nodes of the sub-blueprint
     Node vin;
-    vin.id = "lamp_1:vin";
+    vin.id = I.intern("lamp_1:vin");
     vin.type_name = "BlueprintInput";
     vin.group_id = "lamp_1";
     vin.at(350.0f, 300.0f);  // Match layout_override so snapshot preserves it
     bp.add_node(vin);
 
     Node lamp;
-    lamp.id = "lamp_1:lamp";
+    lamp.id = I.intern("lamp_1:lamp");
     lamp.type_name = "IndicatorLight";
     lamp.group_id = "lamp_1";
     bp.add_node(lamp);
@@ -515,9 +524,9 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
 
     // Wire between bat and collapsed node
     Wire w;
-    w.id = "w1";
-    w.start = WireEnd("bat", "v_out", PortSide::Output);
-    w.end = WireEnd("lamp_1", "vin", PortSide::Input);
+    w.id = I.intern("w1");
+    w.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output);
+    w.end = WireEnd(I.intern("lamp_1"), I.intern("vin"), PortSide::Input);
     bp.add_wire(std::move(w));
 
     // Round-trip: save → load
@@ -570,16 +579,17 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
 
 TEST(SubBlueprintPersist, RoundTrip_BakedIn_PreservesFlag) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.type_name = "lamp_pass_through";
     collapsed.expandable = true;
     collapsed.collapsed = true;
     bp.add_node(collapsed);
 
     Node lamp;
-    lamp.id = "lamp_1:lamp";
+    lamp.id = I.intern("lamp_1:lamp");
     lamp.type_name = "IndicatorLight";
     lamp.group_id = "lamp_1";
     bp.add_node(lamp);
@@ -606,16 +616,17 @@ TEST(SubBlueprintPersist, RoundTrip_BakedIn_PreservesFlag) {
 
 TEST(SubBlueprintPersist, MixedMode_ReferencesAndBakedIn) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     // Baked-in instance
     Node col1;
-    col1.id = "lamp_1";
+    col1.id = I.intern("lamp_1");
     col1.type_name = "lamp_pass_through";
     col1.expandable = true;
     bp.add_node(col1);
 
     Node l1;
-    l1.id = "lamp_1:lamp";
+    l1.id = I.intern("lamp_1:lamp");
     l1.type_name = "IndicatorLight";
     l1.group_id = "lamp_1";
     bp.add_node(l1);
@@ -629,13 +640,13 @@ TEST(SubBlueprintPersist, MixedMode_ReferencesAndBakedIn) {
 
     // Reference instance
     Node col2;
-    col2.id = "lamp_2";
+    col2.id = I.intern("lamp_2");
     col2.type_name = "lamp_pass_through";
     col2.expandable = true;
     bp.add_node(col2);
 
     Node l2;
-    l2.id = "lamp_2:lamp";
+    l2.id = I.intern("lamp_2:lamp");
     l2.type_name = "IndicatorLight";
     l2.group_id = "lamp_2";
     bp.add_node(l2);

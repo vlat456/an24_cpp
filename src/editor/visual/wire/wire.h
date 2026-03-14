@@ -4,7 +4,7 @@
 #include "router/crossings.h"
 #include "ui/core/small_vector.h"
 #include <vector>
-#include <string>
+#include <string_view>
 
 namespace visual {
 
@@ -13,10 +13,11 @@ class Scene;
 
 /// Endpoint descriptor: identifies a port by node ID + port name.
 /// The Wire resolves world positions dynamically via scene_->find(node_id)->portByName(...).
+/// Stores string_view references into the StringInterner's stable deque storage.
 struct WireEndpoint {
-    std::string node_id;
-    std::string port_name;
-    std::string wire_id;   ///< Passed to portByName() for bus alias port resolution.
+    std::string_view node_id;
+    std::string_view port_name;
+    std::string_view wire_id;   ///< Passed to portByName() for bus alias port resolution.
 };
 
 /// Wire is a root-level widget in the Scene.
@@ -26,11 +27,14 @@ struct WireEndpoint {
 /// Bounding box: overrides worldMin()/worldMax() to compute from polyline.
 /// Wire's local_pos_ stays at (0,0) — it has no positional meaning.
 /// RoutingPoints store absolute world coords in their local_pos_.
+///
+/// All string_view members reference the StringInterner's stable deque storage.
+/// They remain valid for the lifetime of the Blueprint that owns the interner.
 class Wire : public Widget {
 public:
-    Wire(const std::string& id,
-         const std::string& start_node, const std::string& start_port,
-         const std::string& end_node, const std::string& end_port);
+    Wire(std::string_view id,
+         std::string_view start_node, std::string_view start_port,
+         std::string_view end_node, std::string_view end_port);
     ~Wire() override = default;
 
     std::string_view id() const override { return id_; }
@@ -66,7 +70,7 @@ public:
     static constexpr float WIRE_THICKNESS = 1.5f;
 
 private:
-    std::string id_;
+    std::string_view id_;
     WireEndpoint start_;
     WireEndpoint end_;
     ui::SmallVector<WireCrossing, 4> crossings_;

@@ -112,39 +112,43 @@ void Document::updateSimulationStep(float dt) {
 void Document::updateNodeContentFromSimulation() {
     if (!simulation_running_) return;
 
+    auto& I = blueprint_.interner();
+    auto R = [&](ui::InternedId id) -> std::string { return std::string(I.resolve(id)); };
+
     for (auto& node : blueprint_.nodes) {
+        std::string nid = R(node.id);
         // Update Voltmeter gauge voltage
         if (node.type_name == "Voltmeter") {
-            float voltage = simulation_.get_port_value(node.id, "v_in");
+            float voltage = simulation_.get_port_value(nid, "v_in");
             node.node_content.value = voltage;
         }
         // Update IndicatorLight text based on brightness
         else if (node.type_name == "IndicatorLight") {
-            float brightness = simulation_.get_port_value(node.id, "brightness");
+            float brightness = simulation_.get_port_value(nid, "brightness");
             node.node_content.label = (brightness > 0.1f) ? "ON" : "OFF";
         }
         // Update DMR400 state
         else if (node.type_name == "DMR400") {
-            float v_gen = simulation_.get_port_value(node.id, "v_gen");
-            float v_bus = simulation_.get_port_value(node.id, "v_bus");
+            float v_gen = simulation_.get_port_value(nid, "v_gen");
+            float v_bus = simulation_.get_port_value(nid, "v_bus");
             bool connected = v_gen > v_bus + 2.0f;
             node.node_content.state = connected;
         }
         // Update Switch toggle state from state port (1.0V = closed, 0.0V = open)
         else if (node.type_name == "Switch") {
-            float state_voltage = simulation_.get_port_value(node.id, "state");
+            float state_voltage = simulation_.get_port_value(nid, "state");
             node.node_content.state = (state_voltage > 0.5f);
         }
         // Update HoldButton state from state port (1.0V = pressed, 0.0V = released/idle)
         else if (node.type_name == "HoldButton") {
-            float state_voltage = simulation_.get_port_value(node.id, "state");
+            float state_voltage = simulation_.get_port_value(nid, "state");
             node.node_content.state = (state_voltage > 0.5f);
         }
         // Update AZS (circuit breaker) state + tripped indicator
         else if (node.type_name == "AZS") {
-            float state_voltage = simulation_.get_port_value(node.id, "state");
+            float state_voltage = simulation_.get_port_value(nid, "state");
             node.node_content.state = (state_voltage > 0.5f);
-            float tripped_voltage = simulation_.get_port_value(node.id, "tripped");
+            float tripped_voltage = simulation_.get_port_value(nid, "tripped");
             node.node_content.tripped = (tripped_voltage > 0.5f);
         }
     }
@@ -154,7 +158,7 @@ void Document::updateNodeContentFromSimulation() {
         for (const auto& node : blueprint_.nodes) {
             if (node.node_content.type == NodeContentType::None) continue;
             if (node.group_id != win->group_id) continue;
-            auto* widget = win->scene.find(node.id);
+            auto* widget = win->scene.find(I.resolve(node.id));
             if (!widget) continue;
             auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
             if (nw) nw->updateContent(node.node_content);
@@ -170,23 +174,32 @@ void Document::resetNodeContent(const TypeRegistry& registry) {
     }
 }
 
-void Document::buildEnergizedWireSet(std::unordered_set<std::string>& out,
-                                      const std::string& group_id) const {
+void Document::buildEnergizedWireSet(
+    std::unordered_set<std::string_view, visual::StringViewHash>& out,
+    const std::string& group_id) const {
     out.clear();
     if (!simulation_running_) return;
+
+    const auto& I = blueprint_.interner();
 
     for (const auto& w : blueprint_.wires) {
         // Filter wires to the active group
         // A wire belongs to a group if both endpoints are in that group
         if (!group_id.empty()) {
-            const auto* start_node = blueprint_.find_node(w.start.node_id.c_str());
+            const auto* start_node = blueprint_.find_node(w.start.node_id);
             if (!start_node || start_node->group_id != group_id) continue;
         }
 
         // Check either endpoint's port for voltage
-        std::string port_key = w.start.node_id + "." + w.start.port_name;
+        std::string_view node_sv = I.resolve(w.start.node_id);
+        std::string_view port_sv = I.resolve(w.start.port_name);
+        std::string port_key;
+        port_key.reserve(node_sv.size() + 1 + port_sv.size());
+        port_key.append(node_sv);
+        port_key.push_back('.');
+        port_key.append(port_sv);
         if (simulation_.wire_is_energized(port_key)) {
-            out.insert(w.id);
+            out.insert(I.resolve(w.id));
         }
     }
 }
@@ -245,7 +258,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     // Create node
     Node node;
-    node.id = unique_id;
+    node.id = blueprint_.interner().intern(unique_id);
     node.name = unique_id;
     node.type_name = classname;
     node.pos = snapped_pos;
@@ -257,14 +270,16 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.size = get_default_node_size(classname, &registry);
 
     // Add ports
+    auto& I = blueprint_.interner();
     for (const auto& [port_name, port_def] : def->ports) {
+        auto pid = I.intern(port_name);
         if (port_def.direction == PortDirection::In) {
-            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port_def.type);
+            node.inputs.emplace_back(pid, PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
-            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port_def.type);
+            node.outputs.emplace_back(pid, PortSide::Output, port_def.type);
         } else if (port_def.direction == PortDirection::InOut) {
-            node.inputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
-            node.outputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
+            node.inputs.emplace_back(pid, PortSide::InOut, port_def.type);
+            node.outputs.emplace_back(pid, PortSide::InOut, port_def.type);
         }
     }
 
@@ -320,25 +335,29 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
                                   [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
 
+    auto& I = blueprint_.interner();
+    auto& sub_I = sub_bp.interner();
+
     std::vector<std::string> internal_node_ids;
     for (auto& node : sub_bp.nodes) {
-        node.id = unique_id + ":" + node.id;
-        node.name = node.id;
+        std::string prefixed_id = unique_id + ":" + std::string(sub_I.resolve(node.id));
+        node.id = I.intern(prefixed_id);
+        node.name = prefixed_id;
         if (!has_layout) node.pos = snapped_pos;
-        internal_node_ids.push_back(node.id);
+        internal_node_ids.push_back(prefixed_id);
         blueprint_.add_node(std::move(node));
     }
 
     for (auto& wire : sub_bp.wires) {
-        wire.start.node_id = unique_id + ":" + wire.start.node_id;
-        wire.end.node_id = unique_id + ":" + wire.end.node_id;
-        wire.id = unique_id + ":" + wire.id;
+        wire.start.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.start.node_id)));
+        wire.end.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.end.node_id)));
+        wire.id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.id)));
         blueprint_.add_wire(std::move(wire));
     }
 
     // Create COLLAPSED Blueprint node
     Node collapsed_node;
-    collapsed_node.id = unique_id;
+    collapsed_node.id = I.intern(unique_id);
     collapsed_node.name = unique_id;
     collapsed_node.type_name = blueprint_name;
     collapsed_node.expandable = true;
@@ -352,10 +371,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed_node.size = Pt(120.0f, height);
 
     for (const auto& [port_name, port] : bp_def->ports) {
+        auto pid = I.intern(port_name);
         if (port.direction == PortDirection::In) {
-            collapsed_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+            collapsed_node.inputs.emplace_back(pid, PortSide::Input, port.type);
         } else {
-            collapsed_node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+            collapsed_node.outputs.emplace_back(pid, PortSide::Output, port.type);
         }
     }
 

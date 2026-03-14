@@ -2,6 +2,7 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include <string>
+#include <string_view>
 #include <cstdint>
 
 namespace visual {
@@ -10,7 +11,7 @@ enum class TextAlign { Left, Right };
 
 class Label : public Widget {
 public:
-    Label(const std::string& text, float font_size, uint32_t color = 0xFFFFFFFF,
+    Label(std::string_view text, float font_size, uint32_t color = 0xFFFFFFFF,
           TextAlign align = TextAlign::Left);
 
     Pt preferredSize(IDrawList* dl) const override;

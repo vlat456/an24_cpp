@@ -1,6 +1,13 @@
 #include <gtest/gtest.h>
 #include "editor/data/blueprint.h"
 #include "json_parser/json_parser.h"
+#include "ui/core/interned_id.h"
+
+namespace ui {
+inline std::ostream& operator<<(std::ostream& os, InternedId id) {
+    return os << "InternedId(" << id.raw() << ")";
+}
+}
 
 
 // ============================================================
@@ -9,27 +16,28 @@
 
 TEST(BakeIn, SetsBakedInFlag) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     Node bat;
-    bat.id = "bat_main";
+    bat.id = I.intern("bat_main");
     bat.type_name = "Battery";
     bp.add_node(bat);
 
     Node vin;
-    vin.id = "lamp_1:vin";
+    vin.id = I.intern("lamp_1:vin");
     vin.type_name = "BlueprintInput";
     vin.group_id = "lamp_1";
     bp.add_node(vin);
 
     Node lamp;
-    lamp.id = "lamp_1:lamp";
+    lamp.id = I.intern("lamp_1:lamp");
     lamp.type_name = "IndicatorLight";
     lamp.group_id = "lamp_1";
     lamp.params["color"] = "red";
     bp.add_node(lamp);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.type_name = "lamp_pass_through";
     collapsed.expandable = true;
     collapsed.collapsed = true;
@@ -72,16 +80,17 @@ TEST(BakeIn, SetsBakedInFlag) {
 
 TEST(BakeIn, FlattensParamOverrides) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     Node lamp;
-    lamp.id = "lamp_1:lamp";
+    lamp.id = I.intern("lamp_1:lamp");
     lamp.type_name = "IndicatorLight";
     lamp.group_id = "lamp_1";
     lamp.params["color"] = "red";
     bp.add_node(lamp);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.expandable = true;
     collapsed.collapsed = true;
     bp.add_node(collapsed);
@@ -101,16 +110,17 @@ TEST(BakeIn, FlattensParamOverrides) {
 
 TEST(BakeIn, FlattensLayoutOverrides) {
     Blueprint bp;
+    auto& I = bp.interner();
 
     Node vin;
-    vin.id = "lamp_1:vin";
+    vin.id = I.intern("lamp_1:vin");
     vin.type_name = "BlueprintInput";
     vin.group_id = "lamp_1";
     vin.pos = {0.0f, 0.0f};
     bp.add_node(vin);
 
     Node collapsed;
-    collapsed.id = "lamp_1";
+    collapsed.id = I.intern("lamp_1");
     collapsed.expandable = true;
     collapsed.collapsed = true;
     bp.add_node(collapsed);

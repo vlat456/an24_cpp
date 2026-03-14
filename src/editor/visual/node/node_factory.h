@@ -6,6 +6,7 @@
 #include "visual/node/bus_node_widget.h"
 #include "data/node.h"
 #include "data/wire.h"
+#include "ui/core/interned_id.h"
 #include <memory>
 #include <vector>
 
@@ -14,10 +15,12 @@ namespace visual {
 /// Factory for creating the correct Widget subclass based on Node::render_hint.
 struct NodeFactory {
     /// Create a widget for the given node data.
-    /// @param node     The node data (render_hint selects the widget type)
-    /// @param wires    All wires in the blueprint (used by BusNodeWidget)
+    /// @param node      The node data (render_hint selects the widget type)
+    /// @param interner  String interner for resolving InternedId to strings
+    /// @param wires     All wires in the blueprint (used by BusNodeWidget)
     /// @return Owning pointer to the created widget
     static std::unique_ptr<Widget> create(const ::Node& node,
+                                           const ui::StringInterner& interner,
                                            const std::vector<::Wire>& wires = {}) {
         if (node.render_hint == "bus") {
             PortEdge edge = PortEdge::Bottom;
@@ -27,19 +30,19 @@ struct NodeFactory {
                 else if (it->second == "left") edge = PortEdge::Left;
                 else if (it->second == "right") edge = PortEdge::Right;
             }
-            return std::make_unique<BusNodeWidget>(node, edge, wires);
+            return std::make_unique<BusNodeWidget>(node, interner, edge, wires);
         }
         if (node.render_hint == "ref") {
-            return std::make_unique<RefNodeWidget>(node);
+            return std::make_unique<RefNodeWidget>(node, interner);
         }
         if (node.render_hint == "group") {
-            return std::make_unique<GroupNodeWidget>(node);
+            return std::make_unique<GroupNodeWidget>(node, interner);
         }
         if (node.render_hint == "text") {
-            return std::make_unique<TextNodeWidget>(node);
+            return std::make_unique<TextNodeWidget>(node, interner);
         }
         // Default: standard component node
-        return std::make_unique<NodeWidget>(node);
+        return std::make_unique<NodeWidget>(node, interner);
     }
 };
 

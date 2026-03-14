@@ -6,7 +6,7 @@ namespace visual {
 
 // ============ Label ============
 
-Label::Label(const std::string& text, float font_size, uint32_t color,
+Label::Label(std::string_view text, float font_size, uint32_t color,
              TextAlign align)
     : text_(text), font_size_(font_size), color_(color), align_(align) {}
 

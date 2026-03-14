@@ -14,8 +14,9 @@ struct InspectorTestScene {
     InspectorTestScene() = default;
 
     Node& addNode(const std::string& id, const std::string& type, Pt pos = Pt(0, 0)) {
+        auto& I = bp.interner();
         Node n;
-        n.id = id;
+        n.id = I.intern(id);
         n.name = id;
         n.type_name = type;
         n.pos = pos;
@@ -23,31 +24,31 @@ struct InspectorTestScene {
 
         // Add default ports based on type (manually create Port structs)
         if (type == "Battery") {
-            EditorPort p_in; p_in.name = "v_in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = "v_out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
+            EditorPort p_in; p_in.name = I.intern("v_in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = I.intern("v_out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Lamp") {
-            EditorPort p_in; p_in.name = "v_in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = "light"; p_out.side = PortSide::Output; p_out.type = PortType::Bool;
+            EditorPort p_in; p_in.name = I.intern("v_in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = I.intern("light"); p_out.side = PortSide::Output; p_out.type = PortType::Bool;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Switch") {
-            EditorPort p_vin; p_vin.name = "v_in"; p_vin.side = PortSide::Input; p_vin.type = PortType::V;
-            EditorPort p_ctrl; p_ctrl.name = "control"; p_ctrl.side = PortSide::Input; p_ctrl.type = PortType::Bool;
-            EditorPort p_out; p_out.name = "v_out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
+            EditorPort p_vin; p_vin.name = I.intern("v_in"); p_vin.side = PortSide::Input; p_vin.type = PortType::V;
+            EditorPort p_ctrl; p_ctrl.name = I.intern("control"); p_ctrl.side = PortSide::Input; p_ctrl.type = PortType::Bool;
+            EditorPort p_out; p_out.name = I.intern("v_out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_vin);
             n.inputs.push_back(p_ctrl);
             n.outputs.push_back(p_out);
         } else if (type == "Test") {
-            EditorPort p_in; p_in.name = "in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = "out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
+            EditorPort p_in; p_in.name = I.intern("in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = I.intern("out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         } else if (type == "Zebra" || type == "Apple" || type == "Banana") {
             // For sort tests - minimal ports
-            EditorPort p_in; p_in.name = "in"; p_in.side = PortSide::Input; p_in.type = PortType::V;
-            EditorPort p_out; p_out.name = "out"; p_out.side = PortSide::Output; p_out.type = PortType::V;
+            EditorPort p_in; p_in.name = I.intern("in"); p_in.side = PortSide::Input; p_in.type = PortType::V;
+            EditorPort p_out; p_out.name = I.intern("out"); p_out.side = PortSide::Output; p_out.type = PortType::V;
             n.inputs.push_back(p_in);
             n.outputs.push_back(p_out);
         }
@@ -58,9 +59,10 @@ struct InspectorTestScene {
 
     void addWire(const std::string& src_node, const std::string& src_port,
                  const std::string& dst_node, const std::string& dst_port) {
+        auto& I = bp.interner();
         Wire w;
-        w.start = WireEnd(src_node.c_str(), src_port.c_str(), PortSide::Output);
-        w.end = WireEnd(dst_node.c_str(), dst_port.c_str(), PortSide::Input);
+        w.start = WireEnd(I.intern(src_node), I.intern(src_port), PortSide::Output);
+        w.end = WireEnd(I.intern(dst_node), I.intern(dst_port), PortSide::Input);
         bp.add_wire(w);
     }
 
@@ -261,21 +263,22 @@ TEST(Inspector, SortMode_ByType) {
 
 TEST(Inspector, GroupFiltering_RootInspectorHidesSubBlueprintNodes) {
     Blueprint bp;
+    auto& I = bp.interner();
     // Root-level node
     Node root_node;
-    root_node.id = "battery1";
+    root_node.id = I.intern("battery1");
     root_node.name = "battery1";
     root_node.type_name = "Battery";
     root_node.group_id = "";
-EditorPort ri; ri.name = "v_in"; ri.side = PortSide::Input; ri.type = PortType::V;
-EditorPort ro; ro.name = "v_out"; ro.side = PortSide::Output; ro.type = PortType::V;
+EditorPort ri; ri.name = I.intern("v_in"); ri.side = PortSide::Input; ri.type = PortType::V;
+EditorPort ro; ro.name = I.intern("v_out"); ro.side = PortSide::Output; ro.type = PortType::V;
     root_node.inputs.push_back(ri);
     root_node.outputs.push_back(ro);
     bp.add_node(std::move(root_node));
 
     // Collapsed blueprint node (visible at root level)
     Node bp_node;
-    bp_node.id = "lamp1";
+    bp_node.id = I.intern("lamp1");
     bp_node.name = "lamp1";
     bp_node.type_name = "LampBlueprint";
     bp_node.expandable = true;
@@ -284,11 +287,11 @@ EditorPort ro; ro.name = "v_out"; ro.side = PortSide::Output; ro.type = PortType
 
     // Internal node (hidden from root)
     Node internal;
-    internal.id = "lamp1:led";
+    internal.id = I.intern("lamp1:led");
     internal.name = "lamp1:led";
     internal.type_name = "LED";
     internal.group_id = "lamp1";
-EditorPort ii; ii.name = "v_in"; ii.side = PortSide::Input; ii.type = PortType::V;
+EditorPort ii; ii.name = I.intern("v_in"); ii.side = PortSide::Input; ii.type = PortType::V;
     internal.inputs.push_back(ii);
     bp.add_node(std::move(internal));
 
@@ -307,9 +310,10 @@ EditorPort ii; ii.name = "v_in"; ii.side = PortSide::Input; ii.type = PortType::
 
 TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
     Blueprint bp;
+    auto& I = bp.interner();
     // Root-level node
     Node root_node;
-    root_node.id = "battery1";
+    root_node.id = I.intern("battery1");
     root_node.name = "battery1";
     root_node.type_name = "Battery";
     root_node.group_id = "";
@@ -317,21 +321,21 @@ TEST(Inspector, GroupFiltering_SubInspectorShowsOnlyOwnNodes) {
 
     // Internal nodes belonging to "lamp1" group
     Node led;
-    led.id = "lamp1:led";
+    led.id = I.intern("lamp1:led");
     led.name = "lamp1:led";
     led.type_name = "LED";
     led.group_id = "lamp1";
-EditorPort li; li.name = "v_in"; li.side = PortSide::Input; li.type = PortType::V;
+EditorPort li; li.name = I.intern("v_in"); li.side = PortSide::Input; li.type = PortType::V;
     led.inputs.push_back(li);
     bp.add_node(std::move(led));
 
     Node res;
-    res.id = "lamp1:res";
+    res.id = I.intern("lamp1:res");
     res.name = "lamp1:res";
     res.type_name = "Resistor";
     res.group_id = "lamp1";
-EditorPort ri2; ri2.name = "v_in"; ri2.side = PortSide::Input; ri2.type = PortType::V;
-EditorPort ro2; ro2.name = "v_out"; ro2.side = PortSide::Output; ro2.type = PortType::V;
+EditorPort ri2; ri2.name = I.intern("v_in"); ri2.side = PortSide::Input; ri2.type = PortType::V;
+EditorPort ro2; ro2.name = I.intern("v_out"); ro2.side = PortSide::Output; ro2.type = PortType::V;
     res.inputs.push_back(ri2);
     res.outputs.push_back(ro2);
     bp.add_node(std::move(res));
@@ -352,58 +356,59 @@ EditorPort ro2; ro2.name = "v_out"; ro2.side = PortSide::Output; ro2.type = Port
 
 TEST(Inspector, GroupFiltering_WiresOnlyCountOwnGroup) {
     Blueprint bp;
+    auto& I = bp.interner();
     // Root node
     Node bat;
-    bat.id = "bat";
+    bat.id = I.intern("bat");
     bat.name = "bat";
     bat.type_name = "Battery";
     bat.group_id = "";
-EditorPort bo; bo.name = "v_out"; bo.side = PortSide::Output; bo.type = PortType::V;
+EditorPort bo; bo.name = I.intern("v_out"); bo.side = PortSide::Output; bo.type = PortType::V;
     bat.outputs.push_back(bo);
     bp.add_node(std::move(bat));
 
     // Root node lamp (collapsed)
     Node lamp;
-    lamp.id = "lamp1";
+    lamp.id = I.intern("lamp1");
     lamp.name = "lamp1";
     lamp.type_name = "Lamp";
     lamp.expandable = true;
     lamp.group_id = "";
-EditorPort lvi; lvi.name = "v_in"; lvi.side = PortSide::Input; lvi.type = PortType::V;
+EditorPort lvi; lvi.name = I.intern("v_in"); lvi.side = PortSide::Input; lvi.type = PortType::V;
     lamp.inputs.push_back(lvi);
     bp.add_node(std::move(lamp));
 
     // Internal nodes
     Node iled;
-    iled.id = "lamp1:led";
+    iled.id = I.intern("lamp1:led");
     iled.name = "lamp1:led";
     iled.type_name = "LED";
     iled.group_id = "lamp1";
-EditorPort iledi; iledi.name = "v_in"; iledi.side = PortSide::Input; iledi.type = PortType::V;
-EditorPort iledo; iledo.name = "v_out"; iledo.side = PortSide::Output; iledo.type = PortType::V;
+EditorPort iledi; iledi.name = I.intern("v_in"); iledi.side = PortSide::Input; iledi.type = PortType::V;
+EditorPort iledo; iledo.name = I.intern("v_out"); iledo.side = PortSide::Output; iledo.type = PortType::V;
     iled.inputs.push_back(iledi);
     iled.outputs.push_back(iledo);
     bp.add_node(std::move(iled));
 
     Node ires;
-    ires.id = "lamp1:res";
+    ires.id = I.intern("lamp1:res");
     ires.name = "lamp1:res";
     ires.type_name = "Resistor";
     ires.group_id = "lamp1";
-EditorPort iresi; iresi.name = "v_in"; iresi.side = PortSide::Input; iresi.type = PortType::V;
+EditorPort iresi; iresi.name = I.intern("v_in"); iresi.side = PortSide::Input; iresi.type = PortType::V;
     ires.inputs.push_back(iresi);
     bp.add_node(std::move(ires));
 
     // Root wire: bat -> lamp1
     Wire rw;
-    rw.start = WireEnd("bat", "v_out", PortSide::Output);
-    rw.end = WireEnd("lamp1", "v_in", PortSide::Input);
+    rw.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output);
+    rw.end = WireEnd(I.intern("lamp1"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(rw);
 
     // Internal wire: lamp1:led -> lamp1:res
     Wire iw;
-    iw.start = WireEnd("lamp1:led", "v_out", PortSide::Output);
-    iw.end = WireEnd("lamp1:res", "v_in", PortSide::Input);
+    iw.start = WireEnd(I.intern("lamp1:led"), I.intern("v_out"), PortSide::Output);
+    iw.end = WireEnd(I.intern("lamp1:res"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(iw);
 
     bp.rebuild_wire_index();

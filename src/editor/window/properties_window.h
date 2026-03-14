@@ -12,7 +12,7 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 /// Lifecycle: open(node, callback) → render() each frame → OK or Cancel.
 class PropertiesWindow {
 public:
-    void open(Node& node, PropertyCallback on_apply);
+    void open(Node& node, const std::string& node_id_str, PropertyCallback on_apply);
     void close();
     bool isOpen() const { return open_; }
 

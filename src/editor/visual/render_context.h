@@ -2,7 +2,7 @@
 #include "ui/renderer/render_context.h"
 #include <vector>
 #include <unordered_set>
-#include <string>
+#include <string_view>
 
 namespace visual {
 
@@ -11,6 +11,14 @@ using ui::Pt;
 class Widget;
 class Wire;
 class RoutingPoint;
+
+/// Hash for string_view in unordered containers.
+struct StringViewHash {
+    using is_transparent = void;
+    size_t operator()(std::string_view sv) const noexcept {
+        return std::hash<std::string_view>{}(sv);
+    }
+};
 
 /// Bundles all state needed for a single render frame.
 /// Passed through the widget tree so every render() can transform
@@ -23,7 +31,8 @@ struct RenderContext : public ui::RenderContext {
 
     /// Set of visual wire IDs that are energized (voltage > threshold).
     /// Populated per frame from simulation state. nullptr when simulation is off.
-    const std::unordered_set<std::string>* energized_wires = nullptr;
+    /// string_view keys reference the StringInterner's stable deque storage.
+    const std::unordered_set<std::string_view, StringViewHash>* energized_wires = nullptr;
 
     /// Check whether a widget pointer is in the selected_nodes list.
     bool isNodeSelected(const Widget* w) const {

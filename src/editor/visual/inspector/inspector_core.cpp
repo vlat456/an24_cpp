@@ -42,8 +42,8 @@ bool Inspector::detectSceneChange() {
 
 bool Inspector::ownsWire(const Wire& w) const {
     if (!bp_) return false;
-    auto belongs = [&](const std::string& node_id) {
-        const Node* n = bp_->find_node(node_id.c_str());
+    auto belongs = [&](ui::InternedId node_id) {
+        const Node* n = bp_->find_node(node_id);
         return n && n->group_id == group_id_;
     };
     return belongs(w.start.node_id) && belongs(w.end.node_id);
@@ -53,12 +53,14 @@ void Inspector::buildDisplayTree() {
     display_tree_.clear();
     if (!bp_) return;
 
+    const auto& interner = bp_->interner();
+
     for (const auto& node : bp_->nodes) {
         if (!ownsNode(node)) continue;
         if (!passesFilter(node)) continue;
 
         DisplayNode dn;
-        dn.node_id = node.id;
+        dn.node_id = std::string(interner.resolve(node.id));
         dn.name = node.name;
         dn.type_name = node.type_name;
 
@@ -73,12 +75,18 @@ void Inspector::buildDisplayTree() {
 
         // Collect ports (inputs then outputs)
         for (const auto& port : node.inputs) {
-            dn.ports.push_back({port.name, PortSide::Input,
-                                findConnectionFor(node, port, PortSide::Input)});
+            DisplayPort dp;
+            dp.name = std::string(interner.resolve(port.name));
+            dp.side = PortSide::Input;
+            dp.connection = findConnectionFor(node, port, PortSide::Input);
+            dn.ports.push_back(std::move(dp));
         }
         for (const auto& port : node.outputs) {
-            dn.ports.push_back({port.name, PortSide::Output,
-                                findConnectionFor(node, port, PortSide::Output)});
+            DisplayPort dp;
+            dp.name = std::string(interner.resolve(port.name));
+            dp.side = PortSide::Output;
+            dp.connection = findConnectionFor(node, port, PortSide::Output);
+            dn.ports.push_back(std::move(dp));
         }
 
         display_tree_.push_back(std::move(dn));
@@ -89,6 +97,8 @@ void Inspector::buildDisplayTree() {
 
 std::string Inspector::findConnectionFor(const Node& node, const EditorPort& port, PortSide side) const {
     std::string result;
+    const auto& interner = bp_->interner();
+
     for (const auto& wire : bp_->wires) {
         if (!ownsWire(wire)) continue;
 
@@ -97,10 +107,10 @@ std::string Inspector::findConnectionFor(const Node& node, const EditorPort& por
         const WireEnd& remote = (side == PortSide::Input) ? wire.start : wire.end;
 
         if (local.node_id == node.id && local.port_name == port.name) {
-            const Node* other = bp_->find_node(remote.node_id.c_str());
+            const Node* other = bp_->find_node(remote.node_id);
             if (other) {
                 if (!result.empty()) result += ", ";
-                result += other->name + "." + remote.port_name;
+                result += other->name + "." + std::string(interner.resolve(remote.port_name));
             }
         }
     }

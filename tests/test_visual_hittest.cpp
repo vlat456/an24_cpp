@@ -537,9 +537,11 @@ TEST(SceneHitTest, ResizeHandle_JustOutsideRadius) {
 // click point is beyond the 6px border margin but within the 10px
 // resize handle hit radius.
 
+static ui::StringInterner g_group_interner;
+
 static Node make_group_data(const std::string& id, Pt pos, Pt sz) {
     Node n;
-    n.id = id;
+    n.id = g_group_interner.intern(id);
     n.name = "TestGroup";
     n.type_name = "group";
     n.render_hint = "group";
@@ -553,7 +555,7 @@ TEST(SceneHitTest, GroupNode_ResizeHandle_BottomRight) {
     // Size 192 is a multiple of PORT_LAYOUT_GRID (16), so no snap adjustment.
     // Corners: TL=(100,100), BR=(292,292)
     Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
-    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto group = std::make_unique<visual::GroupNodeWidget>(data, g_group_interner);
     auto* gptr = group.get();
     scene.add(std::move(group));
 
@@ -570,7 +572,7 @@ TEST(SceneHitTest, GroupNode_ResizeHandle_BottomRight) {
 TEST(SceneHitTest, GroupNode_ResizeHandle_TopLeft) {
     visual::Scene scene;
     Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
-    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto group = std::make_unique<visual::GroupNodeWidget>(data, g_group_interner);
     auto* gptr = group.get();
     scene.add(std::move(group));
 
@@ -585,7 +587,7 @@ TEST(SceneHitTest, GroupNode_ResizeHandle_TopLeft) {
 TEST(SceneHitTest, GroupNode_ResizeHandle_BottomLeft) {
     visual::Scene scene;
     Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
-    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto group = std::make_unique<visual::GroupNodeWidget>(data, g_group_interner);
     auto* gptr = group.get();
     scene.add(std::move(group));
 
@@ -600,7 +602,7 @@ TEST(SceneHitTest, GroupNode_ResizeHandle_BottomLeft) {
 TEST(SceneHitTest, GroupNode_ResizeHandle_TopRight) {
     visual::Scene scene;
     Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
-    auto group = std::make_unique<visual::GroupNodeWidget>(data);
+    auto group = std::make_unique<visual::GroupNodeWidget>(data, g_group_interner);
     auto* gptr = group.get();
     scene.add(std::move(group));
 
@@ -615,7 +617,7 @@ TEST(SceneHitTest, GroupNode_ResizeHandle_TopRight) {
 TEST(SceneHitTest, GroupNode_InteriorPassesThrough) {
     visual::Scene scene;
     Node data = make_group_data("g1", Pt(100, 100), Pt(192, 192));
-    scene.add(std::make_unique<visual::GroupNodeWidget>(data));
+    scene.add(std::make_unique<visual::GroupNodeWidget>(data, g_group_interner));
 
     // Click in group interior (far from borders and corners) → should pass through
     auto r = visual::hit_test(scene, Pt(196, 196));

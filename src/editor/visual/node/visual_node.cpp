@@ -16,8 +16,8 @@ namespace visual {
 // Construction
 // ============================================================================
 
-NodeWidget::NodeWidget(const ::Node& data)
-    : node_id_(data.id)
+NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
+    : node_id_(interner.resolve(data.id))
     , name_(data.name)
     , type_name_(data.type_name)
 {
@@ -26,7 +26,7 @@ NodeWidget::NodeWidget(const ::Node& data)
     }
 
     setLocalPos(data.pos);
-    buildLayout(data);
+    buildLayout(data, interner);
 
     // Auto-size: compute preferred, apply minimum, snap to grid
     Pt preferred = layout_->preferredSize(nullptr);
@@ -52,7 +52,7 @@ NodeWidget::NodeWidget(const ::Node& data)
 // Layout construction
 // ============================================================================
 
-void NodeWidget::buildLayout(const ::Node& data) {
+void NodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& interner) {
     layout_ = emplaceChild<Column>();
 
     // -- Header --
@@ -61,22 +61,28 @@ void NodeWidget::buildLayout(const ::Node& data) {
 
     // -- Port rows / Content --
     if (data.node_content.type == NodeContentType::VerticalToggle) {
-        buildVerticalToggleLayout(data);
+        buildVerticalToggleLayout(data, interner);
     } else {
-        buildStandardLayout(data);
+        buildStandardLayout(data, interner);
     }
 
     // -- Type name footer --
     layout_->emplaceChild<TypeNameWidget>(type_name_);
 }
 
-void NodeWidget::buildStandardLayout(const ::Node& data) {
+void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterner& interner) {
     // Port rows: pair inputs and outputs
     size_t max_ports = std::max(data.inputs.size(), data.outputs.size());
     for (size_t i = 0; i < max_ports; i++) {
-        const std::string* left_name = (i < data.inputs.size()) ? &data.inputs[i].name : nullptr;
+        std::string_view left_name;
+        std::string_view right_name;
+        if (i < data.inputs.size()) {
+            left_name = interner.resolve(data.inputs[i].name);
+        }
         PortType left_type = (i < data.inputs.size()) ? data.inputs[i].type : PortType::Any;
-        const std::string* right_name = (i < data.outputs.size()) ? &data.outputs[i].name : nullptr;
+        if (i < data.outputs.size()) {
+            right_name = interner.resolve(data.outputs[i].name);
+        }
         PortType right_type = (i < data.outputs.size()) ? data.outputs[i].type : PortType::Any;
         buildPortRow(left_name, left_type, right_name, right_type);
     }
@@ -108,14 +114,15 @@ void NodeWidget::buildStandardLayout(const ::Node& data) {
     }
 }
 
-void NodeWidget::buildVerticalToggleLayout(const ::Node& data) {
+void NodeWidget::buildVerticalToggleLayout(const ::Node& data, const ui::StringInterner& interner) {
     auto* main_row = layout_->emplaceChild<Row>();
     main_row->setFlexible(true);
 
     // Left column (input ports)
     auto* left_col = main_row->emplaceChild<Column>();
     for (const auto& p : data.inputs) {
-        buildPortInColumn(left_col, p.name, p.type, true);
+        std::string_view name_sv = interner.resolve(p.name);
+        buildPortInColumn(left_col, name_sv, p.type, true);
     }
 
     // Center column (vertical toggle)
@@ -130,12 +137,13 @@ void NodeWidget::buildVerticalToggleLayout(const ::Node& data) {
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
     for (const auto& p : data.outputs) {
-        buildPortInColumn(right_col, p.name, p.type, false);
+        std::string_view name_sv = interner.resolve(p.name);
+        buildPortInColumn(right_col, name_sv, p.type, false);
     }
 }
 
-void NodeWidget::buildPortRow(const std::string* left_name, PortType left_type,
-                              const std::string* right_name, PortType right_type) {
+void NodeWidget::buildPortRow(std::string_view left_name, PortType left_type,
+                              std::string_view right_name, PortType right_type) {
     using namespace editor_constants;
 
     // Build port row: [Label? Spacer Label?] inside padded container.
@@ -148,12 +156,12 @@ void NodeWidget::buildPortRow(const std::string* left_name, PortType left_type,
     auto* row = row_container->emplaceChild<Row>();
 
     // Left label (input)
-    if (left_name) {
-        row->emplaceChild<Label>(*left_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
+    if (!left_name.empty()) {
+        row->emplaceChild<Label>(left_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
     }
 
     // Flexible spacer
-    if (left_name && right_name) {
+    if (!left_name.empty() && !right_name.empty()) {
         auto* gap = row->emplaceChild<Container>(
             Edges{PORT_MIN_GAP / 2.0f, 0, PORT_MIN_GAP / 2.0f, 0});
         gap->setFlexible(true);
@@ -163,24 +171,24 @@ void NodeWidget::buildPortRow(const std::string* left_name, PortType left_type,
     }
 
     // Right label (output)
-    if (right_name) {
-        row->emplaceChild<Label>(*right_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
+    if (!right_name.empty()) {
+        row->emplaceChild<Label>(right_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
                                  TextAlign::Right);
     }
 
     // Port circles are added outside the Row so they don't affect label layout.
     // Post-layout snap in layout() positions them at node edges.
-    if (left_name) {
-        auto* port_w = row_container->emplaceChild<Port>(*left_name, PortSide::Input, left_type);
+    if (!left_name.empty()) {
+        auto* port_w = row_container->emplaceChild<Port>(left_name, PortSide::Input, left_type);
         ports_.push_back(port_w);
     }
-    if (right_name) {
-        auto* port_w = row_container->emplaceChild<Port>(*right_name, PortSide::Output, right_type);
+    if (!right_name.empty()) {
+        auto* port_w = row_container->emplaceChild<Port>(right_name, PortSide::Output, right_type);
         ports_.push_back(port_w);
     }
 }
 
-void NodeWidget::buildPortInColumn(Widget* col, const std::string& name,
+void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
                                    PortType type, bool is_left) {
     using namespace editor_constants;
 
@@ -219,7 +227,7 @@ void NodeWidget::updateContent(const ::NodeContent& content) {
     return { wp.x - np.x, wp.y - np.y, sz.x, sz.y };
 }
 
-Port* NodeWidget::port(const std::string& name) const {
+Port* NodeWidget::port(std::string_view name) const {
     for (auto* p : ports_) {
         if (p->name() == name) return p;
     }

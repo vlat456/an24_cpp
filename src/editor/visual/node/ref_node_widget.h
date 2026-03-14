@@ -2,7 +2,9 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
+#include "ui/core/interned_id.h"
 #include <string>
+#include <string_view>
 #include <optional>
 #include <cstdint>
 
@@ -14,16 +16,16 @@ namespace visual {
 /// Single centered port, minimal box + text rendering.
 class RefNodeWidget : public Widget {
 public:
-    explicit RefNodeWidget(const ::Node& data);
+    explicit RefNodeWidget(const ::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return node_id_; }
     bool isClickable() const override { return true; }
 
-    const std::string& nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return node_id_; }
     const std::string& name() const { return name_; }
 
     Port* port() const { return port_; }
-    Port* port(const std::string& name) const;
+    Port* port(std::string_view name) const;
     Port* portByName(std::string_view port_name,
                      std::string_view wire_id = {}) const override;
 
@@ -36,14 +38,14 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    std::string node_id_;
+    std::string_view node_id_;
     std::string name_;
     std::string type_name_;
 
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const ::Node& data);
+    void buildLayout(const ::Node& data, const ui::StringInterner& interner);
     void positionPort();
 };
 

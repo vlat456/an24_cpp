@@ -5,6 +5,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "ui/core/interned_id.h"
 
 /// Simulation integration tests
 
@@ -12,14 +13,15 @@
 static Blueprint create_simple_circuit() {
     Blueprint bp;
     bp.grid_step = 16.0f;
+    auto& I = bp.interner();
 
     // Ground reference
     Node gnd;
-    gnd.id = "gnd";
+    gnd.id = I.intern("gnd");
     gnd.name = "Ground";
     gnd.type_name = "RefNode";
     gnd.render_hint = "ref";
-    gnd.output("v");
+    gnd.output(I.intern("v"));
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -28,48 +30,48 @@ static Blueprint create_simple_circuit() {
 
     // Battery
     Node batt;
-    batt.id = "bat";
+    batt.id = I.intern("bat");
     batt.name = "Battery";
     batt.type_name = "Battery";
-    batt.input("v_in");
-    batt.output("v_out");
+    batt.input(I.intern("v_in"));
+    batt.output(I.intern("v_out"));
     batt.at(80, 80);
     batt.size_wh(120, 80);
     bp.add_node(std::move(batt));
 
     // Resistor
     Node res;
-    res.id = "res";
+    res.id = I.intern("res");
     res.name = "Resistor";
     res.type_name = "Resistor";
-    res.input("v_in");
-    res.output("v_out");
+    res.input(I.intern("v_in"));
+    res.output(I.intern("v_out"));
     res.at(320, 80);
     res.size_wh(120, 80);
     bp.add_node(std::move(res));
 
     // Ground wire: gnd.v -> bat.v_in
     Wire w1;
-    w1.start.node_id = "gnd";
-    w1.start.port_name = "v";
-    w1.end.node_id = "bat";
-    w1.end.port_name = "v_in";
+    w1.start.node_id = I.intern("gnd");
+    w1.start.port_name = I.intern("v");
+    w1.end.node_id = I.intern("bat");
+    w1.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w1));
 
     // Battery to resistor: bat.v_out -> res.v_in
     Wire w2;
-    w2.start.node_id = "bat";
-    w2.start.port_name = "v_out";
-    w2.end.node_id = "res";
-    w2.end.port_name = "v_in";
+    w2.start.node_id = I.intern("bat");
+    w2.start.port_name = I.intern("v_out");
+    w2.end.node_id = I.intern("res");
+    w2.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w2));
 
     // Resistor to ground: res.v_out -> gnd.v
     Wire w3;
-    w3.start.node_id = "res";
-    w3.start.port_name = "v_out";
-    w3.end.node_id = "gnd";
-    w3.end.port_name = "v";
+    w3.start.node_id = I.intern("res");
+    w3.start.port_name = I.intern("v_out");
+    w3.end.node_id = I.intern("gnd");
+    w3.end.port_name = I.intern("v");
     bp.add_wire(std::move(w3));
 
     return bp;
@@ -344,44 +346,45 @@ TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
 static Blueprint create_merger_circuit() {
     Blueprint bp;
     bp.grid_step = 16.0f;
+    auto& I = bp.interner();
 
     // Ground
     Node gnd;
-    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref";
-    gnd.output("v"); gnd.at(0, 0);
+    gnd.id = I.intern("gnd"); gnd.type_name = "RefNode"; gnd.render_hint = "ref";
+    gnd.output(I.intern("v")); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
     // Battery
     Node bat;
-    bat.id = "bat"; bat.type_name = "Battery";
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
     // Splitter: battery → 2 branches
     Node spl;
-    spl.id = "spl"; spl.type_name = "Splitter";
-    spl.input("i"); spl.output("o1"); spl.output("o2"); spl.at(250, 0);
+    spl.id = I.intern("spl"); spl.type_name = "Splitter";
+    spl.input(I.intern("i")); spl.output(I.intern("o1")); spl.output(I.intern("o2")); spl.at(250, 0);
     bp.add_node(std::move(spl));
 
     // Merger: 2 inputs → 1 output
     Node mrg;
-    mrg.id = "mrg"; mrg.type_name = "Merger";
-    mrg.input("i1"); mrg.input("i2"); mrg.output("o"); mrg.at(400, 0);
+    mrg.id = I.intern("mrg"); mrg.type_name = "Merger";
+    mrg.input(I.intern("i1")); mrg.input(I.intern("i2")); mrg.output(I.intern("o")); mrg.at(400, 0);
     bp.add_node(std::move(mrg));
 
     // Load
     Node res;
-    res.id = "res"; res.type_name = "Resistor";
-    res.input("v_in"); res.output("v_out"); res.at(550, 0);
+    res.id = I.intern("res"); res.type_name = "Resistor";
+    res.input(I.intern("v_in")); res.output(I.intern("v_out")); res.at(550, 0);
     bp.add_node(std::move(res));
 
     // Wires: gnd → bat.v_in, bat.v_out → spl.i
-    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("spl", "i", PortSide::Input);
-    Wire w3; w3.start = WireEnd("spl", "o1", PortSide::Output); w3.end = WireEnd("mrg", "i1", PortSide::Input);
-    Wire w4; w4.start = WireEnd("spl", "o2", PortSide::Output); w4.end = WireEnd("mrg", "i2", PortSide::Input);
-    Wire w5; w5.start = WireEnd("mrg", "o", PortSide::Output); w5.end = WireEnd("res", "v_in", PortSide::Input);
-    Wire w6; w6.start = WireEnd("res", "v_out", PortSide::Output); w6.end = WireEnd("gnd", "v", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("spl"), I.intern("i"), PortSide::Input);
+    Wire w3; w3.start = WireEnd(I.intern("spl"), I.intern("o1"), PortSide::Output); w3.end = WireEnd(I.intern("mrg"), I.intern("i1"), PortSide::Input);
+    Wire w4; w4.start = WireEnd(I.intern("spl"), I.intern("o2"), PortSide::Output); w4.end = WireEnd(I.intern("mrg"), I.intern("i2"), PortSide::Input);
+    Wire w5; w5.start = WireEnd(I.intern("mrg"), I.intern("o"), PortSide::Output); w5.end = WireEnd(I.intern("res"), I.intern("v_in"), PortSide::Input);
+    Wire w6; w6.start = WireEnd(I.intern("res"), I.intern("v_out"), PortSide::Output); w6.end = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     bp.add_wire(std::move(w3));
@@ -435,21 +438,23 @@ TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd; gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.render_hint = "ref";
-    gnd.output("v"); gnd.at(0, 0);
+    auto& I = bp.interner();
+
+    Node gnd; gnd.id = I.intern("gnd"); gnd.type_name = "RefNode"; gnd.render_hint = "ref";
+    gnd.output(I.intern("v")); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
-    Node bat; bat.id = "bat"; bat.type_name = "Battery";
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    Node bat; bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
-    Node lamp; lamp.id = "lamp"; lamp.type_name = "IndicatorLight";
-    lamp.input("v_in"); lamp.output("v_out"); lamp.output("brightness"); lamp.at(300, 0);
+    Node lamp; lamp.id = I.intern("lamp"); lamp.type_name = "IndicatorLight";
+    lamp.input(I.intern("v_in")); lamp.output(I.intern("v_out")); lamp.output(I.intern("brightness")); lamp.at(300, 0);
     bp.add_node(std::move(lamp));
 
     // gnd → bat.v_in, bat.v_out → lamp.v_in, lamp.v_out → DANGLING
-    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("lamp", "v_in", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("lamp"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     // NO wire from lamp.v_out to ground — intentionally floating
@@ -471,26 +476,28 @@ TEST(SimulationTest, TwoRefNodes_CircuitStable) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd1; gnd1.id = "gnd1"; gnd1.type_name = "RefNode"; gnd1.render_hint = "ref";
-    gnd1.output("v"); gnd1.at(0, 0);
+    auto& I = bp.interner();
+
+    Node gnd1; gnd1.id = I.intern("gnd1"); gnd1.type_name = "RefNode"; gnd1.render_hint = "ref";
+    gnd1.output(I.intern("v")); gnd1.at(0, 0);
     bp.add_node(std::move(gnd1));
 
-    Node gnd2; gnd2.id = "gnd2"; gnd2.type_name = "RefNode"; gnd2.render_hint = "ref";
-    gnd2.output("v"); gnd2.at(600, 0);
+    Node gnd2; gnd2.id = I.intern("gnd2"); gnd2.type_name = "RefNode"; gnd2.render_hint = "ref";
+    gnd2.output(I.intern("v")); gnd2.at(600, 0);
     bp.add_node(std::move(gnd2));
 
-    Node bat; bat.id = "bat"; bat.type_name = "Battery";
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    Node bat; bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
-    Node res; res.id = "res"; res.type_name = "Resistor";
-    res.input("v_in"); res.output("v_out"); res.at(300, 0);
+    Node res; res.id = I.intern("res"); res.type_name = "Resistor";
+    res.input(I.intern("v_in")); res.output(I.intern("v_out")); res.at(300, 0);
     bp.add_node(std::move(res));
 
     // gnd1 → bat.v_in, bat.v_out → res.v_in, res.v_out → gnd2
-    Wire w1; w1.start = WireEnd("gnd1", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("res", "v_in", PortSide::Input);
-    Wire w3; w3.start = WireEnd("res", "v_out", PortSide::Output); w3.end = WireEnd("gnd2", "v", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd1"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("res"), I.intern("v_in"), PortSide::Input);
+    Wire w3; w3.start = WireEnd(I.intern("res"), I.intern("v_out"), PortSide::Output); w3.end = WireEnd(I.intern("gnd2"), I.intern("v"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     bp.add_wire(std::move(w3));

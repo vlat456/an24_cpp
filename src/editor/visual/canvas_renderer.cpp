@@ -53,7 +53,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     auto dl = make_dl(draw_list);
 
     // Build energized wire set from simulation (reuse buffer across frames)
-    static thread_local std::unordered_set<std::string> energized_buf;
+    static thread_local std::unordered_set<std::string_view, visual::StringViewHash> energized_buf;
     doc.buildEnergizedWireSet(energized_buf, win.group_id);
 
     // Resolve selected node IDs → pointers for this frame.
@@ -101,8 +101,8 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
         std::string_view node_id = find_owner_node_id(port);
         if (node_id.empty()) return;
 
-        const std::string& port_name = port->name();
-        float val = doc.simulation().get_port_value(std::string(node_id), port_name);
+        std::string_view port_name = port->name();
+        float val = doc.simulation().get_port_value(std::string(node_id), std::string(port_name));
 
         char buf[64];
         std::snprintf(buf, sizeof(buf), "%.3f", val);
@@ -110,18 +110,24 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
         tip.active = true;
         tip.screen_pos = port_screen;
-        tip.label = std::string(node_id) + "." + port_name;
+        tip.label = std::string(node_id) + "." + std::string(port_name);
         tip.value = buf;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
-        std::string wire_id(wire->id());
-        const ::Wire* data_wire = doc.blueprint().find_wire(wire_id);
+        std::string_view wire_id_sv = wire->id();
+        auto wire_iid = doc.blueprint().interner().lookup(wire_id_sv);
+        const ::Wire* data_wire = doc.blueprint().find_wire(wire_iid);
         if (!data_wire) return;
 
-        const std::string& node_id = data_wire->start.node_id;
-        const std::string& port_name = data_wire->start.port_name;
-        std::string signal_key = node_id + "." + port_name;
+        const auto& bp_interner = doc.blueprint().interner();
+        std::string_view node_sv = bp_interner.resolve(data_wire->start.node_id);
+        std::string_view port_sv = bp_interner.resolve(data_wire->start.port_name);
+        std::string signal_key;
+        signal_key.reserve(node_sv.size() + 1 + port_sv.size());
+        signal_key.append(node_sv);
+        signal_key.push_back('.');
+        signal_key.append(port_sv);
         float val = doc.simulation().get_wire_voltage(signal_key);
 
         char buf[64];

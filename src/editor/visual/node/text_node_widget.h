@@ -1,7 +1,9 @@
 #pragma once
 #include "visual/widget.h"
 #include "visual/render_context.h"
+#include "ui/core/interned_id.h"
 #include <string>
+#include <string_view>
 #include <optional>
 #include <cstdint>
 
@@ -13,13 +15,13 @@ namespace visual {
 /// Resizable, no ports, renders multiline text with border.
 class TextNodeWidget : public Widget {
 public:
-    explicit TextNodeWidget(const ::Node& data);
+    explicit TextNodeWidget(const ::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return node_id_; }
     bool isClickable() const override { return true; }
     RenderLayer renderLayer() const override { return RenderLayer::Text; }
 
-    const std::string& nodeId() const { return node_id_; }
+    std::string_view nodeId() const { return node_id_; }
     const std::string& name() const { return name_; }
     const std::string& text() const { return text_; }
     float baseFontSize() const { return font_size_base_; }
@@ -37,7 +39,7 @@ public:
     void renderPost(IDrawList* dl, const RenderContext& ctx) const override;
 
 private:
-    std::string node_id_;
+    std::string_view node_id_;
     std::string name_;
     std::string text_;
     float font_size_base_;

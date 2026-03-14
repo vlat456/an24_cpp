@@ -652,11 +652,12 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         if (start_node_id == end_node_id &&
             start_port->name() == end_port->name()) return result;
 
-        WireEnd start_end(start_node_id.c_str(), start_port->name().c_str(), start_port->side());
-        WireEnd end_end(end_node_id.c_str(), end_port->name().c_str(), end_port->side());
+        auto& I = bp_.interner();
+        WireEnd start_end(I.intern(start_node_id), I.intern(start_port->name()), start_port->side());
+        WireEnd end_end(I.intern(end_node_id), I.intern(end_port->name()), end_port->side());
 
-        std::string wire_id = visual::mutations::next_wire_id(bp_);
-        ::Wire w = ::Wire::make(wire_id.c_str(), start_end, end_end);
+        ui::InternedId wire_id = visual::mutations::next_wire_id(bp_);
+        ::Wire w = ::Wire::make(wire_id, start_end, end_end);
         if (visual::mutations::add_wire(scene_, bp_, std::move(w), group_id_))
             result.rebuild_simulation = true;
     }
@@ -690,13 +691,15 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
             };
 
             std::string port_node_id = find_node_widget_id(ph->port);
+            auto& I = bp_.interner();
+            ui::InternedId port_node_iid = I.intern(port_node_id);
 
             // Try port swap first (for BusVisualNode)
-            if (port_node_id == detached.node_id) {
+            if (port_node_iid == detached.node_id) {
                 // Bus alias ports are named after the wire_id they represent.
-                std::string target_wire_id(ph->port->name());
+                ui::InternedId target_wire_iid = I.intern(ph->port->name());
                 if (visual::mutations::swap_wire_ports_on_bus(scene_, bp_,
-                        port_node_id, target_wire_id, wire.id)) {
+                        port_node_iid, target_wire_iid, wire.id)) {
                     reconnected = true;
                     result.rebuild_simulation = true;
                 }
@@ -707,21 +710,21 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                 // Check if dropped back on same port.
                 // For bus alias ports, the visual port name is the wire_id
                 // while the blueprint stores "v" as port_name.
-                std::string hit_port_name(ph->port->name());
-                bool same_as_original = (port_node_id == detached.node_id &&
-                                         (hit_port_name == detached.port_name ||
-                                          hit_port_name == wire.id));
+                ui::InternedId hit_port_iid = I.intern(ph->port->name());
+                bool same_as_original = (port_node_iid == detached.node_id &&
+                                         (hit_port_iid == detached.port_name ||
+                                          hit_port_iid == wire.id));
                 if (same_as_original) return result;
 
                 const ::WireEnd& fixed = reconnect_detach_start_ ? wire.end : wire.start;
-                bool same_port = (port_node_id == fixed.node_id &&
-                                  (hit_port_name == fixed.port_name ||
-                                   hit_port_name == wire.id));
+                bool same_port = (port_node_iid == fixed.node_id &&
+                                  (hit_port_iid == fixed.port_name ||
+                                   hit_port_iid == wire.id));
                 bool compatible = !same_port &&
                     visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
 
                 if (compatible) {
-                    ::WireEnd new_end(port_node_id.c_str(), ph->port->name().c_str(), ph->port->side());
+                    ::WireEnd new_end(port_node_iid, hit_port_iid, ph->port->side());
                     visual::mutations::reconnect_wire(scene_, bp_,
                         reconnect_wire_idx_, reconnect_detach_start_, new_end, group_id_);
                     result.rebuild_simulation = true;
@@ -774,17 +777,17 @@ void CanvasInput::finish_marquee() {
 
 size_t CanvasInput::find_wire_index(const std::string& wire_id) const {
     if (wire_id.empty()) return SIZE_MAX;
-    for (size_t i = 0; i < bp_.wires.size(); ++i) {
-        if (bp_.wires[i].id == wire_id) return i;
-    }
-    return SIZE_MAX;
+    ui::InternedId iid = bp_.interner().lookup(wire_id);
+    if (iid.empty()) return SIZE_MAX;
+    auto it = bp_.wire_id_index_.find(iid);
+    return (it != bp_.wire_id_index_.end()) ? it->second : SIZE_MAX;
 }
 
 size_t CanvasInput::find_node_index(const std::string& node_id) const {
-    for (size_t i = 0; i < bp_.nodes.size(); ++i) {
-        if (bp_.nodes[i].id == node_id) return i;
-    }
-    return SIZE_MAX;
+    ui::InternedId iid = bp_.interner().lookup(node_id);
+    if (iid.empty()) return SIZE_MAX;
+    auto it = bp_.node_index_.find(iid);
+    return (it != bp_.node_index_.end()) ? it->second : SIZE_MAX;
 }
 
 std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual::Port* port) const {
@@ -805,11 +808,16 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
     };
 
     std::string port_node_id = find_node_widget_id(port);
-    std::string port_name(port->name());
+    std::string_view port_name_sv = port->name();
 
     // Determine if the port belongs to a Bus node
     const Node* hit_node = bp_.find_node(port_node_id.c_str());
     bool is_bus = hit_node && (hit_node->render_hint == "bus");
+
+    // Intern the port identifiers for O(1) comparison against wire InternedIds
+    auto& I = const_cast<ui::StringInterner&>(bp_.interner());
+    ui::InternedId port_node_iid = I.intern(port_node_id);
+    ui::InternedId port_name_iid = I.intern(port_name_sv);
 
     for (size_t wi = 0; wi < bp_.wires.size(); ++wi) {
         const auto& w = bp_.wires[wi];
@@ -820,13 +828,13 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
         if (is_bus) {
             // Bus alias ports are named after the wire ID they represent.
             // Match by both node_id AND wire_id == port_name.
-            match_start = (w.start.node_id == port_node_id && w.id == port_name);
-            match_end   = (w.end.node_id == port_node_id && w.id == port_name);
+            match_start = (w.start.node_id == port_node_iid && w.id == port_name_iid);
+            match_end   = (w.end.node_id == port_node_iid && w.id == port_name_iid);
         } else {
-            match_start = (w.start.node_id == port_node_id &&
-                           w.start.port_name == port_name);
-            match_end   = (w.end.node_id == port_node_id &&
-                           w.end.port_name == port_name);
+            match_start = (w.start.node_id == port_node_iid &&
+                           w.start.port_name == port_name_iid);
+            match_end   = (w.end.node_id == port_node_iid &&
+                           w.end.port_name == port_name_iid);
         }
 
         if (match_start || match_end) {
@@ -841,9 +849,10 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                     anchor_pos = w.routing_points.front();
                 } else {
                     // Look up far port position from visual widget
-                    auto* end_widget = scene_.find(w.end.node_id);
+                    auto* end_widget = scene_.find(I.resolve(w.end.node_id));
                     if (end_widget) {
-                        auto* end_port = end_widget->portByName(w.end.port_name, w.id);
+                        auto* end_port = end_widget->portByName(I.resolve(w.end.port_name),
+                                                                 I.resolve(w.id));
                         if (end_port)
                             anchor_pos = end_port->worldPos() + Pt(visual::Port::RADIUS, visual::Port::RADIUS);
                     }
@@ -853,9 +862,10 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                 if (!w.routing_points.empty()) {
                     anchor_pos = w.routing_points.back();
                 } else {
-                    auto* start_widget = scene_.find(w.start.node_id);
+                    auto* start_widget = scene_.find(I.resolve(w.start.node_id));
                     if (start_widget) {
-                        auto* start_port = start_widget->portByName(w.start.port_name, w.id);
+                        auto* start_port = start_widget->portByName(I.resolve(w.start.port_name),
+                                                                     I.resolve(w.id));
                         if (start_port)
                             anchor_pos = start_port->worldPos() + Pt(visual::Port::RADIUS, visual::Port::RADIUS);
                     }

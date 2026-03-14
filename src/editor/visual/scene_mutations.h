@@ -47,13 +47,14 @@ void reconnect_wire(Scene& scene, Blueprint& bp,
 /// Swap port connections for two wires on the same bus node.
 /// Returns false if the swap was not possible.
 bool swap_wire_ports_on_bus(Scene& scene, Blueprint& bp,
-                            const std::string& bus_node_id,
-                            const std::string& wire_id_a,
-                            const std::string& wire_id_b);
+                            ui::InternedId bus_node_id,
+                            ui::InternedId wire_id_a,
+                            ui::InternedId wire_id_b);
 
-/// Allocate a unique wire ID from the blueprint.
-inline std::string next_wire_id(Blueprint& bp) {
-    return "wire_" + std::to_string(bp.next_wire_id++);
+/// Allocate a unique wire ID and intern it in the blueprint.
+inline ui::InternedId next_wire_id(Blueprint& bp) {
+    std::string id_str = "wire_" + std::to_string(bp.next_wire_id++);
+    return bp.interner().intern(id_str);
 }
 
 } // namespace visual::mutations

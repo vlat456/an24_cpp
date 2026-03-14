@@ -14,21 +14,23 @@
 void EditorApp::update_node_content_from_simulation() {
     if (!simulation_running) return;
 
+    const auto& interner = blueprint.interner();
     for (auto& node : blueprint.nodes) {
+        std::string nid(interner.resolve(node.id));
         // Update Voltmeter gauge voltage
         if (node.type_name == "Voltmeter") {
-            float voltage = simulation.get_port_value(node.id, "v_in");
+            float voltage = simulation.get_port_value(nid, "v_in");
             node.node_content.value = voltage;
         }
         // Update IndicatorLight text based on brightness
         else if (node.type_name == "IndicatorLight") {
-            float brightness = simulation.get_port_value(node.id, "brightness");
+            float brightness = simulation.get_port_value(nid, "brightness");
             node.node_content.label = (brightness > 0.1f) ? "ON" : "OFF";
         }
         // Update DMR400 state
         else if (node.type_name == "DMR400") {
-            float v_gen = simulation.get_port_value(node.id, "v_gen");
-            float v_bus = simulation.get_port_value(node.id, "v_bus");
+            float v_gen = simulation.get_port_value(nid, "v_gen");
+            float v_bus = simulation.get_port_value(nid, "v_bus");
             // Relay is closed (ON) when generator voltage is higher than bus
             // This is simplified - actual logic has hysteresis
             bool connected = v_gen > v_bus + 2.0f;
@@ -36,20 +38,20 @@ void EditorApp::update_node_content_from_simulation() {
         }
         // Update Switch toggle state from state port (1.0V = closed, 0.0V = open)
         else if (node.type_name == "Switch") {
-            float state_voltage = simulation.get_port_value(node.id, "state");
+            float state_voltage = simulation.get_port_value(nid, "state");
             node.node_content.state = (state_voltage > 0.5f);
         }
         // Update HoldButton state from state port (1.0V = pressed, 0.0V = released/idle)
         else if (node.type_name == "HoldButton") {
-            float state_voltage = simulation.get_port_value(node.id, "state");
+            float state_voltage = simulation.get_port_value(nid, "state");
             // state=true = PRESSED, state=false = RELEASED/idle
             node.node_content.state = (state_voltage > 0.5f);
         }
         // Update AZS (circuit breaker) state + tripped indicator
         else if (node.type_name == "AZS") {
-            float state_voltage = simulation.get_port_value(node.id, "state");
+            float state_voltage = simulation.get_port_value(nid, "state");
             node.node_content.state = (state_voltage > 0.5f);
-            float tripped_voltage = simulation.get_port_value(node.id, "tripped");
+            float tripped_voltage = simulation.get_port_value(nid, "tripped");
             node.node_content.tripped = (tripped_voltage > 0.5f);
         }
         // Relay has no UI - automatic device controlled by external signals
@@ -72,7 +74,7 @@ void EditorApp::reset_node_content() {
 void EditorApp::open_properties_for_node(const std::string& node_id) {
     Node* node = blueprint.find_node(node_id.c_str());
     if (!node) return;
-    properties_window.open(*node, [this](const std::string& nid) {
+    properties_window.open(*node, node_id, [this](const std::string& nid) {
         inspector.markDirty();
         rebuild_simulation();
     });
@@ -136,7 +138,7 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     
     // Create node
     Node node;
-    node.id = unique_id;
+    node.id = blueprint.interner().intern(unique_id);
     node.name = unique_id;  // Use ID as display name for now
     node.type_name = classname;
     node.pos = snapped_pos;
@@ -150,15 +152,17 @@ void EditorApp::add_component(const std::string& classname, Pt world_pos, const 
     node.size = get_default_node_size(classname, &type_registry);
     
     // Add ports from component definition
+    auto& interner = blueprint.interner();
     for (const auto& [port_name, port_def] : def->ports) {
+        auto port_id = interner.intern(port_name);
         if (port_def.direction == PortDirection::In) {
-            node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port_def.type);
+            node.inputs.emplace_back(port_id, PortSide::Input, port_def.type);
         } else if (port_def.direction == PortDirection::Out) {
-            node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port_def.type);
+            node.outputs.emplace_back(port_id, PortSide::Output, port_def.type);
         } else if (port_def.direction == PortDirection::InOut) {
             // InOut ports go to both inputs and outputs
-            node.inputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
-            node.outputs.emplace_back(port_name.c_str(), PortSide::InOut, port_def.type);
+            node.inputs.emplace_back(port_id, PortSide::InOut, port_def.type);
+            node.outputs.emplace_back(port_id, PortSide::InOut, port_def.type);
         }
     }
 
@@ -222,25 +226,39 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
                                   [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
 
     // Merge into parent blueprint with prefix
+    auto& interner = blueprint.interner();
+    const auto& sub_interner = sub_bp.interner();
     std::vector<std::string> internal_node_ids;
     for (auto& node : sub_bp.nodes) {
-        node.id = unique_id + ":" + node.id;
-        node.name = node.id;
+        std::string old_id(sub_interner.resolve(node.id));
+        std::string new_id = unique_id + ":" + old_id;
+        node.id = interner.intern(new_id);
+        node.name = new_id;
+        // Re-intern port names from sub-blueprint's interner into parent's interner
+        for (auto& p : node.inputs)
+            p.name = interner.intern(sub_interner.resolve(p.name));
+        for (auto& p : node.outputs)
+            p.name = interner.intern(sub_interner.resolve(p.name));
         if (!has_layout) node.pos = snapped_pos;
-        internal_node_ids.push_back(node.id);
+        internal_node_ids.push_back(new_id);
         blueprint.add_node(std::move(node));
     }
 
     for (auto& wire : sub_bp.wires) {
-        wire.start.node_id = unique_id + ":" + wire.start.node_id;
-        wire.end.node_id = unique_id + ":" + wire.end.node_id;
-        wire.id = unique_id + ":" + wire.id;
+        std::string old_start(sub_interner.resolve(wire.start.node_id));
+        std::string old_end(sub_interner.resolve(wire.end.node_id));
+        std::string old_wid(sub_interner.resolve(wire.id));
+        wire.start.node_id = interner.intern(unique_id + ":" + old_start);
+        wire.start.port_name = interner.intern(sub_interner.resolve(wire.start.port_name));
+        wire.end.node_id = interner.intern(unique_id + ":" + old_end);
+        wire.end.port_name = interner.intern(sub_interner.resolve(wire.end.port_name));
+        wire.id = interner.intern(unique_id + ":" + old_wid);
         blueprint.add_wire(std::move(wire));
     }
 
     // Create COLLAPSED Blueprint node (visible in parent view)
     Node collapsed_node;
-    collapsed_node.id = unique_id;
+    collapsed_node.id = interner.intern(unique_id);
     collapsed_node.name = unique_id;
     collapsed_node.type_name = blueprint_name;
     collapsed_node.expandable = true;
@@ -254,10 +272,11 @@ void EditorApp::add_blueprint(const std::string& blueprint_name, Pt world_pos, c
     collapsed_node.size = Pt(120.0f, height);
 
     for (const auto& [port_name, port] : bp_def->ports) {
+        auto port_id = interner.intern(port_name);
         if (port.direction == PortDirection::In) {
-            collapsed_node.inputs.emplace_back(port_name.c_str(), PortSide::Input, port.type);
+            collapsed_node.inputs.emplace_back(port_id, PortSide::Input, port.type);
         } else {
-            collapsed_node.outputs.emplace_back(port_name.c_str(), PortSide::Output, port.type);
+            collapsed_node.outputs.emplace_back(port_id, PortSide::Output, port.type);
         }
     }
 

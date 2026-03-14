@@ -6,7 +6,9 @@
 #include "input/canvas_input.h"
 #include "jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
+#include "visual/render_context.h"
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -74,8 +76,10 @@ public:
 
     /// Build a set of wire IDs that are energized (have non-zero voltage).
     /// Used by the renderer to visually highlight powered wires.
-    void buildEnergizedWireSet(std::unordered_set<std::string>& out,
-                               const std::string& group_id) const;
+    /// string_view keys reference the StringInterner's stable deque storage.
+    void buildEnergizedWireSet(
+        std::unordered_set<std::string_view, visual::StringViewHash>& out,
+        const std::string& group_id) const;
 
     // ── Signal overrides (switch/button clicks) ──
 

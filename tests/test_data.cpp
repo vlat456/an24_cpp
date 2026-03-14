@@ -4,6 +4,7 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "editor/data/blueprint.h"
+#include "ui/core/interned_id.h"
 
 /// TDD Step 1: Data layer - сначала тесты
 /// Запусти: cmake --build . && ctest -R test_data --output-on-failure
@@ -71,55 +72,58 @@ TEST(BlueprintTest, DefaultIsEmpty) {
 
 TEST(BlueprintTest, AddNode) {
     Blueprint bp;
+    auto& I = bp.interner();
     Node n;
-    n.id = "n1";
+    n.id = I.intern("n1");
     n.name = "Battery";
     n.type_name = "Battery";
     n.at(10.0f, 20.0f);
     bp.add_node(std::move(n));
     EXPECT_EQ(bp.nodes.size(), 1);
-    EXPECT_EQ(bp.nodes[0].id, "n1");
+    EXPECT_EQ(bp.nodes[0].id, I.intern("n1"));
 }
 
 TEST(BlueprintTest, AddWire) {
     Blueprint bp;
+    auto& I = bp.interner();
     Node n1;
-    n1.id = "n1";
+    n1.id = I.intern("n1");
     n1.at(0.0f, 0.0f);
     bp.add_node(std::move(n1));
 
     Node n2;
-    n2.id = "n2";
+    n2.id = I.intern("n2");
     n2.at(100.0f, 0.0f);
     bp.add_node(std::move(n2));
 
     Wire w;
-    w.id = "w1";
-    w.start.node_id = "n1";
-    w.start.port_name = "out";
-    w.end.node_id = "n2";
-    w.end.port_name = "in";
+    w.id = I.intern("w1");
+    w.start.node_id = I.intern("n1");
+    w.start.port_name = I.intern("out");
+    w.end.node_id = I.intern("n2");
+    w.end.port_name = I.intern("in");
 
     bp.add_wire(std::move(w));
     EXPECT_EQ(bp.wires.size(), 1);
-    EXPECT_EQ(bp.wires[0].start.node_id, "n1");
+    EXPECT_EQ(bp.wires[0].start.node_id, I.intern("n1"));
 }
 
 TEST(BlueprintTest, FindNode) {
     Blueprint bp;
+    auto& I = bp.interner();
     Node n1;
-    n1.id = "batt";
+    n1.id = I.intern("batt");
     n1.at(0.0f, 0.0f);
     bp.add_node(std::move(n1));
 
     Node n2;
-    n2.id = "load";
+    n2.id = I.intern("load");
     n2.at(100.0f, 0.0f);
     bp.add_node(std::move(n2));
 
     Node* found = bp.find_node("load");
     ASSERT_NE(found, nullptr);
-    EXPECT_EQ(found->id, "load");
+    EXPECT_EQ(found->id, I.intern("load"));
 
     Node* not_found = bp.find_node("nonexistent");
     EXPECT_EQ(not_found, nullptr);

@@ -14,8 +14,8 @@ namespace visual {
 // Construction
 // ============================================================================
 
-RefNodeWidget::RefNodeWidget(const ::Node& data)
-    : node_id_(data.id)
+RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& interner)
+    : node_id_(interner.resolve(data.id))
     , name_(data.name)
     , type_name_(data.type_name)
 {
@@ -24,7 +24,7 @@ RefNodeWidget::RefNodeWidget(const ::Node& data)
     }
 
     setLocalPos(data.pos);
-    buildLayout(data);
+    buildLayout(data, interner);
 
     // Snap size to grid
     auto snap = [](float v) {
@@ -43,16 +43,18 @@ RefNodeWidget::RefNodeWidget(const ::Node& data)
 // Layout
 // ============================================================================
 
-void RefNodeWidget::buildLayout(const ::Node& data) {
-    // Determine the single port from node data
-    std::string port_name = "v";
+void RefNodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& interner) {
+    // Determine the single port from node data.
+    // Port stores a string_view, so the name must point to stable storage
+    // (the interner) — never to a local std::string.
+    std::string_view port_name = "v";
     PortType port_type = PortType::V;
 
     if (!data.outputs.empty()) {
-        port_name = data.outputs[0].name;
+        port_name = interner.resolve(data.outputs[0].name);
         port_type = data.outputs[0].type;
     } else if (!data.inputs.empty()) {
-        port_name = data.inputs[0].name;
+        port_name = interner.resolve(data.inputs[0].name);
         port_type = data.inputs[0].type;
     }
 
@@ -67,7 +69,7 @@ void RefNodeWidget::positionPort() {
                           -editor_constants::PORT_RADIUS));
 }
 
-Port* RefNodeWidget::port(const std::string& name) const {
+Port* RefNodeWidget::port(std::string_view name) const {
     if (port_ && port_->name() == name) return port_;
     return nullptr;
 }

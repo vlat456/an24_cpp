@@ -14,8 +14,8 @@ namespace visual {
 // Construction
 // ============================================================================
 
-TextNodeWidget::TextNodeWidget(const ::Node& data)
-    : node_id_(data.id)
+TextNodeWidget::TextNodeWidget(const ::Node& data, const ui::StringInterner& interner)
+    : node_id_(interner.resolve(data.id))
     , name_(data.name)
     , font_size_base_(editor_constants::Font::Large)
 {
