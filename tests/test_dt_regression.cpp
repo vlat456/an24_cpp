@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include "jit_solver/simulator.h"
 #include "jit_solver/SOR_constants.h"
-#include "editor/simulation.h"
 #include "editor/visual/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
@@ -109,8 +108,8 @@ TEST(DtRegression, Simulator_TimeAccumulatesVariableDt) {
 
 TEST(DtRegression, SimController_TimeAccumulatesVariableDt) {
     Blueprint bp = make_battery_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     const float dts[] = {1.0f/60.0f, 1.0f/144.0f, 1.0f/30.0f};
     float expected_time = 0.0f;
@@ -119,9 +118,10 @@ TEST(DtRegression, SimController_TimeAccumulatesVariableDt) {
         expected_time += dt;
     }
 
-    EXPECT_NEAR(sim.time, expected_time, 1e-6f)
-        << "SimulationController must accumulate actual dt values";
-    EXPECT_EQ(sim.step_count, 3u);
+    EXPECT_NEAR(sim.get_time(), expected_time, 1e-6f)
+        << "Simulator must accumulate actual dt values";
+    EXPECT_EQ(sim.get_step_count(), 3u);
+    sim.stop();
 }
 
 // =============================================================================

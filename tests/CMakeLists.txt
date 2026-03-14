@@ -526,7 +526,6 @@ gtest_discover_tests(json_parser_tests)
 # Editor simulation tests (TDD - integration with JIT solver)
 add_executable(editor_simulation_tests
     test_simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
@@ -894,7 +893,6 @@ add_executable(inspector_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
 )
 target_compile_definitions(inspector_tests PRIVATE EDITOR_TESTING)
 target_include_directories(inspector_tests PRIVATE
@@ -954,7 +952,6 @@ add_executable(node_deletion_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(node_deletion_tests PRIVATE EDITOR_TESTING)
@@ -991,7 +988,6 @@ add_executable(multi_window_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(multi_window_tests PRIVATE EDITOR_TESTING)
@@ -1031,7 +1027,6 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(params_integrity_tests PRIVATE EDITOR_TESTING)
@@ -1089,7 +1084,6 @@ gtest_discover_tests(properties_window_tests)
 # DT regression tests — FPS-independent physics, SOR constants, accumulator correctness
 add_executable(dt_regression_tests
     test_dt_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
@@ -1342,7 +1336,6 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(document_window_system_tests PRIVATE EDITOR_TESTING)
@@ -1401,4 +1394,23 @@ target_link_libraries(library_v2_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(library_v2_tests)
+
+# Multi-domain scheduling tests
+add_executable(multi_domain_tests
+    test_multi_domain.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(multi_domain_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(multi_domain_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(multi_domain_tests)
 

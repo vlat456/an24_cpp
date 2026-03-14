@@ -1328,6 +1328,19 @@ library_v2_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
 .PHONY : library_v2_tests/fast
 
+#=============================================================================
+# Target rules for targets named multi_domain_tests
+
+# Build rule for target.
+multi_domain_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 multi_domain_tests
+.PHONY : multi_domain_tests
+
+# fast build rule for target.
+multi_domain_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/build
+.PHONY : multi_domain_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1389,6 +1402,7 @@ help:
 	@echo "... lut_codegen_tests"
 	@echo "... lut_tests"
 	@echo "... monostable_tests"
+	@echo "... multi_domain_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... node_deletion_tests"

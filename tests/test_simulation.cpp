@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "editor/simulation.h"
 #include "jit_solver/simulator.h"
 #include "editor/visual/persist.h"
 #include "editor/data/blueprint.h"
@@ -81,64 +80,63 @@ static Blueprint create_simple_circuit() {
 
 TEST(SimulationTest, BuildsFromBlueprint) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
-    ASSERT_TRUE(sim.build_result.has_value());
-    EXPECT_GE(sim.build_result->signal_count, 2u); // at least gnd + battery
+    ASSERT_TRUE(sim.is_built());
+    EXPECT_GE(sim.get_signal_count(), 2u); // at least gnd + battery
 }
 
 TEST(SimulationTest, StepCounterIncrements) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_EQ(sim.get_step_count(), 0u);
     sim.step(0.016f);
-    EXPECT_EQ(sim.step_count, 1u);
+    EXPECT_EQ(sim.get_step_count(), 1u);
     sim.step(0.016f);
-    EXPECT_EQ(sim.step_count, 2u);
+    EXPECT_EQ(sim.get_step_count(), 2u);
 }
 
 TEST(SimulationTest, RunningFlag) {
-    SimulationController sim;
-    EXPECT_FALSE(sim.running);
+    Simulator<JIT_Solver> sim;
+    EXPECT_FALSE(sim.is_running());
 
     Blueprint bp = create_simple_circuit();
-    sim.build(bp);
-    sim.start();
-    EXPECT_TRUE(sim.running);
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_running());
 
     sim.step(0.016f);
-    EXPECT_GT(sim.time, 0.0f);
+    EXPECT_GT(sim.get_time(), 0.0f);
 
     sim.stop();
-    EXPECT_FALSE(sim.running);
+    EXPECT_FALSE(sim.is_running());
 }
 
 TEST(SimulationTest, ResetClearsState) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
 
-    sim.build(bp);
+    sim.start(bp);
 
     // Run simulation to get some non-zero values
     for (int i = 0; i < 50; i++) sim.step(0.016f);
 
     // Check that simulation has progressed
-    EXPECT_GT(sim.time, 0.0f);
-    EXPECT_GT(sim.step_count, 0u);
+    EXPECT_GT(sim.get_time(), 0.0f);
+    EXPECT_GT(sim.get_step_count(), 0u);
 
     // Get voltage at battery port (should be non-zero after running)
     float v_running = sim.get_port_value("battery_1", "v_out");
 
     // Reset simulation
-    sim.reset();
+    sim.stop();
 
     // Check that state is cleared
-    EXPECT_FALSE(sim.running);
-    EXPECT_EQ(sim.time, 0.0f);
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_FALSE(sim.is_running());
+    EXPECT_EQ(sim.get_time(), 0.0f);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 
     // All voltages should be 0 after reset
     float v_reset = sim.get_port_value("battery_1", "v_out");
@@ -149,30 +147,30 @@ TEST(SimulationTest, ResetClearsState) {
 
 TEST(SimulationTest, RebuildResetsState) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
 
     // First build
-    sim.build(bp);
-    size_t signals_first = sim.state.across.size();
+    sim.start(bp);
+    size_t signals_first = sim.get_signal_count();
 
     // Run a few steps
     for (int i = 0; i < 50; i++) sim.step(0.016f);
-    EXPECT_GT(sim.time, 0.0f);
-    EXPECT_GT(sim.step_count, 0u);
+    EXPECT_GT(sim.get_time(), 0.0f);
+    EXPECT_GT(sim.get_step_count(), 0u);
 
     // Rebuild — state should reset, not accumulate signals
-    sim.build(bp);
-    EXPECT_EQ(sim.state.across.size(), signals_first);
-    EXPECT_EQ(sim.time, 0.0f);
-    EXPECT_EQ(sim.step_count, 0u);
+    sim.start(bp);
+    EXPECT_EQ(sim.get_signal_count(), signals_first);
+    EXPECT_EQ(sim.get_time(), 0.0f);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 }
 
 // ─── Voltage convergence ───
 
 TEST(SimulationTest, BatteryVoltageConverges) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     // Run enough steps for SOR convergence
     for (int i = 0; i < 200; i++) sim.step(0.016f);
@@ -185,8 +183,8 @@ TEST(SimulationTest, BatteryVoltageConverges) {
 
 TEST(SimulationTest, GroundRemainsZero) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -198,8 +196,8 @@ TEST(SimulationTest, GroundRemainsZero) {
 
 TEST(SimulationTest, GetPortValue) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -211,8 +209,8 @@ TEST(SimulationTest, GetPortValue) {
 
 TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     EXPECT_EQ(sim.get_port_value("nonexistent", "port"), 0.0f);
 }
@@ -221,8 +219,8 @@ TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
 
 TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -233,7 +231,7 @@ TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
 }
 
 TEST(SimulationTest, WireIsEnergized_NoSimulation) {
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
     // Not built yet
     EXPECT_FALSE(sim.wire_is_energized("bat.v_out"));
 }
@@ -241,9 +239,9 @@ TEST(SimulationTest, WireIsEnergized_NoSimulation) {
 // ─── Step without build should not crash ───
 
 TEST(SimulationTest, StepWithoutBuild_NoCrash) {
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
     sim.step(0.016f); // should do nothing
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 }
 
 // ============================================================================
@@ -397,8 +395,8 @@ static Blueprint create_merger_circuit() {
 
 TEST(SimulationTest, Merger_CircuitConverges) {
     Blueprint bp = create_merger_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -414,8 +412,8 @@ TEST(SimulationTest, Merger_CircuitConverges) {
 TEST(SimulationTest, Merger_AllPortsSameSignal) {
     // Merger aliases i1, i2 to o — all should be the same voltage
     Blueprint bp = create_merger_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -459,8 +457,8 @@ TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
     bp.add_wire(std::move(w2));
     // NO wire from lamp.v_out to ground — intentionally floating
 
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     // Run for 2 simulated seconds (120 steps at 60Hz)
     for (int i = 0; i < 120; i++) {
@@ -502,8 +500,8 @@ TEST(SimulationTest, TwoRefNodes_CircuitStable) {
     bp.add_wire(std::move(w2));
     bp.add_wire(std::move(w3));
 
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) {
         sim.step(0.016f);
