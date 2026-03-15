@@ -16,6 +16,7 @@ Document& WindowSystem::createDocument() {
 
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
+    pending_tab_focus_ = doc_ptr;
 
     spdlog::info("[WindowSystem] Created new document (total: {})", documents_.size());
 
@@ -26,6 +27,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
     // Check if already open
     if (Document* existing = findDocumentByPath(path)) {
         setActiveDocument(existing);
+        pending_tab_focus_ = existing;
         recent_files.add(path);
         spdlog::info("[WindowSystem] Document already open: {}", path);
         return existing;
@@ -52,6 +54,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
     Document* doc_ptr = doc.get();
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
+    pending_tab_focus_ = doc_ptr;
     recent_files.add(path);
 
     spdlog::info("[WindowSystem] Opened document: {} (total: {})", path, documents_.size());

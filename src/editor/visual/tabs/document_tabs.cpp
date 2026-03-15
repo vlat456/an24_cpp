@@ -1,22 +1,33 @@
 #include "document_tabs.h"
 #include "editor/window_system.h"
+#include "editor/document.h"
 #include <imgui.h>
 
-
-DocumentTabs::Result DocumentTabs::render(WindowSystem& ws) {
+DocumentTabs::Result DocumentTabs::render(::WindowSystem& ws) {
     Result result;
 
-    if (!ImGui::BeginTabBar("DocumentTabs")) {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+    if (!ImGui::BeginTabBar("##DocumentTabs", ImGuiTabBarFlags_None)) {
+        ImGui::PopStyleVar();
         return result;
     }
+    ImGui::PopStyleVar();
 
     tab_bar_height_ = ImGui::GetItemRectSize().y;
 
-    for (const auto& doc : ws.documents()) {
-        bool tab_open = true;
-        std::string tab_label = doc->title() + "###" + doc->id();
+    // One-shot: grab and consume the pending focus so SetSelected applies for exactly one frame
+    Document* focus_target = ws.pendingTabFocus();
 
-        if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, ImGuiTabItemFlags_None)) {
+    for (const auto& doc : ws.documents()) {
+        std::string tab_label = doc->title();
+
+        bool tab_open = true;
+        ImGuiTabItemFlags flags = ImGuiTabItemFlags_None;
+        if (focus_target == doc.get()) {
+            flags |= ImGuiTabItemFlags_SetSelected;
+        }
+
+        if (ImGui::BeginTabItem(tab_label.c_str(), &tab_open, flags)) {
             if (ws.activeDocument() != doc.get()) {
                 ws.setActiveDocument(doc.get());
             }
@@ -28,7 +39,11 @@ DocumentTabs::Result DocumentTabs::render(WindowSystem& ws) {
         }
     }
 
+    // Clear after the full tab bar is rendered so the flag was applied exactly once
+    if (focus_target) {
+        ws.consumeTabFocus();
+    }
+
     ImGui::EndTabBar();
     return result;
 }
-

@@ -28,6 +28,14 @@ public:
     const Document* activeDocument() const { return active_document_; }
     void setActiveDocument(Document* doc);
 
+    // ── Tab focus (one-shot programmatic selection) ──
+
+    /// Returns the document that should receive tab focus this frame, or nullptr.
+    Document* pendingTabFocus() const { return pending_tab_focus_; }
+
+    /// Clear the pending tab focus after it has been applied. Call once per frame.
+    void consumeTabFocus() { pending_tab_focus_ = nullptr; }
+
     // ── Document access ──
 
     const std::vector<std::unique_ptr<Document>>& documents() const { return documents_; }
@@ -90,6 +98,7 @@ public:
 private:
     std::vector<std::unique_ptr<Document>> documents_;
     Document* active_document_ = nullptr;
+    Document* pending_tab_focus_ = nullptr;  ///< One-shot: set by create/open, consumed by tab bar
     TypeRegistry type_registry_;
     Inspector inspector_;
     PropertiesWindow properties_window_;
