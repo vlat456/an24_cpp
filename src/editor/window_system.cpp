@@ -145,22 +145,23 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
     Node* node = doc.blueprint().find_node(node_id.c_str());
     if (!node) return;
     Document* doc_ptr = &doc;
-    properties_window_.open(*node, node_id, [this, doc_ptr](const std::string& nid) {
-        // Verify document still exists before using the pointer
-        for (const auto& d : documents_) {
-            if (d.get() == doc_ptr) {
-                // Rebuild visual widgets from updated blueprint data
-                visual::mutations::rebuild(doc_ptr->scene(),
-                                           doc_ptr->blueprint(),
-                                           doc_ptr->root().group_id);
-                inspector_.markDirty();
-                doc_ptr->rebuildSimulation();
-                return;
+    properties_window_.open(*node, node_id, doc.blueprint(), doc.undoStack(),
+        [this, doc_ptr](const std::string& nid) {
+            // Verify document still exists before using the pointer
+            for (const auto& d : documents_) {
+                if (d.get() == doc_ptr) {
+                    // Rebuild visual widgets from updated blueprint data
+                    visual::mutations::rebuild(doc_ptr->scene(),
+                                               doc_ptr->blueprint(),
+                                               doc_ptr->root().group_id);
+                    inspector_.markDirty();
+                    doc_ptr->rebuildSimulation();
+                    return;
+                }
             }
-        }
-        // Document was closed — just mark inspector dirty
-        inspector_.markDirty();
-    });
+            // Document was closed — just mark inspector dirty
+            inspector_.markDirty();
+        });
 }
 
 void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc) {

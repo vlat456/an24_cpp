@@ -100,7 +100,18 @@ void MainMenu::renderEditMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Edit")) return;
 
     Document* active_doc = ws.activeDocument();
+    bool can_undo = active_doc && active_doc->canUndo();
+    bool can_redo = active_doc && active_doc->canRedo();
     bool has_sel = active_doc && !active_doc->input().selected_nodes().empty();
+
+    if (ImGui::MenuItem("Undo", "Ctrl+Z", false, can_undo)) {
+        if (active_doc) active_doc->performUndo();
+    }
+    if (ImGui::MenuItem("Redo", "Ctrl+Y", false, can_redo)) {
+        if (active_doc) active_doc->performRedo();
+    }
+
+    ImGui::Separator();
 
     if (ImGui::MenuItem("Delete", "Del", false, has_sel)) {
         if (active_doc) {

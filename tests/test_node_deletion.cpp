@@ -7,6 +7,7 @@
 #include "editor/input/canvas_input.h"
 #include "editor/window/window_manager.h"
 #include "editor/viewport/viewport.h"
+#include "editor/undo/undo_stack.h"
 #include "ui/core/interned_id.h"
 
 
@@ -164,9 +165,10 @@ TEST(NodeDeletion, Backspace_DeletesSelectedNodes) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     // Select node "a" widget
     auto* widget_a = scene.find("a");
@@ -196,9 +198,10 @@ TEST(NodeDeletion, Delete_DeletesSelectedNodes) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     auto* widget_a = scene.find("a");
     ASSERT_NE(widget_a, nullptr);
@@ -217,9 +220,10 @@ TEST(NodeDeletion, MultiSelect_DeleteAll) {
     auto& I = bp.interner();
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     input.add_node_selection(scene.find("a"));
     input.add_node_selection(scene.find("b"));
@@ -239,9 +243,10 @@ TEST(NodeDeletion, DeleteWithNoSelection_Noop) {
     auto& I = bp.interner();
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     InputResult result = input.on_key(Key::Delete);
 
@@ -326,9 +331,10 @@ TEST(NodeDeletion, SubWindowDeletion_ViaCanvasInput) {
     // Sub-window scene for lamp1
     visual::Scene sub_scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string sub_group_id = "lamp1";
     visual::mutations::rebuild(sub_scene, bp, sub_group_id);
-    CanvasInput sub_input(sub_scene, vp, bp, sub_group_id);
+    CanvasInput sub_input(sub_scene, vp, bp, undo_stack, sub_group_id);
 
     // Select "lamp1:a" widget
     auto* widget = sub_scene.find("lamp1:a");
@@ -523,7 +529,8 @@ TEST(NodeDeletion, DeleteSubBlueprint_Recursive_SubSubBlueprint) {
 TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
     Blueprint bp = make_bp_with_sub_blueprint();
     auto& I = bp.interner();
-    WindowManager wm(bp);
+    UndoStack undo_stack;
+    WindowManager wm(bp, undo_stack);
     EXPECT_EQ(wm.count(), 1u);  // root only
 
     // Open sub-window for lamp1
@@ -593,9 +600,10 @@ TEST(CanvasInputDanglingPointer, SelectedWire_NulledOnRemoveWire) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     // Verify wire widget exists
     auto* wire_widget = dynamic_cast<visual::Wire*>(scene.find("w1"));
@@ -622,9 +630,10 @@ TEST(CanvasInputDanglingPointer, SelectedNodes_ClearedOnRemoveNode) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     // Select both nodes
     auto* wa = scene.find("a");
@@ -658,9 +667,10 @@ TEST(CanvasInputDanglingPointer, SelectionClearedOnSceneClear) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     auto* wa = scene.find("a");
     ASSERT_NE(wa, nullptr);
@@ -691,9 +701,10 @@ TEST(CanvasInputDanglingPointer, ReconnectWire_NoDanglingSelectedWire) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     // Verify the old wire widget exists
     auto* old_wire = scene.find("w1");
@@ -728,9 +739,10 @@ TEST(CanvasInputDanglingPointer, RemoveWire_NullsHoveredWire) {
 
     visual::Scene scene;
     Viewport vp;
+    UndoStack undo_stack;
     std::string group_id;
     visual::mutations::rebuild(scene, bp, group_id);
-    CanvasInput input(scene, vp, bp, group_id);
+    CanvasInput input(scene, vp, bp, undo_stack, group_id);
 
     // Verify wire widget exists before removal
     auto* wire_widget = scene.find("w1");

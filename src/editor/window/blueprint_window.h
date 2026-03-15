@@ -5,11 +5,12 @@
 #include "viewport/viewport.h"
 #include "input/canvas_input.h"
 #include "data/blueprint.h"
+#include "undo/undo_stack.h"
 #include <string>
 
 /// A single editor window showing one nesting level of a blueprint.
 /// Each window has its own viewport, visual scene, and input handler
-/// — but shares a single Blueprint with other windows.
+/// — but shares a single Blueprint and UndoStack with other windows.
 struct BlueprintWindow {
     std::string title;       ///< ImGui window title
     std::string group_id;    ///< Which collapsed group this window shows ("" = root)
@@ -26,14 +27,14 @@ struct BlueprintWindow {
     void set_read_only(bool v) { read_only = v; input.read_only = v; }
 
     /// Construct a window viewing a specific group of a shared blueprint.
-    BlueprintWindow(Blueprint& bp_, const std::string& group_id_,
+    BlueprintWindow(Blueprint& bp_, UndoStack& undo_stack, const std::string& group_id_,
                     const std::string& title_)
         : title(title_)
         , group_id(group_id_)
         , bp(bp_)
         , scene()
         , viewport()
-        , input(scene, viewport, bp_, group_id)
+        , input(scene, viewport, bp_, undo_stack, group_id)
     {
         // Sync viewport grid_step from blueprint
         viewport.grid_step = bp_.grid_step;

@@ -1341,6 +1341,19 @@ multi_domain_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/build
 .PHONY : multi_domain_tests/fast
 
+#=============================================================================
+# Target rules for targets named command_tests
+
+# Build rule for target.
+command_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 command_tests
+.PHONY : command_tests
+
+# fast build rule for target.
+command_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/build
+.PHONY : command_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1373,6 +1386,7 @@ help:
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
+	@echo "... command_tests"
 	@echo "... comparison_components_tests"
 	@echo "... convert_library"
 	@echo "... document_window_system_tests"

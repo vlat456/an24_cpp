@@ -3,6 +3,7 @@
 #include "input/input_types.h"
 #include "ui/math/pt.h"
 #include "data/port.h"
+#include "undo/undo_stack.h"
 #include <optional>
 #include <string>
 #include <vector>
@@ -37,7 +38,7 @@ struct Blueprint;
 class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
-                Blueprint& bp, const std::string& group_id);
+                Blueprint& bp, UndoStack& undo_stack, const std::string& group_id);
 
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
@@ -96,12 +97,30 @@ public:
 
     /// Update hover state based on current mouse position (call every frame)
     void update_hover(Pt world_pos);
+    
+    // ---- Undo/Redo ----
+    
+    UndoStack& undo_stack() { return undo_stack_; }
+    const UndoStack& undo_stack() const { return undo_stack_; }
+    
+    /// Execute a command, store its inverse for undo.
+    Command execute_command(Command cmd);
+    
+    /// Perform undo (if possible).
+    bool undo();
+    
+    /// Perform redo (if possible).
+    bool redo();
 
 private:
     visual::Scene& scene_;
     Viewport& viewport_;
     Blueprint& bp_;
     const std::string& group_id_;
+    UndoStack& undo_stack_;
+    
+    // Initial positions for drag-to-command commit
+    std::vector<Pt> drag_initial_positions_;
 
     InputState state_ = InputState::Idle;
 
@@ -131,6 +150,7 @@ private:
     std::string rp_wire_id_;
     visual::RoutingPoint* rp_point_ = nullptr;
     size_t rp_index_ = 0;
+    std::vector<Pt> rp_initial_points_;  // snapshot of routing_points at drag start
 
     // Resize drag — stored as ID
     std::string resize_widget_id_;

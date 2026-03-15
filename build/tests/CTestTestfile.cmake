@@ -77,3 +77,4 @@ include("/Users/vladimir/an24_cpp/build/tests/recent_files_tests[1]_include.cmak
 include("/Users/vladimir/an24_cpp/build/tests/flat_blueprint_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/library_v2_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/multi_domain_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/command_tests[1]_include.cmake")

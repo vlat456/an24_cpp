@@ -4,6 +4,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/wire/wire.h"
+#include "editor/undo/undo_stack.h"
 #include "jit_solver/simulator.h"
 #include "ui/core/interned_id.h"
 
@@ -20,7 +21,8 @@ inline std::ostream& operator<<(std::ostream& os, InternedId id) {
 
 TEST(BlueprintWindow, ConstructWithGroupId) {
     Blueprint bp;
-    BlueprintWindow win(bp, "lamp1", "Lamp");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "lamp1", "Lamp");
 
     EXPECT_EQ(win.group_id, "lamp1");
     EXPECT_EQ(win.title, "Lamp");
@@ -31,11 +33,12 @@ TEST(BlueprintWindow, ConstructWithGroupId) {
 
 TEST(BlueprintWindow, SceneReferencesSharedBlueprint) {
     Blueprint bp;
+    UndoStack undo_stack;
     auto& I = bp.interner();
     Node n; n.id = I.intern("n1"); n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
-    BlueprintWindow win(bp, "", "Root");
+    BlueprintWindow win(bp, undo_stack, "", "Root");
 
     // Window's scene sees the shared blueprint's nodes
     EXPECT_EQ(win.bp.nodes.size(), 1u);
@@ -49,6 +52,7 @@ TEST(BlueprintWindow, SceneReferencesSharedBlueprint) {
 
 TEST(BlueprintWindow, TwoWindowsSeeSharedData) {
     Blueprint bp;
+    UndoStack undo_stack;
     auto& I = bp.interner();
     Node root_node; root_node.id = I.intern("r1"); root_node.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(root_node));
@@ -57,8 +61,8 @@ TEST(BlueprintWindow, TwoWindowsSeeSharedData) {
     internal.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(internal));
 
-    BlueprintWindow root_win(bp, "", "Root");
-    BlueprintWindow sub_win(bp, "lamp1", "Lamp");
+    BlueprintWindow root_win(bp, undo_stack, "", "Root");
+    BlueprintWindow sub_win(bp, undo_stack, "lamp1", "Lamp");
 
     // Both windows see all nodes via the shared blueprint
     EXPECT_EQ(root_win.bp.nodes.size(), 2u);
@@ -73,8 +77,9 @@ TEST(BlueprintWindow, TwoWindowsSeeSharedData) {
 
 TEST(BlueprintWindow, IndependentViewports) {
     Blueprint bp;
-    BlueprintWindow win1(bp, "", "Root");
-    BlueprintWindow win2(bp, "lamp1", "Lamp");
+    UndoStack undo_stack;
+    BlueprintWindow win1(bp, undo_stack, "", "Root");
+    BlueprintWindow win2(bp, undo_stack, "lamp1", "Lamp");
 
     win1.viewport.zoom = 2.0f;
     win2.viewport.zoom = 0.5f;
@@ -85,12 +90,13 @@ TEST(BlueprintWindow, IndependentViewports) {
 
 TEST(BlueprintWindow, IndependentInteraction) {
     Blueprint bp;
+    UndoStack undo_stack;
     auto& I = bp.interner();
     Node n; n.id = I.intern("n1"); n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
-    BlueprintWindow win1(bp, "", "Root");
-    BlueprintWindow win2(bp, "", "Root2");
+    BlueprintWindow win1(bp, undo_stack, "", "Root");
+    BlueprintWindow win2(bp, undo_stack, "", "Root2");
 
     win1.input.add_node_selection(win1.scene.find("n1"));
 
@@ -104,7 +110,8 @@ TEST(BlueprintWindow, IndependentInteraction) {
 
 TEST(WindowManager, CreatesRootOnConstruction) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     EXPECT_EQ(mgr.count(), 1u);
     EXPECT_EQ(mgr.root().group_id, "");
@@ -114,7 +121,8 @@ TEST(WindowManager, CreatesRootOnConstruction) {
 
 TEST(WindowManager, OpenSubWindow) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     auto* win = mgr.open("lamp1", "Lamp [lamp1]");
     ASSERT_NE(win, nullptr);
@@ -125,7 +133,8 @@ TEST(WindowManager, OpenSubWindow) {
 
 TEST(WindowManager, OpenExistingReturnsSame) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     auto* win1 = mgr.open("lamp1", "Lamp");
     auto* win2 = mgr.open("lamp1", "Lamp");
@@ -136,7 +145,8 @@ TEST(WindowManager, OpenExistingReturnsSame) {
 
 TEST(WindowManager, FindWindow) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     EXPECT_NE(mgr.find(""), nullptr);    // root exists
     EXPECT_EQ(mgr.find("lamp1"), nullptr); // not opened yet
@@ -147,7 +157,8 @@ TEST(WindowManager, FindWindow) {
 
 TEST(WindowManager, CloseSubWindow) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     mgr.open("lamp1", "Lamp");
     EXPECT_EQ(mgr.count(), 2u);
@@ -159,7 +170,8 @@ TEST(WindowManager, CloseSubWindow) {
 
 TEST(WindowManager, CloseRootIsIgnored) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     mgr.close("");  // try to close root
     EXPECT_EQ(mgr.count(), 1u);  // root still there
@@ -167,7 +179,8 @@ TEST(WindowManager, CloseRootIsIgnored) {
 
 TEST(WindowManager, CloseAll) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     mgr.open("lamp1", "Lamp1");
     mgr.open("lamp2", "Lamp2");
@@ -181,7 +194,8 @@ TEST(WindowManager, CloseAll) {
 
 TEST(WindowManager, RemoveClosedWindows) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     mgr.open("lamp1", "Lamp1");
     mgr.open("lamp2", "Lamp2");
@@ -203,7 +217,8 @@ TEST(WindowManager, SubWindowSeesSharedBlueprint) {
     n.at(0, 0).size_wh(100, 50);
     bp.add_node(std::move(n));
 
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
     auto* win = mgr.open("lamp1", "Lamp");
 
     // Sub-window sees the node in shared blueprint
@@ -213,7 +228,8 @@ TEST(WindowManager, SubWindowSeesSharedBlueprint) {
 
 TEST(WindowManager, MultipleWindowsIndependentViewports) {
     Blueprint bp;
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
 
     mgr.open("lamp1", "Lamp");
 
@@ -395,7 +411,8 @@ TEST(WireDeselect, ClickEmptySpaceDeselectsWire) {
     w.end = WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(w);
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     Pt canvas_min(0, 0);
 
@@ -448,7 +465,8 @@ TEST(WireDeselect, ClickNodeDeselectsWire) {
     w.end = WireEnd(I.intern("b"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(w);
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     Pt canvas_min(0, 0);
 
@@ -480,7 +498,8 @@ TEST(TooltipCanvasMin, ScenePassesCanvasMinToDetector) {
     Node n; n.id = I.intern("n1"); n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
     Simulator<JIT_Solver> sim;
 
     // canvas_min at (50, 30) — simulating a sub-window offset
@@ -516,7 +535,8 @@ TEST(RPDrag, DraggingRoutingPointSelectsWire) {
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     Pt canvas_min(0, 0);
 
@@ -563,7 +583,8 @@ TEST(WireHover, HoverNearRoutingPoint_SetsHoveredWire) {
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     // Hover exactly on the routing point
     win.input.update_hover(Pt(250.0f, 100.0f));
@@ -591,7 +612,8 @@ TEST(WireHover, HoverClears_WhenCursorMovesAway) {
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     // First hover on wire RP — should highlight
     win.input.update_hover(Pt(250.0f, 100.0f));
@@ -624,7 +646,8 @@ TEST(RPDoubleClick, DoubleClickOnRP_RemovesIt) {
     w.add_routing_point(Pt(250.0f, 100.0f));
     bp.add_wire(std::move(w));
 
-    BlueprintWindow win(bp, "", "Test");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "", "Test");
 
     Pt canvas_min(0, 0);
     ASSERT_EQ(bp.wires[0].routing_points.size(), 1u);
@@ -656,7 +679,8 @@ TEST(ReadOnlyPan, LeftDragPanWorksOnReadOnlyWindow) {
     n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
-    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "lamp1", "Lamp [lamp1]");
     win.read_only = true;
 
     // Viewport starts at default pan (0,0)
@@ -690,7 +714,8 @@ TEST(ReadOnlyPan, ScrollZoomWorksOnReadOnlyWindow) {
     n.at(100, 100).size_wh(80, 60);
     bp.add_node(std::move(n));
 
-    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "lamp1", "Lamp [lamp1]");
     win.read_only = true;
 
     float initial_zoom = win.viewport.zoom;
@@ -723,7 +748,8 @@ TEST(ReadOnlyDoubleClick, ExpandableNodeReturnsOpenSubWindow) {
     nested.collapsed = true;
     bp.add_node(std::move(nested));
 
-    BlueprintWindow win(bp, "lamp1", "Lamp [lamp1]");
+    UndoStack undo_stack;
+    BlueprintWindow win(bp, undo_stack, "lamp1", "Lamp [lamp1]");
     win.read_only = true;
 
     Pt canvas_min(0, 0);
@@ -753,7 +779,8 @@ TEST(SubBlueprintWindow, NonBakedIn_IsReadOnly) {
     vin.at(0, 0).size_wh(100, 60);
     bp.add_node(std::move(vin));
 
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
     auto* win = mgr.open("lamp_1", "Lamp [lamp_1]");
 
     ASSERT_NE(win, nullptr);
@@ -780,7 +807,8 @@ TEST(SubBlueprintWindow, BakedIn_IsNotReadOnly) {
     vin.at(0, 0).size_wh(100, 60);
     bp.add_node(std::move(vin));
 
-    WindowManager mgr(bp);
+    UndoStack undo_stack;
+    WindowManager mgr(bp, undo_stack);
     auto* win = mgr.open("lamp_1", "Lamp [lamp_1]");
 
     ASSERT_NE(win, nullptr);

@@ -1,4 +1,5 @@
 #include "window/properties_window.h"
+#include "data/blueprint.h"
 
 #ifndef EDITOR_TESTING
 #include <imgui.h>
@@ -42,9 +43,13 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
     return oss.str();
 }
 
-void PropertiesWindow::open(Node& node, const std::string& node_id_str, PropertyCallback on_apply) {
+void PropertiesWindow::open(Node& node, const std::string& node_id_str,
+                            Blueprint& bp, UndoStack& undo_stack,
+                            PropertyCallback on_apply) {
     target_ = &node;
     target_node_id_ = node_id_str;
+    bp_ = &bp;
+    undo_stack_ = &undo_stack;
     on_apply_ = std::move(on_apply);
 
     // Snapshot for cancel/revert
@@ -120,7 +125,7 @@ void PropertiesWindow::render() {
 
         // OK / Cancel buttons
         if (ImGui::Button("OK", ImVec2(120, 0))) {
-            applyAndClose();
+            apply();
         }
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
@@ -221,10 +226,57 @@ void PropertiesWindow::renderTableParam(const std::string& key) {
 #endif
 }
 
-void PropertiesWindow::applyAndClose() {
-    if (target_ && on_apply_) {
+void PropertiesWindow::apply() {
+    if (!target_ || !bp_ || !undo_stack_) {
+        open_ = false;
+        target_ = nullptr;
+        return;
+    }
+
+    // Collect changes: compare current params against snapshot
+    auto& interner = bp_->interner();
+    ui::InternedId node_iid = interner.intern(target_node_id_);
+
+    std::vector<Command> cmds;
+
+    // Check for changed or added params
+    for (const auto& [key, new_value] : target_->params) {
+        auto snap_it = snapshot_params_.find(key);
+        if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
+            cmds.push_back(cmd_set_param(node_iid, key, new_value));
+        }
+    }
+
+    // Check for removed params (in snapshot but not in current)
+    for (const auto& [key, old_value] : snapshot_params_) {
+        if (target_->params.find(key) == target_->params.end()) {
+            // Param was removed — emit a set with empty value
+            cmds.push_back(cmd_set_param(node_iid, key, ""));
+        }
+    }
+
+    // Include name change in the same command batch
+    std::string edited_name = target_->name;
+    if (edited_name != snapshot_name_) {
+        cmds.push_back(cmd_set_name(node_iid, edited_name));
+    }
+
+    // Revert node to snapshot state BEFORE executing commands,
+    // so that commands record the correct "old" values for undo.
+    target_->name = snapshot_name_;
+    target_->params = snapshot_params_;
+
+    // Execute all changes as a single undoable action
+    if (!cmds.empty()) {
+        Command compound = cmd_compound(std::move(cmds));
+        Command inverse = execute(*bp_, compound);
+        undo_stack_->push(std::move(inverse));
+    }
+
+    if (on_apply_) {
         on_apply_(target_node_id_);
     }
+
     open_ = false;
     target_ = nullptr;
 }

@@ -141,6 +141,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp

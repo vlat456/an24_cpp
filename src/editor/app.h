@@ -9,6 +9,7 @@
 #include "window/window_manager.h"
 #include "window/properties_window.h"
 #include "visual/inspector/inspector.h"
+#include "undo/undo_stack.h"
 #include "../jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
@@ -21,8 +22,11 @@ struct EditorApp {
     /// Shared blueprint data (single source of truth)
     Blueprint blueprint;
 
+    /// Shared undo stack for the document
+    UndoStack undo_stack;
+
     /// Window manager: owns all editor windows (root + sub-blueprint windows)
-    WindowManager window_manager{blueprint};
+    WindowManager window_manager{blueprint, undo_stack};
 
     /// Convenience accessors for the root window
     visual::Scene& scene = window_manager.root().scene;

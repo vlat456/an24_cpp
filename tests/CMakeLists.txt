@@ -936,6 +936,11 @@ gtest_discover_tests(lamp_passthrough_jit_test)
 add_executable(node_deletion_tests
     test_node_deletion.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -960,10 +965,13 @@ target_include_directories(node_deletion_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 target_link_libraries(node_deletion_tests PRIVATE
     jit_solver
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(node_deletion_tests)
@@ -972,6 +980,11 @@ gtest_discover_tests(node_deletion_tests)
 add_executable(multi_window_tests
     test_multi_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -996,10 +1009,13 @@ target_include_directories(multi_window_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 target_link_libraries(multi_window_tests PRIVATE
     jit_solver
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(multi_window_tests)
@@ -1011,6 +1027,11 @@ add_executable(params_integrity_tests
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -1035,10 +1056,13 @@ target_include_directories(params_integrity_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 target_link_libraries(params_integrity_tests PRIVATE
     jit_solver
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(params_integrity_tests)
@@ -1067,16 +1091,26 @@ gtest_discover_tests(expand_typedef_tests)
 add_executable(properties_window_tests
     test_properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)
 target_include_directories(properties_window_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/src/ui
+    ${CMAKE_SOURCE_DIR}/src/ui/core
+    ${CMAKE_SOURCE_DIR}/src/ui/math
+    ${CMAKE_SOURCE_DIR}/src/ui/layout
+    ${CMAKE_SOURCE_DIR}/src/ui/renderer
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(properties_window_tests PRIVATE
+    jit_solver
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(properties_window_tests)
@@ -1320,6 +1354,11 @@ add_executable(document_window_system_tests
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
     # New widget-based visual scene graph
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
@@ -1344,10 +1383,13 @@ target_include_directories(document_window_system_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
 )
 target_link_libraries(document_window_system_tests PRIVATE
     jit_solver
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(document_window_system_tests)
@@ -1413,4 +1455,30 @@ target_link_libraries(multi_domain_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(multi_domain_tests)
+
+# Command system tests (Undo/Redo)
+add_executable(command_tests
+    test_commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+)
+target_include_directories(command_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/src/ui
+    ${CMAKE_SOURCE_DIR}/src/ui/core
+    ${CMAKE_SOURCE_DIR}/src/ui/math
+    ${CMAKE_SOURCE_DIR}/src/ui/layout
+    ${CMAKE_SOURCE_DIR}/src/ui/renderer
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(command_tests PRIVATE
+    jit_solver
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(command_tests)
 

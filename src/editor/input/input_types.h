@@ -17,6 +17,7 @@ enum class Key {
     Backspace,
     S,
     Z,
+    Y,
     R,
     Space,
     LeftBracket,

@@ -509,6 +509,30 @@ __/src/editor/app/editor_app.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/app/editor_app.cpp.s
 .PHONY : __/src/editor/app/editor_app.cpp.s
 
+__/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
+.PHONY : __/src/editor/commands/commands.o
+
+# target to build an object file
+__/src/editor/commands/commands.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/commands.cpp.o
+.PHONY : __/src/editor/commands/commands.cpp.o
+
+__/src/editor/commands/commands.i: __/src/editor/commands/commands.cpp.i
+.PHONY : __/src/editor/commands/commands.i
+
+# target to preprocess a source file
+__/src/editor/commands/commands.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/commands.cpp.i
+.PHONY : __/src/editor/commands/commands.cpp.i
+
+__/src/editor/commands/commands.s: __/src/editor/commands/commands.cpp.s
+.PHONY : __/src/editor/commands/commands.s
+
+# target to generate assembly for a file
+__/src/editor/commands/commands.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/commands.cpp.s
+.PHONY : __/src/editor/commands/commands.cpp.s
+
 __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.o
 
@@ -1543,6 +1567,9 @@ help:
 	@echo "... __/src/editor/app/editor_app.o"
 	@echo "... __/src/editor/app/editor_app.i"
 	@echo "... __/src/editor/app/editor_app.s"
+	@echo "... __/src/editor/commands/commands.o"
+	@echo "... __/src/editor/commands/commands.i"
+	@echo "... __/src/editor/commands/commands.s"
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"

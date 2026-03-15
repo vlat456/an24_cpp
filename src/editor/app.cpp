@@ -74,10 +74,11 @@ void EditorApp::reset_node_content() {
 void EditorApp::open_properties_for_node(const std::string& node_id) {
     Node* node = blueprint.find_node(node_id.c_str());
     if (!node) return;
-    properties_window.open(*node, node_id, [this](const std::string& nid) {
-        inspector.markDirty();
-        rebuild_simulation();
-    });
+    properties_window.open(*node, node_id, blueprint, undo_stack,
+        [this](const std::string& nid) {
+            inspector.markDirty();
+            rebuild_simulation();
+        });
 }
 
 void EditorApp::open_color_picker_for_node(const std::string& node_id) {

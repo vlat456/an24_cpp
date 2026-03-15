@@ -1,4 +1,5 @@
 #include "document.h"
+#include "commands/commands.h"
 #include "visual/scene_mutations.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
@@ -465,4 +466,34 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
     }
 
     return action;
+}
+
+bool Document::performUndo() {
+    if (!undo_stack_.can_undo()) return false;
+    
+    Command cmd = undo_stack_.pop_undo();
+    Command inverse = execute(blueprint_, cmd);
+    undo_stack_.push_redo(std::move(inverse));
+    
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = blueprint_.grid_step;
+        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+    }
+    rebuildSimulation();
+    return true;
+}
+
+bool Document::performRedo() {
+    if (!undo_stack_.can_redo()) return false;
+    
+    Command cmd = undo_stack_.pop_redo();
+    Command inverse = execute(blueprint_, cmd);
+    undo_stack_.push(std::move(inverse));
+    
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = blueprint_.grid_step;
+        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+    }
+    rebuildSimulation();
+    return true;
 }

@@ -172,6 +172,15 @@ void EditorApp::update() {
                 if (doc->isSimulationRunning()) doc->stopSimulation();
                 else doc->startSimulation();
             }
+            // Undo: Cmd+Z (macOS) / Ctrl+Z (others)
+            if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_Z)) {
+                doc->performUndo();
+            }
+            // Redo: Cmd+Shift+Z (macOS) / Ctrl+Shift+Z, or Cmd+Y / Ctrl+Y
+            if (ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiMod_Shift | ImGuiKey_Z) ||
+                ImGui::IsKeyChordPressed(ImGuiMod_Shortcut | ImGuiKey_Y)) {
+                doc->performRedo();
+            }
         }
     }
     

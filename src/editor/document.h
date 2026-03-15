@@ -7,6 +7,7 @@
 #include "jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include "visual/render_context.h"
+#include "undo/undo_stack.h"
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -48,6 +49,14 @@ public:
 
     Blueprint& blueprint() { return blueprint_; }
     const Blueprint& blueprint() const { return blueprint_; }
+
+    UndoStack& undoStack() { return undo_stack_; }
+    const UndoStack& undoStack() const { return undo_stack_; }
+    
+    bool canUndo() const { return undo_stack_.can_undo(); }
+    bool canRedo() const { return undo_stack_.can_redo(); }
+    bool performUndo();
+    bool performRedo();
 
     WindowManager& windowManager() { return window_manager_; }
     const WindowManager& windowManager() const { return window_manager_; }
@@ -125,7 +134,8 @@ private:
     std::string display_name_ = "Untitled";
 
     Blueprint blueprint_;
-    WindowManager window_manager_{blueprint_};
+    UndoStack undo_stack_;
+    WindowManager window_manager_{blueprint_, undo_stack_};
     Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 

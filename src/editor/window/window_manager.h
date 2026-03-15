@@ -1,6 +1,7 @@
 #pragma once
 
 #include "window/blueprint_window.h"
+#include "undo/undo_stack.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -9,11 +10,11 @@
 /// Owns all BlueprintWindows; the root window is always present.
 class WindowManager {
 public:
-    /// Construct with a shared blueprint. Creates the root window.
-    explicit WindowManager(Blueprint& bp)
-        : bp_(bp)
+    /// Construct with a shared blueprint and undo stack. Creates the root window.
+    explicit WindowManager(Blueprint& bp, UndoStack& undo_stack)
+        : bp_(bp), undo_stack_(undo_stack)
     {
-        windows_.push_back(std::make_unique<BlueprintWindow>(bp, "", "Root"));
+        windows_.push_back(std::make_unique<BlueprintWindow>(bp, undo_stack, "", "Root"));
     }
 
     /// The root window (always index 0, always open).
@@ -33,7 +34,7 @@ public:
                 return w.get();
             }
         }
-        windows_.push_back(std::make_unique<BlueprintWindow>(bp_, group_id, title));
+        windows_.push_back(std::make_unique<BlueprintWindow>(bp_, undo_stack_, group_id, title));
         return windows_.back().get();
     }
 
@@ -92,5 +93,6 @@ public:
 
 private:
     Blueprint& bp_;
+    UndoStack& undo_stack_;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "data/node.h"
+#include "commands/commands.h"
+#include "undo/undo_stack.h"
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -10,11 +12,20 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 
 /// Modal properties window for editing Node::params via ImGui.
 /// Lifecycle: open(node, callback) → render() each frame → OK or Cancel.
+///
+/// On "OK", the window computes the diff between snapshot and edited values,
+/// reverts the node to the snapshot, then emits CmdSetParam commands for each
+/// change. This ensures all mutations go through the undo stack.
 class PropertiesWindow {
 public:
-    void open(Node& node, const std::string& node_id_str, PropertyCallback on_apply);
+    void open(Node& node, const std::string& node_id_str,
+              Blueprint& bp, UndoStack& undo_stack, PropertyCallback on_apply);
     void close();
     bool isOpen() const { return open_; }
+
+    /// Apply changes and close. Diffs against snapshot, emits CmdSetParam
+    /// commands to the undo stack, then invokes the on_apply callback.
+    void apply();
 
     /// Call every frame. Renders ImGui window when open.
     void render();
@@ -25,6 +36,8 @@ public:
 private:
     bool open_ = false;
     Node* target_ = nullptr;
+    Blueprint* bp_ = nullptr;
+    UndoStack* undo_stack_ = nullptr;
     std::string target_node_id_;
     PropertyCallback on_apply_;
 
@@ -32,7 +45,6 @@ private:
     std::string snapshot_name_;
     std::unordered_map<std::string, std::string> snapshot_params_;
 
-    void applyAndClose();
     void cancelAndClose();
 
     /// Render a dropdown for "port_edge" param (Bus nodes)
