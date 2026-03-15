@@ -302,22 +302,22 @@ void NodeWidget::positionHorizontalPorts(PortLayoutSide side, float node_width) 
 
     size_t n = port_list.size();
     constexpr float grid = editor_constants::PORT_LAYOUT_GRID;
-    
-    // Distribute ports at grid crossings like BusNodeWidget does.
-    // Each port is placed at (i+1) * grid from node edge.
-    float step = grid;
+    float center = node_width / 2.0f;
 
     for (size_t i = 0; i < n; ++i) {
         auto* p = port_list[i];
         if (!p->parent()) continue;
 
-        // Calculate port position at grid crossing
-        float port_offset = step * static_cast<float>(i + 1);
+        // Calculate ideal centered position, then snap to nearest grid crossing.
+        // Port i goes at: center + (i - (n-1)/2) * grid
+        float ideal_x = center + (static_cast<float>(i) - static_cast<float>(n - 1) / 2.0f) * grid;
+        float snapped_x = std::round(ideal_x / grid) * grid;
         
+        // Convert to local position relative to parent container
         Pt parent_wp = p->parent()->worldPos();
         Pt node_wp = worldPos();
         float parent_offset_x = parent_wp.x - node_wp.x;
-        float lp_x = port_offset - parent_offset_x - Port::RADIUS;
+        float lp_x = snapped_x - parent_offset_x - Port::RADIUS;
 
         // Vertical: snap port center to the node edge.
         float parent_offset_y = parent_wp.y - node_wp.y;
