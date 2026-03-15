@@ -13,7 +13,7 @@ inline std::ostream& operator<<(std::ostream& os, InternedId id) {
 }
 
 // =============================================================================
-// Phase 2: PropertiesWindow Tests — TDD
+// Phase 2: PropertiesWindow Tests — Shadow Editing Model
 // =============================================================================
 
 TEST(PropertiesWindow, OpenSetsTarget) {
@@ -37,7 +37,7 @@ TEST(PropertiesWindow, OpenSetsTarget) {
     EXPECT_EQ(win.targetNodeId(), "bat1");
 }
 
-TEST(PropertiesWindow, CancelRevertsParams) {
+TEST(PropertiesWindow, OpenInitializesPendingState) {
     Blueprint bp;
     UndoStack undo;
 
@@ -53,23 +53,44 @@ TEST(PropertiesWindow, CancelRevertsParams) {
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // Simulate user editing params directly
-    node_ptr->params["v"] = "12.0";
-    node_ptr->name = "modified_name";
+    // Pending state should mirror the node's current values
+    EXPECT_EQ(win.pendingName(), "bat1");
+    EXPECT_EQ(win.pendingParams().at("v"), "28.0");
+    EXPECT_EQ(win.pendingParams().at("r"), "0.01");
+}
 
-    // Cancel should revert
+TEST(PropertiesWindow, CancelDoesNotMutateLiveNode) {
+    Blueprint bp;
+    UndoStack undo;
+
+    Node n;
+    n.id = bp.interner().intern("bat1");
+    n.name = "bat1";
+    n.params = {{"v", "28.0"}, {"r", "0.01"}};
+    bp.add_node(n);
+
+    Node* node_ptr = bp.find_node("bat1");
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
+
+    // Simulate user editing pending state
+    win.setPendingParam("v", "12.0");
+    win.setPendingName("modified_name");
+
+    // Cancel should NOT touch the live node
     win.close();
 
-    // Re-acquire pointer (cancelAndClose resolves fresh)
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->params["v"], "28.0") << "Cancel must revert params";
+    EXPECT_EQ(node_ptr->params["v"], "28.0") << "Cancel must not mutate live node";
     EXPECT_EQ(node_ptr->params["r"], "0.01") << "Untouched params preserved";
-    EXPECT_EQ(node_ptr->name, "bat1") << "Cancel must revert name";
+    EXPECT_EQ(node_ptr->name, "bat1") << "Cancel must not mutate live name";
     EXPECT_FALSE(win.isOpen());
 }
 
-TEST(PropertiesWindow, CancelRevertsAddedParam) {
+TEST(PropertiesWindow, LiveNodeUntouchedDuringEditing) {
     Blueprint bp;
     UndoStack undo;
 
@@ -85,22 +106,18 @@ TEST(PropertiesWindow, CancelRevertsAddedParam) {
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // User adds a param that wasn't in the original
-    node_ptr->params["new_key"] = "new_value";
+    // Edit pending params
+    win.setPendingParam("v", "99.0");
+    win.setPendingName("CHANGED");
 
-    win.close();
-
-    // Re-acquire pointer
+    // Live node must remain untouched while editing is in progress
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
-    // snapshot_params_ had only {"v": "28.0"}, so restore should remove "new_key"
-    EXPECT_EQ(node_ptr->params.size(), 1u);
-    EXPECT_EQ(node_ptr->params.at("v"), "28.0");
-    EXPECT_EQ(node_ptr->params.count("new_key"), 0u)
-        << "Added param should be removed on cancel";
+    EXPECT_EQ(node_ptr->params["v"], "28.0") << "Live node must not change during editing";
+    EXPECT_EQ(node_ptr->name, "bat1") << "Live name must not change during editing";
 }
 
-TEST(PropertiesWindow, OpenTwiceRevertsFirstThenSnapshots) {
+TEST(PropertiesWindow, OpenTwiceDiscardsFirstSession) {
     Blueprint bp;
     UndoStack undo;
 
@@ -117,28 +134,28 @@ TEST(PropertiesWindow, OpenTwiceRevertsFirstThenSnapshots) {
 
     // First open
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
+    win.setPendingParam("v", "12.0");
 
-    // User edits v in-place (simulating ImGui text field)
-    node_ptr->params["v"] = "12.0";
-
-    // Open again — should cancel the first open (reverting v to 28.0),
-    // then snapshot the reverted state.
+    // Open again — first session's pending edits are discarded
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // The first edit should have been reverted
+    // Live node was never mutated
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "28.0")
-        << "Re-opening must revert first session's uncommitted edits";
+        << "Live node must not have been mutated by first session";
+
+    // Pending state should be fresh from the live node
+    EXPECT_EQ(win.pendingParams().at("v"), "28.0")
+        << "Second open() must re-snapshot from live node";
 
     // Cancel the second open
     win.close();
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->params["v"], "28.0")
-        << "Cancel should restore the snapshot taken at second open()";
+    EXPECT_EQ(node_ptr->params["v"], "28.0");
 }
 
 TEST(PropertiesWindow, ClosedWindowIsNotOpen) {
@@ -175,21 +192,19 @@ TEST(PropertiesWindow, ApplyEmitsCmdSetParam) {
     n.params = {{"v", "28.0"}, {"r", "0.01"}};
     bp.add_node(n);
 
-    // Get a pointer to the node in the blueprint
     Node* node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // Simulate user changing voltage
-    node_ptr->params["v"] = "14.0";
+    // Simulate user changing voltage via pending state
+    win.setPendingParam("v", "14.0");
 
     // Apply — should snapshot and apply changes to undo stack
     win.apply();
 
     EXPECT_FALSE(win.isOpen());
-    // Re-acquire pointer after apply (snapshot may have been taken)
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "14.0") << "Applied value must persist";
@@ -213,13 +228,12 @@ TEST(PropertiesWindow, ApplyThenUndoRevertsParam) {
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // User edits
-    node_ptr->params["v"] = "14.0";
-    node_ptr->params["r"] = "0.05";
+    // User edits via pending state
+    win.setPendingParam("v", "14.0");
+    win.setPendingParam("r", "0.05");
 
     win.apply();
 
-    // Re-acquire pointer
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "14.0");
@@ -229,7 +243,6 @@ TEST(PropertiesWindow, ApplyThenUndoRevertsParam) {
     ASSERT_TRUE(undo.can_undo());
     undo.undo(bp);
 
-    // Re-acquire pointer after undo (blueprint was replaced)
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "28.0") << "Undo must revert v";
@@ -289,7 +302,7 @@ TEST(PropertiesWindow, ApplyInvokesCallback) {
             callback_node_id = nid;
         });
 
-    node_ptr->params["v"] = "14.0";
+    win.setPendingParam("v", "14.0");
     win.apply();
 
     EXPECT_TRUE(callback_invoked) << "Apply must invoke on_apply callback";
@@ -312,8 +325,8 @@ TEST(PropertiesWindow, NameChangePushesUndo) {
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // Change the name
-    node_ptr->name = "NewName";
+    // Change the name via pending state
+    win.setPendingName("NewName");
     win.apply();
 
     EXPECT_TRUE(undo.can_undo()) << "Name change should push to undo stack";
@@ -339,7 +352,7 @@ TEST(PropertiesWindow, NameChangeUndoRestoresOldName) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Change the name
-    node_ptr->name = "NewName";
+    win.setPendingName("NewName");
     win.apply();
 
     node_ptr = bp.find_node("bat1");
@@ -349,7 +362,6 @@ TEST(PropertiesWindow, NameChangeUndoRestoresOldName) {
     // Undo
     undo.undo(bp);
 
-    // Re-acquire pointer after undo
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->name, "OriginalName") << "Undo should restore original name";
@@ -372,8 +384,8 @@ TEST(PropertiesWindow, ParamAndNameChangeSingleUndo) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Change both param and name in one "Apply"
-    node_ptr->params["v"] = "14.0";
-    node_ptr->name = "NewName";
+    win.setPendingParam("v", "14.0");
+    win.setPendingName("NewName");
     win.apply();
 
     node_ptr = bp.find_node("bat1");
@@ -385,7 +397,6 @@ TEST(PropertiesWindow, ParamAndNameChangeSingleUndo) {
     ASSERT_TRUE(undo.can_undo());
     undo.undo(bp);
 
-    // Re-acquire pointer after undo
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "28.0") << "Single undo must revert param";

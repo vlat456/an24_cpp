@@ -115,13 +115,13 @@ FlatBlueprint type_definition_to_flat(const TypeDefinition& td) {
         bp.exposes[name] = ep;
     }
 
-    // Params
-    if (td.cpp_class) {
-        // C++ component: params as {type, default} — infer type from value
+    // Params — serialize for any component that has them (cpp_class,
+    // visual_only, etc.).
+    {
+        // Infer type from value string (locale-independent)
         for (const auto& [key, val] : td.params) {
             FlatParam pd;
             pd.default_val = val;
-            // Infer type from value string (locale-independent)
             if (val == "true" || val == "false") {
                 pd.type = "bool";
             } else if (val.find('.') != std::string::npos && locale_safe::is_float_literal(val)) {
@@ -239,12 +239,11 @@ TypeDefinition flat_to_type_definition(const FlatBlueprint& bp) {
         td.ports[name] = port;
     }
 
-    // Params
-    if (bp.meta.cpp_class) {
-        // C++ component: extract default_val from FlatParam
-        for (const auto& [key, pd] : bp.params) {
-            td.params[key] = pd.default_val;
-        }
+    // Params — extract for any component that declares them (cpp_class,
+    // visual_only, etc.).  The old guard only checked cpp_class, which
+    // dropped params for visual-only components like Text.
+    for (const auto& [key, pd] : bp.params) {
+        td.params[key] = pd.default_val;
     }
 
     // Nodes → devices (composites only)

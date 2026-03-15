@@ -52,9 +52,10 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
 void PropertiesWindow::open(Node& node, const std::string& node_id_str,
                             Blueprint& bp, UndoStack& undo_stack,
                             PropertyCallback on_apply) {
-    // If already open editing a different node, revert the previous edits first
+    // If already open editing a different node, just close (shadow editing
+    // means no live mutations to revert).
     if (open_) {
-        cancelAndClose();
+        open_ = false;
     }
 
     target_node_id_ = node_id_str;
@@ -62,9 +63,13 @@ void PropertiesWindow::open(Node& node, const std::string& node_id_str,
     undo_stack_ = &undo_stack;
     on_apply_ = std::move(on_apply);
 
-    // Snapshot for cancel/revert
+    // Snapshot for diffing at apply() time
     snapshot_name_ = node.name;
     snapshot_params_ = node.params;
+
+    // Initialize pending copies from the live node
+    pending_name_ = node.name;
+    pending_params_ = node.params;
 
     open_ = true;
 }
@@ -96,12 +101,12 @@ void PropertiesWindow::render() {
         ImGui::Text("%s (%s)", target_node_id_.c_str(), target->type_name.c_str());
         ImGui::Separator();
 
-        // Name field
+        // Name field — edits pending_name_, not the live node
         char name_buf[256];
-        strncpy(name_buf, target->name.c_str(), sizeof(name_buf) - 1);
+        strncpy(name_buf, pending_name_.c_str(), sizeof(name_buf) - 1);
         name_buf[sizeof(name_buf) - 1] = '\0';
         if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
-            target->name = name_buf;
+            pending_name_ = name_buf;
         }
 
         ImGui::Separator();
@@ -110,36 +115,64 @@ void PropertiesWindow::render() {
 
         // Sort param keys for stable ordering
         std::vector<std::string> keys;
-        keys.reserve(target->params.size());
-        for (const auto& [k, _] : target->params) keys.push_back(k);
+        keys.reserve(pending_params_.size());
+        for (const auto& [k, _] : pending_params_) keys.push_back(k);
         std::sort(keys.begin(), keys.end());
 
-        // Param fields
+        // Param fields — all edit pending_params_, not the live node
         for (const auto& key : keys) {
             if (key == "table") {
-                renderTableParam(*target, key);
+                renderTableParam(key);
                 continue;
             }
             if (key == "text") {
                 // Multiline text editor for Text nodes
                 char text_buf[4096];
-                strncpy(text_buf, target->params[key].c_str(), sizeof(text_buf) - 1);
+                strncpy(text_buf, pending_params_[key].c_str(), sizeof(text_buf) - 1);
                 text_buf[sizeof(text_buf) - 1] = '\0';
                 if (ImGui::InputTextMultiline(key.c_str(), text_buf, sizeof(text_buf),
                                               ImVec2(-1, 200))) {
-                    target->params[key] = text_buf;
+                    pending_params_[key] = text_buf;
+                }
+                continue;
+            }
+            if (key == "font_size") {
+                // Dropdown for font size (Small / Medium / Large)
+                const char* options[] = {"small", "medium", "large"};
+                const char* labels[]  = {"Small", "Medium", "Large"};
+
+                std::string& value = pending_params_[key];
+                int current = 2;  // default: large
+                for (int i = 0; i < 3; ++i) {
+                    if (value == options[i]) {
+                        current = i;
+                        break;
+                    }
+                }
+
+                if (ImGui::BeginCombo(key.c_str(), labels[current])) {
+                    for (int i = 0; i < 3; ++i) {
+                        bool selected = (current == i);
+                        if (ImGui::Selectable(labels[i], selected)) {
+                            value = options[i];
+                        }
+                        if (selected) {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
                 }
                 continue;
             }
             if (key == "port_edge") {
-                renderPortEdgeParam(*target, key);
+                renderPortEdgeParam(key);
                 continue;
             }
             char buf[256];
-            strncpy(buf, target->params[key].c_str(), sizeof(buf) - 1);
+            strncpy(buf, pending_params_[key].c_str(), sizeof(buf) - 1);
             buf[sizeof(buf) - 1] = '\0';
             if (ImGui::InputText(key.c_str(), buf, sizeof(buf))) {
-                target->params[key] = buf;
+                pending_params_[key] = buf;
             }
         }
 
@@ -163,12 +196,12 @@ void PropertiesWindow::render() {
 #endif
 }
 
-void PropertiesWindow::renderPortEdgeParam(Node& node, const std::string& key) {
+void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
 #ifndef EDITOR_TESTING
     const char* options[] = {"bottom", "top", "left", "right"};
     const char* labels[] = {"Bottom", "Top", "Left", "Right"};
     
-    std::string& value = node.params[key];
+    std::string& value = pending_params_[key];
     int current = 0;
     for (int i = 0; i < 4; ++i) {
         if (value == options[i]) {
@@ -192,12 +225,12 @@ void PropertiesWindow::renderPortEdgeParam(Node& node, const std::string& key) {
 #endif
 }
 
-void PropertiesWindow::renderTableParam(Node& node, const std::string& key) {
+void PropertiesWindow::renderTableParam(const std::string& key) {
 #ifndef EDITOR_TESTING
     ImGui::Text("Lookup Table");
 
     std::vector<float> keys, values;
-    parse_table_entries(node.params[key], keys, values);
+    parse_table_entries(pending_params_[key], keys, values);
 
     bool changed = false;
     int remove_idx = -1;
@@ -243,7 +276,7 @@ void PropertiesWindow::renderTableParam(Node& node, const std::string& key) {
     }
 
     if (changed) {
-        node.params[key] = serialize_table_entries(keys, values);
+        pending_params_[key] = serialize_table_entries(keys, values);
     }
 #endif
 }
@@ -255,14 +288,14 @@ void PropertiesWindow::apply() {
         return;
     }
 
-    // Collect changes: compare current params against snapshot
+    // Diff pending state against snapshot to detect changes
     auto& interner = bp_->interner();
     ui::InternedId node_iid = interner.intern(target_node_id_);
 
     bool has_changes = false;
 
     // Check for changed or added params
-    for (const auto& [key, new_value] : target->params) {
+    for (const auto& [key, new_value] : pending_params_) {
         auto snap_it = snapshot_params_.find(key);
         if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
             has_changes = true;
@@ -270,10 +303,10 @@ void PropertiesWindow::apply() {
         }
     }
 
-    // Check for removed params (in snapshot but not in current)
+    // Check for removed params (in snapshot but not in pending)
     if (!has_changes) {
         for (const auto& [key, old_value] : snapshot_params_) {
-            if (target->params.find(key) == target->params.end()) {
+            if (pending_params_.find(key) == pending_params_.end()) {
                 has_changes = true;
                 break;
             }
@@ -281,27 +314,18 @@ void PropertiesWindow::apply() {
     }
 
     // Check name change
-    std::string edited_name = target->name;
-    if (edited_name != snapshot_name_) {
+    if (pending_name_ != snapshot_name_) {
         has_changes = true;
     }
 
     // If there are changes, snapshot and apply them via commands.
-    // The snapshot stores the blueprint state BEFORE the apply, so undo
-    // will restore the old params/name automatically.
     if (has_changes) {
-        // Revert node to snapshot state, take a snapshot, then re-apply edits.
-        // This ensures the undo snapshot captures the old values.
-        std::string current_name = target->name;
-        auto current_params = target->params;
-
-        target->name = snapshot_name_;
-        target->params = snapshot_params_;
-
+        // Take a snapshot of the current (unmodified) blueprint state.
+        // The live node still has the original values since we use shadow editing.
         undo_stack_->snapshot(*bp_);
 
-        // Apply param changes
-        for (const auto& [key, new_value] : current_params) {
+        // Apply param changes via commands
+        for (const auto& [key, new_value] : pending_params_) {
             auto snap_it = snapshot_params_.find(key);
             if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
                 execute(*bp_, cmd_set_param(node_iid, key, new_value));
@@ -310,14 +334,14 @@ void PropertiesWindow::apply() {
 
         // Apply removed params
         for (const auto& [key, old_value] : snapshot_params_) {
-            if (current_params.find(key) == current_params.end()) {
+            if (pending_params_.find(key) == pending_params_.end()) {
                 execute(*bp_, cmd_set_param(node_iid, key, ""));
             }
         }
 
         // Apply name change
-        if (current_name != snapshot_name_) {
-            execute(*bp_, cmd_set_name(node_iid, current_name));
+        if (pending_name_ != snapshot_name_) {
+            execute(*bp_, cmd_set_name(node_iid, pending_name_));
         }
     }
 
@@ -329,11 +353,6 @@ void PropertiesWindow::apply() {
 }
 
 void PropertiesWindow::cancelAndClose() {
-    Node* target = resolveTarget();
-    if (target) {
-        // Restore snapshot
-        target->name = snapshot_name_;
-        target->params = snapshot_params_;
-    }
+    // Shadow editing: the live node was never touched, so no revert needed.
     open_ = false;
 }

@@ -460,3 +460,141 @@ TEST(BlueprintInterning, PortOccupancyWithInternedId) {
     EXPECT_TRUE(bp.is_port_occupied(interner.intern("n2"), interner.intern("in")));
     EXPECT_FALSE(bp.is_port_occupied(interner.intern("n1"), interner.intern("in")));
 }
+
+// =============================================================================
+// Shared StringInterner — undo/redo snapshot optimization
+// =============================================================================
+
+#include "editor/undo/undo_stack.h"
+
+TEST(SharedInterner, CopiedBlueprintSharesInterner) {
+    Blueprint bp;
+    bp.interner().intern("bat1");
+    bp.interner().intern("gen1");
+
+    // Copy the blueprint — shared_ptr should be shared, not deep-copied
+    Blueprint copy = bp;
+
+    // Both should resolve the same strings
+    auto id = bp.interner().lookup("bat1");
+    EXPECT_FALSE(id.empty());
+    EXPECT_EQ(copy.interner().resolve(id), "bat1");
+
+    // Intern a new string via the copy — should be visible from original too
+    // because they share the same interner instance.
+    auto new_id = copy.interner().intern("load1");
+    EXPECT_EQ(bp.interner().resolve(new_id), "load1")
+        << "Copied blueprints must share the same interner instance";
+}
+
+TEST(SharedInterner, UndoSnapshotSharesInterner) {
+    Blueprint bp;
+    UndoStack undo;
+
+    auto id1 = bp.interner().intern("bat1");
+    Node n;
+    n.id = id1;
+    n.name = "bat1";
+    n.params = {{"v", "28.0"}};
+    bp.add_node(n);
+
+    // Take a snapshot
+    undo.snapshot(bp);
+
+    // Mutate the live blueprint: add a new node with a new interned ID
+    auto id2 = bp.interner().intern("gen1");
+    Node n2;
+    n2.id = id2;
+    n2.name = "gen1";
+    bp.add_node(n2);
+
+    // Undo — restore the snapshot
+    undo.undo(bp);
+
+    // After undo, the live blueprint should still have gen1 in its interner
+    // (because the interner is shared and append-only).
+    EXPECT_EQ(bp.interner().resolve(id2), "gen1")
+        << "Shared interner must retain strings added after snapshot";
+
+    // The original node should be restored
+    Node* found = bp.find_node(id1);
+    ASSERT_NE(found, nullptr);
+    EXPECT_EQ(found->params["v"], "28.0");
+
+    // gen1 node should be gone (we undid its addition)
+    EXPECT_EQ(bp.find_node(id2), nullptr);
+}
+
+TEST(SharedInterner, InternerPointerStabilityAcrossUndoRedo) {
+    Blueprint bp;
+    UndoStack undo;
+
+    auto id = bp.interner().intern("bat1");
+    std::string_view sv_before = bp.interner().resolve(id);
+
+    Node n;
+    n.id = id;
+    n.name = "bat1";
+    bp.add_node(n);
+
+    undo.snapshot(bp);
+
+    // Mutate
+    bp.find_node(id)->name = "CHANGED";
+
+    // The string_view from before should still be valid
+    std::string_view sv_during = bp.interner().resolve(id);
+    EXPECT_EQ(sv_before.data(), sv_during.data())
+        << "string_view pointer must be stable (same deque element)";
+
+    // Undo
+    undo.undo(bp);
+
+    std::string_view sv_after = bp.interner().resolve(id);
+    EXPECT_EQ(sv_before.data(), sv_after.data())
+        << "string_view pointer must be stable after undo (shared interner)";
+
+    // Redo
+    undo.redo(bp);
+
+    std::string_view sv_redo = bp.interner().resolve(id);
+    EXPECT_EQ(sv_before.data(), sv_redo.data())
+        << "string_view pointer must be stable after redo (shared interner)";
+}
+
+TEST(SharedInterner, MultipleUndoRedoCyclesShareInterner) {
+    Blueprint bp;
+    UndoStack undo;
+
+    // Build up several snapshots
+    for (int i = 0; i < 5; ++i) {
+        undo.snapshot(bp);
+        std::string name = "node_" + std::to_string(i);
+        Node n;
+        n.id = bp.interner().intern(name);
+        n.name = name;
+        bp.add_node(n);
+    }
+
+    // All 5 nodes should be interned
+    EXPECT_GE(bp.interner().size(), 5u);
+
+    // Undo all 5
+    for (int i = 0; i < 5; ++i) {
+        ASSERT_TRUE(undo.undo(bp));
+    }
+
+    // Blueprint should have no nodes, but interner still has all strings
+    EXPECT_EQ(bp.nodes.size(), 0u);
+    for (int i = 0; i < 5; ++i) {
+        std::string name = "node_" + std::to_string(i);
+        EXPECT_TRUE(bp.interner().contains(name))
+            << "Interner must retain '" << name << "' after undoing all additions";
+    }
+
+    // Redo all 5
+    for (int i = 0; i < 5; ++i) {
+        ASSERT_TRUE(undo.redo(bp));
+    }
+    EXPECT_EQ(bp.nodes.size(), 5u);
+}

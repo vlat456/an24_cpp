@@ -53,8 +53,8 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     auto dl = make_dl(draw_list);
 
     // Build energized wire set from simulation (reuse buffer across frames)
-    static thread_local std::unordered_set<std::string_view, visual::StringViewHash> energized_buf;
-    doc.buildEnergizedWireSet(energized_buf, win.group_id);
+    energized_buf_.clear();
+    doc.buildEnergizedWireSet(energized_buf_, win.group_id);
 
     // Resolve selected node IDs → pointers for this frame.
     // Must outlive ctx (which stores a pointer to it).
@@ -68,7 +68,7 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     ctx.selected_wire = win.input.selected_wire();
     ctx.hovered_wire = win.input.hovered_wire();
     ctx.hovered_routing_point = win.input.hovered_routing_point();
-    ctx.energized_wires = energized_buf.empty() ? nullptr : &energized_buf;
+    ctx.energized_wires = energized_buf_.empty() ? nullptr : &energized_buf_;
 
     visual::compute_wire_crossings(win.scene);
     win.scene.render(&dl, ctx);

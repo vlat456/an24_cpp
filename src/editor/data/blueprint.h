@@ -11,6 +11,7 @@
 #include <string>
 #include <set>
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
@@ -26,8 +27,10 @@ struct FlatBlueprint;  // Forward declaration
 struct Blueprint {
     /// String interner — owns all interned ID strings for this blueprint.
     /// All InternedId values in nodes/wires/indices are valid within this interner.
-    ui::StringInterner& interner() { return interner_; }
-    const ui::StringInterner& interner() const { return interner_; }
+    /// Stored as shared_ptr because the interner is append-only: undo snapshots
+    /// can safely share the same instance, avoiding O(N) deep copies.
+    ui::StringInterner& interner() { return *interner_; }
+    const ui::StringInterner& interner() const { return *interner_; }
 
     /// Все узлы в схеме
     std::vector<Node> nodes;
@@ -187,8 +190,10 @@ struct Blueprint {
     }
 
 private:
-    /// The string interner for this blueprint.
-    ui::StringInterner interner_;
+    /// The string interner for this blueprint (shared across undo snapshots).
+    /// Append-only: once a string is interned, it is never removed, so all
+    /// InternedId values remain valid even when shared across copies.
+    std::shared_ptr<ui::StringInterner> interner_ = std::make_shared<ui::StringInterner>();
 
     /// Add a wire's ID to bus_wire_index_ if it touches a bus node.
     void addToBusIndex(const Wire& w);
@@ -229,12 +234,12 @@ public:
 
     /// Convenience: find node by string (interns on-the-fly)
     Node* find_node(const char* id) {
-        auto iid = interner_.intern(id);
+        auto iid = interner_->intern(id);
         return find_node(iid);
     }
     const Node* find_node(const char* id) const {
         // Use lookup (const, no mutation) — if string isn't interned, no node can have that ID
-        auto iid = interner_.lookup(id);
+        auto iid = interner_->lookup(id);
         if (iid.empty()) return nullptr;
         return find_node(iid);
     }
@@ -254,7 +259,7 @@ public:
         }
 
         for (auto& n : nodes) {
-            std::string nid_str(interner_.resolve(n.id));
+            std::string nid_str(interner_->resolve(n.id));
             auto it = node_to_group.find(nid_str);
             if (it != node_to_group.end()) {
                 n.group_id = it->second;

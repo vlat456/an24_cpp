@@ -16,7 +16,7 @@ using json = nlohmann::json;
 
 // Helper: resolve an InternedId to string_view through the blueprint interner.
 // Returns empty string_view for empty IDs.
-#define R(id) interner_.resolve(id)
+#define R(id) interner_->resolve(id)
 
 // BUGFIX [e4a1b7] Runtime dedup: reject exact-duplicate wires with warning
 // [2.1] O(1) set-based dedup replaces O(n) linear scan
@@ -506,7 +506,7 @@ static json serialize_content(const Node& n) {
 }
 
 std::string Blueprint::to_simulator_json() const {
-    const auto& I = interner_;
+    const auto& I = *interner_;
     json j = json::object();
 
     j["templates"] = json::object();
@@ -825,7 +825,7 @@ static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Bluep
 }
 
 FlatBlueprint Blueprint::to_flat() const {
-    const auto& I = interner_;
+    const auto& I = *interner_;
     FlatBlueprint bpv2;
     bpv2.version = 2;
     bpv2.meta.name = "";
