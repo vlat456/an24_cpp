@@ -60,8 +60,9 @@ public:
         committed_ = true;
 
         if (snapshot_taken_ && cmd_count_ == 0) {
-            // No commands executed — discard the snapshot
-            stack_.undo(bp_);
+            // No commands executed — discard the snapshot cleanly
+            // (discard_last_snapshot does not pollute the redo stack)
+            stack_.discard_last_snapshot();
         }
     }
 
@@ -72,7 +73,8 @@ public:
         committed_ = true;
 
         if (snapshot_taken_) {
-            stack_.undo(bp_);
+            // Restore bp from snapshot without pushing onto redo stack
+            stack_.restore_last_snapshot(bp_);
         }
     }
 

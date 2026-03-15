@@ -322,6 +322,7 @@ TEST_F(CommandTest, TransactionGuardEmpty) {
     }
 
     EXPECT_FALSE(stack.can_undo());
+    EXPECT_FALSE(stack.can_redo());  // no redo pollution from empty transaction
 }
 
 TEST_F(CommandTest, TransactionGuardDiscard) {
@@ -337,6 +338,7 @@ TEST_F(CommandTest, TransactionGuardDiscard) {
     // discard() reverts the blueprint to pre-transaction state
     EXPECT_FLOAT_EQ(bp.grid_step, 16.0f);
     EXPECT_FALSE(stack.can_undo());
+    EXPECT_FALSE(stack.can_redo());  // discarded state must not leak to redo
 }
 
 TEST_F(CommandTest, TransactionGuardManualCommit) {
@@ -724,6 +726,7 @@ TEST_F(CommandTest, TransactionGuardDiscardMultipleCommands) {
 
     EXPECT_EQ(blueprint_checksum(bp), before);
     EXPECT_FALSE(stack.can_undo());
+    EXPECT_FALSE(stack.can_redo());  // discarded state must not leak to redo
     EXPECT_FLOAT_EQ(bp.grid_step, 16.0f);
     EXPECT_FLOAT_EQ(bp.find_node(id_a)->pos.x, 0.0f);
     EXPECT_EQ(bp.find_node(id_b)->name, "bbb");
@@ -807,4 +810,42 @@ TEST_F(CommandTest, DiscardLastSnapshotDoesNotAffectRedo) {
     stack.undo(bp);
     EXPECT_FLOAT_EQ(bp.grid_step, 16.0f);
     EXPECT_FALSE(stack.can_undo());
+}
+
+TEST_F(CommandTest, EmptyTransactionPreservesExistingRedo) {
+    UndoStack stack;
+
+    // Create a real entry, then undo to get a redo entry
+    stack.snapshot(bp);
+    execute(bp, cmd_set_grid_step(64.0f));
+    stack.undo(bp);
+    EXPECT_TRUE(stack.can_redo());
+    EXPECT_FLOAT_EQ(bp.grid_step, 16.0f);
+
+    // An empty transaction guard should not disturb the existing redo entry
+    {
+        TransactionGuard txn(bp, stack);
+        // No commands
+    }
+
+    EXPECT_FALSE(stack.can_undo());
+    EXPECT_TRUE(stack.can_redo());  // existing redo entry preserved
+
+    stack.redo(bp);
+    EXPECT_FLOAT_EQ(bp.grid_step, 64.0f);
+}
+
+TEST_F(CommandTest, RestoreLastSnapshotRoundTrip) {
+    UndoStack stack;
+    bp.grid_step = 16.0f;
+
+    stack.snapshot(bp);
+    execute(bp, cmd_set_grid_step(99.0f));
+    EXPECT_FLOAT_EQ(bp.grid_step, 99.0f);
+
+    // Restore without touching redo
+    stack.restore_last_snapshot(bp);
+    EXPECT_FLOAT_EQ(bp.grid_step, 16.0f);
+    EXPECT_FALSE(stack.can_undo());
+    EXPECT_FALSE(stack.can_redo());  // redo must be untouched
 }
