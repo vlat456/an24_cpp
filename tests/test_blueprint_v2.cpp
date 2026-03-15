@@ -882,3 +882,128 @@ TEST(FlatBlueprintRegression, MalformedColorIgnored) {
     EXPECT_FALSE(bp->nodes.at("n2").color.has_value()) << "Null color should be ignored";
     EXPECT_FALSE(bp->nodes.at("n3").color.has_value()) << "Missing color should be nullopt";
 }
+
+// ==================================================================
+// Port Layout Override Tests
+// ==================================================================
+
+TEST(FlatBlueprintPortLayout, SerializeNodeWithLayoutOverrides) {
+    FlatBlueprint bp;
+    bp.version = 2;
+    bp.meta.name = "layout_test";
+    
+    FlatNode node;
+    node.type = "Battery";
+    node.pos = {100, 200};
+    
+    FlatPortLayoutOverride ov1;
+    ov1.port = "v_out";
+    ov1.side = "top";
+    ov1.position = 0;
+    node.layout_overrides.push_back(ov1);
+    
+    FlatPortLayoutOverride ov2;
+    ov2.port = "gnd";
+    ov2.side = "bottom";
+    node.layout_overrides.push_back(ov2);
+    
+    bp.nodes["bat1"] = node;
+    
+    std::string json = serialize_flat_blueprint(bp);
+    auto j = nlohmann::json::parse(json);
+    
+    ASSERT_TRUE(j["nodes"]["bat1"].contains("layout_overrides"));
+    auto& arr = j["nodes"]["bat1"]["layout_overrides"];
+    ASSERT_EQ(arr.size(), 2u);
+    EXPECT_EQ(arr[0]["port"], "v_out");
+    EXPECT_EQ(arr[0]["side"], "top");
+    EXPECT_EQ(arr[0]["position"], 0);
+    EXPECT_EQ(arr[1]["port"], "gnd");
+    EXPECT_EQ(arr[1]["side"], "bottom");
+    EXPECT_FALSE(arr[1].contains("position"));
+}
+
+TEST(FlatBlueprintPortLayout, ParseNodeWithLayoutOverrides) {
+    auto bp = parse_flat_blueprint(R"({
+        "version": 2,
+        "meta": {"name": "layout_test"},
+        "nodes": {
+            "bat1": {
+                "type": "Battery",
+                "pos": [100, 200],
+                "layout_overrides": [
+                    {"port": "v_out", "side": "top", "position": 0},
+                    {"port": "gnd", "side": "bottom"}
+                ]
+            }
+        }
+    })");
+    
+    ASSERT_TRUE(bp.has_value());
+    ASSERT_TRUE(bp->nodes.count("bat1"));
+    auto& node = bp->nodes.at("bat1");
+    
+    ASSERT_EQ(node.layout_overrides.size(), 2u);
+    EXPECT_EQ(node.layout_overrides[0].port, "v_out");
+    ASSERT_TRUE(node.layout_overrides[0].side.has_value());
+    EXPECT_EQ(*node.layout_overrides[0].side, "top");
+    ASSERT_TRUE(node.layout_overrides[0].position.has_value());
+    EXPECT_EQ(*node.layout_overrides[0].position, 0);
+    
+    EXPECT_EQ(node.layout_overrides[1].port, "gnd");
+    ASSERT_TRUE(node.layout_overrides[1].side.has_value());
+    EXPECT_EQ(*node.layout_overrides[1].side, "bottom");
+    EXPECT_FALSE(node.layout_overrides[1].position.has_value());
+}
+
+TEST(FlatBlueprintPortLayout, OmittedWhenEmpty) {
+    FlatBlueprint bp;
+    bp.version = 2;
+    bp.meta.name = "no_layout";
+    
+    FlatNode node;
+    node.type = "Battery";
+    node.pos = {0, 0};
+    bp.nodes["bat1"] = node;
+    
+    std::string json = serialize_flat_blueprint(bp);
+    auto j = nlohmann::json::parse(json);
+    
+    EXPECT_FALSE(j["nodes"]["bat1"].contains("layout_overrides"));
+}
+
+TEST(FlatBlueprintPortLayout, RoundtripPreservesData) {
+    FlatBlueprint original;
+    original.version = 2;
+    original.meta.name = "roundtrip";
+    
+    FlatNode node;
+    node.type = "APU";
+    node.pos = {50, 100};
+    
+    FlatPortLayoutOverride ov1{"rpm_out", "top", 0};
+    FlatPortLayoutOverride ov2{"temp_out", "bottom", std::nullopt};
+    FlatPortLayoutOverride ov3{"v_out", "right", 2};
+    node.layout_overrides = {ov1, ov2, ov3};
+    
+    original.nodes["apu1"] = node;
+    
+    std::string json = serialize_flat_blueprint(original);
+    auto parsed = parse_flat_blueprint(json);
+    
+    ASSERT_TRUE(parsed.has_value());
+    auto& parsed_node = parsed->nodes.at("apu1");
+    ASSERT_EQ(parsed_node.layout_overrides.size(), 3u);
+    
+    EXPECT_EQ(parsed_node.layout_overrides[0].port, "rpm_out");
+    EXPECT_EQ(*parsed_node.layout_overrides[0].side, "top");
+    EXPECT_EQ(*parsed_node.layout_overrides[0].position, 0);
+    
+    EXPECT_EQ(parsed_node.layout_overrides[1].port, "temp_out");
+    EXPECT_EQ(*parsed_node.layout_overrides[1].side, "bottom");
+    EXPECT_FALSE(parsed_node.layout_overrides[1].position.has_value());
+    
+    EXPECT_EQ(parsed_node.layout_overrides[2].port, "v_out");
+    EXPECT_EQ(*parsed_node.layout_overrides[2].side, "right");
+    EXPECT_EQ(*parsed_node.layout_overrides[2].position, 2);
+}

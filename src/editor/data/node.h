@@ -47,6 +47,19 @@ struct NodeColor {
     }
 };
 
+/// Per-port layout override at the blueprint (instance) level.
+struct PortLayoutOverride {
+    std::string port_name;                    ///< Match by name (survives reordering)
+    std::optional<PortLayoutSide> side;       ///< Override side (nullopt = use default)
+    std::optional<uint8_t> position;          ///< Position hint within side (nullopt = auto-append)
+    
+    bool operator==(const PortLayoutOverride& other) const {
+        return port_name == other.port_name &&
+               side == other.side &&
+               position == other.position;
+    }
+};
+
 /// Узел в схеме - компонент (батарея, насос, и т.д.)
 struct Node {
     ui::InternedId id;       ///< Уникальный ID (interned)
@@ -75,6 +88,9 @@ struct Node {
 
     NodeContent node_content;  ///< Содержимое для отображения
     std::optional<NodeColor> color;   ///< Per-node custom color (nullopt = use theme default)
+
+    /// Per-port layout overrides (Phase 1: Port Layout Override feature)
+    std::vector<PortLayoutOverride> layout_overrides;
 
     Node()
         : id()

@@ -66,10 +66,12 @@ void PropertiesWindow::open(Node& node, const std::string& node_id_str,
     // Snapshot for diffing at apply() time
     snapshot_name_ = node.name;
     snapshot_params_ = node.params;
+    snapshot_layout_overrides_ = node.layout_overrides;
 
     // Initialize pending copies from the live node
     pending_name_ = node.name;
     pending_params_ = node.params;
+    pending_layout_overrides_ = node.layout_overrides;
 
     open_ = true;
 }
@@ -176,6 +178,9 @@ void PropertiesWindow::render() {
             }
         }
 
+        // Port layout section (not for Bus nodes)
+        renderPortLayoutSection(*target);
+
         ImGui::Separator();
 
         // OK / Cancel buttons
@@ -281,6 +286,114 @@ void PropertiesWindow::renderTableParam(const std::string& key) {
 #endif
 }
 
+void PropertiesWindow::renderPortLayoutSection(const Node& node) {
+#ifndef EDITOR_TESTING
+    // Skip for Bus nodes - they have their own port_edge mechanism
+    if (node.render_hint == "bus") return;
+    
+    // Skip if node has no ports
+    if (node.inputs.empty() && node.outputs.empty()) return;
+    
+    ImGui::Separator();
+    ImGui::Text("Port Layout");
+    ImGui::Separator();
+    
+    // Collect all port names
+    std::vector<std::string> all_ports;
+    for (const auto& p : node.inputs) {
+        all_ports.push_back(std::string(bp_->interner().resolve(p.name)));
+    }
+    for (const auto& p : node.outputs) {
+        all_ports.push_back(std::string(bp_->interner().resolve(p.name)));
+    }
+    
+    // Table: Port | Side | Position | Reset
+    if (ImGui::BeginTable("port_layout", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Port");
+        ImGui::TableSetupColumn("Side");
+        ImGui::TableSetupColumn("Pos");
+        ImGui::TableSetupColumn("##reset", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+        ImGui::TableHeadersRow();
+        
+        for (const auto& port_name : all_ports) {
+            ImGui::TableNextRow();
+            ImGui::PushID(port_name.c_str());
+            
+            // Find or create override for this port
+            auto it = std::find_if(pending_layout_overrides_.begin(), 
+                                   pending_layout_overrides_.end(),
+                                   [&](const PortLayoutOverride& o) { return o.port_name == port_name; });
+            
+            // Port name column
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", port_name.c_str());
+            
+            // Side dropdown column
+            ImGui::TableNextColumn();
+            {
+                const char* options[] = {"Auto", "Left", "Right", "Top", "Bottom"};
+                int current = 0;  // Auto
+                if (it != pending_layout_overrides_.end() && it->side.has_value()) {
+                    current = static_cast<int>(*it->side) + 1;
+                }
+                
+                if (ImGui::Combo("##side", &current, options, IM_ARRAYSIZE(options))) {
+                    if (it == pending_layout_overrides_.end()) {
+                        pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
+                        it = pending_layout_overrides_.end() - 1;
+                    }
+                    if (current == 0) {
+                        it->side = std::nullopt;
+                    } else {
+                        it->side = static_cast<PortLayoutSide>(current - 1);
+                    }
+                }
+            }
+            
+            // Position input column
+            ImGui::TableNextColumn();
+            {
+                int pos = -1;  // -1 means auto
+                if (it != pending_layout_overrides_.end() && it->position.has_value()) {
+                    pos = static_cast<int>(*it->position);
+                }
+                
+                if (ImGui::InputInt("##pos", &pos, 1, 1)) {
+                    if (it == pending_layout_overrides_.end()) {
+                        pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
+                        it = pending_layout_overrides_.end() - 1;
+                    }
+                    if (pos < 0) {
+                        it->position = std::nullopt;
+                    } else {
+                        it->position = static_cast<uint8_t>(std::min(pos, 255));
+                    }
+                }
+            }
+            
+            // Reset button column
+            ImGui::TableNextColumn();
+            if (ImGui::SmallButton("Reset")) {
+                if (it != pending_layout_overrides_.end()) {
+                    pending_layout_overrides_.erase(it);
+                }
+            }
+            
+            ImGui::PopID();
+        }
+        
+        ImGui::EndTable();
+    }
+    
+    // Clean up orphaned overrides (ports that no longer exist)
+    auto orphan_it = std::remove_if(pending_layout_overrides_.begin(), pending_layout_overrides_.end(),
+        [&](const PortLayoutOverride& o) {
+            return std::find(all_ports.begin(), all_ports.end(), o.port_name) == all_ports.end();
+        });
+    pending_layout_overrides_.erase(orphan_it, pending_layout_overrides_.end());
+#endif
+}
+
 void PropertiesWindow::apply() {
     Node* target = resolveTarget();
     if (!target || !bp_ || !undo_stack_) {
@@ -317,6 +430,11 @@ void PropertiesWindow::apply() {
     if (pending_name_ != snapshot_name_) {
         has_changes = true;
     }
+    
+    // Check layout_overrides change
+    if (pending_layout_overrides_ != snapshot_layout_overrides_) {
+        has_changes = true;
+    }
 
     // If there are changes, snapshot and apply them via commands.
     if (has_changes) {
@@ -342,6 +460,11 @@ void PropertiesWindow::apply() {
         // Apply name change
         if (pending_name_ != snapshot_name_) {
             execute(*bp_, cmd_set_name(node_iid, pending_name_));
+        }
+        
+        // Apply layout overrides change
+        if (pending_layout_overrides_ != snapshot_layout_overrides_) {
+            execute(*bp_, cmd_set_port_layout(node_iid, pending_layout_overrides_));
         }
     }
 

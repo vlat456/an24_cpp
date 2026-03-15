@@ -81,6 +81,9 @@ public:
         had_polyline_ = true;
         polyline_colors_.push_back(color);
     }
+    void add_triangle_filled(Pt, Pt, Pt, uint32_t) override {
+        // No-op for tests
+    }
 
     bool had_line() const { return had_line_; }
     bool had_rect() const { return had_rect_; }

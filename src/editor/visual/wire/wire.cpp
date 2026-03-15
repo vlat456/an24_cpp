@@ -321,6 +321,38 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
             handle_renderer::draw_handle(*dl, screen_rp, rp_radius, rp_color);
         }
     }
+
+    // Draw arrowhead at destination (end) of wire
+    if (world_pts.size() >= 2) {
+        Pt end = world_pts.back();
+        Pt prev = world_pts[world_pts.size() - 2];
+        
+        float dx = end.x - prev.x;
+        float dy = end.y - prev.y;
+        float len = std::sqrt(dx * dx + dy * dy);
+        if (len > 1e-3f) {
+            dx /= len;
+            dy /= len;
+            
+            float arrow_len = 7.0f * ctx.zoom;
+            float arrow_width = 3.5f * ctx.zoom;
+            
+            Pt screen_end = ctx.world_to_screen(end);
+            
+            Pt base_center(screen_end.x - dx * arrow_len,
+                          screen_end.y - dy * arrow_len);
+            
+            float px = -dy;
+            float py = dx;
+            
+            Pt left(base_center.x + px * arrow_width,
+                   base_center.y + py * arrow_width);
+            Pt right(base_center.x - px * arrow_width,
+                    base_center.y - py * arrow_width);
+            
+            dl->add_triangle_filled(screen_end, left, right, color);
+        }
+    }
 }
 
 void compute_wire_crossings(Scene& scene) {

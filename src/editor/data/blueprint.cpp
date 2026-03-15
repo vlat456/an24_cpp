@@ -738,6 +738,18 @@ static FlatNode node_to_flat(const Node& n, const ui::StringInterner& interner) 
     nv.group_id = n.group_id;
     nv.blueprint_path = n.blueprint_path;
 
+    for (const auto& ov : n.layout_overrides) {
+        FlatPortLayoutOverride fov;
+        fov.port = ov.port_name;
+        if (ov.side.has_value()) {
+            fov.side = port_layout_side_to_string(*ov.side);
+        }
+        if (ov.position.has_value()) {
+            fov.position = static_cast<int>(*ov.position);
+        }
+        nv.layout_overrides.push_back(std::move(fov));
+    }
+
     return nv;
 }
 
@@ -916,14 +928,25 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         n.expandable = nv.expandable;
         n.group_id = nv.group_id;
         n.blueprint_path = nv.blueprint_path;
-        if (n.expandable && !n.blueprint_path.empty()) {
-            n.collapsed = true;
+        
+        if (nv.pos.size() >= 2) {
+            n.pos = Pt(nv.pos[0], nv.pos[1]);
+        }
+        if (nv.size.size() >= 2) {
+            n.size = Pt(nv.size[0], nv.size[1]);
+            n.size_explicitly_set = true;
         }
 
-        n.pos = Pt(nv.pos[0], nv.pos[1]);
-        n.size = Pt(nv.size[0], nv.size[1]);
-        if (nv.size[0] != 0.0f || nv.size[1] != 0.0f) {
-            n.size_explicitly_set = true;
+        for (const auto& fov : nv.layout_overrides) {
+            PortLayoutOverride ov;
+            ov.port_name = fov.port;
+            if (fov.side.has_value()) {
+                ov.side = parse_port_layout_side(*fov.side);
+            }
+            if (fov.position.has_value()) {
+                ov.position = static_cast<uint8_t>(*fov.position);
+            }
+            n.layout_overrides.push_back(std::move(ov));
         }
 
         for (const auto& [k, v] : nv.params) {

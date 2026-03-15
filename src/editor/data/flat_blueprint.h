@@ -50,6 +50,12 @@ struct FlatColor {
     float r = 0.5f, g = 0.5f, b = 0.5f, a = 1.0f;
 };
 
+struct FlatPortLayoutOverride {
+    std::string port;
+    std::optional<std::string> side;
+    std::optional<int> position;
+};
+
 struct FlatNode {
     std::string type;                          // Component classname ("Battery", "Bus")
     FlatPos pos = {0.0f, 0.0f};
@@ -57,6 +63,7 @@ struct FlatNode {
     std::map<std::string, std::string> params;
     std::optional<FlatContent> content;
     std::optional<FlatColor> color;
+    std::vector<FlatPortLayoutOverride> layout_overrides;
 
     // Editor-only fields (root documents only, not library definitions)
     std::string display_name;                  // User-visible name (when different from key/id)

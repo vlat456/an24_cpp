@@ -427,6 +427,22 @@ target_link_libraries(editor_data_interning_tests PRIVATE
 )
 gtest_discover_tests(editor_data_interning_tests)
 
+# Port Layout Resolver tests (Phase 2: Resolution Algorithm)
+add_executable(port_layout_resolver_tests
+    test_port_layout_resolver.cpp
+)
+target_include_directories(port_layout_resolver_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/ui
+    ${CMAKE_SOURCE_DIR}/src/ui/core
+)
+target_link_libraries(port_layout_resolver_tests PRIVATE
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(port_layout_resolver_tests)
+
 
 # Editor viewport tests (TDD Step 3)
 add_executable(editor_viewport_tests
@@ -1347,53 +1363,11 @@ target_link_libraries(sub_blueprint_ref_tests PRIVATE
 gtest_discover_tests(sub_blueprint_ref_tests)
 
 # Document + WindowSystem tests (MDI lifecycle, regression tests)
-add_executable(document_window_system_tests
-    test_document_window_system.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    # New widget-based visual scene graph
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-)
-target_compile_definitions(document_window_system_tests PRIVATE EDITOR_TESTING)
-target_include_directories(document_window_system_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_link_libraries(document_window_system_tests PRIVATE
-    jit_solver
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(document_window_system_tests)
+# DISABLED: test_document_window_system.cpp was removed
+# add_executable(document_window_system_tests
+#     test_document_window_system.cpp
+#     ...
+# )
 
 
 # FlatBlueprint format tests (was v2 format)

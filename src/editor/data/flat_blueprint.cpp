@@ -56,13 +56,27 @@ static FlatColor parse_color(const json& j) {
     return c;
 }
 
+static FlatPortLayoutOverride parse_port_layout_override(const json& j) {
+    FlatPortLayoutOverride o;
+    if (j.contains("port")) o.port = j["port"].get<std::string>();
+    if (j.contains("side")) o.side = j["side"].get<std::string>();
+    if (j.contains("position")) o.position = j["position"].get<int>();
+    return o;
+}
+
 static FlatNode parse_node(const json& j) {
     FlatNode n;
-    if (j.contains("type")) n.type = j["type"].get<std::string>();
-    if (j.contains("pos"))  n.pos = parse_pos(j["pos"]);
-    if (j.contains("size")) n.size = parse_pos(j["size"]);
+    if (!j.contains("type")) return n;
+    n.type = j["type"].get<std::string>();
 
-    if (j.contains("params")) {
+    if (j.contains("pos") && j["pos"].is_array() && j["pos"].size() >= 2) {
+        n.pos = {j["pos"][0].get<float>(), j["pos"][1].get<float>()};
+    }
+    if (j.contains("size") && j["size"].is_array() && j["size"].size() >= 2) {
+        n.size = {j["size"][0].get<float>(), j["size"][1].get<float>()};
+    }
+
+    if (j.contains("params") && j["params"].is_object()) {
         for (auto& [k, v] : j["params"].items()) {
             n.params[k] = v.get<std::string>();
         }
@@ -77,6 +91,13 @@ static FlatNode parse_node(const json& j) {
     if (j.contains("expandable"))     n.expandable = j["expandable"].get<bool>();
     if (j.contains("group_id"))       n.group_id = j["group_id"].get<std::string>();
     if (j.contains("blueprint_path")) n.blueprint_path = j["blueprint_path"].get<std::string>();
+
+    // Layout overrides
+    if (j.contains("layout_overrides") && j["layout_overrides"].is_array()) {
+        for (const auto& ov : j["layout_overrides"]) {
+            n.layout_overrides.push_back(parse_port_layout_override(ov));
+        }
+    }
 
     return n;
 }
@@ -348,6 +369,19 @@ static json serialize_node(const FlatNode& n) {
     }
     if (!n.blueprint_path.empty()) {
         j["blueprint_path"] = n.blueprint_path;
+    }
+
+    // Layout overrides
+    if (!n.layout_overrides.empty()) {
+        json arr = json::array();
+        for (const auto& ov : n.layout_overrides) {
+            json ov_j;
+            ov_j["port"] = ov.port;
+            if (ov.side.has_value()) ov_j["side"] = *ov.side;
+            if (ov.position.has_value()) ov_j["position"] = *ov.position;
+            arr.push_back(ov_j);
+        }
+        j["layout_overrides"] = arr;
     }
 
     return j;

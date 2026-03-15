@@ -487,3 +487,107 @@ TEST(PropertiesWindow, CancelGracefullyWhenNodeRemoved) {
     win.close();
     EXPECT_FALSE(win.isOpen());
 }
+
+// =============================================================================
+// Phase 5: Port Layout Override Tests
+// =============================================================================
+
+TEST(PropertiesWindow, PortLayoutOverride_ApplyChanges) {
+    Blueprint bp;
+    UndoStack undo;
+
+    Node n;
+    n.id = bp.interner().intern("azs1");
+    n.name = "AZS";
+    n.type_name = "AZS";
+    n.input(bp.interner().intern("v_in"), PortType::V);
+    n.output(bp.interner().intern("v_out"), PortType::V);
+    n.output(bp.interner().intern("state"), PortType::Bool);
+    bp.add_node(n);
+
+    Node* node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "azs1", bp, undo, [](const std::string&) {});
+
+    // Set port layout overrides
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"v_in", PortLayoutSide::Top, std::nullopt});
+    overrides.push_back({"v_out", PortLayoutSide::Right, uint8_t{0}});
+    win.setPendingLayoutOverrides(overrides);
+
+    win.apply();
+
+    // Verify the node's layout_overrides were updated
+    node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+    ASSERT_EQ(node_ptr->layout_overrides.size(), 2u);
+    EXPECT_EQ(node_ptr->layout_overrides[0].port_name, "v_in");
+    EXPECT_EQ(node_ptr->layout_overrides[0].side, PortLayoutSide::Top);
+    EXPECT_EQ(node_ptr->layout_overrides[1].port_name, "v_out");
+    EXPECT_EQ(node_ptr->layout_overrides[1].side, PortLayoutSide::Right);
+    EXPECT_EQ(node_ptr->layout_overrides[1].position, uint8_t{0});
+}
+
+TEST(PropertiesWindow, PortLayoutOverride_UndoRestoresOriginal) {
+    Blueprint bp;
+    UndoStack undo;
+
+    Node n;
+    n.id = bp.interner().intern("azs1");
+    n.name = "AZS";
+    n.type_name = "AZS";
+    n.input(bp.interner().intern("v_in"), PortType::V);
+    n.output(bp.interner().intern("v_out"), PortType::V);
+    bp.add_node(n);
+
+    Node* node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_TRUE(node_ptr->layout_overrides.empty()) << "Initial layout_overrides should be empty";
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "azs1", bp, undo, [](const std::string&) {});
+
+    // Add port layout override
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"v_in", PortLayoutSide::Bottom, std::nullopt});
+    win.setPendingLayoutOverrides(overrides);
+
+    win.apply();
+
+    node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_EQ(node_ptr->layout_overrides.size(), 1u);
+
+    // Undo should restore empty layout_overrides
+    ASSERT_TRUE(undo.can_undo());
+    undo.undo(bp);
+
+    node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_TRUE(node_ptr->layout_overrides.empty()) << "Undo should restore empty layout_overrides";
+}
+
+TEST(PropertiesWindow, PortLayoutOverride_NoChangesDoesNotPushUndo) {
+    Blueprint bp;
+    UndoStack undo;
+
+    Node n;
+    n.id = bp.interner().intern("azs1");
+    n.name = "AZS";
+    n.type_name = "AZS";
+    n.input(bp.interner().intern("v_in"), PortType::V);
+    bp.add_node(n);
+
+    Node* node_ptr = bp.find_node("azs1");
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "azs1", bp, undo, [](const std::string&) {});
+
+    // No changes to layout overrides (still empty)
+    win.apply();
+
+    EXPECT_FALSE(undo.can_undo()) << "No changes should not push to undo stack";
+}

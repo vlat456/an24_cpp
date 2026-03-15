@@ -52,6 +52,16 @@ public:
         pending_name_ = name;
     }
 
+    /// Set pending layout overrides (for testing without ImGui).
+    void setPendingLayoutOverrides(const std::vector<PortLayoutOverride>& overrides) {
+        pending_layout_overrides_ = overrides;
+    }
+
+    /// Read pending layout overrides (for testing).
+    const std::vector<PortLayoutOverride>& pendingLayoutOverrides() const {
+        return pending_layout_overrides_;
+    }
+
     /// Read pending param value (for testing / display).
     const std::unordered_map<std::string, std::string>& pendingParams() const {
         return pending_params_;
@@ -74,6 +84,8 @@ private:
     // Snapshot of the node state at open() time — used for diffing at apply().
     std::string snapshot_name_;
     std::unordered_map<std::string, std::string> snapshot_params_;
+    std::vector<PortLayoutOverride> pending_layout_overrides_;
+    std::vector<PortLayoutOverride> snapshot_layout_overrides_;
 
     /// Resolve the target node from the blueprint. Returns nullptr if
     /// the node no longer exists (e.g. deleted by undo while open).
@@ -86,4 +98,7 @@ private:
 
     /// Render an ImGui table editor for a LUT "table" param
     void renderTableParam(const std::string& key);
+    
+    /// Render port layout override section (side/position for each port)
+    void renderPortLayoutSection(const Node& node);
 };

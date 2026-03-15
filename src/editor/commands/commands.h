@@ -65,6 +65,10 @@ struct CmdSwapBusPorts {
 };
 struct CmdAddSubBlueprint { SubBlueprintInstance instance; };
 struct CmdRemoveSubBlueprint { std::string instance_id; };
+struct CmdSetPortLayout {
+    ui::InternedId node_id;
+    std::vector<PortLayoutOverride> new_overrides;
+};
 
 // =============================================================================
 // Command Variant
@@ -84,7 +88,8 @@ using Command = std::variant<
     CmdSetName,
     CmdSwapBusPorts,
     CmdAddSubBlueprint,
-    CmdRemoveSubBlueprint
+    CmdRemoveSubBlueprint,
+    CmdSetPortLayout
 >;
 
 // =============================================================================
@@ -126,4 +131,7 @@ inline Command cmd_add_sub_blueprint(SubBlueprintInstance sbi) {
 }
 inline Command cmd_remove_sub_blueprint(std::string id) {
     return CmdRemoveSubBlueprint{std::move(id)};
+}
+inline Command cmd_set_port_layout(ui::InternedId node_id, std::vector<PortLayoutOverride> overrides) {
+    return CmdSetPortLayout{node_id, std::move(overrides)};
 }

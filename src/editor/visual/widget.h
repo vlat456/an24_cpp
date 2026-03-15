@@ -23,9 +23,9 @@ class Port;
 /// Z-order layer for rendering. Lower values render first (further back).
 enum class RenderLayer : uint8_t {
     Group  = 0,   ///< Behind everything (group containers)
-    Text   = 1,   ///< Behind wires/nodes (text annotations)
-    Wire   = 2,   ///< Between text and nodes
-    Normal = 3    ///< Default (component nodes, resize handles)
+    Text   = 1,   ///< Behind nodes (text annotations)
+    Normal = 2,   ///< Component nodes, resize handles
+    Wire   = 3    ///< Wires and arrowheads (topmost, on top of everything)
 };
 
 class Widget : public ui::Widget {

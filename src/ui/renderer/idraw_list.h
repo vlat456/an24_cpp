@@ -22,6 +22,7 @@ struct IDrawList {
     virtual void add_circle_filled(Pt center, float radius, uint32_t color, int segments = 12) = 0;
     virtual void add_text(Pt pos, const char* text, uint32_t color, float font_size = 14.0f) = 0;
     virtual void add_polyline(const Pt* points, size_t count, uint32_t color, float thickness = 1.0f) = 0;
+    virtual void add_triangle_filled(Pt a, Pt b, Pt c, uint32_t color) = 0;
     virtual Pt calc_text_size(const char* text, float font_size) const = 0;
 };
 

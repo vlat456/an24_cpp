@@ -8,6 +8,7 @@
 #include "visual/primitives/primitives.h"
 #include "visual/node/bounds.h"
 #include "ui/core/interned_id.h"
+#include "visual/node/port_layout_resolver.h"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -74,6 +75,17 @@ private:
     void buildPortRow(std::string_view left_name, PortType left_type,
                       std::string_view right_name, PortType right_type);
     void buildPortInColumn(Widget* col, std::string_view name, PortType type, bool is_left);
+    void buildFourSidedLayout(const ::Node& data, const ui::StringInterner& interner);
+    void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
+    void positionHorizontalPorts(PortLayoutSide side, float node_width);
+
+    /// Track which ports are on top/bottom (for post-layout positioning)
+    std::vector<Port*> top_ports_;
+    std::vector<Port*> bottom_ports_;
+
+    /// Labels paired 1:1 with top_ports_ / bottom_ports_ for post-layout positioning
+    std::vector<Label*> top_port_labels_;
+    std::vector<Label*> bottom_port_labels_;
 };
 
 } // namespace visual

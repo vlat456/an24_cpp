@@ -995,3 +995,106 @@ TEST_F(CommandTest, RemoveBusNodeClearsBusWireIndex) {
     EXPECT_TRUE(bp.busWires(id_bus).empty())
         << "bus_wire_index_ must be cleaned up when a bus node is removed";
 }
+
+// =============================================================================
+// CmdSetPortLayout
+// =============================================================================
+
+TEST_F(CommandTest, SetPortLayout_Mutates) {
+    auto& I = bp.interner();
+    ui::InternedId node_id = I.intern("node1");
+
+    Node n;
+    n.id = node_id;
+    n.at(0, 0);
+    n.input(I.intern("v_in"));
+    n.output(I.intern("v_out"));
+    bp.add_node(std::move(n));
+
+    EXPECT_TRUE(bp.find_node(node_id)->layout_overrides.empty());
+
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"v_in", PortLayoutSide::Top, std::nullopt});
+    overrides.push_back({"v_out", PortLayoutSide::Bottom, uint8_t{0}});
+
+    execute(bp, cmd_set_port_layout(node_id, overrides));
+
+    Node* result = bp.find_node(node_id);
+    ASSERT_NE(result, nullptr);
+    ASSERT_EQ(result->layout_overrides.size(), 2u);
+    EXPECT_EQ(result->layout_overrides[0].port_name, "v_in");
+    EXPECT_EQ(result->layout_overrides[0].side, PortLayoutSide::Top);
+    EXPECT_FALSE(result->layout_overrides[0].position.has_value());
+    EXPECT_EQ(result->layout_overrides[1].port_name, "v_out");
+    EXPECT_EQ(result->layout_overrides[1].side, PortLayoutSide::Bottom);
+    EXPECT_EQ(result->layout_overrides[1].position, uint8_t{0});
+}
+
+TEST_F(CommandTest, SetPortLayout_UsesNodeIndex) {
+    // Verify that the command works even when the node is not the first in the list
+    auto& I = bp.interner();
+    ui::InternedId id_a = I.intern("a");
+    ui::InternedId id_b = I.intern("b");
+
+    Node a; a.id = id_a; a.at(0, 0); a.input(I.intern("p1"));
+    Node b; b.id = id_b; b.at(100, 0); b.input(I.intern("p2"));
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"p2", PortLayoutSide::Right, std::nullopt});
+
+    execute(bp, cmd_set_port_layout(id_b, overrides));
+
+    Node* result = bp.find_node(id_b);
+    ASSERT_NE(result, nullptr);
+    ASSERT_EQ(result->layout_overrides.size(), 1u);
+    EXPECT_EQ(result->layout_overrides[0].port_name, "p2");
+    
+    // Node a should be unaffected
+    EXPECT_TRUE(bp.find_node(id_a)->layout_overrides.empty());
+}
+
+TEST_F(CommandTest, SetPortLayout_UndoRestoresOriginal) {
+    auto& I = bp.interner();
+    ui::InternedId node_id = I.intern("node1");
+
+    Node n;
+    n.id = node_id;
+    n.at(0, 0);
+    n.input(I.intern("v_in"));
+    bp.add_node(std::move(n));
+
+    UndoStack stack;
+    stack.snapshot(bp);
+
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"v_in", PortLayoutSide::Bottom, uint8_t{0}});
+    execute(bp, cmd_set_port_layout(node_id, overrides));
+
+    ASSERT_EQ(bp.find_node(node_id)->layout_overrides.size(), 1u);
+
+    stack.undo(bp);
+
+    EXPECT_TRUE(bp.find_node(node_id)->layout_overrides.empty())
+        << "Undo should restore original empty layout_overrides";
+}
+
+TEST_F(CommandTest, SetPortLayout_ClearOverrides) {
+    auto& I = bp.interner();
+    ui::InternedId node_id = I.intern("node1");
+
+    Node n;
+    n.id = node_id;
+    n.at(0, 0);
+    n.input(I.intern("v_in"));
+    n.layout_overrides.push_back({"v_in", PortLayoutSide::Top, std::nullopt});
+    bp.add_node(std::move(n));
+
+    ASSERT_EQ(bp.find_node(node_id)->layout_overrides.size(), 1u);
+
+    // Clear all overrides
+    execute(bp, cmd_set_port_layout(node_id, {}));
+
+    EXPECT_TRUE(bp.find_node(node_id)->layout_overrides.empty());
+}

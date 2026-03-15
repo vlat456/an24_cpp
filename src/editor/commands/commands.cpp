@@ -184,6 +184,15 @@ static void execute(Blueprint& bp, const CmdRemoveSubBlueprint& cmd) {
     bp.sub_blueprint_instances.erase(it);
 }
 
+static void execute(Blueprint& bp, const CmdSetPortLayout& cmd) {
+    auto it = bp.node_index_.find(cmd.node_id);
+    if (it == bp.node_index_.end()) {
+        spdlog::warn("[cmd] CmdSetPortLayout: node {} not found", cmd.node_id.raw());
+        return;
+    }
+    bp.nodes[it->second].layout_overrides = cmd.new_overrides;
+}
+
 // =============================================================================
 // Main dispatch
 // =============================================================================
