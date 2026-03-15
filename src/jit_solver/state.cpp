@@ -32,39 +32,28 @@ void SimulationState::clear_through() {
 
 void SimulationState::precompute_inv_conductance() {
     // ================================================================
-    // Безопасность SOR: добавляем паразитную проводимость
+    // Branchless SOR safety: parasitic conductance + layout trick
     // ================================================================
-    // Проблема: если все реле разомкнуты, узел "висит" (floating node)
-    // с проводимостью 0. При делении на 0 получаем inf/NaN → взрыв решателя.
+    // Dynamic signals occupy indices [0 .. dynamic_signals_count).
+    // Fixed signals occupy [dynamic_signals_count .. size).
+    // SOR only iterates dynamic range, so fixed inv_conductance is never read.
     //
-    // Решение: добавляем "утечку" на массу для каждого динамического узла.
-    // Это очень маленькая проводимость (10 МОм), которая практически не
-    // влияет на точность, но гарантирует что inv_conductance всегда > 0.
-    //
-    // Эффект: плавающие узлы будут стремиться к 0V (земля), что физично
-    // и безопасно для численной стабильности.
+    // For dynamic nodes we add parasitic leakage (10 MOhm) to guarantee
+    // total_g > 0 — no division-by-zero possible, no branch needed.
+    // Floating nodes will relax toward 0 V (ground), which is physical.
     // ================================================================
 
-    constexpr float PARASITIC_G = 1e-7f;  // 10 МОм утечка на массу (практически ничего)
+    constexpr float PARASITIC_G = 1e-7f;
 
-    for (size_t i = 0; i < conductance.size(); ++i) {
-        if (signal_types[i].is_fixed) {
-            // Фиксированные сигналы (земля, источники питания) не обновляются SOR
-            inv_conductance[i] = 0.0f;
-        } else {
-            // Добавляем паразитную проводимость к физической проводимости узла
-            // Это предотвращает деление на ноль и дает "путь к земле"
-            // для изолированных узлов
-            float total_g = conductance[i] + PARASITIC_G;
+    // Dynamic signals: branchless, always safe (PARASITIC_G guarantees > 0)
+    for (size_t i = 0; i < dynamic_signals_count; ++i) {
+        float total_g = conductance[i] + PARASITIC_G;
+        inv_conductance[i] = 1.0f / total_g;
+    }
 
-            if (total_g > 1e-9f) {
-                inv_conductance[i] = 1.0f / total_g;
-            } else {
-                // Даже с паразитной проводимостью этого не должно случиться
-                // Но на всякий случай защищаемся от нуля
-                inv_conductance[i] = 0.0f;
-            }
-        }
+    // Fixed signals: zero out (SOR skips these, but keep array clean)
+    for (size_t i = dynamic_signals_count; i < conductance.size(); ++i) {
+        inv_conductance[i] = 0.0f;
     }
 }
 

@@ -36,10 +36,11 @@ void Battery<Provider>::pre_load() {
 
 template <typename Provider>
 void Switch<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    if (closed && downstream_g > 0.0f) {
-        st.conductance[provider.get(PortNames::v_in)] += downstream_g;
-        st.through[provider.get(PortNames::v_in)] -= st.across[provider.get(PortNames::v_in)] * downstream_g;
-    }
+    // Branchless: mask is 0 when open or downstream_g <= 0
+    float mask = (closed && downstream_g > 0.0f) ? 1.0f : 0.0f;
+    float g = downstream_g * mask;
+    st.conductance[provider.get(PortNames::v_in)] += g;
+    st.through[provider.get(PortNames::v_in)] -= st.across[provider.get(PortNames::v_in)] * g;
 }
 
 template <typename Provider>
@@ -69,10 +70,12 @@ void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
 template <typename Provider>
 void Relay<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
-    if (closed && downstream_g > 0.0f) {
-        st.conductance[provider.get(PortNames::v_in)] += downstream_g;
-        st.through[provider.get(PortNames::v_in)] += downstream_I - st.across[provider.get(PortNames::v_in)] * downstream_g;
-    }
+    // Branchless: mask is 0 when open or downstream_g <= 0
+    float mask = (closed && downstream_g > 0.0f) ? 1.0f : 0.0f;
+    float g = downstream_g * mask;
+    float i = downstream_I * mask;
+    st.conductance[provider.get(PortNames::v_in)] += g;
+    st.through[provider.get(PortNames::v_in)] += i - st.across[provider.get(PortNames::v_in)] * g;
 }
 
 template <typename Provider>
@@ -98,10 +101,12 @@ void Relay<Provider>::post_step(SimulationState& st, float /*dt*/) {
 template <typename Provider>
 void HoldButton<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
-    if (is_pressed && downstream_g > 0.0f) {
-        st.conductance[provider.get(PortNames::v_in)] += downstream_g;
-        st.through[provider.get(PortNames::v_in)] += downstream_I - st.across[provider.get(PortNames::v_in)] * downstream_g;
-    }
+    // Branchless: mask is 0 when not pressed or downstream_g <= 0
+    float mask = (is_pressed && downstream_g > 0.0f) ? 1.0f : 0.0f;
+    float g = downstream_g * mask;
+    float i = downstream_I * mask;
+    st.conductance[provider.get(PortNames::v_in)] += g;
+    st.through[provider.get(PortNames::v_in)] += i - st.across[provider.get(PortNames::v_in)] * g;
 }
 
 template <typename Provider>
@@ -213,51 +218,48 @@ void Generator<Provider>::pre_load() {
 
 template <typename Provider>
 void GS24<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float safe_target_rpm = std::max(target_rpm, 1.0f);
-    float rpm_percent = current_rpm / safe_target_rpm;
+    float rpm_percent = current_rpm * inv_target_rpm;
 
-    if (mode == GS24Mode::STARTER) {
-        // Starter motor: back-EMF model with internal resistance.
-        // Norton equivalent: G = 1/R, I_source = back_emf * G (reduces net drain)
-        float safe_r = std::max(r_internal, 1e-6f);
-        float g_internal = 1.0f / safe_r;
-        float back_emf = k_motor * current_rpm;
-        float i_source = std::clamp(back_emf * g_internal, 0.0f, i_max_starter);
+    // === Starter mode contribution (branchless) ===
+    float starter_mask = (mode == GS24Mode::STARTER) ? 1.0f : 0.0f;
 
-        // stamp_one_port_ground: through -= V*G, conductance += G
-        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                              provider.get(PortNames::v_out), g_internal);
-        // Back-EMF reduces net current draw
-        st.through[provider.get(PortNames::v_out)] += i_source;
+    float g_starter = inv_r_internal;
+    float back_emf = k_motor * current_rpm;
+    float i_source_starter = std::clamp(back_emf * g_starter, 0.0f, i_max_starter);
 
-    } else if (mode == GS24Mode::GENERATOR) {
-        // Generator: Norton current source (I_source in parallel with G_norton)
-        float phi = 0.0f;
-        if (rpm_percent >= 0.6f) {
-            phi = 1.0f;
-        } else if (rpm_percent >= rpm_threshold) {
-            phi = (rpm_percent - rpm_threshold) / 0.2f;
-        }
+    // === Generator mode contribution (branchless) ===
+    float gen_mask = (mode == GS24Mode::GENERATOR) ? 1.0f : 0.0f;
 
-        float k_mod_val = (provider.get(PortNames::k_mod) > 0) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
+    // Branchless phi ramp: clamp((rpm_percent - rpm_threshold) / 0.2, 0, 1)
+    float phi = std::clamp((rpm_percent - rpm_threshold) * 5.0f, 0.0f, 1.0f);
 
-        float i_no = std::clamp(i_max * phi * k_mod_val, 0.0f, 100.0f);
-        float g_norton = (r_norton > 0.0f) ? 1.0f / r_norton : 0.0f;
+    float k_mod_val = (provider.get(PortNames::k_mod) > 0) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
+    float i_no = std::clamp(i_max * phi * k_mod_val, 0.0f, 100.0f);
+    float g_gen = inv_r_norton;
 
-        // stamp_one_port_ground: through -= V*G, conductance += G
-        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                              provider.get(PortNames::v_out), g_norton);
-        // Norton current source drives bus voltage up
-        st.through[provider.get(PortNames::v_out)] += i_no;
-    }
+    // === Combine: each path stamps into the same port, scaled by its mask ===
+    // Starter: one-port-to-ground load (draws current) + back-EMF source
+    // Generator: one-port-to-ground source (drives voltage up)
+    float g_total = g_starter * starter_mask + g_gen * gen_mask;
+    float i_total = i_source_starter * starter_mask + i_no * gen_mask;
+
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::v_out), g_total);
+    st.through[provider.get(PortNames::v_out)] += i_total;
+}
+
+template <typename Provider>
+void GS24<Provider>::pre_load() {
+    inv_r_internal = 1.0f / std::max(r_internal, 1e-6f);
+    inv_r_norton = 1.0f / std::max(r_norton, 1e-6f);
+    inv_target_rpm = 1.0f / std::max(target_rpm, 1.0f);
 }
 
 template <typename Provider>
 void GS24<Provider>::post_step(SimulationState& st, float dt) {
     (void)st;
 
-    float safe_target_rpm = std::max(target_rpm, 1.0f);
-    float rpm_percent = current_rpm / safe_target_rpm;
+    float rpm_percent = current_rpm * inv_target_rpm;
 
     switch (mode) {
         case GS24Mode::STARTER:
@@ -560,8 +562,13 @@ void IndicatorLight<Provider>::solve_electrical(SimulationState& st, float /*dt*
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
 
     float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
-    float normalized = std::clamp(v_diff / 28.0f, 0.0f, 1.0f);
+    float normalized = std::clamp(v_diff * inv_rated_voltage, 0.0f, 1.0f);
     st.across[provider.get(PortNames::brightness)] = normalized * max_brightness;
+}
+
+template <typename Provider>
+void IndicatorLight<Provider>::pre_load() {
+    inv_rated_voltage = 1.0f / std::max(rated_voltage, 1e-6f);
 }
 
 // =============================================================================
@@ -672,9 +679,7 @@ void InertiaNode<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) 
 
 template <typename Provider>
 void InertiaNode<Provider>::pre_load() {
-    if (mass > 0.0f) {
-        inv_mass = 1.0f / mass;
-    }
+    inv_mass = 1.0f / std::max(mass, 1e-6f);
 }
 
 // =============================================================================
@@ -698,8 +703,9 @@ void Spring<Provider>::solve_mechanical(SimulationState& st, float dt) {
 
     // 4. Viscous damping force: F_damp = c * velocity
     //    velocity ≈ (delta_x - prev_delta_x) / dt (finite difference)
-    float safe_dt = std::max(dt, 1e-6f);
-    float velocity = (delta_x - prev_delta_x) / safe_dt;
+    //    One division per mechanical step (20 Hz) — acceptable
+    float inv_dt = 1.0f / std::max(dt, 1e-6f);
+    float velocity = (delta_x - prev_delta_x) * inv_dt;
     float damping_force = c * velocity;
 
     // 5. Total force = spring + damping (both resist motion)
@@ -707,13 +713,23 @@ void Spring<Provider>::solve_mechanical(SimulationState& st, float dt) {
 
     // 6. If spring works only in compression (like in RUG-82 governor),
     //    cut off stretching forces (branchless select)
-    float compression_mask = (compression_only) ? ((delta_x < 0.0f) ? 1.0f : 0.0f) : 1.0f;
+    //    co_f: 1.0 means "compression only mode", 0.0 means "both directions"
+    //    When co_f == 1.0: mask = (delta_x < 0) ? 1 : 0
+    //    When co_f == 0.0: mask = 1.0 (always active)
+    float co_f = static_cast<float>(compression_only); // branchless bool→float (0.0 or 1.0)
+    float comp_mask = (delta_x < 0.0f) ? 1.0f : 0.0f;
+    float compression_mask = comp_mask * co_f + (1.0f - co_f);
 
     // 7. Result: std::abs ensures force magnitude is always non-negative
     st.across[provider.get(PortNames::force_out)] = std::abs(total_force) * compression_mask;
 
     // 8. Store for next frame
     prev_delta_x = delta_x;
+}
+
+template <typename Provider>
+void Spring<Provider>::pre_load() {
+    compression_only_f = compression_only ? 1.0f : 0.0f;
 }
 
 // =============================================================================
@@ -760,8 +776,8 @@ void RUG82<Provider>::solve_electrical(SimulationState& st, float dt) {
     float error = v_target - v_gen;
     k_mod += kp * error * dt;
 
-    if (k_mod < 0.0f) k_mod = 0.0f;
-    if (k_mod > 1.0f) k_mod = 1.0f;
+    // Branchless clamp
+    k_mod = std::clamp(k_mod, 0.0f, 1.0f);
 
     st.across[provider.get(PortNames::k_mod)] = k_mod;
 }
@@ -772,15 +788,14 @@ void RUG82<Provider>::solve_electrical(SimulationState& st, float dt) {
 
 template <typename Provider>
 void DMR400<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    if (!is_closed) {
-        return;
-    }
-
     // When closed, the DMR acts as a low-impedance connection between
     // generator reference and output bus. Model as a high-conductance two-port.
+    // Branchless: multiply G by closed_mask (0.0 or 1.0)
     constexpr float G_CLOSED = 100.0f;
+    float closed_mask = is_closed ? 1.0f : 0.0f;
+    float g = G_CLOSED * closed_mask;
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
-                   provider.get(PortNames::v_gen_ref), provider.get(PortNames::v_out), G_CLOSED);
+                   provider.get(PortNames::v_gen_ref), provider.get(PortNames::v_out), g);
 }
 
 template <typename Provider>
@@ -812,101 +827,88 @@ void DMR400<Provider>::post_step(SimulationState& st, float dt) {
 
 template <typename Provider>
 void RU19A<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_start = st.across[provider.get(PortNames::v_start)];
-    float v_bus = st.across[provider.get(PortNames::v_bus)];
+    float rpm_percent = current_rpm * inv_target_rpm;
 
-    if (this->state == APUState::OFF) {
-        return;
-    }
+    // === Starter contribution (CRANKING or IGNITION) ===
+    float starter_mask = (this->state == APUState::CRANKING || this->state == APUState::IGNITION) ? 1.0f : 0.0f;
 
-    if (this->state == APUState::CRANKING || this->state == APUState::IGNITION) {
-        constexpr float R_START_INTERNAL = 0.025f;
-        constexpr float K_MOTOR_BACK_EMF = 38.0f;
-        constexpr float I_MAX_START = 1000.0f;
+    constexpr float R_START_INTERNAL = 0.025f;
+    constexpr float G_START = 1.0f / R_START_INTERNAL;  // 40.0 — compile-time constant
+    constexpr float K_MOTOR_BACK_EMF = 38.0f;
+    constexpr float I_MAX_START = 1000.0f;
 
-        float safe_target_rpm = std::max(target_rpm, 1.0f);
-        float rpm_percent = current_rpm / safe_target_rpm;
-        float back_emf = K_MOTOR_BACK_EMF * rpm_percent;
+    float back_emf = K_MOTOR_BACK_EMF * rpm_percent;
+    float i_source_starter = std::clamp(back_emf * G_START, 0.0f, I_MAX_START);
 
-        // Norton stamp: starter motor modeled as back-EMF voltage source
-        // with internal resistance R_START_INTERNAL.
-        // I = (V_start - back_emf) / R → Norton: I_source = back_emf / R, G = 1/R
-        // Residual = -V_start * G + back_emf * G (clamped to [0, I_MAX])
-        float g_start = 1.0f / R_START_INTERNAL;
+    // === Generator contribution (RUNNING) ===
+    float gen_mask = (this->state == APUState::RUNNING) ? 1.0f : 0.0f;
 
-        // Clamp the Norton source current to physical limits
-        float i_source = std::clamp(back_emf * g_start, 0.0f, I_MAX_START);
+    // Branchless phi ramp: clamp((rpm_percent - 0.4) / 0.2, 0, 1)
+    float phi = std::clamp((rpm_percent - 0.4f) * 5.0f, 0.0f, 1.0f);
 
-        // stamp_one_port_ground handles: through -= V*G, conductance += G
-        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                              provider.get(PortNames::v_start), g_start);
-        // Add back-EMF source current (reduces net drain)
-        st.through[provider.get(PortNames::v_start)] += i_source;
+    float k_mod = st.across[provider.get(PortNames::k_mod)];
+    float i_no = std::clamp(400.0f * phi * k_mod, 0.0f, 100.0f);
 
-    } else if (this->state == APUState::RUNNING) {
-        float safe_target_rpm = std::max(target_rpm, 1.0f);
-        float rpm_percent = current_rpm / safe_target_rpm;
+    constexpr float G_NORTON = 1.0f / 0.08f;  // 12.5 — compile-time constant
 
-        float phi = 0.0f;
-        if (rpm_percent >= 0.6f) {
-            phi = 1.0f;
-        } else if (rpm_percent >= 0.4f) {
-            phi = (rpm_percent - 0.4f) / 0.2f;
-        }
+    // === Combine masked contributions ===
+    float g_total = G_START * starter_mask + G_NORTON * gen_mask;
+    float i_total = i_source_starter * starter_mask + i_no * gen_mask;
 
-        float k_mod = st.across[provider.get(PortNames::k_mod)];
+    // Both paths stamp on different ports — use select
+    // Starter uses v_start, generator uses v_bus
+    // Stamp starter port (zero contribution when starter_mask == 0)
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::v_start), G_START * starter_mask);
+    st.through[provider.get(PortNames::v_start)] += i_source_starter * starter_mask;
 
-        float i_no = std::clamp(400.0f * phi * k_mod, 0.0f, 100.0f);
-
-        float g_norton = 1.0f / 0.08f;
-
-        // Norton stamp: I_source in parallel with G_norton
-        // stamp_one_port_ground handles: through -= V*G, conductance += G
-        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                              provider.get(PortNames::v_bus), g_norton);
-        // Generator current source (drives bus voltage up)
-        st.through[provider.get(PortNames::v_bus)] += i_no;
-    }
+    // Stamp generator port (zero contribution when gen_mask == 0)
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::v_bus), G_NORTON * gen_mask);
+    st.through[provider.get(PortNames::v_bus)] += i_no * gen_mask;
 }
 
 template <typename Provider>
 void RU19A<Provider>::solve_mechanical(SimulationState& st, float dt) {
-    float target_rpm_local = 0.0f;
-    float voltage_factor = 1.0f;
+    float v_bus = st.across[provider.get(PortNames::v_bus)];
 
-    switch (this->state) {
-        case APUState::OFF:
-        case APUState::STOPPING:
-            target_rpm_local = 0.0f;
-            break;
-        case APUState::CRANKING: {
-            float v_bus = st.across[provider.get(PortNames::v_bus)];
-            voltage_factor = std::clamp(v_bus / 24.0f, 0.5f, 1.0f);
-            target_rpm_local = 2000.0f * voltage_factor;
-            break;
-        }
-        case APUState::IGNITION:
-            target_rpm_local = 5000.0f;
-            break;
-        case APUState::RUNNING:
-            target_rpm_local = target_rpm * 0.6f;
-            break;
-    }
+    // Branchless state masks
+    float off_mask = (this->state == APUState::OFF || this->state == APUState::STOPPING) ? 1.0f : 0.0f;
+    float crank_mask = (this->state == APUState::CRANKING) ? 1.0f : 0.0f;
+    float ign_mask = (this->state == APUState::IGNITION) ? 1.0f : 0.0f;
+    float run_mask = (this->state == APUState::RUNNING) ? 1.0f : 0.0f;
 
+    // Compute target RPM for each state, combine via masks
+    float voltage_factor = std::clamp(v_bus * (1.0f / 24.0f), 0.5f, 1.0f);
+    float target_rpm_local = 0.0f * off_mask
+                           + 2000.0f * voltage_factor * crank_mask
+                           + 5000.0f * ign_mask
+                           + target_rpm * 0.6f * run_mask;
+
+    // Branchless inertia select
     float inertia = (target_rpm_local > current_rpm) ? spinup_inertia : spindown_inertia;
 
-    if (target_rpm_local > current_rpm && target_rpm_local > 100.0f) {
-        float progress = current_rpm / target_rpm_local;
-        float nonlinearity = 1.0f + 3.0f * progress * (1.0f - progress);
-        current_rpm += (target_rpm_local - current_rpm) * dt * inertia * nonlinearity;
-    } else if (target_rpm_local < current_rpm) {
-        current_rpm += (target_rpm_local - current_rpm) * dt * inertia * 2.0f;
-    } else {
-        current_rpm += (target_rpm_local - current_rpm) * dt * inertia;
-    }
+    // Branchless nonlinearity: apply spinup curve when accelerating above 100 RPM
+    float accel_mask = (target_rpm_local > current_rpm && target_rpm_local > 100.0f) ? 1.0f : 0.0f;
+    float decel_mask = (target_rpm_local < current_rpm) ? 1.0f : 0.0f;
+    float hold_mask = 1.0f - accel_mask - decel_mask;
 
-    if (current_rpm < 0.0f) current_rpm = 0.0f;
-    if (current_rpm > target_rpm) current_rpm = target_rpm;
+    // Safe division for progress (only matters when accel_mask == 1, target > 100)
+    float safe_target_local = std::max(target_rpm_local, 1.0f);
+    float progress = current_rpm / safe_target_local;
+    float nonlinearity = 1.0f + 3.0f * progress * (1.0f - progress);
+
+    float diff = target_rpm_local - current_rpm;
+    float delta = diff * dt * inertia;
+
+    float change = delta * nonlinearity * accel_mask
+                 + delta * 2.0f * decel_mask
+                 + delta * hold_mask;
+
+    current_rpm += change;
+
+    // Branchless clamp
+    current_rpm = std::clamp(current_rpm, 0.0f, target_rpm);
 
     // rpm_out canonical value is set by post_step (percentage 0-100).
     // No write here to avoid mid-step inconsistency.
@@ -914,25 +916,24 @@ void RU19A<Provider>::solve_mechanical(SimulationState& st, float dt) {
 
 template <typename Provider>
 void RU19A<Provider>::solve_thermal(SimulationState& st, float dt) {
-    (void)st;
-
-    float target_temp = ambient_temp;
-
     constexpr float THERMAL_INERTIA_HEATING = 0.2f;
     constexpr float THERMAL_INERTIA_COOLING = 0.1f;
 
-    float inertia = THERMAL_INERTIA_COOLING;
+    // Branchless state masks
+    float ign_mask = (this->state == APUState::IGNITION) ? 1.0f : 0.0f;
+    float run_mask = (this->state == APUState::RUNNING) ? 1.0f : 0.0f;
+    float heat_mask = std::max(ign_mask, run_mask); // heating if ignition or running
+    float cool_mask = 1.0f - heat_mask;
 
-    if (this->state == APUState::IGNITION) {
-        target_temp = 150.0f;
-        inertia = THERMAL_INERTIA_HEATING;
-    } else if (this->state == APUState::RUNNING) {
-        target_temp = t4_target;
-        inertia = THERMAL_INERTIA_HEATING;
-    }
+    // Target temperature: ambient when cooling, 150 for ignition, t4_target for running
+    float target_temp = ambient_temp * cool_mask + 150.0f * ign_mask + t4_target * run_mask;
+
+    // Inertia: heating rate when hot states, cooling rate otherwise
+    float inertia = THERMAL_INERTIA_HEATING * heat_mask + THERMAL_INERTIA_COOLING * cool_mask;
 
     t4 += (target_temp - t4) * dt * inertia;
 
+    // Thermal overtemp protection (state transition stays branchy — runs at 1 Hz)
     if (t4 > t4_max) {
         this->state = APUState::STOPPING;
     }
@@ -990,10 +991,15 @@ void RU19A<Provider>::post_step(SimulationState& st, float dt) {
         }
     }
 
-    float safe_target_rpm = std::max(target_rpm, 1.0f);
-    float rpm_percent = current_rpm / safe_target_rpm;
+    float rpm_percent = current_rpm * inv_target_rpm;
     st.across[provider.get(PortNames::rpm_out)] = rpm_percent * 100.0f;
     st.across[provider.get(PortNames::t4_out)] = t4;
+}
+
+// RU19A pre_load: precompute inverse target RPM
+template <typename Provider>
+void RU19A<Provider>::pre_load() {
+    inv_target_rpm = 1.0f / std::max(target_rpm, 1.0f);
 }
 
 // =============================================================================
@@ -1028,10 +1034,12 @@ void AZS<Provider>::pre_load() {
 template <typename Provider>
 void AZS<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     v_out_old = st.across[provider.get(PortNames::v_out)];
-    if (closed && downstream_g > 0.0f) {
-        st.conductance[provider.get(PortNames::v_in)] += downstream_g;
-        st.through[provider.get(PortNames::v_in)] += downstream_I - st.across[provider.get(PortNames::v_in)] * downstream_g;
-    }
+    // Branchless: mask is 0 when open or downstream_g <= 0
+    float mask = (closed && downstream_g > 0.0f) ? 1.0f : 0.0f;
+    float g = downstream_g * mask;
+    float i = downstream_I * mask;
+    st.conductance[provider.get(PortNames::v_in)] += g;
+    st.through[provider.get(PortNames::v_in)] += i - st.across[provider.get(PortNames::v_in)] * g;
 }
 
 template <typename Provider>
@@ -1040,7 +1048,8 @@ void AZS<Provider>::solve_thermal(SimulationState& st, float dt) {
     float I = current;
     // T += (I² * r_heat - T * k_cool) * dt — vectorizable, no sqrt
     temp += (I * I * r_heat - temp * k_cool) * dt;
-    if (temp < 0.0f) temp = 0.0f;
+    // Branchless floor at zero
+    temp = std::max(temp, 0.0f);
 }
 
 template <typename Provider>
@@ -1129,9 +1138,15 @@ template <typename Provider>
 void Divide<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
-    // Guard against division by zero and non-finite inputs
-    float result = (B != 0.0f) ? (A / B) : 0.0f;
-    st.across[provider.get(PortNames::o)] = std::isfinite(result) ? result : 0.0f;
+    // Branchless safe divide: compute A / safe_B, then zero out if |B| is near zero
+    float abs_B = std::abs(B);
+    // safe_B avoids actual hardware division-by-zero; sign-preserving epsilon
+    float safe_B = B + ((B >= 0.0f) ? 1e-7f : -1e-7f);
+    float result = A / safe_B;
+    // Mask: 1.0 when |B| > threshold, 0.0 when |B| ≈ 0
+    // This ensures divide-by-zero returns exactly 0
+    float nonzero_mask = (abs_B > 1e-6f) ? 1.0f : 0.0f;
+    st.across[provider.get(PortNames::o)] = result * nonzero_mask;
 }
 
 template <typename Provider>

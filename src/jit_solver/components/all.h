@@ -233,11 +233,16 @@ public:
     float i_max = 400.0f;
     float rpm_threshold = 0.4f;
 
+    // Precomputed inverses (set in pre_load)
+    float inv_r_internal = 40.0f;   // 1/r_internal
+    float inv_r_norton = 12.5f;     // 1/r_norton
+    float inv_target_rpm = 1.0f / 15000.0f;
+
     GS24() = default;
 
     void solve_electrical(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
-    void pre_load() {}
+    void pre_load();
 };
 
 /// Transformer - AC transformer with voltage ratio
@@ -425,12 +430,14 @@ public:
     Provider provider;
     float max_brightness = 100.0f;
     float conductance = 1.0f;  // low resistance pass-through indicator
+    float rated_voltage = 28.0f;
+    float inv_rated_voltage = 1.0f / 28.0f; // precomputed
     std::string color = "white";
 
     IndicatorLight() = default;
 
     void solve_electrical(SimulationState& st, float dt);
-    void pre_load() {}
+    void pre_load();
 };
 
 /// HighPowerLoad - high power electrical load (branchless, optimized)
@@ -561,6 +568,7 @@ public:
     float c = 10.0f;            // Viscous damping coefficient (N*s/m)
     float rest_length = 0.1f;   // Free length
     bool compression_only = true;
+    float compression_only_f = 1.0f; // precomputed: 1.0 = compression_only, 0.0 = both
 
     // State for velocity estimation (finite difference)
     float prev_delta_x = 0.0f;
@@ -569,7 +577,7 @@ public:
     Spring() = default;
 
     void solve_mechanical(SimulationState& st, float dt);
-    void pre_load() {}
+    void pre_load();
 };
 
 // =============================================================================
@@ -668,6 +676,9 @@ public:
     float ambient_temp = 20.0f;
     bool auto_start = true;
 
+    // Precomputed inverses (set in pre_load)
+    float inv_target_rpm = 1.0f / 16000.0f;
+
     RU19A() = default;
 
     void start() { if (state == APUState::OFF) state = APUState::CRANKING; }
@@ -678,7 +689,7 @@ public:
     void solve_mechanical(SimulationState& st, float dt);
     void solve_thermal(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
-    void pre_load() {}
+    void pre_load();
 };
 
 /// Radiator - heat exchanger
