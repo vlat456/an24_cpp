@@ -1,6 +1,7 @@
 #include "jit_solver.h"
 #include "scheduling.h"
 #include "state.h"
+#include "../parse_number.h"
 #include "components/all.h"
 #include "components/port_registry.h"
 #include <spdlog/spdlog.h>
@@ -35,15 +36,11 @@ void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult
     }
 }
 
-/// Helper to get float param with default
+/// Helper to get float param with default (locale-independent)
 auto get_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
     auto it = dev.params.find(key);
     if (it != dev.params.end()) {
-        try {
-            return std::stof(it->second);
-        } catch (...) {
-            return default_val;
-        }
+        return locale_safe::parse_float_or(it->second, default_val);
     }
     return default_val;
 };
@@ -656,20 +653,27 @@ BuildResult build_systems_dev(
         unique_roots.size(), result.signal_count, result.fixed_signals.size());
 
     // Create components dynamically using factory
+    // Phase 1: Insert ALL components into the map first.
+    // We must NOT take pointers during insertion because unordered_map
+    // rehashing invalidates all existing pointers/references.
+    std::vector<std::string> device_names_ordered;
     for (const auto& dev : devices) {
         // Skip visual-only devices (no simulation behavior, e.g. Group)
         if (dev.visual_only) continue;
 
         ComponentVariant variant = create_component_variant(dev, result);
-        result.devices[dev.name] = variant;
+        result.devices[dev.name] = std::move(variant);
+        device_names_ordered.push_back(dev.name);
+    }
 
-        // Add to domain-specific vectors for zero-branch iteration
-        // Components can belong to multiple domains (e.g., ElectricHeater: electrical + thermal)
-        ComponentVariant* ptr = &result.devices[dev.name];
-        Domain domain_mask = get_component_domain_mask(variant);
+    // Phase 2: Now that all insertions are done (no more rehashing),
+    // collect stable pointers for domain-specific iteration vectors.
+    for (const auto& name : device_names_ordered) {
+        ComponentVariant* ptr = &result.devices[name];
+        Domain domain_mask = get_component_domain_mask(*ptr);
 
         // Log domain assignment for debugging
-        spdlog::debug("[build] {} -> [{}] domains", dev.name, get_domain_mask_string(domain_mask));
+        spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
 
         // Add component to each domain it belongs to
         if (has_domain(domain_mask, Domain::Electrical)) {
@@ -686,7 +690,7 @@ BuildResult build_systems_dev(
         }
         if (has_domain(domain_mask, Domain::Thermal)) {
             result.domain_components.thermal.push_back(ptr);
-            spdlog::info("[build] {} -> THERMAL domain", dev.name);
+            spdlog::info("[build] {} -> THERMAL domain", name);
         }
     }
 

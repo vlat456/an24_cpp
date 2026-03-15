@@ -10,6 +10,7 @@ using ui::Pt;
 
 /// Snap a position to the user-facing grid (round to nearest).
 inline Pt snap_to_grid(Pt pos, float grid_step) {
+    if (grid_step < 1e-6f) return pos;  // guard against zero/negative
     return Pt(
         std::round(pos.x / grid_step) * grid_step,
         std::round(pos.y / grid_step) * grid_step

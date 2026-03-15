@@ -57,6 +57,7 @@ static void execute(Blueprint& bp, const CmdRemoveNode& cmd) {
     bp.rebuild_node_index();
     bp.rebuild_wire_index();
     bp.rebuild_wire_id_index();
+    bp.rebuild_bus_wire_index();
     bp.rebuild_port_occupancy_index();
 }
 
@@ -94,9 +95,16 @@ static void execute(Blueprint& bp, const CmdReconnectWire& cmd) {
     }
 
     Wire& wire = bp.wires[it->second];
+    Wire old_wire = wire;  // snapshot before modification
+
     WireEnd& endpoint = cmd.is_start ? wire.start : wire.end;
     endpoint.node_id = cmd.new_node_id;
     endpoint.port_name = cmd.new_port_name;
+
+    // Update derived indices to reflect the changed endpoints
+    bp.rekey_wire(old_wire, wire);
+    bp.updateBusIndexForEndpoints(old_wire, wire);
+    bp.updatePortOccupancyForEndpoints(old_wire, wire);
 }
 
 static void execute(Blueprint& bp, const CmdSetParam& cmd) {

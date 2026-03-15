@@ -849,3 +849,149 @@ TEST_F(CommandTest, RestoreLastSnapshotRoundTrip) {
     EXPECT_FALSE(stack.can_undo());
     EXPECT_FALSE(stack.can_redo());  // redo must be untouched
 }
+
+// =============================================================================
+// Regression: CmdReconnectWire must update derived indices
+// =============================================================================
+
+TEST_F(CommandTest, ReconnectWireUpdatesWireDedupIndex) {
+    auto& I = bp.interner();
+    ui::InternedId id_a = I.intern("a");
+    ui::InternedId id_b = I.intern("b");
+    ui::InternedId id_c = I.intern("c");
+
+    Node a; a.id = id_a; a.at(0, 0); a.output(I.intern("out"));
+    Node b; b.id = id_b; b.at(100, 0); b.input(I.intern("in"));
+    Node c; c.id = id_c; c.at(200, 0); c.input(I.intern("in"));
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_node(std::move(c));
+
+    ui::InternedId wid = I.intern("w1");
+    bp.add_wire(Wire::make(wid, wire_output(id_a, I.intern("out")),
+                           wire_input(id_b, I.intern("in"))));
+
+    // Reconnect wire end from node b to node c
+    execute(bp, cmd_reconnect_wire(wid, id_c, I.intern("in"), false));
+
+    // Old endpoint (a→b) should no longer exist in dedup index,
+    // so adding a wire from a→b should succeed
+    ui::InternedId wid2 = I.intern("w2");
+    Wire w2 = Wire::make(wid2, wire_output(id_a, I.intern("out")),
+                         wire_input(id_b, I.intern("in")));
+    size_t idx = bp.add_wire(std::move(w2));
+    EXPECT_NE(idx, SIZE_MAX) << "add_wire should succeed: old dedup key should have been removed";
+}
+
+TEST_F(CommandTest, ReconnectWireUpdatesPortOccupancy) {
+    auto& I = bp.interner();
+    ui::InternedId id_a = I.intern("a");
+    ui::InternedId id_b = I.intern("b");
+    ui::InternedId id_c = I.intern("c");
+
+    Node a; a.id = id_a; a.at(0, 0); a.output(I.intern("out"));
+    Node b; b.id = id_b; b.at(100, 0); b.input(I.intern("in"));
+    Node c; c.id = id_c; c.at(200, 0); c.input(I.intern("in"));
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_node(std::move(c));
+
+    ui::InternedId wid = I.intern("w1");
+    bp.add_wire(Wire::make(wid, wire_output(id_a, I.intern("out")),
+                           wire_input(id_b, I.intern("in"))));
+
+    EXPECT_TRUE(bp.is_port_occupied(id_b, I.intern("in")));
+
+    // Reconnect wire end from b to c
+    execute(bp, cmd_reconnect_wire(wid, id_c, I.intern("in"), false));
+
+    // Old port should be freed, new port should be occupied
+    EXPECT_FALSE(bp.is_port_occupied(id_b, I.intern("in")))
+        << "Port on node b should be free after reconnect";
+    EXPECT_TRUE(bp.is_port_occupied(id_c, I.intern("in")))
+        << "Port on node c should be occupied after reconnect";
+}
+
+TEST_F(CommandTest, ReconnectWireUndoRoundTrip) {
+    auto& I = bp.interner();
+    ui::InternedId id_a = I.intern("a");
+    ui::InternedId id_b = I.intern("b");
+    ui::InternedId id_c = I.intern("c");
+
+    Node a; a.id = id_a; a.at(0, 0); a.output(I.intern("out"));
+    Node b; b.id = id_b; b.at(100, 0); b.input(I.intern("in"));
+    Node c; c.id = id_c; c.at(200, 0); c.input(I.intern("in"));
+    bp.add_node(std::move(a));
+    bp.add_node(std::move(b));
+    bp.add_node(std::move(c));
+
+    ui::InternedId wid = I.intern("w1");
+    bp.add_wire(Wire::make(wid, wire_output(id_a, I.intern("out")),
+                           wire_input(id_b, I.intern("in"))));
+
+    UndoStack stack;
+    size_t before = blueprint_checksum(bp);
+
+    stack.snapshot(bp);
+    execute(bp, cmd_reconnect_wire(wid, id_c, I.intern("in"), false));
+    EXPECT_NE(blueprint_checksum(bp), before);
+
+    stack.undo(bp);
+    EXPECT_EQ(blueprint_checksum(bp), before);
+}
+
+// =============================================================================
+// Regression: Undo stack must be cleared when loading a new document
+// =============================================================================
+
+TEST_F(CommandTest, UndoStackClearSimulatesDocumentLoad) {
+    UndoStack stack;
+
+    // Simulate editing "document A"
+    stack.snapshot(bp);
+    execute(bp, cmd_set_grid_step(42.0f));
+    stack.snapshot(bp);
+    execute(bp, cmd_set_grid_step(99.0f));
+    EXPECT_TRUE(stack.can_undo());
+
+    // Simulate "load new document" — must clear undo stack
+    bp.grid_step = 16.0f;  // new document state
+    stack.clear();
+    stack.mark_saved();
+
+    EXPECT_FALSE(stack.can_undo())
+        << "Undo stack must be empty after loading a new document";
+    EXPECT_FALSE(stack.can_redo());
+    EXPECT_FALSE(stack.is_dirty());
+}
+
+// =============================================================================
+// Regression: CmdRemoveNode must rebuild bus_wire_index_
+// =============================================================================
+
+TEST_F(CommandTest, RemoveBusNodeClearsBusWireIndex) {
+    auto& I = bp.interner();
+    ui::InternedId id_bus = I.intern("bus1");
+    ui::InternedId id_load = I.intern("load1");
+
+    Node bus; bus.id = id_bus; bus.at(0, 0); bus.type_name = "Bus";
+    bus.output(I.intern("v_out"));
+    bp.add_node(std::move(bus));
+
+    Node load; load.id = id_load; load.at(100, 0);
+    load.input(I.intern("v_in"));
+    bp.add_node(std::move(load));
+
+    ui::InternedId wid = I.intern("w1");
+    bp.add_wire(Wire::make(wid, wire_output(id_bus, I.intern("v_out")),
+                           wire_input(id_load, I.intern("v_in"))));
+
+    // Bus wire index should have an entry for bus1
+    EXPECT_FALSE(bp.busWires(id_bus).empty());
+
+    // Remove the bus node — should clean up bus_wire_index_
+    execute(bp, cmd_remove_node(id_bus));
+
+    EXPECT_TRUE(bp.busWires(id_bus).empty())
+        << "bus_wire_index_ must be cleaned up when a bus node is removed";
+}

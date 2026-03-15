@@ -226,4 +226,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/library_v2_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/multi_domain_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/command_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/transformer_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/generator_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/apu_mechanical_tests.dir/DependInfo.cmake"
   )

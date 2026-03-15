@@ -105,14 +105,15 @@ TEST(CodegenSanitize, DeviceNamesWithColonsAreValidIdentifiers) {
         << "Source contains device names with colons that aren't valid C++ identifiers";
 
     // The sanitized names should be present
+    // ':' → '_', '-' → '_DASH_', '.' → '_DOT_'
     EXPECT_NE(header.find("bp_1_bat"), std::string::npos)
         << "Sanitized name bp_1_bat not found in header";
     EXPECT_NE(header.find("bp_1_gnd"), std::string::npos)
         << "Sanitized name bp_1_gnd not found in header";
-    EXPECT_NE(header.find("bp_1_main_bus"), std::string::npos)
-        << "Sanitized name bp_1_main_bus not found in header (hyphen should become underscore)";
-    EXPECT_NE(header.find("bp_1_load_1"), std::string::npos)
-        << "Sanitized name bp_1_load_1 not found in header (dot should become underscore)";
+    EXPECT_NE(header.find("bp_1_main_DASH_bus"), std::string::npos)
+        << "Sanitized name bp_1_main_DASH_bus not found in header (hyphen should become _DASH_)";
+    EXPECT_NE(header.find("bp_1_load_DOT_1"), std::string::npos)
+        << "Sanitized name bp_1_load_DOT_1 not found in header (dot should become _DOT_)";
 
     // Verify source also uses sanitized names in method bodies
     EXPECT_NE(source.find("bp_1_bat.solve_electrical"), std::string::npos)
@@ -145,7 +146,46 @@ TEST(CodegenSanitize, SanitizeNameFunction) {
     };
 
     gen_and_check("dev:sub", "dev_sub");
-    gen_and_check("dev-name", "dev_name");
-    gen_and_check("dev.part", "dev_part");
-    gen_and_check("a:b-c.d", "a_b_c_d");
+    gen_and_check("dev-name", "dev_DASH_name");
+    gen_and_check("dev.part", "dev_DOT_part");
+    gen_and_check("a:b-c.d", "a_b_DASH_c_DOT_d");
+}
+
+TEST(CodegenSanitize, NoCollisionBetweenDotAndDashAndColon) {
+    // Regression: previously "engine.temp", "engine:temp", and "engine-temp"
+    // all collapsed to "engine_temp", causing C++ redefinition errors.
+    // With the new scheme: '.' → _DOT_, '-' → _DASH_, ':' → '_'
+    // they produce distinct identifiers.
+
+    auto sanitize_via_codegen = [](const std::string& name) -> std::string {
+        std::vector<DeviceInstance> devices;
+        DeviceInstance dev;
+        dev.name = name;
+        dev.classname = "RefNode";
+        dev.ports["v"] = {PortDirection::Out};
+        dev.domains = {Domain::Electrical};
+        devices.push_back(dev);
+
+        std::unordered_map<std::string, uint32_t> port_to_signal;
+        port_to_signal[name + ".v"] = 0;
+
+        return CodeGen::generate_header("test.json", devices, {}, port_to_signal, 1);
+    };
+
+    std::string h_dot   = sanitize_via_codegen("engine.temp");
+    std::string h_colon = sanitize_via_codegen("engine:temp");
+    std::string h_dash  = sanitize_via_codegen("engine-temp");
+
+    // Each should produce a unique identifier
+    EXPECT_NE(h_dot.find("engine_DOT_temp"), std::string::npos)
+        << "engine.temp should sanitize to engine_DOT_temp";
+    EXPECT_NE(h_colon.find("engine_temp"), std::string::npos)
+        << "engine:temp should sanitize to engine_temp";
+    EXPECT_NE(h_dash.find("engine_DASH_temp"), std::string::npos)
+        << "engine-temp should sanitize to engine_DASH_temp";
+
+    // Verify they are all different: _DOT_ vs _ vs _DASH_
+    // The key guarantee is that "engine.temp" does NOT produce "engine_temp"
+    EXPECT_EQ(h_dot.find("RefNode<AotProvider<Binding<PortNames::v, 0>>> engine_temp;"), std::string::npos)
+        << "engine.temp must NOT collide with engine:temp (both producing 'engine_temp')";
 }

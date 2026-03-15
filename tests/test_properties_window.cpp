@@ -100,7 +100,7 @@ TEST(PropertiesWindow, CancelRevertsAddedParam) {
         << "Added param should be removed on cancel";
 }
 
-TEST(PropertiesWindow, OpenTwiceOverwritesSnapshot) {
+TEST(PropertiesWindow, OpenTwiceRevertsFirstThenSnapshots) {
     Blueprint bp;
     UndoStack undo;
 
@@ -118,18 +118,27 @@ TEST(PropertiesWindow, OpenTwiceOverwritesSnapshot) {
     // First open
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // User edits
+    // User edits v in-place (simulating ImGui text field)
     node_ptr->params["v"] = "12.0";
 
-    // Open again (re-snapshot)
+    // Open again — should cancel the first open (reverting v to 28.0),
+    // then snapshot the reverted state.
+    node_ptr = bp.find_node("bat1");
+    ASSERT_NE(node_ptr, nullptr);
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
-    // Cancel now should revert to the second snapshot (v=12.0)
+    // The first edit should have been reverted
+    node_ptr = bp.find_node("bat1");
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_EQ(node_ptr->params["v"], "28.0")
+        << "Re-opening must revert first session's uncommitted edits";
+
+    // Cancel the second open
     win.close();
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
-    EXPECT_EQ(node_ptr->params["v"], "12.0")
-        << "Second open() should create a new snapshot";
+    EXPECT_EQ(node_ptr->params["v"], "28.0")
+        << "Cancel should restore the snapshot taken at second open()";
 }
 
 TEST(PropertiesWindow, ClosedWindowIsNotOpen) {

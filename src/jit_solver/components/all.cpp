@@ -1,6 +1,7 @@
 #include "components/all.h"
 #include "components/port_registry.h"
 #include "../state.h"
+#include "../parse_number.h"
 #include <cmath>
 #include <cstring>
 
@@ -25,9 +26,8 @@ void Battery<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void Battery<Provider>::pre_load() {
-    if (internal_r > 0.0f) {
-        inv_internal_r = 1.0f / internal_r;
-    }
+    float safe_r = std::max(internal_r, 1e-6f);
+    inv_internal_r = 1.0f / safe_r;
 }
 
 // =============================================================================
@@ -144,9 +144,6 @@ void Resistor<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void Load<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v = st.across[provider.get(PortNames::input)];
-    float i = v * conductance;
-
     stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
                           provider.get(PortNames::input), conductance);
 }
@@ -194,17 +191,15 @@ void BlueprintOutput<Provider>::solve_electrical(SimulationState& st, float /*dt
 template <typename Provider>
 void Generator<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float g = inv_internal_r;
-    float v_gnd = st.across[provider.get(PortNames::v_in)];
-    float v_bus = st.across[provider.get(PortNames::v_out)];
 
-    float i = (v_nominal + v_gnd - v_bus) * g;
-    i = std::clamp(i, -1000.0f, 1000.0f);
+    // Norton equivalent: same stamp as Battery
+    // stamp_two_port handles conductance and residual current between two nodes
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
 
-    st.through[provider.get(PortNames::v_out)] += i;
-    st.through[provider.get(PortNames::v_in)] -= i;
-
-    st.conductance[provider.get(PortNames::v_out)] += g;
-    st.conductance[provider.get(PortNames::v_in)] += g;
+    // Voltage source contribution: I_source = V_nominal * G
+    st.through[provider.get(PortNames::v_out)] += v_nominal * g;
+    st.through[provider.get(PortNames::v_in)] -= v_nominal * g;
 }
 
 template <typename Provider>
@@ -218,24 +213,25 @@ void Generator<Provider>::pre_load() {
 
 template <typename Provider>
 void GS24<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_bus = st.across[provider.get(PortNames::v_out)];
-    float v_gnd = st.across[provider.get(PortNames::v_in)];
-    float rpm_percent = current_rpm / target_rpm;
+    float safe_target_rpm = std::max(target_rpm, 1.0f);
+    float rpm_percent = current_rpm / safe_target_rpm;
 
     if (mode == GS24Mode::STARTER) {
+        // Starter motor: back-EMF model with internal resistance.
+        // Norton equivalent: G = 1/R, I_source = back_emf * G (reduces net drain)
+        float safe_r = std::max(r_internal, 1e-6f);
+        float g_internal = 1.0f / safe_r;
         float back_emf = k_motor * current_rpm;
-        float i_consumed = (v_bus - back_emf) / r_internal;
+        float i_source = std::clamp(back_emf * g_internal, 0.0f, i_max_starter);
 
-        if (i_consumed < 50.0f) i_consumed = 50.0f;
-        if (i_consumed > i_max_starter) i_consumed = i_max_starter;
-
-        float g_internal = 1.0f / r_internal;
-
-        st.through[provider.get(PortNames::v_out)] -= i_consumed;
-        st.through[provider.get(PortNames::v_in)] += i_consumed;
-        st.conductance[provider.get(PortNames::v_out)] += g_internal;
+        // stamp_one_port_ground: through -= V*G, conductance += G
+        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                              provider.get(PortNames::v_out), g_internal);
+        // Back-EMF reduces net current draw
+        st.through[provider.get(PortNames::v_out)] += i_source;
 
     } else if (mode == GS24Mode::GENERATOR) {
+        // Generator: Norton current source (I_source in parallel with G_norton)
         float phi = 0.0f;
         if (rpm_percent >= 0.6f) {
             phi = 1.0f;
@@ -243,15 +239,16 @@ void GS24<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
             phi = (rpm_percent - rpm_threshold) / 0.2f;
         }
 
-        float k_mod = (provider.get(PortNames::k_mod) > 0) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
+        float k_mod_val = (provider.get(PortNames::k_mod) > 0) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
 
-        float i_no = i_max * phi * k_mod;
-        i_no = std::clamp(i_no, 0.0f, 100.0f);
-
+        float i_no = std::clamp(i_max * phi * k_mod_val, 0.0f, 100.0f);
         float g_norton = (r_norton > 0.0f) ? 1.0f / r_norton : 0.0f;
 
+        // stamp_one_port_ground: through -= V*G, conductance += G
+        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                              provider.get(PortNames::v_out), g_norton);
+        // Norton current source drives bus voltage up
         st.through[provider.get(PortNames::v_out)] += i_no;
-        st.conductance[provider.get(PortNames::v_out)] += g_norton;
     }
 }
 
@@ -259,7 +256,8 @@ template <typename Provider>
 void GS24<Provider>::post_step(SimulationState& st, float dt) {
     (void)st;
 
-    float rpm_percent = current_rpm / target_rpm;
+    float safe_target_rpm = std::max(target_rpm, 1.0f);
+    float rpm_percent = current_rpm / safe_target_rpm;
 
     switch (mode) {
         case GS24Mode::STARTER:
@@ -303,15 +301,20 @@ void GS24<Provider>::post_step(SimulationState& st, float dt) {
 template <typename Provider>
 void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_primary = st.across[provider.get(PortNames::primary)];
-    float v_secondary = v_primary * ratio;
+    float v_secondary_target = v_primary * ratio;
 
-    float g = 1.0f;
-    st.conductance[provider.get(PortNames::primary)] += g;
-    st.conductance[provider.get(PortNames::secondary)] += g;
+    // Secondary side: drive output toward v_primary * ratio
+    float g_secondary = 1.0f;
+    st.conductance[provider.get(PortNames::secondary)] += g_secondary;
+    st.through[provider.get(PortNames::secondary)] += v_secondary_target * g_secondary;
 
-    float i = v_secondary * g;
-    st.through[provider.get(PortNames::secondary)] += i;
-    st.through[provider.get(PortNames::primary)] -= i;
+    // Primary side: reflect secondary load through impedance transformation
+    // Power conservation: P_primary = P_secondary
+    //   I_primary * V_primary = I_secondary * V_secondary
+    //   Reflected conductance: g_primary = g_secondary * ratio²
+    float g_primary = g_secondary * ratio * ratio;
+    st.conductance[provider.get(PortNames::primary)] += g_primary;
+    st.through[provider.get(PortNames::primary)] -= v_primary * g_primary;
 }
 
 // =============================================================================
@@ -326,6 +329,13 @@ void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float g = 1.0f;
     st.conductance[provider.get(PortNames::ac_out)] += g;
     st.through[provider.get(PortNames::ac_out)] += v_ac * g;
+
+    // Draw proportional current from DC input (energy conservation)
+    // P_dc = P_ac → I_dc * V_dc = I_ac * V_ac
+    // Approximate DC load as conductance: g_dc = g * efficiency
+    float g_dc = g * efficiency;
+    st.conductance[provider.get(PortNames::dc_in)] += g_dc;
+    st.through[provider.get(PortNames::dc_in)] -= v_dc * g_dc;
 }
 
 // =============================================================================
@@ -544,21 +554,14 @@ void Merger<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
 void IndicatorLight<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_in = st.across[provider.get(PortNames::v_in)];
-    float v_out = st.across[provider.get(PortNames::v_out)];
-    float v_diff = v_in - v_out;
-
     float g = conductance;
-    float i = v_diff * g;
 
-    st.through[provider.get(PortNames::v_out)] += i;
-    st.through[provider.get(PortNames::v_in)] -= i;
-    st.conductance[provider.get(PortNames::v_out)] += g;
-    st.conductance[provider.get(PortNames::v_in)] += g;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
 
+    float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
     float normalized = std::clamp(v_diff / 28.0f, 0.0f, 1.0f);
-    float brightness = normalized * max_brightness;
-    st.across[provider.get(PortNames::brightness)] = brightness;
+    st.across[provider.get(PortNames::brightness)] = normalized * max_brightness;
 }
 
 // =============================================================================
@@ -575,13 +578,13 @@ void HighPowerLoad<Provider>::solve_electrical(SimulationState& st, float /*dt*/
     float safe_v_diff = std::max(v_diff, min_voltage_diff);
     float conduct_mask = (v_diff > min_voltage_diff) ? 1.0f : 0.0f;
 
-    float i = power_draw / safe_v_diff * conduct_mask;
-    float g = i / safe_v_diff;
+    // Constant-power load: P = V * I → I = P / V, G = I / V = P / V²
+    float g = power_draw / (safe_v_diff * safe_v_diff) * conduct_mask;
 
-    st.through[provider.get(PortNames::v_out)] += i;
-    st.through[provider.get(PortNames::v_in)] -= i;
-    st.conductance[provider.get(PortNames::v_out)] += g;
-    st.conductance[provider.get(PortNames::v_in)] += g;
+    // Use standard two-port stamp: current flows from v_in to v_out through the load
+    // stamp_two_port handles SOR-compatible residual decomposition
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_in), provider.get(PortNames::v_out), g);
 }
 
 // =============================================================================
@@ -599,16 +602,14 @@ void Voltmeter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void Gyroscope<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_input = st.across[provider.get(PortNames::input)];
-    st.conductance[provider.get(PortNames::input)] += conductance;
-    st.through[provider.get(PortNames::input)] -= v_input * conductance;
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::input), conductance);
 }
 
 template <typename Provider>
 void AGK47<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_input = st.across[provider.get(PortNames::input)];
-    st.conductance[provider.get(PortNames::input)] += conductance;
-    st.through[provider.get(PortNames::input)] -= v_input * conductance;
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::input), conductance);
 }
 
 // =============================================================================
@@ -617,10 +618,10 @@ void AGK47<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void ElectricPump<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_in = st.across[provider.get(PortNames::v_in)];
-    float g = 0.01f;
-    st.conductance[provider.get(PortNames::v_in)] += g;
-    st.through[provider.get(PortNames::v_in)] -= v_in * g;
+    // Motor draws constant small current from electrical bus (resistive load to ground)
+    constexpr float G_MOTOR = 0.01f;
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::v_in), G_MOTOR);
 }
 
 template <typename Provider>
@@ -681,23 +682,38 @@ void InertiaNode<Provider>::pre_load() {
 // =============================================================================
 
 template <typename Provider>
-void Spring<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {
+void Spring<Provider>::solve_mechanical(SimulationState& st, float dt) {
     float pA = st.across[provider.get(PortNames::pos_a)];
     float pB = st.across[provider.get(PortNames::pos_b)];
 
     // 1. Calculate current deformation
     float delta_x = (pA - pB) - rest_length;
 
-    // 2. Spring force (Hooke's Law)
-    float force = delta_x * k;
+    // 2. Branchless cold start: initialize prev_delta_x on first frame
+    prev_delta_x += (delta_x - prev_delta_x) * first_frame_mask;
+    first_frame_mask = 0.0f;
 
-    // 3. If spring works only in compression (like in RUG-82 governor),
+    // 3. Spring force (Hooke's Law): F_spring = k * |delta_x|
+    float spring_force = delta_x * k;
+
+    // 4. Viscous damping force: F_damp = c * velocity
+    //    velocity ≈ (delta_x - prev_delta_x) / dt (finite difference)
+    float safe_dt = std::max(dt, 1e-6f);
+    float velocity = (delta_x - prev_delta_x) / safe_dt;
+    float damping_force = c * velocity;
+
+    // 5. Total force = spring + damping (both resist motion)
+    float total_force = spring_force + damping_force;
+
+    // 6. If spring works only in compression (like in RUG-82 governor),
     //    cut off stretching forces (branchless select)
     float compression_mask = (compression_only) ? ((delta_x < 0.0f) ? 1.0f : 0.0f) : 1.0f;
 
-    // Result (invert sign because spring resists compression)
-    // std::abs ensures force is positive for compression
-    st.across[provider.get(PortNames::force_out)] = std::abs(force) * compression_mask;
+    // 7. Result: std::abs ensures force magnitude is always non-negative
+    st.across[provider.get(PortNames::force_out)] = std::abs(total_force) * compression_mask;
+
+    // 8. Store for next frame
+    prev_delta_x = delta_x;
 }
 
 // =============================================================================
@@ -716,10 +732,14 @@ void TempSensor<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void ElectricHeater<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    // Heater is a nonlinear resistive load: P = max_power at rated voltage.
+    // Conductance: G = P / V² (with safety floor to avoid div-by-zero)
     float v_in = st.across[provider.get(PortNames::power)];
     float g = max_power / (v_in * v_in + 0.01f);
-    st.conductance[provider.get(PortNames::power)] += g;
-    st.through[provider.get(PortNames::power)] -= v_in * g * efficiency;
+
+    // Full electrical power is dissipated (efficiency applies only to thermal output)
+    stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                          provider.get(PortNames::power), g);
 }
 
 template <typename Provider>
@@ -756,14 +776,11 @@ void DMR400<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
         return;
     }
 
-    float g_closed = 100.0f;
-
-    st.conductance[provider.get(PortNames::v_gen_ref)] += g_closed;
-    st.conductance[provider.get(PortNames::v_out)] += g_closed;
-
-    float v_avg = (st.across[provider.get(PortNames::v_gen_ref)] + st.across[provider.get(PortNames::v_out)]) * 0.5f;
-    st.through[provider.get(PortNames::v_gen_ref)] += (v_avg - st.across[provider.get(PortNames::v_gen_ref)]) * g_closed;
-    st.through[provider.get(PortNames::v_out)] += (v_avg - st.across[provider.get(PortNames::v_out)]) * g_closed;
+    // When closed, the DMR acts as a low-impedance connection between
+    // generator reference and output bus. Model as a high-conductance two-port.
+    constexpr float G_CLOSED = 100.0f;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_gen_ref), provider.get(PortNames::v_out), G_CLOSED);
 }
 
 template <typename Provider>
@@ -805,19 +822,30 @@ void RU19A<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     if (this->state == APUState::CRANKING || this->state == APUState::IGNITION) {
         constexpr float R_START_INTERNAL = 0.025f;
         constexpr float K_MOTOR_BACK_EMF = 38.0f;
+        constexpr float I_MAX_START = 1000.0f;
 
-        float rpm_percent = current_rpm / target_rpm;
+        float safe_target_rpm = std::max(target_rpm, 1.0f);
+        float rpm_percent = current_rpm / safe_target_rpm;
         float back_emf = K_MOTOR_BACK_EMF * rpm_percent;
-        float i_consumed = (v_start - back_emf) / R_START_INTERNAL;
 
-        if (i_consumed < 0.0f) i_consumed = 0.0f;
-        if (i_consumed > 1000.0f) i_consumed = 1000.0f;
+        // Norton stamp: starter motor modeled as back-EMF voltage source
+        // with internal resistance R_START_INTERNAL.
+        // I = (V_start - back_emf) / R → Norton: I_source = back_emf / R, G = 1/R
+        // Residual = -V_start * G + back_emf * G (clamped to [0, I_MAX])
+        float g_start = 1.0f / R_START_INTERNAL;
 
-        st.through[provider.get(PortNames::v_start)] -= i_consumed;
-        st.conductance[provider.get(PortNames::v_start)] += 1.0f / R_START_INTERNAL;
+        // Clamp the Norton source current to physical limits
+        float i_source = std::clamp(back_emf * g_start, 0.0f, I_MAX_START);
+
+        // stamp_one_port_ground handles: through -= V*G, conductance += G
+        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                              provider.get(PortNames::v_start), g_start);
+        // Add back-EMF source current (reduces net drain)
+        st.through[provider.get(PortNames::v_start)] += i_source;
 
     } else if (this->state == APUState::RUNNING) {
-        float rpm_percent = current_rpm / target_rpm;
+        float safe_target_rpm = std::max(target_rpm, 1.0f);
+        float rpm_percent = current_rpm / safe_target_rpm;
 
         float phi = 0.0f;
         if (rpm_percent >= 0.6f) {
@@ -828,13 +856,16 @@ void RU19A<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
         float k_mod = st.across[provider.get(PortNames::k_mod)];
 
-        float i_no = 400.0f * phi * k_mod;
-        if (i_no > 100.0f) i_no = 100.0f;
+        float i_no = std::clamp(400.0f * phi * k_mod, 0.0f, 100.0f);
 
         float g_norton = 1.0f / 0.08f;
 
+        // Norton stamp: I_source in parallel with G_norton
+        // stamp_one_port_ground handles: through -= V*G, conductance += G
+        stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
+                              provider.get(PortNames::v_bus), g_norton);
+        // Generator current source (drives bus voltage up)
         st.through[provider.get(PortNames::v_bus)] += i_no;
-        st.conductance[provider.get(PortNames::v_bus)] += g_norton;
     }
 }
 
@@ -877,7 +908,8 @@ void RU19A<Provider>::solve_mechanical(SimulationState& st, float dt) {
     if (current_rpm < 0.0f) current_rpm = 0.0f;
     if (current_rpm > target_rpm) current_rpm = target_rpm;
 
-    st.across[provider.get(PortNames::rpm_out)] = current_rpm;
+    // rpm_out canonical value is set by post_step (percentage 0-100).
+    // No write here to avoid mid-step inconsistency.
 }
 
 template <typename Provider>
@@ -958,7 +990,8 @@ void RU19A<Provider>::post_step(SimulationState& st, float dt) {
         }
     }
 
-    float rpm_percent = current_rpm / target_rpm;
+    float safe_target_rpm = std::max(target_rpm, 1.0f);
+    float rpm_percent = current_rpm / safe_target_rpm;
     st.across[provider.get(PortNames::rpm_out)] = rpm_percent * 100.0f;
     st.across[provider.get(PortNames::t4_out)] = t4;
 }
@@ -1096,8 +1129,9 @@ template <typename Provider>
 void Divide<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float A = st.across[provider.get(PortNames::A)];
     float B = st.across[provider.get(PortNames::B)];
-    // Guard against division by zero
-    st.across[provider.get(PortNames::o)] = (B != 0.0f) ? (A / B) : 0.0f;
+    // Guard against division by zero and non-finite inputs
+    float result = (B != 0.0f) ? (A / B) : 0.0f;
+    st.across[provider.get(PortNames::o)] = std::isfinite(result) ? result : 0.0f;
 }
 
 template <typename Provider>
@@ -1163,10 +1197,13 @@ void NAND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 template <typename Provider>
 void Any_V_to_Bool<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     float vin = st.across[provider.get(PortNames::Vin)];
-    // Convert any non-zero voltage to TRUE (including negative) using bit trick
+    // Convert any non-zero finite voltage to TRUE (including negative).
+    // NaN → false (consistent with other gates where NaN is treated as "off").
+    // Uses bit trick: shift left by 1 to drop sign bit, then compare.
+    // Guard against NaN: std::isfinite check first.
     uint32_t b;
     std::memcpy(&b, &vin, sizeof(b));
-    bool result = (b + b) != 0;
+    bool result = ((b + b) != 0) && std::isfinite(vin);
     st.across[provider.get(PortNames::o)] = result ? 1.0f : 0.0f;
 }
 
@@ -1238,13 +1275,15 @@ bool LUT<Provider>::parse_table(const std::string& table_str,
         size_t end = table_str.find(';', colon + 1);
         if (end == std::string::npos) end = table_str.size();
 
-        try {
-            float k = std::stof(table_str.substr(pos, colon - pos));
-            float v = std::stof(table_str.substr(colon + 1, end - colon - 1));
-            keys.push_back(k);
-            values.push_back(v);
-        } catch (...) {
-            break;
+        {
+            // Locale-independent parsing with whitespace tolerance
+            std::string k_str = table_str.substr(pos, colon - pos);
+            std::string v_str = table_str.substr(colon + 1, end - colon - 1);
+            float kf, vf;
+            if (!locale_safe::parse_float(k_str, kf) ||
+                !locale_safe::parse_float(v_str, vf)) break;
+            keys.push_back(kf);
+            values.push_back(vf);
         }
         pos = end;
     }

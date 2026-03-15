@@ -7,6 +7,7 @@
 #include <map>
 #include <algorithm>
 #include <cassert>
+#include <charconv>
 #include <cstdio>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
@@ -1155,7 +1156,8 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
     for (const auto& w : bp.wires) {
         std::string wid(I.resolve(w.id));
         if (wid.compare(0, 5, "wire_") == 0) {
-            int num = std::atoi(wid.c_str() + 5);
+            int num = 0;
+            std::from_chars(wid.data() + 5, wid.data() + wid.size(), num);
             if (num >= bp.next_wire_id) bp.next_wire_id = num + 1;
         }
     }

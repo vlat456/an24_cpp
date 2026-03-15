@@ -1207,6 +1207,48 @@ command_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/build
 .PHONY : command_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/transformer_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/transformer_tests.dir/rule
+.PHONY : tests/CMakeFiles/transformer_tests.dir/rule
+
+# Convenience name for target.
+transformer_tests: tests/CMakeFiles/transformer_tests.dir/rule
+.PHONY : transformer_tests
+
+# fast build rule for target.
+transformer_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/build
+.PHONY : transformer_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/generator_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/generator_tests.dir/rule
+.PHONY : tests/CMakeFiles/generator_tests.dir/rule
+
+# Convenience name for target.
+generator_tests: tests/CMakeFiles/generator_tests.dir/rule
+.PHONY : generator_tests
+
+# fast build rule for target.
+generator_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/build
+.PHONY : generator_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/apu_mechanical_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/apu_mechanical_tests.dir/rule
+.PHONY : tests/CMakeFiles/apu_mechanical_tests.dir/rule
+
+# Convenience name for target.
+apu_mechanical_tests: tests/CMakeFiles/apu_mechanical_tests.dir/rule
+.PHONY : apu_mechanical_tests
+
+# fast build rule for target.
+apu_mechanical_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
+.PHONY : apu_mechanical_tests/fast
+
 __/_deps/imgui-src/imgui.o: __/_deps/imgui-src/imgui.cpp.o
 .PHONY : __/_deps/imgui-src/imgui.o
 
@@ -1372,30 +1414,6 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
 
-__/src/editor/app.o: __/src/editor/app.cpp.o
-.PHONY : __/src/editor/app.o
-
-# target to build an object file
-__/src/editor/app.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/app.cpp.o
-.PHONY : __/src/editor/app.cpp.o
-
-__/src/editor/app.i: __/src/editor/app.cpp.i
-.PHONY : __/src/editor/app.i
-
-# target to preprocess a source file
-__/src/editor/app.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/app.cpp.i
-.PHONY : __/src/editor/app.cpp.i
-
-__/src/editor/app.s: __/src/editor/app.cpp.s
-.PHONY : __/src/editor/app.s
-
-# target to generate assembly for a file
-__/src/editor/app.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/app.cpp.s
-.PHONY : __/src/editor/app.cpp.s
-
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.o
 
@@ -1512,6 +1530,7 @@ __/src/editor/document.o: __/src/editor/document.cpp.o
 
 # target to build an object file
 __/src/editor/document.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.o
 .PHONY : __/src/editor/document.cpp.o
 
@@ -1520,6 +1539,7 @@ __/src/editor/document.i: __/src/editor/document.cpp.i
 
 # target to preprocess a source file
 __/src/editor/document.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.i
 .PHONY : __/src/editor/document.cpp.i
 
@@ -1528,6 +1548,7 @@ __/src/editor/document.s: __/src/editor/document.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/document.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/document.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.s
 .PHONY : __/src/editor/document.cpp.s
 
@@ -2590,6 +2611,30 @@ test_aot_composite.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/test_aot_composite.cpp.s
 .PHONY : test_aot_composite.cpp.s
 
+test_apu_mechanical.o: test_apu_mechanical.cpp.o
+.PHONY : test_apu_mechanical.o
+
+# target to build an object file
+test_apu_mechanical.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.o
+.PHONY : test_apu_mechanical.cpp.o
+
+test_apu_mechanical.i: test_apu_mechanical.cpp.i
+.PHONY : test_apu_mechanical.i
+
+# target to preprocess a source file
+test_apu_mechanical.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.i
+.PHONY : test_apu_mechanical.cpp.i
+
+test_apu_mechanical.s: test_apu_mechanical.cpp.s
+.PHONY : test_apu_mechanical.s
+
+# target to generate assembly for a file
+test_apu_mechanical.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.s
+.PHONY : test_apu_mechanical.cpp.s
+
 test_arithmetic.o: test_arithmetic.cpp.o
 .PHONY : test_arithmetic.o
 
@@ -3045,6 +3090,30 @@ test_expand_type_definition.s: test_expand_type_definition.cpp.s
 test_expand_type_definition.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.s
 .PHONY : test_expand_type_definition.cpp.s
+
+test_generator.o: test_generator.cpp.o
+.PHONY : test_generator.o
+
+# target to build an object file
+test_generator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.o
+.PHONY : test_generator.cpp.o
+
+test_generator.i: test_generator.cpp.i
+.PHONY : test_generator.i
+
+# target to preprocess a source file
+test_generator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.i
+.PHONY : test_generator.cpp.i
+
+test_generator.s: test_generator.cpp.s
+.PHONY : test_generator.s
+
+# target to generate assembly for a file
+test_generator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.s
+.PHONY : test_generator.cpp.s
 
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
@@ -3718,6 +3787,30 @@ test_time_delay.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/test_time_delay.cpp.s
 .PHONY : test_time_delay.cpp.s
 
+test_transformer.o: test_transformer.cpp.o
+.PHONY : test_transformer.o
+
+# target to build an object file
+test_transformer.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.o
+.PHONY : test_transformer.cpp.o
+
+test_transformer.i: test_transformer.cpp.i
+.PHONY : test_transformer.i
+
+# target to preprocess a source file
+test_transformer.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.i
+.PHONY : test_transformer.cpp.i
+
+test_transformer.s: test_transformer.cpp.s
+.PHONY : test_transformer.s
+
+# target to generate assembly for a file
+test_transformer.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/test_transformer.cpp.s
+.PHONY : test_transformer.cpp.s
+
 test_ui_grid.o: test_ui_grid.cpp.o
 .PHONY : test_ui_grid.o
 
@@ -4189,6 +4282,7 @@ help:
 	@echo "... test"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
+	@echo "... apu_mechanical_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
@@ -4212,6 +4306,7 @@ help:
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
+	@echo "... generator_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
 	@echo "... json_parser_tests"
@@ -4243,6 +4338,7 @@ help:
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
+	@echo "... transformer_tests"
 	@echo "... ui_grid_tests"
 	@echo "... ui_interning_tests"
 	@echo "... ui_layout_tests"
@@ -4276,9 +4372,6 @@ help:
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
-	@echo "... __/src/editor/app.o"
-	@echo "... __/src/editor/app.i"
-	@echo "... __/src/editor/app.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
@@ -4378,6 +4471,9 @@ help:
 	@echo "... test_aot_composite.o"
 	@echo "... test_aot_composite.i"
 	@echo "... test_aot_composite.s"
+	@echo "... test_apu_mechanical.o"
+	@echo "... test_apu_mechanical.i"
+	@echo "... test_apu_mechanical.s"
 	@echo "... test_arithmetic.o"
 	@echo "... test_arithmetic.i"
 	@echo "... test_arithmetic.s"
@@ -4435,6 +4531,9 @@ help:
 	@echo "... test_expand_type_definition.o"
 	@echo "... test_expand_type_definition.i"
 	@echo "... test_expand_type_definition.s"
+	@echo "... test_generator.o"
+	@echo "... test_generator.i"
+	@echo "... test_generator.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
@@ -4519,6 +4618,9 @@ help:
 	@echo "... test_time_delay.o"
 	@echo "... test_time_delay.i"
 	@echo "... test_time_delay.s"
+	@echo "... test_transformer.o"
+	@echo "... test_transformer.i"
+	@echo "... test_transformer.s"
 	@echo "... test_ui_grid.o"
 	@echo "... test_ui_grid.i"
 	@echo "... test_ui_grid.s"

@@ -926,6 +926,7 @@ src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cassert \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cctype \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/cerrno \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/charconv \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/chrono \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/climits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/clocale \
@@ -1072,6 +1073,7 @@ src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
+  /Users/vladimir/an24_cpp/src/parse_number.h \
   /Users/vladimir/an24_cpp/src/editor/data/flat_blueprint.h \
   /Users/vladimir/an24_cpp/src/editor/data/type_def_convert.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h
@@ -1618,6 +1620,8 @@ src/json_parser/CMakeFiles/json_parser.dir/json_parser.cpp.o: /Users/vladimir/an
 
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/fstream:
+
+/Users/vladimir/an24_cpp/src/parse_number.h:
 
 /Users/vladimir/an24_cpp/src/editor/data/type_def_convert.cpp:
 
@@ -2238,6 +2242,8 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_key_t.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/xlocale/___wctype.h:
+
+/Library/Developer/CommandLineTools/usr/include/c++/v1/charconv:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__config_site:
 

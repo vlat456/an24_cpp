@@ -157,7 +157,8 @@ AOT_ALWAYS_INLINE void stamp_voltage_source(
     float v_source,
     float r_internal
 ) {
-    float g = 1.0f / r_internal;
+    float safe_r = (r_internal > 1e-9f) ? r_internal : 1e-9f;
+    float g = 1.0f / safe_r;
     float i = (v_source - across[idx]) * g;
     conductance[idx] += g;
     through[idx] += i;

@@ -158,7 +158,10 @@ inline size_t blueprint_checksum(const Blueprint& bp) {
     // Global state
     global.hash_float(bp.grid_step);
 
-    // Nodes — order-independent aggregation via addition
+    // Nodes — order-independent aggregation via addition.
+    // NOTE: Addition is not collision-resistant (e.g., swap of two nodes
+    // with hashes A and B gives the same sum). This is acceptable for debug
+    // verification since node IDs differ and hash_node includes the ID.
     size_t node_sum = 0;
     for (const auto& node : bp.nodes) {
         node_sum += detail::hash_node(node);

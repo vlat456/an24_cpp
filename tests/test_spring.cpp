@@ -218,7 +218,8 @@ TEST(SpringTest, Branchless_CompressionOnly_False)
 
 TEST(SpringTest, VariableInput_ForceChanges)
 {
-    auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
+    // Use c=0 to test pure Hooke's law force response to position changes
+    auto comp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
     auto st = make_state_spring(0.1f, 0.0f);
 
     // At rest
@@ -294,19 +295,54 @@ TEST(SpringTest, CompressionOnly_PosDeltaX_NoForce)
 // Regression Tests
 // =============================================================================
 
-TEST(SpringTest, Regression_DampingParam_HasNoEffect)
+TEST(SpringTest, Regression_DampingAffectsForce)
 {
-    // c (damping) is declared but not yet implemented.
-    // Verify that force depends only on k, not c.
-    auto comp_lo = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
-    auto comp_hi = make_spring(1000.0f, /*c=*/9999.0f, 0.1f, true);
+    // Damping now adds viscous force proportional to velocity.
+    // On the first frame (cold start), velocity is zero so damping has no effect.
+    // On the second frame with changed position, damping should add force.
+    float dt = 1.0f / 60.0f;
+
+    // Spring with zero damping
+    auto comp_lo = make_spring(1000.0f, /*c=*/0.0f, 0.1f, false);
+    auto st1 = make_state_spring(0.05f, 0.0f);
+    comp_lo.solve_mechanical(st1, dt);  // First frame: cold start
+    float force_no_damp_frame1 = st1.across[2];
+
+    // Change position for second frame to create velocity
+    st1.across[0] = 0.04f;
+    comp_lo.solve_mechanical(st1, dt);
+    float force_no_damp_frame2 = st1.across[2];
+
+    // Spring with high damping
+    auto comp_hi = make_spring(1000.0f, /*c=*/9999.0f, 0.1f, false);
+    auto st2 = make_state_spring(0.05f, 0.0f);
+    comp_hi.solve_mechanical(st2, dt);  // First frame: cold start
+
+    // Same position change
+    st2.across[0] = 0.04f;
+    comp_hi.solve_mechanical(st2, dt);
+    float force_hi_damp_frame2 = st2.across[2];
+
+    // On second frame with velocity, high damping should produce different force
+    EXPECT_NE(force_no_damp_frame2, force_hi_damp_frame2);
+}
+
+TEST(SpringTest, Regression_FirstFrameDampingIsZero)
+{
+    // On the first frame, the cold start initializes prev_delta_x = delta_x,
+    // so velocity = 0 and damping force = 0. Only spring force matters.
+    float dt = 1.0f / 60.0f;
+
+    auto comp_nodamp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
+    auto comp_damp   = make_spring(1000.0f, /*c=*/500.0f, 0.1f, true);
 
     auto st1 = make_state_spring(0.05f, 0.0f);
     auto st2 = make_state_spring(0.05f, 0.0f);
 
-    comp_lo.solve_mechanical(st1, 1.0f / 60.0f);
-    comp_hi.solve_mechanical(st2, 1.0f / 60.0f);
+    comp_nodamp.solve_mechanical(st1, dt);
+    comp_damp.solve_mechanical(st2, dt);
 
+    // First frame: both should produce identical force (no velocity yet)
     EXPECT_FLOAT_EQ(st1.across[2], st2.across[2]);
 }
 
@@ -331,16 +367,100 @@ TEST(SpringTest, Regression_ForceAlwaysNonNegative)
     EXPECT_GE(st3.across[2], 0.0f);
 }
 
-TEST(SpringTest, Regression_DtIgnored)
+TEST(SpringTest, Regression_DtAffectsDampingForce)
 {
-    // dt is currently unused (pure algebraic Hooke's law).
-    auto comp = make_spring(1000.0f, 10.0f, 0.1f, true);
+    // dt now matters for damping: velocity = d(delta_x)/dt.
+    // On the first frame (cold start), velocity is 0 regardless of dt.
+    // With c=0 (no damping), dt should not matter at all.
+    auto comp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
 
     auto st1 = make_state_spring(0.05f, 0.0f);
     auto st2 = make_state_spring(0.05f, 0.0f);
 
     comp.solve_mechanical(st1, 1.0f / 60.0f);
-    comp.solve_mechanical(st2, 1.0f);
 
+    // Reset the component state for a fresh cold start
+    auto comp2 = make_spring(1000.0f, /*c=*/0.0f, 0.1f, true);
+    comp2.solve_mechanical(st2, 1.0f);
+
+    // With zero damping, dt doesn't affect the result (pure Hooke's law)
     EXPECT_FLOAT_EQ(st1.across[2], st2.across[2]);
+}
+
+// =============================================================================
+// Viscous Damping Tests
+// =============================================================================
+
+TEST(SpringTest, Damping_CorrectForceValue)
+{
+    // Verify F_damp = c * velocity, where velocity = d(delta_x)/dt.
+    // Frame 1: pos_a = 0.05, delta_x = 0.05 - 0.1 = -0.05 (cold start, velocity = 0)
+    // Frame 2: pos_a = 0.04, delta_x = 0.04 - 0.1 = -0.06
+    //   velocity = (-0.06 - (-0.05)) / dt = -0.01 / (1/60) = -0.6 m/s
+    //   F_spring = 1000 * (-0.06) = -60
+    //   F_damp = 100 * (-0.6) = -60
+    //   total = -60 + (-60) = -120
+    //   |total| = 120, compression_only=false → output = 120
+
+    float dt = 1.0f / 60.0f;
+    auto comp = make_spring(1000.0f, /*c=*/100.0f, 0.1f, false);
+
+    // Frame 1: cold start
+    auto st = make_state_spring(0.05f, 0.0f);
+    comp.solve_mechanical(st, dt);
+
+    // Frame 2: position changed
+    st.across[0] = 0.04f;
+    comp.solve_mechanical(st, dt);
+
+    float expected_spring = 60.0f;   // |1000 * -0.06|
+    float expected_damp = 60.0f;     // |100 * -0.6|
+    float expected_total = expected_spring + expected_damp; // 120.0
+    EXPECT_NEAR(st.across[2], expected_total, 0.01f);
+}
+
+TEST(SpringTest, Damping_OpposesDampingForce)
+{
+    // Moving spring in opposite direction (releasing compression) should reduce total force.
+    // Frame 1: delta_x = -0.05 (compressed)
+    // Frame 2: delta_x = -0.04 (releasing)
+    //   velocity = (-0.04 - (-0.05)) / dt = 0.01 / (1/60) = 0.6 m/s (positive = extending)
+    //   F_spring = 1000 * (-0.04) = -40
+    //   F_damp = 100 * 0.6 = 60
+    //   total = -40 + 60 = 20
+    //   |total| = 20 < 40 (spring-only would be 40)
+
+    float dt = 1.0f / 60.0f;
+    auto comp = make_spring(1000.0f, /*c=*/100.0f, 0.1f, false);
+
+    auto st = make_state_spring(0.05f, 0.0f);
+    comp.solve_mechanical(st, dt);  // cold start
+
+    st.across[0] = 0.06f;
+    comp.solve_mechanical(st, dt);
+
+    // Spring-only would give |1000 * -0.04| = 40
+    // Damping opposes the spring (release velocity), so total < 40
+    EXPECT_LT(st.across[2], 40.0f);
+    EXPECT_GE(st.across[2], 0.0f);
+}
+
+TEST(SpringTest, Damping_ZeroDamping_PureHooke)
+{
+    // With c=0, behavior should be identical to pure Hooke's law
+    float dt = 1.0f / 60.0f;
+    auto comp = make_spring(1000.0f, /*c=*/0.0f, 0.1f, false);
+
+    auto st = make_state_spring(0.05f, 0.0f);
+    comp.solve_mechanical(st, dt);
+
+    // Force = |1000 * (0.05 - 0.1)| = |1000 * -0.05| = 50
+    EXPECT_FLOAT_EQ(st.across[2], 50.0f);
+
+    // Second frame with different position
+    st.across[0] = 0.04f;
+    comp.solve_mechanical(st, dt);
+
+    // Force = |1000 * (0.04 - 0.1)| = |1000 * -0.06| = 60
+    EXPECT_FLOAT_EQ(st.across[2], 60.0f);
 }

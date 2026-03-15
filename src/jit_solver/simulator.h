@@ -49,6 +49,9 @@ public:
     /// Get signal count (for testing)
     size_t get_signal_count() const { return state_.across.size(); }
 
+    /// Get max convergence error across all dynamic signals (for diagnostics/UI)
+    float get_max_convergence_error() const { return state_.get_max_change(); }
+
     /// Get voltage at a port (e.g., "battery.v_out")
     float get_wire_voltage(const std::string& port_name) const;
 

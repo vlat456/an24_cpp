@@ -22,17 +22,17 @@
 // File-local helpers
 // ============================================================================
 
-/// Walk up the widget tree from a port to find the owning node widget ID.
-/// Port → row → column → node widget. Returns "" if not found.
+/// Walk up the widget tree from a port to find the owning root-level
+/// node widget. A root widget is one with no parent (i.e., it is a
+/// direct child of the Scene). We return the first ancestor that has
+/// a non-empty id() and no parent — this is always the node widget
+/// regardless of how many layout layers sit between the port and the node.
 static std::string find_node_widget_id(visual::Widget* port_widget) {
-    visual::Widget* w = port_widget->parent();
-    while (w) {
-        if (!w->id().empty() && !w->parent()) return std::string(w->id());
-        if (!w->id().empty()) {
-            visual::Widget* p = w->parent();
-            if (!p || p->id().empty()) return std::string(w->id());
+    if (!port_widget) return {};
+    for (visual::Widget* w = port_widget->parent(); w; w = w->parent()) {
+        if (!w->id().empty() && !w->parent()) {
+            return std::string(w->id());
         }
-        w = w->parent();
     }
     return {};
 }
@@ -681,6 +681,21 @@ InputResult CanvasInput::on_key(Key key) {
 
     switch (key) {
         case Key::Escape:
+            // If a gesture is in-flight, cancel it and revert any partial mutations.
+            if (state_ != InputState::Idle && state_ != InputState::Panning) {
+                // For states that took a snapshot at enter_*(), restore the
+                // pre-gesture blueprint state and discard the snapshot cleanly
+                // (no redo entry). This reverts any partial drag mutations.
+                if (state_ == InputState::DraggingNode ||
+                    state_ == InputState::DraggingRoutingPoint ||
+                    state_ == InputState::ResizingNode) {
+                    undo_stack_.restore_last_snapshot(bp_);
+                    visual::mutations::rebuild(scene_, bp_, group_id_);
+                }
+                // CreatingWire / ReconnectingWire / MarqueeSelect:
+                // no snapshot was taken yet, just return to Idle.
+                leave_state();
+            }
             clear_selection();
             break;
 
@@ -714,18 +729,16 @@ InputResult CanvasInput::on_key(Key key) {
             break;
 
         case Key::RightBracket: {
-            float new_step = viewport_.grid_step;
             viewport_.grid_step_up();
-            new_step = viewport_.grid_step;
+            float new_step = viewport_.grid_step;
             snapshot_and_execute(cmd_set_grid_step(new_step));
             // Sync: bp.grid_step was set by execute; viewport already updated
             break;
         }
 
         case Key::LeftBracket: {
-            float new_step = viewport_.grid_step;
             viewport_.grid_step_down();
-            new_step = viewport_.grid_step;
+            float new_step = viewport_.grid_step;
             snapshot_and_execute(cmd_set_grid_step(new_step));
             // Sync: bp.grid_step was set by execute; viewport already updated
             break;
@@ -780,8 +793,8 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         if (visual::mutations::add_wire(scene_, bp_, std::move(w), group_id_)) {
             result.rebuild_simulation = true;
         } else {
-            // Wire addition failed — discard the snapshot
-            undo_stack_.undo(bp_);
+            // Wire addition failed — discard the snapshot without polluting redo
+            undo_stack_.discard_last_snapshot();
         }
     }
     return result;
@@ -823,8 +836,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                                          (hit_port_iid == detached.port_name ||
                                           hit_port_iid == wire.id));
                 if (same_as_original) {
-                    // Dropped back on same port — discard snapshot
-                    undo_stack_.undo(bp_);
+                    // Dropped back on same port — discard snapshot without polluting redo
+                    undo_stack_.discard_last_snapshot();
                     return result;
                 }
 
@@ -851,8 +864,8 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         visual::mutations::remove_wire(scene_, bp_, reconnect_wire_idx_);
         result.rebuild_simulation = true;
     } else if (!reconnected) {
-        // No mutation happened — discard snapshot
-        undo_stack_.undo(bp_);
+        // No mutation happened — discard snapshot without polluting redo
+        undo_stack_.discard_last_snapshot();
     }
     return result;
 }

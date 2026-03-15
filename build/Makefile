@@ -1354,6 +1354,45 @@ command_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/build
 .PHONY : command_tests/fast
 
+#=============================================================================
+# Target rules for targets named transformer_tests
+
+# Build rule for target.
+transformer_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 transformer_tests
+.PHONY : transformer_tests
+
+# fast build rule for target.
+transformer_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/build
+.PHONY : transformer_tests/fast
+
+#=============================================================================
+# Target rules for targets named generator_tests
+
+# Build rule for target.
+generator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 generator_tests
+.PHONY : generator_tests
+
+# fast build rule for target.
+generator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/build
+.PHONY : generator_tests/fast
+
+#=============================================================================
+# Target rules for targets named apu_mechanical_tests
+
+# Build rule for target.
+apu_mechanical_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 apu_mechanical_tests
+.PHONY : apu_mechanical_tests
+
+# fast build rule for target.
+apu_mechanical_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
+.PHONY : apu_mechanical_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1372,6 +1411,7 @@ help:
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
+	@echo "... apu_mechanical_tests"
 	@echo "... arithmetic_tests"
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
@@ -1399,6 +1439,7 @@ help:
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
+	@echo "... generator_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"
@@ -1439,6 +1480,7 @@ help:
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
+	@echo "... transformer_tests"
 	@echo "... ui_grid_tests"
 	@echo "... ui_interning_tests"
 	@echo "... ui_layout_tests"

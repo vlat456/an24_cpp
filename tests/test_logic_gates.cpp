@@ -2,6 +2,7 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/all.cpp"
 #include "jit_solver/components/port_registry.h"
+#include <limits>
 
 
 // =============================================================================
@@ -356,4 +357,87 @@ TEST(CombinedLogic, NOT_NAND_Equivalent) {
     float and_out = st.across[2];
 
     EXPECT_NEAR(not_nand_out, and_out, 0.001f);
+}
+
+// =============================================================================
+// NaN Robustness Tests
+// =============================================================================
+
+TEST(NaNRobustness, AND_NaN_TreatedAsFalse) {
+    auto comp = make_and();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so AND(false, true) = false
+    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+}
+
+TEST(NaNRobustness, OR_NaN_TreatedAsFalse) {
+    auto comp = make_or();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    st.across[1] = 0.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so OR(false, false) = false
+    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+}
+
+TEST(NaNRobustness, OR_NaN_WithTrueInput_ReturnsTrue) {
+    auto comp = make_or();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so OR(false, true) = true
+    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+}
+
+TEST(NaNRobustness, NOT_NaN_TreatedAsFalse) {
+    auto comp = make_not();
+    auto st = make_state_2();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so NOT(false) = true
+    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+}
+
+TEST(NaNRobustness, XOR_NaN_TreatedAsFalse) {
+    auto comp = make_xor();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so XOR(false, true) = true
+    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+}
+
+TEST(NaNRobustness, NAND_NaN_TreatedAsFalse) {
+    auto comp = make_nand();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // NaN > 0.5f is false, so NAND(false, true) = !(false && true) = true
+    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+}
+
+TEST(NaNRobustness, Inf_TreatedAsTrue) {
+    auto comp = make_and();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::infinity();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // Inf > 0.5f is true, so AND(true, true) = true
+    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+}
+
+TEST(NaNRobustness, NegInf_TreatedAsFalse) {
+    auto comp = make_and();
+    auto st = make_state();
+    st.across[0] = -std::numeric_limits<float>::infinity();
+    st.across[1] = 1.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // -Inf > 0.5f is false, so AND(false, true) = false
+    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
 }

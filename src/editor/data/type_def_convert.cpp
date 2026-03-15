@@ -1,6 +1,7 @@
 /// Flat ↔ v1 conversion functions for library type definitions.
 
 #include "editor/data/type_def_convert.h"
+#include "../../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -120,25 +121,17 @@ FlatBlueprint type_definition_to_flat(const TypeDefinition& td) {
         for (const auto& [key, val] : td.params) {
             FlatParam pd;
             pd.default_val = val;
-            // Infer type from value string
+            // Infer type from value string (locale-independent)
             if (val == "true" || val == "false") {
                 pd.type = "bool";
-            } else if (val.find('.') != std::string::npos) {
-                // Check if it's a valid float
-                try {
-                    std::stof(val);
-                    pd.type = "float";
-                } catch (...) {
-                    pd.type = "string";
-                }
+            } else if (val.find('.') != std::string::npos && locale_safe::is_float_literal(val)) {
+                pd.type = "float";
+            } else if (locale_safe::is_int_literal(val)) {
+                pd.type = "float";  // Treat integers as float for simulation
+            } else if (locale_safe::is_float_literal(val)) {
+                pd.type = "float";  // Scientific notation without '.'
             } else {
-                // Try integer
-                try {
-                    std::stoi(val);
-                    pd.type = "float";  // Treat integers as float for simulation
-                } catch (...) {
-                    pd.type = "string";
-                }
+                pd.type = "string";
             }
             bp.params[key] = pd;
         }

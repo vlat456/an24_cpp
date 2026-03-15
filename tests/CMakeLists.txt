@@ -1023,7 +1023,7 @@ gtest_discover_tests(multi_window_tests)
 # Params integrity tests (Phase 0: data integrity for Properties Window)
 add_executable(params_integrity_tests
     test_params_integrity.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
@@ -1481,4 +1481,52 @@ target_link_libraries(command_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(command_tests)
+
+# Transformer physics tests
+add_executable(transformer_tests
+    test_transformer.cpp
+)
+target_include_directories(transformer_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(transformer_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(transformer_tests)
+
+# Generator physics tests (Norton stamp regression)
+add_executable(generator_tests
+    test_generator.cpp
+)
+target_include_directories(generator_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+)
+target_link_libraries(generator_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(generator_tests)
+
+# APU mechanical tests (RU19A state machine, RPM scaling, thermal protection)
+add_executable(apu_mechanical_tests
+    test_apu_mechanical.cpp
+)
+target_include_directories(apu_mechanical_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(apu_mechanical_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(apu_mechanical_tests)
 

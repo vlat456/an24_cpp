@@ -90,6 +90,17 @@ bool WindowSystem::closeDocument(Document& doc) {
         pendingBakeIn.show_confirmation = false;
     }
 
+    // Close properties window if it targets this document's blueprint
+    if (properties_window_.isOpen() && properties_window_.targetNodeId().size() > 0) {
+        // PropertiesWindow stores raw Blueprint*/UndoStack* pointers.
+        // If the node it targets exists in the closing document, those pointers
+        // will dangle after destruction — close the window to be safe.
+        Node* target = doc.blueprint().find_node(properties_window_.targetNodeId().c_str());
+        if (target) {
+            properties_window_.close();
+        }
+    }
+
     documents_.erase(it);
 
     // Update inspector and ensure active_document_ is set
@@ -109,6 +120,21 @@ bool WindowSystem::closeDocument(Document& doc) {
 }
 
 bool WindowSystem::closeAllDocuments() {
+    // Close properties window (holds raw pointers into document state)
+    if (properties_window_.isOpen()) {
+        properties_window_.close();
+    }
+
+    // Clear all dangling pointers to documents being destroyed
+    contextMenu.source_doc = nullptr;
+    contextMenu.show = false;
+    nodeContextMenu.source_doc = nullptr;
+    nodeContextMenu.show = false;
+    colorPicker.source_doc = nullptr;
+    colorPicker.show = false;
+    pendingBakeIn.doc = nullptr;
+    pendingBakeIn.show_confirmation = false;
+
     documents_.clear();
     active_document_ = nullptr;
     createDocument();

@@ -9,6 +9,7 @@
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
+#include "parse_number.h"
 #include <spdlog/spdlog.h>
 #include <cstdio>
 
@@ -110,7 +111,7 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
     // Initialize RefNodes
     for (const auto& dev : ctx.devices) {
         if (dev.classname == "RefNode") {
-            float value = std::stof(dev.params.at("value"));
+            float value = locale_safe::parse_float_or(dev.params.at("value"), 0.0f);
             auto it = result.port_to_signal.find(dev.name + ".v");
             if (it != result.port_to_signal.end()) {
                 state.across[it->second] = value;

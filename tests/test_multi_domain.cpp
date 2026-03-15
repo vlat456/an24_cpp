@@ -42,13 +42,14 @@ static Blueprint make_spring_circuit() {
     batt.size_wh(120, 80);
     bp.add_node(std::move(batt));
 
-    // Spring (mechanical domain)
+    // Spring (mechanical domain) — zero damping to isolate scheduling test
     Node spring;
     spring.id = I.intern("spring");
     spring.type_name = "Spring";
     spring.input(I.intern("pos_a"));
     spring.input(I.intern("pos_b"));
     spring.output(I.intern("force_out"));
+    spring.params["c"] = "0";
     spring.at(320, 80);
     spring.size_wh(120, 80);
     bp.add_node(std::move(spring));

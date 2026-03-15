@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "jit_solver/SOR_constants.h"
+#include "../parse_number.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -8,6 +9,10 @@
 #include <map>
 #include <set>
 #include <unordered_set>
+#include <charconv>
+#include <climits>
+#include <cstdlib>
+#include <cstdio>
 
 
 namespace {
@@ -20,54 +25,50 @@ std::string to_upper(const std::string& s) {
 
 std::string sanitize_name(const std::string& s) {
     std::string result;
+    result.reserve(s.size());
     for (char c : s) {
-        if (c == '.' || c == '-' || c == ':') result += '_';
-        else result += c;
+        switch (c) {
+            case '.': result += "_DOT_"; break;
+            case '-': result += "_DASH_"; break;
+            case ':': result += "_"; break;  // Colon is the hierarchical separator, stays as '_'
+            default:  result += c; break;
+        }
     }
     return result;
 }
 
-// Infer C++ type from parameter value
+// Infer C++ type from parameter value (locale-independent)
 std::string infer_type(const std::string& value) {
     if (value.empty()) return "float";
 
-    try {
-        size_t pos;
-        long long ival = std::stoll(value, &pos);
-        if (pos == value.size()) {
-            if (ival > INT32_MAX || ival < INT32_MIN) return "int64_t";
-            return "int32_t";
-        }
-    } catch (...) {}
+    long long ival;
+    if (locale_safe::parse_int64(value, ival)) {
+        if (ival > INT32_MAX || ival < INT32_MIN) return "int64_t";
+        return "int32_t";
+    }
 
-    try {
-        size_t pos;
-        float fval = std::stof(value, &pos);
-        if (pos == value.size()) {
-            return "float";
-        }
-    } catch (...) {}
+    if (locale_safe::is_float_literal(value)) {
+        return "float";
+    }
 
     if (value == "true" || value == "false") return "bool";
 
     return "std::string";
 }
 
-// Format value for C++ code
+// Format value for C++ code (locale-independent)
 std::string format_value(const std::string& value, const std::string& type) {
     if (type == "float") {
-        try {
-            float f = std::stof(value);
-            std::ostringstream oss;
-            oss << f;
-            return oss.str();
-        } catch (...) {
-            std::string v = value;
-            if (v.find('.') == std::string::npos) {
-                v += ".0";
-            }
-            return v;
+        float f;
+        if (locale_safe::parse_float(value, f)) {
+            return locale_safe::format_float(f) + "f";
         }
+        // Fallback: ensure it has a decimal point
+        std::string v = value;
+        if (v.find('.') == std::string::npos) {
+            v += ".0";
+        }
+        return v;
     } else if (type == "bool") {
         return value;
     } else if (type == "int32_t" || type == "int64_t") {
@@ -289,8 +290,13 @@ std::string CodeGen::generate_header(
     // Pre-allocated convergence buffer pointer (set at init)
     oss << "    float* convergence_buffer = nullptr;\n\n";
 
-    // Constructor
-    oss << "    " << class_name << "();\n\n";
+    // Constructor / Destructor
+    oss << "    " << class_name << "();\n";
+    oss << "    ~" << class_name << "();\n\n";
+
+    // Non-copyable (owns raw pointer)
+    oss << "    " << class_name << "(const " << class_name << "&) = delete;\n";
+    oss << "    " << class_name << "& operator=(const " << class_name << "&) = delete;\n\n";
 
     // Methods - all inline for optimization
     oss << "    /// Pre-load initialization\n";
@@ -356,9 +362,8 @@ std::string CodeGen::generate_source(
     // Constructor - only initialize component parameters (port indices are compile-time constants)
     oss << class_name << "::" << class_name << "()\n";
     oss << "{\n";
-    oss << "    // Pre-allocate convergence buffer (zero-allocation in hot path)\n";
-    oss << "    alignas(64) static float buf[SIGNAL_COUNT];\n";
-    oss << "    convergence_buffer = buf;\n\n";
+    oss << "    // Pre-allocate convergence buffer (instance-owned, no sharing)\n";
+    oss << "    convergence_buffer = new (std::align_val_t(64)) float[SIGNAL_COUNT]{};\n\n";
 
     // Port indices are now static constexpr - no runtime initialization needed!
 
@@ -385,10 +390,12 @@ std::string CodeGen::generate_source(
                     if (colon == std::string::npos) break;
                     size_t end = tbl.find(';', colon + 1);
                     if (end == std::string::npos) end = tbl.size();
-                    try {
-                        entry.keys.push_back(std::stof(tbl.substr(pos, colon - pos)));
-                        entry.values.push_back(std::stof(tbl.substr(colon + 1, end - colon - 1)));
-                    } catch (...) { break; }
+                    float key_f, val_f;
+                    if (locale_safe::parse_float(tbl.substr(pos, colon - pos), key_f) &&
+                        locale_safe::parse_float(tbl.substr(colon + 1, end - colon - 1), val_f)) {
+                        entry.keys.push_back(key_f);
+                        entry.values.push_back(val_f);
+                    } else { break; }
                     pos = end;
                 }
                 oss << "    " << entry.dev_name << ".table_offset = " << lut_arena_offset << ";\n";
@@ -410,6 +417,11 @@ std::string CodeGen::generate_source(
             oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
     }
+    oss << "}\n\n";
+
+    // Destructor — release instance-owned convergence buffer
+    oss << class_name << "::~" << class_name << "() {\n";
+    oss << "    ::operator delete[](convergence_buffer, std::align_val_t(64));\n";
     oss << "}\n\n";
 
     // Pre-load: call pre_load() on components that have it, then LUT arena init

@@ -1,5 +1,6 @@
 #include "window/properties_window.h"
 #include "data/blueprint.h"
+#include "../parse_number.h"
 
 #ifndef EDITOR_TESTING
 #include <imgui.h>
@@ -23,29 +24,39 @@ static bool parse_table_entries(const std::string& str,
         if (colon == std::string::npos) break;
         size_t end = str.find(';', colon + 1);
         if (end == std::string::npos) end = str.size();
-        try {
-            keys.push_back(std::stof(str.substr(pos, colon - pos)));
-            values.push_back(std::stof(str.substr(colon + 1, end - colon - 1)));
-        } catch (...) { break; }
+        float k, v;
+        if (!locale_safe::parse_float(str.substr(pos, colon - pos), k) ||
+            !locale_safe::parse_float(str.substr(colon + 1, end - colon - 1), v)) {
+            break;
+        }
+        keys.push_back(k);
+        values.push_back(v);
         pos = end;
     }
     return !keys.empty();
 }
 
-// Serialize back to "k1:v1; k2:v2; ..."
+// Serialize back to "k1:v1; k2:v2; ..." (locale-independent)
 static std::string serialize_table_entries(const std::vector<float>& keys,
                                            const std::vector<float>& values) {
-    std::ostringstream oss;
+    std::string result;
     for (size_t i = 0; i < keys.size(); ++i) {
-        if (i > 0) oss << "; ";
-        oss << keys[i] << ":" << values[i];
+        if (i > 0) result += "; ";
+        result += locale_safe::format_float(keys[i], "%.6g");
+        result += ':';
+        result += locale_safe::format_float(values[i], "%.6g");
     }
-    return oss.str();
+    return result;
 }
 
 void PropertiesWindow::open(Node& node, const std::string& node_id_str,
                             Blueprint& bp, UndoStack& undo_stack,
                             PropertyCallback on_apply) {
+    // If already open editing a different node, revert the previous edits first
+    if (open_) {
+        cancelAndClose();
+    }
+
     target_node_id_ = node_id_str;
     bp_ = &bp;
     undo_stack_ = &undo_stack;

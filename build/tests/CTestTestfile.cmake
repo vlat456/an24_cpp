@@ -78,3 +78,6 @@ include("/Users/vladimir/an24_cpp/build/tests/flat_blueprint_tests[1]_include.cm
 include("/Users/vladimir/an24_cpp/build/tests/library_v2_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/multi_domain_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/command_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/transformer_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/generator_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/apu_mechanical_tests[1]_include.cmake")

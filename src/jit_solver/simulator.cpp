@@ -2,6 +2,7 @@
 #include "scheduling.h"
 #include "../editor/data/blueprint.h"
 #include "../json_parser/json_parser.h"
+#include "../parse_number.h"
 #include "components/port_registry.h"
 #include "components/all.h"
 #include <spdlog/spdlog.h>
@@ -87,7 +88,7 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {
-                value = std::stof(it_val->second);
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
             auto it_sig = build_result_->port_to_signal.find(dev.name + ".v");
             if (it_sig != build_result_->port_to_signal.end()) {
@@ -95,6 +96,9 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
             }
         }
     }
+
+    // Allocate convergence buffer for diagnostics
+    state_.resize_buffers(build_result_->signal_count);
 
     // Move LUT arena from build result to simulation state
     state_.lut_keys = std::move(build_result_->lut_keys);
@@ -195,12 +199,13 @@ void Simulator<SolverTag>::step(float dt) {
 
     // SOR solver - single iteration per step (real-time approximation)
     state_.precompute_inv_conductance();
+    state_.save_convergence_state();
 
     solve_sor_iteration(
         state_.across.data(),
         state_.through.data(),
         state_.inv_conductance.data(),
-        state_.across.size(),
+        state_.dynamic_signals_count,
         omega_
     );
 

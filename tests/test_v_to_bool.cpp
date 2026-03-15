@@ -2,6 +2,7 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/all.cpp"
 #include "jit_solver/components/port_registry.h"
+#include <limits>
 
 
 // =============================================================================
@@ -226,4 +227,95 @@ TEST(V_to_BoolComparisonTest, AnyVsPositiveOnZeroVoltage) {
     st.across[0] = 0.0f;
     pos_comp.solve_logical(st, 1.0f / 60.0f);
     EXPECT_NEAR(st.across[1], 0.0f, 0.01f);
+}
+
+// =============================================================================
+// NaN/Inf Robustness Tests — Any_V_to_Bool
+// =============================================================================
+// These verify the std::isfinite guard: NaN and Inf must be treated as FALSE
+// to prevent SOR-produced non-finite values from collapsing the logic tree.
+
+TEST(Any_V_to_BoolTest, NaN_TreatedAsFalse) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // NaN → FALSE
+}
+
+TEST(Any_V_to_BoolTest, SignalingNaN_TreatedAsFalse) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::signaling_NaN();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // sNaN → FALSE
+}
+
+TEST(Any_V_to_BoolTest, PosInf_TreatedAsFalse) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::infinity();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // +Inf → FALSE (not finite)
+}
+
+TEST(Any_V_to_BoolTest, NegInf_TreatedAsFalse) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = -std::numeric_limits<float>::infinity();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // -Inf → FALSE (not finite)
+}
+
+TEST(Any_V_to_BoolTest, NegativeZero_TreatedAsFalse) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = -0.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // -0.0 → FALSE (zero is zero)
+}
+
+TEST(Any_V_to_BoolTest, Denormalized_TreatedAsTrue) {
+    auto comp = make_any_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::denorm_min();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 1.0f);  // Denorm is finite & non-zero → TRUE
+}
+
+// =============================================================================
+// NaN/Inf Robustness Tests — Positive_V_to_Bool
+// =============================================================================
+
+TEST(Positive_V_to_BoolTest, NaN_TreatedAsFalse) {
+    auto comp = make_positive_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::quiet_NaN();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // NaN > 0.0f is false → FALSE
+}
+
+TEST(Positive_V_to_BoolTest, PosInf_TreatedAsTrue) {
+    auto comp = make_positive_v_to_bool();
+    auto st = make_state();
+    st.across[0] = std::numeric_limits<float>::infinity();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    // +Inf > 0.0f is true in IEEE 754
+    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+}
+
+TEST(Positive_V_to_BoolTest, NegInf_TreatedAsFalse) {
+    auto comp = make_positive_v_to_bool();
+    auto st = make_state();
+    st.across[0] = -std::numeric_limits<float>::infinity();
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // -Inf > 0.0f is false → FALSE
+}
+
+TEST(Positive_V_to_BoolTest, NegativeZero_TreatedAsFalse) {
+    auto comp = make_positive_v_to_bool();
+    auto st = make_state();
+    st.across[0] = -0.0f;
+    comp.solve_logical(st, 1.0f / 60.0f);
+    EXPECT_FLOAT_EQ(st.across[1], 0.0f);  // -0.0 > 0.0f is false → FALSE
 }

@@ -35,6 +35,7 @@ bool Document::save(const std::string& path) {
     filepath_ = path;
     auto pos = path.find_last_of("/\\");
     display_name_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
+    undo_stack_.mark_saved();
     return true;
 }
 
@@ -57,6 +58,10 @@ bool Document::load(const std::string& path) {
     blueprint_.rebuild_wire_id_index();
     blueprint_.rebuild_bus_wire_index();
     blueprint_.rebuild_port_occupancy_index();
+
+    // Clear undo/redo history from previous document and mark as clean
+    undo_stack_.clear();
+    undo_stack_.mark_saved();
 
     auto& vp = viewport();
     vp.pan = blueprint_.pan;
@@ -240,13 +245,13 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
      // Check if component exists in registry
     if (!registry.has(classname)) {
-        printf("Error: Unknown component classname '%s'\n", classname.c_str());
+        spdlog::error("[editor] Unknown component classname '{}'", classname);
         return;
     }
 
     const auto* def = registry.get(classname);
     if (!def) {
-        printf("Error: Component definition not found for '%s'\n", classname.c_str());
+        spdlog::error("[editor] Component definition not found for '{}'", classname);
         return;
     }
 
@@ -362,6 +367,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     }
 
     // 2. Add internal wires
+    size_t internal_wire_count = sub_bp.wires.size();
     for (auto& wire : sub_bp.wires) {
         wire.start.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.start.node_id)));
         wire.end.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.end.node_id)));
@@ -417,7 +423,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     rebuildSimulation();
 
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
-                 blueprint_name, unique_id, internal_node_ids.size(), sub_bp.wires.size());
+                 blueprint_name, unique_id, internal_node_ids.size(), internal_wire_count);
 }
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
@@ -441,7 +447,6 @@ void Document::openSubWindow(const std::string& sub_blueprint_id) {
 
     spdlog::info("[editor] Opened sub-window for '{}' ({} internal nodes)",
                  sub_blueprint_id, group->internal_node_ids.size());
-    (void)win;
 }
 
 Document::InputResultAction Document::applyInputResult(const InputResult& r, const std::string& group_id) {
@@ -476,6 +481,10 @@ bool Document::performUndo() {
     
     undo_stack_.undo(blueprint_);
     
+    // Sub-blueprint groups may have been removed by undo — close orphaned
+    // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
+    window_manager_.removeOrphanedWindows();
+    
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;
         visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
@@ -488,6 +497,10 @@ bool Document::performRedo() {
     if (!undo_stack_.can_redo()) return false;
     
     undo_stack_.redo(blueprint_);
+    
+    // Sub-blueprint groups may have been removed by redo — close orphaned
+    // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
+    window_manager_.removeOrphanedWindows();
     
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;

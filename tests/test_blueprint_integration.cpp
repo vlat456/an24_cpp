@@ -4,6 +4,7 @@
 #include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
 #include "json_parser/json_parser.h"
+#include "parse_number.h"
 
 
 // =============================================================================
@@ -47,7 +48,7 @@ static SimulationState run_simulation(
         if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
-            if (it_val != dev.params.end()) value = std::stof(it_val->second);
+            if (it_val != dev.params.end()) value = locale_safe::parse_float_or(it_val->second, 0.0f);
 
             std::string port = dev.name + ".v";
             auto it_sig = result.port_to_signal.find(port);

@@ -51,7 +51,7 @@ enum class InputState {
     ResizingNode,          ///< Left-drag on a resize handle (group nodes)
 };
 
-/// Actions the canvas input wants the host (EditorApp) to perform.
+/// Actions the canvas input wants the host (Document / WindowSystem) to perform.
 /// Returned from every input method; host checks and executes.
 struct InputResult {
     bool rebuild_simulation = false;
