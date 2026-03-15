@@ -301,30 +301,30 @@ void NodeWidget::positionHorizontalPorts(PortLayoutSide side, float node_width) 
     if (port_list.empty()) return;
 
     size_t n = port_list.size();
-    float step = node_width / static_cast<float>(n + 1);
+    constexpr float grid = editor_constants::PORT_LAYOUT_GRID;
+    
+    // Distribute ports at grid crossings like BusNodeWidget does.
+    // Each port is placed at (i+1) * grid from node edge.
+    float step = grid;
 
     for (size_t i = 0; i < n; ++i) {
         auto* p = port_list[i];
         if (!p->parent()) continue;
 
-        // Horizontal: distribute evenly across node width.
-        // Port local pos is relative to its parent (the strip container).
-        // We need the port's center to be at (i+1)*step in node-local coords.
-        // parent_wp - node_wp gives the parent's offset within the node.
+        // Calculate port position at grid crossing
+        float port_offset = step * static_cast<float>(i + 1);
+        
         Pt parent_wp = p->parent()->worldPos();
         Pt node_wp = worldPos();
         float parent_offset_x = parent_wp.x - node_wp.x;
-        float target_center_x = step * static_cast<float>(i + 1);
-        float lp_x = target_center_x - parent_offset_x - Port::RADIUS;
+        float lp_x = port_offset - parent_offset_x - Port::RADIUS;
 
         // Vertical: snap port center to the node edge.
         float parent_offset_y = parent_wp.y - node_wp.y;
         float lp_y;
         if (side == PortLayoutSide::Top) {
-            // Snap center to top edge of node (y=0 in node-local coords)
             lp_y = -parent_offset_y - Port::RADIUS;
         } else {
-            // Snap center to bottom edge of node
             float node_height = size().y;
             lp_y = node_height - parent_offset_y - Port::RADIUS;
         }
@@ -337,14 +337,11 @@ void NodeWidget::positionHorizontalPorts(PortLayoutSide side, float node_width) 
             if (!lbl) continue;
 
             float label_w = lbl->preferredSize(nullptr).x;
-            // Center label horizontally on the port center
             float label_x = lp_x + Port::RADIUS - label_w / 2.0f;
             float label_y;
             if (side == PortLayoutSide::Top) {
-                // Label below port circle
                 label_y = lp_y + Port::RADIUS * 2 + editor_constants::PORT_LABEL_GAP;
             } else {
-                // Label above port circle
                 label_y = lp_y - editor_constants::PORT_LABEL_FONT_SIZE - editor_constants::PORT_LABEL_GAP;
             }
             lbl->setLocalPos(Pt(label_x, label_y));
@@ -391,6 +388,16 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
     if (!layout_) return Pt(0, 0);
     Pt ps = layout_->preferredSize(dl);
     ps.x = std::max(ps.x, editor_constants::MIN_NODE_WIDTH);
+    
+    // Ensure node is wide enough for top/bottom ports at grid crossings.
+    // For n ports, need at least (n + 1) * grid width.
+    size_t max_horizontal = std::max(top_ports_.size(), bottom_ports_.size());
+    if (max_horizontal > 0) {
+        constexpr float grid = editor_constants::PORT_LAYOUT_GRID;
+        float min_width_for_ports = static_cast<float>(max_horizontal + 1) * grid;
+        ps.x = std::max(ps.x, min_width_for_ports);
+    }
+    
     return ps;
 }
 
