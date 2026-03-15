@@ -166,7 +166,7 @@ void EditorApp::update() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     
-    if (!io.WantCaptureKeyboard) {
+    if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().isOpen()) {
         if (Document* doc = ws_.activeDocument()) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 if (doc->isSimulationRunning()) doc->stopSimulation();

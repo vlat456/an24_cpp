@@ -70,6 +70,22 @@ class StringInterner {
 public:
     StringInterner() = default;
 
+    // -- Copy: deep-copy strings, rebuild string_view indices --
+    StringInterner(const StringInterner& o) : strings_(o.strings_) {
+        rebuild_indices();
+    }
+    StringInterner& operator=(const StringInterner& o) {
+        if (this != &o) {
+            strings_ = o.strings_;
+            rebuild_indices();
+        }
+        return *this;
+    }
+
+    // -- Move: default is safe (deque move preserves pointer stability) --
+    StringInterner(StringInterner&&) noexcept = default;
+    StringInterner& operator=(StringInterner&&) noexcept = default;
+
     /// Intern a string. Returns its unique InternedId.
     /// Empty strings map to the empty InternedId (value 0).
     /// Duplicate strings return the same InternedId.
@@ -130,6 +146,21 @@ private:
 
     /// Reverse index: 0-based (id - 1) → string_view into strings_.
     std::vector<std::string_view> reverse_;
+
+    /// Rebuild index_ and reverse_ from strings_ (after copy).
+    void rebuild_indices() {
+        index_.clear();
+        reverse_.clear();
+        index_.reserve(strings_.size());
+        reverse_.reserve(strings_.size());
+        uint32_t id = 1;
+        for (const auto& s : strings_) {
+            std::string_view sv = s;
+            index_.emplace(sv, id);
+            reverse_.push_back(sv);
+            ++id;
+        }
+    }
 };
 
 } // namespace ui

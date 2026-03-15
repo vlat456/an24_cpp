@@ -2137,6 +2137,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
   /Users/vladimir/an24_cpp/src/editor/data/node.h \
   /Users/vladimir/an24_cpp/src/editor/data/port.h \
+  /Users/vladimir/an24_cpp/src/editor/data/sub_blueprint_instance.h \
   /Users/vladimir/an24_cpp/src/editor/data/wire.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
@@ -4113,6 +4114,8 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h:
+
+/Users/vladimir/an24_cpp/src/editor/data/sub_blueprint_instance.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/all_of.h:
 

@@ -16,6 +16,11 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 /// On "OK", the window computes the diff between snapshot and edited values,
 /// reverts the node to the snapshot, then emits CmdSetParam commands for each
 /// change. This ensures all mutations go through the undo stack.
+///
+/// Safety: The window stores only the node ID, never a raw Node*.
+/// The node pointer is resolved fresh from the Blueprint each frame via
+/// resolveTarget(). This is safe across undo/redo which replaces the
+/// entire Blueprint contents.
 class PropertiesWindow {
 public:
     void open(Node& node, const std::string& node_id_str,
@@ -35,7 +40,6 @@ public:
 
 private:
     bool open_ = false;
-    Node* target_ = nullptr;
     Blueprint* bp_ = nullptr;
     UndoStack* undo_stack_ = nullptr;
     std::string target_node_id_;
@@ -45,11 +49,15 @@ private:
     std::string snapshot_name_;
     std::unordered_map<std::string, std::string> snapshot_params_;
 
+    /// Resolve the target node from the blueprint. Returns nullptr if
+    /// the node no longer exists (e.g. deleted by undo while open).
+    Node* resolveTarget();
+
     void cancelAndClose();
 
     /// Render a dropdown for "port_edge" param (Bus nodes)
-    void renderPortEdgeParam(const std::string& key);
+    void renderPortEdgeParam(Node& node, const std::string& key);
 
     /// Render an ImGui table editor for a LUT "table" param
-    void renderTableParam(const std::string& key);
+    void renderTableParam(Node& node, const std::string& key);
 };

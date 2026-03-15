@@ -46,7 +46,6 @@ static std::string serialize_table_entries(const std::vector<float>& keys,
 void PropertiesWindow::open(Node& node, const std::string& node_id_str,
                             Blueprint& bp, UndoStack& undo_stack,
                             PropertyCallback on_apply) {
-    target_ = &node;
     target_node_id_ = node_id_str;
     bp_ = &bp;
     undo_stack_ = &undo_stack;
@@ -59,27 +58,39 @@ void PropertiesWindow::open(Node& node, const std::string& node_id_str,
     open_ = true;
 }
 
+Node* PropertiesWindow::resolveTarget() {
+    if (!bp_) return nullptr;
+    return bp_->find_node(target_node_id_.c_str());
+}
+
 void PropertiesWindow::close() {
     cancelAndClose();
 }
 
 void PropertiesWindow::render() {
-    if (!open_ || !target_) return;
+    if (!open_) return;
+
+    Node* target = resolveTarget();
+    if (!target) {
+        // Node was deleted (e.g. by undo) while window was open — close silently
+        open_ = false;
+        return;
+    }
 
 #ifndef EDITOR_TESTING
     ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
     bool window_open = true;
     if (ImGui::Begin(("Properties: " + target_node_id_).c_str(), &window_open)) {
         // Header
-        ImGui::Text("%s (%s)", target_node_id_.c_str(), target_->type_name.c_str());
+        ImGui::Text("%s (%s)", target_node_id_.c_str(), target->type_name.c_str());
         ImGui::Separator();
 
         // Name field
         char name_buf[256];
-        strncpy(name_buf, target_->name.c_str(), sizeof(name_buf) - 1);
+        strncpy(name_buf, target->name.c_str(), sizeof(name_buf) - 1);
         name_buf[sizeof(name_buf) - 1] = '\0';
         if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
-            target_->name = name_buf;
+            target->name = name_buf;
         }
 
         ImGui::Separator();
@@ -88,36 +99,36 @@ void PropertiesWindow::render() {
 
         // Sort param keys for stable ordering
         std::vector<std::string> keys;
-        keys.reserve(target_->params.size());
-        for (const auto& [k, _] : target_->params) keys.push_back(k);
+        keys.reserve(target->params.size());
+        for (const auto& [k, _] : target->params) keys.push_back(k);
         std::sort(keys.begin(), keys.end());
 
         // Param fields
         for (const auto& key : keys) {
             if (key == "table") {
-                renderTableParam(key);
+                renderTableParam(*target, key);
                 continue;
             }
             if (key == "text") {
                 // Multiline text editor for Text nodes
                 char text_buf[4096];
-                strncpy(text_buf, target_->params[key].c_str(), sizeof(text_buf) - 1);
+                strncpy(text_buf, target->params[key].c_str(), sizeof(text_buf) - 1);
                 text_buf[sizeof(text_buf) - 1] = '\0';
                 if (ImGui::InputTextMultiline(key.c_str(), text_buf, sizeof(text_buf),
                                               ImVec2(-1, 200))) {
-                    target_->params[key] = text_buf;
+                    target->params[key] = text_buf;
                 }
                 continue;
             }
             if (key == "port_edge") {
-                renderPortEdgeParam(key);
+                renderPortEdgeParam(*target, key);
                 continue;
             }
             char buf[256];
-            strncpy(buf, target_->params[key].c_str(), sizeof(buf) - 1);
+            strncpy(buf, target->params[key].c_str(), sizeof(buf) - 1);
             buf[sizeof(buf) - 1] = '\0';
             if (ImGui::InputText(key.c_str(), buf, sizeof(buf))) {
-                target_->params[key] = buf;
+                target->params[key] = buf;
             }
         }
 
@@ -141,12 +152,12 @@ void PropertiesWindow::render() {
 #endif
 }
 
-void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
+void PropertiesWindow::renderPortEdgeParam(Node& node, const std::string& key) {
 #ifndef EDITOR_TESTING
     const char* options[] = {"bottom", "top", "left", "right"};
     const char* labels[] = {"Bottom", "Top", "Left", "Right"};
     
-    std::string& value = target_->params[key];
+    std::string& value = node.params[key];
     int current = 0;
     for (int i = 0; i < 4; ++i) {
         if (value == options[i]) {
@@ -170,12 +181,12 @@ void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
 #endif
 }
 
-void PropertiesWindow::renderTableParam(const std::string& key) {
+void PropertiesWindow::renderTableParam(Node& node, const std::string& key) {
 #ifndef EDITOR_TESTING
     ImGui::Text("Lookup Table");
 
     std::vector<float> keys, values;
-    parse_table_entries(target_->params[key], keys, values);
+    parse_table_entries(node.params[key], keys, values);
 
     bool changed = false;
     int remove_idx = -1;
@@ -221,15 +232,15 @@ void PropertiesWindow::renderTableParam(const std::string& key) {
     }
 
     if (changed) {
-        target_->params[key] = serialize_table_entries(keys, values);
+        node.params[key] = serialize_table_entries(keys, values);
     }
 #endif
 }
 
 void PropertiesWindow::apply() {
-    if (!target_ || !bp_ || !undo_stack_) {
+    Node* target = resolveTarget();
+    if (!target || !bp_ || !undo_stack_) {
         open_ = false;
-        target_ = nullptr;
         return;
     }
 
@@ -237,40 +248,66 @@ void PropertiesWindow::apply() {
     auto& interner = bp_->interner();
     ui::InternedId node_iid = interner.intern(target_node_id_);
 
-    std::vector<Command> cmds;
+    bool has_changes = false;
 
     // Check for changed or added params
-    for (const auto& [key, new_value] : target_->params) {
+    for (const auto& [key, new_value] : target->params) {
         auto snap_it = snapshot_params_.find(key);
         if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
-            cmds.push_back(cmd_set_param(node_iid, key, new_value));
+            has_changes = true;
+            break;
         }
     }
 
     // Check for removed params (in snapshot but not in current)
-    for (const auto& [key, old_value] : snapshot_params_) {
-        if (target_->params.find(key) == target_->params.end()) {
-            // Param was removed — emit a set with empty value
-            cmds.push_back(cmd_set_param(node_iid, key, ""));
+    if (!has_changes) {
+        for (const auto& [key, old_value] : snapshot_params_) {
+            if (target->params.find(key) == target->params.end()) {
+                has_changes = true;
+                break;
+            }
         }
     }
 
-    // Include name change in the same command batch
-    std::string edited_name = target_->name;
+    // Check name change
+    std::string edited_name = target->name;
     if (edited_name != snapshot_name_) {
-        cmds.push_back(cmd_set_name(node_iid, edited_name));
+        has_changes = true;
     }
 
-    // Revert node to snapshot state BEFORE executing commands,
-    // so that commands record the correct "old" values for undo.
-    target_->name = snapshot_name_;
-    target_->params = snapshot_params_;
+    // If there are changes, snapshot and apply them via commands.
+    // The snapshot stores the blueprint state BEFORE the apply, so undo
+    // will restore the old params/name automatically.
+    if (has_changes) {
+        // Revert node to snapshot state, take a snapshot, then re-apply edits.
+        // This ensures the undo snapshot captures the old values.
+        std::string current_name = target->name;
+        auto current_params = target->params;
 
-    // Execute all changes as a single undoable action
-    if (!cmds.empty()) {
-        Command compound = cmd_compound(std::move(cmds));
-        Command inverse = execute(*bp_, compound);
-        undo_stack_->push(std::move(inverse));
+        target->name = snapshot_name_;
+        target->params = snapshot_params_;
+
+        undo_stack_->snapshot(*bp_);
+
+        // Apply param changes
+        for (const auto& [key, new_value] : current_params) {
+            auto snap_it = snapshot_params_.find(key);
+            if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
+                execute(*bp_, cmd_set_param(node_iid, key, new_value));
+            }
+        }
+
+        // Apply removed params
+        for (const auto& [key, old_value] : snapshot_params_) {
+            if (current_params.find(key) == current_params.end()) {
+                execute(*bp_, cmd_set_param(node_iid, key, ""));
+            }
+        }
+
+        // Apply name change
+        if (current_name != snapshot_name_) {
+            execute(*bp_, cmd_set_name(node_iid, current_name));
+        }
     }
 
     if (on_apply_) {
@@ -278,15 +315,14 @@ void PropertiesWindow::apply() {
     }
 
     open_ = false;
-    target_ = nullptr;
 }
 
 void PropertiesWindow::cancelAndClose() {
-    if (target_) {
+    Node* target = resolveTarget();
+    if (target) {
         // Restore snapshot
-        target_->name = snapshot_name_;
-        target_->params = snapshot_params_;
+        target->name = snapshot_name_;
+        target->params = snapshot_params_;
     }
     open_ = false;
-    target_ = nullptr;
 }

@@ -54,6 +54,7 @@ bool Document::load(const std::string& path) {
     blueprint_ = std::move(*bp);
     blueprint_.rebuild_node_index();
     blueprint_.rebuild_wire_index();
+    blueprint_.rebuild_wire_id_index();
     blueprint_.rebuild_bus_wire_index();
     blueprint_.rebuild_port_occupancy_index();
 
@@ -298,30 +299,26 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.params = def->params;
     node.node_content = create_node_content_from_def(def);
 
-    visual::mutations::add_node(scene(), blueprint_, std::move(node), group_id);
+    // Execute via command system (undoable)
+    undo_stack_.snapshot(blueprint_);
+    execute(blueprint_, cmd_add_node(std::move(node)));
 
-    // Keep sub_blueprint_instances.internal_node_ids in sync
-    if (!group_id.empty()) {
-        for (auto& g : blueprint_.sub_blueprint_instances) {
-            if (g.id == group_id) {
-                g.internal_node_ids.push_back(unique_id);
-                break;
-            }
-        }
+    // Rebuild scene from blueprint state
+    for (auto& win : window_manager_.windows()) {
+        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
     }
-
     rebuildSimulation();
 
-    printf("Added component: %s (id=%s) at (%.1f, %.1f) group=%s\n",
-           classname.c_str(), unique_id.c_str(), snapped_pos.x, snapped_pos.y,
-           group_id.empty() ? "root" : group_id.c_str());
+    spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+           classname, unique_id, snapped_pos.x, snapped_pos.y,
+           group_id.empty() ? "root" : group_id);
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
                               const std::string& group_id,
                               TypeRegistry& registry) {
 
-     const auto* bp_def = registry.get(blueprint_name);
+    const auto* bp_def = registry.get(blueprint_name);
     if (!bp_def || bp_def->cpp_class) {
         spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
         return;
@@ -350,6 +347,10 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     auto& I = blueprint_.interner();
     auto& sub_I = sub_bp.interner();
 
+    // == Single snapshot before all mutations (single undo entry) ==
+    undo_stack_.snapshot(blueprint_);
+
+    // 1. Add internal nodes
     std::vector<std::string> internal_node_ids;
     for (auto& node : sub_bp.nodes) {
         std::string prefixed_id = unique_id + ":" + std::string(sub_I.resolve(node.id));
@@ -357,17 +358,18 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         node.name = prefixed_id;
         if (!has_layout) node.pos = snapped_pos;
         internal_node_ids.push_back(prefixed_id);
-        blueprint_.add_node(std::move(node));
+        execute(blueprint_, cmd_add_node(std::move(node)));
     }
 
+    // 2. Add internal wires
     for (auto& wire : sub_bp.wires) {
         wire.start.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.start.node_id)));
         wire.end.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.end.node_id)));
         wire.id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.id)));
-        blueprint_.add_wire(std::move(wire));
+        execute(blueprint_, cmd_add_wire(std::move(wire)));
     }
 
-    // Create COLLAPSED Blueprint node
+    // 3. Create collapsed Blueprint node
     Node collapsed_node;
     collapsed_node.id = I.intern(unique_id);
     collapsed_node.name = unique_id;
@@ -391,8 +393,9 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         }
     }
 
-    blueprint_.add_node(collapsed_node);
+    execute(blueprint_, cmd_add_node(std::move(collapsed_node)));
 
+    // 4. Register sub-blueprint instance (tracks internal nodes for undo)
     SubBlueprintInstance sbi;
     sbi.id = unique_id;
     sbi.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
@@ -401,7 +404,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     sbi.size = Pt(120.0f, height);
     sbi.baked_in = false;
     sbi.internal_node_ids = internal_node_ids;
-    blueprint_.sub_blueprint_instances.push_back(sbi);
+    execute(blueprint_, cmd_add_sub_blueprint(std::move(sbi)));
 
     blueprint_.recompute_group_ids();
 
@@ -409,7 +412,7 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         blueprint_.auto_layout_group(unique_id);
     }
 
-    // Full rebuild since we added multiple nodes/wires directly to Blueprint
+    // Rebuild visual + simulation
     visual::mutations::rebuild(scene(), blueprint_, root().group_id);
     rebuildSimulation();
 
@@ -471,9 +474,7 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
 bool Document::performUndo() {
     if (!undo_stack_.can_undo()) return false;
     
-    Command cmd = undo_stack_.pop_undo();
-    Command inverse = execute(blueprint_, cmd);
-    undo_stack_.push_redo(std::move(inverse));
+    undo_stack_.undo(blueprint_);
     
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;
@@ -486,9 +487,7 @@ bool Document::performUndo() {
 bool Document::performRedo() {
     if (!undo_stack_.can_redo()) return false;
     
-    Command cmd = undo_stack_.pop_redo();
-    Command inverse = execute(blueprint_, cmd);
-    undo_stack_.push(std::move(inverse));
+    undo_stack_.redo(blueprint_);
     
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;

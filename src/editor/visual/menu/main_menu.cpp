@@ -100,8 +100,9 @@ void MainMenu::renderEditMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Edit")) return;
 
     Document* active_doc = ws.activeDocument();
-    bool can_undo = active_doc && active_doc->canUndo();
-    bool can_redo = active_doc && active_doc->canRedo();
+    bool props_open = ws.propertiesWindow().isOpen();
+    bool can_undo = active_doc && active_doc->canUndo() && !props_open;
+    bool can_redo = active_doc && active_doc->canRedo() && !props_open;
     bool has_sel = active_doc && !active_doc->input().selected_nodes().empty();
 
     if (ImGui::MenuItem("Undo", "Ctrl+Z", false, can_undo)) {

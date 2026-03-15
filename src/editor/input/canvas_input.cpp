@@ -48,30 +48,23 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 }
 
 // ============================================================================
-// Command execution
+// Command execution (snapshot-based)
 // ============================================================================
 
-Command CanvasInput::execute_command(Command cmd) {
-    Command inverse = execute(bp_, cmd);
-    undo_stack_.push(std::move(inverse));
-    return inverse;
+void CanvasInput::snapshot_and_execute(Command cmd) {
+    undo_stack_.snapshot(bp_);
+    execute(bp_, cmd);
 }
 
 bool CanvasInput::undo() {
-    if (!undo_stack_.can_undo()) return false;
-    Command cmd = undo_stack_.pop_undo();
-    Command inverse = execute(bp_, cmd);
-    undo_stack_.push_redo(std::move(inverse));
+    if (!undo_stack_.undo(bp_)) return false;
     // Sync viewport grid_step from blueprint (in case CmdSetGridStep was undone)
     viewport_.grid_step = bp_.grid_step;
     return true;
 }
 
 bool CanvasInput::redo() {
-    if (!undo_stack_.can_redo()) return false;
-    Command cmd = undo_stack_.pop_redo();
-    Command inverse = execute(bp_, cmd);
-    undo_stack_.push(std::move(inverse));
+    if (!undo_stack_.redo(bp_)) return false;
     // Sync viewport grid_step from blueprint (in case CmdSetGridStep was redone)
     viewport_.grid_step = bp_.grid_step;
     return true;
@@ -218,6 +211,9 @@ void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection,
         drag_offsets_.push_back(sel->worldPos() - primary_pos);
         drag_initial_positions_.push_back(sel->worldPos());
     }
+
+    // Snapshot BEFORE any drag mutations happen
+    undo_stack_.snapshot(bp_);
 }
 
 void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx) {
@@ -235,6 +231,9 @@ void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPo
     } else {
         rp_initial_points_.clear();
     }
+
+    // Snapshot BEFORE any drag mutations happen
+    undo_stack_.snapshot(bp_);
 }
 
 void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner) {
@@ -246,6 +245,9 @@ void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner)
     resize_original_pos_ = widget->worldPos();
     resize_original_size_ = widget->size();
     drag_anchor_ = Pt(0, 0);  // accumulated delta
+
+    // Snapshot BEFORE any resize mutations happen
+    undo_stack_.snapshot(bp_);
 }
 
 void CanvasInput::enter_create_wire(visual::Port* port, Pt port_pos) {
@@ -534,59 +536,45 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
                 break;
 
             case InputState::DraggingNode: {
+                // Snapshot was taken at drag start. The blueprint has been
+                // mutated during drag. If nothing actually moved, pop the
+                // snapshot to avoid a no-op undo entry.
                 auto nodes = selected_nodes();
-                std::vector<Command> cmds;
+                bool any_moved = false;
                 for (size_t i = 0; i < nodes.size() && i < drag_initial_positions_.size(); ++i) {
-                    auto* w = nodes[i];
-                    Pt new_pos = w->worldPos();
-                    Pt old_pos = drag_initial_positions_[i];
-                    if (new_pos != old_pos) {
-                        ui::InternedId iid = bp_.interner().lookup(std::string(w->id()));
-                        if (!iid.empty()) {
-                            // Revert blueprint to pre-drag state so execute() captures correct inverse
-                            Node* node = bp_.find_node(std::string(w->id()).c_str());
-                            if (node) node->pos = old_pos;
-                            cmds.push_back(cmd_move_node(iid, new_pos));
-                        }
+                    if (nodes[i]->worldPos() != drag_initial_positions_[i]) {
+                        any_moved = true;
+                        break;
                     }
                 }
-                if (!cmds.empty()) {
-                    execute_command(cmd_compound(std::move(cmds)));
+                if (!any_moved) {
+                    // No actual movement — discard the snapshot cleanly
+                    undo_stack_.discard_last_snapshot();
                 }
                 break;
             }
             
             case InputState::DraggingRoutingPoint: {
-                auto* rp_wire = resolve_wire(rp_wire_id_);
+                // Snapshot was taken at drag start. Check if anything changed.
                 size_t wire_idx = find_wire_index(rp_wire_id_);
-                if (wire_idx < bp_.wires.size() && rp_point_) {
-                    ui::InternedId wire_iid = bp_.interner().lookup(rp_wire_id_);
-                    if (!wire_iid.empty()) {
-                        std::vector<ui::Pt> new_points = bp_.wires[wire_idx].routing_points;
-                        // Revert blueprint to pre-drag state so execute() captures correct inverse
-                        bp_.wires[wire_idx].routing_points = rp_initial_points_;
-                        execute_command(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                if (wire_idx < bp_.wires.size()) {
+                    if (bp_.wires[wire_idx].routing_points == rp_initial_points_) {
+                        // No change — discard snapshot cleanly
+                        undo_stack_.discard_last_snapshot();
                     }
                 }
                 break;
             }
             
             case InputState::ResizingNode: {
+                // Snapshot was taken at resize start. Check if anything changed.
                 auto* resize_widget = resolve_node(resize_widget_id_);
                 if (resize_widget) {
-                    ui::InternedId iid = bp_.interner().lookup(resize_widget_id_);
-                    if (!iid.empty()) {
-                        Pt new_pos = resize_widget->worldPos();
-                        Pt new_size = resize_widget->size();
-                        if (new_pos != resize_original_pos_ || new_size != resize_original_size_) {
-                            // Revert blueprint to pre-drag state so execute() captures correct inverse
-                            Node* node = bp_.find_node(resize_widget_id_.c_str());
-                            if (node) {
-                                node->pos = resize_original_pos_;
-                                node->size = resize_original_size_;
-                            }
-                            execute_command(cmd_resize_node(iid, new_pos, new_size));
-                        }
+                    Pt new_pos = resize_widget->worldPos();
+                    Pt new_size = resize_widget->size();
+                    if (new_pos == resize_original_pos_ && new_size == resize_original_size_) {
+                        // No change — discard snapshot cleanly
+                        undo_stack_.discard_last_snapshot();
                     }
                 }
                 break;
@@ -630,7 +618,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                 ui::InternedId wire_iid = bp_.interner().lookup(std::string(hrp->wire->id()));
                 if (!wire_iid.empty()) {
-                    execute_command(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                    snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
                     // Update visual: remove routing point widget
                     if (hrp->wire) {
                         hrp->wire->removeRoutingPoint(hrp->index);
@@ -665,7 +653,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
 
                 ui::InternedId wire_iid = bp_.interner().lookup(std::string(hw->wire->id()));
                 if (!wire_iid.empty()) {
-                    execute_command(cmd_set_routing_points(wire_iid, std::move(new_points)));
+                    snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
                     // Update visual: add routing point widget
                     if (hw->wire) {
                         hw->wire->addRoutingPoint(snapped, insert_idx);
@@ -700,17 +688,15 @@ InputResult CanvasInput::on_key(Key key) {
         case Key::Backspace: {
             if (selected_node_ids_.empty()) break;
 
-            std::vector<Command> cmds;
+            // Snapshot before deletion
+            undo_stack_.snapshot(bp_);
             for (const auto& nid : selected_node_ids_) {
                 ui::InternedId iid = bp_.interner().lookup(nid);
                 if (!iid.empty()) {
-                    cmds.push_back(cmd_remove_node(iid));
+                    execute(bp_, cmd_remove_node(iid));
                 }
             }
-            if (!cmds.empty()) {
-                execute_command(cmd_compound(std::move(cmds)));
-                visual::mutations::rebuild(scene_, bp_, group_id_);
-            }
+            visual::mutations::rebuild(scene_, bp_, group_id_);
             clear_selection();
             result.rebuild_simulation = true;
             break;
@@ -731,7 +717,7 @@ InputResult CanvasInput::on_key(Key key) {
             float new_step = viewport_.grid_step;
             viewport_.grid_step_up();
             new_step = viewport_.grid_step;
-            execute_command(cmd_set_grid_step(new_step));
+            snapshot_and_execute(cmd_set_grid_step(new_step));
             // Sync: bp.grid_step was set by execute; viewport already updated
             break;
         }
@@ -740,7 +726,7 @@ InputResult CanvasInput::on_key(Key key) {
             float new_step = viewport_.grid_step;
             viewport_.grid_step_down();
             new_step = viewport_.grid_step;
-            execute_command(cmd_set_grid_step(new_step));
+            snapshot_and_execute(cmd_set_grid_step(new_step));
             // Sync: bp.grid_step was set by execute; viewport already updated
             break;
         }
@@ -787,11 +773,15 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         ui::InternedId wire_id = visual::mutations::next_wire_id(bp_);
         ::Wire w = ::Wire::make(wire_id, start_end, end_end);
 
-        // Use visual::mutations for full validation + bus visual sync,
-        // then record the inverse command for undo.
+        // Snapshot before mutation
+        undo_stack_.snapshot(bp_);
+
+        // Use visual::mutations for full validation + bus visual sync
         if (visual::mutations::add_wire(scene_, bp_, std::move(w), group_id_)) {
-            undo_stack_.push(AtomicCommand{CmdRemoveWire{wire_id}});
             result.rebuild_simulation = true;
+        } else {
+            // Wire addition failed — discard the snapshot
+            undo_stack_.undo(bp_);
         }
     }
     return result;
@@ -804,15 +794,13 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
     bool reconnected = false;
 
+    // Snapshot before any mutation
+    undo_stack_.snapshot(bp_);
+
     if (auto* ph = std::get_if<visual::HitPort>(&port_hit)) {
         if (reconnect_wire_idx_ < bp_.wires.size()) {
             auto& wire = bp_.wires[reconnect_wire_idx_];
             const ::WireEnd& detached = reconnect_detach_start_ ? wire.start : wire.end;
-
-            // Capture old state for undo before any mutation
-            ui::InternedId wire_iid = wire.id;
-            ui::InternedId old_node_id = detached.node_id;
-            ui::InternedId old_port_name = detached.port_name;
 
             std::string port_node_id = find_node_widget_id(ph->port);
             auto& I = bp_.interner();
@@ -820,12 +808,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
             // Try port swap first (for BusVisualNode)
             if (port_node_iid == detached.node_id) {
-                // Bus alias ports are named after the wire_id they represent.
                 ui::InternedId target_wire_iid = I.intern(ph->port->name());
                 if (visual::mutations::swap_wire_ports_on_bus(scene_, bp_,
                         port_node_iid, target_wire_iid, wire.id)) {
-                    // Record inverse (swap is its own inverse)
-                    undo_stack_.push(cmd_swap_bus_ports(port_node_iid, target_wire_iid, wire.id));
                     reconnected = true;
                     result.rebuild_simulation = true;
                 }
@@ -833,14 +818,15 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
             // Fallback: standard wire reconnection
             if (!reconnected) {
-                // Check if dropped back on same port.
-                // For bus alias ports, the visual port name is the wire_id
-                // while the blueprint stores "v" as port_name.
                 ui::InternedId hit_port_iid = I.intern(ph->port->name());
                 bool same_as_original = (port_node_iid == detached.node_id &&
                                          (hit_port_iid == detached.port_name ||
                                           hit_port_iid == wire.id));
-                if (same_as_original) return result;
+                if (same_as_original) {
+                    // Dropped back on same port — discard snapshot
+                    undo_stack_.undo(bp_);
+                    return result;
+                }
 
                 const ::WireEnd& fixed = reconnect_detach_start_ ? wire.end : wire.start;
                 bool same_port = (port_node_iid == fixed.node_id &&
@@ -853,9 +839,6 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
                     ::WireEnd new_end(port_node_iid, hit_port_iid, ph->port->side());
                     visual::mutations::reconnect_wire(scene_, bp_,
                         reconnect_wire_idx_, reconnect_detach_start_, new_end, group_id_);
-                    // Record inverse: reconnect back to the old endpoint
-                    undo_stack_.push(AtomicCommand{CmdReconnectWire{
-                        wire_iid, old_node_id, old_port_name, reconnect_detach_start_}});
                     result.rebuild_simulation = true;
                     reconnected = true;
                 }
@@ -864,11 +847,12 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
     }
 
     if (!reconnected && reconnect_wire_idx_ < bp_.wires.size()) {
-        // Wire dropped on empty space → remove it. Record inverse to re-add.
-        Wire wire_copy = bp_.wires[reconnect_wire_idx_];
+        // Wire dropped on empty space → remove it
         visual::mutations::remove_wire(scene_, bp_, reconnect_wire_idx_);
-        undo_stack_.push(AtomicCommand{CmdAddWire{std::move(wire_copy)}});
         result.rebuild_simulation = true;
+    } else if (!reconnected) {
+        // No mutation happened — discard snapshot
+        undo_stack_.undo(bp_);
     }
     return result;
 }

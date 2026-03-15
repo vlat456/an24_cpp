@@ -3,6 +3,7 @@
 #include "input/input_types.h"
 #include "ui/math/pt.h"
 #include "data/port.h"
+#include "commands/commands.h"
 #include "undo/undo_stack.h"
 #include <optional>
 #include <string>
@@ -103,8 +104,8 @@ public:
     UndoStack& undo_stack() { return undo_stack_; }
     const UndoStack& undo_stack() const { return undo_stack_; }
     
-    /// Execute a command, store its inverse for undo.
-    Command execute_command(Command cmd);
+    /// Take a snapshot and execute a command (mutation).
+    void snapshot_and_execute(Command cmd);
     
     /// Perform undo (if possible).
     bool undo();
