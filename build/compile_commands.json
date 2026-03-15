@@ -181,9 +181,9 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.o -c /Users/vladimir/an24_cpp/src/editor/recent_files.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/recent_files.cpp",
-  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.o"
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/opt/homebrew/Cellar/sdl2/2.32.10/include -I/Users/vladimir/an24_cpp/build/_deps/nfde-src/src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -isystem /opt/homebrew/Cellar/sdl2/2.32.10/include/SDL2 -g -std=gnu++20 -arch arm64 -o CMakeFiles/an24_editor.dir/__/src/editor/editor_settings.cpp.o -c /Users/vladimir/an24_cpp/src/editor/editor_settings.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/editor_settings.cpp",
+  "output": "examples/CMakeFiles/an24_editor.dir/__/src/editor/editor_settings.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
@@ -1759,6 +1759,12 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.o -c /Users/vladimir/an24_cpp/src/editor/editor_settings.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/editor/editor_settings.cpp",
+  "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/window/properties_window.cpp.o -c /Users/vladimir/an24_cpp/src/editor/window/properties_window.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/window/properties_window.cpp",
   "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/window/properties_window.cpp.o"
@@ -1900,18 +1906,6 @@
   "command": "/usr/bin/c++ -DEDITOR_TESTING -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/imgui-src -I/Users/vladimir/an24_cpp/build/_deps/imgui-src/backends -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/persist.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/persist.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/persist.cpp",
   "output": "tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/visual/persist.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.o -c /Users/vladimir/an24_cpp/tests/test_recent_files.cpp",
-  "file": "/Users/vladimir/an24_cpp/tests/test_recent_files.cpp",
-  "output": "tests/CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/tests",
-  "command": "/usr/bin/c++  -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/recent_files_tests.dir/__/src/editor/recent_files.cpp.o -c /Users/vladimir/an24_cpp/src/editor/recent_files.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/editor/recent_files.cpp",
-  "output": "tests/CMakeFiles/recent_files_tests.dir/__/src/editor/recent_files.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

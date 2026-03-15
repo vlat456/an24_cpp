@@ -19,8 +19,9 @@ public:
             ImGui::Separator();
             
             if (ImGui::Button("Bake In")) {
-                if (ws.pendingBakeIn.doc) {
-                    ws.pendingBakeIn.doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
+                Document* bake_doc = ws.findDocumentById(ws.pendingBakeIn.doc_id);
+                if (bake_doc) {
+                    bake_doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
                 }
                 ImGui::CloseCurrentPopup();
             }

@@ -2,7 +2,6 @@
 
 #include "editor/document.h"
 #include "editor/window_system.h"
-#include "editor/recent_files.h"
 
 
 /// Main menu bar renderer

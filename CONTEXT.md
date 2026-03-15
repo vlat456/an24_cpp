@@ -14,18 +14,18 @@
 
 ## Recent Accomplishments
 
-### Recent Files System (COMPLETE ✅)
+### Editor Settings System (COMPLETE ✅)
 
 **Files:**
-- `src/editor/recent_files.h/cpp` - Pure business logic, platform-aware paths
-- `tests/test_recent_files.cpp` - 21 tests
+- `src/editor/editor_settings.h/cpp` - JSON-based settings (recent files, open tabs, active tab)
+- `tests/test_document_window_system.cpp` - Regression tests for settings persistence
 
 **Features:**
-- MRU list (max 10)
-- Platform-aware config paths (Windows/macOS/Linux)
-- Persistence via `loadFrom()`/`saveTo()`
-- Duplicates handled (moved to front)
-- Non-existent files filtered on load
+- MRU recent files list (max 10)
+- Open tab tracking and restoration across sessions
+- Active tab persistence
+- JSON format with `nlohmann::json` (UTF-8 safe)
+- Graceful handling of malformed/missing config files
 
 ### Document Management (COMPLETE ✅)
 
@@ -64,7 +64,7 @@
 ### Production Code
 | File | Lines | Purpose |
 |------|-------|---------|
-| `src/editor/recent_files.h/cpp` | 78 | Recent files logic |
+| `src/editor/editor_settings.h/cpp` | 137 | JSON settings (recent files, tabs) |
 | `src/editor/document.h/cpp` | 400 | Single document |
 | `src/editor/window_system.h/cpp` | 200 | Document management |
 | `src/editor/visual/dialogs/file_dialogs.cpp` | 34 | NFD wrappers |
@@ -75,7 +75,7 @@
 ### Test Files
 | File | Lines | Tests |
 |------|-------|-------|
-| `tests/test_recent_files.cpp` | 272 | 21 |
+| `tests/test_document_window_system.cpp` | 1106 | 50+ |
 | `tests/test_document_window_system.cpp` | 981 | 46 |
 
 ### Design Docs

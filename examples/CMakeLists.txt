@@ -108,7 +108,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/recent_files.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
@@ -170,6 +170,7 @@ target_link_libraries(an24_editor PRIVATE
     nfd
     jit_solver
     json_parser
+    nlohmann_json::nlohmann_json
 )
 
 # Benchmark JIT vs AOT

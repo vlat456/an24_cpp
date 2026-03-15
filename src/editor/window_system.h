@@ -1,7 +1,7 @@
 #pragma once
 
 #include "document.h"
-#include "recent_files.h"
+#include "editor_settings.h"
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
@@ -36,11 +36,15 @@ public:
     /// Clear the pending tab focus after it has been applied. Call once per frame.
     void consumeTabFocus() { pending_tab_focus_ = nullptr; }
 
+    /// Set pending tab focus (used when restoring active tab on startup)
+    void setPendingTabFocus(Document* doc) { pending_tab_focus_ = doc; }
+
     // ── Document access ──
 
     const std::vector<std::unique_ptr<Document>>& documents() const { return documents_; }
     size_t documentCount() const { return documents_.size(); }
     Document* findDocumentByPath(const std::string& path);
+    Document* findDocumentById(const std::string& id);
 
     // ── Global panels ──
 
@@ -54,32 +58,32 @@ public:
         bool show = false;
         Pt position;
         std::string group_id;
-        Document* source_doc = nullptr;
+        std::string source_doc_id;  ///< Resolved via findDocumentById()
     } contextMenu;
 
     struct NodeContextMenuState {
         bool show = false;
         std::string node_id;
         std::string group_id;
-        Document* source_doc = nullptr;
+        std::string source_doc_id;  ///< Resolved via findDocumentById()
     } nodeContextMenu;
 
     struct ColorPickerState {
         bool show = false;
         std::string node_id;
         std::string group_id;
-        Document* source_doc = nullptr;
+        std::string source_doc_id;  ///< Resolved via findDocumentById()
         float rgba[4] = {0.5f, 0.5f, 0.5f, 1.0f};
     } colorPicker;
 
     struct PendingBakeIn {
         bool show_confirmation = false;
-        Document* doc = nullptr;
+        std::string doc_id;  ///< Resolved via findDocumentById()
         std::string sub_blueprint_id;
     } pendingBakeIn;
 
     bool showInspector = true;
-    RecentFiles recent_files;
+    EditorSettings settings;
 
     // ── Utility ──
 

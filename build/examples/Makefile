@@ -581,6 +581,30 @@ __/src/editor/document.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/document.cpp.s
 .PHONY : __/src/editor/document.cpp.s
 
+__/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.o
+
+# target to build an object file
+__/src/editor/editor_settings.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.cpp.o
+
+__/src/editor/editor_settings.i: __/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.i
+
+# target to preprocess a source file
+__/src/editor/editor_settings.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.cpp.i
+
+__/src/editor/editor_settings.s: __/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.s
+
+# target to generate assembly for a file
+__/src/editor/editor_settings.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.cpp.s
+
 __/src/editor/imgui_theme.o: __/src/editor/imgui_theme.cpp.o
 .PHONY : __/src/editor/imgui_theme.o
 
@@ -628,30 +652,6 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
-
-__/src/editor/recent_files.o: __/src/editor/recent_files.cpp.o
-.PHONY : __/src/editor/recent_files.o
-
-# target to build an object file
-__/src/editor/recent_files.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.o
-.PHONY : __/src/editor/recent_files.cpp.o
-
-__/src/editor/recent_files.i: __/src/editor/recent_files.cpp.i
-.PHONY : __/src/editor/recent_files.i
-
-# target to preprocess a source file
-__/src/editor/recent_files.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.i
-.PHONY : __/src/editor/recent_files.cpp.i
-
-__/src/editor/recent_files.s: __/src/editor/recent_files.cpp.s
-.PHONY : __/src/editor/recent_files.s
-
-# target to generate assembly for a file
-__/src/editor/recent_files.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/recent_files.cpp.s
-.PHONY : __/src/editor/recent_files.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -1576,15 +1576,15 @@ help:
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
+	@echo "... __/src/editor/editor_settings.o"
+	@echo "... __/src/editor/editor_settings.i"
+	@echo "... __/src/editor/editor_settings.s"
 	@echo "... __/src/editor/imgui_theme.o"
 	@echo "... __/src/editor/imgui_theme.i"
 	@echo "... __/src/editor/imgui_theme.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
-	@echo "... __/src/editor/recent_files.o"
-	@echo "... __/src/editor/recent_files.i"
-	@echo "... __/src/editor/recent_files.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"

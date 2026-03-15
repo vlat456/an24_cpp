@@ -1351,6 +1351,7 @@ add_executable(document_window_system_tests
     test_document_window_system.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
@@ -1394,19 +1395,6 @@ target_link_libraries(document_window_system_tests PRIVATE
 )
 gtest_discover_tests(document_window_system_tests)
 
-# Recent files tests
-add_executable(recent_files_tests
-    test_recent_files.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/recent_files.cpp
-)
-target_include_directories(recent_files_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-)
-target_link_libraries(recent_files_tests PRIVATE
-    GTest::gtest_main
-)
-gtest_discover_tests(recent_files_tests)
 
 # FlatBlueprint format tests (was v2 format)
 add_executable(flat_blueprint_tests

@@ -26,7 +26,8 @@ void ContextMenus::renderAddComponent(WindowSystem& ws) {
         }
         for (const auto& classname : tree.entries) {
             if (ImGui::MenuItem(classname.c_str())) {
-                Document* doc = ws.contextMenu.source_doc ? ws.contextMenu.source_doc : ws.activeDocument();
+                Document* doc = ws.findDocumentById(ws.contextMenu.source_doc_id);
+                if (!doc) doc = ws.activeDocument();
                 if (doc) {
                     doc->addComponent(classname, ws.contextMenu.position, ws.contextMenu.group_id, ws.typeRegistry());
                 }
@@ -47,7 +48,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     if (!ImGui::BeginPopup("NodeContextMenu")) return;
     
-    Document* doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : ws.activeDocument();
+    Document* doc = ws.findDocumentById(ws.nodeContextMenu.source_doc_id);
+    if (!doc) doc = ws.activeDocument();
     Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id.c_str()) : nullptr;
     if (doc && node_ptr) {
         Node& node = *node_ptr;
@@ -86,7 +88,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (ImGui::MenuItem("Bake In (Embed)")) {
                 ws.pendingBakeIn.show_confirmation = true;
                 ws.pendingBakeIn.sub_blueprint_id = sbi_id;
-                ws.pendingBakeIn.doc = ws.nodeContextMenu.source_doc ? ws.nodeContextMenu.source_doc : doc;
+                ws.pendingBakeIn.doc_id = !ws.nodeContextMenu.source_doc_id.empty()
+                    ? ws.nodeContextMenu.source_doc_id : (doc ? doc->id() : std::string{});
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Edit Original")) {

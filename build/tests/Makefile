@@ -1138,20 +1138,6 @@ document_window_system_tests/fast:
 .PHONY : document_window_system_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/recent_files_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/recent_files_tests.dir/rule
-.PHONY : tests/CMakeFiles/recent_files_tests.dir/rule
-
-# Convenience name for target.
-recent_files_tests: tests/CMakeFiles/recent_files_tests.dir/rule
-.PHONY : recent_files_tests
-
-# fast build rule for target.
-recent_files_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/build
-.PHONY : recent_files_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/flat_blueprint_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/flat_blueprint_tests.dir/rule
 .PHONY : tests/CMakeFiles/flat_blueprint_tests.dir/rule
@@ -1552,6 +1538,30 @@ __/src/editor/document.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/document.cpp.s
 .PHONY : __/src/editor/document.cpp.s
 
+__/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.o
+
+# target to build an object file
+__/src/editor/editor_settings.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.cpp.o
+
+__/src/editor/editor_settings.i: __/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.i
+
+# target to preprocess a source file
+__/src/editor/editor_settings.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.cpp.i
+
+__/src/editor/editor_settings.s: __/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.s
+
+# target to generate assembly for a file
+__/src/editor/editor_settings.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.cpp.s
+
 __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
 .PHONY : __/src/editor/input/canvas_input.o
 
@@ -1584,30 +1594,6 @@ __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/__/src/editor/input/canvas_input.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
-
-__/src/editor/recent_files.o: __/src/editor/recent_files.cpp.o
-.PHONY : __/src/editor/recent_files.o
-
-# target to build an object file
-__/src/editor/recent_files.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/__/src/editor/recent_files.cpp.o
-.PHONY : __/src/editor/recent_files.cpp.o
-
-__/src/editor/recent_files.i: __/src/editor/recent_files.cpp.i
-.PHONY : __/src/editor/recent_files.i
-
-# target to preprocess a source file
-__/src/editor/recent_files.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/__/src/editor/recent_files.cpp.i
-.PHONY : __/src/editor/recent_files.cpp.i
-
-__/src/editor/recent_files.s: __/src/editor/recent_files.cpp.s
-.PHONY : __/src/editor/recent_files.s
-
-# target to generate assembly for a file
-__/src/editor/recent_files.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/__/src/editor/recent_files.cpp.s
-.PHONY : __/src/editor/recent_files.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -3547,30 +3533,6 @@ test_properties_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/test_properties_window.cpp.s
 .PHONY : test_properties_window.cpp.s
 
-test_recent_files.o: test_recent_files.cpp.o
-.PHONY : test_recent_files.o
-
-# target to build an object file
-test_recent_files.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.o
-.PHONY : test_recent_files.cpp.o
-
-test_recent_files.i: test_recent_files.cpp.i
-.PHONY : test_recent_files.i
-
-# target to preprocess a source file
-test_recent_files.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.i
-.PHONY : test_recent_files.cpp.i
-
-test_recent_files.s: test_recent_files.cpp.s
-.PHONY : test_recent_files.s
-
-# target to generate assembly for a file
-test_recent_files.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/recent_files_tests.dir/build.make tests/CMakeFiles/recent_files_tests.dir/test_recent_files.cpp.s
-.PHONY : test_recent_files.cpp.s
-
 test_sample_hold.o: test_sample_hold.cpp.o
 .PHONY : test_sample_hold.o
 
@@ -4329,7 +4291,6 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
-	@echo "... recent_files_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
@@ -4381,12 +4342,12 @@ help:
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
+	@echo "... __/src/editor/editor_settings.o"
+	@echo "... __/src/editor/editor_settings.i"
+	@echo "... __/src/editor/editor_settings.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
-	@echo "... __/src/editor/recent_files.o"
-	@echo "... __/src/editor/recent_files.i"
-	@echo "... __/src/editor/recent_files.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -4588,9 +4549,6 @@ help:
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"
-	@echo "... test_recent_files.o"
-	@echo "... test_recent_files.i"
-	@echo "... test_recent_files.s"
 	@echo "... test_sample_hold.o"
 	@echo "... test_sample_hold.i"
 	@echo "... test_sample_hold.s"

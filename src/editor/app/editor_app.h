@@ -28,7 +28,6 @@ private:
     void shutdown();
     
     void handleEvents();
-    void handleKeyboard();
     void update();
     void render();
     

@@ -28,7 +28,7 @@ Document* WindowSystem::openDocument(const std::string& path) {
     if (Document* existing = findDocumentByPath(path)) {
         setActiveDocument(existing);
         pending_tab_focus_ = existing;
-        recent_files.add(path);
+        settings.addRecentFile(path);
         spdlog::info("[WindowSystem] Document already open: {}", path);
         return existing;
     }
@@ -37,7 +37,9 @@ Document* WindowSystem::openDocument(const std::string& path) {
     if (documents_.size() == 1 && documents_.front()->isPristine()) {
         Document* pristine = documents_.front().get();
         if (pristine->load(path)) {
-            recent_files.add(path);
+            settings.addRecentFile(path);
+            settings.addOpenTab(path);
+            pending_tab_focus_ = pristine;
             spdlog::info("[WindowSystem] Replaced pristine Untitled with: {}", path);
             return pristine;
         }
@@ -55,7 +57,8 @@ Document* WindowSystem::openDocument(const std::string& path) {
     documents_.push_back(std::move(doc));
     setActiveDocument(doc_ptr);
     pending_tab_focus_ = doc_ptr;
-    recent_files.add(path);
+    settings.addRecentFile(path);
+    settings.addOpenTab(path);
 
     spdlog::info("[WindowSystem] Opened document: {} (total: {})", path, documents_.size());
 
@@ -68,6 +71,11 @@ bool WindowSystem::closeDocument(Document& doc) {
     if (it == documents_.end()) return false;
 
     spdlog::info("[WindowSystem] Closing document: {}", doc.displayName());
+
+    // Track open tabs before closing
+    if (!doc.filepath().empty()) {
+        settings.removeOpenTab(doc.filepath());
+    }
 
     // If this was the active document, pick a replacement BEFORE erasing
     if (active_document_ == &doc) {
@@ -82,15 +90,19 @@ bool WindowSystem::closeDocument(Document& doc) {
     }
 
     // Clear any context menu / color picker references to the closing doc
-    if (contextMenu.source_doc == &doc) contextMenu.source_doc = nullptr;
-    if (nodeContextMenu.source_doc == &doc) nodeContextMenu.source_doc = nullptr;
-    if (colorPicker.source_doc == &doc) {
-        colorPicker.source_doc = nullptr;
+    const std::string& closing_id = doc.id();
+    if (contextMenu.source_doc_id == closing_id) contextMenu.source_doc_id.clear();
+    if (nodeContextMenu.source_doc_id == closing_id) nodeContextMenu.source_doc_id.clear();
+    if (colorPicker.source_doc_id == closing_id) {
+        colorPicker.source_doc_id.clear();
         colorPicker.show = false;
     }
-    if (pendingBakeIn.doc == &doc) {
-        pendingBakeIn.doc = nullptr;
+    if (pendingBakeIn.doc_id == closing_id) {
+        pendingBakeIn.doc_id.clear();
         pendingBakeIn.show_confirmation = false;
+    }
+    if (pending_tab_focus_ == &doc) {
+        pending_tab_focus_ = nullptr;
     }
 
     // Close properties window if it targets this document's blueprint
@@ -128,15 +140,16 @@ bool WindowSystem::closeAllDocuments() {
         properties_window_.close();
     }
 
-    // Clear all dangling pointers to documents being destroyed
-    contextMenu.source_doc = nullptr;
+    // Clear all dangling references to documents being destroyed
+    contextMenu.source_doc_id.clear();
     contextMenu.show = false;
-    nodeContextMenu.source_doc = nullptr;
+    nodeContextMenu.source_doc_id.clear();
     nodeContextMenu.show = false;
-    colorPicker.source_doc = nullptr;
+    colorPicker.source_doc_id.clear();
     colorPicker.show = false;
-    pendingBakeIn.doc = nullptr;
+    pendingBakeIn.doc_id.clear();
     pendingBakeIn.show_confirmation = false;
+    pending_tab_focus_ = nullptr;
 
     documents_.clear();
     active_document_ = nullptr;
@@ -159,6 +172,16 @@ void WindowSystem::setActiveDocument(Document* doc) {
 Document* WindowSystem::findDocumentByPath(const std::string& path) {
     for (auto& doc : documents_) {
         if (doc->filepath() == path) {
+            return doc.get();
+        }
+    }
+    return nullptr;
+}
+
+Document* WindowSystem::findDocumentById(const std::string& id) {
+    if (id.empty()) return nullptr;
+    for (auto& doc : documents_) {
+        if (doc->id() == id) {
             return doc.get();
         }
     }
@@ -199,7 +222,7 @@ void WindowSystem::openColorPickerForNode(const std::string& node_id, const std:
 
     colorPicker.node_id = node_id;
     colorPicker.group_id = group_id;
-    colorPicker.source_doc = &doc;
+    colorPicker.source_doc_id = doc.id();
     colorPicker.show = true;
 
     if (node->color.has_value()) {
@@ -220,12 +243,12 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         contextMenu.show = true;
         contextMenu.position = action.context_menu_pos;
         contextMenu.group_id = action.context_menu_group_id;
-        contextMenu.source_doc = &doc;
+        contextMenu.source_doc_id = doc.id();
     }
     if (action.show_node_context_menu) {
         nodeContextMenu.show = true;
         nodeContextMenu.node_id = action.context_menu_node_id;
         nodeContextMenu.group_id = action.node_context_menu_group_id;
-        nodeContextMenu.source_doc = &doc;
+        nodeContextMenu.source_doc_id = doc.id();
     }
 }

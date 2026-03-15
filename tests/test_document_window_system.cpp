@@ -8,6 +8,7 @@
 #include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 #include <fstream>
+#include <filesystem>
 
 // Allow gtest to print InternedId values on assertion failure
 namespace ui {
@@ -296,16 +297,16 @@ TEST(WindowSystem, CloseDocumentClearsContextMenuPointers) {
     Document& d2 = ws.createDocument();
 
     // Set up context menu pointing to d2
-    ws.contextMenu.source_doc = &d2;
-    ws.nodeContextMenu.source_doc = &d2;
-    ws.colorPicker.source_doc = &d2;
+    ws.contextMenu.source_doc_id = d2.id();
+    ws.nodeContextMenu.source_doc_id = d2.id();
+    ws.colorPicker.source_doc_id = d2.id();
     ws.colorPicker.show = true;
 
     ws.closeDocument(d2);
 
-    EXPECT_EQ(ws.contextMenu.source_doc, nullptr);
-    EXPECT_EQ(ws.nodeContextMenu.source_doc, nullptr);
-    EXPECT_EQ(ws.colorPicker.source_doc, nullptr);
+    EXPECT_TRUE(ws.contextMenu.source_doc_id.empty());
+    EXPECT_TRUE(ws.nodeContextMenu.source_doc_id.empty());
+    EXPECT_TRUE(ws.colorPicker.source_doc_id.empty());
     EXPECT_FALSE(ws.colorPicker.show);
 }
 
@@ -316,13 +317,13 @@ TEST(WindowSystem, CloseDocumentKeepsOtherContextMenuPointers) {
     Document& d2 = ws.createDocument();
 
     // Set up context menu pointing to d1
-    ws.contextMenu.source_doc = d1;
-    ws.nodeContextMenu.source_doc = d1;
+    ws.contextMenu.source_doc_id = d1->id();
+    ws.nodeContextMenu.source_doc_id = d1->id();
 
-    // Close d2 — d1's pointers should remain
+    // Close d2 — d1's IDs should remain
     ws.closeDocument(d2);
-    EXPECT_EQ(ws.contextMenu.source_doc, d1);
-    EXPECT_EQ(ws.nodeContextMenu.source_doc, d1);
+    EXPECT_EQ(ws.contextMenu.source_doc_id, d1->id());
+    EXPECT_EQ(ws.nodeContextMenu.source_doc_id, d1->id());
 }
 
 // Stress: close all documents one by one
@@ -371,7 +372,7 @@ TEST(WindowSystem, HandleInputActionSetsContextMenu) {
     EXPECT_FLOAT_EQ(ws.contextMenu.position.x, 10.0f);
     EXPECT_FLOAT_EQ(ws.contextMenu.position.y, 20.0f);
     EXPECT_EQ(ws.contextMenu.group_id, "g1");
-    EXPECT_EQ(ws.contextMenu.source_doc, doc);
+    EXPECT_EQ(ws.contextMenu.source_doc_id, doc->id());
 }
 
 TEST(WindowSystem, HandleInputActionSetsNodeContextMenu) {
@@ -388,7 +389,7 @@ TEST(WindowSystem, HandleInputActionSetsNodeContextMenu) {
     EXPECT_TRUE(ws.nodeContextMenu.show);
     EXPECT_EQ(ws.nodeContextMenu.node_id, "node_3");
     EXPECT_EQ(ws.nodeContextMenu.group_id, "sub1");
-    EXPECT_EQ(ws.nodeContextMenu.source_doc, doc);
+    EXPECT_EQ(ws.nodeContextMenu.source_doc_id, doc->id());
 }
 
 TEST(WindowSystem, OpenDocumentDuplicatePathReturnsExisting) {
@@ -800,14 +801,14 @@ TEST(WindowSystem, OpenDocument_AddsToRecentFiles) {
     f.close();
 
     WindowSystem ws;
-    EXPECT_TRUE(ws.recent_files.empty());
+    EXPECT_TRUE(ws.settings.recentFiles().empty());
     
     Document* loaded = ws.openDocument(temp_file);
     ASSERT_NE(loaded, nullptr);
     
-    EXPECT_FALSE(ws.recent_files.empty());
-    EXPECT_EQ(ws.recent_files.files().size(), 1u);
-    EXPECT_EQ(ws.recent_files.files()[0], temp_file);
+    EXPECT_FALSE(ws.settings.recentFiles().empty());
+    EXPECT_EQ(ws.settings.recentFiles().size(), 1u);
+    EXPECT_EQ(ws.settings.recentFiles()[0], temp_file);
     
     std::remove(temp_file);
 }
@@ -847,14 +848,14 @@ TEST(WindowSystem, OpenDocument_DuplicatePath_UpdatesRecentFiles) {
     ws.openDocument(temp_file);
     ws.openDocument(temp_file2);
     
-    EXPECT_EQ(ws.recent_files.files().size(), 2u);
-    EXPECT_EQ(ws.recent_files.files()[0], temp_file2);  // Most recent
+    EXPECT_EQ(ws.settings.recentFiles().size(), 2u);
+    EXPECT_EQ(ws.settings.recentFiles()[0], temp_file2);  // Most recent
     
     // Open first file again - should move to front
     ws.openDocument(temp_file);
     
-    EXPECT_EQ(ws.recent_files.files().size(), 2u);
-    EXPECT_EQ(ws.recent_files.files()[0], temp_file);  // Now most recent
+    EXPECT_EQ(ws.settings.recentFiles().size(), 2u);
+    EXPECT_EQ(ws.settings.recentFiles()[0], temp_file);  // Now most recent
     
     std::remove(temp_file);
     std::remove(temp_file2);
@@ -898,17 +899,17 @@ TEST(WindowSystem, OpenDocument_InvalidPath) {
     EXPECT_EQ(ws.documentCount(), 1u);  // Still has pristine Untitled
 }
 
-// EDGE: RecentFiles handles empty string
-TEST(RecentFiles, HandlesEmptyString) {
-    RecentFiles rf;
-    rf.add("");  // Empty path
+// EDGE: EditorSettings handles empty string
+TEST(EditorSettings, HandlesEmptyString) {
+    EditorSettings rf;
+    rf.addRecentFile("");  // Empty path
     
     // Empty path should still be added (though not useful)
-    EXPECT_EQ(rf.files().size(), 1u);
+    EXPECT_EQ(rf.recentFiles().size(), 1u);
 }
 
-// EDGE: RecentFiles handles paths with unicode (if filesystem supports)
-TEST(RecentFiles, HandlesUnicodePath) {
+// EDGE: EditorSettings handles paths with unicode (if filesystem supports)
+TEST(EditorSettings, HandlesUnicodePath) {
     // Create temp file with unicode name
     std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "ан24_test";
     std::filesystem::create_directories(temp_dir);
@@ -920,14 +921,14 @@ TEST(RecentFiles, HandlesUnicodePath) {
     }
     
     if (std::filesystem::exists(unicode_path)) {
-        RecentFiles rf;
-        rf.add(unicode_path);
+        EditorSettings rf;
+        rf.addRecentFile(unicode_path);
         
-        EXPECT_EQ(rf.files().size(), 1u);
-        EXPECT_EQ(rf.files()[0], unicode_path);
-        
-        std::filesystem::remove_all(temp_dir);
+        EXPECT_EQ(rf.recentFiles().size(), 1u);
+        EXPECT_EQ(rf.recentFiles()[0], unicode_path);
     }
+        
+    std::filesystem::remove_all(temp_dir);
 }
 
 // EDGE: CloseDocument with sub-windows open
@@ -971,18 +972,135 @@ TEST(WindowSystem, RapidOpenCloseCycles) {
     std::remove(temp_file);
 }
 
-// EDGE: RecentFiles max limit edge
-TEST(RecentFiles, MaxLimitExact) {
-    RecentFiles rf;
+// EDGE: EditorSettings max limit edge
+TEST(EditorSettings, MaxLimitExact) {
+    EditorSettings rf;
     
     // Add exactly MAX files
-    for (size_t i = 0; i < RecentFiles::MAX; i++) {
-        rf.add("/file" + std::to_string(i) + ".blueprint");
+    for (size_t i = 0; i < EditorSettings::MAX_RECENT; i++) {
+        rf.addRecentFile("/file" + std::to_string(i) + ".blueprint");
     }
     
-    EXPECT_EQ(rf.files().size(), RecentFiles::MAX);
+    EXPECT_EQ(rf.recentFiles().size(), EditorSettings::MAX_RECENT);
     
     // Add one more - should still be MAX
-    rf.add("/file_extra.blueprint");
-    EXPECT_EQ(rf.files().size(), RecentFiles::MAX);
+    rf.addRecentFile("/file_extra.blueprint");
+    EXPECT_EQ(rf.recentFiles().size(), EditorSettings::MAX_RECENT);
+}
+
+// ============================================================================
+// Regression tests for EditorSettings serialization
+// ============================================================================
+
+// REGRESSION: saveTo must not crash on strings with invalid UTF-8 bytes
+TEST(EditorSettings, Regression_SaveToDoesNotCrashOnInvalidUtf8) {
+    EditorSettings settings;
+
+    // Inject a string with invalid UTF-8 byte sequence
+    std::string bad_path = "/path/with/invalid\xff\xfe/bytes.blueprint";
+    settings.addRecentFile(bad_path);
+    settings.setActiveTab(bad_path);
+
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "an24_settings_test";
+    std::filesystem::create_directories(temp_dir);
+    std::string config_path = (temp_dir / "settings_utf8.cfg").string();
+
+    // Must not throw — this is the reported crash scenario
+    EXPECT_NO_THROW(settings.saveTo(config_path));
+
+    // File should exist and have content
+    EXPECT_TRUE(std::filesystem::exists(config_path));
+    EXPECT_GT(std::filesystem::file_size(config_path), 0u);
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+// REGRESSION: saveTo + loadFrom roundtrip preserves data
+TEST(EditorSettings, Regression_SaveLoadRoundtrip) {
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "an24_settings_roundtrip";
+    std::filesystem::create_directories(temp_dir);
+
+    // Create real files so loadFrom's exists() check passes
+    std::string file1 = (temp_dir / "a.blueprint").string();
+    std::string file2 = (temp_dir / "b.blueprint").string();
+    { std::ofstream f1(file1); std::ofstream f2(file2); }
+
+    std::string config_path = (temp_dir / "settings.cfg").string();
+
+    EditorSettings s1;
+    s1.addRecentFile(file1);
+    s1.addRecentFile(file2);
+    s1.addOpenTab(file1);
+    s1.setActiveTab(file1);
+    s1.saveTo(config_path);
+
+    EditorSettings s2;
+    s2.loadFrom(config_path);
+
+    EXPECT_EQ(s2.recentFiles().size(), 2u);
+    EXPECT_EQ(s2.recentFiles()[0], file2);  // Most recent first
+    EXPECT_EQ(s2.recentFiles()[1], file1);
+    EXPECT_EQ(s2.openTabs().size(), 1u);
+    EXPECT_EQ(s2.openTabs()[0], file1);
+    EXPECT_EQ(s2.activeTab(), file1);
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+// REGRESSION: loadFrom must not crash on malformed JSON
+TEST(EditorSettings, Regression_MalformedJsonDoesNotCrash) {
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "an24_settings_malformed";
+    std::filesystem::create_directories(temp_dir);
+    std::string config_path = (temp_dir / "settings.cfg").string();
+
+    // Write malformed JSON
+    {
+        std::ofstream f(config_path);
+        f << "{ not valid json at all }}}";
+    }
+
+    EditorSettings settings;
+    EXPECT_NO_THROW(settings.loadFrom(config_path));
+    EXPECT_TRUE(settings.recentFiles().empty());
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+// REGRESSION: loadFrom must not crash on structurally valid but semantically wrong JSON
+TEST(EditorSettings, Regression_WrongJsonStructureDoesNotCrash) {
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "an24_settings_wrong_type";
+    std::filesystem::create_directories(temp_dir);
+    std::string config_path = (temp_dir / "settings.cfg").string();
+
+    // Write JSON with wrong types (number instead of array, null instead of string)
+    {
+        std::ofstream f(config_path);
+        f << R"({"recentFiles": 42, "openTabs": null, "activeTab": 123})";
+    }
+
+    EditorSettings settings;
+    EXPECT_NO_THROW(settings.loadFrom(config_path));
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+// REGRESSION: loadFrom on old plain-text format (migration scenario) must not crash
+TEST(EditorSettings, Regression_OldPlainTextFormatDoesNotCrash) {
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "an24_settings_migration";
+    std::filesystem::create_directories(temp_dir);
+    std::string config_path = (temp_dir / "settings.cfg").string();
+
+    // Write old-format plain text (one path per line)
+    {
+        std::ofstream f(config_path);
+        f << "/Users/someone/test.blueprint\n";
+        f << "/Users/someone/other.blueprint\n";
+    }
+
+    EditorSettings settings;
+    EXPECT_NO_THROW(settings.loadFrom(config_path));
+    // Should not load anything (invalid JSON), but must not crash
+    EXPECT_TRUE(settings.recentFiles().empty());
+
+    std::filesystem::remove_all(temp_dir);
 }

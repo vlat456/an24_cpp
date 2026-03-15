@@ -49,7 +49,7 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
             if (active_doc->filepath().empty()) {
                 if (auto path = dialogs::saveBlueprint()) {
                     active_doc->save(*path);
-                    ws.recent_files.add(*path);
+                    ws.settings.addRecentFile(*path);
                 }
             } else {
                 active_doc->save(active_doc->filepath());
@@ -73,10 +73,10 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 }
 
 void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
-    if (!ImGui::BeginMenu("Recent Files", !ws.recent_files.empty())) return;
+    if (!ImGui::BeginMenu("Recent Files", !ws.settings.recentFiles().empty())) return;
 
-    for (size_t i = 0; i < ws.recent_files.files().size(); i++) {
-        const std::string& recent_path = ws.recent_files.files()[i];
+    for (size_t i = 0; i < ws.settings.recentFiles().size(); i++) {
+        const std::string& recent_path = ws.settings.recentFiles()[i];
         std::string name = std::filesystem::path(recent_path).filename().string();
         
         if (ImGui::MenuItem(name.c_str())) {
@@ -90,7 +90,7 @@ void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
 
     ImGui::Separator();
     if (ImGui::MenuItem("Clear List")) {
-        ws.recent_files.clear();
+        ws.settings.clearRecentFiles();
     }
 
     ImGui::EndMenu();

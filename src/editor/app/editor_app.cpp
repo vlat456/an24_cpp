@@ -21,24 +21,25 @@
 static std::string getConfigPath() {
 #ifdef _WIN32
     const char* appdata = getenv("APPDATA");
-    return appdata ? std::string(appdata) + "/an24/recent_files.cfg"
-        : "C:/an24/recent_files.cfg";
+    return appdata ? std::string(appdata) + "/an24/settings.cfg"
+        : "C:/an24/settings.cfg";
 #elif defined(__APPLE__)
     const char* home = getenv("HOME");
-    return home ? std::string(home) + "/Library/Application Support/an24/recent_files.cfg"
-        : "/tmp/an24/recent_files.cfg";
+    return home ? std::string(home) + "/Library/Application Support/an24/settings.cfg"
+        : "/tmp/an24/settings.cfg";
 #else
     const char* xdg = getenv("XDG_CONFIG_HOME");
-    if (xdg) return std::string(xdg) + "/an24/recent_files.cfg";
+    if (xdg) return std::string(xdg) + "/an24/settings.cfg";
     const char* home = getenv("HOME");
-    return home ? std::string(home) + "/.config/an24/recent_files.cfg"
-        : "/tmp/an24/recent_files.cfg";
+    return home ? std::string(home) + "/.config/an24/settings.cfg"
+        : "/tmp/an24/settings.cfg";
 #endif
 }
 
 static void ensureConfigDir(const std::string& path) {
+    std::error_code ec;
     auto dir = std::filesystem::path(path).parent_path();
-    std::filesystem::create_directories(dir);
+    std::filesystem::create_directories(dir, ec);
 }
 
 
@@ -132,18 +133,39 @@ int EditorApp::run() {
         return -1;
     }
     
-    std::string recent_cfg = getConfigPath();
-    ensureConfigDir(recent_cfg);
-    ws_.recent_files.loadFrom(recent_cfg);
+    std::string settings_path = getConfigPath();
+    ensureConfigDir(settings_path);
+    ws_.settings.loadFrom(settings_path);
+    
+    // Restore open tabs from previous session
+    if (ws_.settings.hasOpenTabs()) {
+        for (const auto& path : ws_.settings.openTabs()) {
+            ws_.openDocument(path);
+        }
+        // Restore active tab focus
+        if (!ws_.settings.activeTab().empty()) {
+            if (Document* doc = ws_.findDocumentByPath(ws_.settings.activeTab())) {
+                ws_.setActiveDocument(doc);
+                ws_.setPendingTabFocus(doc);
+            }
+        }
+    }
     
     running_ = true;
     while (running_) {
         handleEvents();
         update();
         render();
+        
+        // Save active tab before rendering
+        if (Document* doc = ws_.activeDocument()) {
+            if (!doc->filepath().empty()) {
+                ws_.settings.setActiveTab(doc->filepath());
+            }
+        }
     }
     
-    ws_.recent_files.saveTo(recent_cfg);
+    ws_.settings.saveTo(settings_path);
     shutdown();
     return 0;
 }

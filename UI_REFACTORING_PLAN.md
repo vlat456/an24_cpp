@@ -32,7 +32,7 @@ src/editor/
 │   └── config_paths.h/cpp        # Platform-specific paths
 ├── window_system.h/cpp           # (exists) Document management
 ├── document.h/cpp                # (exists) Single document
-├── recent_files.h/cpp            # (exists) Recent files list
+├── editor_settings.h/cpp         # (exists) JSON settings (recent files, tabs, active tab)
 └── visual/
     ├── dialogs/
     │   └── file_dialogs.h/cpp    # (exists) NFD wrappers
