@@ -7,8 +7,7 @@
 // Can be included after template definitions are visible (e.g., after all.cpp)
 // =============================================================================
 
-namespace an24 {
-
+template class AZS<JitProvider>;
 template class Battery<JitProvider>;
 template class Switch<JitProvider>;
 template class Relay<JitProvider>;
@@ -33,6 +32,7 @@ template class HighPowerLoad<JitProvider>;
 template class ElectricPump<JitProvider>;
 template class SolenoidValve<JitProvider>;
 template class InertiaNode<JitProvider>;
+template class Spring<JitProvider>;
 template class TempSensor<JitProvider>;
 template class ElectricHeater<JitProvider>;
 template class Radiator<JitProvider>;
@@ -45,6 +45,32 @@ template class Bus<JitProvider>;
 template class BlueprintInput<JitProvider>;
 template class BlueprintOutput<JitProvider>;
 template class RefNode<JitProvider>;
-
-} // namespace an24
+template class Subtract<JitProvider>;
+template class Multiply<JitProvider>;
+template class Divide<JitProvider>;
+template class Add<JitProvider>;
+template class AND<JitProvider>;
+template class OR<JitProvider>;
+template class XOR<JitProvider>;
+template class NOT<JitProvider>;
+template class NAND<JitProvider>;
+template class Any_V_to_Bool<JitProvider>;
+template class Positive_V_to_Bool<JitProvider>;
+template class LUT<JitProvider>;
+template class FastTMO<JitProvider>;
+template class AsymTMO<JitProvider>;
+template class SlewRate<JitProvider>;
+template class AsymSlewRate<JitProvider>;
+template class TimeDelay<JitProvider>;
+template class Monostable<JitProvider>;
+template class SampleHold<JitProvider>;
+template class Integrator<JitProvider>;
+template class Clamp<JitProvider>;
+template class Normalize<JitProvider>;
+template class Min<JitProvider>;
+template class Max<JitProvider>;
+template class Greater<JitProvider>;
+template class Lesser<JitProvider>;
+template class GreaterEq<JitProvider>;
+template class LesserEq<JitProvider>;
 

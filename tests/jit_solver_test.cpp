@@ -4,8 +4,8 @@
 #include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
 #include "json_parser/json_parser.h"
+#include "parse_number.h"
 
-using namespace an24;
 
 // =============================================================================
 // Helper: create DeviceInstance with common fields
@@ -54,7 +54,7 @@ static SimulationState run_sor(
         if (dev.classname == "RefNode") {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
-            if (it_val != dev.params.end()) value = std::stof(it_val->second);
+            if (it_val != dev.params.end()) value = locale_safe::parse_float_or(it_val->second, 0.0f);
 
             std::string port = dev.name + ".v";
             auto it_sig = result.port_to_signal.find(port);
@@ -78,6 +78,9 @@ static SimulationState run_sor(
 
         // Post-step: relay switches copy voltage after SOR update
         result.systems.post_step(state, 1.0f / 60.0f);
+
+        // Logical: after SOR + post_step so gates read converged values
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     return state;
@@ -975,6 +978,7 @@ TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     float v_open = get_voltage(state, result, "sw.v_out");
@@ -1017,6 +1021,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
         }
         state.across[ctrl_idx] = 28.0f;  // maintain control
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
     float v_closed = get_voltage(state, result, "relay.v_out");
     EXPECT_GT(v_closed, 27.0f) << "Closed relay should pass voltage";
@@ -1033,6 +1038,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
         }
         state.across[ctrl_idx] = 0.0f;  // maintain control
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     float v_open = get_voltage(state, result, "relay.v_out");
@@ -1078,6 +1084,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     float v_pressed = get_voltage(state, result, "btn.v_out");
@@ -1094,6 +1101,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     float v_released = get_voltage(state, result, "btn.v_out");
@@ -1208,6 +1216,7 @@ TEST(RegressionTest, BatterySagThroughPressedHoldButton) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         result.systems.post_step(state, 1.0f / 60.0f);
+        result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
     float v_in = get_voltage(state, result, "btn.v_in");

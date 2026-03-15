@@ -1,0 +1,400 @@
+{
+  "tests": 74,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PersistTest",
+      "tests": 53,
+      "testsuite": [
+        {
+          "name": "ToJson_EmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 14
+        },
+        {
+          "name": "ToJson_FromJson_Roundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 23
+        },
+        {
+          "name": "DisplayName_Roundtrip_CustomName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 72
+        },
+        {
+          "name": "DisplayName_Roundtrip_SameAsId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 96
+        },
+        {
+          "name": "DisplayName_WithSpacesAndSpecialChars",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 118
+        },
+        {
+          "name": "SizeExplicitlySet_FromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 136
+        },
+        {
+          "name": "FromJson_Invalid_ReturnsNullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 158
+        },
+        {
+          "name": "ToJson_IncludesViewport",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 163
+        },
+        {
+          "name": "EditorFormat_WithMetadata",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 179
+        },
+        {
+          "name": "FromJson_MissingDevices_ReturnsNullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 222
+        },
+        {
+          "name": "RenderHint_Roundtrip_Bus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 234
+        },
+        {
+          "name": "RenderHint_Roundtrip_Ref",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 254
+        },
+        {
+          "name": "RenderHint_Roundtrip_Default",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 274
+        },
+        {
+          "name": "Expandable_Roundtrip_False",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 293
+        },
+        {
+          "name": "RefNode_ValueByKind_NotTypeName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 313
+        },
+        {
+          "name": "GetDefaultNodeSize_Bus_Returns40x40",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 335
+        },
+        {
+          "name": "GetDefaultNodeSize_RefNode_Returns40x40",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 345
+        },
+        {
+          "name": "GetDefaultNodeSize_Ref_Alias_Returns40x40",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 355
+        },
+        {
+          "name": "GetDefaultNodeSize_UnknownComponent_Returns120x80",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 365
+        },
+        {
+          "name": "GetDefaultNodeSize_WithRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 372
+        },
+        {
+          "name": "GetDefaultNodeSize_Splitter_Returns60x60",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 390
+        },
+        {
+          "name": "GetDefaultNodeSize_GridUnitConversion",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 409
+        },
+        {
+          "name": "BusVisualNode_InitialSizeFromTypeDefinition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 433
+        },
+        {
+          "name": "BusVisualNode_ResizesWhenWireAdded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 455
+        },
+        {
+          "name": "BusVisualNode_ResizesWhenWireRemoved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 501
+        },
+        {
+          "name": "BusVisualNode_SizeIsGridSnapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 564
+        },
+        {
+          "name": "PortType_EditorFormat_Roundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 603
+        },
+        {
+          "name": "InOutPort_AllowsWireFromBothDirections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 667
+        },
+        {
+          "name": "DuplicateNodes_DedupedOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 719
+        },
+        {
+          "name": "BlueprintToBlueprintWire_NotDropped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 753
+        },
+        {
+          "name": "VisualCache_PositionSync",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 827
+        },
+        {
+          "name": "DedupGuard_DuplicateWiresDroppedOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 863
+        },
+        {
+          "name": "DedupGuard_DuplicateNodesDroppedOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 888
+        },
+        {
+          "name": "DedupGuard_DuplicateRoutingPointsDroppedOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 908
+        },
+        {
+          "name": "DedupGuard_SaveDedupsWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 932
+        },
+        {
+          "name": "SaveRejectsBluprintDirectory",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 959
+        },
+        {
+          "name": "AutoLayout_BlueprintInputLeftOutputRight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 970
+        },
+        {
+          "name": "SimFormat_DedupsConnections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1100
+        },
+        {
+          "name": "SimFormat_DedupsNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1124
+        },
+        {
+          "name": "EditorSave_PreservesFirstWireRoutingOnDedup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1145
+        },
+        {
+          "name": "EditorSave_DedupsCollapsedGroups",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1180
+        },
+        {
+          "name": "Roundtrip_SaveLoadSave_Stable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1201
+        },
+        {
+          "name": "Roundtrip_DuplicatesDoNotAccumulate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1233
+        },
+        {
+          "name": "SaveRejectsNestedBlueprintDirectory",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1368
+        },
+        {
+          "name": "SaveAllowsNonBlueprintDirectory",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1375
+        },
+        {
+          "name": "RenderHint_RefNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1418
+        },
+        {
+          "name": "RenderHint_Bus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1436
+        },
+        {
+          "name": "Expandable_Blueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1453
+        },
+        {
+          "name": "RenderHint_Roundtrip_RefNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1470
+        },
+        {
+          "name": "RenderHint_Roundtrip_DefaultIsEmpty",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1488
+        },
+        {
+          "name": "UnknownPortType_DoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1510
+        },
+        {
+          "name": "MissingPortType_DoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1529
+        },
+        {
+          "name": "CreateNodeContentFromDef_ResetToDefaults",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1552
+        }
+      ]
+    },
+    {
+      "name": "BlueprintTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "AddWire_ReturnsIndexOnSuccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 999
+        },
+        {
+          "name": "AddWire_RejectsDuplicate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1016
+        },
+        {
+          "name": "AddWire_AllowsDifferentConnections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1039
+        },
+        {
+          "name": "AddWire_RejectsTripleDuplicate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1062
+        },
+        {
+          "name": "AddNode_ReturnsExistingIndexOnDuplicate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1082
+        },
+        {
+          "name": "AutoLayout_OnlyBlueprintInputOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1265
+        },
+        {
+          "name": "AutoLayout_GroundsPlacedBelowAllColumns",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1281
+        },
+        {
+          "name": "AutoLayout_EmptyGroupIsNoop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1306
+        },
+        {
+          "name": "AutoLayout_BusColumnBetweenSourcesAndLoads",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1319
+        },
+        {
+          "name": "AutoLayout_MultipleRowsPerColumn",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1340
+        },
+        {
+          "name": "AddWire_ReversedDirectionIsUnique",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1392
+        }
+      ]
+    },
+    {
+      "name": "WireDedup",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "WireKey_EqualityAndHash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1602
+        },
+        {
+          "name": "AddWire_SetBasedDedup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1615
+        },
+        {
+          "name": "WireIndex_SyncAfterRebuild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1631
+        },
+        {
+          "name": "Scene_RemoveWire_SyncsIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1653
+        },
+        {
+          "name": "Scene_RemoveNode_SyncsIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1669
+        },
+        {
+          "name": "Scene_ReconnectWire_UpdatesIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1683
+        }
+      ]
+    },
+    {
+      "name": "BusInvariant",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "Construction_PortsEqualWiresPlusOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1707
+        },
+        {
+          "name": "ConnectWire_AddsPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1724
+        },
+        {
+          "name": "DisconnectWire_RemovesPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1737
+        },
+        {
+          "name": "Construction_FiltersUnrelatedWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_persist.cpp",
+          "line": 1753
+        }
+      ]
+    }
+  ]
+}

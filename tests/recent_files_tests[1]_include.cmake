@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/recent_files_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/recent_files_tests[1]_tests.cmake")
+else()
+  add_test(recent_files_tests_NOT_BUILT recent_files_tests_NOT_BUILT)
+endif()

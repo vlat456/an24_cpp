@@ -1,0 +1,29 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Adder: o = A + B",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Add",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

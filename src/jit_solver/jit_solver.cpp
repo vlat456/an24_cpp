@@ -1,64 +1,19 @@
 #include "jit_solver.h"
 #include "scheduling.h"
 #include "state.h"
+#include "../parse_number.h"
 #include "components/all.h"
+#include "components/port_registry.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <map>
 #include <optional>
 #include <vector>
 
-namespace an24 {
-
 namespace {
 
-/// Convert string port name to PortNames enum (returns nullopt for unknown ports)
-std::optional<PortNames> string_to_port_name(const std::string& port_name) {
-    static const std::unordered_map<std::string, PortNames> port_map = {
-        {"Va", PortNames::Va},
-        {"Vb", PortNames::Vb},
-        {"ac_out", PortNames::ac_out},
-        {"brightness", PortNames::brightness},
-        {"control", PortNames::control},
-        {"ctrl", PortNames::ctrl},
-        {"dc_in", PortNames::dc_in},
-        {"flow_in", PortNames::flow_in},
-        {"flow_out", PortNames::flow_out},
-        {"heat_in", PortNames::heat_in},
-        {"heat_out", PortNames::heat_out},
-        {"i", PortNames::i},
-        {"input", PortNames::input},
-        {"k_mod", PortNames::k_mod},
-        {"lamp", PortNames::lamp},
-        {"o", PortNames::o},
-        {"o1", PortNames::o1},
-        {"o2", PortNames::o2},
-        {"output", PortNames::output},
-        {"port", PortNames::port},
-        {"p_out", PortNames::p_out},
-        {"power", PortNames::power},
-        {"primary", PortNames::primary},
-        {"rpm_out", PortNames::rpm_out},
-        {"secondary", PortNames::secondary},
-        {"state", PortNames::state},
-        {"t4_out", PortNames::t4_out},
-        {"temp_in", PortNames::temp_in},
-        {"temp_out", PortNames::temp_out},
-        {"v", PortNames::v},
-        {"v_bus", PortNames::v_bus},
-        {"v_gen", PortNames::v_gen},
-        {"v_gen_ref", PortNames::v_gen_ref},
-        {"v_in", PortNames::v_in},
-        {"v_out", PortNames::v_out},
-        {"v_start", PortNames::v_start}
-    };
-
-    auto it = port_map.find(port_name);
-    if (it != port_map.end()) {
-        return it->second;
-    }
-    return std::nullopt;
-}
+// string_to_port_name is now auto-generated in port_registry.h
+// If a new component's port is missing, re-run codegen.
 
 /// Setup port indices for a component from port_to_signal mapping.
 /// Ports not in the PortNames enum are silently skipped — this allows
@@ -72,20 +27,20 @@ void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult
             auto port_enum = string_to_port_name(port_name);
             if (port_enum) {
                 comp.provider.set(*port_enum, it->second);
+            } else {
+                throw std::runtime_error(
+                    "[build] Unknown port name '" + port_name + "' on device '" + dev.name +
+                    "'. Re-run codegen to update port_registry.h, or fix the blueprint.");
             }
         }
     }
 }
 
-/// Helper to get float param with default
+/// Helper to get float param with default (locale-independent)
 auto get_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
     auto it = dev.params.find(key);
     if (it != dev.params.end()) {
-        try {
-            return std::stof(it->second);
-        } catch (...) {
-            return default_val;
-        }
+        return locale_safe::parse_float_or(it->second, default_val);
     }
     return default_val;
 };
@@ -111,7 +66,7 @@ auto get_string = [](const DeviceInstance& dev, const std::string& key, const st
 /// Factory function - creates a ComponentVariant from DeviceInstance
 ComponentVariant create_component_variant(
     const DeviceInstance& dev,
-    const BuildResult& result
+    BuildResult& result
 ) {
     if (dev.classname == "Battery") {
         Battery<JitProvider> comp;
@@ -127,6 +82,14 @@ ComponentVariant create_component_variant(
         Switch<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.closed = get_bool(dev, "initial_state", false);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AZS") {
+        AZS<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.closed = get_bool(dev, "closed", false);
+        comp.i_nominal = get_float(dev, "i_nominal", 20.0f);
+        comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Relay") {
@@ -166,6 +129,7 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         comp.v_nominal = get_float(dev, "v_nominal", 28.5f);
         comp.internal_r = get_float(dev, "internal_r", 0.005f);
+        comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "GS24") {
@@ -191,6 +155,7 @@ ComponentVariant create_component_variant(
         LerpNode<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.factor = get_float(dev, "factor", 1.0f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "Splitter") {
@@ -219,6 +184,7 @@ ComponentVariant create_component_variant(
         HighPowerLoad<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.power_draw = get_float(dev, "power_draw", 500.0f);
+        comp.min_voltage_diff = get_float(dev, "min_voltage_diff", 0.01f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "ElectricPump") {
@@ -239,6 +205,15 @@ ComponentVariant create_component_variant(
         comp.mass = get_float(dev, "mass", 1.0f);
         comp.damping = get_float(dev, "damping", 0.5f);
         comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Spring") {
+        Spring<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.k = get_float(dev, "k", 1000.0f);
+        comp.c = get_float(dev, "c", 10.0f);
+        comp.rest_length = get_float(dev, "rest_length", 0.1f);
+        comp.compression_only = get_bool(dev, "compression_only", true);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "TempSensor") {
@@ -325,6 +300,61 @@ ComponentVariant create_component_variant(
         comp.value = get_float(dev, "value", 0.0f);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "Subtract") {
+        Subtract<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Multiply") {
+        Multiply<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Divide") {
+        Divide<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Add") {
+        Add<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AND") {
+        AND<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "OR") {
+        OR<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "XOR") {
+        XOR<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "NOT") {
+        NOT<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "NAND") {
+        NAND<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Any_V_to_Bool") {
+        Any_V_to_Bool<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Positive_V_to_Bool") {
+        Positive_V_to_Bool<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "PID") {
         PID<JitProvider> comp;
         setup_component_ports(comp, dev, result);
@@ -361,6 +391,123 @@ ComponentVariant create_component_variant(
         comp.Kp = get_float(dev, "Kp", 1.0f);
         comp.output_min = get_float(dev, "output_min", -1000.0f);
         comp.output_max = get_float(dev, "output_max", 1000.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "LUT") {
+        LUT<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        std::string table_str = get_string(dev, "table", "");
+        std::vector<float> keys, values;
+        if (LUT<JitProvider>::parse_table(table_str, keys, values)) {
+            comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
+            comp.table_size   = static_cast<uint16_t>(keys.size());
+            result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
+            result.lut_values.insert(result.lut_values.end(), values.begin(), values.end());
+        }
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "FastTMO") {
+        FastTMO<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.tau = get_float(dev, "tau", 0.1f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AsymTMO") {
+        AsymTMO<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.tau_up = get_float(dev, "tau_up", 0.1f);
+        comp.tau_down = get_float(dev, "tau_down", 0.5f);
+        comp.deadzone = get_float(dev, "deadzone", 0.001f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "SlewRate") {
+        SlewRate<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.max_rate = get_float(dev, "max_rate", 1.0f);
+        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "AsymSlewRate") {
+        AsymSlewRate<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.rate_up = get_float(dev, "rate_up", 1.0f);
+        comp.rate_down = get_float(dev, "rate_down", 0.5f);
+        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "TimeDelay") {
+        TimeDelay<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.delay_on = get_float(dev, "delay_on", 0.5f);
+        comp.delay_off = get_float(dev, "delay_off", 0.1f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Monostable") {
+        Monostable<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.duration = get_float(dev, "duration", 30.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "SampleHold") {
+        SampleHold<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Integrator") {
+        Integrator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.gain = get_float(dev, "gain", 1.0f);
+        comp.initial_val = get_float(dev, "initial_val", 0.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Clamp") {
+        Clamp<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        float a = get_float(dev, "min", 0.0f);
+        float b = get_float(dev, "max", 1.0f);
+        comp.min = std::min(a, b);
+        comp.max = std::max(a, b);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Normalize") {
+        Normalize<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.min = get_float(dev, "min", 0.0f);
+        comp.max = get_float(dev, "max", 100.0f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Min") {
+        Min<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Max") {
+        Max<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Greater") {
+        Greater<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "Lesser") {
+        Lesser<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "GreaterEq") {
+        GreaterEq<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "LesserEq") {
+        LesserEq<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
     else {
@@ -506,17 +653,27 @@ BuildResult build_systems_dev(
         unique_roots.size(), result.signal_count, result.fixed_signals.size());
 
     // Create components dynamically using factory
+    // Phase 1: Insert ALL components into the map first.
+    // We must NOT take pointers during insertion because unordered_map
+    // rehashing invalidates all existing pointers/references.
+    std::vector<std::string> device_names_ordered;
     for (const auto& dev : devices) {
-        ComponentVariant variant = create_component_variant(dev, result);
-        result.devices[dev.name] = variant;
+        // Skip visual-only devices (no simulation behavior, e.g. Group)
+        if (dev.visual_only) continue;
 
-        // Add to domain-specific vectors for zero-branch iteration
-        // Components can belong to multiple domains (e.g., ElectricHeater: electrical + thermal)
-        ComponentVariant* ptr = &result.devices[dev.name];
-        Domain domain_mask = get_component_domain_mask(variant);
+        ComponentVariant variant = create_component_variant(dev, result);
+        result.devices[dev.name] = std::move(variant);
+        device_names_ordered.push_back(dev.name);
+    }
+
+    // Phase 2: Now that all insertions are done (no more rehashing),
+    // collect stable pointers for domain-specific iteration vectors.
+    for (const auto& name : device_names_ordered) {
+        ComponentVariant* ptr = &result.devices[name];
+        Domain domain_mask = get_component_domain_mask(*ptr);
 
         // Log domain assignment for debugging
-        spdlog::debug("[build] {} -> [{}] domains", dev.name, get_domain_mask_string(domain_mask));
+        spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
 
         // Add component to each domain it belongs to
         if (has_domain(domain_mask, Domain::Electrical)) {
@@ -533,7 +690,7 @@ BuildResult build_systems_dev(
         }
         if (has_domain(domain_mask, Domain::Thermal)) {
             result.domain_components.thermal.push_back(ptr);
-            spdlog::info("[build] {} -> THERMAL domain", dev.name);
+            spdlog::info("[build] {} -> THERMAL domain", name);
         }
     }
 
@@ -547,5 +704,3 @@ BuildResult build_systems_dev(
 
     return result;
 }
-
-} // namespace an24

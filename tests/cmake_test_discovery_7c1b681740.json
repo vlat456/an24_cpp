@@ -1,0 +1,38 @@
+{
+  "tests": 4,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintInput",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PassThroughLikeBus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
+          "line": 7
+        },
+        {
+          "name": "ExposedPortParameters",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
+          "line": 31
+        }
+      ]
+    },
+    {
+      "name": "BlueprintOutput",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PassThroughLikeBus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
+          "line": 42
+        },
+        {
+          "name": "ExposedPortParameters",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_blueprint_ports.cpp",
+          "line": 66
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "tests": 17,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "AsymSlewRateTest",
+      "tests": 17,
+      "testsuite": [
+        {
+          "name": "ColdStart_FirstFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 38
+        },
+        {
+          "name": "AsymmetricRates_RiseFasterThanFall",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 50
+        },
+        {
+          "name": "AsymmetricRates_RiseSlowerThanFall",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 74
+        },
+        {
+          "name": "SymmetricRates_EqualChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 98
+        },
+        {
+          "name": "RapidRiseSlowFall_RealisticBehavior",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 122
+        },
+        {
+          "name": "SlowRiseRapidFall_RealisticBehavior",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 145
+        },
+        {
+          "name": "HandlesZeroDt_Pause",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 170
+        },
+        {
+          "name": "Deadzone_PreventsMicroAdjustments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 188
+        },
+        {
+          "name": "Deadzone_AllowsLargeChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 208
+        },
+        {
+          "name": "ZeroRates_NoChange",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 226
+        },
+        {
+          "name": "ApproachesTargetOverTime_Rise",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 242
+        },
+        {
+          "name": "ApproachesTargetOverTime_Fall",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 259
+        },
+        {
+          "name": "VariableDt_AdaptsStepSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 276
+        },
+        {
+          "name": "NegativeInput_Rise",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 301
+        },
+        {
+          "name": "NegativeInput_Fall",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 316
+        },
+        {
+          "name": "ConstantInput_OutputStaysConstant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 330
+        },
+        {
+          "name": "OscillatingInput_FollowsAsymmetricRates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_slew_rate.cpp",
+          "line": 348
+        }
+      ]
+    }
+  ]
+}

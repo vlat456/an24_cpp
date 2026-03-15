@@ -1,16 +1,13 @@
 #include "simulator.h"
 #include "scheduling.h"
-#include "../editor/visual/scene/persist.h"
+#include "../editor/data/blueprint.h"
 #include "../json_parser/json_parser.h"
+#include "../parse_number.h"
 #include "components/port_registry.h"
 #include "components/all.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <unordered_map>
-
-using namespace an24;
-
-namespace an24 {
 
 template<typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
@@ -62,7 +59,7 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
 template<typename SolverTag>
 void Simulator<SolverTag>::start(const Blueprint& bp) {
     // Convert blueprint to JSON, then parse as simulator format
-    std::string json_str = blueprint_to_json(bp);
+    std::string json_str = bp.to_simulator_json();
     auto ctx = parse_json(json_str);
 
     // Build systems from parsed context
@@ -91,7 +88,7 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {
-                value = std::stof(it_val->second);
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
             auto it_sig = build_result_->port_to_signal.find(dev.name + ".v");
             if (it_sig != build_result_->port_to_signal.end()) {
@@ -99,6 +96,13 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
             }
         }
     }
+
+    // Allocate convergence buffer for diagnostics
+    state_.resize_buffers(build_result_->signal_count);
+
+    // Move LUT arena from build result to simulation state
+    state_.lut_keys = std::move(build_result_->lut_keys);
+    state_.lut_values = std::move(build_result_->lut_values);
 
     // Cache blueprint for potential rebuilds
     cached_blueprint_ = bp;
@@ -148,19 +152,11 @@ void Simulator<SolverTag>::step(float dt) {
     // Data-oriented multi-domain solving with zero branching
     // Components are pre-sorted by domain, so we just iterate the relevant vectors
 
-    // Electrical/Logical: every step
+    // Electrical: every step
     for (auto* variant : build_result_->domain_components.electrical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_electrical(state_, dt); }) {
                 comp.solve_electrical(state_, dt);
-            }
-        }, *variant);
-    }
-
-    for (auto* variant : build_result_->domain_components.logical) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_logical(state_, dt); }) {
-                comp.solve_logical(state_, dt);
             }
         }, *variant);
     }
@@ -203,12 +199,13 @@ void Simulator<SolverTag>::step(float dt) {
 
     // SOR solver - single iteration per step (real-time approximation)
     state_.precompute_inv_conductance();
+    state_.save_convergence_state();
 
     solve_sor_iteration(
         state_.across.data(),
         state_.through.data(),
         state_.inv_conductance.data(),
-        state_.across.size(),
+        state_.dynamic_signals_count,
         omega_
     );
 
@@ -219,6 +216,16 @@ void Simulator<SolverTag>::step(float dt) {
                 comp.post_step(state_, dt);
             }
         }, variant);
+    }
+
+    // Logical: after SOR+post_step so logical components read converged
+    // electrical values and their outputs are final (SOR does not touch them)
+    for (auto* variant : build_result_->domain_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state_, dt); }) {
+                comp.solve_logical(state_, dt);
+            }
+        }, *variant);
     }
 
     // DEBUG: Log every 60 steps
@@ -291,5 +298,3 @@ bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_i
 
 // Explicit template instantiation for JIT_Solver
 template class Simulator<JIT_Solver>;
-
-} // namespace an24

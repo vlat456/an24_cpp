@@ -1,0 +1,151 @@
+{
+  "collapsed_groups": [],
+  "devices": [
+    {
+      "classname": "AZS",
+      "content": {
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "type": 3,
+        "unit": "",
+        "value": 0.0
+      },
+      "name": "azs_1",
+      "params": {
+        "closed": "false",
+        "i_nominal": "20.0"
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "temp": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 320.0,
+        "y": 192.0
+      },
+      "size": {
+        "x": 112.0,
+        "y": 112.0
+      }
+    },
+    {
+      "classname": "Bus",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 448.0,
+        "y": 128.0
+      },
+      "render_hint": "bus",
+      "size": {
+        "x": 64.0,
+        "y": 32.0
+      }
+    },
+    {
+      "classname": "RefNode",
+      "name": "refnode_1",
+      "params": {
+        "value": "0.0"
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 96.0,
+        "y": 160.0
+      },
+      "render_hint": "ref",
+      "size": {
+        "x": 48.0,
+        "y": 48.0
+      }
+    },
+    {
+      "classname": "Battery",
+      "name": "battery_1",
+      "params": {
+        "capacity": "1000.0",
+        "charge": "1000.0",
+        "internal_r": "0.01",
+        "inv_capacity": "0.001",
+        "inv_internal_r": "100.0",
+        "v_nominal": "28.0"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 80.0,
+        "y": 320.0
+      },
+      "size": {
+        "x": 96.0,
+        "y": 64.0
+      }
+    }
+  ],
+  "viewport": {
+    "grid_step": 16.0,
+    "pan": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "zoom": 1.0
+  },
+  "wires": [
+    {
+      "from": "azs_1.v_out",
+      "routing_points": [],
+      "to": "bus_1.v"
+    },
+    {
+      "from": "refnode_1.v",
+      "routing_points": [],
+      "to": "battery_1.v_in"
+    },
+    {
+      "from": "battery_1.v_out",
+      "routing_points": [],
+      "to": "azs_1.v_in"
+    }
+  ]
+}

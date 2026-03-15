@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/expand_typedef_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/expand_typedef_tests[1]_tests.cmake")
+else()
+  add_test(expand_typedef_tests_NOT_BUILT expand_typedef_tests_NOT_BUILT)
+endif()

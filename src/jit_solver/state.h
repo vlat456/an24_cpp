@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <cmath>
 
-namespace an24 {
-
 /// Signal metadata
 struct SignalType {
     Domain domain;
@@ -35,6 +33,10 @@ struct SimulationState {
 
     /// Signal metadata (for diagnostics, not used in hot path!)
     std::vector<SignalType> signal_types;
+
+    /// LUT table arena - all breakpoint tables concatenated (cache-friendly)
+    alignas(64) std::vector<float> lut_keys;
+    alignas(64) std::vector<float> lut_values;
 
     /// Dynamic signals count - signals [0..count) are dynamic
     /// Signals [count..size) are fixed - iterate only up to count!
@@ -155,10 +157,9 @@ AOT_ALWAYS_INLINE void stamp_voltage_source(
     float v_source,
     float r_internal
 ) {
-    float g = 1.0f / r_internal;
+    float safe_r = (r_internal > 1e-9f) ? r_internal : 1e-9f;
+    float g = 1.0f / safe_r;
     float i = (v_source - across[idx]) * g;
     conductance[idx] += g;
     through[idx] += i;
 }
-
-} // namespace an24

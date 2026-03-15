@@ -1,26 +1,21 @@
 #pragma once
 
-#include "pt.h"
+#include "../../ui/math/pt.h"
+#include "../../ui/core/interned_id.h"
 #include "port.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
-
-/// Вид узла (для рендеринга)
-enum class NodeKind {
-    Node,       ///< Обычный компонент (батарея, насос, etc.)
-    Bus,        ///< Шина/мультиплексор - маленький квадрат
-    Ref,        ///< Reference node (ground, voltage source)
-    Blueprint   ///< Свернутый nested blueprint (collapsed node)
-};
+#include <optional>
 
 /// Тип содержимого узла (пока простой enum)
 enum class NodeContentType {
     None,
-    Gauge,     ///< Измерительный прибор
-    Switch,    ///< Переключатель
-    Value,     ///< Отображаемое значение
-    Text       ///< Текст
+    Gauge,           ///< Измерительный прибор
+    Switch,          ///< Кнопка-переключатель
+    VerticalToggle,  ///< Вертикальный тумблер (слайдер)
+    Value,           ///< Отображаемое значение
+    Text             ///< Текст
 };
 
 /// Содержимое узла (пока placeholder)
@@ -32,43 +27,65 @@ struct NodeContent {
     float max = 1.0f;
     std::string unit;
     bool state = false;
+    bool tripped = false;  ///< AZS thermal trip indicator (red button tint)
+};
+
+/// Optional per-node custom color (RGBA, 0.0–1.0)
+struct NodeColor {
+    float r = 0.5f, g = 0.5f, b = 0.5f, a = 1.0f;
+
+    /// Convert to ImGui uint32 ABGR format (0xAABBGGRR)
+    uint32_t to_uint32() const {
+        auto clamp01 = [](float v) -> float {
+            return v < 0.0f ? 0.0f : (v > 1.0f ? 1.0f : v);
+        };
+        uint8_t ri = static_cast<uint8_t>(clamp01(r) * 255.0f + 0.5f);
+        uint8_t gi = static_cast<uint8_t>(clamp01(g) * 255.0f + 0.5f);
+        uint8_t bi = static_cast<uint8_t>(clamp01(b) * 255.0f + 0.5f);
+        uint8_t ai = static_cast<uint8_t>(clamp01(a) * 255.0f + 0.5f);
+        return (uint32_t(ai) << 24) | (uint32_t(bi) << 16) | (uint32_t(gi) << 8) | uint32_t(ri);
+    }
 };
 
 /// Узел в схеме - компонент (батарея, насос, и т.д.)
 struct Node {
-    std::string id;          ///< Уникальный ID
+    ui::InternedId id;       ///< Уникальный ID (interned)
     std::string name;        ///< Отображаемое имя
     std::string type_name;   ///< Тип (Battery, Pump, Bus, etc.)
-    NodeKind kind = NodeKind::Node;  ///< Вид узла для рендеринга
+    std::string render_hint; ///< Visual hint for rendering ("bus", "ref", or empty)
+    bool expandable = false; ///< True if node has sub-graph (double-clickable)
 
     // Phase 5.1: Hierarchical blueprint support
     bool collapsed = true;   ///< Show as single node (true) or expanded (false)
-    std::string blueprint_path;  ///< Path to nested blueprint JSON (e.g., "blueprints/simple_battery.json")
+    std::string blueprint_path;  ///< Classname of nested blueprint type (e.g., "simple_battery")
 
     /// Group membership: which collapsed group this node belongs to.
     /// Empty string = root (top-level). "lamp1" = inside collapsed group "lamp1".
     std::string group_id;
 
-    Pt pos;                  ///< Позиция (верхний левый угол)
-    Pt size;                 ///< Размеры (ширина × высота)
+    ui::Pt pos;                  ///< Позиция (верхний левый угол)
+    ui::Pt size;                 ///< Размеры (ширина × высота)
+    bool size_explicitly_set = false;  ///< True if size was set via size_wh() (not from JSON default)
 
-    std::vector<Port> inputs;    ///< Входные порты
-    std::vector<Port> outputs;   ///< Выходные порты
+    std::vector<EditorPort> inputs;    ///< Входные порты
+    std::vector<EditorPort> outputs;   ///< Выходные порты
 
     /// Parameters (optional, for overriding component defaults)
     std::unordered_map<std::string, std::string> params;
 
     NodeContent node_content;  ///< Содержимое для отображения
+    std::optional<NodeColor> color;   ///< Per-node custom color (nullopt = use theme default)
 
     Node()
         : id()
         , name()
         , type_name()
-        , kind(NodeKind::Node)
+        , render_hint()
+        , expandable(false)
         , collapsed(true)
         , blueprint_path()
         , group_id()
-        , pos(Pt::zero())
+        , pos(ui::Pt::zero())
         , size(120.0f, 80.0f)
         , inputs()
         , outputs()
@@ -77,24 +94,25 @@ struct Node {
 
     /// fluent: задать позицию
     Node& at(float x, float y) {
-        pos = Pt(x, y);
+        pos = ui::Pt(x, y);
         return *this;
     }
 
     /// fluent: задать размеры
     Node& size_wh(float w, float h) {
-        size = Pt(w, h);
+        size = ui::Pt(w, h);
+        size_explicitly_set = true;  // Mark as explicitly set by user
         return *this;
     }
 
     /// fluent: добавить входной порт
-    Node& input(const char* name_, an24::PortType type = an24::PortType::V) {
+    Node& input(ui::InternedId name_, PortType type = PortType::V) {
         inputs.emplace_back(name_, PortSide::Input, type);
         return *this;
     }
 
     /// fluent: добавить выходной порт
-    Node& output(const char* name_, an24::PortType type = an24::PortType::V) {
+    Node& output(ui::InternedId name_, PortType type = PortType::V) {
         outputs.emplace_back(name_, PortSide::Output, type);
         return *this;
     }
@@ -110,39 +128,37 @@ struct Node {
 // Node size utility (single source of truth)
 // =============================================================================
 
-namespace an24 {
-struct ComponentDefinition;
-struct ComponentRegistry;
-}  // namespace an24
+struct TypeDefinition;
+struct TypeRegistry;
 
-/// Get default node size from component definition (single source of truth)
+/// Get default node size from type definition (single source of truth)
 /// @param type_name Component classname (e.g., "Battery", "Splitter", "Bus", "RefNode")
-/// @param registry Component registry to look up default_size from JSON definitions
+/// @param registry Type registry to look up size from JSON definitions
 /// @return Default size in pixels
-inline Pt get_default_node_size(const std::string& type_name, const an24::ComponentRegistry* registry) {
+inline ui::Pt get_default_node_size(const std::string& type_name, const TypeRegistry* registry) {
     constexpr float GRID_UNIT = 20.0f;  // 1 grid unit = 20 pixels
 
-    // Try to get default_size from component definition
+    // Try to get size from type definition
     if (registry) {
         const auto* def = registry->get(type_name);
-        if (def && def->default_size.has_value()) {
-            return Pt(def->default_size->first * GRID_UNIT,
-                     def->default_size->second * GRID_UNIT);
+        if (def && def->size.has_value()) {
+            return ui::Pt(def->size->first * GRID_UNIT,
+                     def->size->second * GRID_UNIT);
         }
     }
 
-    // Default fallback for regular nodes (components without default_size in JSON)
-    return Pt(120, 80);
+    // Default fallback for regular nodes (types without size in JSON)
+    return ui::Pt(120, 80);
 }
 
 // [DRY-i9j0] Shared factory — was duplicated in app.cpp and persist.cpp
-/// Create default NodeContent from a ComponentDefinition (single source of truth)
-inline NodeContent create_node_content_from_def(const an24::ComponentDefinition* def) {
+/// Create default NodeContent from a TypeDefinition (single source of truth)
+inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     NodeContent content;
     content.type = NodeContentType::None;
     if (!def) return content;
 
-    const std::string& ct = def->default_content_type;
+    const std::string& ct = def->content_type;
     if (ct == "Gauge") {
         content.type = NodeContentType::Gauge;
         content.label = "V";
@@ -153,8 +169,13 @@ inline NodeContent create_node_content_from_def(const an24::ComponentDefinition*
     } else if (ct == "Switch") {
         content.type = NodeContentType::Switch;
         content.label = "ON";
-        auto it = def->default_params.find("closed");
-        content.state = (it != def->default_params.end() && it->second == "true");
+        auto it = def->params.find("closed");
+        content.state = (it != def->params.end() && it->second == "true");
+    } else if (ct == "VerticalToggle") {
+        content.type = NodeContentType::VerticalToggle;
+        content.label = "";
+        auto it = def->params.find("closed");
+        content.state = (it != def->params.end() && it->second == "true");
     } else if (ct == "HoldButton") {
         content.type = NodeContentType::Switch;
         content.label = "RELEASED";

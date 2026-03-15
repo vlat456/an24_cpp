@@ -1,0 +1,1493 @@
+Start testing: Mar 11 11:55 CET
+----------------------------------------------------------
+1/1145 Testing: PortRegistryTest.RU19A_Ports_Match_JsonRegistry
+1/1145 Test: PortRegistryTest.RU19A_Ports_Match_JsonRegistry
+Command: "/Users/vladimir/an24_cpp/tests/port_registry_tests" "--gtest_filter=PortRegistryTest.RU19A_Ports_Match_JsonRegistry" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortRegistryTest.RU19A_Ports_Match_JsonRegistry" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortRegistryTest.RU19A_Ports_Match_JsonRegistry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortRegistryTest
+[ RUN      ] PortRegistryTest.RU19A_Ports_Match_JsonRegistry
+[       OK ] PortRegistryTest.RU19A_Ports_Match_JsonRegistry (0 ms)
+[----------] 1 test from PortRegistryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PortRegistryTest.RU19A_Ports_Match_JsonRegistry" end time: Mar 11 11:55 CET
+"PortRegistryTest.RU19A_Ports_Match_JsonRegistry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/1145 Testing: PortRegistryTest.DMR400_Ports_Match_JsonRegistry
+2/1145 Test: PortRegistryTest.DMR400_Ports_Match_JsonRegistry
+Command: "/Users/vladimir/an24_cpp/tests/port_registry_tests" "--gtest_filter=PortRegistryTest.DMR400_Ports_Match_JsonRegistry" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortRegistryTest.DMR400_Ports_Match_JsonRegistry" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortRegistryTest.DMR400_Ports_Match_JsonRegistry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortRegistryTest
+[ RUN      ] PortRegistryTest.DMR400_Ports_Match_JsonRegistry
+[       OK ] PortRegistryTest.DMR400_Ports_Match_JsonRegistry (0 ms)
+[----------] 1 test from PortRegistryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortRegistryTest.DMR400_Ports_Match_JsonRegistry" end time: Mar 11 11:55 CET
+"PortRegistryTest.DMR400_Ports_Match_JsonRegistry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/1145 Testing: PortRegistryTest.GeneratedPortRegistryExists
+3/1145 Test: PortRegistryTest.GeneratedPortRegistryExists
+Command: "/Users/vladimir/an24_cpp/tests/port_registry_tests" "--gtest_filter=PortRegistryTest.GeneratedPortRegistryExists" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortRegistryTest.GeneratedPortRegistryExists" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortRegistryTest.GeneratedPortRegistryExists
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortRegistryTest
+[ RUN      ] PortRegistryTest.GeneratedPortRegistryExists
+[       OK ] PortRegistryTest.GeneratedPortRegistryExists (0 ms)
+[----------] 1 test from PortRegistryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortRegistryTest.GeneratedPortRegistryExists" end time: Mar 11 11:55 CET
+"PortRegistryTest.GeneratedPortRegistryExists" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/1145 Testing: PortRegistryTest.RU19A_PortOffsets_AreCorrect
+4/1145 Test: PortRegistryTest.RU19A_PortOffsets_AreCorrect
+Command: "/Users/vladimir/an24_cpp/tests/port_registry_tests" "--gtest_filter=PortRegistryTest.RU19A_PortOffsets_AreCorrect" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortRegistryTest.RU19A_PortOffsets_AreCorrect" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortRegistryTest.RU19A_PortOffsets_AreCorrect
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortRegistryTest
+[ RUN      ] PortRegistryTest.RU19A_PortOffsets_AreCorrect
+[       OK ] PortRegistryTest.RU19A_PortOffsets_AreCorrect (0 ms)
+[----------] 1 test from PortRegistryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortRegistryTest.RU19A_PortOffsets_AreCorrect" end time: Mar 11 11:55 CET
+"PortRegistryTest.RU19A_PortOffsets_AreCorrect" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/1145 Testing: PortRegistryTest.AllTypesInRegistry
+5/1145 Test: PortRegistryTest.AllTypesInRegistry
+Command: "/Users/vladimir/an24_cpp/tests/port_registry_tests" "--gtest_filter=PortRegistryTest.AllTypesInRegistry" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortRegistryTest.AllTypesInRegistry" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortRegistryTest.AllTypesInRegistry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortRegistryTest
+[ RUN      ] PortRegistryTest.AllTypesInRegistry
+[       OK ] PortRegistryTest.AllTypesInRegistry (0 ms)
+[----------] 1 test from PortRegistryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortRegistryTest.AllTypesInRegistry" end time: Mar 11 11:55 CET
+"PortRegistryTest.AllTypesInRegistry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/1145 Testing: PortMacroTest.ComponentHasCorrectFieldTypes
+6/1145 Test: PortMacroTest.ComponentHasCorrectFieldTypes
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.ComponentHasCorrectFieldTypes" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.ComponentHasCorrectFieldTypes" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.ComponentHasCorrectFieldTypes
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.ComponentHasCorrectFieldTypes
+[       OK ] PortMacroTest.ComponentHasCorrectFieldTypes (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.ComponentHasCorrectFieldTypes" end time: Mar 11 11:55 CET
+"PortMacroTest.ComponentHasCorrectFieldTypes" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/1145 Testing: PortMacroTest.ComponentFieldsAreZeroInitialized
+7/1145 Test: PortMacroTest.ComponentFieldsAreZeroInitialized
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.ComponentFieldsAreZeroInitialized" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.ComponentFieldsAreZeroInitialized" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.ComponentFieldsAreZeroInitialized
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.ComponentFieldsAreZeroInitialized
+[       OK ] PortMacroTest.ComponentFieldsAreZeroInitialized (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.ComponentFieldsAreZeroInitialized" end time: Mar 11 11:55 CET
+"PortMacroTest.ComponentFieldsAreZeroInitialized" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/1145 Testing: PortMacroTest.RU19A_PortCountIsSix
+8/1145 Test: PortMacroTest.RU19A_PortCountIsSix
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.RU19A_PortCountIsSix" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.RU19A_PortCountIsSix" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.RU19A_PortCountIsSix
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.RU19A_PortCountIsSix
+[       OK ] PortMacroTest.RU19A_PortCountIsSix (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.RU19A_PortCountIsSix" end time: Mar 11 11:55 CET
+"PortMacroTest.RU19A_PortCountIsSix" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/1145 Testing: PortMacroTest.RU19A_PortNamesAreCorrect
+9/1145 Test: PortMacroTest.RU19A_PortNamesAreCorrect
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.RU19A_PortNamesAreCorrect" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.RU19A_PortNamesAreCorrect" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.RU19A_PortNamesAreCorrect
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.RU19A_PortNamesAreCorrect
+[       OK ] PortMacroTest.RU19A_PortNamesAreCorrect (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.RU19A_PortNamesAreCorrect" end time: Mar 11 11:55 CET
+"PortMacroTest.RU19A_PortNamesAreCorrect" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/1145 Testing: PortMacroTest.DMR400_PortCountIsFour
+10/1145 Test: PortMacroTest.DMR400_PortCountIsFour
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.DMR400_PortCountIsFour" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.DMR400_PortCountIsFour" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.DMR400_PortCountIsFour
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.DMR400_PortCountIsFour
+[       OK ] PortMacroTest.DMR400_PortCountIsFour (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.DMR400_PortCountIsFour" end time: Mar 11 11:55 CET
+"PortMacroTest.DMR400_PortCountIsFour" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/1145 Testing: PortMacroTest.DMR400_PortNamesAreCorrect
+11/1145 Test: PortMacroTest.DMR400_PortNamesAreCorrect
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.DMR400_PortNamesAreCorrect" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.DMR400_PortNamesAreCorrect" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.DMR400_PortNamesAreCorrect
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.DMR400_PortNamesAreCorrect
+[       OK ] PortMacroTest.DMR400_PortNamesAreCorrect (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.DMR400_PortNamesAreCorrect" end time: Mar 11 11:55 CET
+"PortMacroTest.DMR400_PortNamesAreCorrect" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/1145 Testing: PortMacroTest.CompileTimePortCountValidation
+12/1145 Test: PortMacroTest.CompileTimePortCountValidation
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.CompileTimePortCountValidation" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.CompileTimePortCountValidation" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.CompileTimePortCountValidation
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.CompileTimePortCountValidation
+[       OK ] PortMacroTest.CompileTimePortCountValidation (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.CompileTimePortCountValidation" end time: Mar 11 11:55 CET
+"PortMacroTest.CompileTimePortCountValidation" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/1145 Testing: PortMacroTest.AllComponentsHavePortCounts
+13/1145 Test: PortMacroTest.AllComponentsHavePortCounts
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.AllComponentsHavePortCounts" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.AllComponentsHavePortCounts" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.AllComponentsHavePortCounts
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.AllComponentsHavePortCounts
+[       OK ] PortMacroTest.AllComponentsHavePortCounts (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.AllComponentsHavePortCounts" end time: Mar 11 11:55 CET
+"PortMacroTest.AllComponentsHavePortCounts" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/1145 Testing: PortMacroTest.GetPortNamesReturnsCorrectData
+14/1145 Test: PortMacroTest.GetPortNamesReturnsCorrectData
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.GetPortNamesReturnsCorrectData" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.GetPortNamesReturnsCorrectData" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.GetPortNamesReturnsCorrectData
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.GetPortNamesReturnsCorrectData
+[       OK ] PortMacroTest.GetPortNamesReturnsCorrectData (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.GetPortNamesReturnsCorrectData" end time: Mar 11 11:55 CET
+"PortMacroTest.GetPortNamesReturnsCorrectData" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/1145 Testing: PortMacroTest.RU19AMigrated_HasAllPortFields
+15/1145 Test: PortMacroTest.RU19AMigrated_HasAllPortFields
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.RU19AMigrated_HasAllPortFields" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.RU19AMigrated_HasAllPortFields" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.RU19AMigrated_HasAllPortFields
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.RU19AMigrated_HasAllPortFields
+[       OK ] PortMacroTest.RU19AMigrated_HasAllPortFields (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.RU19AMigrated_HasAllPortFields" end time: Mar 11 11:55 CET
+"PortMacroTest.RU19AMigrated_HasAllPortFields" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/1145 Testing: PortMacroTest.RU19AMigrated_FieldTypesAreCorrect
+16/1145 Test: PortMacroTest.RU19AMigrated_FieldTypesAreCorrect
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.RU19AMigrated_FieldTypesAreCorrect" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.RU19AMigrated_FieldTypesAreCorrect" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.RU19AMigrated_FieldTypesAreCorrect
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.RU19AMigrated_FieldTypesAreCorrect
+[       OK ] PortMacroTest.RU19AMigrated_FieldTypesAreCorrect (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.RU19AMigrated_FieldTypesAreCorrect" end time: Mar 11 11:55 CET
+"PortMacroTest.RU19AMigrated_FieldTypesAreCorrect" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/1145 Testing: PortMacroTest.RU19AMigrated_PortCountMatchesRegistry
+17/1145 Test: PortMacroTest.RU19AMigrated_PortCountMatchesRegistry
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.RU19AMigrated_PortCountMatchesRegistry" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.RU19AMigrated_PortCountMatchesRegistry" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.RU19AMigrated_PortCountMatchesRegistry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.RU19AMigrated_PortCountMatchesRegistry
+[       OK ] PortMacroTest.RU19AMigrated_PortCountMatchesRegistry (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.RU19AMigrated_PortCountMatchesRegistry" end time: Mar 11 11:55 CET
+"PortMacroTest.RU19AMigrated_PortCountMatchesRegistry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/1145 Testing: PortMacroTest.DMR400Migrated_HasAllPortFields
+18/1145 Test: PortMacroTest.DMR400Migrated_HasAllPortFields
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.DMR400Migrated_HasAllPortFields" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.DMR400Migrated_HasAllPortFields" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.DMR400Migrated_HasAllPortFields
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.DMR400Migrated_HasAllPortFields
+[       OK ] PortMacroTest.DMR400Migrated_HasAllPortFields (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.DMR400Migrated_HasAllPortFields" end time: Mar 11 11:55 CET
+"PortMacroTest.DMR400Migrated_HasAllPortFields" time elapsed: 00:00:00
+----------------------------------------------------------
+
+19/1145 Testing: PortMacroTest.DMR400Migrated_PortCountMatchesRegistry
+19/1145 Test: PortMacroTest.DMR400Migrated_PortCountMatchesRegistry
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.DMR400Migrated_PortCountMatchesRegistry" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.DMR400Migrated_PortCountMatchesRegistry" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.DMR400Migrated_PortCountMatchesRegistry
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.DMR400Migrated_PortCountMatchesRegistry
+[       OK ] PortMacroTest.DMR400Migrated_PortCountMatchesRegistry (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.DMR400Migrated_PortCountMatchesRegistry" end time: Mar 11 11:55 CET
+"PortMacroTest.DMR400Migrated_PortCountMatchesRegistry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/1145 Testing: PortMacroTest.PORTS_Supports32Ports
+20/1145 Test: PortMacroTest.PORTS_Supports32Ports
+Command: "/Users/vladimir/an24_cpp/tests/port_macro_tests" "--gtest_filter=PortMacroTest.PORTS_Supports32Ports" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PortMacroTest.PORTS_Supports32Ports" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PortMacroTest.PORTS_Supports32Ports
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PortMacroTest
+[ RUN      ] PortMacroTest.PORTS_Supports32Ports
+[       OK ] PortMacroTest.PORTS_Supports32Ports (0 ms)
+[----------] 1 test from PortMacroTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PortMacroTest.PORTS_Supports32Ports" end time: Mar 11 11:55 CET
+"PortMacroTest.PORTS_Supports32Ports" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/1145 Testing: EditorComponentVariant.BuildSimpleBatteryLoadCircuit
+21/1145 Test: EditorComponentVariant.BuildSimpleBatteryLoadCircuit
+Command: "/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests" "--gtest_filter=EditorComponentVariant.BuildSimpleBatteryLoadCircuit" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"EditorComponentVariant.BuildSimpleBatteryLoadCircuit" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EditorComponentVariant.BuildSimpleBatteryLoadCircuit
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EditorComponentVariant
+[ RUN      ] EditorComponentVariant.BuildSimpleBatteryLoadCircuit
+[2026-03-11 11:55:45.979] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:45.979] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:45.980] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:45.980] [warning] [build] created 2 components (elec=2, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] EditorComponentVariant.BuildSimpleBatteryLoadCircuit (15 ms)
+[----------] 1 test from EditorComponentVariant (15 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (15 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"EditorComponentVariant.BuildSimpleBatteryLoadCircuit" end time: Mar 11 11:55 CET
+"EditorComponentVariant.BuildSimpleBatteryLoadCircuit" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/1145 Testing: EditorComponentVariant.MultiDomainComponents
+22/1145 Test: EditorComponentVariant.MultiDomainComponents
+Command: "/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests" "--gtest_filter=EditorComponentVariant.MultiDomainComponents" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"EditorComponentVariant.MultiDomainComponents" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EditorComponentVariant.MultiDomainComponents
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EditorComponentVariant
+[ RUN      ] EditorComponentVariant.MultiDomainComponents
+[2026-03-11 11:55:45.991] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:45.991] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:45.991] [info] [build] signal map: 4 roots -> 5 signals, 0 fixed
+[2026-03-11 11:55:45.991] [warning] [build] created 2 components (elec=1, logic=0, mech=1, hyd=0, therm=0)
+[       OK ] EditorComponentVariant.MultiDomainComponents (6 ms)
+[----------] 1 test from EditorComponentVariant (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"EditorComponentVariant.MultiDomainComponents" end time: Mar 11 11:55 CET
+"EditorComponentVariant.MultiDomainComponents" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/1145 Testing: EditorComponentVariant.RefNodeFixedVoltage
+23/1145 Test: EditorComponentVariant.RefNodeFixedVoltage
+Command: "/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests" "--gtest_filter=EditorComponentVariant.RefNodeFixedVoltage" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"EditorComponentVariant.RefNodeFixedVoltage" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EditorComponentVariant.RefNodeFixedVoltage
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EditorComponentVariant
+[ RUN      ] EditorComponentVariant.RefNodeFixedVoltage
+[2026-03-11 11:55:46.002] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.002] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.003] [info] [build] signal map: 2 roots -> 3 signals, 1 fixed
+[2026-03-11 11:55:46.003] [warning] [build] created 2 components (elec=2, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] EditorComponentVariant.RefNodeFixedVoltage (6 ms)
+[----------] 1 test from EditorComponentVariant (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"EditorComponentVariant.RefNodeFixedVoltage" end time: Mar 11 11:55 CET
+"EditorComponentVariant.RefNodeFixedVoltage" time elapsed: 00:00:00
+----------------------------------------------------------
+
+24/1145 Testing: EditorComponentVariant.AllComponentTypes
+24/1145 Test: EditorComponentVariant.AllComponentTypes
+Command: "/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests" "--gtest_filter=EditorComponentVariant.AllComponentTypes" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"EditorComponentVariant.AllComponentTypes" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EditorComponentVariant.AllComponentTypes
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EditorComponentVariant
+[ RUN      ] EditorComponentVariant.AllComponentTypes
+[2026-03-11 11:55:46.013] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.013] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.013] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.013] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.019] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.019] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.019] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.019] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.024] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.024] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.024] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.024] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.030] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.030] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.030] [info] [build] signal map: 3 roots -> 4 signals, 0 fixed
+[2026-03-11 11:55:46.030] [warning] [build] created 1 components (elec=0, logic=1, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.035] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.035] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.035] [info] [build] signal map: 4 roots -> 5 signals, 0 fixed
+[2026-03-11 11:55:46.035] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.040] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.040] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.040] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.040] [info] [build] comp1 -> THERMAL domain
+[2026-03-11 11:55:46.040] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=1)
+[2026-03-11 11:55:46.046] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.046] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.046] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.046] [warning] [build] created 1 components (elec=0, logic=0, mech=0, hyd=1, therm=0)
+[2026-03-11 11:55:46.051] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.051] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.051] [info] [build] signal map: 3 roots -> 4 signals, 0 fixed
+[2026-03-11 11:55:46.051] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.057] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.057] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.057] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.057] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.062] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.062] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.063] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.063] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.068] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.068] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.068] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.068] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.073] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.073] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.073] [info] [build] signal map: 4 roots -> 5 signals, 0 fixed
+[2026-03-11 11:55:46.073] [warning] [build] created 1 components (elec=0, logic=1, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.079] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.079] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.079] [info] [build] signal map: 3 roots -> 4 signals, 0 fixed
+[2026-03-11 11:55:46.079] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.084] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.084] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.084] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.084] [warning] [build] created 1 components (elec=0, logic=0, mech=1, hyd=0, therm=0)
+[2026-03-11 11:55:46.090] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.090] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.090] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.090] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.095] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.095] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.096] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.096] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.101] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.101] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.101] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.101] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.107] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.107] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.107] [info] [build] signal map: 5 roots -> 6 signals, 0 fixed
+[2026-03-11 11:55:46.107] [info] [build] comp1 -> THERMAL domain
+[2026-03-11 11:55:46.107] [warning] [build] created 1 components (elec=1, logic=0, mech=1, hyd=0, therm=1)
+[2026-03-11 11:55:46.114] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.114] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.114] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.114] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.121] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.121] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.121] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.121] [info] [build] comp1 -> THERMAL domain
+[2026-03-11 11:55:46.121] [warning] [build] created 1 components (elec=0, logic=0, mech=0, hyd=0, therm=1)
+[2026-03-11 11:55:46.127] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.127] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.128] [info] [build] signal map: 1 roots -> 2 signals, 1 fixed
+[2026-03-11 11:55:46.128] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.135] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.135] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.135] [info] [build] signal map: 3 roots -> 4 signals, 0 fixed
+[2026-03-11 11:55:46.135] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.142] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.142] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.143] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.143] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.149] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.149] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.149] [info] [build] signal map: 3 roots -> 4 signals, 0 fixed
+[2026-03-11 11:55:46.149] [warning] [build] created 1 components (elec=0, logic=0, mech=0, hyd=1, therm=0)
+[2026-03-11 11:55:46.157] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.157] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.157] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.157] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.165] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.165] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.165] [info] [build] signal map: 4 roots -> 5 signals, 0 fixed
+[2026-03-11 11:55:46.165] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.172] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.172] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.172] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.172] [info] [build] comp1 -> THERMAL domain
+[2026-03-11 11:55:46.172] [warning] [build] created 1 components (elec=0, logic=0, mech=0, hyd=0, therm=1)
+[2026-03-11 11:55:46.178] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.178] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.178] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.178] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[2026-03-11 11:55:46.185] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.185] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.185] [info] [build] signal map: 1 roots -> 2 signals, 0 fixed
+[2026-03-11 11:55:46.185] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] EditorComponentVariant.AllComponentTypes (177 ms)
+[----------] 1 test from EditorComponentVariant (177 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (177 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.18 sec
+----------------------------------------------------------
+Test Passed.
+"EditorComponentVariant.AllComponentTypes" end time: Mar 11 11:55 CET
+"EditorComponentVariant.AllComponentTypes" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/1145 Testing: EditorComponentVariant.FactoryCreatesCorrectVariant
+25/1145 Test: EditorComponentVariant.FactoryCreatesCorrectVariant
+Command: "/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests" "--gtest_filter=EditorComponentVariant.FactoryCreatesCorrectVariant" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"EditorComponentVariant.FactoryCreatesCorrectVariant" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = EditorComponentVariant.FactoryCreatesCorrectVariant
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from EditorComponentVariant
+[ RUN      ] EditorComponentVariant.FactoryCreatesCorrectVariant
+[2026-03-11 11:55:46.201] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[2026-03-11 11:55:46.202] [info] [json_parser] Loaded 71 type definitions
+[2026-03-11 11:55:46.202] [info] [build] signal map: 2 roots -> 3 signals, 0 fixed
+[2026-03-11 11:55:46.202] [warning] [build] created 1 components (elec=1, logic=0, mech=0, hyd=0, therm=0)
+[       OK ] EditorComponentVariant.FactoryCreatesCorrectVariant (8 ms)
+[----------] 1 test from EditorComponentVariant (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (8 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"EditorComponentVariant.FactoryCreatesCorrectVariant" end time: Mar 11 11:55 CET
+"EditorComponentVariant.FactoryCreatesCorrectVariant" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/1145 Testing: PtTest.DefaultIsZero
+26/1145 Test: PtTest.DefaultIsZero
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.DefaultIsZero" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.DefaultIsZero" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.DefaultIsZero
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.DefaultIsZero
+[       OK ] PtTest.DefaultIsZero (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.DefaultIsZero" end time: Mar 11 11:55 CET
+"PtTest.DefaultIsZero" time elapsed: 00:00:00
+----------------------------------------------------------
+
+27/1145 Testing: PtTest.Constructor
+27/1145 Test: PtTest.Constructor
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.Constructor" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.Constructor" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.Constructor
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.Constructor
+[       OK ] PtTest.Constructor (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.Constructor" end time: Mar 11 11:55 CET
+"PtTest.Constructor" time elapsed: 00:00:00
+----------------------------------------------------------
+
+28/1145 Testing: PtTest.ZeroStatic
+28/1145 Test: PtTest.ZeroStatic
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.ZeroStatic" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.ZeroStatic" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.ZeroStatic
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.ZeroStatic
+[       OK ] PtTest.ZeroStatic (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.ZeroStatic" end time: Mar 11 11:55 CET
+"PtTest.ZeroStatic" time elapsed: 00:00:00
+----------------------------------------------------------
+
+29/1145 Testing: PtTest.Addition
+29/1145 Test: PtTest.Addition
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.Addition" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.Addition" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.Addition
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.Addition
+[       OK ] PtTest.Addition (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.Addition" end time: Mar 11 11:55 CET
+"PtTest.Addition" time elapsed: 00:00:00
+----------------------------------------------------------
+
+30/1145 Testing: PtTest.Subtraction
+30/1145 Test: PtTest.Subtraction
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.Subtraction" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.Subtraction" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.Subtraction
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.Subtraction
+[       OK ] PtTest.Subtraction (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.Subtraction" end time: Mar 11 11:55 CET
+"PtTest.Subtraction" time elapsed: 00:00:00
+----------------------------------------------------------
+
+31/1145 Testing: PtTest.Multiplication
+31/1145 Test: PtTest.Multiplication
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.Multiplication" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.Multiplication" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.Multiplication
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.Multiplication
+[       OK ] PtTest.Multiplication (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.Multiplication" end time: Mar 11 11:55 CET
+"PtTest.Multiplication" time elapsed: 00:00:00
+----------------------------------------------------------
+
+32/1145 Testing: PtTest.Equality
+32/1145 Test: PtTest.Equality
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=PtTest.Equality" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PtTest.Equality" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PtTest.Equality
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PtTest
+[ RUN      ] PtTest.Equality
+[       OK ] PtTest.Equality (0 ms)
+[----------] 1 test from PtTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"PtTest.Equality" end time: Mar 11 11:55 CET
+"PtTest.Equality" time elapsed: 00:00:00
+----------------------------------------------------------
+
+33/1145 Testing: BlueprintTest.DefaultIsEmpty
+33/1145 Test: BlueprintTest.DefaultIsEmpty
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.DefaultIsEmpty" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.DefaultIsEmpty" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.DefaultIsEmpty
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.DefaultIsEmpty
+[       OK ] BlueprintTest.DefaultIsEmpty (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.DefaultIsEmpty" end time: Mar 11 11:55 CET
+"BlueprintTest.DefaultIsEmpty" time elapsed: 00:00:00
+----------------------------------------------------------
+
+34/1145 Testing: BlueprintTest.AddNode
+34/1145 Test: BlueprintTest.AddNode
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.AddNode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.AddNode" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.AddNode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.AddNode
+[       OK ] BlueprintTest.AddNode (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.AddNode" end time: Mar 11 11:55 CET
+"BlueprintTest.AddNode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+35/1145 Testing: BlueprintTest.AddWire
+35/1145 Test: BlueprintTest.AddWire
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.AddWire" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.AddWire" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.AddWire
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.AddWire
+[       OK ] BlueprintTest.AddWire (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.AddWire" end time: Mar 11 11:55 CET
+"BlueprintTest.AddWire" time elapsed: 00:00:00
+----------------------------------------------------------
+
+36/1145 Testing: BlueprintTest.FindNode
+36/1145 Test: BlueprintTest.FindNode
+Command: "/Users/vladimir/an24_cpp/tests/editor_data_tests" "--gtest_filter=BlueprintTest.FindNode" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"BlueprintTest.FindNode" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = BlueprintTest.FindNode
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from BlueprintTest
+[ RUN      ] BlueprintTest.FindNode
+[       OK ] BlueprintTest.FindNode (0 ms)
+[----------] 1 test from BlueprintTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"BlueprintTest.FindNode" end time: Mar 11 11:55 CET
+"BlueprintTest.FindNode" time elapsed: 00:00:00
+----------------------------------------------------------
+
+37/1145 Testing: PersistTest.ToJson_EmptyBlueprint
+37/1145 Test: PersistTest.ToJson_EmptyBlueprint
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.ToJson_EmptyBlueprint" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.ToJson_EmptyBlueprint" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.ToJson_EmptyBlueprint
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.ToJson_EmptyBlueprint
+[       OK ] PersistTest.ToJson_EmptyBlueprint (0 ms)
+[----------] 1 test from PersistTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.ToJson_EmptyBlueprint" end time: Mar 11 11:55 CET
+"PersistTest.ToJson_EmptyBlueprint" time elapsed: 00:00:00
+----------------------------------------------------------
+
+38/1145 Testing: PersistTest.ToJson_FromJson_Roundtrip
+38/1145 Test: PersistTest.ToJson_FromJson_Roundtrip
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.ToJson_FromJson_Roundtrip" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.ToJson_FromJson_Roundtrip" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.ToJson_FromJson_Roundtrip
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.ToJson_FromJson_Roundtrip
+[2026-03-11 11:55:46.298] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.ToJson_FromJson_Roundtrip (9 ms)
+[----------] 1 test from PersistTest (9 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (9 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.ToJson_FromJson_Roundtrip" end time: Mar 11 11:55 CET
+"PersistTest.ToJson_FromJson_Roundtrip" time elapsed: 00:00:00
+----------------------------------------------------------
+
+39/1145 Testing: PersistTest.DisplayName_Roundtrip_CustomName
+39/1145 Test: PersistTest.DisplayName_Roundtrip_CustomName
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.DisplayName_Roundtrip_CustomName" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.DisplayName_Roundtrip_CustomName" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.DisplayName_Roundtrip_CustomName
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.DisplayName_Roundtrip_CustomName
+[2026-03-11 11:55:46.318] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.DisplayName_Roundtrip_CustomName (7 ms)
+[----------] 1 test from PersistTest (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (7 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.DisplayName_Roundtrip_CustomName" end time: Mar 11 11:55 CET
+"PersistTest.DisplayName_Roundtrip_CustomName" time elapsed: 00:00:00
+----------------------------------------------------------
+
+40/1145 Testing: PersistTest.DisplayName_Roundtrip_SameAsId
+40/1145 Test: PersistTest.DisplayName_Roundtrip_SameAsId
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.DisplayName_Roundtrip_SameAsId" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.DisplayName_Roundtrip_SameAsId" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.DisplayName_Roundtrip_SameAsId
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.DisplayName_Roundtrip_SameAsId
+[2026-03-11 11:55:46.334] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.DisplayName_Roundtrip_SameAsId (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.DisplayName_Roundtrip_SameAsId" end time: Mar 11 11:55 CET
+"PersistTest.DisplayName_Roundtrip_SameAsId" time elapsed: 00:00:00
+----------------------------------------------------------
+
+41/1145 Testing: PersistTest.DisplayName_WithSpacesAndSpecialChars
+41/1145 Test: PersistTest.DisplayName_WithSpacesAndSpecialChars
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.DisplayName_WithSpacesAndSpecialChars" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.DisplayName_WithSpacesAndSpecialChars" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.DisplayName_WithSpacesAndSpecialChars
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.DisplayName_WithSpacesAndSpecialChars
+[2026-03-11 11:55:46.351] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.DisplayName_WithSpacesAndSpecialChars (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.DisplayName_WithSpacesAndSpecialChars" end time: Mar 11 11:55 CET
+"PersistTest.DisplayName_WithSpacesAndSpecialChars" time elapsed: 00:00:00
+----------------------------------------------------------
+
+42/1145 Testing: PersistTest.SizeExplicitlySet_FromJson
+42/1145 Test: PersistTest.SizeExplicitlySet_FromJson
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.SizeExplicitlySet_FromJson" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.SizeExplicitlySet_FromJson" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.SizeExplicitlySet_FromJson
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.SizeExplicitlySet_FromJson
+[2026-03-11 11:55:46.367] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.SizeExplicitlySet_FromJson (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.SizeExplicitlySet_FromJson" end time: Mar 11 11:55 CET
+"PersistTest.SizeExplicitlySet_FromJson" time elapsed: 00:00:00
+----------------------------------------------------------
+
+43/1145 Testing: PersistTest.FromJson_Invalid_ReturnsNullopt
+43/1145 Test: PersistTest.FromJson_Invalid_ReturnsNullopt
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.FromJson_Invalid_ReturnsNullopt" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.FromJson_Invalid_ReturnsNullopt" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.FromJson_Invalid_ReturnsNullopt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.FromJson_Invalid_ReturnsNullopt
+[2026-03-11 11:55:46.378] [error] blueprint_from_json failed: [json.exception.parse_error.101] parse error at line 1, column 1: syntax error while parsing value - invalid literal; last read: 'i'
+[       OK ] PersistTest.FromJson_Invalid_ReturnsNullopt (1 ms)
+[----------] 1 test from PersistTest (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.FromJson_Invalid_ReturnsNullopt" end time: Mar 11 11:55 CET
+"PersistTest.FromJson_Invalid_ReturnsNullopt" time elapsed: 00:00:00
+----------------------------------------------------------
+
+44/1145 Testing: PersistTest.ToJson_IncludesViewport
+44/1145 Test: PersistTest.ToJson_IncludesViewport
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.ToJson_IncludesViewport" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.ToJson_IncludesViewport" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.ToJson_IncludesViewport
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.ToJson_IncludesViewport
+[2026-03-11 11:55:46.394] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.ToJson_IncludesViewport (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.ToJson_IncludesViewport" end time: Mar 11 11:55 CET
+"PersistTest.ToJson_IncludesViewport" time elapsed: 00:00:00
+----------------------------------------------------------
+
+45/1145 Testing: PersistTest.EditorFormat_WithMetadata
+45/1145 Test: PersistTest.EditorFormat_WithMetadata
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.EditorFormat_WithMetadata" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.EditorFormat_WithMetadata" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.EditorFormat_WithMetadata
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.EditorFormat_WithMetadata
+[2026-03-11 11:55:46.410] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.EditorFormat_WithMetadata (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.EditorFormat_WithMetadata" end time: Mar 11 11:55 CET
+"PersistTest.EditorFormat_WithMetadata" time elapsed: 00:00:00
+----------------------------------------------------------
+
+46/1145 Testing: PersistTest.FromJson_MissingDevices_ReturnsNullopt
+46/1145 Test: PersistTest.FromJson_MissingDevices_ReturnsNullopt
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.FromJson_MissingDevices_ReturnsNullopt" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.FromJson_MissingDevices_ReturnsNullopt" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.FromJson_MissingDevices_ReturnsNullopt
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.FromJson_MissingDevices_ReturnsNullopt
+[       OK ] PersistTest.FromJson_MissingDevices_ReturnsNullopt (0 ms)
+[----------] 1 test from PersistTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.FromJson_MissingDevices_ReturnsNullopt" end time: Mar 11 11:55 CET
+"PersistTest.FromJson_MissingDevices_ReturnsNullopt" time elapsed: 00:00:00
+----------------------------------------------------------
+
+47/1145 Testing: PersistTest.RenderHint_Roundtrip_Bus
+47/1145 Test: PersistTest.RenderHint_Roundtrip_Bus
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.RenderHint_Roundtrip_Bus" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.RenderHint_Roundtrip_Bus" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.RenderHint_Roundtrip_Bus
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.RenderHint_Roundtrip_Bus
+[2026-03-11 11:55:46.435] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.RenderHint_Roundtrip_Bus (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.RenderHint_Roundtrip_Bus" end time: Mar 11 11:55 CET
+"PersistTest.RenderHint_Roundtrip_Bus" time elapsed: 00:00:00
+----------------------------------------------------------
+
+48/1145 Testing: PersistTest.RenderHint_Roundtrip_Ref
+48/1145 Test: PersistTest.RenderHint_Roundtrip_Ref
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.RenderHint_Roundtrip_Ref" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.RenderHint_Roundtrip_Ref" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.RenderHint_Roundtrip_Ref
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.RenderHint_Roundtrip_Ref
+[2026-03-11 11:55:46.451] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.RenderHint_Roundtrip_Ref (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.RenderHint_Roundtrip_Ref" end time: Mar 11 11:55 CET
+"PersistTest.RenderHint_Roundtrip_Ref" time elapsed: 00:00:00
+----------------------------------------------------------
+
+49/1145 Testing: PersistTest.RenderHint_Roundtrip_Default
+49/1145 Test: PersistTest.RenderHint_Roundtrip_Default
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.RenderHint_Roundtrip_Default" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.RenderHint_Roundtrip_Default" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.RenderHint_Roundtrip_Default
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.RenderHint_Roundtrip_Default
+[2026-03-11 11:55:46.467] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.RenderHint_Roundtrip_Default (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"PersistTest.RenderHint_Roundtrip_Default" end time: Mar 11 11:55 CET
+"PersistTest.RenderHint_Roundtrip_Default" time elapsed: 00:00:00
+----------------------------------------------------------
+
+50/1145 Testing: PersistTest.Expandable_Roundtrip_False
+50/1145 Test: PersistTest.Expandable_Roundtrip_False
+Command: "/Users/vladimir/an24_cpp/tests/editor_persist_tests" "--gtest_filter=PersistTest.Expandable_Roundtrip_False" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"PersistTest.Expandable_Roundtrip_False" start time: Mar 11 11:55 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PersistTest.Expandable_Roundtrip_False
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PersistTest
+[ RUN      ] PersistTest.Expandable_Roundtrip_False
+[2026-03-11 11:55:46.483] [info] [json_parser] Loaded 71 type definitions from 'library/'
+[       OK ] PersistTest.Expandable_Roundtrip_False (6 ms)
+[----------] 1 test from PersistTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (6 ms total)
+[  PASSED  ] 1 test.
+<end of output>

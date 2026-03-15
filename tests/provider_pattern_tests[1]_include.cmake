@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/provider_pattern_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/provider_pattern_tests[1]_tests.cmake")
+else()
+  add_test(provider_pattern_tests_NOT_BUILT provider_pattern_tests_NOT_BUILT)
+endif()

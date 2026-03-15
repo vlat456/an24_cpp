@@ -105,24 +105,44 @@ find_package(OpenGL REQUIRED)
 
 add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/examples/an24_editor.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/wire_manager.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/wires/hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/wire_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/node_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/tooltip_detector.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/grid_renderer.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/renderer/blueprint_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/canvas_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/node_content_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/layout/splitter.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/inspector_panel.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/panels/document_area.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/tabs/document_tabs.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/menu/main_menu.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/dialogs/file_dialogs.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/sub_window_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/simulation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
     ${imgui_SOURCE_DIR}/imgui_tables.cpp
@@ -134,7 +154,7 @@ target_include_directories(an24_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${SDL2_INCLUDE_DIRS}
@@ -147,13 +167,23 @@ target_link_libraries(an24_editor PRIVATE
     "-framework AppKit"
     "-framework UniformTypeIdentifiers"
     spdlog::spdlog
-    ${CMAKE_BINARY_DIR}/_deps/nfde-build/src/libnfd.a
+    nfd
     jit_solver
     json_parser
+    nlohmann_json::nlohmann_json
 )
 
 # Benchmark JIT vs AOT
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
+
+# Library v1 → v2 converter (one-shot tool)
+add_executable(convert_library convert_library.cpp)
+target_include_directories(convert_library PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(convert_library PRIVATE json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
 

@@ -1,0 +1,142 @@
+{
+  "tests": 26,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "VisualPortTest",
+      "tests": 26,
+      "testsuite": [
+        {
+          "name": "Construction_DefaultType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 40
+        },
+        {
+          "name": "Construction_WithType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 49
+        },
+        {
+          "name": "Construction_BusAlias",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 55
+        },
+        {
+          "name": "Color_MatchesPortType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 67
+        },
+        {
+          "name": "TypeCompat_AnyIsWildcard",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 85
+        },
+        {
+          "name": "TypeCompat_SameTypeMatch",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 91
+        },
+        {
+          "name": "TypeCompat_DifferentTypeReject",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 97
+        },
+        {
+          "name": "SideCompat_InOutToAnything",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 106
+        },
+        {
+          "name": "SideCompat_InputToOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 114
+        },
+        {
+          "name": "SideCompat_SameSideReject",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 119
+        },
+        {
+          "name": "Compatible_VoltageInToVoltageOut",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 128
+        },
+        {
+          "name": "Incompatible_VoltageToCurrentReject",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 135
+        },
+        {
+          "name": "Incompatible_SameSideReject",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 141
+        },
+        {
+          "name": "Compatible_InOutBusToOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 147
+        },
+        {
+          "name": "Compatible_AnyTypeAcceptsAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 153
+        },
+        {
+          "name": "CalcBounds_CenteredOnWorldPos",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 163
+        },
+        {
+          "name": "CalcBounds_ContainsCenter",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 174
+        },
+        {
+          "name": "WorldPosition_SetGet",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 185
+        },
+        {
+          "name": "Render_DrawsCircle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 196
+        },
+        {
+          "name": "Render_WithLabelRight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 212
+        },
+        {
+          "name": "Render_WithLabelLeft",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 227
+        },
+        {
+          "name": "Render_NoLabelByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 240
+        },
+        {
+          "name": "Render_ZoomScales",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 251
+        },
+        {
+          "name": "BusAlias_LogicalNameIsTargetPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 265
+        },
+        {
+          "name": "BusAlias_CompatibleWithOutputV",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 272
+        },
+        {
+          "name": "SetType_UpdatesColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_port.cpp",
+          "line": 282
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "i1": {
+      "alias": "o",
+      "direction": "In",
+      "type": "Any"
+    },
+    "i2": {
+      "alias": "o",
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "2-to-1 signal merger. Two real input ports merged into 1 output via alias. All ports are type 'Any' for universal compatibility across all domains. Inverse of Splitter.",
+    "domains": [
+      "Electrical",
+      "Mechanical",
+      "Hydraulic",
+      "Thermal"
+    ],
+    "name": "Merger",
+    "priority": "high",
+    "size": [
+      3.0,
+      3.0
+    ]
+  },
+  "version": 2
+}

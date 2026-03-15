@@ -1,0 +1,52 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "LogicalSolverTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "LogicalDomain_ExistsInEnum",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 15
+        },
+        {
+          "name": "LogicalDomain_ParsesFromString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 25
+        },
+        {
+          "name": "Comparator_TypeDefinitionExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 52
+        },
+        {
+          "name": "Comparator_InLogicalDomain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 88
+        },
+        {
+          "name": "LogicalSolver_HasLogicalVector",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 112
+        },
+        {
+          "name": "Component_HasSolveLogicalMethod",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 126
+        },
+        {
+          "name": "Comparator_Hysteresis_BasicBehavior",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 153
+        },
+        {
+          "name": "Comparator_Hysteresis_WithVbOffset",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_logical_solver.cpp",
+          "line": 213
+        }
+      ]
+    }
+  ]
+}

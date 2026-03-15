@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/ui_renderer_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/ui_renderer_tests[1]_tests.cmake")
+else()
+  add_test(ui_renderer_tests_NOT_BUILT ui_renderer_tests_NOT_BUILT)
+endif()

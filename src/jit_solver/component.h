@@ -6,8 +6,6 @@
 // Include shared types from json_parser
 #include "../json_parser/json_parser.h"
 
-namespace an24 {
-
 /// Forward declaration
 class SimulationState;
 
@@ -41,8 +39,6 @@ public:
     virtual void pre_load() {}
 };
 
-} // namespace an24
-
 // ============================================================================
 // PORTS Macro - Generate component port fields from registry
 // ============================================================================
@@ -59,7 +55,7 @@ public:
 //   };
 //
 // The macro generates uint32_t fields with _idx suffix for each port.
-// This matches the port names in components/*.json registry.
+// This matches the port names in library/*.blueprint registry.
 // Supports 1-32 ports.
 // ============================================================================
 
@@ -188,6 +184,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0;
 
 #define PORTS_26(Class, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26) \
@@ -196,6 +193,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0;
 
 #define PORTS_27(Class, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27) \
@@ -204,6 +202,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0;
 
 #define PORTS_28(Class, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28) \
@@ -212,6 +211,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0; uint32_t p28##_idx = 0;
 
 #define PORTS_29(Class, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29) \
@@ -220,6 +220,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0; uint32_t p28##_idx = 0; \
     uint32_t p29##_idx = 0;
 
@@ -229,6 +230,7 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0; uint32_t p28##_idx = 0; \
     uint32_t p29##_idx = 0; uint32_t p30##_idx = 0;
 
@@ -238,8 +240,9 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
     uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0; uint32_t p28##_idx = 0; \
-    uint32_t p29##_idx = 0; uint32_t p30_idx = 0; uint32_t p31##_idx = 0;
+    uint32_t p29##_idx = 0; uint32_t p30##_idx = 0; uint32_t p31##_idx = 0;
 
 #define PORTS_32(Class, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32) \
     uint32_t p1##_idx = 0; uint32_t p2##_idx = 0; uint32_t p3##_idx = 0; uint32_t p4##_idx = 0; \
@@ -247,8 +250,9 @@ public:
     uint32_t p9##_idx = 0; uint32_t p10##_idx = 0; uint32_t p11##_idx = 0; uint32_t p12##_idx = 0; \
     uint32_t p13##_idx = 0; uint32_t p14##_idx = 0; uint32_t p15##_idx = 0; uint32_t p16##_idx = 0; \
     uint32_t p17##_idx = 0; uint32_t p18##_idx = 0; uint32_t p19##_idx = 0; uint32_t p20##_idx = 0; \
-    uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27_idx = 0; uint32_t p28##_idx = 0; \
-    uint32_t p29##_idx = 0; uint32_t p30_idx = 0; uint32_t p31##_idx = 0; uint32_t p32##_idx = 0;
+    uint32_t p21##_idx = 0; uint32_t p22##_idx = 0; uint32_t p23##_idx = 0; uint32_t p24##_idx = 0; \
+    uint32_t p25##_idx = 0; uint32_t p26##_idx = 0; uint32_t p27##_idx = 0; uint32_t p28##_idx = 0; \
+    uint32_t p29##_idx = 0; uint32_t p30##_idx = 0; uint32_t p31##_idx = 0; uint32_t p32##_idx = 0;
 
 // Dispatcher macro - select PORTS_N based on argument count
 // Must match the number of PORTS_N macros (up to 32)

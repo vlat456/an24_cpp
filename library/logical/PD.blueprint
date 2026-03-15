@@ -1,0 +1,47 @@
+{
+  "exposes": {
+    "feedback": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "setpoint": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "PD controller with proportional and derivative terms (no integral)",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "PD"
+  },
+  "params": {
+    "Kd": {
+      "default": "0.0",
+      "type": "float"
+    },
+    "Kp": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "filter_alpha": {
+      "default": "0.2",
+      "type": "float"
+    },
+    "output_max": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "output_min": {
+      "default": "-1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

@@ -3,8 +3,6 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace an24;
-
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;

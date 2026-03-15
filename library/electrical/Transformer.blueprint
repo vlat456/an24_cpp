@@ -1,0 +1,27 @@
+{
+  "exposes": {
+    "primary": {
+      "direction": "In",
+      "type": "I"
+    },
+    "secondary": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "AC transformer with voltage ratio",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Transformer"
+  },
+  "params": {
+    "ratio": {
+      "default": "1.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

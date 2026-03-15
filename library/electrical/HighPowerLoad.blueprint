@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Constant power load (adjusts conductance based on voltage, branchless optimized)",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "HighPowerLoad"
+  },
+  "params": {
+    "min_voltage_diff": {
+      "default": "0.01",
+      "type": "float"
+    },
+    "power_draw": {
+      "default": "500.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

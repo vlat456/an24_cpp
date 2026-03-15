@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "jit_solver/SOR_constants.h"
+#include "../parse_number.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -8,72 +9,66 @@
 #include <map>
 #include <set>
 #include <unordered_set>
-#include <filesystem>
+#include <charconv>
+#include <climits>
+#include <cstdlib>
+#include <cstdio>
 
-// Use nlohmann::json - will be available when linked with json_parser
-// This is a simple inline JSON parser for port registry generation
-#include <nlohmann/json.hpp>
-
-namespace an24 {
 
 namespace {
 
 std::string to_upper(const std::string& s) {
     std::string result = s;
-    for (char& c : result) c = std::toupper(c);
+    for (char& c : result) c = static_cast<char>(std::toupper(static_cast<unsigned char>(c)));
     return result;
 }
 
 std::string sanitize_name(const std::string& s) {
     std::string result;
+    result.reserve(s.size());
     for (char c : s) {
-        if (c == '.' || c == '-' || c == ':') result += '_';
-        else result += c;
+        switch (c) {
+            case '.': result += "_DOT_"; break;
+            case '-': result += "_DASH_"; break;
+            case ':': result += "_"; break;  // Colon is the hierarchical separator, stays as '_'
+            default:  result += c; break;
+        }
     }
     return result;
 }
 
-// Infer C++ type from parameter value
+// Infer C++ type from parameter value (locale-independent)
 std::string infer_type(const std::string& value) {
     if (value.empty()) return "float";
 
-    try {
-        size_t pos;
-        long long ival = std::stoll(value, &pos);
-        if (pos == value.size()) {
-            if (ival > INT32_MAX || ival < INT32_MIN) return "int64_t";
-            return "int32_t";
-        }
-    } catch (...) {}
+    long long ival;
+    if (locale_safe::parse_int64(value, ival)) {
+        if (ival > INT32_MAX || ival < INT32_MIN) return "int64_t";
+        return "int32_t";
+    }
 
-    try {
-        size_t pos;
-        float fval = std::stof(value, &pos);
-        if (pos == value.size()) {
-            return "float";
-        }
-    } catch (...) {}
+    if (locale_safe::is_float_literal(value)) {
+        return "float";
+    }
 
     if (value == "true" || value == "false") return "bool";
 
     return "std::string";
 }
 
-// Format value for C++ code
+// Format value for C++ code (locale-independent)
 std::string format_value(const std::string& value, const std::string& type) {
     if (type == "float") {
-        try {
-            float f = std::stof(value);
-            std::ostringstream oss;
-            oss << f;
-            return oss.str();
-        } catch (...) {
-            std::string v = value;
-            if (v.find('.') == std::string::npos) {
-                v += ".0";
-            }
-            return v;
+        float f;
+        if (locale_safe::parse_float(value, f)) {
+            return locale_safe::format_float(f) + "f";
         }
+        // Fallback: ensure it has a decimal point
+        std::string v = value;
+        if (v.find('.') == std::string::npos) {
+            v += ".0";
+        }
+        return v;
     } else if (type == "bool") {
         return value;
     } else if (type == "int32_t" || type == "int64_t") {
@@ -87,6 +82,23 @@ std::string format_value(const std::string& value, const std::string& type) {
 
 // Get domain from device
 std::string get_device_domain(const DeviceInstance& dev) {
+    // Build domain string from the parsed domains vector (populated from JSON "domains")
+    if (!dev.domains.empty()) {
+        std::string result;
+        for (auto d : dev.domains) {
+            if (!result.empty()) result += "|";
+            switch (d) {
+                case Domain::Electrical: result += "Electrical"; break;
+                case Domain::Logical:    result += "Logical"; break;
+                case Domain::Mechanical: result += "Mechanical"; break;
+                case Domain::Hydraulic:  result += "Hydraulic"; break;
+                case Domain::Thermal:    result += "Thermal"; break;
+                default: break;
+            }
+        }
+        if (!result.empty()) return result;
+    }
+    // Fallback to params["domain"] for backward compat
     auto it = dev.params.find("domain");
     if (it != dev.params.end()) {
         return it->second;
@@ -144,11 +156,18 @@ std::string get_port_name(const std::unordered_map<std::string, Port>& ports, co
 
 std::string CodeGen::generate_header(
     const std::string& source_file,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const std::string& class_name
 ) {
+    // Filter out visual-only devices (no simulation behavior, e.g. Group)
+    std::vector<DeviceInstance> devices;
+    devices.reserve(devices_unfiltered.size());
+    for (const auto& d : devices_unfiltered)
+        if (!d.visual_only) devices.push_back(d);
+
     std::ostringstream oss;
 
     // Header guard
@@ -181,7 +200,6 @@ std::string CodeGen::generate_header(
     oss << "#define AOT_LIKELY(x) (x)\n";
     oss << "#define AOT_UNLIKELY(x) (x)\n";
     oss << "#endif\n\n";
-    oss << "namespace an24 {\n\n";
 
     // Signal constants
     oss << "// ==============================================================================\n";
@@ -235,14 +253,14 @@ std::string CodeGen::generate_header(
     oss << "// Components are NON-VIRTUAL for AOT - no vtable overhead\n";
     oss << "// ==============================================================================\n\n";
 
-    oss << "class Systems {\n";
+    oss << "class " << class_name << " {\n";
     oss << "public:\n";
 
     // Device objects with AotProvider - compile-time constexpr port index lookup
     // Zero-cost abstraction: provider.get(PortNames::v_in) compiles to a constant
     for (const auto& dev : devices) {
         std::string aot_type = generate_aot_provider_type(dev, port_to_signal, signal_count);
-        oss << "    " << dev.classname << "<" << aot_type << "> " << dev.name << ";\n";
+        oss << "    " << dev.classname << "<" << aot_type << "> " << sanitize_name(dev.name) << ";\n";
     }
     oss << "\n";
 
@@ -257,7 +275,7 @@ std::string CodeGen::generate_header(
             }
             std::string port_key = dev.name + "." + port_name;
             uint32_t sig = port_to_signal.count(port_key) ? port_to_signal.at(port_key) : signal_count;
-            oss << "    static constexpr uint32_t " << dev.name << "_" << port_name << "_idx = " << sig << ";\n";
+            oss << "    static constexpr uint32_t " << sanitize_name(dev.name) << "_" << port_name << "_idx = " << sig << ";\n";
         }
     }
     oss << "\n";
@@ -272,8 +290,13 @@ std::string CodeGen::generate_header(
     // Pre-allocated convergence buffer pointer (set at init)
     oss << "    float* convergence_buffer = nullptr;\n\n";
 
-    // Constructor
-    oss << "    Systems();\n\n";
+    // Constructor / Destructor
+    oss << "    " << class_name << "();\n";
+    oss << "    ~" << class_name << "();\n\n";
+
+    // Non-copyable (owns raw pointer)
+    oss << "    " << class_name << "(const " << class_name << "&) = delete;\n";
+    oss << "    " << class_name << "& operator=(const " << class_name << "&) = delete;\n\n";
 
     // Methods - all inline for optimization
     oss << "    /// Pre-load initialization\n";
@@ -299,18 +322,23 @@ std::string CodeGen::generate_header(
 
     oss << "};\n\n";
 
-    oss << "} // namespace an24\n";
-
     return oss.str();
 }
 
 std::string CodeGen::generate_source(
     const std::string& header_name,
-    const std::vector<DeviceInstance>& devices,
+    const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const std::string& class_name
 ) {
+    // Filter out visual-only devices (no simulation behavior, e.g. Group)
+    std::vector<DeviceInstance> devices;
+    devices.reserve(devices_unfiltered.size());
+    for (const auto& d : devices_unfiltered)
+        if (!d.visual_only) devices.push_back(d);
+
     std::ostringstream oss;
 
     oss << "#include \"" << header_name << "\"\n";
@@ -321,7 +349,6 @@ std::string CodeGen::generate_source(
     oss << "#ifdef __GNUC__\n";
     oss << "#pragma GCC optimize(\"fast-math,unroll-loops\")\n";
     oss << "#endif\n\n";
-    oss << "namespace an24 {\n\n";
 
     // Explicit template instantiations for AotProvider
     // These tell the compiler to generate code for Component<AotProvider<Bindings...>>
@@ -333,16 +360,52 @@ std::string CodeGen::generate_source(
     oss << "\n";
 
     // Constructor - only initialize component parameters (port indices are compile-time constants)
-    oss << "Systems::Systems()\n";
+    oss << class_name << "::" << class_name << "()\n";
     oss << "{\n";
-    oss << "    // Pre-allocate convergence buffer (zero-allocation in hot path)\n";
-    oss << "    alignas(64) static float buf[SIGNAL_COUNT];\n";
-    oss << "    convergence_buffer = buf;\n\n";
+    oss << "    // Pre-allocate convergence buffer (instance-owned, no sharing)\n";
+    oss << "    convergence_buffer = new (std::align_val_t(64)) float[SIGNAL_COUNT]{};\n\n";
 
     // Port indices are now static constexpr - no runtime initialization needed!
 
+    // Collect LUT tables for arena generation
+    struct LutEntry { std::string dev_name; std::vector<float> keys; std::vector<float> values; };
+    std::vector<LutEntry> lut_entries;
+    uint32_t lut_arena_offset = 0;
+
     // Generate parameter assignments
     for (const auto& dev : devices) {
+        // LUT: parse table param into arena, emit offset/size instead
+        if (dev.classname == "LUT") {
+            auto it = dev.params.find("table");
+            if (it != dev.params.end()) {
+                LutEntry entry;
+                entry.dev_name = sanitize_name(dev.name);
+                // Inline parse (same format as LUT::parse_table)
+                std::string tbl = it->second;
+                size_t pos = 0;
+                while (pos < tbl.size()) {
+                    while (pos < tbl.size() && (tbl[pos] == ' ' || tbl[pos] == ';')) ++pos;
+                    if (pos >= tbl.size()) break;
+                    size_t colon = tbl.find(':', pos);
+                    if (colon == std::string::npos) break;
+                    size_t end = tbl.find(';', colon + 1);
+                    if (end == std::string::npos) end = tbl.size();
+                    float key_f, val_f;
+                    if (locale_safe::parse_float(tbl.substr(pos, colon - pos), key_f) &&
+                        locale_safe::parse_float(tbl.substr(colon + 1, end - colon - 1), val_f)) {
+                        entry.keys.push_back(key_f);
+                        entry.values.push_back(val_f);
+                    } else { break; }
+                    pos = end;
+                }
+                oss << "    " << entry.dev_name << ".table_offset = " << lut_arena_offset << ";\n";
+                oss << "    " << entry.dev_name << ".table_size = " << entry.keys.size() << ";\n";
+                lut_arena_offset += static_cast<uint32_t>(entry.keys.size());
+                lut_entries.push_back(std::move(entry));
+            }
+            continue;  // skip generic param loop for LUT
+        }
+
         for (const auto& param : dev.params) {
             const std::string& param_name = param.first;
             const std::string& value = param.second;
@@ -351,29 +414,57 @@ std::string CodeGen::generate_source(
             if (param_name == "inv_internal_r" || param_name == "inv_capacity") continue;
 
             std::string type = infer_type(value);
-            oss << "    " << dev.name << "." << param_name << " = " << format_value(value, type) << ";\n";
+            oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
     }
     oss << "}\n\n";
 
-    // Pre-load
-    oss << "void Systems::pre_load() {\n";
+    // Destructor — release instance-owned convergence buffer
+    oss << class_name << "::~" << class_name << "() {\n";
+    oss << "    ::operator delete[](convergence_buffer, std::align_val_t(64));\n";
+    oss << "}\n\n";
+
+    // Pre-load: call pre_load() on components that have it, then LUT arena init
+    oss << "void " << class_name << "::pre_load() {\n";
+    // All cpp_class components have pre_load() (empty stub or real implementation)
     for (const auto& dev : devices) {
-        if (dev.classname == "Battery") {
-            if (dev.params.count("internal_r")) {
-                oss << "    " << dev.name << ".inv_internal_r = 1.0f / " << dev.name << ".internal_r;\n";
+        oss << "    " << sanitize_name(dev.name) << ".pre_load();\n";
+    }
+    // Emit LUT arena initialization
+    if (!lut_entries.empty()) {
+        oss << "    // LUT arena: all breakpoint tables concatenated (" << lut_arena_offset << " floats total)\n";
+        oss << "    static const float lut_keys_data[] = {";
+        bool first_k = true;
+        for (const auto& e : lut_entries) {
+            for (float k : e.keys) {
+                if (!first_k) oss << ", ";
+                oss << k << "f";
+                first_k = false;
             }
         }
+        oss << "};\n";
+        oss << "    static const float lut_vals_data[] = {";
+        bool first_v = true;
+        for (const auto& e : lut_entries) {
+            for (float v : e.values) {
+                if (!first_v) oss << ", ";
+                oss << v << "f";
+                first_v = false;
+            }
+        }
+        oss << "};\n";
+        oss << "    g_state->lut_keys.assign(lut_keys_data, lut_keys_data + " << lut_arena_offset << ");\n";
+        oss << "    g_state->lut_values.assign(lut_vals_data, lut_vals_data + " << lut_arena_offset << ");\n";
     }
     oss << "}\n\n";
 
-    // Jump table dispatch - COMPUTED GOTO (faster than switch, branchless)
-    // Uses GCC/Clang labels-as-values extension
-    oss << "void Systems::solve_step(void* state, uint32_t step, float dt) {\n";
+    // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
+    oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
     oss << "    // Accumulate dt for sub-rate domain scheduling\n";
     oss << "    acc_mechanical_ += dt;\n";
     oss << "    acc_hydraulic_  += dt;\n";
     oss << "    acc_thermal_    += dt;\n\n";
+    oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
     oss << "    static const void* dispatch_table[" << DomainSchedule::CYCLE_LENGTH << "] = {\n";
     for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
@@ -387,6 +478,14 @@ std::string CodeGen::generate_source(
         oss << "        step_" << i << "(state, dt);\n";
         oss << "        return;\n\n";
     }
+    oss << "#else\n";
+    oss << "    // MSVC fallback: switch-based dispatch\n";
+    oss << "    switch (step % " << DomainSchedule::CYCLE_LENGTH << ") {\n";
+    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+        oss << "        case " << i << ": step_" << i << "(state, dt); return;\n";
+    }
+    oss << "    }\n";
+    oss << "#endif\n";
     oss << "}\n\n";
 
     // Generate CYCLE_LENGTH step methods with domain scheduling
@@ -434,7 +533,7 @@ std::string CodeGen::generate_source(
 
     // Generate each step method
     for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-        oss << "AOT_INLINE void Systems::step_" << step << "(void* state, float dt) {\n";
+        oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         oss << "    st->clear_through();\n";
 
@@ -450,24 +549,10 @@ std::string CodeGen::generate_source(
                 // Call component method (compiler will inline with -O3 -ffast-math)
                 // Bus/RefNode are no-ops, others have solve_electrical()
                 if (dev_it->classname == "Bus" || dev_it->classname == "RefNode" || dev_it->classname == "Voltmeter") {
-                    oss << "    // " << dev_name << " (no-op)\n";
+                    oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
                 } else {
-                    oss << "    " << dev_name << ".solve_electrical(*st, dt);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
                 }
-            }
-        }
-
-        // Logical (every step) - boolean logic operations
-        auto log_it = step_devices.find({step, "logical"});
-        if (log_it != step_devices.end()) {
-            for (const auto& dev_name : log_it->second) {
-                // Find device
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-
-                // Call component method (compiler will inline with -O3)
-                oss << "    " << dev_name << ".solve_logical(*st, dt);\n";
             }
         }
 
@@ -476,7 +561,7 @@ std::string CodeGen::generate_source(
             auto mech_it = step_devices.find({step, "mechanical"});
             if (mech_it != step_devices.end()) {
                 for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << dev_name << ".solve_mechanical(*st, acc_mechanical_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
                 }
                 oss << "    acc_mechanical_ = 0.0f;\n";
             }
@@ -487,7 +572,7 @@ std::string CodeGen::generate_source(
             auto hyd_it = step_devices.find({step, "hydraulic"});
             if (hyd_it != step_devices.end()) {
                 for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << dev_name << ".solve_hydraulic(*st, acc_hydraulic_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
                 }
                 oss << "    acc_hydraulic_ = 0.0f;\n";
             }
@@ -498,7 +583,7 @@ std::string CodeGen::generate_source(
             auto therm_it = step_devices.find({step, "thermal"});
             if (therm_it != step_devices.end()) {
                 for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << dev_name << ".solve_thermal(*st, acc_thermal_);\n";
+                    oss << "    " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
                 }
                 oss << "    acc_thermal_ = 0.0f;\n";
             }
@@ -509,26 +594,47 @@ std::string CodeGen::generate_source(
         oss << "    st->precompute_inv_conductance();\n";
         oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, SOR::OMEGA);\n";
 
+        // Post-step: update device state after SOR convergence
+        // Must run before logical so logical components see updated state
+        // (e.g., HoldButton.state is set in post_step, read by AND gate)
+        {
+            static const std::unordered_set<std::string> has_post_step = {
+                "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
+                "PID", "PD", "PI", "P", "AZS"
+            };
+            for (const auto& dev : devices) {
+                if (has_post_step.count(dev.classname)) {
+                    oss << "    " << sanitize_name(dev.name) << ".post_step(*st, dt);\n";
+                }
+            }
+        }
+
+        // Logical: AFTER SOR + post_step so logical gates read converged values
+        // and their outputs are final (SOR does not overwrite them)
+        auto log_it = step_devices.find({step, "logical"});
+        if (log_it != step_devices.end()) {
+            for (const auto& dev_name : log_it->second) {
+                auto dev_it = std::find_if(devices.begin(), devices.end(),
+                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
+                if (dev_it == devices.end()) continue;
+                oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
+            }
+        }
+
         oss << "}\n\n";
     }
 
-    // Post-step - call post_step on components that have it
-    // Only these classes define post_step: Switch, Relay, HoldButton, GS24, LerpNode, DMR400, RU19A, PID, PD, PI, P
-    static const std::unordered_set<std::string> has_post_step = {
-        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-        "PID", "PD", "PI", "P"
-    };
-    oss << "void Systems::post_step(void* state, float dt) {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    for (const auto& dev : devices) {
-        if (has_post_step.count(dev.classname)) {
-            oss << "    " << dev.name << ".post_step(*st, dt);\n";
-        }
-    }
+    // Post-step is now integrated into each step_N() method
+    // (runs after SOR, before logical — correct execution order)
+    // This method is kept empty for backward compatibility with test harnesses
+    oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
+    oss << "    // No-op: post_step is now inlined into step_N() functions\n";
+    oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
+    oss << "    (void)state; (void)dt;\n";
     oss << "}\n\n";
 
     // Convergence check - optimized with sparse sampling
-    oss << "AOT_INLINE bool Systems::check_convergence(void* state, float tolerance) const {\n";
+    oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
     oss << "    auto* st = static_cast<SimulationState*>(state);\n";
     oss << "    const float* __restrict across = st->across.data();\n";
     oss << "    const float* __restrict buf = convergence_buffer;\n";
@@ -541,8 +647,6 @@ std::string CodeGen::generate_source(
     oss << "    }\n";
     oss << "    return true;\n";
     oss << "}\n\n";
-
-    oss << "} // namespace an24\n";
 
     return oss.str();
 }
@@ -602,12 +706,9 @@ void CodeGen::write_files(
     std::cerr << "[codegen]   - Sparse convergence check\n";
 }
 
-void CodeGen::generate_port_registry(const std::string& components_dir, const std::string& output_path) {
-    using json = nlohmann::json;
+void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
+    std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
 
-    std::cerr << "[codegen] Generating port registry from " << components_dir << "\n";
-
-    // Structure to hold component port information
     struct ComponentPorts {
         std::string classname;
         std::vector<std::string> ports;
@@ -615,39 +716,16 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
 
     std::vector<ComponentPorts> all_components;
 
-    // Scan components directory for JSON files
-    for (const auto& entry : std::filesystem::directory_iterator(components_dir)) {
-        if (entry.path().extension() != ".json") continue;
+    for (const auto& [name, def] : registry.types) {
+        if (!def.cpp_class) continue;
 
-        std::ifstream file(entry.path());
-        if (!file.is_open()) {
-            std::cerr << "[codegen] Warning: could not open " << entry.path() << "\n";
-            continue;
+        ComponentPorts comp;
+        comp.classname = def.classname;
+        for (const auto& [port_name, _] : def.ports) {
+            comp.ports.push_back(port_name);
         }
-
-        try {
-            json json;
-            file >> json;
-
-            if (!json.contains("classname") || !json.contains("default_ports")) {
-                continue;
-            }
-
-            ComponentPorts comp;
-            comp.classname = json["classname"];
-
-            // Collect all port names
-            for (const auto& [port_name, _] : json["default_ports"].items()) {
-                comp.ports.push_back(port_name);
-            }
-
-            // Sort ports for consistency
-            std::sort(comp.ports.begin(), comp.ports.end());
-
-            all_components.push_back(comp);
-        } catch (const std::exception& e) {
-            std::cerr << "[codegen] Error parsing " << entry.path() << ": " << e.what() << "\n";
-        }
+        std::sort(comp.ports.begin(), comp.ports.end());
+        all_components.push_back(std::move(comp));
     }
 
     // Sort components by classname
@@ -667,7 +745,7 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     // Generate header file
     std::ostringstream oss;
 
-    oss << "// Auto-generated by codegen from components/*.json\n";
+    oss << "// Auto-generated by codegen from library/*.blueprint\n";
     oss << "// DO NOT EDIT - changes will be overwritten\n";
     oss << "// \n";
     oss << "// This file contains port definitions for all components.\n";
@@ -678,20 +756,14 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
+    oss << "#include <optional>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n";
-    oss << "\n";
-    // Forward declare PortNames for Provider pattern
-    oss << "namespace an24 {\n";
-    oss << "enum class PortNames : uint32_t;\n";
-    oss << "} // namespace an24\n";
     oss << "\n";
     // Include Provider pattern and component definitions
     // These are relative to port_registry.h location (src/jit_solver/components/)
     oss << "#include \"provider.h\"\n";
     oss << "#include \"all.h\"\n";
-    oss << "\n";
-    oss << "namespace an24 {\n";
     oss << "\n";
 
     // Generate enum for all port names (for Provider pattern)
@@ -712,10 +784,9 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "// Component type enumeration\n";
     oss << "enum class ComponentType {\n";
     for (size_t i = 0; i < all_components.size(); ++i) {
-        oss << "    " << all_components[i].classname;
-        if (i < all_components.size() - 1) oss << ",\n";
-        else oss << "\n";
+        oss << "    " << all_components[i].classname << ",\n";
     }
+    oss << "    _COUNT  // sentinel — must be last\n";
     oss << "};\n";
     oss << "\n";
 
@@ -740,6 +811,22 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "\n";
 
     // Generate helper function to get ports by classname
+    oss << "// Get port names for a component type\n";
+
+    // Generate string_to_port_name lookup (auto-generated, never hand-maintain!)
+    oss << "// Convert port name string to PortNames enum\n";
+    oss << "// Auto-generated from components/*.blueprint — never maintain by hand!\n";
+    oss << "inline std::optional<PortNames> string_to_port_name(const std::string& name) {\n";
+    oss << "    static const std::unordered_map<std::string, PortNames> map = {\n";
+    for (const auto& port_name : all_port_names) {
+        oss << "        {\"" << port_name << "\", PortNames::" << port_name << "},\n";
+    }
+    oss << "    };\n";
+    oss << "    auto it = map.find(name);\n";
+    oss << "    if (it != map.end()) return it->second;\n";
+    oss << "    return std::nullopt;\n";
+    oss << "}\n\n";
+
     oss << "// Get port names for a component type\n";
     oss << "inline std::vector<std::string> get_component_ports(const std::string& classname) {\n";
     oss << "    static const std::unordered_map<std::string, std::vector<std::string>> registry = {\n";
@@ -791,7 +878,12 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     oss << "    }\n";
     oss << "};\n\n";
 
-    oss << "} // namespace an24\n";
+    // Compile-time guard: ComponentType enum and ComponentVariant must stay in sync
+    oss << "// Compile-time guard: ComponentType and ComponentVariant must stay in sync\n";
+    oss << "static_assert(\n";
+    oss << "    std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),\n";
+    oss << "    \"ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h\"\n";
+    oss << ");\n\n";
 
     // Write to file
     std::ofstream out(output_path);
@@ -814,4 +906,130 @@ void CodeGen::generate_port_registry(const std::string& components_dir, const st
     std::cerr << "[codegen]   - " << total_ports << " total ports\n";
 }
 
-} // namespace an24
+CompositeCodegenResult CodeGen::generate_composite_systems(
+    const TypeDefinition& td,
+    const TypeRegistry& registry)
+{
+    // 1. Expand sub-blueprint references into flat devices + connections
+    std::set<std::string> loading_stack;
+    auto expanded = expand_sub_blueprint_references(td, registry, loading_stack);
+
+    // 2. Merge each device with its type definition (ports, params, domains)
+    for (auto& dev : expanded.devices) {
+        const auto* type_def = registry.get(dev.classname);
+        if (type_def) {
+            dev = merge_device_instance(dev, *type_def);
+        }
+    }
+
+    // 3. Signal allocation (union-find) — same algorithm as build_systems_dev
+    std::vector<std::string> all_ports;
+    std::unordered_map<std::string, uint32_t> port_to_idx;
+
+    for (const auto& dev : expanded.devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            std::string full_port = dev.name + "." + port_name;
+            uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            all_ports.push_back(full_port);
+            port_to_idx[full_port] = idx;
+        }
+    }
+
+    // Union-Find
+    std::vector<uint32_t> uf_parent(all_ports.size());
+    std::vector<uint32_t> uf_rank(all_ports.size(), 0);
+    for (uint32_t i = 0; i < all_ports.size(); ++i) uf_parent[i] = i;
+
+    auto uf_find = [&](uint32_t x) -> uint32_t {
+        while (uf_parent[x] != x) {
+            uf_parent[x] = uf_parent[uf_parent[x]];
+            x = uf_parent[x];
+        }
+        return x;
+    };
+    auto uf_unite = [&](uint32_t a, uint32_t b) {
+        uint32_t ra = uf_find(a), rb = uf_find(b);
+        if (ra == rb) return;
+        if (uf_rank[ra] < uf_rank[rb]) std::swap(ra, rb);
+        uf_parent[rb] = ra;
+        if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
+    };
+
+    // Union connected ports
+    for (const auto& conn : expanded.connections) {
+        auto it_from = port_to_idx.find(conn.from);
+        auto it_to = port_to_idx.find(conn.to);
+        if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
+            uf_unite(it_from->second, it_to->second);
+        }
+    }
+
+    // Union alias ports within same device
+    for (const auto& dev : expanded.devices) {
+        for (const auto& [port_name, port] : dev.ports) {
+            if (port.alias.has_value() && !port.alias->empty()) {
+                std::string full_port = dev.name + "." + port_name;
+                std::string full_alias = dev.name + "." + *port.alias;
+                auto it_port = port_to_idx.find(full_port);
+                auto it_alias = port_to_idx.find(full_alias);
+                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
+                    uf_unite(it_port->second, it_alias->second);
+                }
+            }
+        }
+    }
+
+    // Map each port → root, then remap roots to sequential 0-based signal indices
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    for (const auto& port : all_ports) {
+        port_to_signal[port] = uf_find(port_to_idx[port]);
+    }
+
+    std::map<uint32_t, uint32_t> root_to_signal;
+    std::vector<uint32_t> unique_roots;
+    for (const auto& [port, root] : port_to_signal) {
+        unique_roots.push_back(root);
+    }
+    std::sort(unique_roots.begin(), unique_roots.end());
+    unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());
+
+    uint32_t next_signal = 0;
+    for (uint32_t root : unique_roots) {
+        root_to_signal[root] = next_signal++;
+    }
+    for (auto& [port, sig] : port_to_signal) {
+        sig = root_to_signal[sig];
+    }
+    uint32_t signal_count = next_signal;
+
+    // 4. Delegate to existing generate_header/generate_source
+    std::string class_name = sanitize_name(td.classname) + "_Systems";
+    std::string source_file = td.classname + ".blueprint";
+    std::string header_name = "generated_" + sanitize_name(td.classname) + ".h";
+
+    CompositeCodegenResult result;
+    result.class_name = class_name;
+    result.header = generate_header(source_file, expanded.devices, expanded.connections,
+                                    port_to_signal, signal_count, class_name);
+    result.source = generate_source(header_name, expanded.devices, expanded.connections,
+                                    port_to_signal, signal_count, class_name);
+    return result;
+}
+
+std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(
+    const TypeRegistry& registry)
+{
+    std::map<std::string, CompositeCodegenResult> results;
+
+    auto order = registry.get_composites_topo_sorted();
+
+    for (const auto& name : order) {
+        const auto* td = registry.get(name);
+        if (td && !td->cpp_class) {
+            results[name] = generate_composite_systems(*td, registry);
+        }
+    }
+
+    return results;
+}
+

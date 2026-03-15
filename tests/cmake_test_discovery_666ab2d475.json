@@ -1,0 +1,337 @@
+{
+  "tests": 53,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "HitTest",
+      "tests": 12,
+      "testsuite": [
+        {
+          "name": "EmptyBlueprint_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 12
+        },
+        {
+          "name": "Node_Inside_ReturnsNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 21
+        },
+        {
+          "name": "Node_Outside_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 38
+        },
+        {
+          "name": "MultipleNodes_ReturnsClosest",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 54
+        },
+        {
+          "name": "WireClick_BusTwoWires_CachedOverload",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 446
+        },
+        {
+          "name": "PortHit_BusAlias_ReturnsCorrectWireId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 491
+        },
+        {
+          "name": "PortHit_BusMainV_EmptyWireId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 528
+        },
+        {
+          "name": "WireHittableNearRoutingPoint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 703
+        },
+        {
+          "name": "GroupNode_TitleBar_ReturnsNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 752
+        },
+        {
+          "name": "GroupNode_ResizeHandle_BottomRight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 772
+        },
+        {
+          "name": "GroupNode_ResizeHandle_TopLeft",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 793
+        },
+        {
+          "name": "NormalNode_NoResizeHandle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 811
+        }
+      ]
+    },
+    {
+      "name": "PortHitTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "EmptyBlueprint_NoPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 82
+        },
+        {
+          "name": "NodeWithPorts_ClickNearPort_ReturnsPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 92
+        },
+        {
+          "name": "ClickFarFromPorts_ReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 119
+        }
+      ]
+    },
+    {
+      "name": "PortAliasTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "BusWithWire_ShouldCreateMultipleVisualPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 140
+        },
+        {
+          "name": "HitTestOnWirePort_ShouldReturnTargetPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 166
+        }
+      ]
+    },
+    {
+      "name": "RegressionBusPort",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SetSizeDoesNotCorruptPortPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 211
+        },
+        {
+          "name": "CachedAndFreshVisualsAgreeOnPortPosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 239
+        },
+        {
+          "name": "HitTestFindsPortAfterSetSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 266
+        },
+        {
+          "name": "ConnectWireUpdatesWiresList",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 336
+        },
+        {
+          "name": "GetPortPositionWireIdCorrectIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 356
+        }
+      ]
+    },
+    {
+      "name": "RegressionRefPort",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "RefNodeUsesActualPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 296
+        },
+        {
+          "name": "HitTestReturnsCorrectPortName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 313
+        }
+      ]
+    },
+    {
+      "name": "CachedHitTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "CachedHitTest_InsideAndOutside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 381
+        }
+      ]
+    },
+    {
+      "name": "WireHitTolerance",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "UniformToleranceForAllSegments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 403
+        }
+      ]
+    },
+    {
+      "name": "HitTestGroupFilter",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "NodeInDifferentGroup_NotHittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 557
+        },
+        {
+          "name": "NodeInDifferentGroup_NotHittable_WithCache",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 574
+        },
+        {
+          "name": "NodeInSameGroup_Hittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 591
+        },
+        {
+          "name": "PortInDifferentGroup_NotHittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 608
+        },
+        {
+          "name": "WireCrossGroup_NotHittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 630
+        },
+        {
+          "name": "DrillInOut_GroupSwitching",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 662
+        }
+      ]
+    },
+    {
+      "name": "GroupVisualNode",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "IsGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 835
+        },
+        {
+          "name": "NormalNode_IsNotGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 846
+        },
+        {
+          "name": "NoPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 858
+        },
+        {
+          "name": "SizeFromData",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 868
+        }
+      ]
+    },
+    {
+      "name": "GroupHitTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "ContainsPoint_TitleBar_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 922
+        },
+        {
+          "name": "ContainsPoint_LeftBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 938
+        },
+        {
+          "name": "ContainsPoint_RightBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 951
+        },
+        {
+          "name": "ContainsPoint_BottomBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 964
+        },
+        {
+          "name": "ContainsPoint_Interior_PassThrough",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 977
+        },
+        {
+          "name": "ContainsPoint_Outside_Miss",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 990
+        },
+        {
+          "name": "WireInsideGroup_Hittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1004
+        },
+        {
+          "name": "NodeInsideGroup_Hittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1034
+        },
+        {
+          "name": "PortInsideGroup_Hittable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1050
+        },
+        {
+          "name": "GroupTitleBar_HitsGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1070
+        },
+        {
+          "name": "GroupBorder_HitsGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1086
+        }
+      ]
+    },
+    {
+      "name": "TextHitTest",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "ContainsPoint_LeftBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1118
+        },
+        {
+          "name": "ContainsPoint_RightBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1125
+        },
+        {
+          "name": "ContainsPoint_TopBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1132
+        },
+        {
+          "name": "ContainsPoint_BottomBorder_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1139
+        },
+        {
+          "name": "ContainsPoint_Interior_Hit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1146
+        },
+        {
+          "name": "ContainsPoint_Outside_Miss",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_hittest.cpp",
+          "line": 1154
+        }
+      ]
+    }
+  ]
+}

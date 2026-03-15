@@ -1,0 +1,46 @@
+{
+  "exposes": {
+    "k_mod": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "Gauge",
+    "cpp_class": true,
+    "description": "GS24 Starter-Generator with dual-mode operation (motor and generator)",
+    "domains": [
+      "Electrical",
+      "Mechanical"
+    ],
+    "name": "GS24",
+    "priority": "high"
+  },
+  "params": {
+    "r_internal": {
+      "default": "0.025",
+      "type": "float"
+    },
+    "r_norton": {
+      "default": "0.08",
+      "type": "float"
+    },
+    "target_rpm": {
+      "default": "16000.0",
+      "type": "float"
+    },
+    "v_nominal": {
+      "default": "28.5",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

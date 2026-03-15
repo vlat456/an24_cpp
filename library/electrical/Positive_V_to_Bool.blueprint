@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "Vin": {
+      "direction": "In",
+      "type": "V"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Convert positive voltage to TRUE (v > 0)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Positive_V_to_Bool",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

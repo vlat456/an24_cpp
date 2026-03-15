@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "i": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o1": {
+      "alias": "i",
+      "direction": "Out",
+      "type": "Any"
+    },
+    "o2": {
+      "alias": "i",
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "1-to-2 signal splitter. One real input port with 2 virtual alias outputs. All ports are type 'Any' for universal compatibility across all domains.",
+    "domains": [
+      "Electrical",
+      "Mechanical",
+      "Hydraulic",
+      "Thermal"
+    ],
+    "name": "Splitter",
+    "priority": "high",
+    "size": [
+      3.0,
+      3.0
+    ]
+  },
+  "version": 2
+}

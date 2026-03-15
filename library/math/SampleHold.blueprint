@@ -1,0 +1,29 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "trigger": {
+      "direction": "In",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Samples 'in' when 'trigger' rises and holds it",
+    "domains": [
+      "Logical"
+    ],
+    "name": "SampleHold",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "version": 2
+}

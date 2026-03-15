@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/vladimir/an24_cpp/build/_deps/spdlog-subbuild/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

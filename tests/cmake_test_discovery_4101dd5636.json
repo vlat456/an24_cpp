@@ -1,0 +1,237 @@
+{
+  "tests": 33,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CollapsedNode",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "RendersAsSingleNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 208
+        },
+        {
+          "name": "ExposedPorts_RenderOnBoundary",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 230
+        },
+        {
+          "name": "PortColors_MatchExposedType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 261
+        },
+        {
+          "name": "VisualIndicator_IconOrBadge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 297
+        },
+        {
+          "name": "VisualStyle_DifferentFromRegularNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 437
+        }
+      ]
+    },
+    {
+      "name": "ExposedPorts",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "LoadFromBlueprint_ExtractExposedPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 325
+        },
+        {
+          "name": "PopulateNodePorts_FromExposedPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 371
+        }
+      ]
+    },
+    {
+      "name": "DrillDownNavigation",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DoubleClick_ExpandsNestedBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 475
+        },
+        {
+          "name": "BackButton_ReturnsToParent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 488
+        }
+      ]
+    },
+    {
+      "name": "Persistence",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "CollapsedState_SavesToJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 503
+        },
+        {
+          "name": "CollapsedState_LoadsFromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 531
+        },
+        {
+          "name": "RoundTrip_SaveLoad_PreservesCollapsedBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 574
+        }
+      ]
+    },
+    {
+      "name": "VoltageFlow",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "CollapsedBlueprint_PassesVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 635
+        },
+        {
+          "name": "NestedBlueprintWithBattery",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 691
+        },
+        {
+          "name": "RefNode_NonZeroValue_IsFixedSignal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 741
+        },
+        {
+          "name": "MultipleRefNodes_AllFixed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 783
+        }
+      ]
+    },
+    {
+      "name": "GroupId",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "CollapsedNodeHasRootGroupId_InternalsHaveGroupGroupId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 831
+        },
+        {
+          "name": "GroupIdAssignmentsAre_Static_NotDrillBased",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 862
+        }
+      ]
+    },
+    {
+      "name": "Regression",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SaveLoad_GroupIdIsPreserved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 900
+        },
+        {
+          "name": "WireRewriting_ExternalWiresToBlueprintNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 938
+        },
+        {
+          "name": "BlueprintNode_HasNoContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 981
+        },
+        {
+          "name": "ExtAliasPort_MergedByUnionFind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 994
+        },
+        {
+          "name": "NLevelHierarchy_GroupIdAssignments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1020
+        }
+      ]
+    },
+    {
+      "name": "BlueprintSignalFlow",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "LampPassThrough_VoltageFlows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1081
+        },
+        {
+          "name": "SimpleBattery_VoltageAtRootLevel",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1269
+        },
+        {
+          "name": "SimpleBattery_SOR_Stability_JIT",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1674
+        },
+        {
+          "name": "BlueprintJsonFile_SOR_Stability",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1780
+        },
+        {
+          "name": "BlueprintJsonFile_JIT_Simulator",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1904
+        }
+      ]
+    },
+    {
+      "name": "EditorPersistence",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AddedSubNodePersistsRoundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1402
+        },
+        {
+          "name": "EditorFormatRoundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1512
+        },
+        {
+          "name": "BlueprintNodeHasNoContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1638
+        }
+      ]
+    },
+    {
+      "name": "BlueprintKind",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "KindDerivedFromClassname",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1725
+        }
+      ]
+    },
+    {
+      "name": "BlueprintVisibility",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "GroupedNodeHasContent_ButFilteredByGroupId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_editor_hierarchical.cpp",
+          "line": 1752
+        }
+      ]
+    }
+  ]
+}

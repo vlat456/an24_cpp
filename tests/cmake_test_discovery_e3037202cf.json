@@ -1,0 +1,102 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "NodeDeletion",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "RemoveNode_RemovesConnectedWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 35
+        },
+        {
+          "name": "RemoveNodes_BatchRemovesWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 46
+        },
+        {
+          "name": "RemoveNode_RoutingPointsDeletedWithWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 61
+        },
+        {
+          "name": "RemoveNode_UnrelatedWiresSurvive",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 81
+        },
+        {
+          "name": "RemoveNode_InGroup_CleansInternalNodeIds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 94
+        },
+        {
+          "name": "Backspace_DeletesSelectedNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 138
+        },
+        {
+          "name": "Delete_DeletesSelectedNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 165
+        },
+        {
+          "name": "MultiSelect_DeleteAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 187
+        },
+        {
+          "name": "DeleteWithNoSelection_Noop",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 206
+        },
+        {
+          "name": "Persist_DeletedNodeNotInJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 222
+        },
+        {
+          "name": "Persist_StaleWiresCleanedOnSave",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 240
+        },
+        {
+          "name": "SubWindowDeletion_ViaCanvasInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 265
+        },
+        {
+          "name": "DeleteSubBlueprint_RemovesInternalNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 353
+        },
+        {
+          "name": "DeleteSubBlueprint_RemovesInternalWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 377
+        },
+        {
+          "name": "DeleteSubBlueprint_RemovesCollapsedGroup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 395
+        },
+        {
+          "name": "DeleteSubBlueprint_Recursive_SubSubBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 412
+        },
+        {
+          "name": "WindowManager_RemovesOrphanedWindows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 475
+        },
+        {
+          "name": "DeleteRegularNode_NoRecursiveEffect",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_deletion.cpp",
+          "line": 500
+        }
+      ]
+    }
+  ]
+}

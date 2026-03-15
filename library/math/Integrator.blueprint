@@ -1,0 +1,39 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "reset": {
+      "direction": "In",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Mathematical integrator with reset: out = integral(in * dt)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Integrator",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "gain": {
+      "default": "1.0",
+      "type": "float"
+    },
+    "initial_val": {
+      "default": "0.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

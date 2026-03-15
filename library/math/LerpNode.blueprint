@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "input": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Linear interpolation node (first-order filter) for sensor simulation with deadzone",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "LerpNode"
+  },
+  "params": {
+    "deadzone": {
+      "default": "0.001",
+      "type": "float"
+    },
+    "factor": {
+      "default": "0.05",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

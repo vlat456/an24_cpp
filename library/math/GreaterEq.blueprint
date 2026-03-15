@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Returns 1.0 if A >= B, else 0.0",
+    "domains": [
+      "Logical"
+    ],
+    "name": "GreaterEq"
+  },
+  "version": 2
+}

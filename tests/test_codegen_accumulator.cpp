@@ -2,7 +2,6 @@
 #include "codegen/codegen.h"
 #include "jit_solver/SOR_constants.h"
 
-using namespace an24;
 
 // =============================================================================
 // Helper: build a minimal device set with multi-domain components

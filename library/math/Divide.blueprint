@@ -1,0 +1,29 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Divider: o = A / B (returns 0 if B is 0)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "Divide",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

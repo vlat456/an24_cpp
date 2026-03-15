@@ -80,8 +80,8 @@ public:
 
     PD() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
 };
 ```
 
@@ -91,14 +91,14 @@ public:
 
 ```cpp
 template <typename Provider>
-void PD<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PD<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // High-impedance output: the PD drives the output directly in post_step
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PD<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PD<Provider>::post_step(SimulationState& st, float dt) {
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];
 

@@ -1,0 +1,132 @@
+{
+  "tests": 24,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "AZSTestFixture",
+      "tests": 24,
+      "testsuite": [
+        {
+          "name": "HasElectricalAndThermalDomains",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 66
+        },
+        {
+          "name": "StartsOff",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 73
+        },
+        {
+          "name": "OpenCircuitWhenOff",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 82
+        },
+        {
+          "name": "StampsConductanceWhenClosed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 93
+        },
+        {
+          "name": "PassesVoltageWhenClosed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 106
+        },
+        {
+          "name": "ZerosVoltageWhenOpen",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 117
+        },
+        {
+          "name": "TogglesOnControlEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 132
+        },
+        {
+          "name": "TogglesOffOnSecondEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 143
+        },
+        {
+          "name": "NoToggleWithoutEdge",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 154
+        },
+        {
+          "name": "OutputsStateOn",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 169
+        },
+        {
+          "name": "OutputsStateOff",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 179
+        },
+        {
+          "name": "HeatsUpWithCurrent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 193
+        },
+        {
+          "name": "CoolsDownWhenNoCurrent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 206
+        },
+        {
+          "name": "TempNeverGoesNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 218
+        },
+        {
+          "name": "OutputsTempPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 231
+        },
+        {
+          "name": "TripsWhenOverheated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 246
+        },
+        {
+          "name": "DoesNotTripBelowThreshold",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 260
+        },
+        {
+          "name": "TrippedStaysOpenUntilManualReset",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 272
+        },
+        {
+          "name": "CanReenableAfterCooldown",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 292
+        },
+        {
+          "name": "RetripsIfStillHot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 314
+        },
+        {
+          "name": "NominalCurrentReachesSteadyStateAtOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 339
+        },
+        {
+          "name": "DoubleNominalTripsQuickly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 355
+        },
+        {
+          "name": "ThermalWorksWithVariableDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 375
+        },
+        {
+          "name": "RheatFromNominal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_azs.cpp",
+          "line": 412
+        }
+      ]
+    }
+  ]
+}

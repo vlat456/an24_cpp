@@ -1,0 +1,446 @@
+{
+  "tests": 64,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "WidgetTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "DefaultState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 48
+        },
+        {
+          "name": "SetPosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 58
+        },
+        {
+          "name": "SetSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 65
+        },
+        {
+          "name": "GetBounds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 73
+        }
+      ]
+    },
+    {
+      "name": "HeaderWidgetTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 92
+        },
+        {
+          "name": "RenderDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 98
+        }
+      ]
+    },
+    {
+      "name": "TypeNameWidgetTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "PreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 111
+        },
+        {
+          "name": "RenderCenteredText",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 117
+        }
+      ]
+    },
+    {
+      "name": "VisualNodeLayoutTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "NodeWithPortsHasLayout",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 132
+        },
+        {
+          "name": "PortPositionsAtNodeEdges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 148
+        },
+        {
+          "name": "PortsVerticallyCenteredInRows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 168
+        },
+        {
+          "name": "NodeAutoSizesForManyPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 191
+        },
+        {
+          "name": "NodeWithContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 210
+        },
+        {
+          "name": "RenderDoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 229
+        },
+        {
+          "name": "SelectedNodeRenders",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 247
+        }
+      ]
+    },
+    {
+      "name": "BoundsTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "ContainsInside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 265
+        },
+        {
+          "name": "ContainsOutside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 271
+        }
+      ]
+    },
+    {
+      "name": "IDrawableTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "StandardNodeIsDrawable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 283
+        },
+        {
+          "name": "BusNodeIsDrawable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 299
+        },
+        {
+          "name": "RefNodeIsDrawable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 316
+        }
+      ]
+    },
+    {
+      "name": "ISelectableTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ContainsPointInside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 337
+        },
+        {
+          "name": "ContainsPointOutside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 356
+        },
+        {
+          "name": "BusNodeSelectable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 373
+        }
+      ]
+    },
+    {
+      "name": "IDraggableTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "GetSetPosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 391
+        },
+        {
+          "name": "GetSetSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 410
+        },
+        {
+          "name": "DragUpdatesSelectionBounds",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 431
+        }
+      ]
+    },
+    {
+      "name": "IPersistableTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "NodeHasStableId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 454
+        },
+        {
+          "name": "BusNodeHasId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 467
+        },
+        {
+          "name": "RefNodeHasId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 480
+        }
+      ]
+    },
+    {
+      "name": "ContentAccessTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "StandardNodeWithContent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 497
+        },
+        {
+          "name": "NodeWithoutContentReturnsNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 521
+        },
+        {
+          "name": "BusNodeContentDefaultsToNone",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 534
+        }
+      ]
+    },
+    {
+      "name": "InterfaceCastTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "NodeSupportsAllInterfaces",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 551
+        },
+        {
+          "name": "FactoryCreatedNodeSupportsInterfaces",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 572
+        }
+      ]
+    },
+    {
+      "name": "VisualNodeTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "SetSize_SnapsToGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 593
+        },
+        {
+          "name": "SetSize_BusAcceptsExternal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 616
+        },
+        {
+          "name": "ContentBounds_SymmetricMargins",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 635
+        },
+        {
+          "name": "BusPortOrder_AliasFirst_VLast",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 660
+        },
+        {
+          "name": "BusPortOrder_NoWires_SingleVPort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 691
+        }
+      ]
+    },
+    {
+      "name": "RefNodeGridTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "PortPosition_IsGridAligned",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 710
+        }
+      ]
+    },
+    {
+      "name": "StandardNodeGridTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "PortPositions_AreGridAligned",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 732
+        }
+      ]
+    },
+    {
+      "name": "BusNodeGridTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "PortPositions_AreGridAligned",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 752
+        }
+      ]
+    },
+    {
+      "name": "GaugeAnimation",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "UpdateNodeContent_PropagatesValueToWidget",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 801
+        },
+        {
+          "name": "UpdateNodeContent_MultipleUpdates_AllPropagate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 826
+        },
+        {
+          "name": "UpdateNodeContent_NonGauge_NoSideEffects",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 846
+        },
+        {
+          "name": "Render_AfterUpdate_DoesNotCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 860
+        }
+      ]
+    },
+    {
+      "name": "RoundedCorners",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "VisualNode_Render_UsesRoundedBackground",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 911
+        },
+        {
+          "name": "HeaderWidget_WithRounding_UsesRoundedFill",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 929
+        },
+        {
+          "name": "HeaderWidget_NoRounding_UsesPlainFill",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 945
+        },
+        {
+          "name": "BusVisualNode_Render_UsesRoundedBackground",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 961
+        },
+        {
+          "name": "VisualNode_CustomColor_StillRounded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 981
+        }
+      ]
+    },
+    {
+      "name": "PortRowHeight",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "RowContainer_IsExactlyPortRowHeight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_widget.cpp",
+          "line": 1004
+        }
+      ]
+    },
+    {
+      "name": "BusPortSwapTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "SwapTwoAliasPorts_ChangesOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 10
+        },
+        {
+          "name": "SwapSamePort_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 54
+        },
+        {
+          "name": "SwapNonExistentPort_ReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 81
+        },
+        {
+          "name": "SwapAdjacentPorts",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 106
+        },
+        {
+          "name": "HandlePortSwap_CallsVirtualMethod",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 132
+        },
+        {
+          "name": "HandlePortSwap_StandardNodeReturnsFalse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 161
+        },
+        {
+          "name": "SwapPreservesPortPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_bus_port_swap.cpp",
+          "line": 179
+        }
+      ]
+    },
+    {
+      "name": "SpatialGrid",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "Empty_NoCandidates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_spatial_grid.cpp",
+          "line": 9
+        },
+        {
+          "name": "OneNode_Found",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_spatial_grid.cpp",
+          "line": 21
+        },
+        {
+          "name": "NodeInDifferentGroup_StillInGrid",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_spatial_grid.cpp",
+          "line": 39
+        },
+        {
+          "name": "Wire_CoversMutipleCells",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_spatial_grid.cpp",
+          "line": 55
+        },
+        {
+          "name": "Rebuild_ClearsOldData",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_spatial_grid.cpp",
+          "line": 74
+        }
+      ]
+    }
+  ]
+}

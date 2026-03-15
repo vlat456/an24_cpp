@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <string>
 
-using namespace an24;
 
 class EditorSimulation {
 public:

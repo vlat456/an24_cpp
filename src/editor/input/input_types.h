@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/pt.h"
+#include "ui/math/pt.h"
 #include <string>
 
 /// Mouse buttons
@@ -17,6 +17,7 @@ enum class Key {
     Backspace,
     S,
     Z,
+    Y,
     R,
     Space,
     LeftBracket,
@@ -29,6 +30,14 @@ struct Modifiers {
     bool ctrl = false;   // Ctrl or Cmd on macOS
 };
 
+/// Resize handle corners
+enum class ResizeCorner {
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight
+};
+
 /// FSM states for canvas mouse interaction.
 /// Exactly one state is active per window at any time.
 enum class InputState {
@@ -39,27 +48,30 @@ enum class InputState {
     CreatingWire,          ///< Left-drag from a port (new wire)
     ReconnectingWire,      ///< Left-drag from existing wire end
     MarqueeSelect,         ///< Alt+left-drag rectangle selection
+    ResizingNode,          ///< Left-drag on a resize handle (group nodes)
 };
 
-/// Actions the canvas input wants the host (EditorApp) to perform.
+/// Actions the canvas input wants the host (Document / WindowSystem) to perform.
 /// Returned from every input method; host checks and executes.
 struct InputResult {
     bool rebuild_simulation = false;
     bool show_context_menu = false;
-    Pt context_menu_pos;
+    ui::Pt context_menu_pos;
     bool show_node_context_menu = false;    ///< Right-click on node
-    size_t context_menu_node_index = 0;     ///< Which node was right-clicked
+    std::string context_menu_node_id;       ///< ID of the right-clicked node
     std::string open_sub_window;   ///< non-empty = open this collapsed group
+    std::string toggle_switch_node_id;  ///< non-empty = toggle this Switch/AZS node
 
     /// Combine results (logical OR of flags)
     InputResult& operator|=(const InputResult& o) {
         rebuild_simulation |= o.rebuild_simulation;
         show_context_menu  |= o.show_context_menu;
         if (!o.open_sub_window.empty()) open_sub_window = o.open_sub_window;
+        if (!o.toggle_switch_node_id.empty()) toggle_switch_node_id = o.toggle_switch_node_id;
         if (o.show_context_menu) context_menu_pos = o.context_menu_pos;
         if (o.show_node_context_menu) {
             show_node_context_menu = true;
-            context_menu_node_index = o.context_menu_node_index;
+            context_menu_node_id = o.context_menu_node_id;
         }
         return *this;
     }

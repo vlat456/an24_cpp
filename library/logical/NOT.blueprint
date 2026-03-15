@@ -1,0 +1,25 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Logical NOT gate: output = !A (inverter)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "NOT",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/lamp_passthrough_jit_test[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/lamp_passthrough_jit_test[1]_tests.cmake")
+else()
+  add_test(lamp_passthrough_jit_test_NOT_BUILT lamp_passthrough_jit_test_NOT_BUILT)
+endif()

@@ -3,25 +3,24 @@
 #include <fstream>
 #include <filesystem>
 
-// Test that ensures component ports in JSON match C++ field names
-// This should FAIL initially, then PASS after we implement codegen
+// Test that ensures component ports in v2 blueprint match expected C++ field names
 
 TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
-    // Load RU19A definition from registry
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/components/RU19A.json");
+    // Load RU19A definition from registry (v2 blueprint format)
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/systems/RU19A.blueprint");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;
     registry_file >> registry;
 
-    // Expected ports from JSON registry
+    // Expected ports from registry
     std::vector<std::string> expected_ports = {
         "v_start", "v_bus", "k_mod", "rpm_out", "t4_out"
     };
 
-    // Get actual ports from registry
+    // Get actual ports from v2 "exposes" section
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["default_ports"].items()) {
+    for (auto& [port_name, _] : registry["exposes"].items()) {
         actual_ports.push_back(port_name);
     }
 
@@ -33,7 +32,7 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
 }
 
 TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
-    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/components/DMR400.json");
+    std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/systems/DMR400.blueprint");
     ASSERT_TRUE(registry_file.is_open());
 
     nlohmann::json registry;
@@ -43,8 +42,9 @@ TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
         "v_gen_ref", "v_in", "v_out", "lamp"
     };
 
+    // Get actual ports from v2 "exposes" section
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["default_ports"].items()) {
+    for (auto& [port_name, _] : registry["exposes"].items()) {
         actual_ports.push_back(port_name);
     }
 
@@ -82,17 +82,17 @@ TEST(PortRegistryTest, RU19A_PortOffsets_AreCorrect) {
     EXPECT_NE(content.find("v_bus"), std::string::npos);
 }
 
-// Test component count
-TEST(PortRegistryTest, AllComponentsInRegistry) {
-    // Count JSON files in components/
-    int json_count = 0;
-    std::string components_dir = std::string(TEST_DATA_DIR) + "/components";
-    for (const auto& entry : std::filesystem::directory_iterator(components_dir)) {
-        if (entry.path().extension() == ".json") {
-            json_count++;
+// Test type count
+TEST(PortRegistryTest, AllTypesInRegistry) {
+    // Count .blueprint files in library/
+    int blueprint_count = 0;
+    std::string library_dir = std::string(TEST_DATA_DIR) + "/library";
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(library_dir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".blueprint") {
+            blueprint_count++;
         }
     }
 
-    // Expect at least 26 components
-    EXPECT_GE(json_count, 26);
+    // Expect at least 45 component types + 2 blueprint types = 47
+    EXPECT_GE(blueprint_count, 47);
 }

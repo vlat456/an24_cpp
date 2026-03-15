@@ -1,0 +1,69 @@
+{
+  "exposes": {
+    "vin": {
+      "direction": "In",
+      "type": "V"
+    },
+    "vout": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "critical": true,
+    "description": "Voltage pass-through with indicator lamp for debug",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "lamp_pass_through",
+    "priority": "high"
+  },
+  "nodes": {
+    "lamp": {
+      "params": {
+        "color": "red",
+        "max_brightness": "100.0"
+      },
+      "type": "IndicatorLight"
+    },
+    "vin": {
+      "params": {
+        "exposed_direction": "In",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintInput"
+    },
+    "vout": {
+      "params": {
+        "exposed_direction": "Out",
+        "exposed_type": "V"
+      },
+      "type": "BlueprintOutput"
+    }
+  },
+  "version": 2,
+  "wires": [
+    {
+      "from": [
+        "vin",
+        "port"
+      ],
+      "id": "w0",
+      "to": [
+        "lamp",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "lamp",
+        "v_out"
+      ],
+      "id": "w1",
+      "to": [
+        "vout",
+        "port"
+      ]
+    }
+  ]
+}

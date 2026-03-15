@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
-#include "editor/simulation.h"
 #include "jit_solver/simulator.h"
-#include "editor/visual/scene/persist.h"
+#include "editor/visual/persist.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "ui/core/interned_id.h"
 
 /// Simulation integration tests
 
@@ -12,14 +12,15 @@
 static Blueprint create_simple_circuit() {
     Blueprint bp;
     bp.grid_step = 16.0f;
+    auto& I = bp.interner();
 
     // Ground reference
     Node gnd;
-    gnd.id = "gnd";
+    gnd.id = I.intern("gnd");
     gnd.name = "Ground";
     gnd.type_name = "RefNode";
-    gnd.kind = NodeKind::Ref;
-    gnd.output("v");
+    gnd.render_hint = "ref";
+    gnd.output(I.intern("v"));
     gnd.at(80, 240);
     gnd.size_wh(40, 40);
     gnd.node_content.type = NodeContentType::Value;
@@ -28,50 +29,48 @@ static Blueprint create_simple_circuit() {
 
     // Battery
     Node batt;
-    batt.id = "bat";
+    batt.id = I.intern("bat");
     batt.name = "Battery";
     batt.type_name = "Battery";
-    batt.kind = NodeKind::Node;
-    batt.input("v_in");
-    batt.output("v_out");
+    batt.input(I.intern("v_in"));
+    batt.output(I.intern("v_out"));
     batt.at(80, 80);
     batt.size_wh(120, 80);
     bp.add_node(std::move(batt));
 
     // Resistor
     Node res;
-    res.id = "res";
+    res.id = I.intern("res");
     res.name = "Resistor";
     res.type_name = "Resistor";
-    res.kind = NodeKind::Node;
-    res.input("v_in");
-    res.output("v_out");
+    res.input(I.intern("v_in"));
+    res.output(I.intern("v_out"));
     res.at(320, 80);
     res.size_wh(120, 80);
     bp.add_node(std::move(res));
 
     // Ground wire: gnd.v -> bat.v_in
     Wire w1;
-    w1.start.node_id = "gnd";
-    w1.start.port_name = "v";
-    w1.end.node_id = "bat";
-    w1.end.port_name = "v_in";
+    w1.start.node_id = I.intern("gnd");
+    w1.start.port_name = I.intern("v");
+    w1.end.node_id = I.intern("bat");
+    w1.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w1));
 
     // Battery to resistor: bat.v_out -> res.v_in
     Wire w2;
-    w2.start.node_id = "bat";
-    w2.start.port_name = "v_out";
-    w2.end.node_id = "res";
-    w2.end.port_name = "v_in";
+    w2.start.node_id = I.intern("bat");
+    w2.start.port_name = I.intern("v_out");
+    w2.end.node_id = I.intern("res");
+    w2.end.port_name = I.intern("v_in");
     bp.add_wire(std::move(w2));
 
     // Resistor to ground: res.v_out -> gnd.v
     Wire w3;
-    w3.start.node_id = "res";
-    w3.start.port_name = "v_out";
-    w3.end.node_id = "gnd";
-    w3.end.port_name = "v";
+    w3.start.node_id = I.intern("res");
+    w3.start.port_name = I.intern("v_out");
+    w3.end.node_id = I.intern("gnd");
+    w3.end.port_name = I.intern("v");
     bp.add_wire(std::move(w3));
 
     return bp;
@@ -81,64 +80,63 @@ static Blueprint create_simple_circuit() {
 
 TEST(SimulationTest, BuildsFromBlueprint) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
-    ASSERT_TRUE(sim.build_result.has_value());
-    EXPECT_GE(sim.build_result->signal_count, 2u); // at least gnd + battery
+    ASSERT_TRUE(sim.is_built());
+    EXPECT_GE(sim.get_signal_count(), 2u); // at least gnd + battery
 }
 
 TEST(SimulationTest, StepCounterIncrements) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_EQ(sim.get_step_count(), 0u);
     sim.step(0.016f);
-    EXPECT_EQ(sim.step_count, 1u);
+    EXPECT_EQ(sim.get_step_count(), 1u);
     sim.step(0.016f);
-    EXPECT_EQ(sim.step_count, 2u);
+    EXPECT_EQ(sim.get_step_count(), 2u);
 }
 
 TEST(SimulationTest, RunningFlag) {
-    SimulationController sim;
-    EXPECT_FALSE(sim.running);
+    Simulator<JIT_Solver> sim;
+    EXPECT_FALSE(sim.is_running());
 
     Blueprint bp = create_simple_circuit();
-    sim.build(bp);
-    sim.start();
-    EXPECT_TRUE(sim.running);
+    sim.start(bp);
+    EXPECT_TRUE(sim.is_running());
 
     sim.step(0.016f);
-    EXPECT_GT(sim.time, 0.0f);
+    EXPECT_GT(sim.get_time(), 0.0f);
 
     sim.stop();
-    EXPECT_FALSE(sim.running);
+    EXPECT_FALSE(sim.is_running());
 }
 
 TEST(SimulationTest, ResetClearsState) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
 
-    sim.build(bp);
+    sim.start(bp);
 
     // Run simulation to get some non-zero values
     for (int i = 0; i < 50; i++) sim.step(0.016f);
 
     // Check that simulation has progressed
-    EXPECT_GT(sim.time, 0.0f);
-    EXPECT_GT(sim.step_count, 0u);
+    EXPECT_GT(sim.get_time(), 0.0f);
+    EXPECT_GT(sim.get_step_count(), 0u);
 
     // Get voltage at battery port (should be non-zero after running)
     float v_running = sim.get_port_value("battery_1", "v_out");
 
     // Reset simulation
-    sim.reset();
+    sim.stop();
 
     // Check that state is cleared
-    EXPECT_FALSE(sim.running);
-    EXPECT_EQ(sim.time, 0.0f);
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_FALSE(sim.is_running());
+    EXPECT_EQ(sim.get_time(), 0.0f);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 
     // All voltages should be 0 after reset
     float v_reset = sim.get_port_value("battery_1", "v_out");
@@ -149,30 +147,30 @@ TEST(SimulationTest, ResetClearsState) {
 
 TEST(SimulationTest, RebuildResetsState) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
 
     // First build
-    sim.build(bp);
-    size_t signals_first = sim.state.across.size();
+    sim.start(bp);
+    size_t signals_first = sim.get_signal_count();
 
     // Run a few steps
     for (int i = 0; i < 50; i++) sim.step(0.016f);
-    EXPECT_GT(sim.time, 0.0f);
-    EXPECT_GT(sim.step_count, 0u);
+    EXPECT_GT(sim.get_time(), 0.0f);
+    EXPECT_GT(sim.get_step_count(), 0u);
 
     // Rebuild — state should reset, not accumulate signals
-    sim.build(bp);
-    EXPECT_EQ(sim.state.across.size(), signals_first);
-    EXPECT_EQ(sim.time, 0.0f);
-    EXPECT_EQ(sim.step_count, 0u);
+    sim.start(bp);
+    EXPECT_EQ(sim.get_signal_count(), signals_first);
+    EXPECT_EQ(sim.get_time(), 0.0f);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 }
 
 // ─── Voltage convergence ───
 
 TEST(SimulationTest, BatteryVoltageConverges) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     // Run enough steps for SOR convergence
     for (int i = 0; i < 200; i++) sim.step(0.016f);
@@ -185,8 +183,8 @@ TEST(SimulationTest, BatteryVoltageConverges) {
 
 TEST(SimulationTest, GroundRemainsZero) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -198,8 +196,8 @@ TEST(SimulationTest, GroundRemainsZero) {
 
 TEST(SimulationTest, GetPortValue) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -211,8 +209,8 @@ TEST(SimulationTest, GetPortValue) {
 
 TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     EXPECT_EQ(sim.get_port_value("nonexistent", "port"), 0.0f);
 }
@@ -221,8 +219,8 @@ TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
 
 TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
     Blueprint bp = create_simple_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -233,7 +231,7 @@ TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
 }
 
 TEST(SimulationTest, WireIsEnergized_NoSimulation) {
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
     // Not built yet
     EXPECT_FALSE(sim.wire_is_energized("bat.v_out"));
 }
@@ -241,9 +239,9 @@ TEST(SimulationTest, WireIsEnergized_NoSimulation) {
 // ─── Step without build should not crash ───
 
 TEST(SimulationTest, StepWithoutBuild_NoCrash) {
-    SimulationController sim;
+    Simulator<JIT_Solver> sim;
     sim.step(0.016f); // should do nothing
-    EXPECT_EQ(sim.step_count, 0u);
+    EXPECT_EQ(sim.get_step_count(), 0u);
 }
 
 // ============================================================================
@@ -252,7 +250,7 @@ TEST(SimulationTest, StepWithoutBuild_NoCrash) {
 
 // [simulator-001] Simulator should start empty (no components built)
 TEST(SimulatorTest, StartsEmpty) {
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
     EXPECT_FALSE(sim.is_running());
     EXPECT_FALSE(sim.is_built());
 }
@@ -260,7 +258,7 @@ TEST(SimulatorTest, StartsEmpty) {
 // [simulator-002] start() should build components from blueprint
 TEST(SimulatorTest, StartBuildsComponents) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
 
@@ -271,7 +269,7 @@ TEST(SimulatorTest, StartBuildsComponents) {
 // [simulator-003] stop() should destroy components
 TEST(SimulatorTest, StopDestroysComponents) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
     EXPECT_TRUE(sim.is_built());
@@ -284,7 +282,7 @@ TEST(SimulatorTest, StopDestroysComponents) {
 // [simulator-004] Multiple start/stop cycles should work
 TEST(SimulatorTest, MultipleStartStopCycles) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     // First cycle
     sim.start(bp);
@@ -306,7 +304,7 @@ TEST(SimulatorTest, MultipleStartStopCycles) {
 // [simulator-005] After stop, get_voltage returns 0 (no component state)
 TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     sim.start(bp);
 
@@ -326,7 +324,7 @@ TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
 // [simulator-006] step() should do nothing if not running
 TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
     Blueprint bp = create_simple_circuit();
-    an24::Simulator<an24::JIT_Solver> sim;
+    Simulator<JIT_Solver> sim;
 
     // Don't start simulation
     EXPECT_FALSE(sim.is_running());
@@ -346,44 +344,45 @@ TEST(SimulatorTest, StepDoesNothingIfNotRunning) {
 static Blueprint create_merger_circuit() {
     Blueprint bp;
     bp.grid_step = 16.0f;
+    auto& I = bp.interner();
 
     // Ground
     Node gnd;
-    gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
-    gnd.output("v"); gnd.at(0, 0);
+    gnd.id = I.intern("gnd"); gnd.type_name = "RefNode"; gnd.render_hint = "ref";
+    gnd.output(I.intern("v")); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
     // Battery
     Node bat;
-    bat.id = "bat"; bat.type_name = "Battery"; bat.kind = NodeKind::Node;
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
     // Splitter: battery → 2 branches
     Node spl;
-    spl.id = "spl"; spl.type_name = "Splitter"; spl.kind = NodeKind::Node;
-    spl.input("i"); spl.output("o1"); spl.output("o2"); spl.at(250, 0);
+    spl.id = I.intern("spl"); spl.type_name = "Splitter";
+    spl.input(I.intern("i")); spl.output(I.intern("o1")); spl.output(I.intern("o2")); spl.at(250, 0);
     bp.add_node(std::move(spl));
 
     // Merger: 2 inputs → 1 output
     Node mrg;
-    mrg.id = "mrg"; mrg.type_name = "Merger"; mrg.kind = NodeKind::Node;
-    mrg.input("i1"); mrg.input("i2"); mrg.output("o"); mrg.at(400, 0);
+    mrg.id = I.intern("mrg"); mrg.type_name = "Merger";
+    mrg.input(I.intern("i1")); mrg.input(I.intern("i2")); mrg.output(I.intern("o")); mrg.at(400, 0);
     bp.add_node(std::move(mrg));
 
     // Load
     Node res;
-    res.id = "res"; res.type_name = "Resistor"; res.kind = NodeKind::Node;
-    res.input("v_in"); res.output("v_out"); res.at(550, 0);
+    res.id = I.intern("res"); res.type_name = "Resistor";
+    res.input(I.intern("v_in")); res.output(I.intern("v_out")); res.at(550, 0);
     bp.add_node(std::move(res));
 
     // Wires: gnd → bat.v_in, bat.v_out → spl.i
-    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("spl", "i", PortSide::Input);
-    Wire w3; w3.start = WireEnd("spl", "o1", PortSide::Output); w3.end = WireEnd("mrg", "i1", PortSide::Input);
-    Wire w4; w4.start = WireEnd("spl", "o2", PortSide::Output); w4.end = WireEnd("mrg", "i2", PortSide::Input);
-    Wire w5; w5.start = WireEnd("mrg", "o", PortSide::Output); w5.end = WireEnd("res", "v_in", PortSide::Input);
-    Wire w6; w6.start = WireEnd("res", "v_out", PortSide::Output); w6.end = WireEnd("gnd", "v", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("spl"), I.intern("i"), PortSide::Input);
+    Wire w3; w3.start = WireEnd(I.intern("spl"), I.intern("o1"), PortSide::Output); w3.end = WireEnd(I.intern("mrg"), I.intern("i1"), PortSide::Input);
+    Wire w4; w4.start = WireEnd(I.intern("spl"), I.intern("o2"), PortSide::Output); w4.end = WireEnd(I.intern("mrg"), I.intern("i2"), PortSide::Input);
+    Wire w5; w5.start = WireEnd(I.intern("mrg"), I.intern("o"), PortSide::Output); w5.end = WireEnd(I.intern("res"), I.intern("v_in"), PortSide::Input);
+    Wire w6; w6.start = WireEnd(I.intern("res"), I.intern("v_out"), PortSide::Output); w6.end = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     bp.add_wire(std::move(w3));
@@ -396,8 +395,8 @@ static Blueprint create_merger_circuit() {
 
 TEST(SimulationTest, Merger_CircuitConverges) {
     Blueprint bp = create_merger_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -413,8 +412,8 @@ TEST(SimulationTest, Merger_CircuitConverges) {
 TEST(SimulationTest, Merger_AllPortsSameSignal) {
     // Merger aliases i1, i2 to o — all should be the same voltage
     Blueprint bp = create_merger_circuit();
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -437,27 +436,29 @@ TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd; gnd.id = "gnd"; gnd.type_name = "RefNode"; gnd.kind = NodeKind::Ref;
-    gnd.output("v"); gnd.at(0, 0);
+    auto& I = bp.interner();
+
+    Node gnd; gnd.id = I.intern("gnd"); gnd.type_name = "RefNode"; gnd.render_hint = "ref";
+    gnd.output(I.intern("v")); gnd.at(0, 0);
     bp.add_node(std::move(gnd));
 
-    Node bat; bat.id = "bat"; bat.type_name = "Battery";
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    Node bat; bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
-    Node lamp; lamp.id = "lamp"; lamp.type_name = "IndicatorLight";
-    lamp.input("v_in"); lamp.output("v_out"); lamp.output("brightness"); lamp.at(300, 0);
+    Node lamp; lamp.id = I.intern("lamp"); lamp.type_name = "IndicatorLight";
+    lamp.input(I.intern("v_in")); lamp.output(I.intern("v_out")); lamp.output(I.intern("brightness")); lamp.at(300, 0);
     bp.add_node(std::move(lamp));
 
     // gnd → bat.v_in, bat.v_out → lamp.v_in, lamp.v_out → DANGLING
-    Wire w1; w1.start = WireEnd("gnd", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("lamp", "v_in", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("lamp"), I.intern("v_in"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     // NO wire from lamp.v_out to ground — intentionally floating
 
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     // Run for 2 simulated seconds (120 steps at 60Hz)
     for (int i = 0; i < 120; i++) {
@@ -473,32 +474,34 @@ TEST(SimulationTest, TwoRefNodes_CircuitStable) {
     Blueprint bp;
     bp.grid_step = 16.0f;
 
-    Node gnd1; gnd1.id = "gnd1"; gnd1.type_name = "RefNode"; gnd1.kind = NodeKind::Ref;
-    gnd1.output("v"); gnd1.at(0, 0);
+    auto& I = bp.interner();
+
+    Node gnd1; gnd1.id = I.intern("gnd1"); gnd1.type_name = "RefNode"; gnd1.render_hint = "ref";
+    gnd1.output(I.intern("v")); gnd1.at(0, 0);
     bp.add_node(std::move(gnd1));
 
-    Node gnd2; gnd2.id = "gnd2"; gnd2.type_name = "RefNode"; gnd2.kind = NodeKind::Ref;
-    gnd2.output("v"); gnd2.at(600, 0);
+    Node gnd2; gnd2.id = I.intern("gnd2"); gnd2.type_name = "RefNode"; gnd2.render_hint = "ref";
+    gnd2.output(I.intern("v")); gnd2.at(600, 0);
     bp.add_node(std::move(gnd2));
 
-    Node bat; bat.id = "bat"; bat.type_name = "Battery";
-    bat.input("v_in"); bat.output("v_out"); bat.at(100, 0);
+    Node bat; bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
     bp.add_node(std::move(bat));
 
-    Node res; res.id = "res"; res.type_name = "Resistor";
-    res.input("v_in"); res.output("v_out"); res.at(300, 0);
+    Node res; res.id = I.intern("res"); res.type_name = "Resistor";
+    res.input(I.intern("v_in")); res.output(I.intern("v_out")); res.at(300, 0);
     bp.add_node(std::move(res));
 
     // gnd1 → bat.v_in, bat.v_out → res.v_in, res.v_out → gnd2
-    Wire w1; w1.start = WireEnd("gnd1", "v", PortSide::Output); w1.end = WireEnd("bat", "v_in", PortSide::Input);
-    Wire w2; w2.start = WireEnd("bat", "v_out", PortSide::Output); w2.end = WireEnd("res", "v_in", PortSide::Input);
-    Wire w3; w3.start = WireEnd("res", "v_out", PortSide::Output); w3.end = WireEnd("gnd2", "v", PortSide::Input);
+    Wire w1; w1.start = WireEnd(I.intern("gnd1"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("res"), I.intern("v_in"), PortSide::Input);
+    Wire w3; w3.start = WireEnd(I.intern("res"), I.intern("v_out"), PortSide::Output); w3.end = WireEnd(I.intern("gnd2"), I.intern("v"), PortSide::Input);
     bp.add_wire(std::move(w1));
     bp.add_wire(std::move(w2));
     bp.add_wire(std::move(w3));
 
-    SimulationController sim;
-    sim.build(bp);
+    Simulator<JIT_Solver> sim;
+    sim.start(bp);
 
     for (int i = 0; i < 200; i++) {
         sim.step(0.016f);

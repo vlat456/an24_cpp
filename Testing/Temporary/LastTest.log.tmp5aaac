@@ -1,0 +1,214 @@
+Start testing: Mar 10 20:08 CET
+----------------------------------------------------------
+1122/1144 Testing: IntegratorTest.ColdStart_StartsAtInitialValue
+1122/1144 Test: IntegratorTest.ColdStart_StartsAtInitialValue
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.ColdStart_StartsAtInitialValue" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.ColdStart_StartsAtInitialValue" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.ColdStart_StartsAtInitialValue
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.ColdStart_StartsAtInitialValue
+[       OK ] IntegratorTest.ColdStart_StartsAtInitialValue (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"IntegratorTest.ColdStart_StartsAtInitialValue" end time: Mar 10 20:08 CET
+"IntegratorTest.ColdStart_StartsAtInitialValue" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1123/1144 Testing: IntegratorTest.Integration_AccumulatesPositiveInput
+1123/1144 Test: IntegratorTest.Integration_AccumulatesPositiveInput
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.Integration_AccumulatesPositiveInput" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.Integration_AccumulatesPositiveInput" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.Integration_AccumulatesPositiveInput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.Integration_AccumulatesPositiveInput
+/Users/vladimir/an24_cpp/tests/test_integrator.cpp:65: Failure
+The difference between st.across[2] and 10.0f is 0.16666698455810547, which exceeds 0.1f, where
+st.across[2] evaluates to 10.166666984558105,
+10.0f evaluates to 10, and
+0.1f evaluates to 0.10000000149011612.
+
+[  FAILED  ] IntegratorTest.Integration_AccumulatesPositiveInput (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] IntegratorTest.Integration_AccumulatesPositiveInput
+
+ 1 FAILED TEST
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Failed.
+"IntegratorTest.Integration_AccumulatesPositiveInput" end time: Mar 10 20:08 CET
+"IntegratorTest.Integration_AccumulatesPositiveInput" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1124/1144 Testing: IntegratorTest.Integration_AccumulatesNegativeInput
+1124/1144 Test: IntegratorTest.Integration_AccumulatesNegativeInput
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.Integration_AccumulatesNegativeInput" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.Integration_AccumulatesNegativeInput" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.Integration_AccumulatesNegativeInput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.Integration_AccumulatesNegativeInput
+[       OK ] IntegratorTest.Integration_AccumulatesNegativeInput (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"IntegratorTest.Integration_AccumulatesNegativeInput" end time: Mar 10 20:08 CET
+"IntegratorTest.Integration_AccumulatesNegativeInput" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1125/1144 Testing: IntegratorTest.Reset_ZerosAccumulator
+1125/1144 Test: IntegratorTest.Reset_ZerosAccumulator
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.Reset_ZerosAccumulator" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.Reset_ZerosAccumulator" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.Reset_ZerosAccumulator
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.Reset_ZerosAccumulator
+[       OK ] IntegratorTest.Reset_ZerosAccumulator (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"IntegratorTest.Reset_ZerosAccumulator" end time: Mar 10 20:08 CET
+"IntegratorTest.Reset_ZerosAccumulator" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1126/1144 Testing: IntegratorTest.ResetWhileHigh_StaysZero
+1126/1144 Test: IntegratorTest.ResetWhileHigh_StaysZero
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.ResetWhileHigh_StaysZero" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.ResetWhileHigh_StaysZero" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.ResetWhileHigh_StaysZero
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.ResetWhileHigh_StaysZero
+[       OK ] IntegratorTest.ResetWhileHigh_StaysZero (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"IntegratorTest.ResetWhileHigh_StaysZero" end time: Mar 10 20:08 CET
+"IntegratorTest.ResetWhileHigh_StaysZero" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1127/1144 Testing: IntegratorTest.ResetReleased_ResumesIntegration
+1127/1144 Test: IntegratorTest.ResetReleased_ResumesIntegration
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.ResetReleased_ResumesIntegration" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.ResetReleased_ResumesIntegration" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.ResetReleased_ResumesIntegration
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.ResetReleased_ResumesIntegration
+/Users/vladimir/an24_cpp/tests/test_integrator.cpp:144: Failure
+The difference between st.across[2] and 10.0f is 0.16666698455810547, which exceeds 0.1f, where
+st.across[2] evaluates to 10.166666984558105,
+10.0f evaluates to 10, and
+0.1f evaluates to 0.10000000149011612.
+
+[  FAILED  ] IntegratorTest.ResetReleased_ResumesIntegration (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] IntegratorTest.ResetReleased_ResumesIntegration
+
+ 1 FAILED TEST
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Failed.
+"IntegratorTest.ResetReleased_ResumesIntegration" end time: Mar 10 20:08 CET
+"IntegratorTest.ResetReleased_ResumesIntegration" time elapsed: 00:00:00
+----------------------------------------------------------
+
+1128/1144 Testing: IntegratorTest.Gain_ScalesIntegration
+1128/1144 Test: IntegratorTest.Gain_ScalesIntegration
+Command: "/Users/vladimir/an24_cpp/tests/integrator_tests" "--gtest_filter=IntegratorTest.Gain_ScalesIntegration" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/tests
+"IntegratorTest.Gain_ScalesIntegration" start time: Mar 10 20:08 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = IntegratorTest.Gain_ScalesIntegration
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from IntegratorTest
+[ RUN      ] IntegratorTest.Gain_ScalesIntegration
+/Users/vladimir/an24_cpp/tests/test_integrator.cpp:160: Failure
+The difference between st.across[2] and 20.0f is 0.33333396911621094, which exceeds 0.1f, where
+st.across[2] evaluates to 20.333333969116211,
+20.0f evaluates to 20, and
+0.1f evaluates to 0.10000000149011612.
+
+[  FAILED  ] IntegratorTest.Gain_ScalesIntegration (0 ms)
+[----------] 1 test from IntegratorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] IntegratorTest.Gain_ScalesIntegration
+
+ 1 FAILED TEST
+<end of output>

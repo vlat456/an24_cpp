@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/asym_tmo_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/asym_tmo_tests[1]_tests.cmake")
+else()
+  add_test(asym_tmo_tests_NOT_BUILT asym_tmo_tests_NOT_BUILT)
+endif()

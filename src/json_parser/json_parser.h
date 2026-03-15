@@ -2,11 +2,13 @@
 
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
-
-namespace an24 {
+#include <utility>
+#include <nlohmann/json.hpp>
 
 // Forward declarations
 struct DeviceInstance;
@@ -65,29 +67,55 @@ struct Port {
 struct Connection {
     std::string from;  // "device.port"
     std::string to;    // "device.port"
+    std::vector<std::pair<float,float>> routing_points;  // Editor layout (optional)
 };
 
-/// Component definition (default ports, params, domains for a component class)
-struct ComponentDefinition {
-    std::string classname;                    // C++ class name (e.g., "Battery")
+/// Minimal reference to a sub-blueprint (used in TypeDefinition for library definitions)
+struct SubBlueprintRef {
+    std::string id;
+    std::string blueprint_path;
+    std::string type_name;
+    std::optional<std::pair<float, float>> pos;
+    std::optional<std::pair<float, float>> size;
+    std::map<std::string, std::string> params_override;
+};
+
+/// Type definition (ports, params, domains for a component class or blueprint)
+struct TypeDefinition {
+    std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
     std::string description;                  // Human-readable description
-    std::unordered_map<std::string, Port> default_ports;  // Default port definitions
-    std::unordered_map<std::string, std::string> default_params;  // Default parameter values
-    std::optional<std::vector<Domain>> default_domains;    // Default domains
-    std::string default_priority = "med";     // Default priority
-    bool default_critical = false;            // Default critical flag
-    std::string default_content_type = "None"; // Default UI content type (None, Gauge, Switch, Text)
-    std::optional<std::pair<float, float>> default_size;  // Default size in grid units {width, height}
+    bool cpp_class = true;                    // true = C++ component, false = blueprint
+    std::unordered_map<std::string, Port> ports;  // Port definitions
+    std::unordered_map<std::string, std::string> params;  // Default parameter values
+    std::optional<std::vector<Domain>> domains;    // Domains
+    std::string priority = "med";     // Priority
+    bool critical = false;            // Critical flag
+    std::string content_type = "None"; // UI content type (None, Gauge, Switch, Text)
+    std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
+    bool visual_only = false;  // True = no simulation behavior (e.g. Group)
+    std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
+    // For blueprints only: internal devices and connections
+    std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
+    std::vector<Connection> connections;  // Internal connections (for blueprints)
+    // Sub-blueprint references (cpp_class = false composites only)
+    std::vector<SubBlueprintRef> sub_blueprints;
 };
 
-/// Component registry - holds all component definitions loaded from components/
-struct ComponentRegistry {
-    std::unordered_map<std::string, ComponentDefinition> components;
+/// Tree structure mirroring library/ subdirectory hierarchy for menu building.
+struct MenuTree {
+    std::vector<std::string> entries;                        // Classnames at this level (sorted)
+    std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
+};
 
-    /// Get component definition by classname
-    const ComponentDefinition* get(const std::string& classname) const {
-        auto it = components.find(classname);
-        if (it != components.end()) {
+/// Type registry - holds all type definitions loaded from library/
+struct TypeRegistry {
+    std::unordered_map<std::string, TypeDefinition> types;
+    std::unordered_map<std::string, std::string> categories;  // classname → relative subdir path (e.g., "electrical")
+
+    /// Get type definition by classname
+    const TypeDefinition* get(const std::string& classname) const {
+        auto it = types.find(classname);
+        if (it != types.end()) {
             return &it->second;
         }
         return nullptr;
@@ -95,21 +123,28 @@ struct ComponentRegistry {
 
     /// Check if classname exists
     bool has(const std::string& classname) const {
-        return components.count(classname) > 0;
+        return types.count(classname) > 0;
     }
 
     /// Get all registered classnames
     std::vector<std::string> list_classnames() const {
         std::vector<std::string> names;
-        names.reserve(components.size());
-        for (const auto& [name, _] : components) {
+        names.reserve(types.size());
+        for (const auto& [name, _] : types) {
             names.push_back(name);
         }
         return names;
     }
 
+    /// Build a menu tree from directory hierarchy
+    MenuTree build_menu_tree() const;
+
     /// Validate instance against definition
     std::optional<std::string> validate_instance(const DeviceInstance& instance) const;
+
+    /// Get all composites (cpp_class = false) in topological order (leaves first).
+    /// Used for AOT codegen to generate nested Systems classes.
+    std::vector<std::string> get_composites_topo_sorted() const;
 };
 
 /// Device instance at any level (primitive or composite)
@@ -123,6 +158,9 @@ struct DeviceInstance {
     std::unordered_map<std::string, Port> ports;
     std::unordered_map<std::string, std::string> params;
     std::vector<Domain> domains;  // From component definition only, NOT user-configurable
+    bool visual_only = false;      // True = no simulation behavior (e.g. Group)
+    std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
+    std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
 
     // Default constructor
     DeviceInstance() = default;
@@ -167,7 +205,7 @@ struct DeviceInstance {
         if (domains.empty()) {
             throw std::runtime_error(
                 "Device '" + name + "' (" + classname + ") has no domains. "
-                "Component definition should have default_domains.");
+                "Type definition should have domains.");
         }
         return domains;
     }
@@ -191,7 +229,7 @@ struct SystemTemplate {
 
 /// Compilation context - holds all parsed data
 struct ParserContext {
-    ComponentRegistry registry;               // Component registry
+    TypeRegistry registry;               // Type registry
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
@@ -219,6 +257,9 @@ struct ParserContext {
 /// Parse JSON text into a ParserContext
 ParserContext parse_json(const std::string& json_text);
 
+/// Parse JSON text with explicit library directory (for testing)
+ParserContext parse_json(const std::string& json_text, const std::string& library_dir);
+
 /// Extract exposed port metadata from BlueprintInput/BlueprintOutput devices
 /// For Editor: displays exposed ports on collapsed nested blueprint nodes
 /// Returns map: exposed_port_name -> Port metadata
@@ -227,13 +268,22 @@ std::unordered_map<std::string, Port> extract_exposed_ports(const ParserContext&
 /// Serialize a ParserContext to pretty-printed JSON
 std::string serialize_json(const ParserContext& ctx);
 
-/// Load component registry from components/ directory
-ComponentRegistry load_component_registry(const std::string& components_dir = "components/");
+/// Load type registry from library/ directory
+TypeRegistry load_type_registry(const std::string& library_dir = "library/");
 
-/// Merge device instance with component definition defaults
+/// Merge device instance with type definition defaults
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const ComponentDefinition& definition
+    const TypeDefinition& definition
 );
 
-} // namespace an24
+/// Parse a TypeDefinition from JSON (helper for testing)
+TypeDefinition parse_type_definition(const nlohmann::json& j);
+
+/// Expand sub_blueprint references into flat devices + connections.
+/// Throws std::runtime_error on circular references.
+/// loading_stack tracks ancestors for cycle detection — pass empty set at top call.
+TypeDefinition expand_sub_blueprint_references(
+    const TypeDefinition& td,
+    const TypeRegistry& registry,
+    std::set<std::string>& loading_stack);

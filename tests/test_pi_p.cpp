@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace an24;
 
 // ─── Helper functions ───────────────────────────────────────────────────────────
 

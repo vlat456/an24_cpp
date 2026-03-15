@@ -1,7 +1,6 @@
 #include "generated_an24_composite_test.h"
 #include <cstring>  // memcpy
 
-namespace an24 {
 
 Systems::Systems()
 {
@@ -932,4 +931,3 @@ AOT_INLINE bool Systems::check_convergence(void* state, float tolerance) const {
     return true;
 }
 
-} // namespace an24

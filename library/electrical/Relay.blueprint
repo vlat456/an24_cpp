@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "control": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Relay"
+  },
+  "params": {
+    "closed": {
+      "default": "false",
+      "type": "bool"
+    }
+  },
+  "version": 2
+}

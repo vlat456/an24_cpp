@@ -1,0 +1,49 @@
+{
+  "exposes": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "critical": true,
+    "description": "Battery voltage source with internal resistance (r_internal) and capacity (Ah). Models discharge curve and voltage drop under load.",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Battery",
+    "priority": "high"
+  },
+  "params": {
+    "capacity": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "charge": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "internal_r": {
+      "default": "0.01",
+      "type": "float"
+    },
+    "inv_capacity": {
+      "default": "0.001",
+      "type": "float"
+    },
+    "inv_internal_r": {
+      "default": "100.0",
+      "type": "float"
+    },
+    "v_nominal": {
+      "default": "28.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

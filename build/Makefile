@@ -354,6 +354,292 @@ benchmark_jit_vs_aot/fast:
 .PHONY : benchmark_jit_vs_aot/fast
 
 #=============================================================================
+# Target rules for targets named convert_library
+
+# Build rule for target.
+convert_library: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 convert_library
+.PHONY : convert_library
+
+# fast build rule for target.
+convert_library/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/build
+.PHONY : convert_library/fast
+
+#=============================================================================
+# Target rules for targets named update_port_registry
+
+# Build rule for target.
+update_port_registry: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 update_port_registry
+.PHONY : update_port_registry
+
+# fast build rule for target.
+update_port_registry/fast:
+	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/update_port_registry.dir/build.make tools/CMakeFiles/update_port_registry.dir/build
+.PHONY : update_port_registry/fast
+
+#=============================================================================
+# Target rules for targets named regenerate_port_registry
+
+# Build rule for target.
+regenerate_port_registry: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 regenerate_port_registry
+.PHONY : regenerate_port_registry
+
+# fast build rule for target.
+regenerate_port_registry/fast:
+	$(MAKE) $(MAKESILENT) -f tools/CMakeFiles/regenerate_port_registry.dir/build.make tools/CMakeFiles/regenerate_port_registry.dir/build
+.PHONY : regenerate_port_registry/fast
+
+#=============================================================================
+# Target rules for targets named ui_math_tests
+
+# Build rule for target.
+ui_math_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_math_tests
+.PHONY : ui_math_tests
+
+# fast build rule for target.
+ui_math_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_math_tests.dir/build.make tests/CMakeFiles/ui_math_tests.dir/build
+.PHONY : ui_math_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_layout_tests
+
+# Build rule for target.
+ui_layout_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_layout_tests
+.PHONY : ui_layout_tests
+
+# fast build rule for target.
+ui_layout_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_layout_tests.dir/build.make tests/CMakeFiles/ui_layout_tests.dir/build
+.PHONY : ui_layout_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_renderer_tests
+
+# Build rule for target.
+ui_renderer_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_renderer_tests
+.PHONY : ui_renderer_tests
+
+# fast build rule for target.
+ui_renderer_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_renderer_tests.dir/build.make tests/CMakeFiles/ui_renderer_tests.dir/build
+.PHONY : ui_renderer_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_widget_purity_tests
+
+# Build rule for target.
+ui_widget_purity_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_widget_purity_tests
+.PHONY : ui_widget_purity_tests
+
+# fast build rule for target.
+ui_widget_purity_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/build
+.PHONY : ui_widget_purity_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_scene_tests
+
+# Build rule for target.
+ui_scene_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_scene_tests
+.PHONY : ui_scene_tests
+
+# fast build rule for target.
+ui_scene_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_scene_tests.dir/build.make tests/CMakeFiles/ui_scene_tests.dir/build
+.PHONY : ui_scene_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_interning_tests
+
+# Build rule for target.
+ui_interning_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_interning_tests
+.PHONY : ui_interning_tests
+
+# fast build rule for target.
+ui_interning_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_interning_tests.dir/build.make tests/CMakeFiles/ui_interning_tests.dir/build
+.PHONY : ui_interning_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_grid_tests
+
+# Build rule for target.
+ui_grid_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_grid_tests
+.PHONY : ui_grid_tests
+
+# fast build rule for target.
+ui_grid_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/build
+.PHONY : ui_grid_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_render_context_tests
+
+# Build rule for target.
+ui_render_context_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_render_context_tests
+.PHONY : ui_render_context_tests
+
+# fast build rule for target.
+ui_render_context_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_render_context_tests.dir/build.make tests/CMakeFiles/ui_render_context_tests.dir/build
+.PHONY : ui_render_context_tests/fast
+
+#=============================================================================
+# Target rules for targets named ui_linear_layout_tests
+
+# Build rule for target.
+ui_linear_layout_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 ui_linear_layout_tests
+.PHONY : ui_linear_layout_tests
+
+# fast build rule for target.
+ui_linear_layout_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/build
+.PHONY : ui_linear_layout_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_widget_tests
+
+# Build rule for target.
+visual_widget_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_widget_tests
+.PHONY : visual_widget_tests
+
+# fast build rule for target.
+visual_widget_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_widget_tests.dir/build.make tests/CMakeFiles/visual_widget_tests.dir/build
+.PHONY : visual_widget_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_grid_tests
+
+# Build rule for target.
+visual_grid_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_grid_tests
+.PHONY : visual_grid_tests
+
+# fast build rule for target.
+visual_grid_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_grid_tests.dir/build.make tests/CMakeFiles/visual_grid_tests.dir/build
+.PHONY : visual_grid_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_scene_v2_tests
+
+# Build rule for target.
+visual_scene_v2_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_scene_v2_tests
+.PHONY : visual_scene_v2_tests
+
+# fast build rule for target.
+visual_scene_v2_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_v2_tests.dir/build.make tests/CMakeFiles/visual_scene_v2_tests.dir/build
+.PHONY : visual_scene_v2_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_wire_tests
+
+# Build rule for target.
+visual_wire_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_wire_tests
+.PHONY : visual_wire_tests
+
+# fast build rule for target.
+visual_wire_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_wire_tests.dir/build.make tests/CMakeFiles/visual_wire_tests.dir/build
+.PHONY : visual_wire_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_hittest_tests
+
+# Build rule for target.
+visual_hittest_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_hittest_tests
+.PHONY : visual_hittest_tests
+
+# fast build rule for target.
+visual_hittest_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/build
+.PHONY : visual_hittest_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_container_tests
+
+# Build rule for target.
+visual_container_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_container_tests
+.PHONY : visual_container_tests
+
+# fast build rule for target.
+visual_container_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_container_tests.dir/build.make tests/CMakeFiles/visual_container_tests.dir/build
+.PHONY : visual_container_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_primitives_tests
+
+# Build rule for target.
+visual_primitives_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_primitives_tests
+.PHONY : visual_primitives_tests
+
+# fast build rule for target.
+visual_primitives_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_primitives_tests.dir/build.make tests/CMakeFiles/visual_primitives_tests.dir/build
+.PHONY : visual_primitives_tests/fast
+
+#=============================================================================
+# Target rules for targets named visual_node_widget_tests
+
+# Build rule for target.
+visual_node_widget_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_node_widget_tests
+.PHONY : visual_node_widget_tests
+
+# fast build rule for target.
+visual_node_widget_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/build
+.PHONY : visual_node_widget_tests/fast
+
+#=============================================================================
+# Target rules for targets named specialized_node_widget_tests
+
+# Build rule for target.
+specialized_node_widget_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 specialized_node_widget_tests
+.PHONY : specialized_node_widget_tests
+
+# fast build rule for target.
+specialized_node_widget_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/build
+.PHONY : specialized_node_widget_tests/fast
+
+#=============================================================================
+# Target rules for targets named scene_mutations_tests
+
+# Build rule for target.
+scene_mutations_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 scene_mutations_tests
+.PHONY : scene_mutations_tests
+
+# fast build rule for target.
+scene_mutations_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/build
+.PHONY : scene_mutations_tests/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -406,17 +692,17 @@ editor_data_tests/fast:
 .PHONY : editor_data_tests/fast
 
 #=============================================================================
-# Target rules for targets named editor_persist_tests
+# Target rules for targets named editor_data_interning_tests
 
 # Build rule for target.
-editor_persist_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_persist_tests
-.PHONY : editor_persist_tests
+editor_data_interning_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_data_interning_tests
+.PHONY : editor_data_interning_tests
 
 # fast build rule for target.
-editor_persist_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_persist_tests.dir/build.make tests/CMakeFiles/editor_persist_tests.dir/build
-.PHONY : editor_persist_tests/fast
+editor_data_interning_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_interning_tests.dir/build.make tests/CMakeFiles/editor_data_interning_tests.dir/build
+.PHONY : editor_data_interning_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_viewport_tests
@@ -432,32 +718,6 @@ editor_viewport_tests/fast:
 .PHONY : editor_viewport_tests/fast
 
 #=============================================================================
-# Target rules for targets named editor_render_tests
-
-# Build rule for target.
-editor_render_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_render_tests
-.PHONY : editor_render_tests
-
-# fast build rule for target.
-editor_render_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_render_tests.dir/build.make tests/CMakeFiles/editor_render_tests.dir/build
-.PHONY : editor_render_tests/fast
-
-#=============================================================================
-# Target rules for targets named editor_hittest_tests
-
-# Build rule for target.
-editor_hittest_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_hittest_tests
-.PHONY : editor_hittest_tests
-
-# fast build rule for target.
-editor_hittest_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hittest_tests.dir/build.make tests/CMakeFiles/editor_hittest_tests.dir/build
-.PHONY : editor_hittest_tests/fast
-
-#=============================================================================
 # Target rules for targets named json_parser_tests
 
 # Build rule for target.
@@ -471,32 +731,6 @@ json_parser_tests/fast:
 .PHONY : json_parser_tests/fast
 
 #=============================================================================
-# Target rules for targets named editor_router_tests
-
-# Build rule for target.
-editor_router_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_router_tests
-.PHONY : editor_router_tests
-
-# fast build rule for target.
-editor_router_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_router_tests.dir/build.make tests/CMakeFiles/editor_router_tests.dir/build
-.PHONY : editor_router_tests/fast
-
-#=============================================================================
-# Target rules for targets named editor_widget_tests
-
-# Build rule for target.
-editor_widget_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_widget_tests
-.PHONY : editor_widget_tests
-
-# fast build rule for target.
-editor_widget_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_widget_tests.dir/build.make tests/CMakeFiles/editor_widget_tests.dir/build
-.PHONY : editor_widget_tests/fast
-
-#=============================================================================
 # Target rules for targets named editor_simulation_tests
 
 # Build rule for target.
@@ -508,6 +742,32 @@ editor_simulation_tests: cmake_check_build_system
 editor_simulation_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/build
 .PHONY : editor_simulation_tests/fast
+
+#=============================================================================
+# Target rules for targets named azs_tests
+
+# Build rule for target.
+azs_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 azs_tests
+.PHONY : azs_tests
+
+# fast build rule for target.
+azs_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/build
+.PHONY : azs_tests/fast
+
+#=============================================================================
+# Target rules for targets named factory_validation_tests
+
+# Build rule for target.
+factory_validation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 factory_validation_tests
+.PHONY : factory_validation_tests
+
+# fast build rule for target.
+factory_validation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/factory_validation_tests.dir/build.make tests/CMakeFiles/factory_validation_tests.dir/build
+.PHONY : factory_validation_tests/fast
 
 #=============================================================================
 # Target rules for targets named logical_solver_tests
@@ -601,6 +861,149 @@ pd_tests/fast:
 .PHONY : pd_tests/fast
 
 #=============================================================================
+# Target rules for targets named subtract_tests
+
+# Build rule for target.
+subtract_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 subtract_tests
+.PHONY : subtract_tests
+
+# fast build rule for target.
+subtract_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/build
+.PHONY : subtract_tests/fast
+
+#=============================================================================
+# Target rules for targets named asym_tmo_tests
+
+# Build rule for target.
+asym_tmo_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asym_tmo_tests
+.PHONY : asym_tmo_tests
+
+# fast build rule for target.
+asym_tmo_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_tmo_tests.dir/build.make tests/CMakeFiles/asym_tmo_tests.dir/build
+.PHONY : asym_tmo_tests/fast
+
+#=============================================================================
+# Target rules for targets named slew_rate_tests
+
+# Build rule for target.
+slew_rate_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 slew_rate_tests
+.PHONY : slew_rate_tests
+
+# fast build rule for target.
+slew_rate_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/build
+.PHONY : slew_rate_tests/fast
+
+#=============================================================================
+# Target rules for targets named logic_gates_tests
+
+# Build rule for target.
+logic_gates_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 logic_gates_tests
+.PHONY : logic_gates_tests
+
+# fast build rule for target.
+logic_gates_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logic_gates_tests.dir/build.make tests/CMakeFiles/logic_gates_tests.dir/build
+.PHONY : logic_gates_tests/fast
+
+#=============================================================================
+# Target rules for targets named lut_tests
+
+# Build rule for target.
+lut_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lut_tests
+.PHONY : lut_tests
+
+# fast build rule for target.
+lut_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_tests.dir/build.make tests/CMakeFiles/lut_tests.dir/build
+.PHONY : lut_tests/fast
+
+#=============================================================================
+# Target rules for targets named lut_codegen_tests
+
+# Build rule for target.
+lut_codegen_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lut_codegen_tests
+.PHONY : lut_codegen_tests
+
+# fast build rule for target.
+lut_codegen_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/build
+.PHONY : lut_codegen_tests/fast
+
+#=============================================================================
+# Target rules for targets named port_map_regression_tests
+
+# Build rule for target.
+port_map_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 port_map_regression_tests
+.PHONY : port_map_regression_tests
+
+# fast build rule for target.
+port_map_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/build
+.PHONY : port_map_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named and_gate_debug_tests
+
+# Build rule for target.
+and_gate_debug_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 and_gate_debug_tests
+.PHONY : and_gate_debug_tests
+
+# fast build rule for target.
+and_gate_debug_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/and_gate_debug_tests.dir/build.make tests/CMakeFiles/and_gate_debug_tests.dir/build
+.PHONY : and_gate_debug_tests/fast
+
+#=============================================================================
+# Target rules for targets named codegen_sanitize_tests
+
+# Build rule for target.
+codegen_sanitize_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 codegen_sanitize_tests
+.PHONY : codegen_sanitize_tests
+
+# fast build rule for target.
+codegen_sanitize_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_sanitize_tests.dir/build.make tests/CMakeFiles/codegen_sanitize_tests.dir/build
+.PHONY : codegen_sanitize_tests/fast
+
+#=============================================================================
+# Target rules for targets named v_to_bool_tests
+
+# Build rule for target.
+v_to_bool_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 v_to_bool_tests
+.PHONY : v_to_bool_tests
+
+# fast build rule for target.
+v_to_bool_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v_to_bool_tests.dir/build.make tests/CMakeFiles/v_to_bool_tests.dir/build
+.PHONY : v_to_bool_tests/fast
+
+#=============================================================================
+# Target rules for targets named arithmetic_tests
+
+# Build rule for target.
+arithmetic_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 arithmetic_tests
+.PHONY : arithmetic_tests
+
+# fast build rule for target.
+arithmetic_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/arithmetic_tests.dir/build.make tests/CMakeFiles/arithmetic_tests.dir/build
+.PHONY : arithmetic_tests/fast
+
+#=============================================================================
 # Target rules for targets named pi_p_tests
 
 # Build rule for target.
@@ -614,6 +1017,19 @@ pi_p_tests/fast:
 .PHONY : pi_p_tests/fast
 
 #=============================================================================
+# Target rules for targets named inspector_tests
+
+# Build rule for target.
+inspector_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inspector_tests
+.PHONY : inspector_tests
+
+# fast build rule for target.
+inspector_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/build
+.PHONY : inspector_tests/fast
+
+#=============================================================================
 # Target rules for targets named lamp_passthrough_jit_test
 
 # Build rule for target.
@@ -625,45 +1041,6 @@ lamp_passthrough_jit_test: cmake_check_build_system
 lamp_passthrough_jit_test/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/build
 .PHONY : lamp_passthrough_jit_test/fast
-
-#=============================================================================
-# Target rules for targets named editor_hierarchical_tests
-
-# Build rule for target.
-editor_hierarchical_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_hierarchical_tests
-.PHONY : editor_hierarchical_tests
-
-# fast build rule for target.
-editor_hierarchical_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_hierarchical_tests.dir/build.make tests/CMakeFiles/editor_hierarchical_tests.dir/build
-.PHONY : editor_hierarchical_tests/fast
-
-#=============================================================================
-# Target rules for targets named visual_port_tests
-
-# Build rule for target.
-visual_port_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_port_tests
-.PHONY : visual_port_tests
-
-# fast build rule for target.
-visual_port_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_port_tests.dir/build.make tests/CMakeFiles/visual_port_tests.dir/build
-.PHONY : visual_port_tests/fast
-
-#=============================================================================
-# Target rules for targets named visual_scene_tests
-
-# Build rule for target.
-visual_scene_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 visual_scene_tests
-.PHONY : visual_scene_tests
-
-# fast build rule for target.
-visual_scene_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_scene_tests.dir/build.make tests/CMakeFiles/visual_scene_tests.dir/build
-.PHONY : visual_scene_tests/fast
 
 #=============================================================================
 # Target rules for targets named node_deletion_tests
@@ -705,17 +1082,17 @@ params_integrity_tests/fast:
 .PHONY : params_integrity_tests/fast
 
 #=============================================================================
-# Target rules for targets named context_menu_tests
+# Target rules for targets named expand_typedef_tests
 
 # Build rule for target.
-context_menu_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 context_menu_tests
-.PHONY : context_menu_tests
+expand_typedef_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 expand_typedef_tests
+.PHONY : expand_typedef_tests
 
 # fast build rule for target.
-context_menu_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/context_menu_tests.dir/build.make tests/CMakeFiles/context_menu_tests.dir/build
-.PHONY : context_menu_tests/fast
+expand_typedef_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/build
+.PHONY : expand_typedef_tests/fast
 
 #=============================================================================
 # Target rules for targets named properties_window_tests
@@ -756,6 +1133,253 @@ codegen_accumulator_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/build
 .PHONY : codegen_accumulator_tests/fast
 
+#=============================================================================
+# Target rules for targets named aot_composite_tests
+
+# Build rule for target.
+aot_composite_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 aot_composite_tests
+.PHONY : aot_composite_tests
+
+# fast build rule for target.
+aot_composite_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/build
+.PHONY : aot_composite_tests/fast
+
+#=============================================================================
+# Target rules for targets named bake_in_tests
+
+# Build rule for target.
+bake_in_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bake_in_tests
+.PHONY : bake_in_tests
+
+# fast build rule for target.
+bake_in_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/build
+.PHONY : bake_in_tests/fast
+
+#=============================================================================
+# Target rules for targets named asym_slew_rate_tests
+
+# Build rule for target.
+asym_slew_rate_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 asym_slew_rate_tests
+.PHONY : asym_slew_rate_tests
+
+# fast build rule for target.
+asym_slew_rate_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/asym_slew_rate_tests.dir/build.make tests/CMakeFiles/asym_slew_rate_tests.dir/build
+.PHONY : asym_slew_rate_tests/fast
+
+#=============================================================================
+# Target rules for targets named time_delay_tests
+
+# Build rule for target.
+time_delay_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 time_delay_tests
+.PHONY : time_delay_tests
+
+# fast build rule for target.
+time_delay_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/time_delay_tests.dir/build.make tests/CMakeFiles/time_delay_tests.dir/build
+.PHONY : time_delay_tests/fast
+
+#=============================================================================
+# Target rules for targets named monostable_tests
+
+# Build rule for target.
+monostable_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 monostable_tests
+.PHONY : monostable_tests
+
+# fast build rule for target.
+monostable_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/monostable_tests.dir/build.make tests/CMakeFiles/monostable_tests.dir/build
+.PHONY : monostable_tests/fast
+
+#=============================================================================
+# Target rules for targets named sample_hold_tests
+
+# Build rule for target.
+sample_hold_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sample_hold_tests
+.PHONY : sample_hold_tests
+
+# fast build rule for target.
+sample_hold_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sample_hold_tests.dir/build.make tests/CMakeFiles/sample_hold_tests.dir/build
+.PHONY : sample_hold_tests/fast
+
+#=============================================================================
+# Target rules for targets named integrator_tests
+
+# Build rule for target.
+integrator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 integrator_tests
+.PHONY : integrator_tests
+
+# fast build rule for target.
+integrator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/build
+.PHONY : integrator_tests/fast
+
+#=============================================================================
+# Target rules for targets named clamp_normalize_tests
+
+# Build rule for target.
+clamp_normalize_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clamp_normalize_tests
+.PHONY : clamp_normalize_tests
+
+# fast build rule for target.
+clamp_normalize_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/build
+.PHONY : clamp_normalize_tests/fast
+
+#=============================================================================
+# Target rules for targets named comparison_components_tests
+
+# Build rule for target.
+comparison_components_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 comparison_components_tests
+.PHONY : comparison_components_tests
+
+# fast build rule for target.
+comparison_components_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/build
+.PHONY : comparison_components_tests/fast
+
+#=============================================================================
+# Target rules for targets named spring_tests
+
+# Build rule for target.
+spring_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 spring_tests
+.PHONY : spring_tests
+
+# fast build rule for target.
+spring_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/spring_tests.dir/build.make tests/CMakeFiles/spring_tests.dir/build
+.PHONY : spring_tests/fast
+
+#=============================================================================
+# Target rules for targets named sub_blueprint_ref_tests
+
+# Build rule for target.
+sub_blueprint_ref_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sub_blueprint_ref_tests
+.PHONY : sub_blueprint_ref_tests
+
+# fast build rule for target.
+sub_blueprint_ref_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/build
+.PHONY : sub_blueprint_ref_tests/fast
+
+#=============================================================================
+# Target rules for targets named document_window_system_tests
+
+# Build rule for target.
+document_window_system_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 document_window_system_tests
+.PHONY : document_window_system_tests
+
+# fast build rule for target.
+document_window_system_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
+.PHONY : document_window_system_tests/fast
+
+#=============================================================================
+# Target rules for targets named flat_blueprint_tests
+
+# Build rule for target.
+flat_blueprint_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 flat_blueprint_tests
+.PHONY : flat_blueprint_tests
+
+# fast build rule for target.
+flat_blueprint_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
+.PHONY : flat_blueprint_tests/fast
+
+#=============================================================================
+# Target rules for targets named library_v2_tests
+
+# Build rule for target.
+library_v2_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 library_v2_tests
+.PHONY : library_v2_tests
+
+# fast build rule for target.
+library_v2_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
+.PHONY : library_v2_tests/fast
+
+#=============================================================================
+# Target rules for targets named multi_domain_tests
+
+# Build rule for target.
+multi_domain_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 multi_domain_tests
+.PHONY : multi_domain_tests
+
+# fast build rule for target.
+multi_domain_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/build
+.PHONY : multi_domain_tests/fast
+
+#=============================================================================
+# Target rules for targets named command_tests
+
+# Build rule for target.
+command_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 command_tests
+.PHONY : command_tests
+
+# fast build rule for target.
+command_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/build
+.PHONY : command_tests/fast
+
+#=============================================================================
+# Target rules for targets named transformer_tests
+
+# Build rule for target.
+transformer_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 transformer_tests
+.PHONY : transformer_tests
+
+# fast build rule for target.
+transformer_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/transformer_tests.dir/build.make tests/CMakeFiles/transformer_tests.dir/build
+.PHONY : transformer_tests/fast
+
+#=============================================================================
+# Target rules for targets named generator_tests
+
+# Build rule for target.
+generator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 generator_tests
+.PHONY : generator_tests
+
+# fast build rule for target.
+generator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/build
+.PHONY : generator_tests/fast
+
+#=============================================================================
+# Target rules for targets named apu_mechanical_tests
+
+# Build rule for target.
+apu_mechanical_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 apu_mechanical_tests
+.PHONY : apu_mechanical_tests
+
+# fast build rule for target.
+apu_mechanical_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
+.PHONY : apu_mechanical_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -769,37 +1393,58 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... regenerate_port_registry"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
+	@echo "... and_gate_debug_tests"
+	@echo "... aot_composite_tests"
+	@echo "... apu_mechanical_tests"
+	@echo "... arithmetic_tests"
+	@echo "... asym_slew_rate_tests"
+	@echo "... asym_tmo_tests"
+	@echo "... azs_tests"
+	@echo "... bake_in_tests"
 	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
+	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
-	@echo "... context_menu_tests"
+	@echo "... command_tests"
+	@echo "... comparison_components_tests"
+	@echo "... convert_library"
+	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
+	@echo "... editor_data_interning_tests"
 	@echo "... editor_data_tests"
-	@echo "... editor_hierarchical_tests"
-	@echo "... editor_hittest_tests"
-	@echo "... editor_persist_tests"
-	@echo "... editor_render_tests"
-	@echo "... editor_router_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
-	@echo "... editor_widget_tests"
+	@echo "... expand_typedef_tests"
+	@echo "... factory_validation_tests"
+	@echo "... flat_blueprint_tests"
+	@echo "... generator_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... hello_world"
+	@echo "... inspector_tests"
+	@echo "... integrator_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
+	@echo "... library_v2_tests"
+	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
+	@echo "... lut_codegen_tests"
+	@echo "... lut_tests"
+	@echo "... monostable_tests"
+	@echo "... multi_domain_tests"
 	@echo "... multi_window_tests"
 	@echo "... nfd"
 	@echo "... node_deletion_tests"
@@ -808,12 +1453,39 @@ help:
 	@echo "... pi_p_tests"
 	@echo "... pid_tests"
 	@echo "... port_macro_tests"
+	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... sample_hold_tests"
+	@echo "... scene_mutations_tests"
+	@echo "... slew_rate_tests"
 	@echo "... spdlog"
-	@echo "... visual_port_tests"
-	@echo "... visual_scene_tests"
+	@echo "... specialized_node_widget_tests"
+	@echo "... spring_tests"
+	@echo "... sub_blueprint_ref_tests"
+	@echo "... subtract_tests"
+	@echo "... time_delay_tests"
+	@echo "... transformer_tests"
+	@echo "... ui_grid_tests"
+	@echo "... ui_interning_tests"
+	@echo "... ui_layout_tests"
+	@echo "... ui_linear_layout_tests"
+	@echo "... ui_math_tests"
+	@echo "... ui_render_context_tests"
+	@echo "... ui_renderer_tests"
+	@echo "... ui_scene_tests"
+	@echo "... ui_widget_purity_tests"
+	@echo "... update_port_registry"
+	@echo "... v_to_bool_tests"
+	@echo "... visual_container_tests"
+	@echo "... visual_grid_tests"
+	@echo "... visual_hittest_tests"
+	@echo "... visual_node_widget_tests"
+	@echo "... visual_primitives_tests"
+	@echo "... visual_scene_v2_tests"
+	@echo "... visual_widget_tests"
+	@echo "... visual_wire_tests"
 .PHONY : help
 
 

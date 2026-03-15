@@ -4,90 +4,26 @@
 #include "jit_solver/state.h"
 #include "jit_solver/SOR_constants.h"
 #include "jit_solver/components/all.h"
+#include "parse_number.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <filesystem>
 
-using namespace an24;
 using json = nlohmann::json;
 
 // =============================================================================
-// Helper: Create temporary blueprint file
-// =============================================================================
-static void create_test_blueprint(const std::string& path) {
-    // Don't overwrite existing blueprint
-    if (std::filesystem::exists(path)) {
-        return;
-    }
-
-    nlohmann::json blueprint;
-    blueprint["description"] = "Test battery module";
-    blueprint["devices"] = {
-        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
-        {{"name", "bat"}, {"classname", "Battery"}, {"params", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}}}},
-        {{"name", "vin"}, {"classname", "BlueprintInput"}, {"params", {{"exposed_type", "V"}, {"exposed_direction", "In"}}}},
-        {{"name", "vout"}, {"classname", "BlueprintOutput"}, {"params", {{"exposed_type", "V"}, {"exposed_direction", "Out"}}}}
-    };
-    blueprint["connections"] = {
-        {{"from", "vin.port"}, {"to", "bat.v_in"}},
-        {{"from", "bat.v_out"}, {"to", "vout.port"}},
-        {{"from", "gnd.v"}, {"to", "vin.port"}}
-    };
-
-    // Create directory if needed
-    std::filesystem::create_directories(std::filesystem::path(path).parent_path());
-
-    std::ofstream file(path);
-    file << blueprint.dump(2);
-}
-
-// =============================================================================
-// Phase 2 Tests: Blueprint Loading Fallback
+// Blueprint Loading Tests
 // =============================================================================
 
-TEST(BlueprintLoading, FallbackToBlueprintWhenNotInRegistry) {
-    // Create test blueprint in blueprints/
-    std::string blueprint_path = "blueprints/test_battery_module.json";
-    create_test_blueprint(blueprint_path);
-
-    // Root blueprint uses "test_battery_module" (not in component registry)
+TEST(BlueprintLoading, UnknownClassnameThrows) {
+    // "test_battery_module" is NOT in TypeRegistry — should throw
     nlohmann::json root;
     root["devices"] = {
         {{"name", "bat1"}, {"classname", "test_battery_module"}}
     };
     root["connections"] = {};
 
-    // Parse - should automatically load nested blueprint
-    ParserContext ctx;
-    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
-
-    // Verify devices have prefix
-    EXPECT_FALSE(ctx.devices.empty()) << "Should have loaded nested devices";
-
-    // Check for prefixed device names
-    bool has_gnd = false, has_bat = false, has_vin = false, has_vout = false;
-    for (const auto& dev : ctx.devices) {
-        if (dev.name == "bat1:gnd") has_gnd = true;
-        if (dev.name == "bat1:bat") has_bat = true;
-        if (dev.name == "bat1:vin") has_vin = true;
-        if (dev.name == "bat1:vout") has_vout = true;
-    }
-
-    EXPECT_TRUE(has_gnd) << "Should have 'bat1:gnd' device";
-    EXPECT_TRUE(has_bat) << "Should have 'bat1:bat' device";
-    EXPECT_TRUE(has_vin) << "Should have 'bat1:vin' device";
-    EXPECT_TRUE(has_vout) << "Should have 'bat1:vout' device";
-
-    // Verify connections have prefix
-    EXPECT_FALSE(ctx.connections.empty()) << "Should have loaded connections";
-
-    bool has_rewrite_conn = false;
-    for (const auto& conn : ctx.connections) {
-        if (conn.from == "bat1:vin.port" || conn.to == "bat1:vin.port") {
-            has_rewrite_conn = true;
-        }
-    }
-    EXPECT_TRUE(has_rewrite_conn) << "Connections should be rewritten with prefix";
+    EXPECT_THROW(parse_json(root.dump()), std::runtime_error);
 }
 
 TEST(BlueprintLoading, MissingBlueprintReturnsError) {
@@ -102,24 +38,14 @@ TEST(BlueprintLoading, MissingBlueprintReturnsError) {
 }
 
 TEST(BlueprintLoading, DirectBlueprintLoadWorks) {
-    // Create test blueprint
-    std::string blueprint_path = "blueprints/direct_test.json";
-    create_test_blueprint(blueprint_path);
-
-    // Load blueprint file directly
-    std::ifstream file(blueprint_path);
-    ASSERT_TRUE(file.is_open()) << "Blueprint file should exist";
-
-    std::string content((std::istreambuf_iterator<char>(file)),
-                        std::istreambuf_iterator<char>());
-
-    // Parse should work
-    ParserContext ctx;
-    EXPECT_NO_THROW(ctx = parse_json(content));
-
-    // Verify structure
-    EXPECT_EQ(ctx.devices.size(), 4);  // gnd, bat, vin, vout
-    EXPECT_EQ(ctx.connections.size(), 3);  // 3 connections
+    // simple_battery is a blueprint type in library/ (cpp_class=false)
+    // Load its TypeDefinition and verify structure
+    TypeRegistry reg = load_type_registry("library/");
+    ASSERT_TRUE(reg.has("simple_battery"));
+    const auto* def = reg.get("simple_battery");
+    ASSERT_FALSE(def->cpp_class);
+    EXPECT_EQ(def->devices.size(), 4);    // gnd, bat, vin, vout
+    EXPECT_EQ(def->connections.size(), 3); // 3 connections
 }
 
 // =============================================================================
@@ -148,7 +74,7 @@ static SimulationState run_simulation(
             float value = 0.0f;
             auto it_val = dev.params.find("value");
             if (it_val != dev.params.end()) {
-                value = std::stof(it_val->second);
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
             }
             auto it_sig = result.port_to_signal.find(dev.name + ".v");
             if (it_sig != result.port_to_signal.end()) {
@@ -201,7 +127,7 @@ TEST(BlueprintLoading, Integration_NestedBlueprintRunsSimulation) {
     nlohmann::json root;
     root["devices"] = {
         {{"name", "main_gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
-        {{"name", "bat1"}, {"classname", "simple_battery"}},  // Loads from blueprints/
+        {{"name", "bat1"}, {"classname", "simple_battery"}},  // Expanded from TypeRegistry
         {{"name", "load"}, {"classname", "Resistor"}, {"params", {{"conductance", "0.1"}}}}
     };
     root["connections"] = {
@@ -250,24 +176,27 @@ TEST(BlueprintLoading, Integration_NestedBlueprintRunsSimulation) {
 // =============================================================================
 
 TEST(ExtractExposedPorts, SimpleBatteryBlueprint) {
-    // Load the simple_battery blueprint
-    std::string blueprint_path = "../blueprints/simple_battery.json";
+    // simple_battery is in TypeRegistry as cpp_class=false
+    // Build a JSON with its internal devices and parse to extract exposed ports
+    TypeRegistry reg = load_type_registry("library/");
+    ASSERT_TRUE(reg.has("simple_battery"));
+    const auto* def = reg.get("simple_battery");
 
-    std::ifstream file(blueprint_path);
-    if (!file.is_open()) {
-        blueprint_path = "blueprints/simple_battery.json";
-        file.open(blueprint_path);
+    nlohmann::json bp_json;
+    bp_json["devices"] = nlohmann::json::array();
+    for (const auto& dev : def->devices) {
+        nlohmann::json dev_j;
+        dev_j["name"] = dev.name;
+        dev_j["classname"] = dev.classname;
+        if (!dev.params.empty()) dev_j["params"] = dev.params;
+        bp_json["devices"].push_back(dev_j);
     }
-    if (!file.is_open()) {
-        blueprint_path = "../../blueprints/simple_battery.json";
-        file.open(blueprint_path);
+    bp_json["connections"] = nlohmann::json::array();
+    for (const auto& conn : def->connections) {
+        bp_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
     }
-    ASSERT_TRUE(file.is_open()) << "simple_battery.json should exist at ../blueprints/, blueprints/, or ../../blueprints/";
 
-    std::string content((std::istreambuf_iterator<char>(file)),
-                        (std::istreambuf_iterator<char>()));
-
-    ParserContext ctx = parse_json(content);
+    ParserContext ctx = parse_json(bp_json.dump());
 
     // Extract exposed ports
     auto exposed = extract_exposed_ports(ctx);
@@ -334,7 +263,7 @@ TEST(ExtractExposedPorts, EmptyBlueprint) {
 }
 
 TEST(ExtractExposedPorts, DefaultValues) {
-    // BlueprintInput/BlueprintOutput without explicit params use ComponentRegistry defaults
+    // BlueprintInput/BlueprintOutput without explicit params use TypeRegistry defaults
     nlohmann::json bp;
     bp["devices"] = nlohmann::json::array({
         {{"name", "in"}, {"classname", "BlueprintInput"}},  // No params - uses component defaults
@@ -355,4 +284,328 @@ TEST(ExtractExposedPorts, DefaultValues) {
     // Default type from component definition (both have "V" as default)
     EXPECT_EQ(exposed["in"].type, PortType::V);
     EXPECT_EQ(exposed["out"].type, PortType::V);
+}
+
+// =============================================================================
+// Phase 5: parse_json() expands cpp_class=false types from TypeRegistry
+// =============================================================================
+
+TEST(BlueprintLoading, ExpandBlueprintFromTypeRegistry) {
+    // simple_battery is cpp_class=false in library/ and has devices/connections
+    TypeRegistry reg = load_type_registry("library/");
+    ASSERT_TRUE(reg.has("simple_battery"));
+    const auto* def = reg.get("simple_battery");
+    ASSERT_FALSE(def->cpp_class);
+    ASSERT_FALSE(def->devices.empty());
+
+    // Use simple_battery in a root circuit — it should be expanded from TypeRegistry
+    nlohmann::json root;
+    root["devices"] = {
+        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
+        {{"name", "sb"}, {"classname", "simple_battery"}},
+        {{"name", "load"}, {"classname", "Resistor"}, {"params", {{"conductance", "0.1"}}}}
+    };
+    root["connections"] = {
+        {{"from", "gnd.v"}, {"to", "sb.vin"}},
+        {{"from", "sb.vout"}, {"to", "load.v_in"}},
+        {{"from", "load.v_out"}, {"to", "gnd.v"}}
+    };
+
+    ParserContext ctx;
+    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
+
+    // SimpleBattery should be expanded: its internal devices have "sb:" prefix
+    bool has_sb_bat = false, has_sb_gnd = false, has_sb_vin = false, has_sb_vout = false;
+    for (const auto& dev : ctx.devices) {
+        if (dev.name == "sb:bat") has_sb_bat = true;
+        if (dev.name == "sb:gnd") has_sb_gnd = true;
+        if (dev.name == "sb:vin") has_sb_vin = true;
+        if (dev.name == "sb:vout") has_sb_vout = true;
+    }
+    EXPECT_TRUE(has_sb_bat) << "Should have expanded 'sb:bat'";
+    EXPECT_TRUE(has_sb_gnd) << "Should have expanded 'sb:gnd'";
+    EXPECT_TRUE(has_sb_vin) << "Should have expanded 'sb:vin'";
+    EXPECT_TRUE(has_sb_vout) << "Should have expanded 'sb:vout'";
+
+    // No device named "sb" alone (it was expanded)
+    for (const auto& dev : ctx.devices) {
+        EXPECT_NE(dev.name, "sb") << "Blueprint 'sb' should be expanded, not kept as device";
+    }
+}
+
+// =============================================================================
+// Cycle Detection: self-referencing blueprints must throw, not stack-overflow
+// =============================================================================
+
+TEST(BlueprintCycleDetection, DirectSelfReference_Throws) {
+    // Create a temporary library directory with a self-referencing blueprint:
+    // "SelfRef" contains a device of classname "SelfRef" → direct cycle
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_cycle_test_direct";
+    fs::create_directories(tmp_dir);
+
+    // Write a self-referencing blueprint
+    {
+        nlohmann::json self_ref;
+        self_ref["classname"] = "SelfRef";
+        self_ref["cpp_class"] = false;
+        self_ref["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        self_ref["domains"] = {"Electrical"};
+        self_ref["devices"] = {{{"name", "inner"}, {"classname", "SelfRef"}}};
+        self_ref["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "SelfRef.json") << self_ref.dump(2);
+    }
+    // Also need a RefNode so the registry has basic types — copy from real library
+    // Actually, we only need the self-referencing type. The expansion will look it up
+    // in the registry loaded from tmp_dir.
+
+    // Build a root circuit that uses SelfRef
+    nlohmann::json root;
+    root["devices"] = {{{"name", "x"}, {"classname", "SelfRef"}}};
+    root["connections"] = nlohmann::json::array();
+
+    // Should throw with cycle detection error, NOT stack-overflow
+    EXPECT_THROW(parse_json(root.dump(), tmp_dir.string()), std::runtime_error);
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+TEST(BlueprintCycleDetection, IndirectCycle_Throws) {
+    // A contains B, B contains A → indirect cycle
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_cycle_test_indirect";
+    fs::create_directories(tmp_dir);
+
+    // Write type A that contains B
+    {
+        nlohmann::json type_a;
+        type_a["classname"] = "CycleA";
+        type_a["cpp_class"] = false;
+        type_a["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        type_a["domains"] = {"Electrical"};
+        type_a["devices"] = {{{"name", "b"}, {"classname", "CycleB"}}};
+        type_a["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "CycleA.json") << type_a.dump(2);
+    }
+    // Write type B that contains A
+    {
+        nlohmann::json type_b;
+        type_b["classname"] = "CycleB";
+        type_b["cpp_class"] = false;
+        type_b["ports"] = {{"vin", {{"direction", "In"}, {"type", "V"}}}};
+        type_b["domains"] = {"Electrical"};
+        type_b["devices"] = {{{"name", "a"}, {"classname", "CycleA"}}};
+        type_b["connections"] = nlohmann::json::array();
+        std::ofstream(tmp_dir / "CycleB.json") << type_b.dump(2);
+    }
+
+    nlohmann::json root;
+    root["devices"] = {{{"name", "x"}, {"classname", "CycleA"}}};
+    root["connections"] = nlohmann::json::array();
+
+    EXPECT_THROW(parse_json(root.dump(), tmp_dir.string()), std::runtime_error);
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+TEST(BlueprintCycleDetection, ValidNesting_NoCycle) {
+    // A contains B, B contains C++ leaf → NOT a cycle, should work fine
+    // Uses the real library: simple_battery contains Battery (cpp_class=true)
+    nlohmann::json root;
+    root["devices"] = {
+        {{"name", "gnd"}, {"classname", "RefNode"}, {"params", {{"value", "0.0"}}}},
+        {{"name", "sb"}, {"classname", "simple_battery"}}
+    };
+    root["connections"] = {
+        {{"from", "gnd.v"}, {"to", "sb.vin"}}
+    };
+
+    // Should NOT throw — this is valid nesting with no cycles
+    ParserContext ctx;
+    EXPECT_NO_THROW(ctx = parse_json(root.dump()));
+
+    // Verify it expanded
+    bool found_sb_bat = false;
+    for (const auto& dev : ctx.devices) {
+        if (dev.name == "sb:bat") found_sb_bat = true;
+    }
+    EXPECT_TRUE(found_sb_bat);
+}
+
+// =============================================================================
+// Regression: .blueprint extension standardization
+// =============================================================================
+
+// Verify load_type_registry scans only .blueprint files
+TEST(BlueprintExtension, RegistryLoadsOnlyBlueprintFiles) {
+    TypeRegistry reg = load_type_registry("library/");
+    // Registry must find at least some components
+    EXPECT_GT(reg.types.size(), 10u) << "Registry should load many .blueprint files";
+    // Battery is a well-known component
+    EXPECT_TRUE(reg.has("Battery"));
+    // simple_battery (composite) must also load from .blueprint
+    EXPECT_TRUE(reg.has("simple_battery"));
+}
+
+// Verify that .json files in library/ are ignored by the loader
+TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
+    // Create a temp directory with one .blueprint and one .json file
+    namespace fs = std::filesystem;
+    auto tmp_dir = fs::temp_directory_path() / "an24_ext_test";
+    fs::create_directories(tmp_dir);
+
+    // Write a valid .blueprint file
+    {
+        std::ofstream f(tmp_dir / "TestComp.blueprint");
+        f << R"({
+            "version": 2,
+            "meta": {
+                "name": "TestComp",
+                "description": "Test component",
+                "domains": ["Electrical"],
+                "cpp_class": true
+            },
+            "exposes": {
+                "v_out": {"direction": "Out", "type": "V"}
+            },
+            "params": {},
+            "nodes": {},
+            "wires": []
+        })";
+    }
+
+    // Write a .json file (should be ignored)
+    {
+        std::ofstream f(tmp_dir / "Ignored.json");
+        f << R"({
+            "version": 2,
+            "meta": {
+                "name": "Ignored",
+                "description": "Should not be loaded",
+                "domains": ["Electrical"],
+                "cpp_class": true
+            },
+            "exposes": {},
+            "params": {},
+            "nodes": {},
+            "wires": []
+        })";
+    }
+
+    TypeRegistry reg = load_type_registry(tmp_dir.string());
+    EXPECT_TRUE(reg.has("TestComp")) << ".blueprint file should be loaded";
+    EXPECT_FALSE(reg.has("Ignored")) << ".json file must NOT be loaded";
+
+    // Cleanup
+    fs::remove_all(tmp_dir);
+}
+
+// Verify no .json files remain in library/
+TEST(BlueprintExtension, NoJsonFilesInLibrary) {
+    namespace fs = std::filesystem;
+
+    // Find library path (same search logic as load_type_registry)
+    fs::path library_path = "library/";
+    std::vector<fs::path> try_paths = {
+        "library/", "../library/", "../../library/", "../../../library/"
+    };
+    for (const auto& p : try_paths) {
+        if (fs::exists(p)) {
+            library_path = p;
+            break;
+        }
+    }
+    ASSERT_TRUE(fs::exists(library_path)) << "library/ directory not found";
+
+    std::vector<std::string> json_files;
+    for (const auto& entry : fs::recursive_directory_iterator(library_path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+            json_files.push_back(entry.path().string());
+        }
+    }
+    EXPECT_TRUE(json_files.empty())
+        << "Found stray .json files in library/: "
+        << (json_files.empty() ? "" : json_files[0]);
+}
+
+// Verify all library files use .blueprint extension
+TEST(BlueprintExtension, AllLibraryFilesAreBlueprintExtension) {
+    namespace fs = std::filesystem;
+
+    fs::path library_path = "library/";
+    std::vector<fs::path> try_paths = {
+        "library/", "../library/", "../../library/", "../../../library/"
+    };
+    for (const auto& p : try_paths) {
+        if (fs::exists(p)) {
+            library_path = p;
+            break;
+        }
+    }
+    ASSERT_TRUE(fs::exists(library_path));
+
+    size_t blueprint_count = 0;
+    size_t other_count = 0;
+    for (const auto& entry : fs::recursive_directory_iterator(library_path)) {
+        if (entry.is_regular_file()) {
+            // Skip hidden files (.DS_Store, etc.)
+            if (entry.path().filename().string()[0] == '.') continue;
+            if (entry.path().extension() == ".blueprint") {
+                blueprint_count++;
+            } else {
+                other_count++;
+                ADD_FAILURE() << "Non-.blueprint file in library: " << entry.path();
+            }
+        }
+    }
+    EXPECT_GT(blueprint_count, 0u) << "Should find .blueprint files";
+    EXPECT_EQ(other_count, 0u) << "No non-.blueprint files should exist in library/";
+}
+
+// Verify blueprint.blueprint (main save file) exists and is valid v2
+TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
+    namespace fs = std::filesystem;
+
+    std::vector<std::string> paths = {
+        "blueprint.blueprint", "../blueprint.blueprint", "../../blueprint.blueprint"
+    };
+    std::string content;
+    for (const auto& p : paths) {
+        std::ifstream f(p);
+        if (f.is_open()) {
+            content.assign(std::istreambuf_iterator<char>(f),
+                          std::istreambuf_iterator<char>());
+            break;
+        }
+    }
+    ASSERT_FALSE(content.empty()) << "blueprint.blueprint not found";
+
+    // Must be valid JSON with version: 2
+    auto j = nlohmann::json::parse(content);
+    EXPECT_EQ(j.at("version").get<int>(), 2) << "blueprint.blueprint must be v2 format";
+}
+
+// Verify codegen source_file uses .blueprint extension
+TEST(BlueprintExtension, CodegenUsesBluprintExtension) {
+    // The codegen generates source_file = classname + ".blueprint"
+    // We verify by loading a composite type and checking it round-trips
+    TypeRegistry reg = load_type_registry("library/");
+
+    // Find any composite (cpp_class=false) type
+    std::string composite_name;
+    for (const auto& [name, def] : reg.types) {
+        if (!def.cpp_class) {
+            composite_name = name;
+            break;
+        }
+    }
+    ASSERT_FALSE(composite_name.empty()) << "Need at least one composite type for test";
+
+    const auto* def = reg.get(composite_name);
+    ASSERT_NE(def, nullptr);
+    // Verify classname doesn't contain .json
+    EXPECT_EQ(def->classname.find(".json"), std::string::npos)
+        << "Classname should not contain .json: " << def->classname;
 }

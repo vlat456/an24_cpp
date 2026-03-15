@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "ac_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    },
+    "dc_in": {
+      "direction": "In",
+      "type": "I"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "DC to AC inverter with efficiency and frequency output",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Inverter"
+  },
+  "params": {
+    "efficiency": {
+      "default": "0.95",
+      "type": "float"
+    },
+    "frequency": {
+      "default": "400.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-namespace an24 {
-
 // Forward declarations (PortNames defined in port_registry.h)
 enum class PortNames : uint32_t;
 
@@ -54,5 +52,3 @@ struct JitProvider {
         indices[p] = idx;
     }
 };
-
-} // namespace an24

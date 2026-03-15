@@ -1,0 +1,226 @@
+{
+  "tests": 38,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "NodeColor",
+      "tests": 12,
+      "testsuite": [
+        {
+          "name": "DefaultColor_IsNullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 14
+        },
+        {
+          "name": "SetColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 20
+        },
+        {
+          "name": "ToUint32_ABGR",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 31
+        },
+        {
+          "name": "ToUint32_Green",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 36
+        },
+        {
+          "name": "ToUint32_HalfAlpha",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 41
+        },
+        {
+          "name": "ToUint32_Blue",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 178
+        },
+        {
+          "name": "ToUint32_White",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 183
+        },
+        {
+          "name": "ToUint32_Black",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 188
+        },
+        {
+          "name": "ToUint32_ZeroAlpha",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 193
+        },
+        {
+          "name": "ToUint32_NegativeClamps",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 200
+        },
+        {
+          "name": "ToUint32_OverflowClamps",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 209
+        },
+        {
+          "name": "ToUint32_Default",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 220
+        }
+      ]
+    },
+    {
+      "name": "NodeColorPersist",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "NoColor_NotInJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 53
+        },
+        {
+          "name": "Color_Roundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 66
+        },
+        {
+          "name": "LoadFromJson_WithColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 87
+        },
+        {
+          "name": "LoadFromJson_WithoutColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 106
+        },
+        {
+          "name": "MultipleNodes_OnlyColoredOneHasColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 123
+        },
+        {
+          "name": "ZeroAlpha_Roundtrip",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 257
+        },
+        {
+          "name": "MalformedColor_String_Ignored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 274
+        },
+        {
+          "name": "MalformedColor_Null_Ignored",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 292
+        },
+        {
+          "name": "PartialColor_DefaultsApplied",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 310
+        },
+        {
+          "name": "JsonKeyNames",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 332
+        },
+        {
+          "name": "DoubleRoundtrip_Stable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 349
+        }
+      ]
+    },
+    {
+      "name": "NodeColorVisual",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "CustomColor_StoredInVisualNode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 148
+        },
+        {
+          "name": "NoCustomColor_Nullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 162
+        },
+        {
+          "name": "SetCustomColor_SetAndClear",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 235
+        },
+        {
+          "name": "BodyFill_UsesCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 476
+        },
+        {
+          "name": "BodyFill_UsesDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 494
+        }
+      ]
+    },
+    {
+      "name": "NodeColorBusRegression",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "BusNode_StoresCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 398
+        },
+        {
+          "name": "BusNode_NoColor_Nullopt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 407
+        },
+        {
+          "name": "BusNode_RendersCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 414
+        },
+        {
+          "name": "BusNode_NoColor_RendersDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 428
+        },
+        {
+          "name": "BusNode_SetCustomColor_UpdatesRender",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 510
+        },
+        {
+          "name": "Factory_BusNode_PreservesColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 526
+        }
+      ]
+    },
+    {
+      "name": "NodeColorRefRegression",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "RefNode_StoresCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 441
+        },
+        {
+          "name": "RefNode_RendersCustomColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 449
+        },
+        {
+          "name": "RefNode_NoColor_RendersDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 463
+        },
+        {
+          "name": "Factory_RefNode_PreservesColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_node_color.cpp",
+          "line": 537
+        }
+      ]
+    }
+  ]
+}

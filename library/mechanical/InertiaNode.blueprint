@@ -1,0 +1,31 @@
+{
+  "exposes": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    },
+    "output": {
+      "direction": "Out",
+      "type": "Temperature"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Mechanical inertia simulation node",
+    "domains": [
+      "Mechanical"
+    ],
+    "name": "InertiaNode"
+  },
+  "params": {
+    "damping": {
+      "default": "0.5",
+      "type": "float"
+    },
+    "mass": {
+      "default": "1.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

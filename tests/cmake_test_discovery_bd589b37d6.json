@@ -1,0 +1,83 @@
+{
+  "tests": 13,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "LUTCodegen",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "Constructor_EmitsOffsetAndSize_NotTableString",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 59
+        },
+        {
+          "name": "PreLoad_EmitsStaticArenaArrays",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 77
+        },
+        {
+          "name": "MultipleLUTs_OffsetsIncrement",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 100
+        },
+        {
+          "name": "NoLUTs_NoArenaCode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 119
+        },
+        {
+          "name": "EmptyTableParam_StillEmitsZeroSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 140
+        },
+        {
+          "name": "ArenaComment_ShowsTotalFloats",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 152
+        },
+        {
+          "name": "SingleEntryTable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 167
+        },
+        {
+          "name": "NegativeKeyValues_EncodedCorrectly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 180
+        },
+        {
+          "name": "GenericParamLoop_SkippedForLUT",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 196
+        }
+      ]
+    },
+    {
+      "name": "AOTCodegen",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "VisualOnly_FilteredFromHeader",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 222
+        },
+        {
+          "name": "VisualOnly_FilteredFromSource",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 261
+        },
+        {
+          "name": "Text_VisualOnly_FilteredFromHeader",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 305
+        },
+        {
+          "name": "Text_VisualOnly_FilteredFromSource",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_lut_codegen.cpp",
+          "line": 345
+        }
+      ]
+    }
+  ]
+}

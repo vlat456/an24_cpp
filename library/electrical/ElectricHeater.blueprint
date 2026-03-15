@@ -1,0 +1,32 @@
+{
+  "exposes": {
+    "heat_out": {
+      "direction": "Out",
+      "type": "Temperature"
+    },
+    "power": {
+      "direction": "In",
+      "type": "Pressure"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Electrical heater converting power to heat",
+    "domains": [
+      "Electrical",
+      "Thermal"
+    ],
+    "name": "ElectricHeater"
+  },
+  "params": {
+    "efficiency": {
+      "default": "0.9",
+      "type": "float"
+    },
+    "max_power": {
+      "default": "1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

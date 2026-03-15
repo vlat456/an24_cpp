@@ -1,0 +1,23 @@
+{
+  "exposes": {
+    "input": {
+      "direction": "In",
+      "type": "I"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Generic electrical load with conductance",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Load"
+  },
+  "params": {
+    "conductance": {
+      "default": "0.1",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

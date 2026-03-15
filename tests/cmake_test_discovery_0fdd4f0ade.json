@@ -1,0 +1,279 @@
+{
+  "tests": 45,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "EdgesTest",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DefaultIsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 27
+        },
+        {
+          "name": "NamedConstructors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 35
+        }
+      ]
+    },
+    {
+      "name": "ColumnTest",
+      "tests": 11,
+      "testsuite": [
+        {
+          "name": "Empty_PreferredSizeIsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 53
+        },
+        {
+          "name": "SingleChild_PreferredSizeEqualsChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 60
+        },
+        {
+          "name": "TwoChildren_WidthIsMax_HeightIsSum",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 68
+        },
+        {
+          "name": "Layout_FixedChildrenGetPreferredHeight",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 77
+        },
+        {
+          "name": "Layout_FlexibleChildTakesRemaining",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 95
+        },
+        {
+          "name": "Layout_TwoFlexChildrenShareEqually",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 107
+        },
+        {
+          "name": "ChildCount",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 120
+        },
+        {
+          "name": "ChildAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 128
+        },
+        {
+          "name": "Relayout_UpdatesPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 474
+        },
+        {
+          "name": "Render_ForwardsToChildren",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 509
+        },
+        {
+          "name": "Layout_NotEnoughSpace_FixedChildrenStillGetPreferred",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 541
+        }
+      ]
+    },
+    {
+      "name": "RowTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "Empty_PreferredSizeIsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 139
+        },
+        {
+          "name": "SingleChild_PreferredSizeEqualsChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 146
+        },
+        {
+          "name": "TwoChildren_WidthIsSum_HeightIsMax",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 154
+        },
+        {
+          "name": "Layout_FixedChildrenGetPreferredWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 163
+        },
+        {
+          "name": "Layout_FlexibleChildTakesRemaining",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 181
+        },
+        {
+          "name": "Layout_TwoFlexChildrenShareEqually",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 193
+        },
+        {
+          "name": "ChildCount",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 206
+        },
+        {
+          "name": "Relayout_UpdatesPositions",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 490
+        },
+        {
+          "name": "Render_ForwardsToChildren",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 519
+        },
+        {
+          "name": "Layout_NotEnoughSpace_FixedChildrenStillGetPreferred",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 554
+        }
+      ]
+    },
+    {
+      "name": "ContainerTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "NoChild_PreferredIsMarginsOnly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 217
+        },
+        {
+          "name": "WithChild_PreferredIsChildPlusMargins",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 224
+        },
+        {
+          "name": "NegativeMargins_ShrinkPreferredSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 231
+        },
+        {
+          "name": "Layout_ChildPositionedAtMarginOffset",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 239
+        },
+        {
+          "name": "Layout_NegativeMargin_ChildExtendsOutside",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 254
+        },
+        {
+          "name": "ZeroMargins_ChildFillsContainer",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 269
+        },
+        {
+          "name": "Render_ForwardsToChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 529
+        },
+        {
+          "name": "NullChild_NoCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 566
+        }
+      ]
+    },
+    {
+      "name": "LabelTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "PreferredSize_UsesDrawList",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 286
+        },
+        {
+          "name": "PreferredSize_FallbackWithoutDrawList",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 295
+        },
+        {
+          "name": "EmptyString_PreferredSizeIsZeroWidth",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 303
+        },
+        {
+          "name": "Render_DrawsText",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 310
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 321
+        }
+      ]
+    },
+    {
+      "name": "CircleTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "PreferredSize_IsDiameter",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 330
+        },
+        {
+          "name": "Render_DrawsFilledCircle",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 337
+        },
+        {
+          "name": "NotFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 348
+        }
+      ]
+    },
+    {
+      "name": "SpacerTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "PreferredSizeIsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 357
+        },
+        {
+          "name": "IsFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 364
+        },
+        {
+          "name": "Render_NoCrash",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 369
+        }
+      ]
+    },
+    {
+      "name": "NestingTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "RowInsideColumn",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 384
+        },
+        {
+          "name": "ContainerWithNegativeMarginInRow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 418
+        },
+        {
+          "name": "DeepNesting_ColumnRowColumn",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_layout.cpp",
+          "line": 444
+        }
+      ]
+    }
+  ]
+}

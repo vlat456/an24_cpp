@@ -1,0 +1,57 @@
+{
+  "tests": 9,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SubtractTest",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "BasicSubtraction_Positive",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 24
+        },
+        {
+          "name": "BasicSubtraction_Negative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 33
+        },
+        {
+          "name": "ZeroInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 42
+        },
+        {
+          "name": "EqualInputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 49
+        },
+        {
+          "name": "LargePositive",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 58
+        },
+        {
+          "name": "LargeNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 67
+        },
+        {
+          "name": "SmallDifference",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 76
+        },
+        {
+          "name": "NegativeResult",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 85
+        },
+        {
+          "name": "MultipleSteps_Stability",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_subtract.cpp",
+          "line": 94
+        }
+      ]
+    }
+  ]
+}

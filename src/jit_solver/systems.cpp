@@ -4,8 +4,6 @@
 #include "../json_parser/json_parser.h"
 #include <spdlog/spdlog.h>
 
-namespace an24 {
-
 void Systems::add_component(std::unique_ptr<Component> comp, const std::vector<Domain>& domains) {
     Component* raw_ptr = comp.get();  // Save pointer before moving
     all_components.push_back(std::move(comp));  // Centralized ownership
@@ -63,19 +61,20 @@ size_t Systems::component_count() const {
 }
 
 void Systems::solve_step(SimulationState& state, size_t step, float dt) {
+    // Pause-safe and lag-spike protection: clamp dt once for all domains
+    // This prevents numerical explosions and ensures components don't need individual clamps
+    constexpr float DT_MIN = 1e-6f;  // Prevent div-by-zero
+    constexpr float DT_MAX = 0.1f;   // Prevent instability on lag spikes
+    float safe_dt = std::max(DT_MIN, std::min(dt, DT_MAX));
+
     // Accumulate dt for each domain (FPS-independent physics)
-    accumulator_mechanical += dt;
-    accumulator_hydraulic += dt;
-    accumulator_thermal += dt;
+    accumulator_mechanical += safe_dt;
+    accumulator_hydraulic += safe_dt;
+    accumulator_thermal += safe_dt;
 
     // Electrical: every step (no accumulation needed)
     for (auto& comp : electrical) {
-        comp->solve_electrical(state, dt);
-    }
-
-    // Logical: every step (runs every frame like electrical)
-    for (auto& comp : logical) {
-        comp->solve_logical(state, dt);
+        comp->solve_electrical(state, safe_dt);
     }
 
     // Mechanical: every 3rd step - use accumulated time, then reset
@@ -104,6 +103,17 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
             }
         }
         accumulator_thermal = 0.0f;  // Reset after use
+    }
+
+    // NOTE: Logical domain is NOT run here. Callers must invoke solve_logical()
+    // AFTER SOR + post_step so logical gates read converged values.
+    // See Simulator::step() for the correct ordering:
+    //   electrical -> mechanical -> hydraulic -> thermal -> SOR -> post_step -> logical
+}
+
+void Systems::solve_logical(SimulationState& state, float dt) {
+    for (auto& comp : logical) {
+        comp->solve_logical(state, dt);
     }
 }
 
@@ -154,5 +164,3 @@ void Systems::pre_load() {
         }
     }
 }
-
-} // namespace an24

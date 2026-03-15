@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/pi_p_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/pi_p_tests[1]_tests.cmake")
+else()
+  add_test(pi_p_tests_NOT_BUILT pi_p_tests_NOT_BUILT)
+endif()

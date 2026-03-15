@@ -1,0 +1,29 @@
+{
+  "exposes": {
+    "A": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "B": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "o": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Logical XOR gate: output = A != B (exclusive OR)",
+    "domains": [
+      "Logical"
+    ],
+    "name": "XOR",
+    "size": [
+      2.0,
+      2.0
+    ]
+  },
+  "version": 2
+}

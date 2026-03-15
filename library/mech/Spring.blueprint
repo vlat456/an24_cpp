@@ -1,0 +1,47 @@
+{
+  "exposes": {
+    "force_out": {
+      "direction": "Out",
+      "type": "Any"
+    },
+    "pos_a": {
+      "direction": "In",
+      "type": "Any"
+    },
+    "pos_b": {
+      "direction": "In",
+      "type": "Any"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Mechanical spring (Hooke's law, compression_only mode)",
+    "domains": [
+      "Mechanical"
+    ],
+    "name": "Spring",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "c": {
+      "default": "10.0",
+      "type": "float"
+    },
+    "compression_only": {
+      "default": "true",
+      "type": "bool"
+    },
+    "k": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "rest_length": {
+      "default": "0.1",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

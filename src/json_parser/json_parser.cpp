@@ -4,10 +4,10 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include "editor/data/flat_blueprint.h"
+#include "editor/data/type_def_convert.h"
 
 using json = nlohmann::json;
-
-namespace an24 {
 
 // Helper: convert string to Domain
 static Domain parse_domain(const std::string& s) {
@@ -129,7 +129,19 @@ static DeviceInstance parse_device(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in component definitions (components/*.json). Users cannot override domains.
+    // in type definitions (library/*.blueprint). Users cannot override domains.
+
+    // Editor layout (optional, for blueprint expansion)
+    if (j.contains("pos") && j["pos"].is_object()) {
+        auto& p = j["pos"];
+        if (p.contains("x") && p.contains("y"))
+            dev.pos = {p["x"].get<float>(), p["y"].get<float>()};
+    }
+    if (j.contains("size") && j["size"].is_object()) {
+        auto& s = j["size"];
+        if (s.contains("x") && s.contains("y"))
+            dev.size = {s["x"].get<float>(), s["y"].get<float>()};
+    }
 
     return dev;
 }
@@ -194,7 +206,7 @@ static SystemTemplate parse_template(const json& j) {
     }
 
     // NOTE: Domains are NOT parsed from JSON - they are defined exclusively
-    // in component definitions (components/*.json).
+    // in type definitions (library/*.blueprint).
 
     return tpl;
 }
@@ -267,15 +279,16 @@ std::unordered_map<std::string, Port> extract_exposed_ports(
     return exposed;
 }
 
-ParserContext parse_json(const std::string& json_text) {
+static ParserContext parse_json_impl(const std::string& json_text,
+                                     TypeRegistry& registry,
+                                     std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
 
     auto j = json::parse(json_text);
     ParserContext ctx;
 
-    // Load component registry
-    ctx.registry = load_component_registry();
-    spdlog::info("[json_parser] Loaded {} component definitions", ctx.registry.components.size());
+    // Share registry (already loaded by caller)
+    ctx.registry = registry;
 
     // Parse templates
     if (j.contains("templates")) {
@@ -302,51 +315,6 @@ ParserContext parse_json(const std::string& json_text) {
     for (const auto& raw_dev : raw_devices) {
         // Check if component exists in registry
         if (!ctx.registry.has(raw_dev.classname)) {
-            // Phase 2: Fallback to blueprint loading (always expand, never keep collapsed)
-            std::string blueprint_path = "blueprints/" + raw_dev.classname + ".json";
-
-            // Try to find blueprint file (same logic as component registry)
-            std::filesystem::path blueprint_fs_path(blueprint_path);
-            if (!std::filesystem::exists(blueprint_fs_path) && blueprint_fs_path.is_relative()) {
-                std::vector<std::filesystem::path> try_paths = {
-                    blueprint_fs_path,
-                    "../" / blueprint_fs_path,
-                    "../../" / blueprint_fs_path,
-                    "../../../" / blueprint_fs_path,
-                };
-                for (const auto& path : try_paths) {
-                    if (std::filesystem::exists(path)) {
-                        blueprint_fs_path = path;
-                        break;
-                    }
-                }
-            }
-
-            if (std::filesystem::exists(blueprint_fs_path)) {
-                spdlog::info("[json_parser] Loading nested blueprint '{}' from {}",
-                           raw_dev.classname, blueprint_fs_path.string());
-
-                // Load nested blueprint file
-                std::ifstream blueprint_file(blueprint_fs_path);
-                if (!blueprint_file.is_open()) {
-                    throw std::runtime_error("Failed to open blueprint: " + blueprint_fs_path.string());
-                }
-
-                std::string blueprint_json((std::istreambuf_iterator<char>(blueprint_file)),
-                                           std::istreambuf_iterator<char>());
-
-                // Recursively parse nested blueprint (DRY - same code path!)
-                ParserContext nested = parse_json(blueprint_json);
-
-                // Merge nested blueprint with prefix
-                merge_nested_blueprint(ctx, nested, raw_dev.name);
-
-                spdlog::info("[json_parser] Merged nested blueprint '{}' as device '{}'",
-                           raw_dev.classname, raw_dev.name);
-                continue;  // Skip normal device processing
-            }
-
-            // Not in registry and no blueprint found - error!
             spdlog::error("[json_parser] Unknown component classname '{}' in device '{}'",
                          raw_dev.classname, raw_dev.name);
             throw std::runtime_error("Unknown component classname: " + raw_dev.classname);
@@ -358,6 +326,45 @@ ParserContext parse_json(const std::string& json_text) {
             spdlog::error("[json_parser] Component definition not found for '{}' in device '{}'",
                          raw_dev.classname, raw_dev.name);
             throw std::runtime_error("Component definition not found: " + raw_dev.classname);
+        }
+
+        // Blueprint types (cpp_class=false): expand from TypeDefinition
+        if (!def->cpp_class && !def->devices.empty()) {
+            // Cycle detection: if we're already expanding this classname, it's a cycle
+            if (expanding.count(raw_dev.classname)) {
+                throw std::runtime_error("Blueprint cycle detected: '" + raw_dev.classname +
+                    "' is already being expanded (circular dependency)");
+            }
+
+            spdlog::info("[json_parser] Expanding blueprint type '{}' as device '{}' from TypeRegistry",
+                        raw_dev.classname, raw_dev.name);
+
+            // Build a ParserContext from the TypeDefinition's devices/connections
+            // and recursively process them (handles nested blueprints)
+            nlohmann::json nested_json;
+            nested_json["devices"] = nlohmann::json::array();
+            for (const auto& inner_dev : def->devices) {
+                nlohmann::json dev_j;
+                dev_j["name"] = inner_dev.name;
+                dev_j["classname"] = inner_dev.classname;
+                if (!inner_dev.params.empty()) {
+                    dev_j["params"] = inner_dev.params;
+                }
+                nested_json["devices"].push_back(dev_j);
+            }
+            nested_json["connections"] = nlohmann::json::array();
+            for (const auto& conn : def->connections) {
+                nested_json["connections"].push_back({{"from", conn.from}, {"to", conn.to}});
+            }
+
+            // Track this classname as being expanded, then recurse
+            expanding.insert(raw_dev.classname);
+            ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
+            merge_nested_blueprint(ctx, nested, raw_dev.name);
+
+            spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
+                        raw_dev.classname, raw_dev.name, nested.devices.size());
+            continue;
         }
 
         // Merge instance with definition
@@ -497,6 +504,18 @@ ParserContext parse_json(const std::string& json_text) {
     return ctx;
 }
 
+ParserContext parse_json(const std::string& json_text) {
+    auto registry = load_type_registry();
+    spdlog::info("[json_parser] Loaded {} type definitions", registry.types.size());
+    return parse_json_impl(json_text, registry, {});
+}
+
+ParserContext parse_json(const std::string& json_text, const std::string& library_dir) {
+    auto registry = load_type_registry(library_dir);
+    spdlog::info("[json_parser] Loaded {} type definitions from '{}'", registry.types.size(), library_dir);
+    return parse_json_impl(json_text, registry, {});
+}
+
 // Serialization helpers
 static json port_to_json(const Port& port) {
     json j;
@@ -536,7 +555,7 @@ static json device_to_json(const DeviceInstance& dev) {
     }
 
     // NOTE: Domains are NOT serialized to JSON - they are defined exclusively
-    // in component definitions (components/*.json).
+    // in type definitions (library/*.blueprint).
 
     return j;
 }
@@ -628,110 +647,178 @@ std::string serialize_json(const ParserContext& ctx) {
     return j.dump(2);  // Pretty print with 2-space indent
 }
 
-// Helper: parse ComponentDefinition from JSON
-static ComponentDefinition parse_component_definition(const json& j) {
-    ComponentDefinition def;
+// Helper: parse TypeDefinition from JSON
+TypeDefinition parse_type_definition(const json& j) {
+    TypeDefinition def;
 
     if (j.contains("classname")) def.classname = j["classname"].get<std::string>();
-    else throw std::runtime_error("Component definition missing 'classname' field");
+    else throw std::runtime_error("Type definition missing 'classname' field");
 
     if (j.contains("description")) def.description = j["description"].get<std::string>();
+    if (j.contains("cpp_class")) def.cpp_class = j["cpp_class"].get<bool>();
 
-    // Parse default ports
-    if (j.contains("default_ports")) {
-        for (auto& [port_name, port_val] : j["default_ports"].items()) {
-            def.default_ports[port_name] = parse_port(port_val);
+    // Parse ports
+    if (j.contains("ports")) {
+        for (auto& [port_name, port_val] : j["ports"].items()) {
+            def.ports[port_name] = parse_port(port_val);
         }
     }
 
-    // Parse default params
-    if (j.contains("default_params")) {
-        for (auto& [key, val] : j["default_params"].items()) {
-            def.default_params[key] = val.get<std::string>();
+    // Parse params (supports both "key": "value" and "key": {"default": "value", ...})
+    if (j.contains("params")) {
+        for (auto& [key, val] : j["params"].items()) {
+            if (val.is_string()) {
+                def.params[key] = val.get<std::string>();
+            } else if (val.is_object() && val.contains("default")) {
+                def.params[key] = val["default"].get<std::string>();
+            }
         }
     }
 
-    // Parse default domains
-    if (j.contains("default_domains") && j["default_domains"].is_array()) {
+    // Parse domains
+    if (j.contains("domains") && j["domains"].is_array()) {
         std::vector<Domain> domains;
-        for (const auto& d : j["default_domains"]) {
+        for (const auto& d : j["domains"]) {
             domains.push_back(parse_domain(d.get<std::string>()));
         }
         if (!domains.empty()) {
-            def.default_domains = domains;
+            def.domains = domains;
         }
     }
 
-    // Parse default priority
-    if (j.contains("default_priority")) {
-        def.default_priority = j["default_priority"].get<std::string>();
+    // Parse priority
+    if (j.contains("priority")) {
+        def.priority = j["priority"].get<std::string>();
     }
 
-    // Parse default critical
-    if (j.contains("default_critical")) {
-        def.default_critical = j["default_critical"].get<bool>();
+    // Parse critical
+    if (j.contains("critical")) {
+        def.critical = j["critical"].get<bool>();
     }
 
-    // Parse default content type
-    if (j.contains("default_content_type")) {
-        def.default_content_type = j["default_content_type"].get<std::string>();
+    // Parse content type
+    if (j.contains("content_type")) {
+        def.content_type = j["content_type"].get<std::string>();
     }
 
-    // Parse default size {x, y} in grid units
-    if (j.contains("default_size") && j["default_size"].is_object()) {
-        auto size_obj = j["default_size"];
+    // Parse render hint (visual style: "bus", "ref", or empty)
+    if (j.contains("render_hint")) {
+        def.render_hint = j["render_hint"].get<std::string>();
+    }
+
+    // Parse visual_only flag
+    if (j.contains("visual_only")) {
+        def.visual_only = j["visual_only"].get<bool>();
+    }
+
+    // Parse size {x, y} in grid units
+    if (j.contains("size") && j["size"].is_object()) {
+        auto size_obj = j["size"];
         if (size_obj.contains("x") && size_obj.contains("y")) {
             float x = size_obj["x"].get<float>();
             float y = size_obj["y"].get<float>();
-            def.default_size = {x, y};
+            def.size = {x, y};
+        }
+    }
+
+    // For blueprints: parse devices and connections
+    if (j.contains("devices") && j["devices"].is_array()) {
+        for (const auto& dev_j : j["devices"]) {
+            def.devices.push_back(parse_device(dev_j));
+        }
+    }
+    if (j.contains("connections") && j["connections"].is_array()) {
+        for (const auto& conn_j : j["connections"]) {
+            def.connections.push_back(parse_connection(conn_j));
+        }
+    }
+    // Also accept "wires" (editor format) as connections, with routing_points
+    if (def.connections.empty() && j.contains("wires") && j["wires"].is_array()) {
+        for (const auto& wire_j : j["wires"]) {
+            Connection conn = parse_connection(wire_j);
+            if (wire_j.contains("routing_points") && wire_j["routing_points"].is_array()) {
+                for (const auto& rp : wire_j["routing_points"]) {
+                    if (rp.contains("x") && rp.contains("y")) {
+                        conn.routing_points.push_back({rp["x"].get<float>(), rp["y"].get<float>()});
+                    }
+                }
+            }
+            def.connections.push_back(std::move(conn));
+        }
+    }
+
+    // Parse sub_blueprints array (references to other blueprints)
+    if (j.contains("sub_blueprints") && j["sub_blueprints"].is_array()) {
+        for (const auto& sbj : j["sub_blueprints"]) {
+            SubBlueprintRef ref;
+            ref.id = sbj.value("id", "");
+            ref.blueprint_path = sbj.value("blueprint_path", "");
+            ref.type_name = sbj.value("type_name", "");
+            if (sbj.contains("pos"))
+                ref.pos = {sbj["pos"].value("x", 0.0f), sbj["pos"].value("y", 0.0f)};
+            if (sbj.contains("size"))
+                ref.size = {sbj["size"].value("x", 0.0f), sbj["size"].value("y", 0.0f)};
+            if (sbj.contains("params_override") && sbj["params_override"].is_object()) {
+                for (auto& [k, v] : sbj["params_override"].items())
+                    ref.params_override[k] = v.get<std::string>();
+            }
+            def.sub_blueprints.push_back(std::move(ref));
         }
     }
 
     return def;
 }
 
-// Load component registry from components/ directory
-ComponentRegistry load_component_registry(const std::string& components_dir) {
-    ComponentRegistry registry;
+// Load type registry from library/ directory
+TypeRegistry load_type_registry(const std::string& library_dir) {
+    TypeRegistry registry;
 
-    std::filesystem::path components_path(components_dir);
+    std::filesystem::path library_path(library_dir);
 
     // If relative path doesn't exist, try relative to source directory
-    if (!std::filesystem::exists(components_path) && components_path.is_relative()) {
+    if (!std::filesystem::exists(library_path) && library_path.is_relative()) {
         // Try common locations relative to current working directory
         std::vector<std::filesystem::path> try_paths = {
-            components_path,  // As provided
-            "../" / components_path,  // Parent directory
-            "../../" / components_path,  // Two levels up
-            "../../../" / components_path,  // Three levels up (for build/tests)
+            library_path,  // As provided
+            "../" / library_path,  // Parent directory
+            "../../" / library_path,  // Two levels up
+            "../../../" / library_path,  // Three levels up (for build/tests)
         };
 
         for (const auto& path : try_paths) {
             if (std::filesystem::exists(path)) {
-                components_path = path;
+                library_path = path;
                 break;
             }
         }
     }
 
     // Check if directory exists
-    if (!std::filesystem::exists(components_path)) {
-        spdlog::warn("[json_parser] Components directory '{}' does not exist, using empty registry", components_dir);
+    if (!std::filesystem::exists(library_path)) {
+        spdlog::warn("[json_parser] Library directory '{}' does not exist, using empty registry", library_dir);
         return registry;
     }
 
-    // Scan for *.json files
+    // Scan for *.blueprint files recursively (v2 format)
     size_t loaded_count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(components_path)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".json") {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(library_path)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".blueprint") {
             try {
-                // Read and parse JSON file
+                // Read file content
                 std::ifstream file(entry.path());
-                json j;
-                file >> j;
+                std::string content((std::istreambuf_iterator<char>(file)),
+                                     std::istreambuf_iterator<char>());
 
-                // Parse component definition
-                ComponentDefinition def = parse_component_definition(j);
+                // Parse v2 blueprint
+                auto bp_opt = parse_flat_blueprint(content);
+                if (!bp_opt.has_value()) {
+                    spdlog::error("[json_parser] Failed to parse v2 blueprint '{}'",
+                                  entry.path().string());
+                    continue;
+                }
+
+                // Convert to TypeDefinition
+                TypeDefinition def = flat_to_type_definition(*bp_opt);
 
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {
@@ -740,22 +827,31 @@ ComponentRegistry load_component_registry(const std::string& components_dir) {
                     continue;
                 }
 
+                // Compute category from relative directory path
+                auto relative_dir = std::filesystem::relative(entry.path().parent_path(), library_path);
+                std::string category = relative_dir.generic_string();
+                if (category == ".") category = "";
+
                 // Add to registry
-                registry.components[def.classname] = def;
+                registry.types[def.classname] = def;
+                if (!category.empty()) {
+                    registry.categories[def.classname] = category;
+                }
                 loaded_count++;
 
-                spdlog::debug("[json_parser] Loaded component definition: '{}' from {}",
-                             def.classname, entry.path().filename().string());
+                spdlog::debug("[json_parser] Loaded type definition: '{}' from {} (category: {})",
+                             def.classname, entry.path().filename().string(),
+                             category.empty() ? "root" : category);
             }
             catch (const std::exception& e) {
-                spdlog::error("[json_parser] Failed to parse component definition '{}': {}",
+                spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
                              entry.path().string(), e.what());
             }
         }
     }
 
-    spdlog::info("[json_parser] Loaded {} component definitions from '{}'",
-                 loaded_count, components_dir);
+    spdlog::info("[json_parser] Loaded {} type definitions from '{}'",
+                 loaded_count, library_dir);
 
     return registry;
 }
@@ -763,20 +859,20 @@ ComponentRegistry load_component_registry(const std::string& components_dir) {
 // Merge device instance with component definition defaults
 DeviceInstance merge_device_instance(
     const DeviceInstance& instance,
-    const ComponentDefinition& definition
+    const TypeDefinition& definition
 ) {
     DeviceInstance merged = instance;
 
     // Merge ports: instance overrides, defaults fill gaps
     if (merged.ports.empty()) {
-        merged.ports = definition.default_ports;
+        merged.ports = definition.ports;
     } else {
-        for (const auto& [port_name, port] : definition.default_ports) {
+        for (const auto& [port_name, port] : definition.ports) {
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
                 // Port exists in instance - always copy type and alias from definition
-                // This ensures port types from component definitions are always used
+                // This ensures port types from type definitions are always used
                 merged.ports[port_name].type = port.type;
                 merged.ports[port_name].alias = port.alias;
             }
@@ -784,34 +880,74 @@ DeviceInstance merge_device_instance(
     }
 
     // Merge params: instance overrides, defaults fill gaps
-    for (const auto& [param_name, param_value] : definition.default_params) {
+    for (const auto& [param_name, param_value] : definition.params) {
         if (!merged.params.count(param_name)) {
             merged.params[param_name] = param_value;
         }
     }
 
-    // Copy domains from component definition (NOT user-configurable)
-    if (definition.default_domains.has_value()) {
-        merged.domains = *definition.default_domains;
+    // Copy domains from type definition (NOT user-configurable)
+    if (definition.domains.has_value()) {
+        merged.domains = *definition.domains;
     } else {
         merged.domains = {Domain::Electrical};  // Default fallback
     }
 
     // Merge priority: instance overrides default (only if instance has default priority)
-    if (merged.priority == "med" && definition.default_priority != "med") {
-        merged.priority = definition.default_priority;
+    if (merged.priority == "med" && definition.priority != "med") {
+        merged.priority = definition.priority;
     }
 
     // Merge critical: instance overrides default
-    if (!merged.critical && definition.default_critical) {
+    if (!merged.critical && definition.critical) {
         merged.critical = true;
+    }
+
+    // Propagate visual_only from definition
+    if (definition.visual_only) {
+        merged.visual_only = true;
     }
 
     return merged;
 }
 
-// Validate instance against component definition
-std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInstance& instance) const {
+// Build menu tree from directory hierarchy (categories map)
+MenuTree TypeRegistry::build_menu_tree() const {
+    MenuTree root;
+    for (const auto& [classname, _] : types) {
+        MenuTree* node = &root;
+
+        auto cat_it = categories.find(classname);
+        if (cat_it != categories.end() && !cat_it->second.empty()) {
+            const std::string& cat = cat_it->second;
+            size_t start = 0;
+            while (start < cat.size()) {
+                size_t slash = cat.find('/', start);
+                std::string segment = (slash == std::string::npos)
+                    ? cat.substr(start)
+                    : cat.substr(start, slash - start);
+                node = &node->children[segment];
+                start = (slash == std::string::npos) ? cat.size() : slash + 1;
+            }
+        }
+
+        node->entries.push_back(classname);
+    }
+
+    // Sort entries at every level
+    std::function<void(MenuTree&)> sort_tree = [&](MenuTree& t) {
+        std::sort(t.entries.begin(), t.entries.end());
+        for (auto& [_, child] : t.children) {
+            sort_tree(child);
+        }
+    };
+    sort_tree(root);
+
+    return root;
+}
+
+// Validate instance against type definition
+std::optional<std::string> TypeRegistry::validate_instance(const DeviceInstance& instance) const {
     // Check classname exists
     if (!has(instance.classname)) {
         return "Unknown classname '" + instance.classname + "' in device '" + instance.name + "'";
@@ -819,17 +955,17 @@ std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInst
 
     const auto* def = get(instance.classname);
     if (!def) {
-        return "Component definition not found for '" + instance.classname + "'";
+        return "Type definition not found for '" + instance.classname + "'";
     }
 
     // Validate instance ports are known in definition
     for (const auto& [port_name, port] : instance.ports) {
-        if (!def->default_ports.count(port_name)) {
+        if (!def->ports.count(port_name)) {
             return "Unknown port '" + port_name + "' in device '" + instance.name +
                    "' of type '" + instance.classname + "'. Valid ports: " +
                    [&]() {
                        std::string valid_ports;
-                       for (const auto& [name, _] : def->default_ports) {
+                       for (const auto& [name, _] : def->ports) {
                            if (!valid_ports.empty()) valid_ports += ", ";
                            valid_ports += name;
                        }
@@ -846,4 +982,83 @@ std::optional<std::string> ComponentRegistry::validate_instance(const DeviceInst
     return std::nullopt;  // Validation passed
 }
 
-} // namespace an24
+TypeDefinition expand_sub_blueprint_references(
+    const TypeDefinition& td,
+    const TypeRegistry& registry,
+    std::set<std::string>& loading_stack)
+{
+    if (td.cpp_class) return td;
+
+    if (!loading_stack.insert(td.classname).second) {
+        throw std::runtime_error("Circular sub-blueprint reference: " + td.classname);
+    }
+
+    TypeDefinition result = td;
+    result.sub_blueprints.clear();
+
+    for (const auto& ref : td.sub_blueprints) {
+        const auto* sub_td = registry.get(ref.type_name);
+        if (!sub_td) {
+            throw std::runtime_error(
+                "Sub-blueprint '" + ref.type_name + "' not found in TypeRegistry"
+                " (referenced by '" + td.classname + "' as '" + ref.id + "')");
+        }
+
+        auto expanded = expand_sub_blueprint_references(*sub_td, registry, loading_stack);
+
+        for (auto& dev : expanded.devices) {
+            dev.name = ref.id + ":" + dev.name;
+
+            for (const auto& [override_key, override_val] : ref.params_override) {
+                auto dot = override_key.find('.');
+                if (dot == std::string::npos) continue;
+                std::string dev_name = override_key.substr(0, dot);
+                std::string param_name = override_key.substr(dot + 1);
+                std::string unprefixed = dev.name.substr(ref.id.size() + 1);
+                if (unprefixed == dev_name) {
+                    dev.params[param_name] = override_val;
+                }
+            }
+
+            result.devices.push_back(std::move(dev));
+        }
+
+        for (auto& conn : expanded.connections) {
+            conn.from = ref.id + ":" + conn.from;
+            conn.to = ref.id + ":" + conn.to;
+            result.connections.push_back(std::move(conn));
+        }
+    }
+
+    loading_stack.erase(td.classname);
+    return result;
+}
+
+std::vector<std::string> TypeRegistry::get_composites_topo_sorted() const {
+    std::vector<std::string> result;
+    std::set<std::string> visited;
+    std::set<std::string> in_stack;
+
+    std::function<void(const std::string&)> visit = [&](const std::string& name) {
+        if (visited.count(name)) return;
+        if (in_stack.count(name))
+            throw std::runtime_error("Cycle in composite hierarchy: " + name);
+        in_stack.insert(name);
+
+        auto it = types.find(name);
+        if (it == types.end() || it->second.cpp_class) return;
+
+        for (const auto& ref : it->second.sub_blueprints) {
+            visit(ref.type_name);
+        }
+
+        in_stack.erase(name);
+        visited.insert(name);
+        result.push_back(name);
+    };
+
+    for (const auto& [name, td] : types) {
+        if (!td.cpp_class) visit(name);
+    }
+     return result;
+}

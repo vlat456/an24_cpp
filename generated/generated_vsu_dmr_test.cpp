@@ -1,7 +1,6 @@
 #include "generated_vsu_dmr_test.h"
 #include <cstring>  // memcpy
 
-namespace an24 {
 
 Systems::Systems()
 {
@@ -808,4 +807,3 @@ AOT_INLINE bool Systems::check_convergence(void* state, float tolerance) const {
     return true;
 }
 
-} // namespace an24

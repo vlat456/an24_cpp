@@ -1,0 +1,205 @@
+{
+  "tests": 35,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PIDTest",
+      "tests": 22,
+      "testsuite": [
+        {
+          "name": "ProportionalOnly",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 42
+        },
+        {
+          "name": "ProportionalSign",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 53
+        },
+        {
+          "name": "IntegralAccumulatesOverOneSecond_60Hz",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 65
+        },
+        {
+          "name": "IntegralTimeInvariance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 81
+        },
+        {
+          "name": "DerivativeFilterReducesNoise",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 99
+        },
+        {
+          "name": "AntiWindupCapsOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 126
+        },
+        {
+          "name": "AntiWindupIntegralClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 141
+        },
+        {
+          "name": "SolveElectricalStampsConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 159
+        },
+        {
+          "name": "ZeroErrorProducesZeroPAndD",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 173
+        },
+        {
+          "name": "AllGainsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 185
+        },
+        {
+          "name": "ExtremeDt_ClampedToMax",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 196
+        },
+        {
+          "name": "TinyDt_ClampedToMin",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 209
+        },
+        {
+          "name": "FilterAlphaZero_NoFiltering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 221
+        },
+        {
+          "name": "FilterAlphaOne_InstantTracking",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 236
+        },
+        {
+          "name": "VeryLargeKd_WithSmallDt_Stability",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 251
+        },
+        {
+          "name": "NegativeKp_InvertsControl",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 272
+        },
+        {
+          "name": "BidirectionalOutputLimits",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 284
+        },
+        {
+          "name": "AsymmetricOutputLimits",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 297
+        },
+        {
+          "name": "IntegralDecay_WhenErrorSignChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 312
+        },
+        {
+          "name": "DerivativeZeroWhenErrorConstant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 337
+        },
+        {
+          "name": "FullPID_StepResponse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 356
+        },
+        {
+          "name": "MultipleResets_WithSameInitialState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 383
+        }
+      ]
+    },
+    {
+      "name": "PTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "BasicProportional",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 420
+        },
+        {
+          "name": "OutputClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 431
+        },
+        {
+          "name": "ZeroError",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 441
+        },
+        {
+          "name": "SolveElectricalConductance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 451
+        }
+      ]
+    },
+    {
+      "name": "PDTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "ProportionalTerm",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 482
+        },
+        {
+          "name": "DerivativeReducesOvershoot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 492
+        },
+        {
+          "name": "NoIntegral",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 511
+        },
+        {
+          "name": "OutputClamped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 527
+        }
+      ]
+    },
+    {
+      "name": "PITest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "ProportionalTerm",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 555
+        },
+        {
+          "name": "IntegralAccumulates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 565
+        },
+        {
+          "name": "IntegralTimeInvariance",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 579
+        },
+        {
+          "name": "AntiWindup",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 593
+        },
+        {
+          "name": "NoDerivative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_pid.cpp",
+          "line": 606
+        }
+      ]
+    }
+  ]
+}

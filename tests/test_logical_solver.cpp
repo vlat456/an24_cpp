@@ -3,7 +3,7 @@
 #include "jit_solver/simulator.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
-#include "editor/visual/scene/persist.h"
+#include "editor/visual/persist.h"
 
 /// TDD: Logical Solver and Comparator Component
 /// These tests are written FIRST (TDD approach) and will FAIL until implementation is complete
@@ -14,8 +14,6 @@
 
 TEST(LogicalSolverTest, LogicalDomain_ExistsInEnum) {
     // Logical domain should be defined in Domain enum
-    using namespace an24;
-
     // This test verifies that Domain::Logical compiles
     Domain d = Domain::Logical;
     (void)d;  // Suppress unused warning
@@ -24,19 +22,17 @@ TEST(LogicalSolverTest, LogicalDomain_ExistsInEnum) {
 
 TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
     // Logical domain should parse from JSON string "Logical"
-    using namespace an24;
-
     // Try to load component registry (which will parse domains)
     // If "Logical" domain doesn't parse, this will fail
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     // Verify that we loaded at least the Comparator component
     const auto* comp = registry.get("Comparator");
     if (comp) {
-        ASSERT_TRUE(comp->default_domains.has_value())
+        ASSERT_TRUE(comp->domains.has_value())
             << "Comparator should have default domains defined";
 
-        auto& domains = comp->default_domains.value();
+        auto& domains = comp->domains.value();
         bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
         EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
     } else {
@@ -49,11 +45,9 @@ TEST(LogicalSolverTest, LogicalDomain_ParsesFromString) {
 // Tests for Comparator Component Definition
 // =============================================================================
 
-TEST(LogicalSolverTest, Comparator_ComponentDefinitionExists) {
+TEST(LogicalSolverTest, Comparator_TypeDefinitionExists) {
     // Component should be in registry with correct structure
-    using namespace an24;
-
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {
@@ -66,30 +60,28 @@ TEST(LogicalSolverTest, Comparator_ComponentDefinitionExists) {
     EXPECT_FALSE(comp->description.empty()) << "Comparator should have a description";
 
     // Check ports exist (Von and Voff are parameters, not ports!)
-    EXPECT_TRUE(comp->default_ports.contains("Va")) << "Should have Va input";
-    EXPECT_TRUE(comp->default_ports.contains("Vb")) << "Should have Vb input";
-    EXPECT_TRUE(comp->default_ports.contains("o")) << "Should have o output";
+    EXPECT_TRUE(comp->ports.contains("Va")) << "Should have Va input";
+    EXPECT_TRUE(comp->ports.contains("Vb")) << "Should have Vb input";
+    EXPECT_TRUE(comp->ports.contains("o")) << "Should have o output";
 
     // Check port directions
-    EXPECT_EQ(comp->default_ports.at("Va").direction, PortDirection::In);
-    EXPECT_EQ(comp->default_ports.at("Vb").direction, PortDirection::In);
-    EXPECT_EQ(comp->default_ports.at("o").direction, PortDirection::Out);
+    EXPECT_EQ(comp->ports.at("Va").direction, PortDirection::In);
+    EXPECT_EQ(comp->ports.at("Vb").direction, PortDirection::In);
+    EXPECT_EQ(comp->ports.at("o").direction, PortDirection::Out);
 
     // Check port types (Va, Vb should be Voltage; o should be Bool)
-    EXPECT_EQ(comp->default_ports.at("Va").type, PortType::V);
-    EXPECT_EQ(comp->default_ports.at("Vb").type, PortType::V);
-    EXPECT_EQ(comp->default_ports.at("o").type, PortType::Bool);
+    EXPECT_EQ(comp->ports.at("Va").type, PortType::V);
+    EXPECT_EQ(comp->ports.at("Vb").type, PortType::V);
+    EXPECT_EQ(comp->ports.at("o").type, PortType::Bool);
 
     // Check parameters
-    EXPECT_TRUE(comp->default_params.contains("Von")) << "Should have Von parameter";
-    EXPECT_TRUE(comp->default_params.contains("Voff")) << "Should have Voff parameter";
+    EXPECT_TRUE(comp->params.contains("Von")) << "Should have Von parameter";
+    EXPECT_TRUE(comp->params.contains("Voff")) << "Should have Voff parameter";
 }
 
 TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
     // Comparator should be registered in Logical domain
-    using namespace an24;
-
-    ComponentRegistry registry = load_component_registry("components/");
+    TypeRegistry registry = load_type_registry("library/");
 
     const auto* comp = registry.get("Comparator");
     if (!comp) {
@@ -97,10 +89,10 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
         return;
     }
 
-    ASSERT_TRUE(comp->default_domains.has_value())
+    ASSERT_TRUE(comp->domains.has_value())
         << "Comparator should have default domains defined";
 
-    auto& domains = comp->default_domains.value();
+    auto& domains = comp->domains.value();
     bool has_logical = std::find(domains.begin(), domains.end(), Domain::Logical) != domains.end();
     EXPECT_TRUE(has_logical) << "Comparator should be in Logical domain";
 }
@@ -111,8 +103,6 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
 
 TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
     // Systems should have a logical component vector
-    using namespace an24;
-
     // This test will compile but we can't fully test it without
     // actually creating a blueprint with a Comparator component
     // For now, just verify the code compiles with Logical domain
@@ -125,8 +115,6 @@ TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
 
 TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
     // Component base class should have solve_logical method
-    using namespace an24;
-
     // This is a compile-time test - if solve_logical doesn't exist,
     // this won't compile
     class MockComponent : public Component {
@@ -153,20 +141,19 @@ TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {
 TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
     // Test basic hysteresis: output turns ON above Von, OFF below Voff
     // Using default params: Von=5.0, Voff=2.0
-    using namespace an24;
-
     Blueprint bp;
+
+    auto& I = bp.interner();
 
     // Create comparator node
     Node comp;
-    comp.id = "comp1";
+    comp.id = I.intern("comp1");
     comp.name = "Comparator";
     comp.type_name = "Comparator";
-    comp.kind = NodeKind::Node;
     comp.at(0, 0);
-    comp.input("Va");
-    comp.input("Vb");
-    comp.output("o");
+    comp.input(I.intern("Va"));
+    comp.input(I.intern("Vb"));
+    comp.output(I.intern("o"));
     bp.add_node(std::move(comp));
 
     // Create simulator and start
@@ -213,18 +200,17 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 
 TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     // Test hysteresis with non-zero Vb
-    using namespace an24;
-
     Blueprint bp;
+    auto& I = bp.interner();
+
     Node comp;
-    comp.id = "comp1";
+    comp.id = I.intern("comp1");
     comp.name = "Comparator";
     comp.type_name = "Comparator";
-    comp.kind = NodeKind::Node;
     comp.at(0, 0);
-    comp.input("Va");
-    comp.input("Vb");
-    comp.output("o");
+    comp.input(I.intern("Va"));
+    comp.input(I.intern("Vb"));
+    comp.output(I.intern("o"));
     bp.add_node(std::move(comp));
 
     Simulator<JIT_Solver> simulator;

@@ -2,7 +2,6 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 
-using namespace an24;
 
 /// Test that Editor can build a simple circuit with ComponentVariant
 TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {

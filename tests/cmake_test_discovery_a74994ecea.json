@@ -1,0 +1,37 @@
+{
+  "tests": 5,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PortRegistryTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "RU19A_Ports_Match_JsonRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_registry_test.cpp",
+          "line": 9
+        },
+        {
+          "name": "DMR400_Ports_Match_JsonRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_registry_test.cpp",
+          "line": 35
+        },
+        {
+          "name": "GeneratedPortRegistryExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_registry_test.cpp",
+          "line": 58
+        },
+        {
+          "name": "RU19A_PortOffsets_AreCorrect",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_registry_test.cpp",
+          "line": 65
+        },
+        {
+          "name": "AllTypesInRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/port_registry_test.cpp",
+          "line": 86
+        }
+      ]
+    }
+  ]
+}

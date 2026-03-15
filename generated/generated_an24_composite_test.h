@@ -23,7 +23,6 @@
 #define AOT_UNLIKELY(x) (x)
 #endif
 
-namespace an24 {
 
 // ==============================================================================
 // SIGNAL INDICES (ECS-like: direct array access, no lookups)
@@ -152,4 +151,3 @@ public:
     uint32_t component_count() const { return 9; }
 };
 
-} // namespace an24

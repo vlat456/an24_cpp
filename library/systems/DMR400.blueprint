@@ -1,0 +1,30 @@
+{
+  "exposes": {
+    "lamp": {
+      "direction": "Out",
+      "type": "V"
+    },
+    "v_gen_ref": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "DMR400 Differential Minimum Relay with smart connection logic",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "DMR400",
+    "priority": "high"
+  },
+  "version": 2
+}

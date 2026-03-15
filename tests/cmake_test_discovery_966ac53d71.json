@@ -1,0 +1,17 @@
+{
+  "tests": 1,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ANDGateDebugTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "AND_With_Battery_VToBool_HoldButton",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_and_gate_debug.cpp",
+          "line": 61
+        }
+      ]
+    }
+  ]
+}

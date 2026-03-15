@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/pd_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/pd_tests[1]_tests.cmake")
+else()
+  add_test(pd_tests_NOT_BUILT pd_tests_NOT_BUILT)
+endif()

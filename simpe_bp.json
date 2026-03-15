@@ -1,0 +1,75 @@
+{
+  "collapsed_groups": [],
+  "devices": [
+    {
+      "classname": "Battery",
+      "name": "battery_1",
+      "params": {
+        "capacity": "1000.0",
+        "charge": "1000.0",
+        "internal_r": "0.01",
+        "inv_capacity": "0.001",
+        "inv_internal_r": "100.0",
+        "v_nominal": "28.0"
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 176.0,
+        "y": 224.0
+      },
+      "size": {
+        "x": 96.0,
+        "y": 64.0
+      }
+    },
+    {
+      "classname": "ElectricPump",
+      "name": "electricpump_1",
+      "params": {
+        "max_pressure": "1000.0"
+      },
+      "ports": {
+        "p_out": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        }
+      },
+      "pos": {
+        "x": 384.0,
+        "y": 208.0
+      },
+      "size": {
+        "x": 112.0,
+        "y": 64.0
+      }
+    }
+  ],
+  "viewport": {
+    "grid_step": 16.0,
+    "pan": {
+      "x": 0.0,
+      "y": 0.0
+    },
+    "zoom": 1.0
+  },
+  "wires": [
+    {
+      "from": "battery_1.v_out",
+      "routing_points": [],
+      "to": "electricpump_1.v_in"
+    }
+  ]
+}

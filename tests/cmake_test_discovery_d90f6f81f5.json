@@ -1,0 +1,52 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "DtRegression",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "SOR_OmegaIsCanonical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 73
+        },
+        {
+          "name": "Simulator_TimeAccumulatesVariableDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 85
+        },
+        {
+          "name": "SimController_TimeAccumulatesVariableDt",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 104
+        },
+        {
+          "name": "Simulator_ElectricalSolvesEveryStep",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 125
+        },
+        {
+          "name": "Simulator_SteadyStateIsDtIndependent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 152
+        },
+        {
+          "name": "Simulator_StepCounterResetsOnStart",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 180
+        },
+        {
+          "name": "Simulator_UsesDtParameterNotConstant",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 204
+        },
+        {
+          "name": "Comparator_HysteresisCorrectBehavior",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_dt_regression.cpp",
+          "line": 227
+        }
+      ]
+    }
+  ]
+}

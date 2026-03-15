@@ -1,0 +1,19 @@
+{
+  "exposes": {
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "Gauge",
+    "cpp_class": true,
+    "description": "Analog voltmeter gauge for measuring voltage",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "Voltmeter",
+    "priority": "low"
+  },
+  "version": 2
+}

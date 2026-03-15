@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "in": {
+      "direction": "In",
+      "type": "Bool"
+    },
+    "out": {
+      "direction": "Out",
+      "type": "Bool"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Logic delay node with separate ON and OFF timers",
+    "domains": [
+      "Logical"
+    ],
+    "name": "TimeDelay",
+    "size": [
+      2.0,
+      1.0
+    ]
+  },
+  "params": {
+    "delay_off": {
+      "default": "0.1",
+      "type": "float"
+    },
+    "delay_on": {
+      "default": "0.5",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

@@ -5,7 +5,6 @@
 #include <iostream>
 #include <iomanip>
 
-using namespace an24;
 
 int main() {
     spdlog::set_level(spdlog::level::debug);

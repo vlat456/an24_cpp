@@ -93,8 +93,8 @@ public:
 
     PID() = default;
 
-    void solve_electrical(an24::SimulationState& st, float dt);
-    void post_step(an24::SimulationState& st, float dt);
+    void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
 };
 ```
 
@@ -108,14 +108,14 @@ public:
 
 ```cpp
 template <typename Provider>
-void PID<Provider>::solve_electrical(an24::SimulationState& st, float /*dt*/) {
+void PID<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Electrical pass: set high output impedance
     float g_out = 1e-6f;  // 1MΩ output impedance (virtual control signal)
     st.conductance[provider.get(PortNames::output)] += g_out;
 }
 
 template <typename Provider>
-void PID<Provider>::post_step(an24::SimulationState& st, float dt) {
+void PID<Provider>::post_step(SimulationState& st, float dt) {
     // Read inputs
     float setpoint = st.across[provider.get(PortNames::setpoint)];
     float feedback = st.across[provider.get(PortNames::feedback)];

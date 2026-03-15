@@ -10,8 +10,6 @@
 // DeviceInstance is defined in json_parser/json_parser.h
 #include "../json_parser/json_parser.h"
 
-namespace an24 {
-
 // Forward declarations
 struct SimulationState;
 
@@ -50,11 +48,13 @@ struct BuildResult {
     /// This enables zero-branch scheduling: just iterate the right domain's vector
     /// Components with multiple solve methods appear in multiple domain vectors
     DomainComponents domain_components;
+
+    /// LUT table arena - accumulated during build, moved to SimulationState at start
+    std::vector<float> lut_keys;
+    std::vector<float> lut_values;
 };
 
 BuildResult build_systems_dev(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
 );
-
-} // namespace an24
