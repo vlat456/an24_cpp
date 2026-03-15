@@ -705,6 +705,19 @@ editor_data_interning_tests/fast:
 .PHONY : editor_data_interning_tests/fast
 
 #=============================================================================
+# Target rules for targets named port_layout_resolver_tests
+
+# Build rule for target.
+port_layout_resolver_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 port_layout_resolver_tests
+.PHONY : port_layout_resolver_tests
+
+# fast build rule for target.
+port_layout_resolver_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_layout_resolver_tests.dir/build.make tests/CMakeFiles/port_layout_resolver_tests.dir/build
+.PHONY : port_layout_resolver_tests/fast
+
+#=============================================================================
 # Target rules for targets named editor_viewport_tests
 
 # Build rule for target.
@@ -1277,19 +1290,6 @@ sub_blueprint_ref_tests/fast:
 .PHONY : sub_blueprint_ref_tests/fast
 
 #=============================================================================
-# Target rules for targets named document_window_system_tests
-
-# Build rule for target.
-document_window_system_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 document_window_system_tests
-.PHONY : document_window_system_tests
-
-# fast build rule for target.
-document_window_system_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/document_window_system_tests.dir/build.make tests/CMakeFiles/document_window_system_tests.dir/build
-.PHONY : document_window_system_tests/fast
-
-#=============================================================================
 # Target rules for targets named flat_blueprint_tests
 
 # Build rule for target.
@@ -1416,7 +1416,6 @@ help:
 	@echo "... command_tests"
 	@echo "... comparison_components_tests"
 	@echo "... convert_library"
-	@echo "... document_window_system_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_interning_tests"
@@ -1452,6 +1451,7 @@ help:
 	@echo "... pd_tests"
 	@echo "... pi_p_tests"
 	@echo "... pid_tests"
+	@echo "... port_layout_resolver_tests"
 	@echo "... port_macro_tests"
 	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
