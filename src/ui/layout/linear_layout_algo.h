@@ -34,7 +34,9 @@ struct AxisHelper {
 };
 
 /// Compute preferred size for a linear layout along the given axis.
-/// Children are summed along main axis, max'd along cross axis.
+/// Fixed children are summed along main axis; flexible children contribute 0
+/// on the main axis (they expand during layout, not during sizing).
+/// Cross axis takes the max of all children.
 template <Axis axis>
 Pt linearPreferredSize(const std::vector<std::unique_ptr<Widget>>& children,
                        IDrawList* dl) {
@@ -43,13 +45,17 @@ Pt linearPreferredSize(const std::vector<std::unique_ptr<Widget>>& children,
     float cross_max = 0;
     for (const auto& c : children) {
         Pt ps = c->preferredSize(dl);
-        sum += A::main(ps);
+        if (!c->isFlexible()) {
+            sum += A::main(ps);
+        }
         cross_max = std::max(cross_max, A::cross(ps));
     }
     return A::make_pt(sum, cross_max);
 }
 
 /// Perform linear layout: partition space among fixed and flexible children.
+/// Remaining space after fixed children is distributed proportionally
+/// based on each child's flexGrow weight.
 template <Axis axis>
 void linearLayout(std::vector<std::unique_ptr<Widget>>& children,
                   float available_width, float available_height) {
@@ -58,21 +64,27 @@ void linearLayout(std::vector<std::unique_ptr<Widget>>& children,
     float available_cross = A::cross_dim(available_width, available_height);
 
     float fixed_total = 0;
-    int flex_count = 0;
+    float flex_weight_total = 0;
     for (const auto& c : children) {
         if (c->isFlexible()) {
-            flex_count++;
+            flex_weight_total += c->flexGrow();
         } else {
             fixed_total += A::main(c->preferredSize(nullptr));
         }
     }
 
     float remaining = std::max(0.0f, available_main - fixed_total);
-    float flex_size = flex_count > 0 ? remaining / flex_count : 0;
 
     float pos = 0;
     for (auto& c : children) {
-        float child_main = c->isFlexible() ? flex_size : A::main(c->preferredSize(nullptr));
+        float child_main;
+        if (c->isFlexible()) {
+            child_main = (flex_weight_total > 0)
+                ? remaining * (c->flexGrow() / flex_weight_total)
+                : 0;
+        } else {
+            child_main = A::main(c->preferredSize(nullptr));
+        }
         if constexpr (axis == Axis::Horizontal) {
             c->setLocalPos(Pt(pos, 0));
             c->layout(child_main, available_cross);

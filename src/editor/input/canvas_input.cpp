@@ -311,7 +311,7 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
                                      wire_match->anchor_pos, wire_match->fixed_side);
                 return result;
             }
-            Pt port_center = ph->port->worldPos() + Pt(visual::Port::RADIUS, visual::Port::RADIUS);
+            Pt port_center = ph->port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
             enter_create_wire(ph->port, port_center);
             return result;
         }
@@ -475,9 +475,9 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                         break;
                 }
 
-                // Enforce minimum size
-                float min_w = editor_constants::MIN_GROUP_WIDTH;
-                float min_h = editor_constants::MIN_GROUP_HEIGHT;
+                // Enforce minimum size (1 grid unit)
+                float min_w = editor_constants::PORT_LAYOUT_GRID;
+                float min_h = editor_constants::PORT_LAYOUT_GRID;
                 if (new_size.x < min_w) {
                     if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft)
                         new_pos.x = orig_pos.x + orig_sz.x - min_w;
@@ -495,7 +495,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
 
                 // Update visual widget
                 resize_widget->setLocalPos(new_pos);
-                resize_widget->setSize(new_size);
+                resize_widget->layout(new_size.x, new_size.y);
 
                 // Update data layer
                 std::string nid(resize_widget->id());
@@ -503,6 +503,7 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 if (node) {
                     node->pos = new_pos;
                     node->size = new_size;
+                    node->size_explicitly_set = true;
                 }
                 break;
             }
@@ -969,7 +970,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                         auto* end_port = end_widget->portByName(I.resolve(w.end.port_name),
                                                                  I.resolve(w.id));
                         if (end_port)
-                            anchor_pos = end_port->worldPos() + Pt(visual::Port::RADIUS, visual::Port::RADIUS);
+                            anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
                     }
                 }
             } else {
@@ -982,7 +983,7 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                         auto* start_port = start_widget->portByName(I.resolve(w.start.port_name),
                                                                      I.resolve(w.id));
                         if (start_port)
-                            anchor_pos = start_port->worldPos() + Pt(visual::Port::RADIUS, visual::Port::RADIUS);
+                            anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
                     }
                 }
             }

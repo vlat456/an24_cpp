@@ -12,7 +12,7 @@ public:
 
 class FlexWidget : public ui::Widget {
 public:
-    FlexWidget() { setFlexible(true); }
+    FlexWidget() { setFlexGrow(1.0f); }
 };
 }
 

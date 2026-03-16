@@ -50,7 +50,8 @@ public:
 
 private:
     std::string type_name_;
-    static constexpr float FONT_SIZE = 10.0f;
+    static constexpr float FONT_SIZE = 9.0f;
+    static constexpr float RIGHT_PADDING = 5.0f;
 };
 
 class SwitchWidget : public Widget {
@@ -63,6 +64,7 @@ public:
     bool tripped() const { return tripped_; }
 
     Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
     void updateFromContent(const NodeContent& content) override;
 

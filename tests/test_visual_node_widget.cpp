@@ -56,7 +56,7 @@ TEST(VisualNodeWidget, HasCorrectPorts) {
     EXPECT_EQ(nw.port("c")->side(), PortSide::Output);
 }
 
-TEST(VisualNodeWidget, AutoSizesAboveMinimum) {
+TEST(VisualNodeWidget, AutoSizesSnappedToGrid) {
     Node node;
     node.id = g_interner.intern("n1");
     node.name = "X";
@@ -64,11 +64,10 @@ TEST(VisualNodeWidget, AutoSizesAboveMinimum) {
 
     visual::NodeWidget nw(node, g_interner);
 
-    // Should be at least MIN_NODE_WIDTH (80) and snapped to grid (16)
-    EXPECT_GE(nw.size().x, 80.0f);
+    // Size should be positive and snapped to PORT_LAYOUT_GRID (16)
+    EXPECT_GT(nw.size().x, 0.0f);
     EXPECT_GT(nw.size().y, 0.0f);
 
-    // Should be snapped to PORT_LAYOUT_GRID (16)
     float grid = 16.0f;
     EXPECT_FLOAT_EQ(std::fmod(nw.size().x, grid), 0.0f);
     EXPECT_FLOAT_EQ(std::fmod(nw.size().y, grid), 0.0f);
@@ -516,7 +515,7 @@ TEST(VisualNodeWidget, InputPortCenterAtLeftEdge) {
     ASSERT_NE(in_port, nullptr);
 
     // Port circle center = worldPos + (RADIUS, RADIUS)
-    float center_x = in_port->worldPos().x + visual::Port::RADIUS;
+    float center_x = in_port->worldPos().x + visual::PortConstants::RADIUS;
     // Must be at node's left edge
     EXPECT_FLOAT_EQ(center_x, nw.worldPos().x);
 }
@@ -535,7 +534,7 @@ TEST(VisualNodeWidget, OutputPortCenterAtRightEdge) {
     auto* out_port = nw.port("out1");
     ASSERT_NE(out_port, nullptr);
 
-    float center_x = out_port->worldPos().x + visual::Port::RADIUS;
+    float center_x = out_port->worldPos().x + visual::PortConstants::RADIUS;
     // Must be at node's right edge
     EXPECT_FLOAT_EQ(center_x, nw.worldPos().x + nw.size().x);
 }
@@ -557,7 +556,7 @@ TEST(VisualNodeWidget, MultiplePortsAllAtEdges) {
     float right_edge = nw.worldPos().x + nw.size().x;
 
     for (auto* p : nw.ports()) {
-        float cx = p->worldPos().x + visual::Port::RADIUS;
+        float cx = p->worldPos().x + visual::PortConstants::RADIUS;
         if (p->side() == PortSide::Input) {
             EXPECT_FLOAT_EQ(cx, left_edge)
                 << "Input port '" << p->name() << "' center not at left edge";
@@ -580,20 +579,23 @@ TEST(VisualNodeWidget, PortRowsHavePaddingBelowHeader) {
     visual::NodeWidget nw(node, g_interner);
 
     // Header height is 24, port row should have vertical padding
-    // v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2 = (16 - 9) / 2 = 3.5
+    // Port is vertically centered in its parent container:
+    //   container_y = header_h
+    //   port_local_y = (ROW_HEIGHT - PORT_RADIUS*2) / 2
+    //   port_world_y = header_h + port_local_y
     constexpr float header_h = 24.0f;
-    constexpr float v_pad = (editor_constants::PORT_ROW_HEIGHT
-                             - editor_constants::PORT_LABEL_FONT_SIZE) / 2.0f;
+    constexpr float port_v_offset = (editor_constants::PORT_ROW_HEIGHT
+                                     - visual::PortConstants::RADIUS * 2) / 2.0f;
 
     auto* in_port = nw.port("in1");
     ASSERT_NE(in_port, nullptr);
 
-    // Port top-left y should be at header + v_pad (port is inside padded container)
+    // Port top-left y should be at header + vertical centering offset
     float port_y = in_port->worldPos().y;
     EXPECT_GT(port_y, header_h)
         << "Port should be below header with padding, not flush";
-    EXPECT_NEAR(port_y, header_h + v_pad, 1.0f)
-        << "Port should have ~3.5px padding below header";
+    EXPECT_NEAR(port_y, header_h + port_v_offset, 1.0f)
+        << "Port should be vertically centered in row below header";
 }
 
 TEST(VisualNodeWidget, VerticalTogglePortsAtEdges) {
@@ -618,7 +620,7 @@ TEST(VisualNodeWidget, VerticalTogglePortsAtEdges) {
     float right_edge = nw.worldPos().x + nw.size().x;
 
     for (auto* p : nw.ports()) {
-        float cx = p->worldPos().x + visual::Port::RADIUS;
+        float cx = p->worldPos().x + visual::PortConstants::RADIUS;
         if (p->side() == PortSide::Input) {
             EXPECT_FLOAT_EQ(cx, left_edge)
                 << "Input port '" << p->name() << "' not at left edge";
@@ -650,7 +652,7 @@ TEST(VisualNodeWidget, VerticalToggleOutputLabelsRightAligned) {
     visual::NodeWidget nw(node, g_interner);
 
     float node_right = nw.worldPos().x + nw.size().x;
-    float indent = editor_constants::PORT_RADIUS * 2 + editor_constants::PORT_LABEL_GAP;
+    float indent = visual::PortConstants::RADIUS * 2 + visual::PortConstants::RIGHT_LABEL_OFFSET;
 
     // For each output port label, its right edge (worldPos.x + size.x) should be
     // close to the node right edge minus the port indent.
@@ -677,4 +679,271 @@ TEST(VisualNodeWidget, VerticalToggleOutputLabelsRightAligned) {
     visit(nw);
 
     EXPECT_EQ(right_labels_found, 2) << "Should find 2 output labels (v_out, tripped)";
+}
+
+// ============================================================================
+// Four-sided layout: port override to opposite geometric side
+// ============================================================================
+
+TEST(VisualNodeWidget, OverriddenInputPortSnapsToRightEdge) {
+    // An Input port overridden to the Right geometric side should have its
+    // circle center at the node's right edge, not the left.
+    Node node;
+    node.id = g_interner.intern("n1");
+    node.name = "Override";
+    node.type_name = "T";
+    node.input(g_interner.intern("in1"), PortType::V);
+    node.output(g_interner.intern("out1"), PortType::V);
+    node.at(100, 100);
+
+    // Override: move "in1" from Left → Right
+    PortLayoutOverride ov;
+    ov.port_name = "in1";
+    ov.side = PortLayoutSide::Right;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    auto* in_port = nw.port("in1");
+    ASSERT_NE(in_port, nullptr);
+
+    // Logical side is still Input
+    EXPECT_EQ(in_port->side(), PortSide::Input);
+    // But geometric side is now Right
+    EXPECT_EQ(in_port->layoutSide(), PortLayoutSide::Right);
+
+    // Port center should be at node's right edge
+    float center_x = in_port->worldPos().x + visual::PortConstants::RADIUS;
+    float right_edge = nw.worldPos().x + nw.size().x;
+    EXPECT_FLOAT_EQ(center_x, right_edge)
+        << "Input port overridden to Right should snap to right edge";
+}
+
+TEST(VisualNodeWidget, OverriddenOutputPortSnapsToLeftEdge) {
+    // An Output port overridden to the Left geometric side should have its
+    // circle center at the node's left edge.
+    Node node;
+    node.id = g_interner.intern("n1");
+    node.name = "Override";
+    node.type_name = "T";
+    node.input(g_interner.intern("in1"), PortType::V);
+    node.output(g_interner.intern("out1"), PortType::V);
+    node.at(50, 50);
+
+    // Override: move "out1" from Right → Left
+    PortLayoutOverride ov;
+    ov.port_name = "out1";
+    ov.side = PortLayoutSide::Left;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    auto* out_port = nw.port("out1");
+    ASSERT_NE(out_port, nullptr);
+
+    // Logical side stays Output
+    EXPECT_EQ(out_port->side(), PortSide::Output);
+    // Geometric side is now Left
+    EXPECT_EQ(out_port->layoutSide(), PortLayoutSide::Left);
+
+    float center_x = out_port->worldPos().x + visual::PortConstants::RADIUS;
+    float left_edge = nw.worldPos().x;
+    EXPECT_FLOAT_EQ(center_x, left_edge)
+        << "Output port overridden to Left should snap to left edge";
+}
+
+TEST(VisualNodeWidget, OverriddenPortToTopSnapsToTopEdge) {
+    // A port overridden to the Top side should have its circle center at
+    // the node's top edge.
+    Node node;
+    node.id = g_interner.intern("n1");
+    node.name = "TopOverride";
+    node.type_name = "T";
+    node.input(g_interner.intern("in1"), PortType::V);
+    node.input(g_interner.intern("in2"), PortType::Bool);
+    node.output(g_interner.intern("out1"), PortType::V);
+    node.at(0, 0);
+
+    // Override: move "in2" to Top
+    PortLayoutOverride ov;
+    ov.port_name = "in2";
+    ov.side = PortLayoutSide::Top;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    auto* in2_port = nw.port("in2");
+    ASSERT_NE(in2_port, nullptr);
+    EXPECT_EQ(in2_port->layoutSide(), PortLayoutSide::Top);
+
+    // Port center Y should be at node's top edge
+    float center_y = in2_port->worldPos().y + visual::PortConstants::RADIUS;
+    float top_edge = nw.worldPos().y;
+    EXPECT_FLOAT_EQ(center_y, top_edge)
+        << "Port overridden to Top should snap to top edge";
+}
+
+TEST(VisualNodeWidget, OverriddenPortToBottomSnapsToBottomEdge) {
+    Node node;
+    node.id = g_interner.intern("n1");
+    node.name = "BotOverride";
+    node.type_name = "T";
+    node.input(g_interner.intern("in1"), PortType::V);
+    node.output(g_interner.intern("out1"), PortType::V);
+    node.output(g_interner.intern("out2"), PortType::Bool);
+    node.at(0, 0);
+
+    // Override: move "out2" to Bottom
+    PortLayoutOverride ov;
+    ov.port_name = "out2";
+    ov.side = PortLayoutSide::Bottom;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    auto* out2_port = nw.port("out2");
+    ASSERT_NE(out2_port, nullptr);
+    EXPECT_EQ(out2_port->layoutSide(), PortLayoutSide::Bottom);
+
+    float center_y = out2_port->worldPos().y + visual::PortConstants::RADIUS;
+    float bottom_edge = nw.worldPos().y + nw.size().y;
+    EXPECT_FLOAT_EQ(center_y, bottom_edge)
+        << "Port overridden to Bottom should snap to bottom edge";
+}
+
+// ============================================================================
+// Four-sided layout: content placement with overrides
+// ============================================================================
+
+TEST(VisualNodeWidget, FourSidedSwitchContentHasNonZeroBounds) {
+    // When a Switch node has layout overrides (triggering four-sided layout),
+    // the content widget should still be present and have non-zero bounds.
+    Node node;
+    node.id = g_interner.intern("sw1");
+    node.name = "Switch";
+    node.type_name = "Switch";
+    node.input(g_interner.intern("v_in"), PortType::V);
+    node.output(g_interner.intern("v_out"), PortType::V);
+    node.at(0, 0);
+
+    NodeContent content;
+    content.type = NodeContentType::Switch;
+    content.state = false;
+    content.tripped = false;
+    node.with_content(content);
+
+    // Add an override to trigger four-sided layout
+    PortLayoutOverride ov;
+    ov.port_name = "v_in";
+    ov.side = PortLayoutSide::Left;
+    ov.position = 0;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    Bounds cb = nw.contentBounds();
+    EXPECT_GT(cb.w, 0.0f) << "Switch content width should be non-zero in four-sided layout";
+    EXPECT_GT(cb.h, 0.0f) << "Switch content height should be non-zero in four-sided layout";
+}
+
+TEST(VisualNodeWidget, FourSidedVerticalToggleContentHasNonZeroBounds) {
+    // VerticalToggle with overrides falls back from special layout to
+    // buildStandardLayout → buildFourSidedLayout. Content must still work.
+    Node node;
+    node.id = g_interner.intern("azs1");
+    node.name = "AZS";
+    node.type_name = "AZS";
+    node.input(g_interner.intern("v_in"), PortType::V);
+    node.output(g_interner.intern("v_out"), PortType::V);
+    node.at(0, 0);
+
+    NodeContent content;
+    content.type = NodeContentType::VerticalToggle;
+    content.state = false;
+    content.tripped = false;
+    node.with_content(content);
+
+    // Override forces four-sided layout
+    PortLayoutOverride ov;
+    ov.port_name = "v_out";
+    ov.side = PortLayoutSide::Bottom;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    Bounds cb = nw.contentBounds();
+    EXPECT_GT(cb.w, 0.0f) << "VerticalToggle content width should be non-zero in four-sided layout";
+    EXPECT_GT(cb.h, 0.0f) << "VerticalToggle content height should be non-zero in four-sided layout";
+}
+
+TEST(VisualNodeWidget, FourSidedContentBoundsInsideNode) {
+    // Content bounds should remain inside the node even with overrides.
+    Node node;
+    node.id = g_interner.intern("sw1");
+    node.name = "Switch";
+    node.type_name = "Switch";
+    node.input(g_interner.intern("v_in"), PortType::V);
+    node.output(g_interner.intern("v_out"), PortType::V);
+    node.at(50, 50);
+
+    NodeContent content;
+    content.type = NodeContentType::Switch;
+    content.state = true;
+    content.tripped = false;
+    node.with_content(content);
+
+    PortLayoutOverride ov;
+    ov.port_name = "v_in";
+    ov.side = PortLayoutSide::Top;
+    node.layout_overrides.push_back(ov);
+
+    visual::NodeWidget nw(node, g_interner);
+
+    Bounds cb = nw.contentBounds();
+    EXPECT_GE(cb.x, 0.0f);
+    EXPECT_GE(cb.y, 0.0f);
+    EXPECT_LE(cb.x + cb.w, nw.size().x);
+    EXPECT_LE(cb.y + cb.h, nw.size().y);
+}
+
+// ============================================================================
+// VerticalToggle: more ports increase node height
+// ============================================================================
+
+TEST(VisualNodeWidget, MorePortsIncreasesVerticalToggleHeight) {
+    // Adding many more ports to a VerticalToggle layout should make the node
+    // taller, since port rows stack vertically alongside the toggle.
+    // The toggle widget is ~50px tall, so we need enough ports to exceed that.
+    Node small_node;
+    small_node.id = g_interner.intern("azs_s");
+    small_node.name = "AZS";
+    small_node.type_name = "AZS";
+    small_node.input(g_interner.intern("v_in"), PortType::V);
+    small_node.output(g_interner.intern("v_out"), PortType::V);
+
+    NodeContent content;
+    content.type = NodeContentType::VerticalToggle;
+    content.state = false;
+
+    small_node.with_content(content);
+    visual::NodeWidget nw_small(small_node, g_interner);
+
+    // Big node: 6 inputs so port column is ~96px (6 * 16), well above toggle height
+    Node big_node;
+    big_node.id = g_interner.intern("azs_b");
+    big_node.name = "AZS";
+    big_node.type_name = "AZS";
+    big_node.input(g_interner.intern("i1"), PortType::V);
+    big_node.input(g_interner.intern("i2"), PortType::V);
+    big_node.input(g_interner.intern("i3"), PortType::V);
+    big_node.input(g_interner.intern("i4"), PortType::Bool);
+    big_node.input(g_interner.intern("i5"), PortType::Bool);
+    big_node.input(g_interner.intern("i6"), PortType::Bool);
+    big_node.output(g_interner.intern("v_out"), PortType::V);
+
+    big_node.with_content(content);
+    visual::NodeWidget nw_big(big_node, g_interner);
+
+    EXPECT_GT(nw_big.size().y, nw_small.size().y)
+        << "Node with 6 input port rows should be taller than node with 1";
 }

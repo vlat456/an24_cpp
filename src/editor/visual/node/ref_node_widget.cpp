@@ -4,6 +4,7 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
 #include "editor/layout_constants.h"
+#include "visual/snap.h"
 #include "data/node.h"
 #include <algorithm>
 #include <cmath>
@@ -27,16 +28,22 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
     setLocalPos(data.pos);
     buildLayout(data, interner);
 
-    // Snap size to grid
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
+    // Compute preferred size, then allow explicit override
+    Pt preferred = preferredSize(nullptr);
+    float w = preferred.x;
+    float h = preferred.y;
 
-    float w = snap(std::max(data.size.x, 48.0f));
-    float h = snap(std::max(data.size.y, 32.0f));
+    if (data.size_explicitly_set) {
+        if (data.size.x >= editor_constants::PORT_LAYOUT_GRID) w = data.size.x;
+        if (data.size.y >= editor_constants::PORT_LAYOUT_GRID) h = data.size.y;
+    }
+
+    // Snap to layout grid
+    Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
+    w = snapped.x;
+    h = snapped.y;
+
     setSize(Pt(w, h));
-
     positionPort();
 }
 
@@ -65,9 +72,8 @@ void RefNodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& in
 
 void RefNodeWidget::positionPort() {
     if (!port_) return;
-    // Port centered horizontally, circle center on top edge (y=0)
-    port_->setLocalPos(Pt(size().x / 2.0f - editor_constants::PORT_RADIUS,
-                          -editor_constants::PORT_RADIUS));
+    port_->setLocalPos(Pt(size().x / 2.0f - PortConstants::RADIUS,
+                          -PortConstants::RADIUS));
 }
 
 Port* RefNodeWidget::port(std::string_view name) const {
@@ -133,6 +139,7 @@ void RefNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
+    handle_renderer::draw_resize_handles(*dl, ctx, *this);
 }
 
 } // namespace visual

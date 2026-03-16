@@ -149,8 +149,8 @@ TEST(SceneHitTest, PortPriorityOverNode) {
     scene.add(std::move(node));
 
     // Click at port center (100 + RADIUS, 100 + RADIUS) — inside both node and port
-    auto r = visual::hit_test(scene, Pt(100 + visual::Port::RADIUS,
-                                        100 + visual::Port::RADIUS));
+    auto r = visual::hit_test(scene, Pt(100 + visual::PortConstants::RADIUS,
+                                        100 + visual::PortConstants::RADIUS));
     ASSERT_TRUE(holds<visual::HitPort>(r))
         << "Port should take priority over node";
     EXPECT_EQ(get<visual::HitPort>(r).port, pptr);

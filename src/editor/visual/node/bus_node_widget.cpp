@@ -106,7 +106,7 @@ void BusNodeWidget::rebuildPorts() {
 }
 
 Pt BusNodeWidget::calculateBusSize(size_t port_count) const {
-    constexpr float g = editor_constants::PORT_LAYOUT_GRID;
+    constexpr float g = PortConstants::LAYOUT_GRID;
     Pt sz;
     switch (port_edge_) {
         case PortEdge::Bottom:
@@ -125,22 +125,22 @@ Pt BusNodeWidget::calculateBusSize(size_t port_count) const {
 
 Pt BusNodeWidget::calculatePortLocalPos(size_t index) const {
     if (ports_.empty() && index == 0) {
-        return Pt(size().x / 2.0f - editor_constants::PORT_RADIUS,
-                  size().y / 2.0f - editor_constants::PORT_RADIUS);
+        return Pt(size().x / 2.0f - PortConstants::RADIUS,
+                  size().y / 2.0f - PortConstants::RADIUS);
     }
 
-    float step = editor_constants::PORT_LAYOUT_GRID;
-    float offset = step * (index + 1) - editor_constants::PORT_RADIUS;
+    float step = PortConstants::LAYOUT_GRID;
+    float offset = step * (index + 1) - PortConstants::RADIUS;
 
     switch (port_edge_) {
         case PortEdge::Bottom:
-            return Pt(offset, size().y - editor_constants::PORT_RADIUS);
+            return Pt(offset, size().y - PortConstants::RADIUS);
         case PortEdge::Top:
-            return Pt(offset, -editor_constants::PORT_RADIUS);
+            return Pt(offset, -PortConstants::RADIUS);
         case PortEdge::Right:
-            return Pt(size().x - editor_constants::PORT_RADIUS, offset);
+            return Pt(size().x - PortConstants::RADIUS, offset);
         case PortEdge::Left:
-            return Pt(-editor_constants::PORT_RADIUS, offset);
+            return Pt(-PortConstants::RADIUS, offset);
     }
     return Pt(0, 0);
 }
@@ -266,6 +266,7 @@ void BusNodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
+    handle_renderer::draw_resize_handles(*dl, ctx, *this);
 }
 
 } // namespace visual

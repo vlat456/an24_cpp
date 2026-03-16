@@ -109,12 +109,19 @@ TEST(WireTest, PolylineBasic) {
 
     auto pl = f.wire_ptr->polyline();
     ASSERT_EQ(pl.size(), 2u);
-    // start world = node_a(0,0) + port(100,30) + (RADIUS,RADIUS)
-    EXPECT_FLOAT_EQ(pl[0].x, 104.0f);
-    EXPECT_FLOAT_EQ(pl[0].y, 34.0f);
-    // end world = node_b(200,0) + port(0,30) + (RADIUS,RADIUS)
-    EXPECT_FLOAT_EQ(pl[1].x, 204.0f);
-    EXPECT_FLOAT_EQ(pl[1].y, 34.0f);
+    constexpr float R = visual::PortConstants::RADIUS;
+    // Endpoints are offset from port center toward the adjacent polyline point:
+    //   Source offset = R - 0.5 = 2.5 (slight overlap into circle)
+    //   Dest offset   = R + 1.0 = 4.0 (gap so arrowhead doesn't overlap circle)
+    // This is a horizontal wire, so only x changes.
+    constexpr float SRC_OFFSET = R - 0.5f;
+    constexpr float DST_OFFSET = R + 1.0f;
+    // start world = node_a(0,0) + port(100,30) + (R,R), then +SRC_OFFSET in x
+    EXPECT_FLOAT_EQ(pl[0].x, 100.0f + R + SRC_OFFSET);
+    EXPECT_FLOAT_EQ(pl[0].y, 30.0f + R);
+    // end world = node_b(200,0) + port(0,30) + (R,R), then -DST_OFFSET in x
+    EXPECT_FLOAT_EQ(pl[1].x, 200.0f + R - DST_OFFSET);
+    EXPECT_FLOAT_EQ(pl[1].y, 30.0f + R);
 }
 
 TEST(WireTest, PolylineWithRouting) {
@@ -122,12 +129,21 @@ TEST(WireTest, PolylineWithRouting) {
     f.setup(Pt(0, 0), Pt(100, 30), Pt(200, 0), Pt(0, 30));
     f.wire_ptr->addRoutingPoint(Pt(150, 50), 0);
 
+    constexpr float R = visual::PortConstants::RADIUS;
     auto pl = f.wire_ptr->polyline();
     ASSERT_EQ(pl.size(), 3u);
-    EXPECT_FLOAT_EQ(pl[0].x, 104.0f);   // start (port center)
-    EXPECT_FLOAT_EQ(pl[1].x, 150.0f);   // routing point
+    // Endpoints are offset from port center toward the adjacent point.
+    // Source is offset toward the routing point (not horizontal), so use NEAR.
+    constexpr float SRC_OFFSET = R - 0.5f;
+    constexpr float DST_OFFSET = R + 1.0f;
+    // Start center = (103, 33), next = (150, 50) — non-axis-aligned offset
+    EXPECT_NEAR(pl[0].x, 100.0f + R, SRC_OFFSET + 0.1f);
+    EXPECT_GT(pl[0].x, 100.0f + R);  // shifted toward routing point
+    EXPECT_FLOAT_EQ(pl[1].x, 150.0f);   // routing point unchanged
     EXPECT_FLOAT_EQ(pl[1].y, 50.0f);
-    EXPECT_FLOAT_EQ(pl[2].x, 204.0f);   // end (port center)
+    // End center = (203, 33), prev = (150, 50) — non-axis-aligned offset
+    EXPECT_NEAR(pl[2].x, 200.0f + R, DST_OFFSET + 0.1f);
+    EXPECT_LT(pl[2].x, 200.0f + R);  // shifted toward routing point
 }
 
 TEST(WireTest, PolylineUnresolvableEndpoints) {
@@ -153,8 +169,9 @@ TEST(WireTest, PolylineOneEndResolvable) {
 
     auto pl = w->polyline();
     ASSERT_EQ(pl.size(), 1u);
-    EXPECT_FLOAT_EQ(pl[0].x, 104.0f);
-    EXPECT_FLOAT_EQ(pl[0].y, 34.0f);
+    constexpr float R = visual::PortConstants::RADIUS;
+    EXPECT_FLOAT_EQ(pl[0].x, 100.0f + R);
+    EXPECT_FLOAT_EQ(pl[0].y, 30.0f + R);
 }
 
 // ============================================================
@@ -165,15 +182,22 @@ TEST(WireTest, BoundsFromPolyline) {
     WireTestFixture f;
     f.setup(Pt(100, 100), Pt(0, 0), Pt(300, 200), Pt(0, 0));
 
-    // Polyline: (104,104) -> (304,204) — port center offsets
-    // worldMin = (104-4, 104-4) = (100, 100)
-    // worldMax = (304+4, 204+4) = (308, 208)
+    constexpr float R = visual::PortConstants::RADIUS;
+    constexpr float PAD = 4.0f;  // Wire::BBOX_PADDING
+    // Polyline endpoints are offset from port center toward adjacent point.
+    // The exact offset depends on the segment direction (non-axis-aligned here),
+    // so bounds shift slightly inward compared to port centers.
     Pt mn = f.wire_ptr->worldMin();
     Pt mx = f.wire_ptr->worldMax();
-    EXPECT_FLOAT_EQ(mn.x, 100.0f);
-    EXPECT_FLOAT_EQ(mn.y, 100.0f);
-    EXPECT_FLOAT_EQ(mx.x, 308.0f);
-    EXPECT_FLOAT_EQ(mx.y, 208.0f);
+    // Start center = (100+R, 100+R), End center = (300+R, 200+R)
+    // Both are offset inward, so bounds are within [center - PAD, center + PAD]
+    EXPECT_GT(mn.x, 100.0f + R - PAD - 0.5f);
+    EXPECT_GT(mn.y, 100.0f + R - PAD - 0.5f);
+    EXPECT_LT(mx.x, 300.0f + R + PAD + 0.5f);
+    EXPECT_LT(mx.y, 200.0f + R + PAD + 0.5f);
+    // Bounds should still be sane (min < max)
+    EXPECT_LT(mn.x, mx.x);
+    EXPECT_LT(mn.y, mx.y);
 }
 
 TEST(WireTest, BoundsEmptyPolyline) {
@@ -192,9 +216,18 @@ TEST(WireTest, BoundsVirtualDispatch) {
     f.setup(Pt(100, 100), Pt(0, 0), Pt(300, 200), Pt(0, 0));
 
     visual::Widget* w = f.wire_ptr; // base pointer
+    // Virtual dispatch must return the same values as the derived pointer
     Pt mn = w->worldMin();
-    EXPECT_FLOAT_EQ(mn.x, 100.0f);
-    EXPECT_FLOAT_EQ(mn.y, 100.0f);
+    Pt mx = w->worldMax();
+    Pt mn_derived = f.wire_ptr->worldMin();
+    Pt mx_derived = f.wire_ptr->worldMax();
+    EXPECT_FLOAT_EQ(mn.x, mn_derived.x);
+    EXPECT_FLOAT_EQ(mn.y, mn_derived.y);
+    EXPECT_FLOAT_EQ(mx.x, mx_derived.x);
+    EXPECT_FLOAT_EQ(mx.y, mx_derived.y);
+    // Sanity: bounds are reasonable (min < max, roughly around port centers)
+    EXPECT_LT(mn.x, mx.x);
+    EXPECT_LT(mn.y, mx.y);
 }
 
 // ============================================================

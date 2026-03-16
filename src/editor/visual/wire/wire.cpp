@@ -42,7 +42,7 @@ std::optional<Pt> Wire::resolveEndpoint(const WireEndpoint& ep) const {
 
     // Port center = port worldPos + (RADIUS, RADIUS)
     Pt pos = port->worldPos();
-    return Pt(pos.x + Port::RADIUS, pos.y + Port::RADIUS);
+    return Pt(pos.x + PortConstants::RADIUS, pos.y + PortConstants::RADIUS);
 }
 
 const std::vector<Pt>& Wire::polyline() const {
@@ -83,6 +83,36 @@ void Wire::rebuildGeometry() const {
         cached_polyline_.push_back(c->worldPos());
     }
     if (opt_end) cached_polyline_.push_back(cur_end);
+
+    // Offset endpoints from port center to circle edge.
+    // Source: slight overlap into circle for visual continuity.
+    // Destination: small gap so the arrowhead tip does not overlap the port circle.
+    constexpr float SRC_OVERLAP = 0.5f;
+    constexpr float SRC_OFFSET = PortConstants::RADIUS - SRC_OVERLAP;
+    constexpr float DST_GAP = 1.0f;
+    constexpr float DST_OFFSET = PortConstants::RADIUS + DST_GAP;
+    if (cached_polyline_.size() >= 2 && opt_start) {
+        Pt& p0 = cached_polyline_.front();
+        Pt& p1 = cached_polyline_[1];
+        float dx = p1.x - p0.x;
+        float dy = p1.y - p0.y;
+        float len = std::sqrt(dx * dx + dy * dy);
+        if (len > 1e-3f) {
+            p0.x += (dx / len) * SRC_OFFSET;
+            p0.y += (dy / len) * SRC_OFFSET;
+        }
+    }
+    if (cached_polyline_.size() >= 2 && opt_end) {
+        Pt& pN = cached_polyline_.back();
+        Pt& pPrev = cached_polyline_[cached_polyline_.size() - 2];
+        float dx = pPrev.x - pN.x;
+        float dy = pPrev.y - pN.y;
+        float len = std::sqrt(dx * dx + dy * dy);
+        if (len > 1e-3f) {
+            pN.x += (dx / len) * DST_OFFSET;
+            pN.y += (dy / len) * DST_OFFSET;
+        }
+    }
 
     cached_start_pos_ = cur_start;
     cached_end_pos_   = cur_end;
@@ -177,7 +207,27 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
         thickness = 2.0f * ctx.zoom;
     } else if (ctx.energized_wires &&
                ctx.energized_wires->count(id_) > 0) {
+        // Use the signal type color from the connected ports.
+        // Prefer a concrete type over PortType::Any.
         color = render_theme::COLOR_WIRE_CURRENT;
+        if (scene_) {
+            PortType resolved_type = PortType::Any;
+            for (const auto* ep : {&start_, &end_}) {
+                if (ep->node_id.empty()) continue;
+                auto* node_w = scene_->find(ep->node_id);
+                if (!node_w) continue;
+                auto* port = node_w->portByName(ep->port_name, ep->wire_id);
+                if (!port) continue;
+                PortType pt = port->type();
+                if (pt != PortType::Any) {
+                    resolved_type = pt;
+                    break;
+                }
+            }
+            if (resolved_type != PortType::Any) {
+                color = render_theme::get_port_color(resolved_type);
+            }
+        }
         thickness = 2.0f * ctx.zoom;
     }
 
@@ -334,8 +384,11 @@ void Wire::render(IDrawList* dl, const RenderContext& ctx) const {
             dx /= len;
             dy /= len;
             
-            float arrow_len = 7.0f * ctx.zoom;
-            float arrow_width = 3.5f * ctx.zoom;
+            // Scale arrowhead proportionally to wire thickness so the
+            // thick selected-wire line doesn't show through the base.
+            float scale = thickness / (WIRE_THICKNESS * ctx.zoom);
+            float arrow_len = 7.0f * ctx.zoom * scale;
+            float arrow_width = 3.5f * ctx.zoom * scale;
             
             Pt screen_end = ctx.world_to_screen(end);
             

@@ -73,7 +73,7 @@ void TypeNameWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     float font = FONT_SIZE * zoom;
 
     Pt text_size = dl->calc_text_size(type_name_.c_str(), font);
-    float tx = origin.x + (w - text_size.x) / 2;
+    float tx = origin.x + w - text_size.x - RIGHT_PADDING * zoom;
     float ty = origin.y + (HEIGHT * zoom - font) / 2;
     dl->add_text(Pt(tx, ty), type_name_.c_str(), render_theme::COLOR_TEXT_DIM, font);
 }
@@ -89,15 +89,24 @@ Pt SwitchWidget::preferredSize(IDrawList*) const {
     return Pt(MIN_WIDTH, HEIGHT);
 }
 
+void SwitchWidget::layout(float w, float h) {
+    // Accept the full space from the parent but keep our natural height.
+    // render() will center the actual toggle within this box.
+    setSize(Pt(w, HEIGHT));
+}
+
 void SwitchWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt origin = ctx.world_to_screen(worldPos());
     float zoom = ctx.zoom;
-    float w = size().x * zoom;
+    float box_w = size().x * zoom;
+    float w = MIN_WIDTH * zoom;  // Always draw at natural width
     float h = HEIGHT * zoom;
     float r = ROUNDING * zoom;
 
-    Pt min = origin;
-    Pt max(origin.x + w, origin.y + h);
+    // Center the toggle horizontally within the allocated box
+    float offset_x = (box_w - w) / 2.0f;
+    Pt min(origin.x + offset_x, origin.y);
+    Pt max(min.x + w, origin.y + h);
 
     uint32_t fill;
     if (tripped_) {
@@ -114,7 +123,7 @@ void SwitchWidget::render(IDrawList* dl, const RenderContext& ctx) const {
     const char* label = tripped_ ? "TRIP" : (state_ ? "ON" : "OFF");
     float font = FONT_SIZE * zoom;
     Pt text_size = dl->calc_text_size(label, font);
-    float tx = origin.x + (w - text_size.x) / 2.0f;
+    float tx = min.x + (w - text_size.x) / 2.0f;
     float ty = origin.y + (h - font) / 2.0f;
     uint32_t text_color = tripped_ ? 0xFFFFFFFF : render_theme::COLOR_TEXT;
     dl->add_text(Pt(tx, ty), label, text_color, font);

@@ -79,8 +79,11 @@ public:
     /// may collide with root-level widgets (e.g. wires).
     virtual bool isIndexable() const { return true; }
     
-    bool isFlexible() const { return flexible_; }
-    void setFlexible(bool f) { flexible_ = f; }
+    bool isFlexible() const { return flex_grow_ > 0.0f; }
+    void setFlexible(bool f) { flex_grow_ = f ? 1.0f : 0.0f; }
+    
+    float flexGrow() const { return flex_grow_; }
+    void setFlexGrow(float w) { flex_grow_ = w; }
     
     virtual Pt preferredSize(IDrawList* dl) const { return size_; }
     virtual void layout(float w, float h) { size_ = Pt(w, h); }
@@ -100,7 +103,7 @@ protected:
     Pt local_pos_{0, 0};
     Pt size_{0, 0};
     float z_order_ = 0.0f;
-    bool flexible_ = false;
+    float flex_grow_ = 0.0f;
     
     Widget* parent_ = nullptr;
     std::vector<std::unique_ptr<Widget>> children_;

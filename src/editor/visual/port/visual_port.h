@@ -7,12 +7,39 @@
 
 namespace visual {
 
+struct PortConstants {
+    // Rendering
+    static constexpr float RADIUS = 3.0f;
+    static constexpr float HIT_RADIUS = 10.0f;
+    
+    // Labels
+    static constexpr float LABEL_FONT_SIZE = 9.0f;
+    static constexpr uint32_t LABEL_COLOR = 0xFFAAAAAA;
+    static constexpr float LEFT_LABEL_OFFSET = 4.0f;
+    static constexpr float RIGHT_LABEL_OFFSET = 5.0f;
+    static constexpr float TOP_LABEL_OFFSET = 9.0f;
+    static constexpr float BOTTOM_LABEL_OFFSET = 2.5f;
+    
+    // Arrowheads
+    static constexpr float LEFT_ARROW_OFFSET = 2.5f;
+    static constexpr float RIGHT_ARROW_OFFSET = 2.0f;
+    static constexpr float TOP_ARROW_OFFSET = 2.5f;
+    static constexpr float BOTTOM_ARROW_OFFSET = 1.5f;
+    static constexpr float ARROW_SIZE = 3.0f;
+    static constexpr float ARROW_THICKNESS = 1.5f;
+    
+    // Layout
+    static constexpr float ROW_HEIGHT = 16.0f;
+    static constexpr float MIN_GAP = 20.0f;
+    static constexpr float LAYOUT_GRID = 16.0f;
+};
+
 /// Port widget in the new scene graph.
 /// Child of a Node. Clickable (tracked in Grid for hit testing).
 /// Renders as a filled circle with type-based color.
 class Port : public Widget {
 public:
-    Port(std::string_view name, PortSide side, PortType type);
+    Port(std::string_view name, PortSide side, PortType type, PortLayoutSide layout_side = PortLayoutSide::Left);
 
     std::string_view id() const override { return name_; }
     bool isClickable() const override { return true; }
@@ -24,6 +51,9 @@ public:
     std::string_view name() const { return name_; }
     PortSide side() const { return side_; }
     PortType type() const { return type_; }
+    PortLayoutSide layoutSide() const { return layout_side_; }
+    
+    void setLayoutSide(PortLayoutSide side) { layout_side_ = side; }
 
     uint32_t color() const;
 
@@ -42,14 +72,11 @@ public:
     Pt preferredSize(IDrawList* dl) const override;
     void render(IDrawList* dl, const RenderContext& ctx) const override;
 
-    static constexpr float RADIUS = 4.0f;
-    static constexpr float LABEL_GAP = 3.0f;
-    static constexpr float LABEL_FONT_SIZE = 9.0f;
-
 private:
     std::string_view name_;
     PortSide side_;
     PortType type_;
+    PortLayoutSide layout_side_;
 };
 
 } // namespace visual

@@ -28,7 +28,7 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     for (ui::Widget* uw : candidates) {
         auto* w = static_cast<Widget*>(uw);
         if (auto* port = dynamic_cast<Port*>(w)) {
-            Pt center = port->worldPos() + Pt(Port::RADIUS, Port::RADIUS);
+            Pt center = port->worldPos() + Pt(PortConstants::RADIUS, PortConstants::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {
                 return HitPort{port};
             }
@@ -141,7 +141,7 @@ HitResult hit_test_ports(const Scene& scene, Pt world_pos) {
     for (ui::Widget* uw : candidates) {
         auto* w = static_cast<Widget*>(uw);
         if (auto* port = dynamic_cast<Port*>(w)) {
-            Pt center = port->worldPos() + Pt(Port::RADIUS, Port::RADIUS);
+            Pt center = port->worldPos() + Pt(PortConstants::RADIUS, PortConstants::RADIUS);
             if (hit_math::distance(world_pos, center) <= hit_constants::PORT_RADIUS) {
                 return HitPort{port};
             }

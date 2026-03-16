@@ -34,6 +34,7 @@ public:
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
+    bool isResizable() const override { return true; }
 
     std::string_view nodeId() const { return interner_->resolve(node_iid_); }
     const std::string& name() const { return name_; }

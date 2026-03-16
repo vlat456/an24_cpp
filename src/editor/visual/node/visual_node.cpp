@@ -8,7 +8,6 @@
 #include "visual/snap.h"
 #include "data/node.h"
 #include <algorithm>
-#include <cmath>
 
 namespace visual {
 
@@ -29,9 +28,8 @@ NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
     setLocalPos(data.pos);
     buildLayout(data, interner);
 
-    // Auto-size: compute preferred, apply minimum, snap to grid
-    Pt preferred = layout_->preferredSize(nullptr);
-    preferred.x = std::max(preferred.x, editor_constants::MIN_NODE_WIDTH);
+    // Auto-size: compute preferred, snap to grid
+    Pt preferred = preferredSize(nullptr);
 
     float w = preferred.x;
     float h = preferred.y;
@@ -68,6 +66,13 @@ void NodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& inter
         buildStandardLayout(data, interner);
     }
 
+    // -- Flex spacer pushes footer to bottom when node is resized taller.
+    //    Only added when no other flex child exists (e.g., pure port-only nodes),
+    //    otherwise the content flex child handles the stretching. --
+    if (!content_widget_) {
+        layout_->emplaceChild<Spacer>();
+    }
+
     // -- Type name footer --
     layout_->emplaceChild<TypeNameWidget>(type_name_);
 }
@@ -90,62 +95,61 @@ void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterne
             PortType right_type = (i < data.outputs.size()) ? data.outputs[i].type : PortType::Any;
             buildPortRow(left_name, left_type, right_name, right_type);
         }
-    } else {
-        // Slow path: four-sided layout with overrides
-        buildFourSidedLayout(data, interner);
-    }
 
-    // Content area
-    if (data.node_content.type == NodeContentType::Gauge) {
-        content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
-            data.node_content.value, data.node_content.min,
-            data.node_content.max, data.node_content.unit);
-    } else if (data.node_content.type == NodeContentType::Switch) {
-        float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
-        float v_pad = 2.0f;
-        auto* container = layout_->emplaceChild<Container>(
-            Edges{margin, v_pad, margin, v_pad});
-        container->setFlexible(true);
-        content_widget_ = container->emplaceChild<SwitchWidget>(
-            data.node_content.state, data.node_content.tripped);
-    } else if (data.node_content.type == NodeContentType::VerticalToggle) {
-        float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
-        auto* container = layout_->emplaceChild<Container>(
-            Edges{margin, 5.0f, margin, 5.0f});
-        container->setFlexible(true);
-        content_widget_ = container->emplaceChild<VerticalToggleWidget>(
-            data.node_content.state, data.node_content.tripped);
-    } else if (data.node_content.type != NodeContentType::None) {
-        float margin = editor_constants::PORT_RADIUS + editor_constants::PORT_LABEL_GAP;
-        auto* container = layout_->emplaceChild<Container>(
-            Edges{margin, 0, margin, 0});
-        container->setFlexible(true);
-        if (!data.node_content.label.empty()) {
-            content_widget_ = container->emplaceChild<Label>(
-                data.node_content.label, 10.0f, (uint32_t)0x00000000);
-        } else {
-            content_widget_ = container->emplaceChild<Spacer>();
+        // Content area (appended below port rows in the root Column)
+        if (data.node_content.type == NodeContentType::Gauge) {
+            content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
+                data.node_content.value, data.node_content.min,
+                data.node_content.max, data.node_content.unit);
+        } else if (data.node_content.type == NodeContentType::Switch) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            float v_pad = 2.0f;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, v_pad, margin, v_pad});
+            container->setFlexGrow(1.0f);
+            content_widget_ = container->emplaceChild<SwitchWidget>(
+                data.node_content.state, data.node_content.tripped);
+        } else if (data.node_content.type == NodeContentType::VerticalToggle) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, 5.0f, margin, 5.0f});
+            container->setFlexGrow(1.0f);
+            content_widget_ = container->emplaceChild<VerticalToggleWidget>(
+                data.node_content.state, data.node_content.tripped);
+        } else if (data.node_content.type != NodeContentType::None) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, 0, margin, 0});
+            container->setFlexGrow(1.0f);
+            if (!data.node_content.label.empty()) {
+                content_widget_ = container->emplaceChild<Label>(
+                    data.node_content.label, 10.0f, (uint32_t)0x00000000);
+            } else {
+                content_widget_ = container->emplaceChild<Spacer>();
+            }
         }
+    } else {
+        // Slow path: four-sided layout with overrides.
+        // Content is placed inside the center column of the body row.
+        buildFourSidedLayout(data, interner);
     }
 }
 
 void NodeWidget::buildVerticalToggleLayout(const ::Node& data, const ui::StringInterner& interner) {
     auto* main_row = layout_->emplaceChild<Row>();
-    main_row->setFlexible(true);
 
     // Left column (input ports)
     auto* left_col = main_row->emplaceChild<Column>();
     for (const auto& p : data.inputs) {
         std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(left_col, name_sv, p.type, true);
+        buildPortInColumn(left_col, name_sv, p.type, PortSide::Input, PortLayoutSide::Left);
     }
 
-    // Center column (vertical toggle)
+    // Center column (vertical toggle) — flex to push right column to the edge
     auto* center_col = main_row->emplaceChild<Column>();
-    center_col->setFlexible(true);
+    center_col->setFlexGrow(1.0f);
     auto* toggle_container = center_col->emplaceChild<Container>(
         Edges{0, 5.0f, 0, 5.0f});
-    toggle_container->setFlexible(true);
     content_widget_ = toggle_container->emplaceChild<VerticalToggleWidget>(
         data.node_content.state, data.node_content.tripped);
 
@@ -153,81 +157,27 @@ void NodeWidget::buildVerticalToggleLayout(const ::Node& data, const ui::StringI
     auto* right_col = main_row->emplaceChild<Column>();
     for (const auto& p : data.outputs) {
         std::string_view name_sv = interner.resolve(p.name);
-        buildPortInColumn(right_col, name_sv, p.type, false);
+        buildPortInColumn(right_col, name_sv, p.type, PortSide::Output, PortLayoutSide::Right);
     }
 }
 
 void NodeWidget::buildPortRow(std::string_view left_name, PortType left_type,
                               std::string_view right_name, PortType right_type) {
-    using namespace editor_constants;
-
-    // Build port row: [Label? Spacer Label?] inside padded container.
-    // Port widgets are added as extra children of row_container (outside Row flow)
-    // and positioned by post-layout snap in layout().
-    constexpr float v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2.0f;
-    constexpr float label_indent = PORT_RADIUS * 2 + PORT_LABEL_GAP;
-    auto* row_container = layout_->emplaceChild<Container>(
-        Edges{label_indent, v_pad, label_indent, v_pad});
-    auto* row = row_container->emplaceChild<Row>();
-
-    // Left label (input)
-    if (!left_name.empty()) {
-        row->emplaceChild<Label>(left_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
-    }
-
-    // Flexible spacer
-    if (!left_name.empty() && !right_name.empty()) {
-        auto* gap = row->emplaceChild<Container>(
-            Edges{PORT_MIN_GAP / 2.0f, 0, PORT_MIN_GAP / 2.0f, 0});
-        gap->setFlexible(true);
-        gap->emplaceChild<Spacer>();
-    } else {
-        row->emplaceChild<Spacer>();
-    }
-
-    // Right label (output)
-    if (!right_name.empty()) {
-        row->emplaceChild<Label>(right_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
-                                 TextAlign::Right);
-    }
-
-    // Port circles are added outside the Row so they don't affect label layout.
-    // Post-layout snap in layout() positions them at node edges.
-    if (!left_name.empty()) {
-        auto* port_w = row_container->emplaceChild<Port>(left_name, PortSide::Input, left_type);
-        ports_.push_back(port_w);
-    }
-    if (!right_name.empty()) {
-        auto* port_w = row_container->emplaceChild<Port>(right_name, PortSide::Output, right_type);
-        ports_.push_back(port_w);
-    }
+    auto* row = layout_->emplaceChild<PairedPortRow>(
+        left_name, left_type, right_name, right_type, &layout_ctx_);
+    if (row->leftPort())  ports_.push_back(row->leftPort());
+    if (row->rightPort()) ports_.push_back(row->rightPort());
 }
 
 void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
-                                   PortType type, bool is_left) {
-    using namespace editor_constants;
-
-    constexpr float v_pad = (PORT_ROW_HEIGHT - PORT_LABEL_FONT_SIZE) / 2.0f;
-    constexpr float label_indent = PORT_RADIUS * 2 + PORT_LABEL_GAP;
-    auto* container = col->emplaceChild<Container>(
-        Edges{label_indent, v_pad, label_indent, v_pad});
-    auto* row = container->emplaceChild<Row>();
-
-    if (is_left) {
-        row->emplaceChild<Label>(name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
-    } else {
-        row->emplaceChild<Spacer>();
-        row->emplaceChild<Label>(name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR,
-                                 TextAlign::Right);
-    }
-
-    auto* port_w = container->emplaceChild<Port>(name,
-        is_left ? PortSide::Input : PortSide::Output, type);
-    ports_.push_back(port_w);
+                                   PortType type, PortSide logical_side, PortLayoutSide layout_side) {
+    auto* row = col->emplaceChild<PortRow>(name, logical_side, type, layout_side, &layout_ctx_);
+    if (row->port()) ports_.push_back(row->port());
 }
 
 void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringInterner& interner) {
     using namespace editor_constants;
+    four_sided_layout_ = true;
     
     ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs, 
                                                  data.layout_overrides, interner);
@@ -239,23 +189,46 @@ void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringIntern
     
     // Main body row: [Left ports | Content | Right ports]
     auto* body_row = layout_->emplaceChild<Row>();
-    body_row->setFlexible(true);
     
     // Left column (input ports that stay on left)
     auto* left_col = body_row->emplaceChild<Column>();
     for (const auto& rp : layout.left) {
-        buildPortInColumn(left_col, rp.port_name, rp.type, true);
+        buildPortInColumn(left_col, rp.port_name, rp.type, rp.logical_side, PortLayoutSide::Left);
     }
     
-    // Content area (flexible spacer if no content)
-    auto* center = body_row->emplaceChild<Container>(Edges{10, 0, 10, 0});
-    center->setFlexible(true);
-    center->emplaceChild<Spacer>();
+    // Center column: content widget or spacer.
+    // Must be flexible so it absorbs remaining width, pushing right_col to
+    // the node's right edge (mirroring buildVerticalToggleLayout).
+    auto* center = body_row->emplaceChild<Container>(Edges{4, 0, 4, 0});
+    center->setFlexGrow(1.0f);
+
+    if (data.node_content.type == NodeContentType::Gauge) {
+        content_widget_ = center->emplaceChild<VoltmeterWidget>(
+            data.node_content.value, data.node_content.min,
+            data.node_content.max, data.node_content.unit);
+    } else if (data.node_content.type == NodeContentType::Switch) {
+        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
+        content_widget_ = inner->emplaceChild<SwitchWidget>(
+            data.node_content.state, data.node_content.tripped);
+    } else if (data.node_content.type == NodeContentType::VerticalToggle) {
+        auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
+        content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
+            data.node_content.state, data.node_content.tripped);
+    } else if (data.node_content.type != NodeContentType::None) {
+        if (!data.node_content.label.empty()) {
+            content_widget_ = center->emplaceChild<Label>(
+                data.node_content.label, 10.0f, (uint32_t)0x00000000);
+        } else {
+            center->emplaceChild<Spacer>();
+        }
+    } else {
+        center->emplaceChild<Spacer>();
+    }
     
     // Right column (output ports that stay on right)
     auto* right_col = body_row->emplaceChild<Column>();
     for (const auto& rp : layout.right) {
-        buildPortInColumn(right_col, rp.port_name, rp.type, false);
+        buildPortInColumn(right_col, rp.port_name, rp.type, rp.logical_side, PortLayoutSide::Right);
     }
     
     // Bottom port strip
@@ -265,87 +238,14 @@ void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringIntern
 }
 
 void NodeWidget::buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports) {
-    using namespace editor_constants;
-    
-    // Container with vertical padding to achieve PORT_ROW_HEIGHT.
-    // Ports and labels are positioned horizontally in the layout() post-pass.
-    constexpr float v_pad = (PORT_ROW_HEIGHT - PORT_RADIUS * 2) / 2.0f;
-    auto* strip = layout_->emplaceChild<Container>(Edges{0, v_pad, 0, v_pad});
-    
-    bool is_top = (ports.empty()) ? false : 
-        (ports[0].layout_side == PortLayoutSide::Top);
-    
+    if (ports.empty()) return;
+
+    PortLayoutSide side = ports[0].layout_side;
+    auto* strip = layout_->emplaceChild<HorizontalPortStrip>(side, &layout_ctx_);
+
     for (const auto& rp : ports) {
-        // Create port widget - will be positioned in layout() post-pass
-        auto* port_w = strip->emplaceChild<Port>(
-            rp.port_name, rp.logical_side, rp.type);
+        auto* port_w = strip->addPort(rp.port_name, rp.logical_side, rp.type);
         ports_.push_back(port_w);
-        
-        // Create label widget alongside port - also positioned in post-pass
-        auto* label_w = strip->emplaceChild<Label>(
-            rp.port_name, PORT_LABEL_FONT_SIZE, PORT_LABEL_COLOR);
-        
-        if (is_top) {
-            top_ports_.push_back(port_w);
-            top_port_labels_.push_back(label_w);
-        } else {
-            bottom_ports_.push_back(port_w);
-            bottom_port_labels_.push_back(label_w);
-        }
-    }
-}
-
-void NodeWidget::positionHorizontalPorts(PortLayoutSide side, float node_width) {
-    const auto& port_list = (side == PortLayoutSide::Top) ? top_ports_ : bottom_ports_;
-    const auto& label_list = (side == PortLayoutSide::Top) ? top_port_labels_ : bottom_port_labels_;
-    if (port_list.empty()) return;
-
-    size_t n = port_list.size();
-    constexpr float grid = editor_constants::PORT_LAYOUT_GRID;
-    float center = node_width / 2.0f;
-
-    for (size_t i = 0; i < n; ++i) {
-        auto* p = port_list[i];
-        if (!p->parent()) continue;
-
-        // Calculate ideal centered position, then snap to nearest grid crossing.
-        // Port i goes at: center + (i - (n-1)/2) * grid
-        float ideal_x = center + (static_cast<float>(i) - static_cast<float>(n - 1) / 2.0f) * grid;
-        float snapped_x = std::round(ideal_x / grid) * grid;
-        
-        // Convert to local position relative to parent container
-        Pt parent_wp = p->parent()->worldPos();
-        Pt node_wp = worldPos();
-        float parent_offset_x = parent_wp.x - node_wp.x;
-        float lp_x = snapped_x - parent_offset_x - Port::RADIUS;
-
-        // Vertical: snap port center to the node edge.
-        float parent_offset_y = parent_wp.y - node_wp.y;
-        float lp_y;
-        if (side == PortLayoutSide::Top) {
-            lp_y = -parent_offset_y - Port::RADIUS;
-        } else {
-            float node_height = size().y;
-            lp_y = node_height - parent_offset_y - Port::RADIUS;
-        }
-
-        p->setLocalPos(Pt(lp_x, lp_y));
-
-        // Position the corresponding label centered below (top ports) or above (bottom ports)
-        if (i < label_list.size()) {
-            auto* lbl = label_list[i];
-            if (!lbl) continue;
-
-            float label_w = lbl->preferredSize(nullptr).x;
-            float label_x = lp_x + Port::RADIUS - label_w / 2.0f;
-            float label_y;
-            if (side == PortLayoutSide::Top) {
-                label_y = lp_y + Port::RADIUS * 2 + editor_constants::PORT_LABEL_GAP;
-            } else {
-                label_y = lp_y - editor_constants::PORT_LABEL_FONT_SIZE - editor_constants::PORT_LABEL_GAP;
-            }
-            lbl->setLocalPos(Pt(label_x, label_y));
-        }
     }
 }
 
@@ -387,15 +287,17 @@ Port* NodeWidget::portByName(std::string_view port_name,
 Pt NodeWidget::preferredSize(IDrawList* dl) const {
     if (!layout_) return Pt(0, 0);
     Pt ps = layout_->preferredSize(dl);
-    ps.x = std::max(ps.x, editor_constants::MIN_NODE_WIDTH);
     
-    // Ensure node is wide enough for top/bottom ports at grid crossings.
-    // For n ports, need at least (n + 1) * grid width.
-    size_t max_horizontal = std::max(top_ports_.size(), bottom_ports_.size());
-    if (max_horizontal > 0) {
-        constexpr float grid = editor_constants::PORT_LAYOUT_GRID;
-        float min_width_for_ports = static_cast<float>(max_horizontal + 1) * grid;
-        ps.x = std::max(ps.x, min_width_for_ports);
+    // In four-sided layout the body is a Row: [left_col | center(flex) | right_col].
+    // The center column is flexible, so the Row's preferred width only sums the
+    // port columns.  Add the content widget's minimum width so the node is never
+    // too narrow.
+    if (four_sided_layout_ && content_widget_) {
+        Pt cps = content_widget_->preferredSize(dl);
+        if (cps.x > 0) {
+            constexpr float center_margin = 8.0f; // Edges{4,0,4,0}
+            ps.x = std::max(ps.x, ps.x + cps.x + center_margin);
+        }
     }
     
     return ps;
@@ -403,35 +305,16 @@ Pt NodeWidget::preferredSize(IDrawList* dl) const {
 
 void NodeWidget::layout(float w, float h) {
     setSize(Pt(w, h));
+
+    // Populate layout context BEFORE child layout so that PairedPortRow/PortRow
+    // and HorizontalPortStrip children can position ports at node edges during
+    // their own layout() calls.
+    layout_ctx_.node_width  = w;
+    layout_ctx_.node_height = h;
+
     if (layout_) {
         layout_->layout(w, h);
     }
-    // Post-layout: snap port circle centers to node edges and vertically center.
-    // Ports live as extra children of their row container (outside Row flow),
-    // so they need explicit positioning after layout completes.
-    Pt np = worldPos();
-    for (auto* p : ports_) {
-        Pt wp = p->worldPos();
-        Pt lp = p->localPos();
-        // Horizontal: snap circle center to node edge
-        float current_cx = wp.x + Port::RADIUS;
-        if (p->side() == PortSide::Input) {
-            lp.x += np.x - current_cx;
-        } else if (p->side() == PortSide::Output) {
-            lp.x += (np.x + w) - current_cx;
-        }
-        // Vertical: center port in its parent container
-        if (p->parent()) {
-            float parent_h = p->parent()->size().y;
-            lp.y = (parent_h - Port::RADIUS * 2) / 2.0f;
-        }
-        p->setLocalPos(lp);
-    }
-
-    // Post-layout: distribute top/bottom ports evenly along node width.
-    // These override the standard left/right snapping done above.
-    positionHorizontalPorts(PortLayoutSide::Top, w);
-    positionHorizontalPorts(PortLayoutSide::Bottom, w);
 }
 
 // ============================================================================
@@ -467,6 +350,7 @@ void NodeWidget::renderPost(IDrawList* dl, const RenderContext& ctx) const {
 
     // Selection border drawn after children so it appears on top
     handle_renderer::draw_selection_border(*dl, ctx, *this, screen_min, screen_max, rounding);
+    handle_renderer::draw_resize_handles(*dl, ctx, *this);
 }
 
 } // namespace visual

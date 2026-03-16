@@ -16,7 +16,7 @@ ScreenBounds world_to_screen(Pt world_pos, Pt world_size,
 
 void render_ports(IDrawList& dl, const Viewport& vp, Pt canvas_min,
                   const std::vector<visual::Port>& ports) {
-    float port_radius = editor_constants::PORT_RADIUS * vp.zoom;
+    float port_radius = visual::PortConstants::RADIUS * vp.zoom;
     for (const auto& port : ports) {
         Pt screen_pos = vp.world_to_screen(port.worldPos(), canvas_min);
         uint32_t port_color = render_theme::get_port_color(port.type());

@@ -26,7 +26,7 @@ void Label::render(IDrawList* dl, const RenderContext& ctx) const {
     Pt pos = ctx.world_to_screen(worldPos());
     Pt sz = size();
     float zoom = ctx.zoom;
-    
+
     float font = font_size_ * zoom;
     float ty = pos.y + (sz.y * zoom - font) / 2;
     float tx = pos.x;
