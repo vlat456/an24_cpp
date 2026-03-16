@@ -46,6 +46,9 @@ bool Document::load(const std::string& path) {
     // Close any sub-windows from previous blueprint
     window_manager_.closeAll();
 
+    // Cancel any in-flight gesture in the root window before replacing the blueprint
+    root().input.cancel_gesture();
+
     // Stop simulation if running
     if (simulation_running_) {
         simulation_.stop();
@@ -106,6 +109,20 @@ void Document::rebuildSimulation() {
             simulation_running_ = false;
         }
     }
+}
+
+void Document::rebuildAllWindows() {
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
+    // Scene rebuild destroys/recreates widgets, which would leave transient
+    // pointers (rp_point_, wire_start_port_, hovered_routing_point_) dangling.
+    for (auto& win : window_manager_.windows()) {
+        win->input.cancel_gesture();
+    }
+    for (auto& win : window_manager_.windows()) {
+        win->viewport.grid_step = blueprint_.grid_step;
+        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
+    }
+    rebuildSimulation();
 }
 
 void Document::updateSimulationStep(float dt) {
@@ -308,11 +325,8 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     undo_stack_.snapshot(blueprint_);
     execute(blueprint_, cmd_add_node(std::move(node)));
 
-    // Rebuild scene from blueprint state
-    for (auto& win : window_manager_.windows()) {
-        visual::mutations::rebuild(win->scene, blueprint_, win->group_id);
-    }
-    rebuildSimulation();
+    // Rebuild scene from blueprint state (cancels gestures + rebuilds all windows)
+    rebuildAllWindows();
 
     spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
            classname, unique_id, snapped_pos.x, snapped_pos.y,
@@ -418,9 +432,8 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         blueprint_.auto_layout_group(unique_id);
     }
 
-    // Rebuild visual + simulation
-    visual::mutations::rebuild(scene(), blueprint_, root().group_id);
-    rebuildSimulation();
+    // Rebuild visual + simulation (cancels gestures + rebuilds all windows)
+    rebuildAllWindows();
 
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
                  blueprint_name, unique_id, internal_node_ids.size(), internal_wire_count);
@@ -479,6 +492,13 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
 bool Document::performUndo() {
     if (!undo_stack_.can_undo()) return false;
     
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
+    // Scene rebuild destroys/recreates widgets, which would leave transient
+    // pointers (rp_point_, wire_start_port_, hovered_routing_point_) dangling.
+    for (auto& win : window_manager_.windows()) {
+        win->input.cancel_gesture();
+    }
+    
     undo_stack_.undo(blueprint_);
     
     // Sub-blueprint groups may have been removed by undo — close orphaned
@@ -495,6 +515,11 @@ bool Document::performUndo() {
 
 bool Document::performRedo() {
     if (!undo_stack_.can_redo()) return false;
+    
+    // Cancel any in-flight gestures in ALL windows BEFORE rebuilding.
+    for (auto& win : window_manager_.windows()) {
+        win->input.cancel_gesture();
+    }
     
     undo_stack_.redo(blueprint_);
     

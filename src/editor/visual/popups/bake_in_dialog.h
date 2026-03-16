@@ -21,7 +21,9 @@ public:
             if (ImGui::Button("Bake In")) {
                 Document* bake_doc = ws.findDocumentById(ws.pendingBakeIn.doc_id);
                 if (bake_doc) {
+                    bake_doc->undoStack().snapshot(bake_doc->blueprint());
                     bake_doc->blueprint().bake_in_sub_blueprint(ws.pendingBakeIn.sub_blueprint_id);
+                    bake_doc->rebuildAllWindows();
                 }
                 ImGui::CloseCurrentPopup();
             }

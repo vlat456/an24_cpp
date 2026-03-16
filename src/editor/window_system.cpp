@@ -202,12 +202,9 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
             // Verify document still exists before using the pointer
             for (const auto& d : documents_) {
                 if (d.get() == doc_ptr) {
-                    // Rebuild visual widgets from updated blueprint data
-                    visual::mutations::rebuild(doc_ptr->scene(),
-                                               doc_ptr->blueprint(),
-                                               doc_ptr->root().group_id);
+                    // Rebuild all windows (cancels gestures, syncs visual + simulation)
+                    doc_ptr->rebuildAllWindows();
                     inspector_.markDirty();
-                    doc_ptr->rebuildSimulation();
                     return;
                 }
             }

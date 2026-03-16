@@ -17,6 +17,7 @@
 #include <imgui.h>
 #include <algorithm>
 #include <cstdio>
+#include <unordered_set>
 
 // ============================================================================
 // File-local helpers
@@ -54,20 +55,6 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 void CanvasInput::snapshot_and_execute(Command cmd) {
     undo_stack_.snapshot(bp_);
     execute(bp_, cmd);
-}
-
-bool CanvasInput::undo() {
-    if (!undo_stack_.undo(bp_)) return false;
-    // Sync viewport grid_step from blueprint (in case CmdSetGridStep was undone)
-    viewport_.grid_step = bp_.grid_step;
-    return true;
-}
-
-bool CanvasInput::redo() {
-    if (!undo_stack_.redo(bp_)) return false;
-    // Sync viewport grid_step from blueprint (in case CmdSetGridStep was redone)
-    viewport_.grid_step = bp_.grid_step;
-    return true;
 }
 
 // ============================================================================
@@ -277,6 +264,20 @@ void CanvasInput::leave_state() {
     drag_initial_positions_.clear();
     rp_initial_points_.clear();
     wire_start_port_ = nullptr;
+    rp_point_ = nullptr;
+    hovered_routing_point_ = nullptr;
+}
+
+void CanvasInput::cancel_gesture() {
+    // If a drag/resize gesture is in-flight, restore pre-gesture blueprint
+    // state. CreatingWire / ReconnectingWire / MarqueeSelect don't take
+    // snapshots so they just need their transient state cleared.
+    if (state_ == InputState::DraggingNode ||
+        state_ == InputState::DraggingRoutingPoint ||
+        state_ == InputState::ResizingNode) {
+        undo_stack_.restore_last_snapshot(bp_);
+    }
+    leave_state();
 }
 
 // ============================================================================
@@ -391,6 +392,11 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 drag_anchor_ = drag_anchor_ + world_delta;
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
                 auto nodes = selected_nodes();
+
+                // Collect wire IDs connected to any moved node (for grid update).
+                // Use a set to avoid duplicating wires shared between two moved nodes.
+                std::unordered_set<ui::InternedId> connected_wire_ids;
+
                 for (size_t i = 0; i < nodes.size(); i++) {
                     auto* widget = nodes[i];
                     Pt offset = (i < drag_offsets_.size()) ? drag_offsets_[i] : Pt(0, 0);
@@ -402,7 +408,43 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                     // Update data layer
                     std::string nid(widget->id());
                     Node* node = bp_.find_node(nid.c_str());
-                    if (node) node->pos = new_pos;
+                    if (node) {
+                        node->pos = new_pos;
+
+                        // Gather connected wire IDs via port occupancy index
+                        auto& I = bp_.interner();
+                        ui::InternedId node_iid = I.lookup(nid);
+                        if (!node_iid.empty()) {
+                            auto collect = [&](const std::vector<EditorPort>& ports) {
+                                for (const auto& p : ports) {
+                                    auto it = bp_.port_occupancy_index_.find(
+                                        PortKey(node_iid, p.name));
+                                    if (it != bp_.port_occupancy_index_.end()) {
+                                        for (auto wid : it->second)
+                                            connected_wire_ids.insert(wid);
+                                    }
+                                }
+                            };
+                            collect(node->inputs);
+                            collect(node->outputs);
+                        }
+                    }
+
+                    // Update node widget's Grid entry
+                    if (widget->isClickable())
+                        scene_.grid().update(widget);
+                }
+
+                // Invalidate geometry + update Grid for connected wires
+                auto& I = bp_.interner();
+                for (auto wid : connected_wire_ids) {
+                    auto* wire = dynamic_cast<visual::Wire*>(
+                        scene_.find(I.resolve(wid)));
+                    if (wire) {
+                        wire->invalidateGeometry();
+                        if (wire->isClickable())
+                            scene_.grid().update(wire);
+                    }
                 }
                 break;
             }
@@ -684,18 +726,14 @@ InputResult CanvasInput::on_key(Key key) {
         case Key::Escape:
             // If a gesture is in-flight, cancel it and revert any partial mutations.
             if (state_ != InputState::Idle && state_ != InputState::Panning) {
-                // For states that took a snapshot at enter_*(), restore the
-                // pre-gesture blueprint state and discard the snapshot cleanly
-                // (no redo entry). This reverts any partial drag mutations.
-                if (state_ == InputState::DraggingNode ||
+                bool needs_rebuild =
+                    state_ == InputState::DraggingNode ||
                     state_ == InputState::DraggingRoutingPoint ||
-                    state_ == InputState::ResizingNode) {
-                    undo_stack_.restore_last_snapshot(bp_);
+                    state_ == InputState::ResizingNode;
+                cancel_gesture();
+                if (needs_rebuild) {
                     visual::mutations::rebuild(scene_, bp_, group_id_);
                 }
-                // CreatingWire / ReconnectingWire / MarqueeSelect:
-                // no snapshot was taken yet, just return to Idle.
-                leave_state();
             }
             clear_selection();
             break;
@@ -712,6 +750,10 @@ InputResult CanvasInput::on_key(Key key) {
                     execute(bp_, cmd_remove_node(iid));
                 }
             }
+            // Nullify transient widget pointer before rebuild destroys
+            // the scene graph — hovered_routing_point_ may reference a
+            // widget that is about to be freed.
+            hovered_routing_point_ = nullptr;
             visual::mutations::rebuild(scene_, bp_, group_id_);
             clear_selection();
             result.rebuild_simulation = true;
@@ -930,66 +972,76 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
     const Node* hit_node = bp_.find_node(port_node_id.c_str());
     bool is_bus = hit_node && (hit_node->render_hint == "bus");
 
-    // Intern the port identifiers for O(1) comparison against wire InternedIds
+    // Intern the port identifiers for O(1) index lookups
     auto& I = bp_.interner();
     ui::InternedId port_node_iid = I.intern(port_node_id);
     ui::InternedId port_name_iid = I.intern(port_name_sv);
 
-    for (size_t wi = 0; wi < bp_.wires.size(); ++wi) {
+    // Helper: given a wire index, build the WirePortMatch result.
+    auto build_result = [&](size_t wi, bool detach_start) -> WirePortMatch {
         const auto& w = bp_.wires[wi];
-
-        bool match_start = false;
-        bool match_end = false;
-
-        if (is_bus) {
-            // Bus alias ports are named after the wire ID they represent.
-            // Match by both node_id AND wire_id == port_name.
-            match_start = (w.start.node_id == port_node_iid && w.id == port_name_iid);
-            match_end   = (w.end.node_id == port_node_iid && w.id == port_name_iid);
-        } else {
-            match_start = (w.start.node_id == port_node_iid &&
-                           w.start.port_name == port_name_iid);
-            match_end   = (w.end.node_id == port_node_iid &&
-                           w.end.port_name == port_name_iid);
-        }
-
-        if (match_start || match_end) {
-            bool detach_start = match_start;
-
-            Pt anchor_pos;
-            PortSide fixed_side;
-            if (detach_start) {
-                fixed_side = w.end.side;
-                // Anchor = nearest routing point or far port position
-                if (!w.routing_points.empty()) {
-                    anchor_pos = w.routing_points.front();
-                } else {
-                    // Look up far port position from visual widget
-                    auto* end_widget = scene_.find(I.resolve(w.end.node_id));
-                    if (end_widget) {
-                        auto* end_port = end_widget->portByName(I.resolve(w.end.port_name),
-                                                                 I.resolve(w.id));
-                        if (end_port)
-                            anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-                    }
-                }
+        Pt anchor_pos;
+        PortSide fixed_side;
+        if (detach_start) {
+            fixed_side = w.end.side;
+            if (!w.routing_points.empty()) {
+                anchor_pos = w.routing_points.front();
             } else {
-                fixed_side = w.start.side;
-                if (!w.routing_points.empty()) {
-                    anchor_pos = w.routing_points.back();
-                } else {
-                    auto* start_widget = scene_.find(I.resolve(w.start.node_id));
-                    if (start_widget) {
-                        auto* start_port = start_widget->portByName(I.resolve(w.start.port_name),
-                                                                     I.resolve(w.id));
-                        if (start_port)
-                            anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
-                    }
+                auto* end_widget = scene_.find(I.resolve(w.end.node_id));
+                if (end_widget) {
+                    auto* end_port = end_widget->portByName(I.resolve(w.end.port_name),
+                                                             I.resolve(w.id));
+                    if (end_port)
+                        anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
                 }
             }
+        } else {
+            fixed_side = w.start.side;
+            if (!w.routing_points.empty()) {
+                anchor_pos = w.routing_points.back();
+            } else {
+                auto* start_widget = scene_.find(I.resolve(w.start.node_id));
+                if (start_widget) {
+                    auto* start_port = start_widget->portByName(I.resolve(w.start.port_name),
+                                                                 I.resolve(w.id));
+                    if (start_port)
+                        anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                }
+            }
+        }
+        return WirePortMatch{wi, detach_start, anchor_pos, fixed_side};
+    };
 
-            return WirePortMatch{wi, detach_start, anchor_pos, fixed_side};
+    if (is_bus) {
+        // Bus alias ports are named after the wire ID they represent.
+        // Use bus_wire_index_ for O(1) lookup of wires touching this bus node.
+        const auto& bus_wires = bp_.busWires(port_node_iid);
+        for (auto wire_iid : bus_wires) {
+            if (wire_iid != port_name_iid) continue;
+            auto idx_it = bp_.wire_id_index_.find(wire_iid);
+            if (idx_it == bp_.wire_id_index_.end()) continue;
+            size_t wi = idx_it->second;
+            const auto& w = bp_.wires[wi];
+            bool match_start = (w.start.node_id == port_node_iid);
+            bool match_end   = (w.end.node_id == port_node_iid);
+            if (match_start || match_end)
+                return build_result(wi, match_start);
+        }
+    } else {
+        // Non-bus: use port_occupancy_index_ for O(1) lookup.
+        auto occ_it = bp_.port_occupancy_index_.find(PortKey(port_node_iid, port_name_iid));
+        if (occ_it != bp_.port_occupancy_index_.end()) {
+            for (auto wire_iid : occ_it->second) {
+                auto idx_it = bp_.wire_id_index_.find(wire_iid);
+                if (idx_it == bp_.wire_id_index_.end()) continue;
+                size_t wi = idx_it->second;
+                const auto& w = bp_.wires[wi];
+                bool match_start = (w.start.node_id == port_node_iid &&
+                                    w.start.port_name == port_name_iid);
+                return build_result(wi, match_start);
+            }
         }
     }
+
     return std::nullopt;
 }

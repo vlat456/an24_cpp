@@ -47,6 +47,9 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     
     if (ImGui::Button("Auto Layout")) {
         doc.blueprint().auto_layout_group(win.group_id);
+        // Cancel gesture before rebuild — user may have started a drag and
+        // moved the cursor to the button.
+        win.input.cancel_gesture();
         visual::mutations::rebuild(win.scene, doc.blueprint(), win.group_id);
         fitViewToContent(doc, win);
     }

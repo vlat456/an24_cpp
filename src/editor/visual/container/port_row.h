@@ -111,20 +111,15 @@ private:
         if (!port_ || !ctx_) return;
 
         // Compute the x-offset of this PortRow's origin from the node origin.
-        // Walk up the parent chain summing localPos offsets, stopping before
-        // reaching the node widget itself (which is the root).
+        // Walk up the parent chain summing localPos offsets until we reach the root.
         float offset_x = 0;
         float offset_y = 0;
         const Widget* w = this;
-        while (w->parent() && w->parent()->parent()) {
-            // Stop when parent's parent is null (parent is the node root)
+        while (w->parent()) {
             offset_x += w->localPos().x;
             offset_y += w->localPos().y;
             w = w->parent();
         }
-        // Include the last hop (from direct child of node to node)
-        offset_x += w->localPos().x;
-        offset_y += w->localPos().y;
 
         float port_lx = 0;
         float port_ly = (row_h - PortConstants::RADIUS * 2) / 2.0f;

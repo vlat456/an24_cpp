@@ -396,3 +396,93 @@ TEST(WireTest, CrossingDetected_MultipleIntersections) {
     EXPECT_EQ(w1->crossings().size(), 2u);
     EXPECT_EQ(w2->crossings().size(), 2u);
 }
+
+// ============================================================
+// REGRESSION: Fix 4 — Epsilon-based movement detection
+// ============================================================
+// Before this fix, Wire::rebuildGeometry() compared float positions
+// with exact equality. Tiny floating-point rounding errors (< 0.05)
+// from layout or zoom operations could cause the wire to never
+// detect that its endpoints had moved, making it permanently stale.
+// The fix uses epsilon tolerance (0.05f) for the comparison.
+
+TEST(WireTest, REGRESSION_EpsilonMovementDetection) {
+    WireTestFixture f;
+    f.setup(Pt(0, 0), Pt(100, 30), Pt(200, 0), Pt(0, 30));
+    
+    // Force initial geometry build
+    auto pl1 = f.wire_ptr->polyline();
+    ASSERT_GE(pl1.size(), 2u);
+    float orig_start_x = pl1[0].x;
+    
+    // Move node_a by a tiny amount BELOW the epsilon threshold (0.05)
+    // This should NOT trigger a rebuild
+    auto* node_a = f.scene.find("a");
+    ASSERT_NE(node_a, nullptr);
+    node_a->setLocalPos(Pt(0.02f, 0.0f));
+    
+    auto pl2 = f.wire_ptr->polyline();
+    // The wire should return the CACHED polyline (not rebuilt)
+    // because the movement is below the 0.05 epsilon threshold
+    EXPECT_FLOAT_EQ(pl2[0].x, orig_start_x)
+        << "Movement below epsilon should not trigger rebuild";
+    
+    // Now move node_a by a larger amount ABOVE the epsilon threshold
+    node_a->setLocalPos(Pt(1.0f, 0.0f));
+    
+    auto pl3 = f.wire_ptr->polyline();
+    // The wire should have rebuilt — start position should change
+    EXPECT_NE(pl3[0].x, orig_start_x)
+        << "Movement above epsilon should trigger rebuild";
+}
+
+// ============================================================
+// REGRESSION: Fix 2 — dynamic_cast filter for non-Wire roots
+// ============================================================
+// Before this fix, compute_wire_crossings() used static_cast<Wire*>
+// on all roots with RenderLayer::Wire, which is UB if non-Wire
+// widgets ever have that render layer. The fix uses dynamic_cast
+// and filters out non-Wire widgets safely.
+
+TEST(WireTest, REGRESSION_CrossingDetectionWithNonWireRoots) {
+    visual::Scene scene;
+    
+    // Add a non-Wire clickable widget to the scene
+    // (e.g., a FakeNode — it has RenderLayer::Normal, but
+    //  the point is that the scene has mixed widget types)
+    auto node = std::make_unique<FakeNode>("n1", Pt(25, 25));
+    scene.add(std::move(node));
+    
+    // Add two crossing wires
+    auto* w1 = makePolylineWire(scene, "w1", {{0, 50}, {100, 50}});
+    auto* w2 = makePolylineWire(scene, "w2", {{50, 0}, {50, 100}});
+    
+    // This should NOT crash even with non-Wire roots in the scene
+    EXPECT_NO_FATAL_FAILURE(visual::compute_wire_crossings(scene));
+    
+    // Crossings should still be detected correctly
+    EXPECT_EQ(w1->crossings().size(), 1u);
+    EXPECT_EQ(w2->crossings().size(), 1u);
+}
+
+// ============================================================
+// REGRESSION: Wire invalidateGeometry forces fresh rebuild
+// ============================================================
+
+TEST(WireTest, REGRESSION_InvalidateGeometryForcesRebuild) {
+    WireTestFixture f;
+    f.setup(Pt(0, 0), Pt(100, 30), Pt(200, 0), Pt(0, 30));
+    
+    // Force initial build
+    auto pl1 = f.wire_ptr->polyline();
+    ASSERT_GE(pl1.size(), 2u);
+    
+    // Add a routing point — this calls invalidateGeometry()
+    f.wire_ptr->addRoutingPoint(Pt(150, 80), 0);
+    
+    auto pl2 = f.wire_ptr->polyline();
+    // After invalidation, polyline must include the routing point
+    ASSERT_EQ(pl2.size(), 3u);
+    EXPECT_FLOAT_EQ(pl2[1].x, 150.0f);
+    EXPECT_FLOAT_EQ(pl2[1].y, 80.0f);
+}

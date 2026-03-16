@@ -256,3 +256,61 @@ TEST(PortLayoutResolver, LogicalSide_PreservedFromPortDefinition) {
     EXPECT_EQ(layout.left[0].logical_side, PortSide::Input);
     EXPECT_EQ(layout.right[0].logical_side, PortSide::Output);
 }
+
+// ============================================================
+// REGRESSION: Fix 1 — stable_partition preserves insertion order
+// ============================================================
+// Before this fix, std::partition was used to separate hinted ports
+// from auto ports. std::partition does NOT preserve relative order,
+// so auto ports could appear in a non-deterministic order. The fix
+// uses std::stable_partition, which guarantees that auto ports appear
+// in their original insertion order.
+
+TEST(PortLayoutResolver, REGRESSION_StablePartitionPreservesAutoPortOrder) {
+    // Create many auto ports (no position overrides) and verify
+    // they come out in the same order they were inserted.
+    ui::StringInterner interner;
+    std::vector<EditorPort> inputs;
+    inputs.emplace_back(interner.intern("alpha"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("beta"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("gamma"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("delta"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("epsilon"), PortSide::Input, PortType::V);
+    
+    // No overrides — all are auto-positioned
+    ResolvedLayout layout = resolve_port_layout(inputs, {}, {}, interner);
+    
+    ASSERT_EQ(layout.left.size(), 5u);
+    EXPECT_EQ(layout.left[0].port_name, "alpha");
+    EXPECT_EQ(layout.left[1].port_name, "beta");
+    EXPECT_EQ(layout.left[2].port_name, "gamma");
+    EXPECT_EQ(layout.left[3].port_name, "delta");
+    EXPECT_EQ(layout.left[4].port_name, "epsilon");
+}
+
+TEST(PortLayoutResolver, REGRESSION_StablePartitionMixedHintedAndAuto) {
+    // Mix of hinted and auto ports. Hinted ports should come first (sorted by hint),
+    // then auto ports in their original insertion order.
+    ui::StringInterner interner;
+    std::vector<EditorPort> inputs;
+    inputs.emplace_back(interner.intern("a1"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a2"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a3"), PortSide::Input, PortType::V);
+    inputs.emplace_back(interner.intern("a4"), PortSide::Input, PortType::V);
+    
+    // Override: a3 to position 0, a1 to position 1
+    // Auto: a2, a4 (should appear after hinted, in insertion order)
+    std::vector<PortLayoutOverride> overrides;
+    overrides.push_back({"a3", PortLayoutSide::Left, 0});
+    overrides.push_back({"a1", PortLayoutSide::Left, 1});
+    
+    ResolvedLayout layout = resolve_port_layout(inputs, {}, overrides, interner);
+    
+    ASSERT_EQ(layout.left.size(), 4u);
+    // Hinted first, sorted by hint
+    EXPECT_EQ(layout.left[0].port_name, "a3");  // hint 0
+    EXPECT_EQ(layout.left[1].port_name, "a1");  // hint 1
+    // Auto ports in original insertion order
+    EXPECT_EQ(layout.left[2].port_name, "a2");
+    EXPECT_EQ(layout.left[3].port_name, "a4");
+}

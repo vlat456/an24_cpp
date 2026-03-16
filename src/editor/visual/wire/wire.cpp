@@ -67,10 +67,13 @@ void Wire::rebuildGeometry() const {
     Pt cur_start = opt_start.value_or(Pt(0, 0));
     Pt cur_end   = opt_end.value_or(Pt(0, 0));
 
-    // Auto-detect endpoint movement
+    // Auto-detect endpoint movement (epsilon tolerance for float rounding)
     if (!dirty_) {
-        if (cur_start.x != cached_start_pos_.x || cur_start.y != cached_start_pos_.y ||
-            cur_end.x   != cached_end_pos_.x   || cur_end.y   != cached_end_pos_.y) {
+        constexpr float EPS = 0.05f;
+        if (std::abs(cur_start.x - cached_start_pos_.x) > EPS ||
+            std::abs(cur_start.y - cached_start_pos_.y) > EPS ||
+            std::abs(cur_end.x   - cached_end_pos_.x)   > EPS ||
+            std::abs(cur_end.y   - cached_end_pos_.y)   > EPS) {
             dirty_ = true;
         }
     }
@@ -412,11 +415,12 @@ void compute_wire_crossings(Scene& scene) {
     // Collect all wires and clear their crossings for this frame.
     ui::SmallVector<Wire*, 64> wires;
     for (const auto& r : scene.roots()) {
-        if (static_cast<Widget*>(r.get())->renderLayer() == RenderLayer::Wire) {
-            if (auto* w = dynamic_cast<Wire*>(r.get())) {
-                w->clearCrossings();
-                wires.push_back(w);
-            }
+        auto* vw = static_cast<Widget*>(r.get());
+        if (vw->renderLayer() == RenderLayer::Wire) {
+            // Only Wire returns RenderLayer::Wire, so static_cast is safe.
+            auto* w = static_cast<Wire*>(vw);
+            w->clearCrossings();
+            wires.push_back(w);
         }
     }
 
@@ -440,9 +444,14 @@ void compute_wire_crossings(Scene& scene) {
     scene.grid().forEachCell([&](const std::vector<ui::Widget*>& cell_widgets) {
         ui::SmallVector<Wire*, 8> cell_wires;
         for (auto* widget : cell_widgets) {
-            auto it = wire_index.find(static_cast<Wire*>(widget));
-            if (it != wire_index.end()) {
-                cell_wires.push_back(static_cast<Wire*>(widget));
+            // Use renderLayer() check (cheap virtual call) instead of dynamic_cast.
+            // All widgets in the editor scene are visual::Widget subclasses.
+            auto* vw = static_cast<Widget*>(widget);
+            if (vw->renderLayer() == RenderLayer::Wire) {
+                auto* wire = static_cast<Wire*>(vw);
+                if (wire_index.count(wire)) {
+                    cell_wires.push_back(wire);
+                }
             }
         }
 

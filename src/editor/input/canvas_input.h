@@ -106,12 +106,6 @@ public:
     
     /// Take a snapshot and execute a command (mutation).
     void snapshot_and_execute(Command cmd);
-    
-    /// Perform undo (if possible).
-    bool undo();
-    
-    /// Perform redo (if possible).
-    bool redo();
 
 private:
     visual::Scene& scene_;
@@ -184,6 +178,14 @@ private:
                               Pt anchor_pos, PortSide fixed_side);
     void enter_marquee(Pt world_pos);
     void leave_state();  // return to Idle (clean up transient data)
+
+public:
+    /// Cancel any in-flight gesture, clearing all transient pointers.
+    /// Call this BEFORE any scene rebuild (undo/redo, node deletion, etc.)
+    /// to prevent dangling pointers to destroyed widgets.
+    void cancel_gesture();
+
+private:
 
     InputResult finish_wire_creation(Pt screen_pos, Pt canvas_min);
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);

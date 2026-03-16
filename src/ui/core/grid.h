@@ -103,6 +103,9 @@ private:
                 if (it == cells_.end()) continue;
                 auto& vec = it->second.widgets;
                 vec.erase(std::remove(vec.begin(), vec.end(), w), vec.end());
+                if (vec.empty()) {
+                    cells_.erase(it);
+                }
             }
         }
     }

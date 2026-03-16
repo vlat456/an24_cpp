@@ -122,7 +122,7 @@ inline ResolvedLayout resolve_port_layout(
                       PortLayoutSide::Top, PortLayoutSide::Bottom}) {
         auto& side_ports = layout[side];
         // Partition: hinted (position_hint != 255) vs auto (position_hint == 255)
-        auto hinted_end = std::partition(side_ports.begin(), side_ports.end(),
+        auto hinted_end = std::stable_partition(side_ports.begin(), side_ports.end(),
             [](const ResolvedPort& p) { return p.position_hint != 255; });
         
         // Sort hinted by position hint

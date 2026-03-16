@@ -76,6 +76,13 @@ public:
     void startSimulation();
     void stopSimulation();
     void rebuildSimulation();
+
+    /// Cancel all in-flight gestures, rebuild every window's scene from the
+    /// blueprint, then rebuild the simulation.  Use this after any operation
+    /// that mutates the blueprint outside of the normal undo/redo path
+    /// (e.g. bake-in, addComponent, property edits).
+    void rebuildAllWindows();
+
     void updateSimulationStep(float dt);
 
     /// Update node_content (gauges, switches, etc.) from simulation values.
