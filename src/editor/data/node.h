@@ -76,9 +76,28 @@ struct Node {
     /// Empty string = root (top-level). "lamp1" = inside collapsed group "lamp1".
     std::string group_id;
 
-    ui::Pt pos;                  ///< Позиция (верхний левый угол)
-    ui::Pt size;                 ///< Размеры (ширина × высота)
-    bool size_explicitly_set = false;  ///< True if size was set via size_wh() (not from JSON default)
+    ui::Pt pos;                           ///< Позиция (верхний левый угол)
+
+private:
+    std::optional<ui::Pt> size_;          ///< nullopt = auto-size, has_value = user-set size
+
+public:
+    /// Returns true if size was explicitly set by user (resize drag or size_wh())
+    bool has_explicit_size() const { return size_.has_value(); }
+    
+    /// Get the explicit size (call only if has_explicit_size() is true)
+    const ui::Pt& explicit_size() const { return *size_; }
+    
+    /// Get size: returns explicit size if set, otherwise the given default (120x80)
+    ui::Pt get_size(ui::Pt fallback = ui::Pt(120.0f, 80.0f)) const {
+        return size_.value_or(fallback);
+    }
+    
+    /// Set explicit size (marks node as user-resized)
+    void set_explicit_size(const ui::Pt& sz) { size_ = sz; }
+    
+    /// Clear explicit size (revert to auto-size behavior)
+    void clear_explicit_size() { size_ = std::nullopt; }
 
     std::vector<EditorPort> inputs;    ///< Входные порты
     std::vector<EditorPort> outputs;   ///< Выходные порты
@@ -102,7 +121,7 @@ struct Node {
         , blueprint_path()
         , group_id()
         , pos(ui::Pt::zero())
-        , size(120.0f, 80.0f)
+        , size_(std::nullopt)
         , inputs()
         , outputs()
         , node_content()
@@ -114,10 +133,9 @@ struct Node {
         return *this;
     }
 
-    /// fluent: задать размеры
+    /// fluent: задать размеры (marks as explicitly set)
     Node& size_wh(float w, float h) {
-        size = ui::Pt(w, h);
-        size_explicitly_set = true;  // Mark as explicitly set by user
+        size_ = ui::Pt(w, h);
         return *this;
     }
 

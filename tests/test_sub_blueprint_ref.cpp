@@ -479,7 +479,7 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     bat.id = I.intern("bat");
     bat.type_name = "Battery";
     bat.pos = {100.0f, 200.0f};
-    bat.size = {120.0f, 80.0f};
+    bat.set_explicit_size(ui::Pt(120.0f, 80.0f));
     bat.output(I.intern("v_out"));
     bp.add_node(bat);
 
@@ -490,7 +490,7 @@ TEST(SubBlueprintPersist, RoundTrip_PreservesReferences) {
     collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.pos = {400.0f, 300.0f};
-    collapsed.size = {120.0f, 80.0f};
+    collapsed.set_explicit_size(ui::Pt(120.0f, 80.0f));
     collapsed.input(I.intern("vin"));
     bp.add_node(collapsed);
 

@@ -2,11 +2,13 @@
 
 #include "input/input_types.h"
 #include "ui/math/pt.h"
+#include "ui/core/interned_id.h"
 #include "data/port.h"
 #include "commands/commands.h"
 #include "undo/undo_stack.h"
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using ui::Pt;
@@ -27,9 +29,10 @@ struct Blueprint;
 /// Returns InputResult so the host can perform app-level actions
 /// (rebuild simulation, open sub-window, show context menu).
 ///
-/// Selection is tracked by widget ID strings, resolved to pointers
-/// via the scene's O(1) index only when needed. This eliminates
-/// dangling pointer bugs when widgets are destroyed and recreated.
+/// Selection is tracked by InternedId (4-byte integer handles),
+/// resolved to pointers via the scene's O(1) index only when needed.
+/// This eliminates dangling pointer bugs when widgets are destroyed
+/// and recreated, and avoids std::string allocations in hot paths.
 ///
 /// When read_only is true, only non-destructive operations are allowed:
 /// panning, zooming, selection (for inspection), double-click to open
@@ -57,8 +60,8 @@ public:
 
     InputState state() const { return state_; }
 
-    /// Selected node IDs.
-    const std::vector<std::string>& selected_node_ids() const { return selected_node_ids_; }
+    /// Selected node IDs (interned handles — O(1) comparison).
+    const std::vector<ui::InternedId>& selected_node_ids() const { return selected_node_ids_; }
 
     /// Resolve selected node IDs to widget pointers (for rendering).
     /// Returns only widgets that still exist in the scene.
@@ -92,7 +95,7 @@ public:
 
     /// Select a node by its ID and center the viewport on it.
     /// Returns true if found and selected.
-    bool selectNodeById(const std::string& node_id);
+    bool select_node_by_id(std::string_view node_id);
 
     // ---- Hover tracking ----
 
@@ -111,7 +114,8 @@ private:
     visual::Scene& scene_;
     Viewport& viewport_;
     Blueprint& bp_;
-    const std::string& group_id_;
+    ui::InternedId group_iid_;  // interned handle for O(1) comparisons
+    std::string_view group_id_;  // resolved from interner (stable storage)
     UndoStack& undo_stack_;
     
     // Initial positions for drag-to-command commit
@@ -119,10 +123,10 @@ private:
 
     InputState state_ = InputState::Idle;
 
-    // Selection — stored as IDs, resolved via scene.find() when needed.
-    std::vector<std::string> selected_node_ids_;
-    std::string selected_wire_id_;
-    std::string hovered_wire_id_;
+    // Selection — stored as InternedId handles, resolved via scene.find() when needed.
+    std::vector<ui::InternedId> selected_node_ids_;
+    ui::InternedId selected_wire_id_;
+    ui::InternedId hovered_wire_id_;
 
     // Hover — routing point is transient (only valid during current frame).
     visual::RoutingPoint* hovered_routing_point_ = nullptr;
@@ -142,13 +146,13 @@ private:
     PortSide reconnect_fixed_side_ = PortSide::Input;
 
     // Routing-point drag — transient (pointers valid only during DraggingRoutingPoint)
-    std::string rp_wire_id_;
+    ui::InternedId rp_wire_id_;
     visual::RoutingPoint* rp_point_ = nullptr;
     size_t rp_index_ = 0;
     std::vector<Pt> rp_initial_points_;  // snapshot of routing_points at drag start
 
-    // Resize drag — stored as ID
-    std::string resize_widget_id_;
+    // Resize drag — stored as InternedId
+    ui::InternedId resize_widget_id_;
     ResizeCorner resize_corner_ = ResizeCorner::BottomRight;
     Pt resize_original_pos_;
     Pt resize_original_size_;
@@ -162,11 +166,11 @@ private:
 
     // ---- Internal helpers ----
 
-    /// Resolve a wire ID to a visual::Wire* (nullptr if not found).
-    visual::Wire* resolve_wire(const std::string& id) const;
+    /// Resolve a wire InternedId to a visual::Wire* (nullptr if not found).
+    visual::Wire* resolve_wire(ui::InternedId id) const;
 
-    /// Resolve a node ID to a visual::Widget* (nullptr if not found).
-    visual::Widget* resolve_node(const std::string& id) const;
+    /// Resolve a node InternedId to a visual::Widget* (nullptr if not found).
+    visual::Widget* resolve_node(ui::InternedId id) const;
 
     // ---- Internal transition helpers ----
     void enter_panning();
@@ -191,13 +195,36 @@ private:
     InputResult finish_wire_reconnection(Pt screen_pos, Pt canvas_min);
     void finish_marquee();
 
+    // ---- Drag sub-handlers (extracted from on_mouse_drag) ----
+
+    /// Handle DraggingNode state: move selected nodes + invalidate connected wires.
+    void handle_drag_node(Pt world_delta);
+
+    /// Handle ResizingNode state: corner-aware resize with min-size enforcement.
+    void handle_resize_node(Pt world_delta);
+
+    // ---- Mouse-up commit handlers (extracted from on_mouse_up) ----
+
+    /// Commit dragged node positions to the data layer via CmdMoveNode.
+    void commit_drag_node();
+
+    /// Commit dragged routing point position to the data layer via CmdSetRoutingPoints.
+    void commit_drag_routing_point();
+
+    /// Commit resized node dimensions to the data layer via CmdResizeNode.
+    void commit_resize_node();
+
+    /// Check if a click on a node widget hit a Switch/VerticalToggle content area.
+    /// Returns the node ID if toggled, empty string otherwise.
+    std::string check_content_toggle(visual::Widget& widget, Pt world_pos);
+
     // ---- Utility ----
 
-    /// Find the data-layer index of a wire by its visual ID.
-    size_t find_wire_index(const std::string& wire_id) const;
+    /// Find the data-layer index of a wire by its InternedId.
+    size_t find_wire_index(ui::InternedId wire_id) const;
 
-    /// Find the data-layer index of a node by its widget ID.
-    size_t find_node_index(const std::string& node_id) const;
+    /// Find the data-layer index of a node by its InternedId.
+    size_t find_node_index(ui::InternedId node_id) const;
 
     /// Look up the data-layer wire index for a port (for reconnection).
     struct WirePortMatch {

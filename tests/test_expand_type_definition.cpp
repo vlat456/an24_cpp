@@ -217,8 +217,9 @@ TEST(ExpandTypeDef, Positions_PreservedFromDevices) {
     ASSERT_NE(a, nullptr);
     EXPECT_FLOAT_EQ(a->pos.x, 100.0f);
     EXPECT_FLOAT_EQ(a->pos.y, 200.0f);
-    EXPECT_FLOAT_EQ(a->size.x, 128.0f);
-    EXPECT_FLOAT_EQ(a->size.y, 96.0f);
+    ASSERT_TRUE(a->has_explicit_size());
+    EXPECT_FLOAT_EQ(a->get_size().x, 128.0f);
+    EXPECT_FLOAT_EQ(a->get_size().y, 96.0f);
 
     const Node* b = bp.find_node("b");
     ASSERT_NE(b, nullptr);
@@ -245,9 +246,9 @@ TEST(ExpandTypeDef, Size_FallbackToRegistry) {
 
     const Node* bat = bp.find_node("bat");
     ASSERT_NE(bat, nullptr);
-    // Should have a non-zero size from registry or default
-    EXPECT_GT(bat->size.x, 0.0f);
-    EXPECT_GT(bat->size.y, 0.0f);
+    // Should have a non-zero size from get_size() fallback or explicit
+    EXPECT_GT(bat->get_size().x, 0.0f);
+    EXPECT_GT(bat->get_size().y, 0.0f);
 }
 
 // =============================================================================
@@ -382,8 +383,9 @@ TEST(ExpandTypeDef, ParseTypeDefinition_DevicePosSize) {
     ASSERT_EQ(bp.nodes.size(), 1);
     EXPECT_FLOAT_EQ(bp.nodes[0].pos.x, 96.0f);
     EXPECT_FLOAT_EQ(bp.nodes[0].pos.y, 112.0f);
-    EXPECT_FLOAT_EQ(bp.nodes[0].size.x, 128.0f);
-    EXPECT_FLOAT_EQ(bp.nodes[0].size.y, 80.0f);
+    ASSERT_TRUE(bp.nodes[0].has_explicit_size());
+    EXPECT_FLOAT_EQ(bp.nodes[0].get_size().x, 128.0f);
+    EXPECT_FLOAT_EQ(bp.nodes[0].get_size().y, 80.0f);
 
     std::filesystem::remove_all(tmp);
 }

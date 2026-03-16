@@ -41,8 +41,12 @@ BusNodeWidget::BusNodeWidget(const ::Node& data,
         }
     }
 
-    // Initial size from data (will be recalculated in rebuildPorts)
-    Pt snapped = editor_math::snap_size_to_layout_grid(data.size);
+    // Carry the explicit-size flag from the data layer so rebuildPorts()
+    // keeps the user's custom size instead of auto-calculating it.
+    size_explicitly_set_ = data.has_explicit_size();
+
+    // Initial size from data (will be recalculated in rebuildPorts if not explicit)
+    Pt snapped = editor_math::snap_size_to_layout_grid(data.get_size());
     setSize(snapped);
 
     rebuildPorts();
@@ -86,9 +90,20 @@ void BusNodeWidget::rebuildPorts() {
     auto* base = emplaceChild<Port>("v", PortSide::InOut, PortType::V);
     ports_.push_back(base);
 
-    // Recalculate size based on port count
+    // Recalculate size based on port count — but respect user's explicit size.
+    // Only auto-size when the user hasn't manually resized, or when the
+    // current size is too small to fit all ports.
     if (!wires_.empty()) {
-        setSize(calculateBusSize(ports_.size()));
+        Pt auto_sz = calculateBusSize(ports_.size());
+        if (!size_explicitly_set_) {
+            setSize(auto_sz);
+        } else {
+            // Grow to fit ports if user's size is too small, but never shrink
+            Pt cur = size();
+            float w = std::max(cur.x, auto_sz.x);
+            float h = std::max(cur.y, auto_sz.y);
+            setSize(Pt(w, h));
+        }
     }
 
     // Position all ports
@@ -217,6 +232,7 @@ Pt BusNodeWidget::preferredSize(IDrawList* /*dl*/) const {
 }
 
 void BusNodeWidget::layout(float w, float h) {
+    size_explicitly_set_ = true;
     setSize(Pt(w, h));
     for (size_t i = 0; i < ports_.size(); i++) {
         ports_[i]->setLocalPos(calculatePortLocalPos(i));

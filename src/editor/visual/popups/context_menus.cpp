@@ -50,7 +50,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     Document* doc = ws.findDocumentById(ws.nodeContextMenu.source_doc_id);
     if (!doc) doc = ws.activeDocument();
-    Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id.c_str()) : nullptr;
+    Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id) : nullptr;
     if (doc && node_ptr) {
         Node& node = *node_ptr;
         ImGui::Text("Node: %s", node.name.c_str());

@@ -15,6 +15,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
+#include <algorithm>
 
 using ui::Pt;
 
@@ -124,6 +125,36 @@ struct Blueprint {
     /// [f6g7h8i9] Monotonic counter for generating unique wire IDs
     int next_wire_id = 0;
 
+    /// Rebuild all derived indices from nodes/wires vectors.
+    /// Call after any bulk modification (load, undo/redo, remove_nodes, etc.).
+    void rebuild_all_indices() {
+        rebuild_node_index();
+        rebuild_wire_index();
+        rebuild_wire_id_index();
+        rebuild_bus_wire_index();
+        rebuild_port_occupancy_index();
+    }
+
+    /// Allocate a unique wire ID and intern it. Data-layer concern —
+    /// increments next_wire_id and returns the interned string "wire_N".
+    ui::InternedId allocate_wire_id() {
+        std::string id_str = "wire_" + std::to_string(next_wire_id++);
+        return interner().intern(id_str);
+    }
+
+    /// Generate a unique node ID from a base name (e.g. "battery" → "battery_1").
+    /// Increments a counter until no existing node matches.
+    std::string generate_unique_node_id(const std::string& base_name) {
+        std::string base = base_name;
+        std::transform(base.begin(), base.end(), base.begin(), ::tolower);
+        int counter = 1;
+        std::string unique_id;
+        do {
+            unique_id = base + "_" + std::to_string(counter++);
+        } while (find_node(std::string_view(unique_id)) != nullptr);
+        return unique_id;
+    }
+
     Blueprint()
         : pan(Pt::zero())
         , zoom(1.0f)
@@ -195,6 +226,29 @@ private:
     /// InternedId values remain valid even when shared across copies.
     std::shared_ptr<ui::StringInterner> interner_ = std::make_shared<ui::StringInterner>();
 
+    /// Shorthand: resolve an InternedId to string_view via the interner.
+    std::string_view resolve(ui::InternedId id) const { return interner_->resolve(id); }
+
+    // == from_flat decomposition helpers ==
+
+    /// Load nodes from flat representation (dedup, deserialize fields).
+    static void load_nodes_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
+
+    /// Enrich loaded nodes with port definitions and default params from the registry.
+    static void enrich_nodes_from_registry(Blueprint& bp, const TypeRegistry& registry);
+
+    /// Load wires from flat representation (dedup, intern IDs).
+    static void load_wires_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
+
+    /// Load sub-blueprint instance metadata and overrides.
+    static void load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
+
+    /// Re-expand non-baked sub-blueprints (nodes, wires, layout) from the registry.
+    static void expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistry& registry);
+
+    /// Finalize wire ID counter and group IDs after loading.
+    static void finalize_after_load(Blueprint& bp);
+
     /// Add a wire's ID to bus_wire_index_ if it touches a bus node.
     void addToBusIndex(const Wire& w);
     /// Remove a wire's ID from bus_wire_index_ if it touches a bus node.
@@ -232,13 +286,13 @@ public:
         return &nodes[it->second];
     }
 
-    /// Convenience: find node by string (interns on-the-fly)
-    Node* find_node(const char* id) {
-        auto iid = interner_->intern(id);
+    /// Convenience: find node by string_view (const lookup, no interner mutation).
+    Node* find_node(std::string_view id) {
+        auto iid = interner_->lookup(id);
+        if (iid.empty()) return nullptr;
         return find_node(iid);
     }
-    const Node* find_node(const char* id) const {
-        // Use lookup (const, no mutation) — if string isn't interned, no node can have that ID
+    const Node* find_node(std::string_view id) const {
         auto iid = interner_->lookup(id);
         if (iid.empty()) return nullptr;
         return find_node(iid);
@@ -280,7 +334,7 @@ public:
             out_group_ids.insert(g.id);
             for (const auto& nid : g.internal_node_ids) {
                 out_node_ids.insert(nid);
-                const Node* n = find_node(nid.c_str());
+                const Node* n = find_node(std::string_view(nid));
                 if (n && n->expandable) {
                     collect_group_internals(nid, out_node_ids, out_group_ids);
                 }

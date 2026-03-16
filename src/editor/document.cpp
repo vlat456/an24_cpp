@@ -44,7 +44,7 @@ bool Document::load(const std::string& path) {
     if (!bp.has_value()) return false;
 
     // Close any sub-windows from previous blueprint
-    window_manager_.closeAll();
+    window_manager_.close_all();
 
     // Cancel any in-flight gesture in the root window before replacing the blueprint
     root().input.cancel_gesture();
@@ -56,11 +56,7 @@ bool Document::load(const std::string& path) {
     }
 
     blueprint_ = std::move(*bp);
-    blueprint_.rebuild_node_index();
-    blueprint_.rebuild_wire_index();
-    blueprint_.rebuild_wire_id_index();
-    blueprint_.rebuild_bus_wire_index();
-    blueprint_.rebuild_port_occupancy_index();
+    blueprint_.rebuild_all_indices();
 
     // Clear undo/redo history from previous document and mark as clean
     undo_stack_.clear();
@@ -279,14 +275,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Generate unique ID
-    int counter = 1;
-    std::string base_id = classname;
-    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
-
-    std::string unique_id;
-    do {
-        unique_id = base_id + "_" + std::to_string(counter++);
-    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
+    std::string unique_id = blueprint_.generate_unique_node_id(classname);
 
     // Snap position to grid
     Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
@@ -302,7 +291,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     node.render_hint = def->render_hint;
     node.expandable = !def->cpp_class && !def->devices.empty();
 
-    node.size = get_default_node_size(classname, &registry);
+    // Size left as nullopt — widget will auto-size from preferredSize()
 
     // Add ports
     auto& I = blueprint_.interner();
@@ -333,43 +322,14 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
            group_id.empty() ? "root" : group_id);
 }
 
-void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
-                              const std::string& group_id,
-                              TypeRegistry& registry) {
-
-    const auto* bp_def = registry.get(blueprint_name);
-    if (!bp_def || bp_def->cpp_class) {
-        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
-        return;
-    }
-
-    int counter = 1;
-    std::string base_id = blueprint_name;
-    std::transform(base_id.begin(), base_id.end(), base_id.begin(), ::tolower);
-
-    std::string unique_id;
-    do {
-        unique_id = base_id + "_" + std::to_string(counter++);
-    } while (blueprint_.find_node(unique_id.c_str()) != nullptr);
-
-    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
-
-    std::string category;
-    auto cat_it = registry.categories.find(blueprint_name);
-    if (cat_it != registry.categories.end())
-        category = cat_it->second;
-
-    Blueprint sub_bp = expand_type_definition(*bp_def, registry);
-    bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
-                                  [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
-
-    auto& I = blueprint_.interner();
+/// Expand internal nodes and wires from a sub-blueprint into the main blueprint.
+/// Returns the list of prefixed internal node IDs.
+static std::vector<std::string> expand_internal_devices(
+        Blueprint& bp, Blueprint& sub_bp,
+        const std::string& unique_id, Pt snapped_pos, bool has_layout) {
+    auto& I = bp.interner();
     auto& sub_I = sub_bp.interner();
 
-    // == Single snapshot before all mutations (single undo entry) ==
-    undo_stack_.snapshot(blueprint_);
-
-    // 1. Add internal nodes
     std::vector<std::string> internal_node_ids;
     for (auto& node : sub_bp.nodes) {
         std::string prefixed_id = unique_id + ":" + std::string(sub_I.resolve(node.id));
@@ -377,19 +337,31 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
         node.name = prefixed_id;
         if (!has_layout) node.pos = snapped_pos;
         internal_node_ids.push_back(prefixed_id);
-        execute(blueprint_, cmd_add_node(std::move(node)));
+        execute(bp, cmd_add_node(std::move(node)));
     }
-
-    // 2. Add internal wires
-    size_t internal_wire_count = sub_bp.wires.size();
     for (auto& wire : sub_bp.wires) {
         wire.start.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.start.node_id)));
         wire.end.node_id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.end.node_id)));
         wire.id = I.intern(unique_id + ":" + std::string(sub_I.resolve(wire.id)));
-        execute(blueprint_, cmd_add_wire(std::move(wire)));
+        execute(bp, cmd_add_wire(std::move(wire)));
     }
+    return internal_node_ids;
+}
 
-    // 3. Create collapsed Blueprint node
+/// Create the collapsed Blueprint node and SubBlueprintInstance, execute
+/// the add commands, and return the number of ports (for logging).
+static void register_collapsed_node(Blueprint& bp,
+                                    const TypeDefinition& bp_def,
+                                    const std::string& unique_id,
+                                    const std::string& blueprint_name,
+                                    const std::string& group_id,
+                                    const std::string& category,
+                                    Pt snapped_pos,
+                                    std::vector<std::string> internal_node_ids) {
+    auto& I = bp.interner();
+    std::string bp_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
+
+    // Collapsed node
     Node collapsed_node;
     collapsed_node.id = I.intern(unique_id);
     collapsed_node.name = unique_id;
@@ -398,45 +370,66 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
     collapsed_node.collapsed = true;
     collapsed_node.pos = snapped_pos;
     collapsed_node.group_id = group_id;
-    collapsed_node.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
+    collapsed_node.blueprint_path = bp_path;
 
-    size_t num_ports = std::max(bp_def->ports.size(), size_t(1));
+    size_t num_ports = std::max(bp_def.ports.size(), size_t(1));
     float height = 80.0f + (num_ports - 1) * 16.0f;
-    collapsed_node.size = Pt(120.0f, height);
+    collapsed_node.set_explicit_size(Pt(120.0f, height));
 
-    for (const auto& [port_name, port] : bp_def->ports) {
+    for (const auto& [port_name, port] : bp_def.ports) {
         auto pid = I.intern(port_name);
-        if (port.direction == PortDirection::In) {
+        if (port.direction == PortDirection::In)
             collapsed_node.inputs.emplace_back(pid, PortSide::Input, port.type);
-        } else {
+        else
             collapsed_node.outputs.emplace_back(pid, PortSide::Output, port.type);
-        }
     }
+    execute(bp, cmd_add_node(std::move(collapsed_node)));
 
-    execute(blueprint_, cmd_add_node(std::move(collapsed_node)));
-
-    // 4. Register sub-blueprint instance (tracks internal nodes for undo)
+    // Sub-blueprint instance
     SubBlueprintInstance sbi;
     sbi.id = unique_id;
-    sbi.blueprint_path = category.empty() ? blueprint_name : (category + "/" + blueprint_name);
+    sbi.blueprint_path = bp_path;
     sbi.type_name = blueprint_name;
     sbi.pos = snapped_pos;
     sbi.size = Pt(120.0f, height);
     sbi.baked_in = false;
-    sbi.internal_node_ids = internal_node_ids;
-    execute(blueprint_, cmd_add_sub_blueprint(std::move(sbi)));
+    sbi.internal_node_ids = std::move(internal_node_ids);
+    execute(bp, cmd_add_sub_blueprint(std::move(sbi)));
+}
 
-    blueprint_.recompute_group_ids();
-
-    if (!has_layout) {
-        blueprint_.auto_layout_group(unique_id);
+void Document::addBlueprint(const std::string& blueprint_name, Pt world_pos,
+                              const std::string& group_id,
+                              TypeRegistry& registry) {
+    const auto* bp_def = registry.get(blueprint_name);
+    if (!bp_def || bp_def->cpp_class) {
+        spdlog::error("[editor] '{}' is not a blueprint type in TypeRegistry", blueprint_name);
+        return;
     }
 
-    // Rebuild visual + simulation (cancels gestures + rebuilds all windows)
-    rebuildAllWindows();
+    std::string unique_id = blueprint_.generate_unique_node_id(blueprint_name);
+    Pt snapped_pos = editor_math::snap_to_grid(world_pos, blueprint_.grid_step);
 
+    std::string category;
+    auto cat_it = registry.categories.find(blueprint_name);
+    if (cat_it != registry.categories.end()) category = cat_it->second;
+
+    Blueprint sub_bp = expand_type_definition(*bp_def, registry);
+    bool has_layout = std::any_of(sub_bp.nodes.begin(), sub_bp.nodes.end(),
+                                  [](const Node& n) { return n.pos.x != 0 || n.pos.y != 0; });
+
+    undo_stack_.snapshot(blueprint_);
+    size_t wire_count = sub_bp.wires.size();
+
+    auto internal_ids = expand_internal_devices(blueprint_, sub_bp, unique_id, snapped_pos, has_layout);
+    register_collapsed_node(blueprint_, *bp_def, unique_id, blueprint_name,
+                            group_id, category, snapped_pos, internal_ids);
+
+    blueprint_.recompute_group_ids();
+    if (!has_layout) blueprint_.auto_layout_group(unique_id);
+
+    rebuildAllWindows();
     spdlog::info("[editor] added expanded blueprint: {} (id={}) with {} internal devices, {} internal wires",
-                 blueprint_name, unique_id, internal_node_ids.size(), internal_wire_count);
+                 blueprint_name, unique_id, internal_ids.size(), wire_count);
 }
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
@@ -467,7 +460,7 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
 
     if (r.rebuild_simulation) {
         rebuildSimulation();
-        window_manager_.removeOrphanedWindows();
+        window_manager_.remove_orphaned_windows();
     }
     if (r.show_context_menu) {
         action.show_context_menu = true;
@@ -503,7 +496,7 @@ bool Document::performUndo() {
     
     // Sub-blueprint groups may have been removed by undo — close orphaned
     // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
-    window_manager_.removeOrphanedWindows();
+    window_manager_.remove_orphaned_windows();
     
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;
@@ -525,7 +518,7 @@ bool Document::performRedo() {
     
     // Sub-blueprint groups may have been removed by redo — close orphaned
     // sub-windows BEFORE rebuilding, so we don't rebuild into stale groups.
-    window_manager_.removeOrphanedWindows();
+    window_manager_.remove_orphaned_windows();
     
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = blueprint_.grid_step;

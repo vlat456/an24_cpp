@@ -7,6 +7,8 @@
 #include <array>
 #include <functional>
 
+using ui::Pt;
+
 /// Направление движения для ортогонального routing
 enum class Dir {
     None,   // стартовая позиция

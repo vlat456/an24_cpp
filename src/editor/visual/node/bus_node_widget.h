@@ -76,6 +76,7 @@ private:
     PortEdge port_edge_;
     std::vector<::Wire> wires_;     ///< Connected wires (for alias port tracking)
     std::vector<Port*> ports_;    ///< Non-owning: alias ports + base "v" port
+    bool size_explicitly_set_ = false; ///< True if user manually resized this bus
 
     std::optional<uint32_t> custom_fill_;
 

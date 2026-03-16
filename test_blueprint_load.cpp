@@ -12,8 +12,9 @@ int main() {
     for (const auto& n : bp.nodes) {
         if (n.type_name == "Voltmeter") {
             std::cout << "Voltmeter '" << n.name << "':\n";
-            std::cout << "  size from JSON: " << n.size.x << "x" << n.size.y << "\n";
-            std::cout << "  size_explicitly_set: " << (n.size_explicitly_set ? "true" : "false") << "\n";
+            auto sz = n.get_size();
+            std::cout << "  size: " << sz.x << "x" << sz.y << "\n";
+            std::cout << "  has_explicit_size: " << (n.has_explicit_size() ? "true" : "false") << "\n";
 
             if (n.node_content.type == NodeContentType::Gauge) {
                 std::cout << "  has Gauge content\n";

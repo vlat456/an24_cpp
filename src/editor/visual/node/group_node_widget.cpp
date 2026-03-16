@@ -3,6 +3,7 @@
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
+#include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
 #include <algorithm>
@@ -26,12 +27,9 @@ GroupNodeWidget::GroupNodeWidget(const ::Node& data, const ui::StringInterner& i
     setLocalPos(data.pos);
 
     // Snap size to grid, enforce minimums
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-    float w = snap(std::max(data.size.x, editor_constants::MIN_GROUP_WIDTH));
-    float h = snap(std::max(data.size.y, editor_constants::MIN_GROUP_HEIGHT));
+    ui::Pt sz = data.get_size(ui::Pt(editor_constants::MIN_GROUP_WIDTH, editor_constants::MIN_GROUP_HEIGHT));
+    float w = editor_math::snap_size_to_layout_grid(std::max(sz.x, editor_constants::MIN_GROUP_WIDTH));
+    float h = editor_math::snap_size_to_layout_grid(std::max(sz.y, editor_constants::MIN_GROUP_HEIGHT));
     setSize(Pt(w, h));
 }
 

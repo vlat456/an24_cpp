@@ -78,6 +78,72 @@ static std::string domain_to_string(Domain d) {
 }
 
 // ==================================================================
+// type_definition_to_flat helpers
+// ==================================================================
+
+/// Infer FlatParam type from value string (locale-independent).
+static std::string infer_param_type(const std::string& val) {
+    if (val == "true" || val == "false") return "bool";
+    if (val.find('.') != std::string::npos && locale_safe::is_float_literal(val)) return "float";
+    if (locale_safe::is_int_literal(val)) return "float";  // Treat integers as float for simulation
+    if (locale_safe::is_float_literal(val)) return "float";  // Scientific notation without '.'
+    return "string";
+}
+
+/// Split "device.port" into ["device", "port"].
+static std::pair<std::string, std::string> split_dot(const std::string& s) {
+    auto dot = s.find('.');
+    if (dot == std::string::npos) return {s, ""};
+    return {s.substr(0, dot), s.substr(dot + 1)};
+}
+
+/// Convert TypeDefinition devices → FlatBlueprint nodes.
+static void convert_devices_to_nodes(const TypeDefinition& td, FlatBlueprint& bp) {
+    for (const auto& dev : td.devices) {
+        FlatNode node;
+        node.type = dev.classname;
+        node.params = std::map<std::string, std::string>(dev.params.begin(), dev.params.end());
+        if (dev.pos.has_value()) node.pos = {dev.pos->first, dev.pos->second};
+        if (dev.size.has_value()) node.size = FlatPos{dev.size->first, dev.size->second};
+        bp.nodes[dev.name] = node;
+    }
+}
+
+/// Convert TypeDefinition connections → FlatBlueprint wires.
+static void convert_connections_to_wires(const TypeDefinition& td, FlatBlueprint& bp) {
+    int wire_idx = 0;
+    for (const auto& conn : td.connections) {
+        FlatWire wire;
+        wire.id = "w" + std::to_string(wire_idx++);
+        auto [from_node, from_port] = split_dot(conn.from);
+        auto [to_node, to_port] = split_dot(conn.to);
+        wire.from = {from_node, from_port};
+        wire.to = {to_node, to_port};
+        for (const auto& [x, y] : conn.routing_points) {
+            wire.routing.push_back({x, y});
+        }
+        bp.wires.push_back(wire);
+    }
+}
+
+/// Convert TypeDefinition sub_blueprints → FlatBlueprint sub_blueprints.
+static void convert_sub_blueprints_to_flat(const TypeDefinition& td, FlatBlueprint& bp) {
+    for (const auto& ref : td.sub_blueprints) {
+        FlatSubBlueprint sb;
+        sb.template_path = ref.blueprint_path;
+        if (ref.pos.has_value()) sb.pos = {ref.pos->first, ref.pos->second};
+        if (ref.size.has_value()) sb.size = {ref.size->first, ref.size->second};
+        if (!ref.params_override.empty()) {
+            FlatOverrides ov;
+            ov.params = std::map<std::string, std::string>(
+                ref.params_override.begin(), ref.params_override.end());
+            sb.overrides = ov;
+        }
+        bp.sub_blueprints[ref.id] = sb;
+    }
+}
+
+// ==================================================================
 // type_definition_to_flat
 // ==================================================================
 
@@ -94,16 +160,11 @@ FlatBlueprint type_definition_to_flat(const TypeDefinition& td) {
     bp.meta.content_type = td.content_type;
     bp.meta.render_hint = td.render_hint;
     bp.meta.visual_only = td.visual_only;
-
-    if (td.size.has_value()) {
-        bp.meta.size = FlatPos{td.size->first, td.size->second};
-    }
+    if (td.size.has_value()) bp.meta.size = FlatPos{td.size->first, td.size->second};
 
     // Domains
     if (td.domains.has_value()) {
-        for (const auto& d : *td.domains) {
-            bp.meta.domains.push_back(domain_to_string(d));
-        }
+        for (const auto& d : *td.domains) bp.meta.domains.push_back(domain_to_string(d));
     }
 
     // Exposes (ports)
@@ -115,89 +176,61 @@ FlatBlueprint type_definition_to_flat(const TypeDefinition& td) {
         bp.exposes[name] = ep;
     }
 
-    // Params — serialize for any component that has them (cpp_class,
-    // visual_only, etc.).
-    {
-        // Infer type from value string (locale-independent)
-        for (const auto& [key, val] : td.params) {
-            FlatParam pd;
-            pd.default_val = val;
-            if (val == "true" || val == "false") {
-                pd.type = "bool";
-            } else if (val.find('.') != std::string::npos && locale_safe::is_float_literal(val)) {
-                pd.type = "float";
-            } else if (locale_safe::is_int_literal(val)) {
-                pd.type = "float";  // Treat integers as float for simulation
-            } else if (locale_safe::is_float_literal(val)) {
-                pd.type = "float";  // Scientific notation without '.'
-            } else {
-                pd.type = "string";
-            }
-            bp.params[key] = pd;
-        }
+    // Params
+    for (const auto& [key, val] : td.params) {
+        bp.params[key] = FlatParam{infer_param_type(val), val};
     }
 
-    // Nodes (from devices, for composites only)
-    for (const auto& dev : td.devices) {
-        FlatNode node;
-        node.type = dev.classname;
-        node.params = std::map<std::string, std::string>(dev.params.begin(), dev.params.end());
-        if (dev.pos.has_value()) {
-            node.pos = {dev.pos->first, dev.pos->second};
-        }
-        if (dev.size.has_value()) {
-            node.size = {dev.size->first, dev.size->second};
-        }
-        bp.nodes[dev.name] = node;
-    }
-
-    // Wires (from connections, for composites only)
-    int wire_idx = 0;
-    for (const auto& conn : td.connections) {
-        FlatWire wire;
-        wire.id = "w" + std::to_string(wire_idx++);
-
-        // Split "device.port" into ["device", "port"]
-        auto split = [](const std::string& s) -> std::pair<std::string, std::string> {
-            auto dot = s.find('.');
-            if (dot == std::string::npos) return {s, ""};
-            return {s.substr(0, dot), s.substr(dot + 1)};
-        };
-
-        auto [from_node, from_port] = split(conn.from);
-        auto [to_node, to_port] = split(conn.to);
-
-        wire.from = {from_node, from_port};
-        wire.to = {to_node, to_port};
-
-        // Routing points
-        for (const auto& [x, y] : conn.routing_points) {
-            wire.routing.push_back({x, y});
-        }
-
-        bp.wires.push_back(wire);
-    }
-
-    // Sub-blueprints
-    for (const auto& ref : td.sub_blueprints) {
-        FlatSubBlueprint sb;
-        sb.template_path = ref.blueprint_path;
-        if (ref.pos.has_value()) {
-            sb.pos = {ref.pos->first, ref.pos->second};
-        }
-        if (ref.size.has_value()) {
-            sb.size = {ref.size->first, ref.size->second};
-        }
-        if (!ref.params_override.empty()) {
-            FlatOverrides ov;
-            ov.params = std::map<std::string, std::string>(
-                ref.params_override.begin(), ref.params_override.end());
-            sb.overrides = ov;
-        }
-        bp.sub_blueprints[ref.id] = sb;
-    }
+    convert_devices_to_nodes(td, bp);
+    convert_connections_to_wires(td, bp);
+    convert_sub_blueprints_to_flat(td, bp);
 
     return bp;
+}
+
+// ==================================================================
+// flat_to_type_definition helpers
+// ==================================================================
+
+/// Convert FlatBlueprint nodes → TypeDefinition devices.
+static void convert_nodes_to_devices(const FlatBlueprint& bp, TypeDefinition& td) {
+    for (const auto& [name, node] : bp.nodes) {
+        DeviceInstance dev;
+        dev.name = name;
+        dev.classname = node.type;
+        dev.params = std::unordered_map<std::string, std::string>(
+            node.params.begin(), node.params.end());
+        if (node.pos[0] != 0.0f || node.pos[1] != 0.0f) dev.pos = {node.pos[0], node.pos[1]};
+        if (node.size.has_value()) dev.size = {(*node.size)[0], (*node.size)[1]};
+        td.devices.push_back(dev);
+    }
+}
+
+/// Convert FlatBlueprint wires → TypeDefinition connections.
+static void convert_wires_to_connections(const FlatBlueprint& bp, TypeDefinition& td) {
+    for (const auto& wire : bp.wires) {
+        Connection conn;
+        conn.from = wire.from.node + "." + wire.from.port;
+        conn.to = wire.to.node + "." + wire.to.port;
+        for (const auto& pt : wire.routing) conn.routing_points.push_back({pt[0], pt[1]});
+        td.connections.push_back(conn);
+    }
+}
+
+/// Convert FlatBlueprint sub_blueprints → TypeDefinition sub_blueprints.
+static void convert_flat_sub_blueprints(const FlatBlueprint& bp, TypeDefinition& td) {
+    for (const auto& [id, sb] : bp.sub_blueprints) {
+        SubBlueprintRef ref;
+        ref.id = id;
+        if (sb.template_path.has_value()) ref.blueprint_path = *sb.template_path;
+        ref.pos = {sb.pos[0], sb.pos[1]};
+        ref.size = {sb.size[0], sb.size[1]};
+        if (sb.overrides.has_value()) {
+            ref.params_override = std::map<std::string, std::string>(
+                sb.overrides->params.begin(), sb.overrides->params.end());
+        }
+        td.sub_blueprints.push_back(ref);
+    }
 }
 
 // ==================================================================
@@ -216,17 +249,12 @@ TypeDefinition flat_to_type_definition(const FlatBlueprint& bp) {
     td.content_type = bp.meta.content_type;
     td.render_hint = bp.meta.render_hint;
     td.visual_only = bp.meta.visual_only;
-
-    if (bp.meta.size.has_value()) {
-        td.size = {(*bp.meta.size)[0], (*bp.meta.size)[1]};
-    }
+    if (bp.meta.size.has_value()) td.size = {(*bp.meta.size)[0], (*bp.meta.size)[1]};
 
     // Domains
     if (!bp.meta.domains.empty()) {
         std::vector<Domain> domains;
-        for (const auto& d : bp.meta.domains) {
-            domains.push_back(parse_domain(d));
-        }
+        for (const auto& d : bp.meta.domains) domains.push_back(parse_domain(d));
         td.domains = domains;
     }
 
@@ -239,55 +267,12 @@ TypeDefinition flat_to_type_definition(const FlatBlueprint& bp) {
         td.ports[name] = port;
     }
 
-    // Params — extract for any component that declares them (cpp_class,
-    // visual_only, etc.).  The old guard only checked cpp_class, which
-    // dropped params for visual-only components like Text.
-    for (const auto& [key, pd] : bp.params) {
-        td.params[key] = pd.default_val;
-    }
+    // Params
+    for (const auto& [key, pd] : bp.params) td.params[key] = pd.default_val;
 
-    // Nodes → devices (composites only)
-    for (const auto& [name, node] : bp.nodes) {
-        DeviceInstance dev;
-        dev.name = name;
-        dev.classname = node.type;
-        dev.params = std::unordered_map<std::string, std::string>(
-            node.params.begin(), node.params.end());
-        if (node.pos[0] != 0.0f || node.pos[1] != 0.0f) {
-            dev.pos = {node.pos[0], node.pos[1]};
-        }
-        if (node.size[0] != 0.0f || node.size[1] != 0.0f) {
-            dev.size = {node.size[0], node.size[1]};
-        }
-        td.devices.push_back(dev);
-    }
-
-    // Wires → connections
-    for (const auto& wire : bp.wires) {
-        Connection conn;
-        conn.from = wire.from.node + "." + wire.from.port;
-        conn.to = wire.to.node + "." + wire.to.port;
-        for (const auto& pt : wire.routing) {
-            conn.routing_points.push_back({pt[0], pt[1]});
-        }
-        td.connections.push_back(conn);
-    }
-
-    // Sub-blueprints
-    for (const auto& [id, sb] : bp.sub_blueprints) {
-        SubBlueprintRef ref;
-        ref.id = id;
-        if (sb.template_path.has_value()) {
-            ref.blueprint_path = *sb.template_path;
-        }
-        ref.pos = {sb.pos[0], sb.pos[1]};
-        ref.size = {sb.size[0], sb.size[1]};
-        if (sb.overrides.has_value()) {
-            ref.params_override = std::map<std::string, std::string>(
-                sb.overrides->params.begin(), sb.overrides->params.end());
-        }
-        td.sub_blueprints.push_back(ref);
-    }
+    convert_nodes_to_devices(bp, td);
+    convert_wires_to_connections(bp, td);
+    convert_flat_sub_blueprints(bp, td);
 
     return td;
 }

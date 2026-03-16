@@ -50,7 +50,7 @@ public:
     }
 
     /// Remove windows that the user closed (open == false), except root.
-    void removeClosedWindows() {
+    void remove_closed_windows() {
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
                 [](const std::unique_ptr<BlueprintWindow>& w) {
@@ -61,7 +61,7 @@ public:
 
     /// Close sub-windows whose group_id no longer exists in sub_blueprint_instances.
     /// Call after deleting sub-blueprint nodes.
-    void removeOrphanedWindows() {
+    void remove_orphaned_windows() {
         std::unordered_set<std::string> live_groups;
         for (const auto& g : bp_.sub_blueprint_instances) {
             live_groups.insert(g.id);
@@ -83,7 +83,7 @@ public:
     }
 
     /// Close all sub-windows (keep root only).
-    void closeAll() {
+    void close_all() {
         if (windows_.size() > 1)
             windows_.erase(windows_.begin() + 1, windows_.end());
     }

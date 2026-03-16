@@ -33,9 +33,9 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
     float w = preferred.x;
     float h = preferred.y;
 
-    if (data.size_explicitly_set) {
-        if (data.size.x >= editor_constants::PORT_LAYOUT_GRID) w = data.size.x;
-        if (data.size.y >= editor_constants::PORT_LAYOUT_GRID) h = data.size.y;
+    if (data.has_explicit_size()) {
+        if (data.explicit_size().x >= editor_constants::PORT_LAYOUT_GRID) w = data.explicit_size().x;
+        if (data.explicit_size().y >= editor_constants::PORT_LAYOUT_GRID) h = data.explicit_size().y;
     }
 
     // Snap to layout grid

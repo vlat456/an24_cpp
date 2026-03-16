@@ -54,11 +54,7 @@ static void execute(Blueprint& bp, const CmdRemoveNode& cmd) {
     }
 
     // Rebuild indices
-    bp.rebuild_node_index();
-    bp.rebuild_wire_index();
-    bp.rebuild_wire_id_index();
-    bp.rebuild_bus_wire_index();
-    bp.rebuild_port_occupancy_index();
+    bp.rebuild_all_indices();
 }
 
 static void execute(Blueprint& bp, const CmdMoveNode& cmd) {
@@ -124,7 +120,9 @@ static void execute(Blueprint& bp, const CmdResizeNode& cmd) {
     }
     Node& node = bp.nodes[it->second];
     node.pos = cmd.new_pos;
-    node.size = cmd.new_size;
+    node.set_explicit_size(cmd.new_size);
+    spdlog::info("[DEBUG-CMD] CmdResizeNode: node={} size=({},{}) has_explicit_size={}",
+                 bp.interner().resolve(cmd.node_id), cmd.new_size.x, cmd.new_size.y, true);
 }
 
 static void execute(Blueprint& bp, const CmdSetRoutingPoints& cmd) {

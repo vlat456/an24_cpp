@@ -21,7 +21,7 @@ void ColorPickerDialog::render(WindowSystem& ws) {
     if (ImGui::BeginPopupModal("Node Color", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         Document* doc = ws.findDocumentById(ws.colorPicker.source_doc_id);
         if (!doc) doc = ws.activeDocument();
-        Node* node_ptr = doc ? doc->blueprint().find_node(ws.colorPicker.node_id.c_str()) : nullptr;
+        Node* node_ptr = doc ? doc->blueprint().find_node(ws.colorPicker.node_id) : nullptr;
         if (doc && node_ptr) {
             Node& node = *node_ptr;
 

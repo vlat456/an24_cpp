@@ -31,13 +31,8 @@ constexpr float LAYOUT_ORIGIN_X    = 80.0f;
 constexpr float LAYOUT_ORIGIN_Y    = 80.0f;
 
 // ---- Port rendering ----
-constexpr float PORT_RADIUS    = 3.0f;  // Must match PortConstants::RADIUS
-constexpr float PORT_HIT_RADIUS = 10.0f;
-constexpr float PORT_LABEL_GAP = 3.0f;
-constexpr float PORT_LABEL_FONT_SIZE = Font::Small;
-constexpr float PORT_ROW_HEIGHT = 16.0f;
-constexpr uint32_t PORT_LABEL_COLOR = 0xFFAAAAAA;
-constexpr float PORT_MIN_GAP = 20.0f;  // Minimum gap between left/right labels
+// Canonical port rendering constants live in visual::PortConstants (visual_port.h).
+// Only PORT_LAYOUT_GRID is defined here because it is shared between visual and input layers.
 
 // ---- Node rendering ----
 constexpr float NODE_ROUNDING = 6.0f;  // Rounded corners for nodes

@@ -8,7 +8,7 @@
 
 void SubWindowRenderer::renderAll(::WindowSystem& ws) {
     for (auto& doc : ws.documents()) {
-        doc->windowManager().removeClosedWindows();
+        doc->windowManager().remove_closed_windows();
         for (auto& win_ptr : doc->windowManager().windows()) {
             auto& win = *win_ptr;
             if (win.group_id.empty() || !win.open) continue;
@@ -86,8 +86,9 @@ void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
         if (node.group_id != win.group_id) continue;
         bmin.x = std::min(bmin.x, node.pos.x);
         bmin.y = std::min(bmin.y, node.pos.y);
-        bmax.x = std::max(bmax.x, node.pos.x + node.size.x);
-        bmax.y = std::max(bmax.y, node.pos.y + node.size.y);
+        Pt node_sz = node.get_size();
+        bmax.x = std::max(bmax.x, node.pos.x + node_sz.x);
+        bmax.y = std::max(bmax.y, node.pos.y + node_sz.y);
     }
     if (bmin.x < bmax.x && bmin.y < bmax.y) {
         ImVec2 ws = ImGui::GetContentRegionAvail();

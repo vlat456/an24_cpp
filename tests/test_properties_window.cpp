@@ -30,11 +30,11 @@ TEST(PropertiesWindow, OpenSetsTarget) {
     ASSERT_NE(node_ptr, nullptr);
 
     PropertiesWindow win;
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
 
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
-    EXPECT_TRUE(win.isOpen());
-    EXPECT_EQ(win.targetNodeId(), "bat1");
+    EXPECT_TRUE(win.is_open());
+    EXPECT_EQ(win.target_node_id_str(), "bat1");
 }
 
 TEST(PropertiesWindow, OpenInitializesPendingState) {
@@ -54,9 +54,9 @@ TEST(PropertiesWindow, OpenInitializesPendingState) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Pending state should mirror the node's current values
-    EXPECT_EQ(win.pendingName(), "bat1");
-    EXPECT_EQ(win.pendingParams().at("v"), "28.0");
-    EXPECT_EQ(win.pendingParams().at("r"), "0.01");
+    EXPECT_EQ(win.pending_name(), "bat1");
+    EXPECT_EQ(win.pending_params().at("v"), "28.0");
+    EXPECT_EQ(win.pending_params().at("r"), "0.01");
 }
 
 TEST(PropertiesWindow, CancelDoesNotMutateLiveNode) {
@@ -76,8 +76,8 @@ TEST(PropertiesWindow, CancelDoesNotMutateLiveNode) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Simulate user editing pending state
-    win.setPendingParam("v", "12.0");
-    win.setPendingName("modified_name");
+    win.set_pending_param("v", "12.0");
+    win.set_pending_name("modified_name");
 
     // Cancel should NOT touch the live node
     win.close();
@@ -87,7 +87,7 @@ TEST(PropertiesWindow, CancelDoesNotMutateLiveNode) {
     EXPECT_EQ(node_ptr->params["v"], "28.0") << "Cancel must not mutate live node";
     EXPECT_EQ(node_ptr->params["r"], "0.01") << "Untouched params preserved";
     EXPECT_EQ(node_ptr->name, "bat1") << "Cancel must not mutate live name";
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
 }
 
 TEST(PropertiesWindow, LiveNodeUntouchedDuringEditing) {
@@ -107,8 +107,8 @@ TEST(PropertiesWindow, LiveNodeUntouchedDuringEditing) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Edit pending params
-    win.setPendingParam("v", "99.0");
-    win.setPendingName("CHANGED");
+    win.set_pending_param("v", "99.0");
+    win.set_pending_name("CHANGED");
 
     // Live node must remain untouched while editing is in progress
     node_ptr = bp.find_node("bat1");
@@ -134,7 +134,7 @@ TEST(PropertiesWindow, OpenTwiceDiscardsFirstSession) {
 
     // First open
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
-    win.setPendingParam("v", "12.0");
+    win.set_pending_param("v", "12.0");
 
     // Open again — first session's pending edits are discarded
     node_ptr = bp.find_node("bat1");
@@ -148,7 +148,7 @@ TEST(PropertiesWindow, OpenTwiceDiscardsFirstSession) {
         << "Live node must not have been mutated by first session";
 
     // Pending state should be fresh from the live node
-    EXPECT_EQ(win.pendingParams().at("v"), "28.0")
+    EXPECT_EQ(win.pending_params().at("v"), "28.0")
         << "Second open() must re-snapshot from live node";
 
     // Cancel the second open
@@ -172,10 +172,10 @@ TEST(PropertiesWindow, ClosedWindowIsNotOpen) {
 
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
-    EXPECT_TRUE(win.isOpen());
+    EXPECT_TRUE(win.is_open());
 
     win.close();
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
 }
 
 // =============================================================================
@@ -199,12 +199,12 @@ TEST(PropertiesWindow, ApplyEmitsCmdSetParam) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Simulate user changing voltage via pending state
-    win.setPendingParam("v", "14.0");
+    win.set_pending_param("v", "14.0");
 
     // Apply — should snapshot and apply changes to undo stack
     win.apply();
 
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
     node_ptr = bp.find_node("bat1");
     ASSERT_NE(node_ptr, nullptr);
     EXPECT_EQ(node_ptr->params["v"], "14.0") << "Applied value must persist";
@@ -229,8 +229,8 @@ TEST(PropertiesWindow, ApplyThenUndoRevertsParam) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // User edits via pending state
-    win.setPendingParam("v", "14.0");
-    win.setPendingParam("r", "0.05");
+    win.set_pending_param("v", "14.0");
+    win.set_pending_param("r", "0.05");
 
     win.apply();
 
@@ -302,7 +302,7 @@ TEST(PropertiesWindow, ApplyInvokesCallback) {
             callback_node_id = nid;
         });
 
-    win.setPendingParam("v", "14.0");
+    win.set_pending_param("v", "14.0");
     win.apply();
 
     EXPECT_TRUE(callback_invoked) << "Apply must invoke on_apply callback";
@@ -326,7 +326,7 @@ TEST(PropertiesWindow, NameChangePushesUndo) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Change the name via pending state
-    win.setPendingName("NewName");
+    win.set_pending_name("NewName");
     win.apply();
 
     EXPECT_TRUE(undo.can_undo()) << "Name change should push to undo stack";
@@ -352,7 +352,7 @@ TEST(PropertiesWindow, NameChangeUndoRestoresOldName) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Change the name
-    win.setPendingName("NewName");
+    win.set_pending_name("NewName");
     win.apply();
 
     node_ptr = bp.find_node("bat1");
@@ -384,8 +384,8 @@ TEST(PropertiesWindow, ParamAndNameChangeSingleUndo) {
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
 
     // Change both param and name in one "Apply"
-    win.setPendingParam("v", "14.0");
-    win.setPendingName("NewName");
+    win.set_pending_param("v", "14.0");
+    win.set_pending_name("NewName");
     win.apply();
 
     node_ptr = bp.find_node("bat1");
@@ -423,7 +423,7 @@ TEST(PropertiesWindow, CloseGracefullyWhenNodeRemoved) {
 
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", bp, undo, [](const std::string&) {});
-    EXPECT_TRUE(win.isOpen());
+    EXPECT_TRUE(win.is_open());
 
     // Simulate the node being removed (e.g. by undo of a CmdAddNode)
     auto node_iid = bp.interner().intern("bat1");
@@ -432,7 +432,7 @@ TEST(PropertiesWindow, CloseGracefullyWhenNodeRemoved) {
 
     // render() should detect the missing node and close silently
     win.render();
-    EXPECT_FALSE(win.isOpen())
+    EXPECT_FALSE(win.is_open())
         << "Window must auto-close when target node is removed";
 }
 
@@ -458,7 +458,7 @@ TEST(PropertiesWindow, ApplyGracefullyWhenNodeRemoved) {
 
     // apply() should detect the missing node and close without crashing
     win.apply();
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
     EXPECT_FALSE(undo.can_undo())
         << "No undo entry should be pushed when target node is gone";
 }
@@ -485,7 +485,7 @@ TEST(PropertiesWindow, CancelGracefullyWhenNodeRemoved) {
 
     // close() (cancel) should not crash even though node is gone
     win.close();
-    EXPECT_FALSE(win.isOpen());
+    EXPECT_FALSE(win.is_open());
 }
 
 // =============================================================================
@@ -515,7 +515,7 @@ TEST(PropertiesWindow, PortLayoutOverride_ApplyChanges) {
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"v_in", PortLayoutSide::Top, std::nullopt});
     overrides.push_back({"v_out", PortLayoutSide::Right, uint8_t{0}});
-    win.setPendingLayoutOverrides(overrides);
+    win.set_pending_layout_overrides(overrides);
 
     win.apply();
 
@@ -552,7 +552,7 @@ TEST(PropertiesWindow, PortLayoutOverride_UndoRestoresOriginal) {
     // Add port layout override
     std::vector<PortLayoutOverride> overrides;
     overrides.push_back({"v_in", PortLayoutSide::Bottom, std::nullopt});
-    win.setPendingLayoutOverrides(overrides);
+    win.set_pending_layout_overrides(overrides);
 
     win.apply();
 

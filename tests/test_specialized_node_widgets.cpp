@@ -12,6 +12,7 @@ using ui::Pt;
 #include "data/node.h"
 #include "data/wire.h"
 #include "editor/layout_constants.h"
+#include "visual/port/visual_port.h"
 #include "ui/core/interned_id.h"
 
 static ui::StringInterner g_interner;
@@ -56,7 +57,7 @@ TEST(RefNodeWidget, SinglePortCenteredOnTopEdge) {
     // The circle center should be at (size().x / 2, 0), so the bounding-box
     // origin is offset by -PORT_RADIUS in both axes.
     Pt port_local = p->localPos();
-    constexpr float R = editor_constants::PORT_RADIUS;
+    constexpr float R = visual::PortConstants::RADIUS;
     EXPECT_FLOAT_EQ(port_local.x, rw.size().x / 2.0f - R);
     // Port circle center should be at top edge (y=0), so box origin is at -R
     EXPECT_FLOAT_EQ(port_local.y, -R);

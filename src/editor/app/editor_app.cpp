@@ -188,7 +188,7 @@ void EditorApp::update() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     
-    if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().isOpen()) {
+    if (!io.WantCaptureKeyboard && !ws_.propertiesWindow().is_open()) {
         if (Document* doc = ws_.activeDocument()) {
             if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
                 if (doc->isSimulationRunning()) doc->stopSimulation();
@@ -229,7 +229,7 @@ void EditorApp::render() {
     if (inspector_panel_.visible()) {
         auto inspector_result = inspector_panel_.render(ws_, menu_height, available_h, available_w);
         if (!inspector_result.selected_node_id.empty() && ws_.activeDocument()) {
-            ws_.activeDocument()->input().selectNodeById(inspector_result.selected_node_id);
+            ws_.activeDocument()->input().select_node_by_id(inspector_result.selected_node_id);
         }
         ws_.showInspector = inspector_panel_.visible();
     }

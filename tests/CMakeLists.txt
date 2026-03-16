@@ -276,6 +276,7 @@ target_include_directories(visual_node_widget_tests PRIVATE
 )
 target_link_libraries(visual_node_widget_tests PRIVATE
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(visual_node_widget_tests)
@@ -304,6 +305,7 @@ target_include_directories(specialized_node_widget_tests PRIVATE
 )
 target_link_libraries(specialized_node_widget_tests PRIVATE
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(specialized_node_widget_tests)

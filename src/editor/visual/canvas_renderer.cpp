@@ -74,17 +74,6 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     win.scene.render(&dl, ctx);
 }
 
-/// Walk up the widget parent chain to find the owning node's ID.
-/// Returns the id() of the nearest ancestor whose parent is nullptr
-/// (i.e. the root widget, which is always a node/bus/group widget).
-static std::string_view find_owner_node_id(const visual::Widget* w) {
-    const visual::Widget* cur = w;
-    while (cur->parent()) {
-        cur = cur->parent();
-    }
-    return cur->id();
-}
-
 void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin, ImDrawList* draw_list) {
     if (!doc.isSimulationRunning()) return;
 
@@ -98,7 +87,7 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
 
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
         visual::Port* port = hp->port;
-        std::string_view node_id = find_owner_node_id(port);
+        std::string_view node_id = port->rootAncestorId();
         if (node_id.empty()) return;
 
         std::string_view port_name = port->name();

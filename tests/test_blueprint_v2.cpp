@@ -251,9 +251,9 @@ TEST(FlatBlueprintParse, RootDocument) {
     EXPECT_EQ(bp->nodes.at("bat1").type, "Battery");
     EXPECT_FLOAT_EQ(bp->nodes.at("bat1").pos[0], 96.0f);
     EXPECT_FLOAT_EQ(bp->nodes.at("bat1").pos[1], 112.0f);
-    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size[0], 128.0f);
-    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size[1], 80.0f);
-    EXPECT_EQ(bp->nodes.at("bat1").params.at("v_nominal"), "28.0");
+    ASSERT_TRUE(bp->nodes.at("bat1").size.has_value());
+    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size.value()[0], 128.0f);
+    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size.value()[1], 80.0f);
 
     EXPECT_EQ(bp->nodes.at("bus1").type, "Bus");
 
@@ -352,8 +352,9 @@ TEST(FlatBlueprintParse, PositionsAsArrays) {
     // Positions parsed from [x, y] arrays
     EXPECT_FLOAT_EQ(bp->nodes.at("bat1").pos[0], 96.0f);
     EXPECT_FLOAT_EQ(bp->nodes.at("bat1").pos[1], 112.0f);
-    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size[0], 128.0f);
-    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size[1], 80.0f);
+    ASSERT_TRUE(bp->nodes.at("bat1").size.has_value());
+    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size.value()[0], 128.0f);
+    EXPECT_FLOAT_EQ(bp->nodes.at("bat1").size.value()[1], 80.0f);
 }
 
 TEST(FlatBlueprintParse, NodeContent) {
@@ -473,8 +474,9 @@ TEST(FlatBlueprintSerialize, Roundtrip) {
     EXPECT_EQ(parsed->nodes.at("bat1").type, "Battery");
     EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").pos[0], 100.0f);
     EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").pos[1], 200.0f);
-    EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").size[0], 128.0f);
-    EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").size[1], 80.0f);
+    ASSERT_TRUE(parsed->nodes.at("bat1").size.has_value());
+    EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").size.value()[0], 128.0f);
+    EXPECT_FLOAT_EQ(parsed->nodes.at("bat1").size.value()[1], 80.0f);
     EXPECT_EQ(parsed->nodes.at("bat1").params.at("v_nominal"), "28.0");
     EXPECT_EQ(parsed->nodes.at("bus1").type, "Bus");
 

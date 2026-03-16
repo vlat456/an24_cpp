@@ -14,18 +14,14 @@
 
 using json = nlohmann::json;
 
-// Helper: resolve an InternedId to string_view through the blueprint interner.
-// Returns empty string_view for empty IDs.
-#define R(id) interner_->resolve(id)
-
 // BUGFIX [e4a1b7] Runtime dedup: reject exact-duplicate wires with warning
 // [2.1] O(1) set-based dedup replaces O(n) linear scan
 size_t Blueprint::add_wire(Wire wire) {
     WireKey key(wire);
     if (!wire_index_.insert(key).second) {
         spdlog::warn("[dedup] Runtime duplicate wire rejected: {}.{} → {}.{}",
-            R(wire.start.node_id), R(wire.start.port_name),
-            R(wire.end.node_id), R(wire.end.port_name));
+            resolve(wire.start.node_id), resolve(wire.start.port_name),
+            resolve(wire.end.node_id), resolve(wire.end.port_name));
         return SIZE_MAX;
     }
     size_t idx = wires.size();
@@ -265,7 +261,7 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
         std::string param_name = override_key.substr(dot + 1);
         std::string target_id = sbi.id + ":" + dev_name;
 
-        Node* node = find_node(target_id.c_str());
+        Node* node = find_node(std::string_view(target_id));
         if (node) {
             node->params[param_name] = override_val;
         }
@@ -273,7 +269,7 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
 
     for (const auto& [dev_name, pos] : sbi.layout_override) {
         std::string target_id = sbi.id + ":" + dev_name;
-        Node* node = find_node(target_id.c_str());
+        Node* node = find_node(std::string_view(target_id));
         if (node) {
             node->pos = pos;
         }
@@ -281,8 +277,8 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
 
     for (auto& wire : wires) {
         // Resolve InternedId to string for prefix comparison
-        std::string start_nid(R(wire.start.node_id));
-        std::string end_nid(R(wire.end.node_id));
+        std::string start_nid(resolve(wire.start.node_id));
+        std::string end_nid(resolve(wire.end.node_id));
 
         if (start_nid.size() <= prefix.size() ||
             start_nid.substr(0, prefix.size()) != prefix) {
@@ -294,8 +290,8 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
         }
         std::string start_unprefixed = start_nid.substr(prefix.size());
         std::string end_unprefixed = end_nid.substr(prefix.size());
-        std::string start_port(R(wire.start.port_name));
-        std::string end_port(R(wire.end.port_name));
+        std::string start_port(resolve(wire.start.port_name));
+        std::string end_port(resolve(wire.end.port_name));
         std::string wk = start_unprefixed + "." +
                          start_port + "->" +
                          end_unprefixed + "." +
@@ -308,7 +304,7 @@ bool Blueprint::bake_in_sub_blueprint(const std::string& id) {
 
     std::vector<std::string> internal_ids;
     for (const auto& n : nodes) {
-        std::string nid_str(R(n.id));
+        std::string nid_str(resolve(n.id));
         if (n.group_id == sbi.id && nid_str != sbi.id) {
             internal_ids.push_back(nid_str);
         }
@@ -397,9 +393,8 @@ Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& 
         if (dev.pos)
             node.pos = Pt(dev.pos->first, dev.pos->second);
         if (dev.size)
-            node.size = Pt(dev.size->first, dev.size->second);
-        else
-            node.size = get_default_node_size(dev.classname, &registry);
+            node.set_explicit_size(Pt(dev.size->first, dev.size->second));
+        // else: size_ remains nullopt → auto-size from widget/registry
 
         // Type info from registry
         const auto* inner_def = registry.get(dev.classname);
@@ -505,14 +500,14 @@ static json serialize_content(const Node& n) {
     return content;
 }
 
-std::string Blueprint::to_simulator_json() const {
-    const auto& I = *interner_;
-    json j = json::object();
+// == to_simulator_json decomposition helpers ==
 
-    j["templates"] = json::object();
-
+/// Build the "devices" JSON array from non-expandable nodes.
+static json build_devices_json(const std::vector<Node>& nodes,
+                               const ui::StringInterner& I) {
     json devices = json::array();
     std::set<std::string> emitted_ids;
+
     for (const auto& n : nodes) {
         if (n.expandable) continue;
 
@@ -528,13 +523,11 @@ std::string Blueprint::to_simulator_json() const {
         device["classname"] = n.type_name;
         if (!n.render_hint.empty())
             device["render_hint"] = n.render_hint;
-        if (n.expandable)
-            device["expandable"] = true;
         device["priority"] = "med";
         device["bucket"] = nullptr;
         device["critical"] = false;
         device["ports"] = serialize_ports(n, I);
-        
+
         if (!n.params.empty()) {
             json params = json::object();
             for (const auto& [key, value] : n.params) {
@@ -551,30 +544,27 @@ std::string Blueprint::to_simulator_json() const {
 
         devices.push_back(device);
     }
-    j["devices"] = devices;
+    return devices;
+}
 
-    std::set<std::string> blueprint_node_ids;
-    for (const auto& n : nodes) {
-        if (n.expandable)
-            blueprint_node_ids.emplace(I.resolve(n.id));
-    }
-
+/// Build the "connections" JSON array, rewriting blueprint-node endpoints.
+static json build_connections_json(const std::vector<Wire>& wires,
+                                   const std::set<std::string>& blueprint_node_ids,
+                                   const ui::StringInterner& I) {
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
+
     for (const auto& w : wires) {
         std::string from_node(I.resolve(w.start.node_id));
         std::string from_port(I.resolve(w.start.port_name));
         std::string to_node(I.resolve(w.end.node_id));
         std::string to_port(I.resolve(w.end.port_name));
 
-        bool start_is_bp = blueprint_node_ids.count(from_node) > 0;
-        bool end_is_bp = blueprint_node_ids.count(to_node) > 0;
-
-        if (start_is_bp) {
+        if (blueprint_node_ids.count(from_node) > 0) {
             from_node = from_node + ":" + from_port;
             from_port = "ext";
         }
-        if (end_is_bp) {
+        if (blueprint_node_ids.count(to_node) > 0) {
             to_node = to_node + ":" + to_port;
             to_port = "ext";
         }
@@ -590,17 +580,24 @@ std::string Blueprint::to_simulator_json() const {
         conn["to"] = to_node + "." + to_port;
         connections.push_back(conn);
     }
-    j["connections"] = connections;
+    return connections;
+}
 
+/// Build the "editor" JSON object (viewport, blueprint nodes, node/wire states,
+/// sub-blueprint instances).
+static json build_editor_json(const Blueprint& bp) {
+    const auto& I = bp.interner();
     json editor = json::object();
+
     editor["viewport"] = {
-        {"pan", {{"x", pan.x}, {"y", pan.y}}},
-        {"zoom", zoom},
-        {"grid_step", grid_step}
+        {"pan", {{"x", bp.pan.x}, {"y", bp.pan.y}}},
+        {"zoom", bp.zoom},
+        {"grid_step", bp.grid_step}
     };
 
+    // Blueprint nodes (expandable)
     json editor_devices = json::array();
-    for (const auto& n : nodes) {
+    for (const auto& n : bp.nodes) {
         if (!n.expandable) continue;
         json device = json::object();
         device["name"] = std::string(I.resolve(n.id));
@@ -618,23 +615,24 @@ std::string Blueprint::to_simulator_json() const {
     }
     editor["blueprint_nodes"] = editor_devices;
 
+    // Node states (position, size, content)
     json node_states = json::object();
-    for (const auto& n : nodes) {
+    for (const auto& n : bp.nodes) {
+        ui::Pt sz = n.get_size();
         json node_state = {
             {"pos", {{"x", n.pos.x}, {"y", n.pos.y}}},
-            {"size", {{"x", n.size.x}, {"y", n.size.y}}}
+            {"size", {{"x", sz.x}, {"y", sz.y}}}
         };
-
         if (n.node_content.type != NodeContentType::None) {
             node_state["content"] = serialize_content(n);
         }
-
         node_states[std::string(I.resolve(n.id))] = node_state;
     }
     editor["nodes"] = node_states;
 
+    // Wire states (routing points)
     json wire_states = json::array();
-    for (const auto& w : wires) {
+    for (const auto& w : bp.wires) {
         json wire_state = json::object();
         wire_state["from"] = std::string(I.resolve(w.start.node_id)) + "." +
                              std::string(I.resolve(w.start.port_name));
@@ -649,9 +647,10 @@ std::string Blueprint::to_simulator_json() const {
     }
     editor["wires"] = wire_states;
 
+    // Sub-blueprint instances
     json sub_bp_json = json::array();
     std::set<std::string> saved_group_ids;
-    for (const auto& group : sub_blueprint_instances) {
+    for (const auto& group : bp.sub_blueprint_instances) {
         if (!saved_group_ids.insert(group.id).second) continue;
         json group_json = {
             {"id", group.id},
@@ -666,7 +665,24 @@ std::string Blueprint::to_simulator_json() const {
     }
     editor["sub_blueprint_instances"] = sub_bp_json;
 
-    j["editor"] = editor;
+    return editor;
+}
+
+std::string Blueprint::to_simulator_json() const {
+    const auto& I = *interner_;
+    json j = json::object();
+
+    j["templates"] = json::object();
+    j["devices"] = build_devices_json(nodes, I);
+
+    // Collect expandable node IDs for connection rewriting
+    std::set<std::string> blueprint_node_ids;
+    for (const auto& n : nodes) {
+        if (n.expandable)
+            blueprint_node_ids.emplace(I.resolve(n.id));
+    }
+    j["connections"] = build_connections_json(wires, blueprint_node_ids, I);
+    j["editor"] = build_editor_json(*this);
 
     return j.dump(2);
 }
@@ -702,7 +718,18 @@ static FlatNode node_to_flat(const Node& n, const ui::StringInterner& interner) 
     FlatNode nv;
     nv.type = n.type_name;
     nv.pos = {n.pos.x, n.pos.y};
-    nv.size = {n.size.x, n.size.y};
+    // Only persist size when explicitly set by user (resize drag, size_wh(), etc.).
+    // Leaving as nullopt tells the loader to use the default/preferred size instead of
+    // freezing every node at (120,80) after a single save/load cycle.
+    if (n.has_explicit_size()) {
+        nv.size = FlatPos{n.explicit_size().x, n.explicit_size().y};
+    }
+    // else: nv.size remains nullopt (auto-size)
+
+    std::string node_id(interner.resolve(n.id));
+    spdlog::info("[DEBUG-SAVE] node_to_flat: node={} type={} has_explicit_size={} -> flat_size={}",
+                 node_id, n.type_name, n.has_explicit_size(),
+                 nv.size.has_value() ? std::to_string((*nv.size)[0]) + "," + std::to_string((*nv.size)[1]) : "auto");
 
     for (const auto& [k, v] : n.params) {
         nv.params[k] = v;
@@ -793,7 +820,7 @@ static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Bluep
     std::map<std::string, Pt> layout = sbi.layout_override;
     if (!sbi.baked_in) {
         for (const auto& nid : sbi.internal_node_ids) {
-            if (const Node* n = bp.find_node(nid.c_str())) {
+            if (const Node* n = bp.find_node(std::string_view(nid))) {
                 layout[strip_prefix(nid)] = n->pos;
             }
         }
@@ -815,7 +842,7 @@ static FlatSubBlueprint sbi_to_flat(const SubBlueprintInstance& sbi, const Bluep
 
     if (sbi.baked_in) {
         for (const auto& nid : sbi.internal_node_ids) {
-            if (const Node* n = bp.find_node(nid.c_str())) {
+            if (const Node* n = bp.find_node(std::string_view(nid))) {
                 sb.nodes[strip_prefix(nid)] = node_to_flat(*n, I);
             }
         }
@@ -903,17 +930,12 @@ FlatBlueprint Blueprint::to_flat() const {
     return bpv2;
 }
 
-std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
-    Blueprint bp;
+// == from_flat decomposition helpers ==
+
+void Blueprint::load_nodes_from_flat(Blueprint& bp, const FlatBlueprint& bpv2) {
     auto& I = bp.interner();
-
-    if (bpv2.viewport.has_value()) {
-        bp.pan = Pt(bpv2.viewport->pan[0], bpv2.viewport->pan[1]);
-        bp.zoom = bpv2.viewport->zoom;
-        bp.grid_step = bpv2.viewport->grid;
-    }
-
     std::set<std::string> loaded_ids;
+
     for (const auto& [id, nv] : bpv2.nodes) {
         if (!loaded_ids.insert(id).second) {
             spdlog::warn("[dedup] Duplicate node '{}' on load — skipping", id);
@@ -932,10 +954,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         if (nv.pos.size() >= 2) {
             n.pos = Pt(nv.pos[0], nv.pos[1]);
         }
-        if (nv.size.size() >= 2) {
-            n.size = Pt(nv.size[0], nv.size[1]);
-            n.size_explicitly_set = true;
+        if (nv.size.has_value()) {
+            n.set_explicit_size(Pt((*nv.size)[0], (*nv.size)[1]));
         }
+        spdlog::info("[DEBUG-LOAD] from_flat: node={} type={} has_explicit_size={}",
+                     id, nv.type, n.has_explicit_size());
 
         for (const auto& fov : nv.layout_overrides) {
             PortLayoutOverride ov;
@@ -974,43 +997,49 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
         bp.nodes.push_back(std::move(n));
     }
+}
 
-    static TypeRegistry registry = load_type_registry();
+void Blueprint::enrich_nodes_from_registry(Blueprint& bp, const TypeRegistry& registry) {
+    auto& I = bp.interner();
     for (auto& n : bp.nodes) {
         const auto* def = registry.get(n.type_name);
-        if (def) {
-            for (const auto& [port_name, port_def] : def->ports) {
-                EditorPort p;
-                p.name = I.intern(port_name);
-                p.type = port_def.type;
-                if (port_def.direction == PortDirection::In) {
-                    p.side = PortSide::Input;
-                    n.inputs.push_back(p);
-                } else if (port_def.direction == PortDirection::Out) {
-                    p.side = PortSide::Output;
-                    n.outputs.push_back(p);
-                } else if (port_def.direction == PortDirection::InOut) {
-                    p.side = PortSide::Input;
-                    n.inputs.push_back(p);
-                    EditorPort p_out = p;
-                    p_out.side = PortSide::Output;
-                    n.outputs.push_back(p_out);
-                }
-            }
+        if (!def) continue;
 
-            for (const auto& [key, value] : def->params) {
-                if (n.params.find(key) == n.params.end()) {
-                    n.params[key] = value;
-                }
-            }
-
-            if (n.render_hint.empty()) {
-                n.render_hint = def->render_hint;
+        for (const auto& [port_name, port_def] : def->ports) {
+            EditorPort p;
+            p.name = I.intern(port_name);
+            p.type = port_def.type;
+            if (port_def.direction == PortDirection::In) {
+                p.side = PortSide::Input;
+                n.inputs.push_back(p);
+            } else if (port_def.direction == PortDirection::Out) {
+                p.side = PortSide::Output;
+                n.outputs.push_back(p);
+            } else if (port_def.direction == PortDirection::InOut) {
+                p.side = PortSide::Input;
+                n.inputs.push_back(p);
+                EditorPort p_out = p;
+                p_out.side = PortSide::Output;
+                n.outputs.push_back(p_out);
             }
         }
-    }
 
+        for (const auto& [key, value] : def->params) {
+            if (n.params.find(key) == n.params.end()) {
+                n.params[key] = value;
+            }
+        }
+
+        if (n.render_hint.empty()) {
+            n.render_hint = def->render_hint;
+        }
+    }
+}
+
+void Blueprint::load_wires_from_flat(Blueprint& bp, const FlatBlueprint& bpv2) {
+    auto& I = bp.interner();
     std::set<std::string> loaded_wire_keys;
+
     for (const auto& wv : bpv2.wires) {
         std::string key = wv.from.node + "." + wv.from.port + "→" +
                           wv.to.node + "." + wv.to.port;
@@ -1035,13 +1064,12 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
         bp.wires.push_back(std::move(w));
     }
-    bp.rebuild_node_index();
-    bp.rebuild_wire_index();
-    bp.rebuild_wire_id_index();
-    bp.rebuild_bus_wire_index();
-    bp.rebuild_port_occupancy_index();
+}
 
+void Blueprint::load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2) {
+    auto& I = bp.interner();
     std::set<std::string> loaded_group_ids;
+
     for (const auto& [id, sb] : bpv2.sub_blueprints) {
         if (!loaded_group_ids.insert(id).second) continue;
 
@@ -1080,13 +1108,17 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
             std::string nid(I.resolve(n.id));
             if (nid == id && n.expandable) {
                 sbi.pos = n.pos;
-                sbi.size = n.size;
+                sbi.size = n.get_size();
                 break;
             }
         }
 
         bp.sub_blueprint_instances.push_back(std::move(sbi));
     }
+}
+
+void Blueprint::expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistry& registry) {
+    auto& I = bp.interner();
 
     for (auto& sbi : bp.sub_blueprint_instances) {
         if (sbi.baked_in) continue;
@@ -1102,7 +1134,6 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
 
         std::vector<std::string> internal_ids;
         for (auto& node : sub_bp.nodes) {
-            // Resolve from sub_bp interner, re-intern into bp interner
             std::string old_id(sub_bp.interner().resolve(node.id));
             std::string new_id = sbi.id + ":" + old_id;
             node.id = I.intern(new_id);
@@ -1110,12 +1141,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
             node.group_id = sbi.id;
             internal_ids.push_back(new_id);
 
-            std::string local_id = old_id;  // already unprefixed
+            std::string local_id = old_id;
             auto it = sbi.layout_override.find(local_id);
             if (it != sbi.layout_override.end())
                 node.pos = it->second;
 
-            // Re-intern ports from sub_bp interner into bp interner
             for (auto& p : node.inputs) {
                 std::string pname(sub_bp.interner().resolve(p.name));
                 p.name = I.intern(pname);
@@ -1133,12 +1163,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
             if (dot == std::string::npos) continue;
             std::string local_id = sbi.id + ":" + key.substr(0, dot);
             std::string param = key.substr(dot + 1);
-            if (Node* n = bp.find_node(local_id.c_str()))
+            if (Node* n = bp.find_node(std::string_view(local_id)))
                 n->params[param] = value;
         }
 
         for (auto& wire : sub_bp.wires) {
-            // Resolve from sub_bp interner, re-intern into bp interner
             std::string old_start(sub_bp.interner().resolve(wire.start.node_id));
             std::string old_end(sub_bp.interner().resolve(wire.end.node_id));
             std::string old_wid(sub_bp.interner().resolve(wire.id));
@@ -1158,7 +1187,7 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
         if (sbi.layout_override.empty()) {
             bool all_zero = true;
             for (const auto& nid : internal_ids) {
-                if (const Node* n = bp.find_node(nid.c_str())) {
+                if (const Node* n = bp.find_node(std::string_view(nid))) {
                     if (n->pos.x != 0.0f || n->pos.y != 0.0f) {
                         all_zero = false;
                         break;
@@ -1169,11 +1198,11 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
                 bp.auto_layout_group(sbi.id);
         }
     }
-    bp.rebuild_node_index();
-    bp.rebuild_wire_index();
-    bp.rebuild_wire_id_index();
-    bp.rebuild_bus_wire_index();
-    bp.rebuild_port_occupancy_index();
+}
+
+void Blueprint::finalize_after_load(Blueprint& bp) {
+    auto& I = bp.interner();
+    bp.rebuild_all_indices();
 
     bp.next_wire_id = static_cast<int>(bp.wires.size());
     for (const auto& w : bp.wires) {
@@ -1186,15 +1215,40 @@ std::optional<Blueprint> Blueprint::from_flat(const ::FlatBlueprint& bpv2) {
     }
 
     bp.recompute_group_ids();
+}
+
+// == from_flat (orchestrator) ==
+
+std::optional<Blueprint> Blueprint::from_flat(const FlatBlueprint& bpv2) {
+    Blueprint bp;
+
+    if (bpv2.viewport.has_value()) {
+        bp.pan = Pt(bpv2.viewport->pan[0], bpv2.viewport->pan[1]);
+        bp.zoom = bpv2.viewport->zoom;
+        bp.grid_step = bpv2.viewport->grid;
+    }
+
+    static TypeRegistry registry = load_type_registry();
+
+    load_nodes_from_flat(bp, bpv2);
+    enrich_nodes_from_registry(bp, registry);
+    load_wires_from_flat(bp, bpv2);
+    bp.rebuild_all_indices();
+    load_sub_blueprints_from_flat(bp, bpv2);
+    expand_non_baked_sub_blueprints(bp, registry);
+    finalize_after_load(bp);
+
     return bp;
 }
 
 std::string Blueprint::serialize() const {
+    spdlog::info("[DEBUG-SERIAL] Blueprint::serialize() called - {} nodes to serialize", nodes.size());
     auto bpv2 = to_flat();
     return serialize_flat_blueprint(bpv2);
 }
 
 std::optional<Blueprint> Blueprint::deserialize(const std::string& json_str) {
+    spdlog::info("[DEBUG-SERIAL] Blueprint::deserialize() called");
     auto bpv2 = parse_flat_blueprint(json_str);
     if (bpv2.has_value()) {
         return from_flat(*bpv2);
@@ -1203,5 +1257,3 @@ std::optional<Blueprint> Blueprint::deserialize(const std::string& json_str) {
     spdlog::error("Blueprint::deserialize: not a valid v2 blueprint (version field missing or != 2)");
     return std::nullopt;
 }
-
-#undef R

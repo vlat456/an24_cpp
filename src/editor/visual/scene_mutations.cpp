@@ -113,7 +113,7 @@ static void recreate_bus_wires(Scene& scene, const Blueprint& bp,
 // Public API
 // ============================================================================
 
-void rebuild(Scene& scene, const Blueprint& bp, const std::string& group_id) {
+void rebuild(Scene& scene, const Blueprint& bp, std::string_view group_id) {
     auto guard = scene.flushGuard();
     const auto& interner = bp.interner();
     
@@ -138,7 +138,7 @@ void rebuild(Scene& scene, const Blueprint& bp, const std::string& group_id) {
 }
 
 size_t add_node(Scene& scene, Blueprint& bp, Node node,
-                const std::string& group_id) {
+                std::string_view group_id) {
     node.group_id = group_id;
     size_t idx = bp.add_node(std::move(node));
 
@@ -149,17 +149,14 @@ size_t add_node(Scene& scene, Blueprint& bp, Node node,
     return idx;
 }
 
-void remove_nodes(Scene& scene, Blueprint& bp,
-                  const std::vector<size_t>& indices) {
+/// Collect all node IDs to delete (including recursive group internals).
+/// Populates both InternedId and string sets for downstream use.
+static void collect_deleted_ids(const Blueprint& bp,
+                                const std::vector<size_t>& indices,
+                                std::unordered_set<ui::InternedId>& deleted_iids,
+                                std::unordered_set<std::string>& deleted_ids_str,
+                                std::unordered_set<std::string>& deleted_group_ids) {
     const auto& interner = bp.interner();
-
-    // Collect all node IDs to delete (including recursive group internals).
-    // We use both InternedId sets (for data-layer comparisons) and string
-    // sets (for group_internals API which still uses strings).
-    std::unordered_set<ui::InternedId> deleted_iids;
-    std::unordered_set<std::string> deleted_ids_str;
-    std::unordered_set<std::string> deleted_group_ids;
-
     for (size_t idx : indices) {
         if (idx >= bp.nodes.size()) continue;
         const auto& node = bp.nodes[idx];
@@ -170,42 +167,19 @@ void remove_nodes(Scene& scene, Blueprint& bp,
             bp.collect_group_internals(nid_str, deleted_ids_str, deleted_group_ids);
         }
     }
-
-    // Sync: intern all recursively-collected string IDs into deleted_iids
-    // so the wire/node erasure loops (which check deleted_iids) also cover
-    // internal nodes of sub-blueprints.
+    // Intern all recursively-collected string IDs so wire/node erasure
+    // loops (which check deleted_iids) also cover sub-blueprint internals.
     for (const auto& s : deleted_ids_str) {
         deleted_iids.insert(interner.lookup(s));
     }
+}
 
-    // Collect wire IDs that touch deleted nodes (for scene cleanup)
-    std::vector<ui::InternedId> wire_iids_to_remove;
-    for (const auto& w : bp.wires) {
-        if (deleted_iids.count(w.start.node_id) || deleted_iids.count(w.end.node_id)) {
-            wire_iids_to_remove.push_back(w.id);
-        }
-    }
-
-    // Remove wires from scene first (before nodes, so WireEnd destructors
-    // find their parent ports still alive)
-    {
-        auto guard = scene.flushGuard();
-        for (const auto& wid : wire_iids_to_remove) {
-            std::string_view wid_sv = interner.resolve(wid);
-            destroy_wire_widget(scene, wid_sv);
-        }
-    }
-
-    // Remove node widgets from scene
-    {
-        auto guard = scene.flushGuard();
-        for (const auto& nid_str : deleted_ids_str) {
-            auto* w = scene.find(nid_str);
-            if (w) scene.remove(w);
-        }
-    }
-
-    // Mutate Blueprint data: remove nodes
+/// Erase nodes, wires, and sub-blueprint instances from Blueprint data.
+static void erase_from_blueprint(Blueprint& bp,
+                                 const std::unordered_set<ui::InternedId>& deleted_iids,
+                                 const std::unordered_set<std::string>& deleted_ids_str,
+                                 const std::unordered_set<std::string>& deleted_group_ids) {
+    // Remove nodes
     for (int i = static_cast<int>(bp.nodes.size()) - 1; i >= 0; --i) {
         if (deleted_iids.count(bp.nodes[static_cast<size_t>(i)].id)) {
             bp.nodes.erase(bp.nodes.begin() + i);
@@ -240,15 +214,49 @@ void remove_nodes(Scene& scene, Blueprint& bp,
             g.internal_node_ids.end());
     }
 
-    bp.rebuild_node_index();
-    bp.rebuild_wire_index();
-    bp.rebuild_wire_id_index();
-    bp.rebuild_bus_wire_index();
-    bp.rebuild_port_occupancy_index();
+    bp.rebuild_all_indices();
+}
+
+void remove_nodes(Scene& scene, Blueprint& bp,
+                  const std::vector<size_t>& indices) {
+    const auto& interner = bp.interner();
+
+    // Phase 1: Collect all node IDs to delete (including recursive group internals)
+    std::unordered_set<ui::InternedId> deleted_iids;
+    std::unordered_set<std::string> deleted_ids_str;
+    std::unordered_set<std::string> deleted_group_ids;
+    collect_deleted_ids(bp, indices, deleted_iids, deleted_ids_str, deleted_group_ids);
+
+    // Phase 2: Collect wire IDs that touch deleted nodes (for scene cleanup)
+    std::vector<ui::InternedId> wire_iids_to_remove;
+    for (const auto& w : bp.wires) {
+        if (deleted_iids.count(w.start.node_id) || deleted_iids.count(w.end.node_id)) {
+            wire_iids_to_remove.push_back(w.id);
+        }
+    }
+
+    // Phase 3: Remove wire and node widgets from scene
+    {
+        auto guard = scene.flushGuard();
+        for (const auto& wid : wire_iids_to_remove) {
+            std::string_view wid_sv = interner.resolve(wid);
+            destroy_wire_widget(scene, wid_sv);
+        }
+    }
+    {
+        auto guard = scene.flushGuard();
+        for (const auto& nid_str : deleted_ids_str) {
+            auto* w = scene.find(nid_str);
+            if (w) scene.remove(w);
+        }
+    }
+
+    // Phase 4: Mutate Blueprint data
+    erase_from_blueprint(bp, deleted_iids, deleted_ids_str, deleted_group_ids);
 }
 
 bool add_wire(Scene& scene, Blueprint& bp, ::Wire wire,
-              const std::string& group_id) {
+              std::string_view group_id) {
     const auto& interner = bp.interner();
 
     // Validate both endpoints exist and belong to this group
@@ -359,7 +367,7 @@ void remove_wire(Scene& scene, Blueprint& bp, size_t index) {
 
 void reconnect_wire(Scene& scene, Blueprint& bp,
                     size_t wire_idx, bool reconnect_start, ::WireEnd new_end,
-                    const std::string& group_id) {
+                    std::string_view group_id) {
     if (wire_idx >= bp.wires.size()) return;
 
     const auto& interner = bp.interner();

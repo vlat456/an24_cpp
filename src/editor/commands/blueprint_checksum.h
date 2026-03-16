@@ -70,7 +70,7 @@ inline size_t hash_node(const Node& node) {
     h.hash_str(node.name);
     h.hash_str(node.type_name);
     h.hash_pt(node.pos);
-    h.hash_pt(node.size);
+    h.hash_pt(node.get_size());
 
     // Params — sorted keys for determinism (unordered_map iteration is non-deterministic)
     h.combine(node.params.size());

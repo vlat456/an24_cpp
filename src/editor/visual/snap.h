@@ -35,4 +35,10 @@ inline Pt snap_size_to_layout_grid(Pt size) {
     );
 }
 
+/// Snap a scalar size to the internal port-layout grid (round up to nearest).
+inline float snap_size_to_layout_grid(float v) {
+    constexpr float g = editor_constants::PORT_LAYOUT_GRID;
+    return std::ceil(v / g) * g;
+}
+
 } // namespace editor_math

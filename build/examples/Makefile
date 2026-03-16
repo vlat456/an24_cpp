@@ -413,6 +413,30 @@ __/_deps/imgui-src/imgui_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/imgui_widgets.cpp.s
 .PHONY : __/_deps/imgui-src/imgui_widgets.cpp.s
 
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.o: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.o
+
+# target to build an object file
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.o
+
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.i: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.i
+
+# target to preprocess a source file
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.i
+
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.s: __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.s
+
+# target to generate assembly for a file
+__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
+.PHONY : __/_deps/imgui-src/misc/cpp/imgui_stdlib.cpp.s
+
 __/generated/bench_vsu_aot.o: __/generated/bench_vsu_aot.cpp.o
 .PHONY : __/generated/bench_vsu_aot.o
 
@@ -1555,6 +1579,9 @@ help:
 	@echo "... __/_deps/imgui-src/imgui_widgets.o"
 	@echo "... __/_deps/imgui-src/imgui_widgets.i"
 	@echo "... __/_deps/imgui-src/imgui_widgets.s"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.o"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.i"
+	@echo "... __/_deps/imgui-src/misc/cpp/imgui_stdlib.s"
 	@echo "... __/generated/bench_vsu_aot.o"
 	@echo "... __/generated/bench_vsu_aot.i"
 	@echo "... __/generated/bench_vsu_aot.s"

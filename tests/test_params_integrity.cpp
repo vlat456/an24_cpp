@@ -143,7 +143,7 @@ TEST_F(ParamsIntegrityTest, SavedParamsRoundtrip) {
     n.name = "batt1";
     n.type_name = "Battery";
     n.pos = Pt(100, 100);
-    n.size = Pt(120, 80);
+    n.set_explicit_size(Pt(120, 80));
     n.input(I.intern("v_in"));
     n.output(I.intern("v_out"));
     n.params = {

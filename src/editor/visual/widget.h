@@ -67,6 +67,15 @@ public:
     Widget* parent() const { return static_cast<Widget*>(ui::Widget::parent()); }
     Scene* scene() const { return scene_; }
 
+    /// Walk up the parent chain to the root widget (one with no parent)
+    /// and return its id(). Useful for mapping a port widget back to its
+    /// owning node widget in the scene tree.
+    std::string_view rootAncestorId() const {
+        const Widget* cur = this;
+        while (cur->parent()) cur = cur->parent();
+        return cur->id();
+    }
+
 protected:
     friend class Scene;
     Scene* scene_ = nullptr;

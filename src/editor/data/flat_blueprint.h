@@ -59,7 +59,7 @@ struct FlatPortLayoutOverride {
 struct FlatNode {
     std::string type;                          // Component classname ("Battery", "Bus")
     FlatPos pos = {0.0f, 0.0f};
-    FlatPos size = {0.0f, 0.0f};                  // {0,0} = use default from registry
+    std::optional<FlatPos> size;               // nullopt = auto-size (use default from registry)
     std::map<std::string, std::string> params;
     std::optional<FlatContent> content;
     std::optional<FlatColor> color;

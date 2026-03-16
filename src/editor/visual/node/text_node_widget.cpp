@@ -3,6 +3,7 @@
 #include "visual/renderer/render_theme.h"
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/handle_renderer.h"
+#include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
 #include <algorithm>
@@ -40,12 +41,9 @@ TextNodeWidget::TextNodeWidget(const ::Node& data, const ui::StringInterner& int
     }
 
     // Snap size to grid
-    auto snap = [](float v) {
-        constexpr float g = editor_constants::PORT_LAYOUT_GRID;
-        return std::ceil(v / g) * g;
-    };
-    float w = snap(std::max(data.size.x, 64.0f));
-    float h = snap(std::max(data.size.y, 32.0f));
+    ui::Pt sz = data.get_size(ui::Pt(128.0f, 48.0f));
+    float w = editor_math::snap_size_to_layout_grid(std::max(sz.x, 64.0f));
+    float h = editor_math::snap_size_to_layout_grid(std::max(sz.y, 32.0f));
     setSize(Pt(w, h));
 }
 

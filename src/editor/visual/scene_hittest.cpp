@@ -9,8 +9,63 @@
 #include "editor/layout_constants.h"
 #include <algorithm>
 #include <cmath>
+#include <optional>
 
 namespace visual {
+
+// ============================================================
+// Pass helpers (file-local)
+// ============================================================
+
+/// Check resize handles on resizable widgets among candidates.
+static std::optional<HitResult> hit_test_resize_handles(
+        const std::vector<ui::Widget*>& candidates, Pt world_pos) {
+    constexpr float R = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
+        if (!w->isResizable()) continue;
+
+        Pt mn = w->worldMin();
+        Pt mx = w->worldMax();
+
+        struct { Pt center; ResizeCorner corner; } corners[] = {
+            {{mn.x, mn.y}, ResizeCorner::TopLeft},
+            {{mx.x, mn.y}, ResizeCorner::TopRight},
+            {{mn.x, mx.y}, ResizeCorner::BottomLeft},
+            {{mx.x, mx.y}, ResizeCorner::BottomRight},
+        };
+
+        for (const auto& c : corners) {
+            if (hit_math::distance(world_pos, c.center) <= R) {
+                return HitResizeHandle{w, c.corner};
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+/// Find the best node widget (highest renderLayer) at world_pos among candidates.
+static Widget* hit_test_node_body(
+        const std::vector<ui::Widget*>& candidates, Pt world_pos) {
+    Widget* best = nullptr;
+    for (ui::Widget* uw : candidates) {
+        auto* w = static_cast<Widget*>(uw);
+        if (dynamic_cast<Wire*>(w)) continue;
+        if (dynamic_cast<Port*>(w)) continue;
+        if (dynamic_cast<RoutingPoint*>(w)) continue;
+
+        if (auto* group = dynamic_cast<GroupNodeWidget*>(w)) {
+            if (!group->containsBorder(world_pos)) continue;
+        } else {
+            if (!w->contains(world_pos)) continue;
+        }
+
+        if (!best || w->renderLayer() > best->renderLayer()) {
+            best = w;
+        }
+    }
+    return best;
+}
 
 // ============================================================
 // Primary hit test
@@ -57,59 +112,13 @@ HitResult hit_test(const Scene& scene, Pt world_pos) {
     }
 
     // --- Pass 3: Resize handles on resizable widgets ---
-    // Must run before the node-body pass because GroupNodeWidget's
-    // containsBorder() rejects interior clicks, which can filter out
-    // clicks near corners that fall within the resize-handle radius
-    // but outside the narrow border margin.
-    {
-        constexpr float R = editor_constants::RESIZE_HANDLE_HIT_RADIUS;
-        for (ui::Widget* uw : candidates) {
-            auto* w = static_cast<Widget*>(uw);
-            if (!w->isResizable()) continue;
-
-            Pt mn = w->worldMin();
-            Pt mx = w->worldMax();
-
-            struct { Pt center; ResizeCorner corner; } corners[] = {
-                {{mn.x, mn.y}, ResizeCorner::TopLeft},
-                {{mx.x, mn.y}, ResizeCorner::TopRight},
-                {{mn.x, mx.y}, ResizeCorner::BottomLeft},
-                {{mx.x, mx.y}, ResizeCorner::BottomRight},
-            };
-
-            for (const auto& c : corners) {
-                if (hit_math::distance(world_pos, c.center) <= R) {
-                    return HitResizeHandle{w, c.corner};
-                }
-            }
-        }
+    if (auto rh = hit_test_resize_handles(candidates, world_pos)) {
+        return *rh;
     }
 
     // --- Pass 4: Nodes / generic clickable widgets (AABB) ---
-    // Skip Wires, Ports, and RoutingPoints — they have their own passes.
-    // Among multiple hits, prefer the widget with the highest renderLayer
-    // (frontmost in draw order).
-    Widget* best = nullptr;
-    for (ui::Widget* uw : candidates) {
-        auto* w = static_cast<Widget*>(uw);
-        if (dynamic_cast<Wire*>(w)) continue;
-        if (dynamic_cast<Port*>(w)) continue;
-        if (dynamic_cast<RoutingPoint*>(w)) continue;
-
-        // GroupNodeWidget uses border-only hit testing
-        if (auto* group = dynamic_cast<GroupNodeWidget*>(w)) {
-            if (!group->containsBorder(world_pos)) continue;
-        } else {
-            if (!w->contains(world_pos)) continue;
-        }
-
-        // Prefer higher layer (visually on top)
-        if (!best || w->renderLayer() > best->renderLayer()) {
-            best = w;
-        }
-    }
-    if (best) {
-        return HitNode{best};
+    if (auto* node = hit_test_node_body(candidates, world_pos)) {
+        return HitNode{node};
     }
 
     // --- Pass 5: Wire segments (lowest priority, fine-grained) ---

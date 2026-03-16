@@ -546,7 +546,7 @@ static Node make_group_data(const std::string& id, Pt pos, Pt sz) {
     n.type_name = "group";
     n.render_hint = "group";
     n.pos = pos;
-    n.size = sz;
+    n.set_explicit_size(sz);
     return n;
 }
 

@@ -584,7 +584,7 @@ TEST(VisualNodeWidget, PortRowsHavePaddingBelowHeader) {
     //   port_local_y = (ROW_HEIGHT - PORT_RADIUS*2) / 2
     //   port_world_y = header_h + port_local_y
     constexpr float header_h = 24.0f;
-    constexpr float port_v_offset = (editor_constants::PORT_ROW_HEIGHT
+    constexpr float port_v_offset = (visual::PortConstants::ROW_HEIGHT
                                      - visual::PortConstants::RADIUS * 2) / 2.0f;
 
     auto* in_port = nw.port("in1");

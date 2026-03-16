@@ -187,7 +187,7 @@ TEST(WindowManager, CloseAll) {
     mgr.open("bat1", "Battery");
     EXPECT_EQ(mgr.count(), 4u);
 
-    mgr.closeAll();
+    mgr.close_all();
     EXPECT_EQ(mgr.count(), 1u);  // only root remains
     EXPECT_EQ(mgr.root().group_id, "");
 }
@@ -203,7 +203,7 @@ TEST(WindowManager, RemoveClosedWindows) {
 
     // User closes lamp1 window
     mgr.find("lamp1")->open = false;
-    mgr.removeClosedWindows();
+    mgr.remove_closed_windows();
 
     EXPECT_EQ(mgr.count(), 2u);
     EXPECT_EQ(mgr.find("lamp1"), nullptr);

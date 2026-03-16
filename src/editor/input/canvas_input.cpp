@@ -23,28 +23,16 @@
 // File-local helpers
 // ============================================================================
 
-/// Walk up the widget tree from a port to find the owning root-level
-/// node widget. A root widget is one with no parent (i.e., it is a
-/// direct child of the Scene). We return the first ancestor that has
-/// a non-empty id() and no parent — this is always the node widget
-/// regardless of how many layout layers sit between the port and the node.
-static std::string find_node_widget_id(visual::Widget* port_widget) {
-    if (!port_widget) return {};
-    for (visual::Widget* w = port_widget->parent(); w; w = w->parent()) {
-        if (!w->id().empty() && !w->parent()) {
-            return std::string(w->id());
-        }
-    }
-    return {};
-}
-
 // ============================================================================
 // Construction
 // ============================================================================
 
 CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
                          Blueprint& bp, UndoStack& undo_stack, const std::string& group_id)
-    : scene_(scene), viewport_(viewport), bp_(bp), group_id_(group_id), undo_stack_(undo_stack)
+    : scene_(scene), viewport_(viewport), bp_(bp),
+      group_iid_(bp.interner().intern(group_id)),
+      group_id_(bp.interner().resolve(group_iid_)),
+      undo_stack_(undo_stack)
 {
 }
 
@@ -61,14 +49,14 @@ void CanvasInput::snapshot_and_execute(Command cmd) {
 // ID → pointer resolution helpers
 // ============================================================================
 
-visual::Wire* CanvasInput::resolve_wire(const std::string& id) const {
+visual::Wire* CanvasInput::resolve_wire(ui::InternedId id) const {
     if (id.empty()) return nullptr;
-    return dynamic_cast<visual::Wire*>(scene_.find(id));
+    return dynamic_cast<visual::Wire*>(scene_.find(bp_.interner().resolve(id)));
 }
 
-visual::Widget* CanvasInput::resolve_node(const std::string& id) const {
+visual::Widget* CanvasInput::resolve_node(ui::InternedId id) const {
     if (id.empty()) return nullptr;
-    return scene_.find(id);
+    return scene_.find(bp_.interner().resolve(id));
 }
 
 // ============================================================================
@@ -77,21 +65,22 @@ visual::Widget* CanvasInput::resolve_node(const std::string& id) const {
 
 void CanvasInput::clear_selection() {
     selected_node_ids_.clear();
-    selected_wire_id_.clear();
+    selected_wire_id_ = {};
 }
 
 void CanvasInput::add_node_selection(visual::Widget* w) {
     if (!w) return;
-    std::string wid(w->id());
-    if (wid.empty()) return;
-    if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), wid) == selected_node_ids_.end())
-        selected_node_ids_.push_back(std::move(wid));
+    ui::InternedId iid = bp_.interner().intern(w->id());
+    if (iid.empty()) return;
+    if (std::find(selected_node_ids_.begin(), selected_node_ids_.end(), iid) == selected_node_ids_.end())
+        selected_node_ids_.push_back(iid);
 }
 
 bool CanvasInput::is_node_selected(visual::Widget* w) const {
     if (!w) return false;
-    std::string wid(w->id());
-    return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), wid) != selected_node_ids_.end();
+    ui::InternedId iid = bp_.interner().lookup(w->id());
+    if (iid.empty()) return false;
+    return std::find(selected_node_ids_.begin(), selected_node_ids_.end(), iid) != selected_node_ids_.end();
 }
 
 std::vector<visual::Widget*> CanvasInput::selected_nodes() const {
@@ -112,8 +101,9 @@ visual::Wire* CanvasInput::hovered_wire() const {
     return resolve_wire(hovered_wire_id_);
 }
 
-bool CanvasInput::selectNodeById(const std::string& node_id) {
-    auto* widget = resolve_node(node_id);
+bool CanvasInput::select_node_by_id(std::string_view node_id) {
+    ui::InternedId iid = bp_.interner().intern(node_id);
+    auto* widget = resolve_node(iid);
     if (!widget) return false;
 
     clear_selection();
@@ -138,7 +128,7 @@ void CanvasInput::update_hover(Pt world_pos) {
         state_ == InputState::CreatingWire ||
         state_ == InputState::ReconnectingWire ||
         state_ == InputState::ResizingNode) {
-        hovered_wire_id_.clear();
+        hovered_wire_id_ = {};
         hovered_routing_point_ = nullptr;
         return;
     }
@@ -146,13 +136,13 @@ void CanvasInput::update_hover(Pt world_pos) {
     // Check for wire/routing-point hover
     auto hit = visual::hit_test(scene_, world_pos);
     if (auto* h = std::get_if<visual::HitWire>(&hit)) {
-        hovered_wire_id_ = std::string(h->wire->id());
+        hovered_wire_id_ = bp_.interner().intern(h->wire->id());
         hovered_routing_point_ = nullptr;
     } else if (auto* h = std::get_if<visual::HitRoutingPoint>(&hit)) {
-        hovered_wire_id_ = std::string(h->wire->id());
+        hovered_wire_id_ = bp_.interner().intern(h->wire->id());
         hovered_routing_point_ = h->point;
     } else {
-        hovered_wire_id_.clear();
+        hovered_wire_id_ = {};
         hovered_routing_point_ = nullptr;
     }
 }
@@ -205,8 +195,9 @@ void CanvasInput::enter_drag_node(visual::Widget* widget, bool add_to_selection,
 
 void CanvasInput::enter_drag_routing_point(visual::Wire* wire, visual::RoutingPoint* rp, size_t rp_idx) {
     state_ = InputState::DraggingRoutingPoint;
-    selected_wire_id_ = std::string(wire->id());
-    rp_wire_id_ = std::string(wire->id());
+    auto wire_iid = bp_.interner().intern(wire->id());
+    selected_wire_id_ = wire_iid;
+    rp_wire_id_ = wire_iid;
     rp_point_ = rp;
     rp_index_ = rp_idx;
     drag_anchor_ = rp->worldPos();
@@ -227,7 +218,7 @@ void CanvasInput::enter_resize_node(visual::Widget* widget, ResizeCorner corner)
     state_ = InputState::ResizingNode;
     clear_selection();
     add_node_selection(widget);
-    resize_widget_id_ = std::string(widget->id());
+    resize_widget_id_ = bp_.interner().intern(widget->id());
     resize_corner_ = corner;
     resize_original_pos_ = widget->worldPos();
     resize_original_size_ = widget->size();
@@ -281,6 +272,29 @@ void CanvasInput::cancel_gesture() {
 }
 
 // ============================================================================
+// Content toggle check (extracted from on_mouse_down)
+// ============================================================================
+
+std::string CanvasInput::check_content_toggle(visual::Widget& widget, Pt world_pos) {
+    std::string node_id(widget.id());
+    const Node* node = bp_.find_node(node_id);
+    if (!node) return {};
+    if (node->node_content.type != NodeContentType::Switch &&
+        node->node_content.type != NodeContentType::VerticalToggle) return {};
+
+    // Only toggle if click is inside the content widget bounds;
+    // clicks on header / ports / footer should select/drag instead.
+    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
+        Bounds cb = nw->contentBounds();
+        Pt wpos = nw->worldPos();
+        float lx = world_pos.x - wpos.x;
+        float ly = world_pos.y - wpos.y;
+        if (cb.contains(lx, ly)) return node_id;
+    }
+    return {};
+}
+
+// ============================================================================
 // on_mouse_down
 // ============================================================================
 
@@ -328,31 +342,17 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             enter_resize_node(hrh->widget, hrh->corner);
         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
             // Check if click landed on Switch/VerticalToggle content area
-            std::string node_id(hn->widget->id());
-            const Node* node = bp_.find_node(node_id.c_str());
-            if (node && (node->node_content.type == NodeContentType::Switch ||
-                         node->node_content.type == NodeContentType::VerticalToggle)) {
-                // Only toggle if click is inside the content widget bounds;
-                // clicks on header / ports / footer should select/drag instead.
-                bool in_content = false;
-                if (auto* nw = dynamic_cast<visual::NodeWidget*>(hn->widget)) {
-                    Bounds cb = nw->contentBounds();
-                    Pt wpos = nw->worldPos();
-                    float lx = world.x - wpos.x;
-                    float ly = world.y - wpos.y;
-                    in_content = cb.contains(lx, ly);
-                }
-                if (in_content) {
-                    result.toggle_switch_node_id = node_id;
-                    return result;
-                }
+            auto toggle_id = check_content_toggle(*hn->widget, world);
+            if (!toggle_id.empty()) {
+                result.toggle_switch_node_id = std::move(toggle_id);
+                return result;
             }
             enter_drag_node(hn->widget, false, mods.ctrl);
         } else if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
             enter_drag_routing_point(hrp->wire, hrp->point, hrp->index);
         } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
             clear_selection();
-            selected_wire_id_ = std::string(hw->wire->id());
+            selected_wire_id_ = bp_.interner().intern(hw->wire->id());
         } else {
             // Empty space → panning
             clear_selection();
@@ -372,6 +372,119 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
 }
 
 // ============================================================================
+// Drag sub-handlers (extracted from on_mouse_drag)
+// ============================================================================
+
+void CanvasInput::handle_drag_node(Pt world_delta) {
+    drag_anchor_ = drag_anchor_ + world_delta;
+    Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
+    auto nodes = selected_nodes();
+
+    // Collect wire IDs connected to any moved node (for grid update).
+    // Use a set to avoid duplicating wires shared between two moved nodes.
+    std::unordered_set<ui::InternedId> connected_wire_ids;
+
+    for (size_t i = 0; i < nodes.size(); i++) {
+        auto* widget = nodes[i];
+        Pt offset = (i < drag_offsets_.size()) ? drag_offsets_[i] : Pt(0, 0);
+        Pt new_pos = snapped + offset;
+
+        // Update visual widget only (data layer committed on mouse-up via CmdMoveNode)
+        widget->setLocalPos(new_pos);
+
+        // Gather connected wire IDs via port occupancy index for visual updates
+        auto& I = bp_.interner();
+        ui::InternedId node_iid = I.intern(widget->id());
+        if (!node_iid.empty()) {
+            const Node* node = bp_.find_node(node_iid);
+            if (node) {
+                auto collect = [&](const std::vector<EditorPort>& ports) {
+                    for (const auto& p : ports) {
+                        auto it = bp_.port_occupancy_index_.find(
+                            PortKey(node_iid, p.name));
+                        if (it != bp_.port_occupancy_index_.end()) {
+                            for (auto wid : it->second)
+                                connected_wire_ids.insert(wid);
+                        }
+                    }
+                };
+                collect(node->inputs);
+                collect(node->outputs);
+            }
+        }
+
+        // Update node widget's Grid entry
+        if (widget->isClickable())
+            scene_.grid().update(widget);
+    }
+
+    // Invalidate geometry + update Grid for connected wires
+    auto& I = bp_.interner();
+    for (auto wid : connected_wire_ids) {
+        auto* wire = dynamic_cast<visual::Wire*>(
+            scene_.find(I.resolve(wid)));
+        if (wire) {
+            wire->invalidateGeometry();
+            if (wire->isClickable())
+                scene_.grid().update(wire);
+        }
+    }
+}
+
+void CanvasInput::handle_resize_node(Pt world_delta) {
+    drag_anchor_ = drag_anchor_ + world_delta;
+    auto* resize_widget = resolve_node(resize_widget_id_);
+    if (!resize_widget) return;
+
+    float grid = viewport_.grid_step;
+    Pt orig_pos = resize_original_pos_;
+    Pt orig_sz = resize_original_size_;
+    Pt delta = drag_anchor_;
+    Pt new_pos = orig_pos;
+    Pt new_size = orig_sz;
+
+    switch (resize_corner_) {
+        case ResizeCorner::BottomRight:
+            new_size = Pt(orig_sz.x + delta.x, orig_sz.y + delta.y);
+            break;
+        case ResizeCorner::BottomLeft:
+            new_pos.x = orig_pos.x + delta.x;
+            new_size = Pt(orig_sz.x - delta.x, orig_sz.y + delta.y);
+            break;
+        case ResizeCorner::TopRight:
+            new_pos.y = orig_pos.y + delta.y;
+            new_size = Pt(orig_sz.x + delta.x, orig_sz.y - delta.y);
+            break;
+        case ResizeCorner::TopLeft:
+            new_pos = Pt(orig_pos.x + delta.x, orig_pos.y + delta.y);
+            new_size = Pt(orig_sz.x - delta.x, orig_sz.y - delta.y);
+            break;
+    }
+
+    // Enforce minimum size (1 grid unit)
+    float min_w = editor_constants::PORT_LAYOUT_GRID;
+    float min_h = editor_constants::PORT_LAYOUT_GRID;
+    if (new_size.x < min_w) {
+        if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft)
+            new_pos.x = orig_pos.x + orig_sz.x - min_w;
+        new_size.x = min_w;
+    }
+    if (new_size.y < min_h) {
+        if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::TopRight)
+            new_pos.y = orig_pos.y + orig_sz.y - min_h;
+        new_size.y = min_h;
+    }
+
+    // Snap to grid
+    new_pos = editor_math::snap_to_grid(new_pos, grid);
+    new_size = editor_math::snap_to_grid(new_size, grid);
+
+    // Update visual widget only (data layer committed on mouse-up via CmdResizeNode)
+    resize_widget->setLocalPos(new_pos);
+    resize_widget->layout(new_size.x, new_size.y);
+}
+
+// ============================================================================
 // on_mouse_drag
 // ============================================================================
 
@@ -388,84 +501,18 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 last_world_pos_ = last_world_pos_ + world_delta;
                 break;
 
-            case InputState::DraggingNode: {
-                drag_anchor_ = drag_anchor_ + world_delta;
-                Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
-                auto nodes = selected_nodes();
-
-                // Collect wire IDs connected to any moved node (for grid update).
-                // Use a set to avoid duplicating wires shared between two moved nodes.
-                std::unordered_set<ui::InternedId> connected_wire_ids;
-
-                for (size_t i = 0; i < nodes.size(); i++) {
-                    auto* widget = nodes[i];
-                    Pt offset = (i < drag_offsets_.size()) ? drag_offsets_[i] : Pt(0, 0);
-                    Pt new_pos = snapped + offset;
-
-                    // Update visual widget
-                    widget->setLocalPos(new_pos);
-
-                    // Update data layer
-                    std::string nid(widget->id());
-                    Node* node = bp_.find_node(nid.c_str());
-                    if (node) {
-                        node->pos = new_pos;
-
-                        // Gather connected wire IDs via port occupancy index
-                        auto& I = bp_.interner();
-                        ui::InternedId node_iid = I.lookup(nid);
-                        if (!node_iid.empty()) {
-                            auto collect = [&](const std::vector<EditorPort>& ports) {
-                                for (const auto& p : ports) {
-                                    auto it = bp_.port_occupancy_index_.find(
-                                        PortKey(node_iid, p.name));
-                                    if (it != bp_.port_occupancy_index_.end()) {
-                                        for (auto wid : it->second)
-                                            connected_wire_ids.insert(wid);
-                                    }
-                                }
-                            };
-                            collect(node->inputs);
-                            collect(node->outputs);
-                        }
-                    }
-
-                    // Update node widget's Grid entry
-                    if (widget->isClickable())
-                        scene_.grid().update(widget);
-                }
-
-                // Invalidate geometry + update Grid for connected wires
-                auto& I = bp_.interner();
-                for (auto wid : connected_wire_ids) {
-                    auto* wire = dynamic_cast<visual::Wire*>(
-                        scene_.find(I.resolve(wid)));
-                    if (wire) {
-                        wire->invalidateGeometry();
-                        if (wire->isClickable())
-                            scene_.grid().update(wire);
-                    }
-                }
+            case InputState::DraggingNode:
+                handle_drag_node(world_delta);
                 break;
-            }
 
             case InputState::DraggingRoutingPoint: {
                 drag_anchor_ = drag_anchor_ + world_delta;
                 Pt snapped = editor_math::snap_to_grid(drag_anchor_, viewport_.grid_step);
 
-                // Update data layer
-                auto* rp_wire = resolve_wire(rp_wire_id_);
-                size_t wire_idx = find_wire_index(rp_wire_id_);
-                if (wire_idx < bp_.wires.size()) {
-                    auto& wire = bp_.wires[wire_idx];
-                    if (rp_index_ < wire.routing_points.size()) {
-                        wire.routing_points[rp_index_] = snapped;
-                    }
-                }
-
-                // Update visual widget
+                // Update visual widget only (data layer committed on mouse-up via CmdSetRoutingPoints)
                 if (rp_point_) {
                     rp_point_->setLocalPos(snapped);
+                    auto* rp_wire = resolve_wire(rp_wire_id_);
                     if (rp_wire) {
                         rp_wire->invalidateGeometry();
                         // Update Wire's Grid entry too (bounds changed)
@@ -487,74 +534,76 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
                 marquee_end_ = marquee_end_ + world_delta;
                 break;
 
-            case InputState::ResizingNode: {
-                drag_anchor_ = drag_anchor_ + world_delta;
-                auto* resize_widget = resolve_node(resize_widget_id_);
-                if (!resize_widget) break;
-
-                float grid = viewport_.grid_step;
-                Pt orig_pos = resize_original_pos_;
-                Pt orig_sz = resize_original_size_;
-                Pt delta = drag_anchor_;
-                Pt new_pos = orig_pos;
-                Pt new_size = orig_sz;
-
-                switch (resize_corner_) {
-                    case ResizeCorner::BottomRight:
-                        new_size = Pt(orig_sz.x + delta.x, orig_sz.y + delta.y);
-                        break;
-                    case ResizeCorner::BottomLeft:
-                        new_pos.x = orig_pos.x + delta.x;
-                        new_size = Pt(orig_sz.x - delta.x, orig_sz.y + delta.y);
-                        break;
-                    case ResizeCorner::TopRight:
-                        new_pos.y = orig_pos.y + delta.y;
-                        new_size = Pt(orig_sz.x + delta.x, orig_sz.y - delta.y);
-                        break;
-                    case ResizeCorner::TopLeft:
-                        new_pos = Pt(orig_pos.x + delta.x, orig_pos.y + delta.y);
-                        new_size = Pt(orig_sz.x - delta.x, orig_sz.y - delta.y);
-                        break;
-                }
-
-                // Enforce minimum size (1 grid unit)
-                float min_w = editor_constants::PORT_LAYOUT_GRID;
-                float min_h = editor_constants::PORT_LAYOUT_GRID;
-                if (new_size.x < min_w) {
-                    if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::BottomLeft)
-                        new_pos.x = orig_pos.x + orig_sz.x - min_w;
-                    new_size.x = min_w;
-                }
-                if (new_size.y < min_h) {
-                    if (resize_corner_ == ResizeCorner::TopLeft || resize_corner_ == ResizeCorner::TopRight)
-                        new_pos.y = orig_pos.y + orig_sz.y - min_h;
-                    new_size.y = min_h;
-                }
-
-                // Snap to grid
-                new_pos = editor_math::snap_to_grid(new_pos, grid);
-                new_size = editor_math::snap_to_grid(new_size, grid);
-
-                // Update visual widget
-                resize_widget->setLocalPos(new_pos);
-                resize_widget->layout(new_size.x, new_size.y);
-
-                // Update data layer
-                std::string nid(resize_widget->id());
-                Node* node = bp_.find_node(nid.c_str());
-                if (node) {
-                    node->pos = new_pos;
-                    node->size = new_size;
-                    node->size_explicitly_set = true;
-                }
+            case InputState::ResizingNode:
+                handle_resize_node(world_delta);
                 break;
-            }
 
             case InputState::Idle:
                 break;
         }
     }
     return result;
+}
+
+// ============================================================================
+// Mouse-up commit handlers (extracted from on_mouse_up)
+// ============================================================================
+
+void CanvasInput::commit_drag_node() {
+    auto nodes = selected_nodes();
+    bool any_moved = false;
+    for (size_t i = 0; i < nodes.size() && i < drag_initial_positions_.size(); ++i) {
+        if (nodes[i]->worldPos() != drag_initial_positions_[i]) {
+            any_moved = true;
+            break;
+        }
+    }
+    if (!any_moved) {
+        undo_stack_.discard_last_snapshot();
+        return;
+    }
+    auto& I = bp_.interner();
+    for (auto* widget : nodes) {
+        ui::InternedId node_iid = I.intern(widget->id());
+        if (!node_iid.empty()) {
+            execute(bp_, cmd_move_node(node_iid, widget->worldPos()));
+        }
+    }
+}
+
+void CanvasInput::commit_drag_routing_point() {
+    size_t wire_idx = find_wire_index(rp_wire_id_);
+    if (wire_idx >= bp_.wires.size()) {
+        undo_stack_.discard_last_snapshot();
+        return;
+    }
+    Pt final_pos = rp_point_ ? rp_point_->worldPos() : Pt(0, 0);
+    auto new_points = rp_initial_points_;
+    if (rp_index_ < new_points.size()) {
+        new_points[rp_index_] = final_pos;
+    }
+    ui::InternedId wire_iid = rp_wire_id_;
+    if (new_points == rp_initial_points_ || wire_iid.empty()) {
+        undo_stack_.discard_last_snapshot();
+    } else {
+        execute(bp_, cmd_set_routing_points(wire_iid, std::move(new_points)));
+    }
+}
+
+void CanvasInput::commit_resize_node() {
+    auto* resize_widget = resolve_node(resize_widget_id_);
+    if (!resize_widget) {
+        undo_stack_.discard_last_snapshot();
+        return;
+    }
+    Pt new_pos = resize_widget->worldPos();
+    Pt new_size = resize_widget->size();
+    ui::InternedId node_iid = resize_widget_id_;
+    if ((new_pos == resize_original_pos_ && new_size == resize_original_size_) || node_iid.empty()) {
+        undo_stack_.discard_last_snapshot();
+    } else {
+        execute(bp_, cmd_resize_node(node_iid, new_pos, new_size));
+    }
 }
 
 // ============================================================================
@@ -578,50 +627,17 @@ InputResult CanvasInput::on_mouse_up(MouseButton btn, Pt screen_pos, Pt canvas_m
                 finish_marquee();
                 break;
 
-            case InputState::DraggingNode: {
-                // Snapshot was taken at drag start. The blueprint has been
-                // mutated during drag. If nothing actually moved, pop the
-                // snapshot to avoid a no-op undo entry.
-                auto nodes = selected_nodes();
-                bool any_moved = false;
-                for (size_t i = 0; i < nodes.size() && i < drag_initial_positions_.size(); ++i) {
-                    if (nodes[i]->worldPos() != drag_initial_positions_[i]) {
-                        any_moved = true;
-                        break;
-                    }
-                }
-                if (!any_moved) {
-                    // No actual movement — discard the snapshot cleanly
-                    undo_stack_.discard_last_snapshot();
-                }
+            case InputState::DraggingNode:
+                commit_drag_node();
                 break;
-            }
-            
-            case InputState::DraggingRoutingPoint: {
-                // Snapshot was taken at drag start. Check if anything changed.
-                size_t wire_idx = find_wire_index(rp_wire_id_);
-                if (wire_idx < bp_.wires.size()) {
-                    if (bp_.wires[wire_idx].routing_points == rp_initial_points_) {
-                        // No change — discard snapshot cleanly
-                        undo_stack_.discard_last_snapshot();
-                    }
-                }
+
+            case InputState::DraggingRoutingPoint:
+                commit_drag_routing_point();
                 break;
-            }
-            
-            case InputState::ResizingNode: {
-                // Snapshot was taken at resize start. Check if anything changed.
-                auto* resize_widget = resolve_node(resize_widget_id_);
-                if (resize_widget) {
-                    Pt new_pos = resize_widget->worldPos();
-                    Pt new_size = resize_widget->size();
-                    if (new_pos == resize_original_pos_ && new_size == resize_original_size_) {
-                        // No change — discard snapshot cleanly
-                        undo_stack_.discard_last_snapshot();
-                    }
-                }
+
+            case InputState::ResizingNode:
+                commit_resize_node();
                 break;
-            }
 
             default:
                 break;
@@ -653,13 +669,13 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // 1. Routing-point removal (editing operation — skip in read-only)
     if (!read_only) {
         if (auto* hrp = std::get_if<visual::HitRoutingPoint>(&hit)) {
-            size_t wire_idx = find_wire_index(std::string(hrp->wire->id()));
+            ui::InternedId wire_iid = bp_.interner().intern(hrp->wire->id());
+            size_t wire_idx = find_wire_index(wire_iid);
             if (wire_idx < bp_.wires.size() && hrp->index < bp_.wires[wire_idx].routing_points.size()) {
                 // Build new routing points with the target point removed
                 auto new_points = bp_.wires[wire_idx].routing_points;
                 new_points.erase(new_points.begin() + static_cast<long>(hrp->index));
 
-                ui::InternedId wire_iid = bp_.interner().lookup(std::string(hrp->wire->id()));
                 if (!wire_iid.empty()) {
                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
                     // Update visual: remove routing point widget
@@ -675,7 +691,7 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // 2. Node hit → open sub-window for Blueprint nodes (always allowed)
     if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
         std::string node_id(hn->widget->id());
-        const Node* node = bp_.find_node(node_id.c_str());
+        const Node* node = bp_.find_node(node_id);
         if (node && node->expandable) {
             result.open_sub_window = node_id;
             return result;
@@ -685,7 +701,8 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
     // 3. Wire hit → add routing point (editing operation — skip in read-only)
     if (!read_only) {
         if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
-            size_t wire_idx = find_wire_index(std::string(hw->wire->id()));
+            ui::InternedId wire_iid = bp_.interner().intern(hw->wire->id());
+            size_t wire_idx = find_wire_index(wire_iid);
             if (wire_idx < bp_.wires.size()) {
                 // Build new routing points with the new point inserted
                 auto new_points = bp_.wires[wire_idx].routing_points;
@@ -694,7 +711,6 @@ InputResult CanvasInput::on_double_click(Pt screen_pos, Pt canvas_min) {
                 new_points.insert(
                     new_points.begin() + static_cast<long>(insert_idx), snapped);
 
-                ui::InternedId wire_iid = bp_.interner().lookup(std::string(hw->wire->id()));
                 if (!wire_iid.empty()) {
                     snapshot_and_execute(cmd_set_routing_points(wire_iid, std::move(new_points)));
                     // Update visual: add routing point widget
@@ -745,9 +761,8 @@ InputResult CanvasInput::on_key(Key key) {
             // Snapshot before deletion
             undo_stack_.snapshot(bp_);
             for (const auto& nid : selected_node_ids_) {
-                ui::InternedId iid = bp_.interner().lookup(nid);
-                if (!iid.empty()) {
-                    execute(bp_, cmd_remove_node(iid));
+                if (!nid.empty()) {
+                    execute(bp_, cmd_remove_node(nid));
                 }
             }
             // Nullify transient widget pointer before rebuild destroys
@@ -813,18 +828,18 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         if (!compatible) return result;
 
         // Find owning node IDs by walking up the widget tree
-        std::string start_node_id = find_node_widget_id(start_port);
-        std::string end_node_id = find_node_widget_id(end_port);
+        std::string_view start_node_sv = start_port->rootAncestorId();
+        std::string_view end_node_sv = end_port->rootAncestorId();
 
-        if (start_node_id.empty() || end_node_id.empty()) return result;
+        if (start_node_sv.empty() || end_node_sv.empty()) return result;
 
         // Check not same port
-        if (start_node_id == end_node_id &&
+        if (start_node_sv == end_node_sv &&
             start_port->name() == end_port->name()) return result;
 
         auto& I = bp_.interner();
-        WireEnd start_end(I.intern(start_node_id), I.intern(start_port->name()), start_port->side());
-        WireEnd end_end(I.intern(end_node_id), I.intern(end_port->name()), end_port->side());
+        WireEnd start_end(I.intern(start_node_sv), I.intern(start_port->name()), start_port->side());
+        WireEnd end_end(I.intern(end_node_sv), I.intern(end_port->name()), end_port->side());
 
         ui::InternedId wire_id = visual::mutations::next_wire_id(bp_);
         ::Wire w = ::Wire::make(wire_id, start_end, end_end);
@@ -858,9 +873,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
             auto& wire = bp_.wires[reconnect_wire_idx_];
             const ::WireEnd& detached = reconnect_detach_start_ ? wire.start : wire.end;
 
-            std::string port_node_id = find_node_widget_id(ph->port);
+            std::string_view port_node_sv = ph->port->rootAncestorId();
             auto& I = bp_.interner();
-            ui::InternedId port_node_iid = I.intern(port_node_id);
+            ui::InternedId port_node_iid = I.intern(port_node_sv);
 
             // Try port swap first (for BusVisualNode)
             if (port_node_iid == detached.node_id) {
@@ -931,7 +946,7 @@ void CanvasInput::finish_marquee() {
         if (vroot->id().empty()) continue;
 
         // Verify this node belongs to our group
-        const Node* node = bp_.find_node(std::string(vroot->id()).c_str());
+        const Node* node = bp_.find_node(std::string_view(vroot->id()));
         if (!node || node->group_id != group_id_) continue;
 
         Pt pos = vroot->worldPos();
@@ -947,34 +962,31 @@ void CanvasInput::finish_marquee() {
 // Utility helpers
 // ============================================================================
 
-size_t CanvasInput::find_wire_index(const std::string& wire_id) const {
+size_t CanvasInput::find_wire_index(ui::InternedId wire_id) const {
     if (wire_id.empty()) return SIZE_MAX;
-    ui::InternedId iid = bp_.interner().lookup(wire_id);
-    if (iid.empty()) return SIZE_MAX;
-    auto it = bp_.wire_id_index_.find(iid);
+    auto it = bp_.wire_id_index_.find(wire_id);
     return (it != bp_.wire_id_index_.end()) ? it->second : SIZE_MAX;
 }
 
-size_t CanvasInput::find_node_index(const std::string& node_id) const {
-    ui::InternedId iid = bp_.interner().lookup(node_id);
-    if (iid.empty()) return SIZE_MAX;
-    auto it = bp_.node_index_.find(iid);
+size_t CanvasInput::find_node_index(ui::InternedId node_id) const {
+    if (node_id.empty()) return SIZE_MAX;
+    auto it = bp_.node_index_.find(node_id);
     return (it != bp_.node_index_.end()) ? it->second : SIZE_MAX;
 }
 
 std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual::Port* port) const {
     if (!port) return std::nullopt;
 
-    std::string port_node_id = find_node_widget_id(port);
+    std::string_view port_node_sv = port->rootAncestorId();
     std::string_view port_name_sv = port->name();
 
     // Determine if the port belongs to a Bus node
-    const Node* hit_node = bp_.find_node(port_node_id.c_str());
+    const Node* hit_node = bp_.find_node(port_node_sv);
     bool is_bus = hit_node && (hit_node->render_hint == "bus");
 
     // Intern the port identifiers for O(1) index lookups
     auto& I = bp_.interner();
-    ui::InternedId port_node_iid = I.intern(port_node_id);
+    ui::InternedId port_node_iid = I.intern(port_node_sv);
     ui::InternedId port_name_iid = I.intern(port_name_sv);
 
     // Helper: given a wire index, build the WirePortMatch result.

@@ -106,11 +106,11 @@ bool WindowSystem::closeDocument(Document& doc) {
     }
 
     // Close properties window if it targets this document's blueprint
-    if (properties_window_.isOpen() && properties_window_.targetNodeId().size() > 0) {
+    if (properties_window_.is_open() && properties_window_.target_node_id_str().size() > 0) {
         // PropertiesWindow stores raw Blueprint*/UndoStack* pointers.
         // If the node it targets exists in the closing document, those pointers
         // will dangle after destruction — close the window to be safe.
-        Node* target = doc.blueprint().find_node(properties_window_.targetNodeId().c_str());
+        Node* target = doc.blueprint().find_node(properties_window_.target_node_id_str());
         if (target) {
             properties_window_.close();
         }
@@ -136,7 +136,7 @@ bool WindowSystem::closeDocument(Document& doc) {
 
 bool WindowSystem::closeAllDocuments() {
     // Close properties window (holds raw pointers into document state)
-    if (properties_window_.isOpen()) {
+    if (properties_window_.is_open()) {
         properties_window_.close();
     }
 
@@ -194,7 +194,7 @@ void WindowSystem::removeClosedDocuments() {
 }
 
 void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& doc) {
-    Node* node = doc.blueprint().find_node(node_id.c_str());
+    Node* node = doc.blueprint().find_node(node_id);
     if (!node) return;
     Document* doc_ptr = &doc;
     properties_window_.open(*node, node_id, doc.blueprint(), doc.undoStack(),
@@ -214,7 +214,7 @@ void WindowSystem::openPropertiesForNode(const std::string& node_id, Document& d
 }
 
 void WindowSystem::openColorPickerForNode(const std::string& node_id, const std::string& group_id, Document& doc) {
-    Node* node = doc.blueprint().find_node(node_id.c_str());
+    Node* node = doc.blueprint().find_node(node_id);
     if (!node) return;
 
     colorPicker.node_id = node_id;

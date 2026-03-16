@@ -7,6 +7,7 @@
 #include "visual/node/bounds.h"
 #include "visual/snap.h"
 #include "data/node.h"
+#include <spdlog/spdlog.h>
 #include <algorithm>
 
 namespace visual {
@@ -34,10 +35,18 @@ NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
     float w = preferred.x;
     float h = preferred.y;
 
-    if (data.size_explicitly_set) {
-        if (data.size.x >= preferred.x) w = data.size.x;
-        if (data.size.y >= preferred.y) h = data.size.y;
+    if (data.has_explicit_size()) {
+        // Trust the user's explicit size — only enforce a hard minimum
+        // (PORT_LAYOUT_GRID) to prevent degenerate zero-area nodes.
+        // The old code rejected explicit sizes smaller than preferred,
+        // which silently reverted content-heavy nodes (AZS, Voltmeter,
+        // HoldButton) back to auto-size after every scene rebuild.
+        if (data.explicit_size().x >= editor_constants::PORT_LAYOUT_GRID) w = data.explicit_size().x;
+        if (data.explicit_size().y >= editor_constants::PORT_LAYOUT_GRID) h = data.explicit_size().y;
     }
+    spdlog::info("[DEBUG-WIDGET] NodeWidget: node={} type={} preferred=({},{}) has_explicit_size={} -> final=({},{})",
+                 data.name, data.type_name, preferred.x, preferred.y,
+                 data.has_explicit_size(), w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
     Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));

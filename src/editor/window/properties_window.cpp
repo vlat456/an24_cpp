@@ -4,6 +4,7 @@
 
 #ifndef EDITOR_TESTING
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 #endif
 
 #include <algorithm>
@@ -76,19 +77,19 @@ void PropertiesWindow::open(Node& node, const std::string& node_id_str,
     open_ = true;
 }
 
-Node* PropertiesWindow::resolveTarget() {
+Node* PropertiesWindow::resolve_target() {
     if (!bp_) return nullptr;
-    return bp_->find_node(target_node_id_.c_str());
+    return bp_->find_node(target_node_id_);
 }
 
 void PropertiesWindow::close() {
-    cancelAndClose();
+    cancel_and_close();
 }
 
 void PropertiesWindow::render() {
     if (!open_) return;
 
-    Node* target = resolveTarget();
+    Node* target = resolve_target();
     if (!target) {
         // Node was deleted (e.g. by undo) while window was open — close silently
         open_ = false;
@@ -104,12 +105,7 @@ void PropertiesWindow::render() {
         ImGui::Separator();
 
         // Name field — edits pending_name_, not the live node
-        char name_buf[256];
-        strncpy(name_buf, pending_name_.c_str(), sizeof(name_buf) - 1);
-        name_buf[sizeof(name_buf) - 1] = '\0';
-        if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
-            pending_name_ = name_buf;
-        }
+        ImGui::InputText("Name", &pending_name_);
 
         ImGui::Separator();
         ImGui::Text("Parameters");
@@ -124,62 +120,20 @@ void PropertiesWindow::render() {
         // Param fields — all edit pending_params_, not the live node
         for (const auto& key : keys) {
             if (key == "table") {
-                renderTableParam(key);
-                continue;
-            }
-            if (key == "text") {
-                // Multiline text editor for Text nodes
-                char text_buf[4096];
-                strncpy(text_buf, pending_params_[key].c_str(), sizeof(text_buf) - 1);
-                text_buf[sizeof(text_buf) - 1] = '\0';
-                if (ImGui::InputTextMultiline(key.c_str(), text_buf, sizeof(text_buf),
-                                              ImVec2(-1, 200))) {
-                    pending_params_[key] = text_buf;
-                }
-                continue;
-            }
-            if (key == "font_size") {
-                // Dropdown for font size (Small / Medium / Large)
-                const char* options[] = {"small", "medium", "large"};
-                const char* labels[]  = {"Small", "Medium", "Large"};
-
-                std::string& value = pending_params_[key];
-                int current = 2;  // default: large
-                for (int i = 0; i < 3; ++i) {
-                    if (value == options[i]) {
-                        current = i;
-                        break;
-                    }
-                }
-
-                if (ImGui::BeginCombo(key.c_str(), labels[current])) {
-                    for (int i = 0; i < 3; ++i) {
-                        bool selected = (current == i);
-                        if (ImGui::Selectable(labels[i], selected)) {
-                            value = options[i];
-                        }
-                        if (selected) {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
-                continue;
-            }
-            if (key == "port_edge") {
-                renderPortEdgeParam(key);
-                continue;
-            }
-            char buf[256];
-            strncpy(buf, pending_params_[key].c_str(), sizeof(buf) - 1);
-            buf[sizeof(buf) - 1] = '\0';
-            if (ImGui::InputText(key.c_str(), buf, sizeof(buf))) {
-                pending_params_[key] = buf;
+                render_table_param(key);
+            } else if (key == "text") {
+                render_text_param(key);
+            } else if (key == "font_size") {
+                render_font_size_param(key);
+            } else if (key == "port_edge") {
+                render_port_edge_param(key);
+            } else {
+                render_generic_param(key);
             }
         }
 
         // Port layout section (not for Bus nodes)
-        renderPortLayoutSection(*target);
+        render_port_layout_section(*target);
 
         ImGui::Separator();
 
@@ -189,19 +143,19 @@ void PropertiesWindow::render() {
         }
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            cancelAndClose();
+            cancel_and_close();
         }
     }
     ImGui::End();
 
     // Window closed via X button
     if (!window_open) {
-        cancelAndClose();
+        cancel_and_close();
     }
 #endif
 }
 
-void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
+void PropertiesWindow::render_port_edge_param(const std::string& key) {
 #ifndef EDITOR_TESTING
     const char* options[] = {"bottom", "top", "left", "right"};
     const char* labels[] = {"Bottom", "Top", "Left", "Right"};
@@ -230,7 +184,7 @@ void PropertiesWindow::renderPortEdgeParam(const std::string& key) {
 #endif
 }
 
-void PropertiesWindow::renderTableParam(const std::string& key) {
+void PropertiesWindow::render_table_param(const std::string& key) {
 #ifndef EDITOR_TESTING
     ImGui::Text("Lookup Table");
 
@@ -286,18 +240,129 @@ void PropertiesWindow::renderTableParam(const std::string& key) {
 #endif
 }
 
-void PropertiesWindow::renderPortLayoutSection(const Node& node) {
+void PropertiesWindow::render_text_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    ImGui::InputTextMultiline(key.c_str(), &pending_params_[key],
+                              ImVec2(-1, 200));
+#endif
+}
+
+void PropertiesWindow::render_font_size_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    const char* options[] = {"small", "medium", "large"};
+    const char* labels[]  = {"Small", "Medium", "Large"};
+
+    std::string& value = pending_params_[key];
+    int current = 2;  // default: large
+    for (int i = 0; i < 3; ++i) {
+        if (value == options[i]) {
+            current = i;
+            break;
+        }
+    }
+
+    if (ImGui::BeginCombo(key.c_str(), labels[current])) {
+        for (int i = 0; i < 3; ++i) {
+            bool selected = (current == i);
+            if (ImGui::Selectable(labels[i], selected)) {
+                value = options[i];
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+#endif
+}
+
+void PropertiesWindow::render_generic_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    ImGui::InputText(key.c_str(), &pending_params_[key]);
+#endif
+}
+
+void PropertiesWindow::render_port_layout_row(const std::string& port_name) {
+#ifndef EDITOR_TESTING
+    ImGui::TableNextRow();
+    ImGui::PushID(port_name.c_str());
+
+    // Find existing override for this port
+    auto it = std::find_if(pending_layout_overrides_.begin(),
+                           pending_layout_overrides_.end(),
+                           [&](const PortLayoutOverride& o) { return o.port_name == port_name; });
+
+    // Port name column
+    ImGui::TableNextColumn();
+    ImGui::Text("%s", port_name.c_str());
+
+    // Side dropdown column
+    ImGui::TableNextColumn();
+    {
+        const char* options[] = {"Auto", "Left", "Right", "Top", "Bottom"};
+        int current = 0;  // Auto
+        if (it != pending_layout_overrides_.end() && it->side.has_value()) {
+            current = static_cast<int>(*it->side) + 1;
+        }
+
+        if (ImGui::Combo("##side", &current, options, IM_ARRAYSIZE(options))) {
+            if (it == pending_layout_overrides_.end()) {
+                pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
+                it = pending_layout_overrides_.end() - 1;
+            }
+            if (current == 0) {
+                it->side = std::nullopt;
+            } else {
+                it->side = static_cast<PortLayoutSide>(current - 1);
+            }
+        }
+    }
+
+    // Position input column
+    ImGui::TableNextColumn();
+    {
+        int pos = -1;  // -1 means auto
+        if (it != pending_layout_overrides_.end() && it->position.has_value()) {
+            pos = static_cast<int>(*it->position);
+        }
+
+        if (ImGui::InputInt("##pos", &pos, 1, 1)) {
+            if (it == pending_layout_overrides_.end()) {
+                pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
+                it = pending_layout_overrides_.end() - 1;
+            }
+            if (pos < 0) {
+                it->position = std::nullopt;
+            } else {
+                it->position = static_cast<uint8_t>(std::min(pos, 255));
+            }
+        }
+    }
+
+    // Reset button column
+    ImGui::TableNextColumn();
+    if (ImGui::SmallButton("Reset")) {
+        if (it != pending_layout_overrides_.end()) {
+            pending_layout_overrides_.erase(it);
+        }
+    }
+
+    ImGui::PopID();
+#endif
+}
+
+void PropertiesWindow::render_port_layout_section(const Node& node) {
 #ifndef EDITOR_TESTING
     // Skip for Bus nodes - they have their own port_edge mechanism
     if (node.render_hint == "bus") return;
-    
+
     // Skip if node has no ports
     if (node.inputs.empty() && node.outputs.empty()) return;
-    
+
     ImGui::Separator();
     ImGui::Text("Port Layout");
     ImGui::Separator();
-    
+
     // Collect all port names
     std::vector<std::string> all_ports;
     for (const auto& p : node.inputs) {
@@ -306,7 +371,7 @@ void PropertiesWindow::renderPortLayoutSection(const Node& node) {
     for (const auto& p : node.outputs) {
         all_ports.push_back(std::string(bp_->interner().resolve(p.name)));
     }
-    
+
     // Table: Port | Side | Position | Reset
     if (ImGui::BeginTable("port_layout", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         ImGui::TableSetupColumn("Port");
@@ -314,77 +379,14 @@ void PropertiesWindow::renderPortLayoutSection(const Node& node) {
         ImGui::TableSetupColumn("Pos");
         ImGui::TableSetupColumn("##reset", ImGuiTableColumnFlags_WidthFixed, 40.0f);
         ImGui::TableHeadersRow();
-        
+
         for (const auto& port_name : all_ports) {
-            ImGui::TableNextRow();
-            ImGui::PushID(port_name.c_str());
-            
-            // Find or create override for this port
-            auto it = std::find_if(pending_layout_overrides_.begin(), 
-                                   pending_layout_overrides_.end(),
-                                   [&](const PortLayoutOverride& o) { return o.port_name == port_name; });
-            
-            // Port name column
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", port_name.c_str());
-            
-            // Side dropdown column
-            ImGui::TableNextColumn();
-            {
-                const char* options[] = {"Auto", "Left", "Right", "Top", "Bottom"};
-                int current = 0;  // Auto
-                if (it != pending_layout_overrides_.end() && it->side.has_value()) {
-                    current = static_cast<int>(*it->side) + 1;
-                }
-                
-                if (ImGui::Combo("##side", &current, options, IM_ARRAYSIZE(options))) {
-                    if (it == pending_layout_overrides_.end()) {
-                        pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
-                        it = pending_layout_overrides_.end() - 1;
-                    }
-                    if (current == 0) {
-                        it->side = std::nullopt;
-                    } else {
-                        it->side = static_cast<PortLayoutSide>(current - 1);
-                    }
-                }
-            }
-            
-            // Position input column
-            ImGui::TableNextColumn();
-            {
-                int pos = -1;  // -1 means auto
-                if (it != pending_layout_overrides_.end() && it->position.has_value()) {
-                    pos = static_cast<int>(*it->position);
-                }
-                
-                if (ImGui::InputInt("##pos", &pos, 1, 1)) {
-                    if (it == pending_layout_overrides_.end()) {
-                        pending_layout_overrides_.push_back({port_name, std::nullopt, std::nullopt});
-                        it = pending_layout_overrides_.end() - 1;
-                    }
-                    if (pos < 0) {
-                        it->position = std::nullopt;
-                    } else {
-                        it->position = static_cast<uint8_t>(std::min(pos, 255));
-                    }
-                }
-            }
-            
-            // Reset button column
-            ImGui::TableNextColumn();
-            if (ImGui::SmallButton("Reset")) {
-                if (it != pending_layout_overrides_.end()) {
-                    pending_layout_overrides_.erase(it);
-                }
-            }
-            
-            ImGui::PopID();
+            render_port_layout_row(port_name);
         }
-        
+
         ImGui::EndTable();
     }
-    
+
     // Clean up orphaned overrides (ports that no longer exist)
     auto orphan_it = std::remove_if(pending_layout_overrides_.begin(), pending_layout_overrides_.end(),
         [&](const PortLayoutOverride& o) {
@@ -395,7 +397,7 @@ void PropertiesWindow::renderPortLayoutSection(const Node& node) {
 }
 
 void PropertiesWindow::apply() {
-    Node* target = resolveTarget();
+    Node* target = resolve_target();
     if (!target || !bp_ || !undo_stack_) {
         open_ = false;
         return;
@@ -475,7 +477,7 @@ void PropertiesWindow::apply() {
     open_ = false;
 }
 
-void PropertiesWindow::cancelAndClose() {
+void PropertiesWindow::cancel_and_close() {
     // Shadow editing: the live node was never touched, so no revert needed.
     open_ = false;
 }

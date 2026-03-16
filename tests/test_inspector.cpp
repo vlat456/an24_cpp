@@ -20,7 +20,7 @@ struct InspectorTestScene {
         n.name = id;
         n.type_name = type;
         n.pos = pos;
-        n.size = Pt(120, 80);
+        n.set_explicit_size(Pt(120, 80));
 
         // Add default ports based on type (manually create Port structs)
         if (type == "Battery") {

@@ -546,7 +546,7 @@ TEST(NodeDeletion, WindowManager_RemovesOrphanedWindows) {
     ASSERT_NE(lamp_idx, SIZE_MAX);
 
     visual::mutations::remove_nodes(scene, bp, {lamp_idx});
-    wm.removeOrphanedWindows();
+    wm.remove_orphaned_windows();
 
     EXPECT_EQ(wm.count(), 1u) << "Sub-window for deleted group should be closed";
     EXPECT_EQ(wm.find("lamp1"), nullptr);

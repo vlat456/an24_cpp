@@ -73,7 +73,7 @@ static FlatNode parse_node(const json& j) {
         n.pos = {j["pos"][0].get<float>(), j["pos"][1].get<float>()};
     }
     if (j.contains("size") && j["size"].is_array() && j["size"].size() >= 2) {
-        n.size = {j["size"][0].get<float>(), j["size"][1].get<float>()};
+        n.size = FlatPos{j["size"][0].get<float>(), j["size"][1].get<float>()};
     }
 
     if (j.contains("params") && j["params"].is_object()) {
@@ -341,8 +341,8 @@ static json serialize_node(const FlatNode& n) {
     if (n.pos[0] != 0.0f || n.pos[1] != 0.0f) {
         j["pos"] = serialize_pos(n.pos);
     }
-    if (n.size[0] != 0.0f || n.size[1] != 0.0f) {
-        j["size"] = serialize_pos(n.size);
+    if (n.size.has_value()) {
+        j["size"] = serialize_pos(*n.size);
     }
     if (!n.params.empty()) {
         j["params"] = n.params;
@@ -478,6 +478,41 @@ static json serialize_sub_blueprint(const FlatSubBlueprint& sb) {
 }
 
 // ==================================================================
+// Top-level section helpers
+// ==================================================================
+
+static json serialize_meta(const FlatMeta& m) {
+    json meta;
+    meta["name"] = m.name;
+    if (!m.description.empty())    meta["description"] = m.description;
+    if (!m.domains.empty())        meta["domains"] = m.domains;
+    if (m.cpp_class)               meta["cpp_class"] = m.cpp_class;
+    if (m.priority != "med")       meta["priority"] = m.priority;
+    if (m.critical)                meta["critical"] = m.critical;
+    if (m.content_type != "None")  meta["content_type"] = m.content_type;
+    if (!m.render_hint.empty())    meta["render_hint"] = m.render_hint;
+    if (m.visual_only)             meta["visual_only"] = m.visual_only;
+    if (m.size.has_value())        meta["size"] = serialize_pos(*m.size);
+    return meta;
+}
+
+static json serialize_nodes_map(const std::map<std::string, FlatNode>& nodes) {
+    json j;
+    for (const auto& [id, node] : nodes) {
+        j[id] = serialize_node(node);
+    }
+    return j;
+}
+
+static json serialize_wires_array(const std::vector<FlatWire>& wires) {
+    json arr = json::array();
+    for (const auto& w : wires) {
+        arr.push_back(serialize_wire(w));
+    }
+    return arr;
+}
+
+// ==================================================================
 // serialize_flat_blueprint
 // ==================================================================
 
@@ -485,40 +520,7 @@ std::string serialize_flat_blueprint(const FlatBlueprint& bp) {
     json j;
 
     j["version"] = bp.version;
-
-    // Meta
-    {
-        json meta;
-        meta["name"] = bp.meta.name;
-        if (!bp.meta.description.empty()) {
-            meta["description"] = bp.meta.description;
-        }
-        if (!bp.meta.domains.empty()) {
-            meta["domains"] = bp.meta.domains;
-        }
-        if (bp.meta.cpp_class) {
-            meta["cpp_class"] = bp.meta.cpp_class;
-        }
-        if (bp.meta.priority != "med") {
-            meta["priority"] = bp.meta.priority;
-        }
-        if (bp.meta.critical) {
-            meta["critical"] = bp.meta.critical;
-        }
-        if (bp.meta.content_type != "None") {
-            meta["content_type"] = bp.meta.content_type;
-        }
-        if (!bp.meta.render_hint.empty()) {
-            meta["render_hint"] = bp.meta.render_hint;
-        }
-        if (bp.meta.visual_only) {
-            meta["visual_only"] = bp.meta.visual_only;
-        }
-        if (bp.meta.size.has_value()) {
-            meta["size"] = serialize_pos(*bp.meta.size);
-        }
-        j["meta"] = meta;
-    }
+    j["meta"] = serialize_meta(bp.meta);
 
     // Exposes
     if (!bp.exposes.empty()) {
@@ -548,22 +550,10 @@ std::string serialize_flat_blueprint(const FlatBlueprint& bp) {
     }
 
     // Nodes
-    if (!bp.nodes.empty()) {
-        json nodes;
-        for (const auto& [id, node] : bp.nodes) {
-            nodes[id] = serialize_node(node);
-        }
-        j["nodes"] = nodes;
-    }
+    if (!bp.nodes.empty()) j["nodes"] = serialize_nodes_map(bp.nodes);
 
     // Wires
-    if (!bp.wires.empty()) {
-        json wires = json::array();
-        for (const auto& w : bp.wires) {
-            wires.push_back(serialize_wire(w));
-        }
-        j["wires"] = wires;
-    }
+    if (!bp.wires.empty()) j["wires"] = serialize_wires_array(bp.wires);
 
     // Sub-blueprints
     if (!bp.sub_blueprints.empty()) {

@@ -19,7 +19,8 @@ inline std::unordered_set<GridPt, GridPtHash> make_obstacles(
 
     for (const auto& node : nodes) {
         GridPt min = grid_from_world_floor(node.pos, grid_step);
-        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
+        Pt node_size = node.get_size();
+        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node_size.x, node.pos.y + node_size.y), grid_step);
 
         // Расширяем на clearance
         for (int x = min.x - clearance; x <= max.x + clearance; x++) {
@@ -44,7 +45,8 @@ inline RoutingGrid make_routing_grid(
     // 1. Node obstacles (with clearance)
     for (const auto& node : nodes) {
         GridPt min = grid_from_world_floor(node.pos, grid_step);
-        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node.size.x, node.pos.y + node.size.y), grid_step);
+        Pt node_size = node.get_size();
+        GridPt max = grid_from_world_ceil(Pt(node.pos.x + node_size.x, node.pos.y + node_size.y), grid_step);
 
         for (int x = min.x - clearance; x <= max.x + clearance; x++) {
             for (int y = min.y - clearance; y <= max.y + clearance; y++) {
