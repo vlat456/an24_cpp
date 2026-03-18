@@ -1453,7 +1453,7 @@ add_executable(transformer_tests
 target_include_directories(transformer_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(transformer_tests PRIVATE
     jit_solver
@@ -1493,4 +1493,100 @@ target_link_libraries(apu_mechanical_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(apu_mechanical_tests)
+
+# Radiator regression tests (BUG-Radiator: inverted heat flow)
+add_executable(radiator_regression_tests
+    test_radiator_regression.cpp
+)
+target_include_directories(radiator_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(radiator_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(radiator_regression_tests)
+
+# Inverter regression tests (BUG-Inverter: Norton residual self-correction)
+add_executable(inverter_regression_tests
+    test_inverter_regression.cpp
+)
+target_include_directories(inverter_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(inverter_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(inverter_regression_tests)
+
+# Unmapped port + domain dispatch regression tests (BUG-21, BUG-4/5)
+add_executable(unmapped_port_regression_tests
+    test_unmapped_port_regression.cpp
+)
+target_include_directories(unmapped_port_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(unmapped_port_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(unmapped_port_regression_tests)
+
+# ElectricPump regression tests (BUG-22: Norton residual self-correction)
+add_executable(electric_pump_regression_tests
+    test_electric_pump_regression.cpp
+)
+target_include_directories(electric_pump_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electric_pump_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electric_pump_regression_tests)
+
+# ElectricHeater regression tests (BUG-23: unbounded thermal power)
+add_executable(electric_heater_regression_tests
+    test_electric_heater_regression.cpp
+)
+target_include_directories(electric_heater_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electric_heater_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electric_heater_regression_tests)
+
+# Switch regression tests (BUG-24: missing downstream_I forwarding)
+add_executable(switch_regression_tests
+    test_switch_regression.cpp
+)
+target_include_directories(switch_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(switch_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(switch_regression_tests)
 

@@ -2,6 +2,7 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/all.cpp"
 #include "jit_solver/components/port_registry.h"
+#include "jit_solver/SOR_constants.h"
 #include <cmath>
 
 // =============================================================================
@@ -185,4 +186,76 @@ TEST(TransformerTest, VeryLowRatio_SmallReflectedConductance) {
     // g_primary = 1.0 * 0.01 = 0.01
     EXPECT_FLOAT_EQ(st.conductance[0], 0.01f);
     EXPECT_FLOAT_EQ(st.conductance[1], 1.0f);
+}
+
+// =============================================================================
+// [BUG-Transformer] Regression: Norton residual self-correction
+// =============================================================================
+
+TEST(TransformerTest, Regression_NortonResidualSelfCorrection) {
+    // When secondary already has a voltage, through should be
+    // (v_target - v_secondary) * g, NOT v_target * g.
+    auto comp = make_transformer(2.0f);
+    auto st = make_state();
+    st.across[0] = 28.0f;  // primary
+    st.across[1] = 50.0f;  // secondary already at 50V (from prev SOR)
+
+    comp.solve_electrical(st, 1.0f / 60.0f);
+
+    float v_target = 28.0f * 2.0f;  // 56V
+    float expected_through_sec = (v_target - 50.0f) * 1.0f;  // 6.0
+
+    EXPECT_FLOAT_EQ(st.through[1], expected_through_sec)
+        << "through[secondary] should use (v_target - v_current) * g";
+}
+
+TEST(TransformerTest, Regression_NortonResidualAtTarget) {
+    // When secondary is already at target, through should be ~0
+    auto comp = make_transformer(2.0f);
+    auto st = make_state();
+    st.across[0] = 28.0f;
+    st.across[1] = 56.0f;  // exactly at target (28 * 2)
+
+    comp.solve_electrical(st, 1.0f / 60.0f);
+
+    EXPECT_NEAR(st.through[1], 0.0f, 1e-5f)
+        << "through should be ~0 when secondary is at target voltage";
+}
+
+TEST(TransformerTest, Regression_SOR_ConvergesToTargetVoltage) {
+    // Run SOR iterations: secondary should converge to v_primary * ratio.
+    // With the old bug (no self-correction), secondary would diverge.
+    auto comp = make_transformer(2.0f);
+    auto st = make_state(2);
+    st.across[0] = 28.0f;  // fixed primary
+    st.across[1] = 0.0f;   // secondary starts at 0
+
+    const float omega = SOR::OMEGA;
+    float v_target = 28.0f * 2.0f;
+
+    for (int step = 0; step < 100; ++step) {
+        st.through[0] = 0.0f;
+        st.through[1] = 0.0f;
+        st.conductance[0] = 1e-6f;  // parasitic
+        st.conductance[1] = 1e-6f;
+
+        // Fix primary at 28V
+        float g_fix = 1e6f;
+        st.conductance[0] += g_fix;
+        st.through[0] += (28.0f - st.across[0]) * g_fix;
+
+        comp.solve_electrical(st, 1.0f / 60.0f);
+
+        st.inv_conductance.resize(2);
+        st.inv_conductance[0] = 1.0f / st.conductance[0];
+        st.inv_conductance[1] = 1.0f / st.conductance[1];
+
+        solve_sor_iteration(st.across.data(), st.through.data(),
+                           st.inv_conductance.data(), 2, omega);
+    }
+
+    EXPECT_NEAR(st.across[1], v_target, 0.5f)
+        << "Secondary should converge to primary * ratio";
+    EXPECT_FALSE(std::isnan(st.across[1])) << "Secondary is NaN";
+    EXPECT_FALSE(std::isinf(st.across[1])) << "Secondary is Inf";
 }

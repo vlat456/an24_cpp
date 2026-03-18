@@ -83,7 +83,7 @@ public:
 template <typename Provider = JitProvider>
 class HoldButton {
 public:
-    static constexpr Domain domain = Domain::Logical;
+    static constexpr Domain domain = Domain::Electrical;
 
     Provider provider;
     float idle = 0.0f;
@@ -508,7 +508,7 @@ public:
 template <typename Provider = JitProvider>
 class ElectricPump {
 public:
-    static constexpr Domain domain = Domain::Hydraulic;
+    static constexpr Domain domain = Domain::Electrical | Domain::Hydraulic;
 
     Provider provider;
     float max_pressure = 1000.0f;

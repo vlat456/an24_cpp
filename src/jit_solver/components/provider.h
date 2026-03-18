@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include <cstdint>
+#include <cassert>
 #include <vector>
 
 // Forward declarations (PortNames defined in port_registry.h)
@@ -36,15 +37,25 @@ struct AotProvider {
 // =============================================================================
 
 struct JitProvider {
+    /// Sentinel value for unmapped ports — guaranteed out-of-bounds
+    static constexpr uint32_t UNMAPPED = UINT32_MAX;
+
     std::unordered_map<PortNames, uint32_t> indices;
 
-    /// Runtime lookup from map populated during JSON parsing
+    /// Runtime lookup from map populated during JSON parsing.
+    /// Returns UNMAPPED (UINT32_MAX) if port is not mapped — debug assert catches misuse.
     uint32_t get(PortNames p) const {
         auto it = indices.find(p);
         if (it != indices.end()) {
             return it->second;
         }
-        return 0; // fallback
+        assert(false && "JitProvider::get() called with unmapped port");
+        return UNMAPPED;
+    }
+
+    /// Check if a port is mapped
+    bool has(PortNames p) const {
+        return indices.find(p) != indices.end();
     }
 
     /// Add port mapping during JSON parsing

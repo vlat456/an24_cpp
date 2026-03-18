@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <optional>
+#include <unordered_set>
 #include <vector>
 
 namespace {
@@ -648,6 +649,45 @@ BuildResult build_systems_dev(
         std::unique(result.fixed_signals.begin(), result.fixed_signals.end()),
         result.fixed_signals.end()
     );
+
+    // =========================================================================
+    // BUG-1 FIX: Remap signals so dynamic signals occupy [0..N_dyn) and
+    // fixed signals occupy [N_dyn..N_total). This guarantees the SOR solver
+    // can branchlessly iterate [0..dynamic_signals_count) without hitting
+    // fixed signals. The sentinel signal remains at the very end.
+    // =========================================================================
+    {
+        std::unordered_set<uint32_t> fixed_set(result.fixed_signals.begin(),
+                                                result.fixed_signals.end());
+        // Build remapping table: old_index -> new_index
+        // Sentinel signal (last index) stays at the end.
+        uint32_t sentinel_idx = result.signal_count - 1;
+        std::vector<uint32_t> remap(result.signal_count);
+
+        uint32_t dyn_slot = 0;
+        uint32_t fix_slot = result.signal_count - 1 - static_cast<uint32_t>(result.fixed_signals.size());
+
+        for (uint32_t i = 0; i < result.signal_count; ++i) {
+            if (i == sentinel_idx) {
+                remap[i] = result.signal_count - 1; // sentinel stays last
+            } else if (fixed_set.count(i)) {
+                remap[i] = fix_slot++;
+            } else {
+                remap[i] = dyn_slot++;
+            }
+        }
+
+        // Apply remap to port_to_signal
+        for (auto& [port, sig] : result.port_to_signal) {
+            sig = remap[sig];
+        }
+
+        // Remap fixed_signals list
+        for (auto& fs : result.fixed_signals) {
+            fs = remap[fs];
+        }
+        std::sort(result.fixed_signals.begin(), result.fixed_signals.end());
+    }
 
     spdlog::info("[build] signal map: {} roots -> {} signals, {} fixed",
         unique_roots.size(), result.signal_count, result.fixed_signals.size());

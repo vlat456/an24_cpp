@@ -36,11 +36,13 @@ void Battery<Provider>::pre_load() {
 
 template <typename Provider>
 void Switch<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    v_out_old = st.across[provider.get(PortNames::v_out)];
     // Branchless: mask is 0 when open or downstream_g <= 0
     float mask = (closed && downstream_g > 0.0f) ? 1.0f : 0.0f;
     float g = downstream_g * mask;
+    float i = downstream_I * mask;
     st.conductance[provider.get(PortNames::v_in)] += g;
-    st.through[provider.get(PortNames::v_in)] -= st.across[provider.get(PortNames::v_in)] * g;
+    st.through[provider.get(PortNames::v_in)] += i - st.across[provider.get(PortNames::v_in)] * g;
 }
 
 template <typename Provider>
@@ -54,9 +56,11 @@ void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
 
     if (closed) {
         downstream_g = st.conductance[provider.get(PortNames::v_out)];
+        downstream_I = st.through[provider.get(PortNames::v_out)] + v_out_old * st.conductance[provider.get(PortNames::v_out)];
         st.across[provider.get(PortNames::v_out)] = st.across[provider.get(PortNames::v_in)];
     } else {
         downstream_g = 0.0f;
+        downstream_I = 0.0f;
         st.across[provider.get(PortNames::v_out)] = 0.0f;
     }
 
@@ -233,7 +237,7 @@ void GS24<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     // Branchless phi ramp: clamp((rpm_percent - rpm_threshold) / 0.2, 0, 1)
     float phi = std::clamp((rpm_percent - rpm_threshold) * 5.0f, 0.0f, 1.0f);
 
-    float k_mod_val = (provider.get(PortNames::k_mod) > 0) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
+    float k_mod_val = provider.has(PortNames::k_mod) ? st.across[provider.get(PortNames::k_mod)] : 1.0f;
     float i_no = std::clamp(i_max * phi * k_mod_val, 0.0f, 100.0f);
     float g_gen = inv_r_norton;
 
@@ -303,16 +307,19 @@ void GS24<Provider>::post_step(SimulationState& st, float dt) {
 template <typename Provider>
 void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_primary = st.across[provider.get(PortNames::primary)];
+    float v_secondary = st.across[provider.get(PortNames::secondary)];
     float v_secondary_target = v_primary * ratio;
 
-    // Secondary side: drive output toward v_primary * ratio
+    // [BUG-Transformer] Fixed: use proper Norton residual (v_target - v_current) * g
+    // instead of just v_target * g, which caused divergent SOR accumulation.
+    // Secondary side: voltage source driving toward v_primary * ratio
     float g_secondary = 1.0f;
+    float i_secondary = (v_secondary_target - v_secondary) * g_secondary;
     st.conductance[provider.get(PortNames::secondary)] += g_secondary;
-    st.through[provider.get(PortNames::secondary)] += v_secondary_target * g_secondary;
+    st.through[provider.get(PortNames::secondary)] += i_secondary;
 
     // Primary side: reflect secondary load through impedance transformation
     // Power conservation: P_primary = P_secondary
-    //   I_primary * V_primary = I_secondary * V_secondary
     //   Reflected conductance: g_primary = g_secondary * ratio²
     float g_primary = g_secondary * ratio * ratio;
     st.conductance[provider.get(PortNames::primary)] += g_primary;
@@ -326,11 +333,15 @@ void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) 
 template <typename Provider>
 void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     float v_dc = st.across[provider.get(PortNames::dc_in)];
-    float v_ac = v_dc * efficiency;
+    float v_ac = st.across[provider.get(PortNames::ac_out)];
+    float v_ac_target = v_dc * efficiency;
 
+    // [BUG-Inverter] Fixed: use proper Norton residual (v_target - v_current) * g
+    // instead of just v_target * g, which caused divergent SOR accumulation.
     float g = 1.0f;
+    float i_ac = (v_ac_target - v_ac) * g;
     st.conductance[provider.get(PortNames::ac_out)] += g;
-    st.through[provider.get(PortNames::ac_out)] += v_ac * g;
+    st.through[provider.get(PortNames::ac_out)] += i_ac;
 
     // Draw proportional current from DC input (energy conservation)
     // P_dc = P_ac → I_dc * V_dc = I_ac * V_ac
@@ -638,9 +649,12 @@ void ElectricPump<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) 
 
     float target_p = v_in * max_pressure / 28.0f;
 
+    // [BUG-22] Fixed: use proper Norton residual (target_p - p_out) * g
+    // instead of just target_p * g, which caused divergent SOR accumulation.
+    // Same class of bug as BUG-Transformer and BUG-Inverter.
     float g = 1.0f;
     st.conductance[provider.get(PortNames::p_out)] += g;
-    st.through[provider.get(PortNames::p_out)] += target_p * g;
+    st.through[provider.get(PortNames::p_out)] += (target_p - p_out) * g;
 }
 
 // =============================================================================
@@ -761,7 +775,13 @@ void ElectricHeater<Provider>::solve_electrical(SimulationState& st, float /*dt*
 template <typename Provider>
 void ElectricHeater<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::power)];
-    float heat_power = v_in * v_in * efficiency;
+    // [BUG-23] Fixed: thermal output must match actual electrical power dissipated.
+    // Electrical conductance: g = max_power / (v² + 0.01), so P_elec = v² * g.
+    // Old code used v² * efficiency, which is unbounded (e.g., 28² * 0.9 = 705W
+    // regardless of max_power setting).
+    float v_sq = v_in * v_in;
+    float g = max_power / (v_sq + 0.01f);
+    float heat_power = v_sq * g * efficiency;
     st.through[provider.get(PortNames::heat_out)] += heat_power;
 }
 
@@ -1008,16 +1028,12 @@ void RU19A<Provider>::pre_load() {
 
 template <typename Provider>
 void Radiator<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
-    float heat_in = st.across[provider.get(PortNames::heat_in)];
-    float heat_out = st.across[provider.get(PortNames::heat_out)];
-
+    // [BUG-Radiator] Fixed: was using inverted sign convention.
+    // stamp_two_port correctly computes i = (V2 - V1) * g, injecting current
+    // to pull both nodes toward each other (heat transfer from hot to cold).
     float g = cooling_capacity;
-    st.conductance[provider.get(PortNames::heat_in)] += g;
-    st.conductance[provider.get(PortNames::heat_out)] += g;
-
-    float delta = heat_in - heat_out;
-    st.through[provider.get(PortNames::heat_in)] += delta * g;
-    st.through[provider.get(PortNames::heat_out)] -= delta * g;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::heat_in), provider.get(PortNames::heat_out), g);
 }
 
 // =============================================================================
