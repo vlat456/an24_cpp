@@ -182,6 +182,17 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/transformer_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/generator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/apu_mechanical_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/radiator_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/inverter_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/unmapped_port_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electric_pump_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electric_heater_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/switch_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/gidro_accumulator_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/fuel_tank_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/refnode_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/rug82_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/solenoid_valve_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

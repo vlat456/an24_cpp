@@ -277,6 +277,8 @@ void VoltmeterWidget::render(IDrawList* dl, const RenderContext& ctx) const {
 
 void VoltmeterWidget::updateFromContent(const NodeContent& content) {
     value_ = content.value;
+    min_val_ = content.min;
+    max_val_ = content.max;
 }
 
 } // namespace visual

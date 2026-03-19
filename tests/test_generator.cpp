@@ -249,9 +249,10 @@ TEST(GeneratorTest, PreLoadComputesInverseResistance) {
     EXPECT_FLOAT_EQ(gen.inv_internal_r, 50.0f);
 }
 
-TEST(GeneratorTest, PreLoadZeroResistanceGivesZeroConductance) {
+TEST(GeneratorTest, PreLoadZeroResistanceGivesFlooredConductance) {
     Generator<JitProvider> gen;
     gen.internal_r = 0.0f;
     gen.pre_load();
-    EXPECT_FLOAT_EQ(gen.inv_internal_r, 0.0f);
+    // Zero resistance is floored to 1e-6 for safety (consistent with Battery)
+    EXPECT_FLOAT_EQ(gen.inv_internal_r, 1.0f / 1e-6f);
 }

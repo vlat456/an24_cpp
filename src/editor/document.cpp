@@ -152,6 +152,11 @@ void Document::updateNodeContentFromSimulation() {
         if (node.type_name == "Voltmeter") {
             float voltage = simulation_.get_port_value(nid, "v_in");
             node.node_content.value = voltage;
+            // Sync gauge range from params (allows live editing via Properties)
+            auto min_it = node.params.find("min");
+            if (min_it != node.params.end()) node.node_content.min = std::stof(min_it->second);
+            auto max_it = node.params.find("max");
+            if (max_it != node.params.end()) node.node_content.max = std::stof(max_it->second);
         }
         // Update IndicatorLight text based on brightness
         else if (node.type_name == "IndicatorLight") {

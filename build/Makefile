@@ -1380,6 +1380,149 @@ apu_mechanical_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
 .PHONY : apu_mechanical_tests/fast
 
+#=============================================================================
+# Target rules for targets named radiator_regression_tests
+
+# Build rule for target.
+radiator_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 radiator_regression_tests
+.PHONY : radiator_regression_tests
+
+# fast build rule for target.
+radiator_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/build
+.PHONY : radiator_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named inverter_regression_tests
+
+# Build rule for target.
+inverter_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 inverter_regression_tests
+.PHONY : inverter_regression_tests
+
+# fast build rule for target.
+inverter_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/build
+.PHONY : inverter_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named unmapped_port_regression_tests
+
+# Build rule for target.
+unmapped_port_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 unmapped_port_regression_tests
+.PHONY : unmapped_port_regression_tests
+
+# fast build rule for target.
+unmapped_port_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
+.PHONY : unmapped_port_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named electric_pump_regression_tests
+
+# Build rule for target.
+electric_pump_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electric_pump_regression_tests
+.PHONY : electric_pump_regression_tests
+
+# fast build rule for target.
+electric_pump_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/build
+.PHONY : electric_pump_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named electric_heater_regression_tests
+
+# Build rule for target.
+electric_heater_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electric_heater_regression_tests
+.PHONY : electric_heater_regression_tests
+
+# fast build rule for target.
+electric_heater_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_heater_regression_tests.dir/build.make tests/CMakeFiles/electric_heater_regression_tests.dir/build
+.PHONY : electric_heater_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named switch_regression_tests
+
+# Build rule for target.
+switch_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 switch_regression_tests
+.PHONY : switch_regression_tests
+
+# fast build rule for target.
+switch_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/switch_regression_tests.dir/build.make tests/CMakeFiles/switch_regression_tests.dir/build
+.PHONY : switch_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named gidro_accumulator_regression_tests
+
+# Build rule for target.
+gidro_accumulator_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gidro_accumulator_regression_tests
+.PHONY : gidro_accumulator_regression_tests
+
+# fast build rule for target.
+gidro_accumulator_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build
+.PHONY : gidro_accumulator_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named fuel_tank_regression_tests
+
+# Build rule for target.
+fuel_tank_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 fuel_tank_regression_tests
+.PHONY : fuel_tank_regression_tests
+
+# fast build rule for target.
+fuel_tank_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/fuel_tank_regression_tests.dir/build.make tests/CMakeFiles/fuel_tank_regression_tests.dir/build
+.PHONY : fuel_tank_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named refnode_regression_tests
+
+# Build rule for target.
+refnode_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 refnode_regression_tests
+.PHONY : refnode_regression_tests
+
+# fast build rule for target.
+refnode_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refnode_regression_tests.dir/build.make tests/CMakeFiles/refnode_regression_tests.dir/build
+.PHONY : refnode_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named rug82_regression_tests
+
+# Build rule for target.
+rug82_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rug82_regression_tests
+.PHONY : rug82_regression_tests
+
+# fast build rule for target.
+rug82_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/rug82_regression_tests.dir/build.make tests/CMakeFiles/rug82_regression_tests.dir/build
+.PHONY : rug82_regression_tests/fast
+
+#=============================================================================
+# Target rules for targets named solenoid_valve_regression_tests
+
+# Build rule for target.
+solenoid_valve_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 solenoid_valve_regression_tests
+.PHONY : solenoid_valve_regression_tests
+
+# fast build rule for target.
+solenoid_valve_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/build
+.PHONY : solenoid_valve_regression_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1422,10 +1565,14 @@ help:
 	@echo "... editor_data_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
+	@echo "... electric_heater_regression_tests"
+	@echo "... electric_pump_regression_tests"
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
+	@echo "... fuel_tank_regression_tests"
 	@echo "... generator_tests"
+	@echo "... gidro_accumulator_regression_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
 	@echo "... gtest"
@@ -1433,6 +1580,7 @@ help:
 	@echo "... hello_world"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
+	@echo "... inverter_regression_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
@@ -1457,14 +1605,19 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... radiator_regression_tests"
+	@echo "... refnode_regression_tests"
+	@echo "... rug82_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
+	@echo "... solenoid_valve_regression_tests"
 	@echo "... spdlog"
 	@echo "... specialized_node_widget_tests"
 	@echo "... spring_tests"
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
+	@echo "... switch_regression_tests"
 	@echo "... time_delay_tests"
 	@echo "... transformer_tests"
 	@echo "... ui_grid_tests"
@@ -1476,6 +1629,7 @@ help:
 	@echo "... ui_renderer_tests"
 	@echo "... ui_scene_tests"
 	@echo "... ui_widget_purity_tests"
+	@echo "... unmapped_port_regression_tests"
 	@echo "... update_port_registry"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"

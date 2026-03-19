@@ -2,22 +2,21 @@
   "exposes": {
     "ctrl": {
       "direction": "In",
-      "type": "Temperature"
+      "type": "V"
     },
     "flow_in": {
       "direction": "In",
-      "type": "I"
+      "type": "Pressure"
     },
     "flow_out": {
       "direction": "Out",
-      "type": "Temperature"
+      "type": "Pressure"
     }
   },
   "meta": {
     "cpp_class": true,
     "description": "Electrically controlled hydraulic valve",
     "domains": [
-      "Electrical",
       "Hydraulic"
     ],
     "name": "SolenoidValve"

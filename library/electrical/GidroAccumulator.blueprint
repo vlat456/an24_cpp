@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "p_in": {
+      "direction": "In",
+      "type": "Pressure"
+    },
+    "p_out": {
+      "direction": "Out",
+      "type": "Pressure"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Gas-charged hydraulic accumulator (Boyle's law)",
+    "domains": [
+      "Hydraulic"
+    ],
+    "name": "GidroAccumulator"
+  },
+  "params": {
+    "gas_volume": {
+      "default": "10.0",
+      "type": "float"
+    },
+    "precharge_pressure": {
+      "default": "50.0",
+      "type": "float"
+    },
+    "volume": {
+      "default": "10.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

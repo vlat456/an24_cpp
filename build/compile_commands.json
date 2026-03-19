@@ -1822,5 +1822,71 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.o -c /Users/vladimir/an24_cpp/tests/test_apu_mechanical.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_apu_mechanical.cpp",
   "output": "tests/CMakeFiles/apu_mechanical_tests.dir/test_apu_mechanical.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_radiator_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_radiator_regression.cpp",
+  "output": "tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_inverter_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_inverter_regression.cpp",
+  "output": "tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_unmapped_port_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_unmapped_port_regression.cpp",
+  "output": "tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electric_pump_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electric_pump_regression.cpp",
+  "output": "tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electric_heater_regression_tests.dir/test_electric_heater_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electric_heater_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electric_heater_regression.cpp",
+  "output": "tests/CMakeFiles/electric_heater_regression_tests.dir/test_electric_heater_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/switch_regression_tests.dir/test_switch_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_switch_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_switch_regression.cpp",
+  "output": "tests/CMakeFiles/switch_regression_tests.dir/test_switch_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_gidro_accumulator_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_gidro_accumulator_regression.cpp",
+  "output": "tests/CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/fuel_tank_regression_tests.dir/test_fuel_tank_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_fuel_tank_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_fuel_tank_regression.cpp",
+  "output": "tests/CMakeFiles/fuel_tank_regression_tests.dir/test_fuel_tank_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/refnode_regression_tests.dir/test_refnode_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_refnode_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_refnode_regression.cpp",
+  "output": "tests/CMakeFiles/refnode_regression_tests.dir/test_refnode_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/rug82_regression_tests.dir/test_rug82_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_rug82_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_rug82_regression.cpp",
+  "output": "tests/CMakeFiles/rug82_regression_tests.dir/test_rug82_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_solenoid_valve_regression.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_solenoid_valve_regression.cpp",
+  "output": "tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.o"
 }
 ]

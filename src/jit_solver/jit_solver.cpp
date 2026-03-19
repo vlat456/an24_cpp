@@ -179,6 +179,8 @@ ComponentVariant create_component_variant(
     else if (dev.classname == "Voltmeter") {
         Voltmeter<JitProvider> comp;
         setup_component_ports(comp, dev, result);
+        comp.min = get_float(dev, "min", 0.0f);
+        comp.max = get_float(dev, "max", 28.0f);
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "HighPowerLoad") {
@@ -198,6 +200,24 @@ ComponentVariant create_component_variant(
         SolenoidValve<JitProvider> comp;
         setup_component_ports(comp, dev, result);
         comp.normally_closed = get_bool(dev, "normally_closed", true);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "GidroAccumulator") {
+        GidroAccumulator<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.precharge_pressure = get_float(dev, "precharge_pressure", 50.0f);
+        comp.volume = get_float(dev, "volume", 10.0f);
+        comp.gas_volume = get_float(dev, "gas_volume", comp.volume);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "FuelTank") {
+        FuelTank<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.capacity = get_float(dev, "capacity", 1000.0f);
+        comp.level = get_float(dev, "level", comp.capacity);
+        comp.density = get_float(dev, "density", 0.78f);
+        comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
     else if (dev.classname == "InertiaNode") {

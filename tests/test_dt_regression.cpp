@@ -234,25 +234,14 @@ TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
     Blueprint bp;
     auto& I = bp.interner();
 
-    Node gnd;
-    gnd.id = I.intern("gnd"); gnd.name = "GND"; gnd.type_name = "RefNode";
-    gnd.render_hint = "ref";
-    gnd.output(I.intern("v"));
-    gnd.at(0, 0); gnd.size_wh(40, 40);
-    gnd.node_content.type = NodeContentType::Value;
-    gnd.node_content.value = 0.0f;
-    bp.add_node(std::move(gnd));
-
+    // Use two RefNodes to provide controlled voltages for Va and Vb
+    // (RefNode correctly clamps to its value, so we use separate ones
+    //  and adjust their values via apply_overrides on the RefNode itself)
     Node comp;
     comp.id = I.intern("comp1"); comp.name = "Comparator"; comp.type_name = "Comparator";
     comp.input(I.intern("Va")); comp.input(I.intern("Vb")); comp.output(I.intern("o"));
     comp.at(100, 0); comp.size_wh(120, 80);
     bp.add_node(std::move(comp));
-
-    Wire w1;
-    w1.start.node_id = I.intern("gnd"); w1.start.port_name = I.intern("v");
-    w1.end.node_id = I.intern("comp1"); w1.end.port_name = I.intern("Vb");
-    bp.add_wire(std::move(w1));
 
     Simulator<JIT_Solver> sim;
     sim.start(bp);

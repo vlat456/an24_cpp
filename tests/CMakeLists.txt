@@ -1590,3 +1590,83 @@ target_link_libraries(switch_regression_tests PRIVATE
 )
 gtest_discover_tests(switch_regression_tests)
 
+# GidroAccumulator regression tests (gas-charged hydraulic accumulator)
+add_executable(gidro_accumulator_regression_tests
+    test_gidro_accumulator_regression.cpp
+)
+target_include_directories(gidro_accumulator_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(gidro_accumulator_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(gidro_accumulator_regression_tests)
+
+# FuelTank regression tests (aircraft fuel reservoir with gravity head)
+add_executable(fuel_tank_regression_tests
+    test_fuel_tank_regression.cpp
+)
+target_include_directories(fuel_tank_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(fuel_tank_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(fuel_tank_regression_tests)
+
+# RefNode regression tests (Norton residual self-correction)
+add_executable(refnode_regression_tests
+    test_refnode_regression.cpp
+)
+target_include_directories(refnode_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(refnode_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(refnode_regression_tests)
+
+# RUG82 regression tests (integration per SOR iteration fix)
+add_executable(rug82_regression_tests
+    test_rug82_regression.cpp
+)
+target_include_directories(rug82_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(rug82_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(rug82_regression_tests)
+
+# SolenoidValve regression tests (two-port coupling fix)
+add_executable(solenoid_valve_regression_tests
+    test_solenoid_valve_regression.cpp
+)
+target_include_directories(solenoid_valve_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(solenoid_valve_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(solenoid_valve_regression_tests)
+

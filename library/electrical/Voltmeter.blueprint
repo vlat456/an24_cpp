@@ -15,5 +15,15 @@
     "name": "Voltmeter",
     "priority": "low"
   },
+  "params": {
+    "max": {
+      "default": "28.0",
+      "type": "float"
+    },
+    "min": {
+      "default": "0.0",
+      "type": "float"
+    }
+  },
   "version": 2
 }

@@ -11,12 +11,7 @@
 
 template <typename Provider>
 void Battery<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float v_gnd = st.across[provider.get(PortNames::v_in)];
-    float v_bus = st.across[provider.get(PortNames::v_out)];
     float g = inv_internal_r;
-
-    float i = (v_nominal + v_gnd - v_bus) * g;
-    i = std::clamp(i, -3000.0f, 3000.0f);  // Increased for 115V systems
 
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
@@ -163,9 +158,11 @@ void Load<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void RefNode<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    float g = 1.0e6f;
-    st.conductance[provider.get(PortNames::v)] += g;
-    st.through[provider.get(PortNames::v)] += value * g;
+    // [BUG-RefNode] Fixed: use stamp_voltage_source for correct Norton residual.
+    // Previously stamped through += value * g without subtracting across[v] * g,
+    // causing SOR divergence for any value != 0 (voltage grew unbounded each iteration).
+    stamp_voltage_source(st.conductance.data(), st.through.data(), st.across.data(),
+                         provider.get(PortNames::v), value, 1.0e-6f);
 }
 
 // =============================================================================
@@ -213,7 +210,9 @@ void Generator<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void Generator<Provider>::pre_load() {
-    inv_internal_r = (internal_r > 0.0f) ? 1.0f / internal_r : 0.0f;
+    // Match Battery's safety pattern: floor resistance instead of zeroing out
+    float safe_r = std::max(internal_r, 1e-6f);
+    inv_internal_r = 1.0f / safe_r;
 }
 
 // =============================================================================
@@ -318,12 +317,15 @@ void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) 
     st.conductance[provider.get(PortNames::secondary)] += g_secondary;
     st.through[provider.get(PortNames::secondary)] += i_secondary;
 
-    // Primary side: reflect secondary load through impedance transformation
-    // Power conservation: P_primary = P_secondary
-    //   Reflected conductance: g_primary = g_secondary * ratio²
+    // [BUG-Transformer-Primary] Fixed: add reflected secondary voltage source.
+    // Previously stamped only through -= v_primary * g_primary (pure drain to ground).
+    // For power conservation, primary must see reflected secondary voltage:
+    //   V_primary_reflected = V_secondary / ratio
+    //   Norton residual: (V_secondary/ratio - V_primary) * g_primary
     float g_primary = g_secondary * ratio * ratio;
+    float v_primary_reflected = v_secondary / std::max(std::abs(ratio), 1e-6f);
     st.conductance[provider.get(PortNames::primary)] += g_primary;
-    st.through[provider.get(PortNames::primary)] -= v_primary * g_primary;
+    st.through[provider.get(PortNames::primary)] += (v_primary_reflected - v_primary) * g_primary;
 }
 
 // =============================================================================
@@ -343,12 +345,15 @@ void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
     st.conductance[provider.get(PortNames::ac_out)] += g;
     st.through[provider.get(PortNames::ac_out)] += i_ac;
 
-    // Draw proportional current from DC input (energy conservation)
-    // P_dc = P_ac → I_dc * V_dc = I_ac * V_ac
-    // Approximate DC load as conductance: g_dc = g * efficiency
+    // [BUG-Inverter-DC] Fixed: add reflected AC voltage source on DC input.
+    // Previously stamped only through -= v_dc * g_dc (pure drain to ground).
+    // For energy conservation, DC input must see reflected AC voltage:
+    //   V_dc_reflected = V_ac / efficiency
+    //   Norton residual: (V_dc_reflected - V_dc) * g_dc
     float g_dc = g * efficiency;
+    float v_dc_reflected = v_ac / std::max(efficiency, 1e-6f);
     st.conductance[provider.get(PortNames::dc_in)] += g_dc;
-    st.through[provider.get(PortNames::dc_in)] -= v_dc * g_dc;
+    st.through[provider.get(PortNames::dc_in)] += (v_dc_reflected - v_dc) * g_dc;
 }
 
 // =============================================================================
@@ -636,25 +641,51 @@ void AGK47<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void ElectricPump<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // Motor draws constant small current from electrical bus (resistive load to ground)
-    constexpr float G_MOTOR = 0.01f;
+    // Load-dependent motor draw: I = P_hydraulic / V_bus
+    // P_hydraulic ≈ (p_out - p_in) * flow, approximated as pressure_diff * g_coupling
+    // For simplicity, use conductance proportional to output pressure differential
+    // scaled by 1/V_bus to get a realistic current draw.
+    float v_in = st.across[provider.get(PortNames::v_in)];
+    float p_out = st.across[provider.get(PortNames::p_out)];
+    float p_in_h = st.across[provider.get(PortNames::p_in)];
+    float dp = std::max(p_out - p_in_h, 0.0f);
+
+    // G_motor = k * dp / V_bus^2 (constant-power load model)
+    // Floor at G_IDLE = 0.01 to keep the bus well-conditioned even with no load.
+    constexpr float G_IDLE = 0.01f;
+    constexpr float K_ELEC = 0.001f;  // Hydraulic-to-electrical coupling coefficient
+    float g_load = K_ELEC * dp / (v_in * v_in + 1.0f);
+    float g_total = G_IDLE + g_load;
+
     stamp_one_port_ground(st.conductance.data(), st.through.data(), st.across.data(),
-                          provider.get(PortNames::v_in), G_MOTOR);
+                          provider.get(PortNames::v_in), g_total);
 }
 
 template <typename Provider>
 void ElectricPump<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
     float v_in = st.across[provider.get(PortNames::v_in)];
+    float p_in_h = st.across[provider.get(PortNames::p_in)];
     float p_out = st.across[provider.get(PortNames::p_out)];
 
+    // Target pressure boost: proportional to bus voltage
     float target_p = v_in * max_pressure / 28.0f;
 
-    // [BUG-22] Fixed: use proper Norton residual (target_p - p_out) * g
-    // instead of just target_p * g, which caused divergent SOR accumulation.
-    // Same class of bug as BUG-Transformer and BUG-Inverter.
-    float g = 1.0f;
-    st.conductance[provider.get(PortNames::p_out)] += g;
-    st.through[provider.get(PortNames::p_out)] += (target_p - p_out) * g;
+    // Two-port coupling: internal leakage path from p_in to p_out.
+    // Small conductance allows return flow when pump is off; the boost source
+    // dominates when the pump is powered, maintaining the pressure differential.
+    float g_coupling = 0.1f;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::p_in), provider.get(PortNames::p_out),
+                   g_coupling);
+
+    // Norton source on p_out: drives the output above input by target_p.
+    // The effective target for p_out is (p_in + target_p).
+    // Self-correcting residual: (p_in + target_p - p_out) * g
+    // g_boost >> g_coupling so the pump maintains the pressure differential.
+    float g_boost = 10.0f;
+    float p_target_abs = p_in_h + target_p;
+    st.conductance[provider.get(PortNames::p_out)] += g_boost;
+    st.through[provider.get(PortNames::p_out)] += (p_target_abs - p_out) * g_boost;
 }
 
 // =============================================================================
@@ -666,13 +697,108 @@ void SolenoidValve<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/)
     float ctrl = st.across[provider.get(PortNames::ctrl)];
 
     // Branchless: compute open state from control and normally_closed
+    // NC valve: opens when ctrl > 12V (ctrl_above=1, nc=1 → open)
+    // NO valve: opens when ctrl <= 12V (ctrl_above=0, nc=0 → open)
     float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
-    float nc_mask = normally_closed ? 1.0f : 0.0f;
-    open_mask = std::abs(ctrl_above - nc_mask); // XOR: open when different
+    float no_mask = normally_closed ? 0.0f : 1.0f;
+    open_mask = std::abs(ctrl_above - no_mask); // XOR with inverted sense
 
-    float g = 1.0e6f * open_mask;
-    st.conductance[provider.get(PortNames::flow_in)] += g;
+    // [BUG-SolenoidValve] Fixed: use stamp_two_port to couple flow_in and flow_out.
+    // Previously stamped independent conductances on each port (two disconnected
+    // loads to ground). A valve must pass fluid through - stamp_two_port creates
+    // a conductance path between the two ports.
+    // g = 100 when open: large relative to other hydraulic components (g=1..10)
+    // for near-zero pressure drop, while remaining SOR-stable.
+    float g = 100.0f * open_mask;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::flow_in), provider.get(PortNames::flow_out),
+                   g);
+}
+
+// =============================================================================
+// GidroAccumulator
+// =============================================================================
+
+template <typename Provider>
+void GidroAccumulator<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
+    float p_in  = st.across[provider.get(PortNames::p_in)];
+    float p_out = st.across[provider.get(PortNames::p_out)];
+
+    // Boyle's law: P_precharge * V_total = P_gas * V_gas
+    // Gas pressure at current gas_volume:
+    float p_gas = precharge_pressure * volume / std::max(gas_volume, 0.01f);
+
+    // Flow direction: fluid enters when system pressure > gas pressure
+    // High conductance coupling between p_in and p_out when accumulator is active
+    // (accumulator acts as a pressure buffer between input and output)
+    float g_coupling = 10.0f;
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::p_in), provider.get(PortNames::p_out),
+                   g_coupling);
+
+    // Norton source on p_out: drive toward gas pressure (self-correcting)
+    float g_gas = 1.0f;
+    st.conductance[provider.get(PortNames::p_out)] += g_gas;
+    st.through[provider.get(PortNames::p_out)] += (p_gas - p_out) * g_gas;
+}
+
+template <typename Provider>
+void GidroAccumulator<Provider>::post_step(SimulationState& st, float dt) {
+    // [BUG-GidroAccumulator] Fixed: moved gas_volume mutation from solve_hydraulic
+    // to post_step. Mutating state inside the SOR iteration loop caused convergence
+    // issues because gas_volume would change on every iteration, shifting the target
+    // pressure during convergence.
+    float p_in = st.across[provider.get(PortNames::p_in)];
+    float p_gas = precharge_pressure * volume / std::max(gas_volume, 0.01f);
+
+    // Update gas volume based on pressure differential
+    // When p_in > p_gas, fluid enters (gas_volume decreases)
+    // When p_in < p_gas, fluid exits (gas_volume increases)
+    float dp = p_in - p_gas;
+    float flow_rate = dp * 0.001f;  // Small flow coefficient
+    gas_volume = std::clamp(gas_volume - flow_rate * dt, 0.1f, volume);
+}
+
+template <typename Provider>
+void GidroAccumulator<Provider>::pre_load() {
+    gas_volume = std::clamp(gas_volume, 0.1f, volume);
+}
+
+// =============================================================================
+// FuelTank
+// =============================================================================
+
+template <typename Provider>
+void FuelTank<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
+    float flow_out_v = st.across[provider.get(PortNames::flow_out)];
+
+    // Gravity head pressure: P = rho * g * h
+    // Approximate h from fuel level fraction * tank_height (assume 1m tank)
+    float level_frac = level * inv_capacity;
+    float gravity_pressure = density * 9.81f * level_frac; // Pa (simplified)
+
+    // Norton source on flow_out: drive toward gravity_pressure (self-correcting)
+    float g = 1.0f;
     st.conductance[provider.get(PortNames::flow_out)] += g;
+    st.through[provider.get(PortNames::flow_out)] += (gravity_pressure - flow_out_v) * g;
+
+    // Output fuel level as a logical signal (0..1 fraction)
+    st.across[provider.get(PortNames::level_out)] = level_frac;
+}
+
+template <typename Provider>
+void FuelTank<Provider>::post_step(SimulationState& st, float dt) {
+    // Consume fuel based on flow drawn from tank
+    // flow = through[flow_out] represents flow rate out of the tank
+    float flow = st.through[provider.get(PortNames::flow_out)];
+    float consumption = std::max(flow, 0.0f) * dt;
+    level = std::max(level - consumption, 0.0f);
+}
+
+template <typename Provider>
+void FuelTank<Provider>::pre_load() {
+    inv_capacity = 1.0f / std::max(capacity, 1e-6f);
+    level = std::clamp(level, 0.0f, capacity);
 }
 
 // =============================================================================
@@ -790,15 +916,22 @@ void ElectricHeater<Provider>::solve_thermal(SimulationState& st, float /*dt*/) 
 // =============================================================================
 
 template <typename Provider>
-void RUG82<Provider>::solve_electrical(SimulationState& st, float dt) {
-    float v_gen = st.across[provider.get(PortNames::v_gen)];
+void RUG82<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    // [BUG-RUG82] Fixed: moved integration to post_step.
+    // Previously, k_mod += kp * error * dt ran inside solve_electrical, which
+    // executes on every SOR iteration. This caused N-times-higher effective gain
+    // (where N = number of SOR iterations), making regulator behavior non-deterministic.
+    // Now solve_electrical only writes the current k_mod output.
+    st.across[provider.get(PortNames::k_mod)] = k_mod;
+}
 
+template <typename Provider>
+void RUG82<Provider>::post_step(SimulationState& st, float dt) {
+    // Integration runs once per frame (after solver converges)
+    float v_gen = st.across[provider.get(PortNames::v_gen)];
     float error = v_target - v_gen;
     k_mod += kp * error * dt;
-
-    // Branchless clamp
     k_mod = std::clamp(k_mod, 0.0f, 1.0f);
-
     st.across[provider.get(PortNames::k_mod)] = k_mod;
 }
 

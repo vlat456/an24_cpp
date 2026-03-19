@@ -1235,6 +1235,160 @@ apu_mechanical_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
 .PHONY : apu_mechanical_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/radiator_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/radiator_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/radiator_regression_tests.dir/rule
+
+# Convenience name for target.
+radiator_regression_tests: tests/CMakeFiles/radiator_regression_tests.dir/rule
+.PHONY : radiator_regression_tests
+
+# fast build rule for target.
+radiator_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/build
+.PHONY : radiator_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/inverter_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/inverter_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/inverter_regression_tests.dir/rule
+
+# Convenience name for target.
+inverter_regression_tests: tests/CMakeFiles/inverter_regression_tests.dir/rule
+.PHONY : inverter_regression_tests
+
+# fast build rule for target.
+inverter_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/build
+.PHONY : inverter_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/unmapped_port_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
+
+# Convenience name for target.
+unmapped_port_regression_tests: tests/CMakeFiles/unmapped_port_regression_tests.dir/rule
+.PHONY : unmapped_port_regression_tests
+
+# fast build rule for target.
+unmapped_port_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/build
+.PHONY : unmapped_port_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electric_pump_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electric_pump_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/electric_pump_regression_tests.dir/rule
+
+# Convenience name for target.
+electric_pump_regression_tests: tests/CMakeFiles/electric_pump_regression_tests.dir/rule
+.PHONY : electric_pump_regression_tests
+
+# fast build rule for target.
+electric_pump_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/build
+.PHONY : electric_pump_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electric_heater_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electric_heater_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/electric_heater_regression_tests.dir/rule
+
+# Convenience name for target.
+electric_heater_regression_tests: tests/CMakeFiles/electric_heater_regression_tests.dir/rule
+.PHONY : electric_heater_regression_tests
+
+# fast build rule for target.
+electric_heater_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_heater_regression_tests.dir/build.make tests/CMakeFiles/electric_heater_regression_tests.dir/build
+.PHONY : electric_heater_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/switch_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/switch_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/switch_regression_tests.dir/rule
+
+# Convenience name for target.
+switch_regression_tests: tests/CMakeFiles/switch_regression_tests.dir/rule
+.PHONY : switch_regression_tests
+
+# fast build rule for target.
+switch_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/switch_regression_tests.dir/build.make tests/CMakeFiles/switch_regression_tests.dir/build
+.PHONY : switch_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/gidro_accumulator_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/gidro_accumulator_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/gidro_accumulator_regression_tests.dir/rule
+
+# Convenience name for target.
+gidro_accumulator_regression_tests: tests/CMakeFiles/gidro_accumulator_regression_tests.dir/rule
+.PHONY : gidro_accumulator_regression_tests
+
+# fast build rule for target.
+gidro_accumulator_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build
+.PHONY : gidro_accumulator_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/fuel_tank_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/fuel_tank_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/fuel_tank_regression_tests.dir/rule
+
+# Convenience name for target.
+fuel_tank_regression_tests: tests/CMakeFiles/fuel_tank_regression_tests.dir/rule
+.PHONY : fuel_tank_regression_tests
+
+# fast build rule for target.
+fuel_tank_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/fuel_tank_regression_tests.dir/build.make tests/CMakeFiles/fuel_tank_regression_tests.dir/build
+.PHONY : fuel_tank_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/refnode_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/refnode_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/refnode_regression_tests.dir/rule
+
+# Convenience name for target.
+refnode_regression_tests: tests/CMakeFiles/refnode_regression_tests.dir/rule
+.PHONY : refnode_regression_tests
+
+# fast build rule for target.
+refnode_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refnode_regression_tests.dir/build.make tests/CMakeFiles/refnode_regression_tests.dir/build
+.PHONY : refnode_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/rug82_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/rug82_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/rug82_regression_tests.dir/rule
+
+# Convenience name for target.
+rug82_regression_tests: tests/CMakeFiles/rug82_regression_tests.dir/rule
+.PHONY : rug82_regression_tests
+
+# fast build rule for target.
+rug82_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/rug82_regression_tests.dir/build.make tests/CMakeFiles/rug82_regression_tests.dir/build
+.PHONY : rug82_regression_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/solenoid_valve_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/solenoid_valve_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/solenoid_valve_regression_tests.dir/rule
+
+# Convenience name for target.
+solenoid_valve_regression_tests: tests/CMakeFiles/solenoid_valve_regression_tests.dir/rule
+.PHONY : solenoid_valve_regression_tests
+
+# fast build rule for target.
+solenoid_valve_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/build
+.PHONY : solenoid_valve_regression_tests/fast
+
 __/_deps/imgui-src/imgui.o: __/_deps/imgui-src/imgui.cpp.o
 .PHONY : __/_deps/imgui-src/imgui.o
 
@@ -2906,6 +3060,54 @@ test_dt_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/test_dt_regression.cpp.s
 .PHONY : test_dt_regression.cpp.s
 
+test_electric_heater_regression.o: test_electric_heater_regression.cpp.o
+.PHONY : test_electric_heater_regression.o
+
+# target to build an object file
+test_electric_heater_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_heater_regression_tests.dir/build.make tests/CMakeFiles/electric_heater_regression_tests.dir/test_electric_heater_regression.cpp.o
+.PHONY : test_electric_heater_regression.cpp.o
+
+test_electric_heater_regression.i: test_electric_heater_regression.cpp.i
+.PHONY : test_electric_heater_regression.i
+
+# target to preprocess a source file
+test_electric_heater_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_heater_regression_tests.dir/build.make tests/CMakeFiles/electric_heater_regression_tests.dir/test_electric_heater_regression.cpp.i
+.PHONY : test_electric_heater_regression.cpp.i
+
+test_electric_heater_regression.s: test_electric_heater_regression.cpp.s
+.PHONY : test_electric_heater_regression.s
+
+# target to generate assembly for a file
+test_electric_heater_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_heater_regression_tests.dir/build.make tests/CMakeFiles/electric_heater_regression_tests.dir/test_electric_heater_regression.cpp.s
+.PHONY : test_electric_heater_regression.cpp.s
+
+test_electric_pump_regression.o: test_electric_pump_regression.cpp.o
+.PHONY : test_electric_pump_regression.o
+
+# target to build an object file
+test_electric_pump_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.o
+.PHONY : test_electric_pump_regression.cpp.o
+
+test_electric_pump_regression.i: test_electric_pump_regression.cpp.i
+.PHONY : test_electric_pump_regression.i
+
+# target to preprocess a source file
+test_electric_pump_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.i
+.PHONY : test_electric_pump_regression.cpp.i
+
+test_electric_pump_regression.s: test_electric_pump_regression.cpp.s
+.PHONY : test_electric_pump_regression.s
+
+# target to generate assembly for a file
+test_electric_pump_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.s
+.PHONY : test_electric_pump_regression.cpp.s
+
 test_expand_type_definition.o: test_expand_type_definition.cpp.o
 .PHONY : test_expand_type_definition.o
 
@@ -2930,6 +3132,30 @@ test_expand_type_definition.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/test_expand_type_definition.cpp.s
 .PHONY : test_expand_type_definition.cpp.s
 
+test_fuel_tank_regression.o: test_fuel_tank_regression.cpp.o
+.PHONY : test_fuel_tank_regression.o
+
+# target to build an object file
+test_fuel_tank_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/fuel_tank_regression_tests.dir/build.make tests/CMakeFiles/fuel_tank_regression_tests.dir/test_fuel_tank_regression.cpp.o
+.PHONY : test_fuel_tank_regression.cpp.o
+
+test_fuel_tank_regression.i: test_fuel_tank_regression.cpp.i
+.PHONY : test_fuel_tank_regression.i
+
+# target to preprocess a source file
+test_fuel_tank_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/fuel_tank_regression_tests.dir/build.make tests/CMakeFiles/fuel_tank_regression_tests.dir/test_fuel_tank_regression.cpp.i
+.PHONY : test_fuel_tank_regression.cpp.i
+
+test_fuel_tank_regression.s: test_fuel_tank_regression.cpp.s
+.PHONY : test_fuel_tank_regression.s
+
+# target to generate assembly for a file
+test_fuel_tank_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/fuel_tank_regression_tests.dir/build.make tests/CMakeFiles/fuel_tank_regression_tests.dir/test_fuel_tank_regression.cpp.s
+.PHONY : test_fuel_tank_regression.cpp.s
+
 test_generator.o: test_generator.cpp.o
 .PHONY : test_generator.o
 
@@ -2953,6 +3179,30 @@ test_generator.s: test_generator.cpp.s
 test_generator.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/generator_tests.dir/build.make tests/CMakeFiles/generator_tests.dir/test_generator.cpp.s
 .PHONY : test_generator.cpp.s
+
+test_gidro_accumulator_regression.o: test_gidro_accumulator_regression.cpp.o
+.PHONY : test_gidro_accumulator_regression.o
+
+# target to build an object file
+test_gidro_accumulator_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.o
+.PHONY : test_gidro_accumulator_regression.cpp.o
+
+test_gidro_accumulator_regression.i: test_gidro_accumulator_regression.cpp.i
+.PHONY : test_gidro_accumulator_regression.i
+
+# target to preprocess a source file
+test_gidro_accumulator_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.i
+.PHONY : test_gidro_accumulator_regression.cpp.i
+
+test_gidro_accumulator_regression.s: test_gidro_accumulator_regression.cpp.s
+.PHONY : test_gidro_accumulator_regression.s
+
+# target to generate assembly for a file
+test_gidro_accumulator_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.s
+.PHONY : test_gidro_accumulator_regression.cpp.s
 
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
@@ -3001,6 +3251,30 @@ test_integrator.s: test_integrator.cpp.s
 test_integrator.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/integrator_tests.dir/build.make tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.s
 .PHONY : test_integrator.cpp.s
+
+test_inverter_regression.o: test_inverter_regression.cpp.o
+.PHONY : test_inverter_regression.o
+
+# target to build an object file
+test_inverter_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.o
+.PHONY : test_inverter_regression.cpp.o
+
+test_inverter_regression.i: test_inverter_regression.cpp.i
+.PHONY : test_inverter_regression.i
+
+# target to preprocess a source file
+test_inverter_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.i
+.PHONY : test_inverter_regression.cpp.i
+
+test_inverter_regression.s: test_inverter_regression.cpp.s
+.PHONY : test_inverter_regression.s
+
+# target to generate assembly for a file
+test_inverter_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.s
+.PHONY : test_inverter_regression.cpp.s
 
 test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
 .PHONY : test_lamp_passthrough_jit.o
@@ -3410,6 +3684,78 @@ test_properties_window.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/test_properties_window.cpp.s
 .PHONY : test_properties_window.cpp.s
 
+test_radiator_regression.o: test_radiator_regression.cpp.o
+.PHONY : test_radiator_regression.o
+
+# target to build an object file
+test_radiator_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.o
+.PHONY : test_radiator_regression.cpp.o
+
+test_radiator_regression.i: test_radiator_regression.cpp.i
+.PHONY : test_radiator_regression.i
+
+# target to preprocess a source file
+test_radiator_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.i
+.PHONY : test_radiator_regression.cpp.i
+
+test_radiator_regression.s: test_radiator_regression.cpp.s
+.PHONY : test_radiator_regression.s
+
+# target to generate assembly for a file
+test_radiator_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/radiator_regression_tests.dir/build.make tests/CMakeFiles/radiator_regression_tests.dir/test_radiator_regression.cpp.s
+.PHONY : test_radiator_regression.cpp.s
+
+test_refnode_regression.o: test_refnode_regression.cpp.o
+.PHONY : test_refnode_regression.o
+
+# target to build an object file
+test_refnode_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refnode_regression_tests.dir/build.make tests/CMakeFiles/refnode_regression_tests.dir/test_refnode_regression.cpp.o
+.PHONY : test_refnode_regression.cpp.o
+
+test_refnode_regression.i: test_refnode_regression.cpp.i
+.PHONY : test_refnode_regression.i
+
+# target to preprocess a source file
+test_refnode_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refnode_regression_tests.dir/build.make tests/CMakeFiles/refnode_regression_tests.dir/test_refnode_regression.cpp.i
+.PHONY : test_refnode_regression.cpp.i
+
+test_refnode_regression.s: test_refnode_regression.cpp.s
+.PHONY : test_refnode_regression.s
+
+# target to generate assembly for a file
+test_refnode_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/refnode_regression_tests.dir/build.make tests/CMakeFiles/refnode_regression_tests.dir/test_refnode_regression.cpp.s
+.PHONY : test_refnode_regression.cpp.s
+
+test_rug82_regression.o: test_rug82_regression.cpp.o
+.PHONY : test_rug82_regression.o
+
+# target to build an object file
+test_rug82_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/rug82_regression_tests.dir/build.make tests/CMakeFiles/rug82_regression_tests.dir/test_rug82_regression.cpp.o
+.PHONY : test_rug82_regression.cpp.o
+
+test_rug82_regression.i: test_rug82_regression.cpp.i
+.PHONY : test_rug82_regression.i
+
+# target to preprocess a source file
+test_rug82_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/rug82_regression_tests.dir/build.make tests/CMakeFiles/rug82_regression_tests.dir/test_rug82_regression.cpp.i
+.PHONY : test_rug82_regression.cpp.i
+
+test_rug82_regression.s: test_rug82_regression.cpp.s
+.PHONY : test_rug82_regression.s
+
+# target to generate assembly for a file
+test_rug82_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/rug82_regression_tests.dir/build.make tests/CMakeFiles/rug82_regression_tests.dir/test_rug82_regression.cpp.s
+.PHONY : test_rug82_regression.cpp.s
+
 test_sample_hold.o: test_sample_hold.cpp.o
 .PHONY : test_sample_hold.o
 
@@ -3506,6 +3852,30 @@ test_slew_rate.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.s
 .PHONY : test_slew_rate.cpp.s
 
+test_solenoid_valve_regression.o: test_solenoid_valve_regression.cpp.o
+.PHONY : test_solenoid_valve_regression.o
+
+# target to build an object file
+test_solenoid_valve_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.o
+.PHONY : test_solenoid_valve_regression.cpp.o
+
+test_solenoid_valve_regression.i: test_solenoid_valve_regression.cpp.i
+.PHONY : test_solenoid_valve_regression.i
+
+# target to preprocess a source file
+test_solenoid_valve_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.i
+.PHONY : test_solenoid_valve_regression.cpp.i
+
+test_solenoid_valve_regression.s: test_solenoid_valve_regression.cpp.s
+.PHONY : test_solenoid_valve_regression.s
+
+# target to generate assembly for a file
+test_solenoid_valve_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.s
+.PHONY : test_solenoid_valve_regression.cpp.s
+
 test_specialized_node_widgets.o: test_specialized_node_widgets.cpp.o
 .PHONY : test_specialized_node_widgets.o
 
@@ -3601,6 +3971,30 @@ test_subtract.s: test_subtract.cpp.s
 test_subtract.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/subtract_tests.dir/build.make tests/CMakeFiles/subtract_tests.dir/test_subtract.cpp.s
 .PHONY : test_subtract.cpp.s
+
+test_switch_regression.o: test_switch_regression.cpp.o
+.PHONY : test_switch_regression.o
+
+# target to build an object file
+test_switch_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/switch_regression_tests.dir/build.make tests/CMakeFiles/switch_regression_tests.dir/test_switch_regression.cpp.o
+.PHONY : test_switch_regression.cpp.o
+
+test_switch_regression.i: test_switch_regression.cpp.i
+.PHONY : test_switch_regression.i
+
+# target to preprocess a source file
+test_switch_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/switch_regression_tests.dir/build.make tests/CMakeFiles/switch_regression_tests.dir/test_switch_regression.cpp.i
+.PHONY : test_switch_regression.cpp.i
+
+test_switch_regression.s: test_switch_regression.cpp.s
+.PHONY : test_switch_regression.s
+
+# target to generate assembly for a file
+test_switch_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/switch_regression_tests.dir/build.make tests/CMakeFiles/switch_regression_tests.dir/test_switch_regression.cpp.s
+.PHONY : test_switch_regression.cpp.s
 
 test_time_delay.o: test_time_delay.cpp.o
 .PHONY : test_time_delay.o
@@ -3865,6 +4259,30 @@ test_ui_widget_purity.s: test_ui_widget_purity.cpp.s
 test_ui_widget_purity.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_widget_purity_tests.dir/build.make tests/CMakeFiles/ui_widget_purity_tests.dir/test_ui_widget_purity.cpp.s
 .PHONY : test_ui_widget_purity.cpp.s
+
+test_unmapped_port_regression.o: test_unmapped_port_regression.cpp.o
+.PHONY : test_unmapped_port_regression.o
+
+# target to build an object file
+test_unmapped_port_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.o
+.PHONY : test_unmapped_port_regression.cpp.o
+
+test_unmapped_port_regression.i: test_unmapped_port_regression.cpp.i
+.PHONY : test_unmapped_port_regression.i
+
+# target to preprocess a source file
+test_unmapped_port_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.i
+.PHONY : test_unmapped_port_regression.cpp.i
+
+test_unmapped_port_regression.s: test_unmapped_port_regression.cpp.s
+.PHONY : test_unmapped_port_regression.s
+
+# target to generate assembly for a file
+test_unmapped_port_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.s
+.PHONY : test_unmapped_port_regression.cpp.s
 
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
@@ -4141,12 +4559,17 @@ help:
 	@echo "... editor_data_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
+	@echo "... electric_heater_regression_tests"
+	@echo "... electric_pump_regression_tests"
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
 	@echo "... flat_blueprint_tests"
+	@echo "... fuel_tank_regression_tests"
 	@echo "... generator_tests"
+	@echo "... gidro_accumulator_regression_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
+	@echo "... inverter_regression_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... library_v2_tests"
@@ -4168,13 +4591,18 @@ help:
 	@echo "... port_registry_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
+	@echo "... radiator_regression_tests"
+	@echo "... refnode_regression_tests"
+	@echo "... rug82_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
+	@echo "... solenoid_valve_regression_tests"
 	@echo "... specialized_node_widget_tests"
 	@echo "... spring_tests"
 	@echo "... sub_blueprint_ref_tests"
 	@echo "... subtract_tests"
+	@echo "... switch_regression_tests"
 	@echo "... time_delay_tests"
 	@echo "... transformer_tests"
 	@echo "... ui_grid_tests"
@@ -4186,6 +4614,7 @@ help:
 	@echo "... ui_renderer_tests"
 	@echo "... ui_scene_tests"
 	@echo "... ui_widget_purity_tests"
+	@echo "... unmapped_port_regression_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"
@@ -4357,18 +4786,33 @@ help:
 	@echo "... test_dt_regression.o"
 	@echo "... test_dt_regression.i"
 	@echo "... test_dt_regression.s"
+	@echo "... test_electric_heater_regression.o"
+	@echo "... test_electric_heater_regression.i"
+	@echo "... test_electric_heater_regression.s"
+	@echo "... test_electric_pump_regression.o"
+	@echo "... test_electric_pump_regression.i"
+	@echo "... test_electric_pump_regression.s"
 	@echo "... test_expand_type_definition.o"
 	@echo "... test_expand_type_definition.i"
 	@echo "... test_expand_type_definition.s"
+	@echo "... test_fuel_tank_regression.o"
+	@echo "... test_fuel_tank_regression.i"
+	@echo "... test_fuel_tank_regression.s"
 	@echo "... test_generator.o"
 	@echo "... test_generator.i"
 	@echo "... test_generator.s"
+	@echo "... test_gidro_accumulator_regression.o"
+	@echo "... test_gidro_accumulator_regression.i"
+	@echo "... test_gidro_accumulator_regression.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
 	@echo "... test_integrator.o"
 	@echo "... test_integrator.i"
 	@echo "... test_integrator.s"
+	@echo "... test_inverter_regression.o"
+	@echo "... test_inverter_regression.i"
+	@echo "... test_inverter_regression.s"
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
@@ -4420,6 +4864,15 @@ help:
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"
+	@echo "... test_radiator_regression.o"
+	@echo "... test_radiator_regression.i"
+	@echo "... test_radiator_regression.s"
+	@echo "... test_refnode_regression.o"
+	@echo "... test_refnode_regression.i"
+	@echo "... test_refnode_regression.s"
+	@echo "... test_rug82_regression.o"
+	@echo "... test_rug82_regression.i"
+	@echo "... test_rug82_regression.s"
 	@echo "... test_sample_hold.o"
 	@echo "... test_sample_hold.i"
 	@echo "... test_sample_hold.s"
@@ -4432,6 +4885,9 @@ help:
 	@echo "... test_slew_rate.o"
 	@echo "... test_slew_rate.i"
 	@echo "... test_slew_rate.s"
+	@echo "... test_solenoid_valve_regression.o"
+	@echo "... test_solenoid_valve_regression.i"
+	@echo "... test_solenoid_valve_regression.s"
 	@echo "... test_specialized_node_widgets.o"
 	@echo "... test_specialized_node_widgets.i"
 	@echo "... test_specialized_node_widgets.s"
@@ -4444,6 +4900,9 @@ help:
 	@echo "... test_subtract.o"
 	@echo "... test_subtract.i"
 	@echo "... test_subtract.s"
+	@echo "... test_switch_regression.o"
+	@echo "... test_switch_regression.i"
+	@echo "... test_switch_regression.s"
 	@echo "... test_time_delay.o"
 	@echo "... test_time_delay.i"
 	@echo "... test_time_delay.s"
@@ -4477,6 +4936,9 @@ help:
 	@echo "... test_ui_widget_purity.o"
 	@echo "... test_ui_widget_purity.i"
 	@echo "... test_ui_widget_purity.s"
+	@echo "... test_unmapped_port_regression.o"
+	@echo "... test_unmapped_port_regression.i"
+	@echo "... test_unmapped_port_regression.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"

@@ -1,0 +1,35 @@
+{
+  "exposes": {
+    "flow_out": {
+      "direction": "Out",
+      "type": "Pressure"
+    },
+    "level_out": {
+      "direction": "Out",
+      "type": "Fraction"
+    }
+  },
+  "meta": {
+    "cpp_class": true,
+    "description": "Aircraft fuel reservoir with gravity head pressure",
+    "domains": [
+      "Hydraulic"
+    ],
+    "name": "FuelTank"
+  },
+  "params": {
+    "capacity": {
+      "default": "1000.0",
+      "type": "float"
+    },
+    "density": {
+      "default": "0.78",
+      "type": "float"
+    },
+    "level": {
+      "default": "1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

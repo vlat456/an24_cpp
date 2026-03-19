@@ -6,7 +6,7 @@
     },
     "power": {
       "direction": "In",
-      "type": "Pressure"
+      "type": "V"
     }
   },
   "meta": {

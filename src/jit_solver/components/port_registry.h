@@ -43,11 +43,13 @@ enum class PortNames : uint32_t {
     input,
     k_mod,
     lamp,
+    level_out,
     o,
     o1,
     o2,
     out,
     output,
+    p_in,
     p_out,
     port,
     pos_a,
@@ -94,8 +96,10 @@ enum class ComponentType {
     ElectricHeater,
     ElectricPump,
     FastTMO,
+    FuelTank,
     GS24,
     Generator,
+    GidroAccumulator,
     Greater,
     GreaterEq,
     Gyroscope,
@@ -162,10 +166,12 @@ constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
-constexpr size_t ElectricPump_PORT_COUNT = 2;
+constexpr size_t ElectricPump_PORT_COUNT = 3;
 constexpr size_t FastTMO_PORT_COUNT = 2;
+constexpr size_t FuelTank_PORT_COUNT = 2;
 constexpr size_t GS24_PORT_COUNT = 3;
 constexpr size_t Generator_PORT_COUNT = 2;
+constexpr size_t GidroAccumulator_PORT_COUNT = 2;
 constexpr size_t Greater_PORT_COUNT = 3;
 constexpr size_t GreaterEq_PORT_COUNT = 3;
 constexpr size_t Gyroscope_PORT_COUNT = 1;
@@ -287,12 +293,17 @@ constexpr const char* ElectricHeater_PORTS[] = {
     "power"
 };
 constexpr const char* ElectricPump_PORTS[] = {
+    "p_in",
     "p_out",
     "v_in"
 };
 constexpr const char* FastTMO_PORTS[] = {
     "in",
     "out"
+};
+constexpr const char* FuelTank_PORTS[] = {
+    "flow_out",
+    "level_out"
 };
 constexpr const char* GS24_PORTS[] = {
     "k_mod",
@@ -302,6 +313,10 @@ constexpr const char* GS24_PORTS[] = {
 constexpr const char* Generator_PORTS[] = {
     "v_in",
     "v_out"
+};
+constexpr const char* GidroAccumulator_PORTS[] = {
+    "p_in",
+    "p_out"
 };
 constexpr const char* Greater_PORTS[] = {
     "A",
@@ -543,11 +558,13 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"input", PortNames::input},
         {"k_mod", PortNames::k_mod},
         {"lamp", PortNames::lamp},
+        {"level_out", PortNames::level_out},
         {"o", PortNames::o},
         {"o1", PortNames::o1},
         {"o2", PortNames::o2},
         {"out", PortNames::out},
         {"output", PortNames::output},
+        {"p_in", PortNames::p_in},
         {"p_out", PortNames::p_out},
         {"port", PortNames::port},
         {"pos_a", PortNames::pos_a},
@@ -597,10 +614,12 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
-        {"ElectricPump", {"p_out", "v_in"}},
+        {"ElectricPump", {"p_in", "p_out", "v_in"}},
         {"FastTMO", {"in", "out"}},
+        {"FuelTank", {"flow_out", "level_out"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},
         {"Generator", {"v_in", "v_out"}},
+        {"GidroAccumulator", {"p_in", "p_out"}},
         {"Greater", {"A", "B", "o"}},
         {"GreaterEq", {"A", "B", "o"}},
         {"Gyroscope", {"input"}},
@@ -677,8 +696,10 @@ using ComponentVariant = std::variant<
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
     FastTMO<JitProvider>,
+    FuelTank<JitProvider>,
     GS24<JitProvider>,
     Generator<JitProvider>,
+    GidroAccumulator<JitProvider>,
     Greater<JitProvider>,
     GreaterEq<JitProvider>,
     Gyroscope<JitProvider>,

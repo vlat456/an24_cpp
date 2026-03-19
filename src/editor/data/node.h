@@ -197,8 +197,10 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
         content.type = NodeContentType::Gauge;
         content.label = "V";
         content.value = 0.0f;
-        content.min = 0.0f;
-        content.max = 30.0f;
+        auto min_it = def->params.find("min");
+        content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        auto max_it = def->params.find("max");
+        content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 28.0f;
         content.unit = "V";
     } else if (ct == "Switch") {
         content.type = NodeContentType::Switch;

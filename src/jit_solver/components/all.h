@@ -463,6 +463,8 @@ public:
     static constexpr Domain domain = Domain::Electrical;
 
     Provider provider;
+    float min = 0.0f;    // Gauge minimum display value
+    float max = 28.0f;   // Gauge maximum display value
 
     Voltmeter() = default;
 
@@ -505,6 +507,9 @@ public:
 // =============================================================================
 
 /// ElectricPump - electric motor driving hydraulic pump
+/// Now a two-port hydraulic component (p_in → p_out) that can form closed loops.
+/// Pressure boost is proportional to electrical supply voltage.
+/// Electrical draw is load-dependent (proportional to hydraulic flow × pressure).
 template <typename Provider = JitProvider>
 class ElectricPump {
 public:
@@ -534,6 +539,48 @@ public:
 
     void solve_hydraulic(SimulationState& st, float dt);
     void pre_load() {}
+};
+
+/// GidroAccumulator - gas-charged hydraulic accumulator (Boyle's law)
+/// Stores hydraulic energy via compressed gas. When system pressure exceeds
+/// precharge, fluid enters and gas compresses. When pressure drops, stored
+/// fluid is released back into the circuit.
+template <typename Provider = JitProvider>
+class GidroAccumulator {
+public:
+    static constexpr Domain domain = Domain::Hydraulic;
+
+    Provider provider;
+    float precharge_pressure = 50.0f;  // Gas precharge pressure (psi)
+    float volume = 10.0f;              // Total accumulator volume (liters)
+    float gas_volume = 10.0f;          // Current gas volume (liters, state)
+
+    GidroAccumulator() = default;
+
+    void solve_hydraulic(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
+    void pre_load();
+};
+
+/// FuelTank - aircraft fuel reservoir with gravity head pressure
+/// Provides fuel flow proportional to fuel level. Level decreases
+/// as flow is consumed by downstream components.
+template <typename Provider = JitProvider>
+class FuelTank {
+public:
+    static constexpr Domain domain = Domain::Hydraulic;
+
+    Provider provider;
+    float capacity = 1000.0f;   // Tank capacity (liters)
+    float level = 1000.0f;      // Current fuel amount (liters, state)
+    float density = 0.78f;      // Fuel density (kg/L, kerosene TS-1)
+    float inv_capacity = 0.001f; // Precomputed 1/capacity
+
+    FuelTank() = default;
+
+    void solve_hydraulic(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
+    void pre_load();
 };
 
 // =============================================================================
@@ -630,6 +677,7 @@ public:
     RUG82() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 

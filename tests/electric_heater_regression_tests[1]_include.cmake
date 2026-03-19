@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/electric_heater_regression_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/electric_heater_regression_tests[1]_tests.cmake")
+else()
+  add_test(electric_heater_regression_tests_NOT_BUILT electric_heater_regression_tests_NOT_BUILT)
+endif()

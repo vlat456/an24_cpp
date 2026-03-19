@@ -31,6 +31,8 @@ template class Voltmeter<JitProvider>;
 template class HighPowerLoad<JitProvider>;
 template class ElectricPump<JitProvider>;
 template class SolenoidValve<JitProvider>;
+template class GidroAccumulator<JitProvider>;
+template class FuelTank<JitProvider>;
 template class InertiaNode<JitProvider>;
 template class Spring<JitProvider>;
 template class TempSensor<JitProvider>;

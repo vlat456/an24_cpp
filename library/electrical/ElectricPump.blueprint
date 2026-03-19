@@ -1,8 +1,12 @@
 {
   "exposes": {
+    "p_in": {
+      "direction": "In",
+      "type": "Pressure"
+    },
     "p_out": {
       "direction": "Out",
-      "type": "Temperature"
+      "type": "Pressure"
     },
     "v_in": {
       "direction": "In",

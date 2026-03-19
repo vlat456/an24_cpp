@@ -137,6 +137,48 @@
       ],
       "type": "FastTMO"
     },
+    "fasttmo_2": {
+      "layout_overrides": [
+        {
+          "port": "in",
+          "side": "bottom"
+        },
+        {
+          "port": "out",
+          "side": "top"
+        }
+      ],
+      "params": {
+        "deadzone": "0.001",
+        "tau": "0.5"
+      },
+      "pos": [
+        832.0,
+        16.0
+      ],
+      "type": "FastTMO"
+    },
+    "fasttmo_3": {
+      "layout_overrides": [
+        {
+          "port": "in",
+          "side": "bottom"
+        },
+        {
+          "port": "out",
+          "side": "top"
+        }
+      ],
+      "params": {
+        "deadzone": "0.001",
+        "tau": "0.1"
+      },
+      "pos": [
+        944.0,
+        16.0
+      ],
+      "type": "FastTMO"
+    },
     "group_1": {
       "color": {
         "a": 0.24215245246887207,
@@ -197,27 +239,6 @@
       ],
       "type": "HoldButton"
     },
-    "lerpnode_1": {
-      "layout_overrides": [
-        {
-          "port": "output",
-          "side": "top"
-        },
-        {
-          "port": "input",
-          "side": "left"
-        }
-      ],
-      "params": {
-        "deadzone": "0.001",
-        "factor": "0.05"
-      },
-      "pos": [
-        944.0,
-        16.0
-      ],
-      "type": "LerpNode"
-    },
     "light_1": {
       "color": {
         "a": 1.0,
@@ -262,7 +283,7 @@
       },
       "pos": [
         272.0,
-        -48.0
+        -64.0
       ],
       "render_hint": "bus",
       "size": [
@@ -318,7 +339,7 @@
       "content": {
         "kind": "gauge",
         "label": "V",
-        "max": 30.0,
+        "max": 28.0,
         "min": 0.0,
         "unit": "V",
         "value": 0.0
@@ -329,6 +350,10 @@
           "side": "bottom"
         }
       ],
+      "params": {
+        "max": "28",
+        "min": "0.0"
+      },
       "pos": [
         944.0,
         -192.0
@@ -343,10 +368,10 @@
       "content": {
         "kind": "gauge",
         "label": "V",
-        "max": 30.0,
+        "max": 400.0,
         "min": 0.0,
         "unit": "V",
-        "value": 394.52996826171875
+        "value": 20.0
       },
       "layout_overrides": [
         {
@@ -354,6 +379,10 @@
           "side": "bottom"
         }
       ],
+      "params": {
+        "max": "400",
+        "min": "0.0"
+      },
       "pos": [
         720.0,
         -192.0
@@ -368,10 +397,10 @@
       "content": {
         "kind": "gauge",
         "label": "V",
-        "max": 30.0,
+        "max": 28.0,
         "min": 0.0,
         "unit": "V",
-        "value": 59.99995040893555
+        "value": 0.0
       },
       "layout_overrides": [
         {
@@ -379,6 +408,10 @@
           "side": "bottom"
         }
       ],
+      "params": {
+        "max": "100",
+        "min": "0.0"
+      },
       "pos": [
         832.0,
         -192.0
@@ -420,23 +453,12 @@
   "viewport": {
     "grid": 16.0,
     "pan": [
-      32.97408676147461,
-      -266.3663635253906
+      249.421875,
+      -211.4850311279297
     ],
-    "zoom": 0.8974876403808594
+    "zoom": 1.2791826725006104
   },
   "wires": [
-    {
-      "from": [
-        "lerpnode_1",
-        "output"
-      ],
-      "id": "w_0",
-      "to": [
-        "voltmeter_1",
-        "v_in"
-      ]
-    },
     {
       "from": [
         "vsu_1",
@@ -450,8 +472,8 @@
         ]
       ],
       "to": [
-        "voltmeter_3",
-        "v_in"
+        "fasttmo_2",
+        "in"
       ]
     },
     {
@@ -701,27 +723,6 @@
     },
     {
       "from": [
-        "dmr_vsu",
-        "v_out"
-      ],
-      "id": "wire_35",
-      "routing": [
-        [
-          912.0,
-          288.0
-        ],
-        [
-          912.0,
-          64.0
-        ]
-      ],
-      "to": [
-        "lerpnode_1",
-        "input"
-      ]
-    },
-    {
-      "from": [
         "bat_main_1",
         "v_out"
       ],
@@ -757,6 +758,57 @@
       "to": [
         "rug82_1",
         "v_gen"
+      ]
+    },
+    {
+      "from": [
+        "fasttmo_2",
+        "out"
+      ],
+      "id": "wire_40",
+      "to": [
+        "voltmeter_3",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "fasttmo_3",
+        "out"
+      ],
+      "id": "wire_41",
+      "to": [
+        "voltmeter_1",
+        "v_in"
+      ]
+    },
+    {
+      "from": [
+        "fasttmo_3",
+        "in"
+      ],
+      "id": "wire_42",
+      "routing": [
+        [
+          992.0,
+          384.0
+        ],
+        [
+          432.0,
+          384.0
+        ],
+        [
+          432.0,
+          304.0
+        ],
+        [
+          368.0,
+          304.0
+        ]
+      ],
+      "to": [
+        "main_bus",
+        "v"
       ]
     }
   ]
