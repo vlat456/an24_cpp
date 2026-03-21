@@ -102,6 +102,38 @@ private:
     static constexpr float ROUNDING = 2.0f;
 };
 
+class SliderWidget : public Widget {
+public:
+    SliderWidget(float value = 0.0f, float min_val = 0.0f, float max_val = 1.0f);
+
+    void setValue(float v) { value_ = v; }
+    float getValue() const { return value_; }
+    float minVal() const { return min_val_; }
+    float maxVal() const { return max_val_; }
+
+    /// Compute normalized value [0,1] from a local X coordinate within the widget.
+    float normalizedFromLocalX(float local_x) const;
+
+    Pt preferredSize(IDrawList* dl) const override;
+    void layout(float w, float h) override;
+    void render(IDrawList* dl, const RenderContext& ctx) const override;
+    void updateFromContent(const NodeContent& content) override;
+
+    static constexpr float HEIGHT = 16.0f;
+    static constexpr float MIN_WIDTH = 60.0f;
+    static constexpr float TRACK_HEIGHT = 4.0f;
+    static constexpr float HANDLE_RADIUS = 6.0f;
+
+private:
+    float value_;
+    float min_val_;
+    float max_val_;
+
+    static constexpr float ROUNDING = 2.0f;
+    static constexpr float FONT_SIZE = 9.0f;
+    static constexpr float PADDING = 2.0f;
+};
+
 class VoltmeterWidget : public Widget {
 public:
     VoltmeterWidget(float value = 0.0f, float min_val = 0.0f, float max_val = 30.0f,

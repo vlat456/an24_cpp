@@ -152,6 +152,7 @@ struct DeviceInstance {
     std::string name;
     std::string template_name;  // template used to instantiate this device
     std::string classname;      // component class name (e.g., "Battery")
+    std::string display_name;   // user-visible name (from FlatNode::display_name, empty = same as name)
     std::string priority = "med";  // high, med, low
     std::optional<size_t> bucket;  // computation bucket
     bool critical = false;

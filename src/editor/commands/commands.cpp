@@ -109,7 +109,15 @@ static void execute(Blueprint& bp, const CmdSetParam& cmd) {
         spdlog::warn("[cmd] CmdSetParam: node {} not found", cmd.node_id.raw());
         return;
     }
-    bp.nodes[it->second].params[cmd.key] = cmd.new_value;
+    Node& node = bp.nodes[it->second];
+    node.params[cmd.key] = cmd.new_value;
+
+    // Sync min/max params to node_content for content types that use them
+    if ((node.node_content.type == NodeContentType::Slider ||
+         node.node_content.type == NodeContentType::Gauge) && !cmd.new_value.empty()) {
+        if (cmd.key == "min") node.node_content.min = std::stof(cmd.new_value);
+        if (cmd.key == "max") node.node_content.max = std::stof(cmd.new_value);
+    }
 }
 
 static void execute(Blueprint& bp, const CmdResizeNode& cmd) {

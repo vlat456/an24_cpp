@@ -1256,3 +1256,19 @@ public:
     void solve_logical(SimulationState& st, float dt);
     void pre_load() {}
 };
+
+/// Slider - interactive value source (control -> out passthrough)
+template <typename Provider = JitProvider>
+class Slider {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+    float min = 0.0f;
+    float max = 1.0f;
+
+    Slider() = default;
+
+    void solve_logical(SimulationState& st, float dt);
+    void pre_load() {}
+};

@@ -8,6 +8,7 @@
 #include "visual/port/visual_port.h"
 #include "visual/node/group_node_widget.h"
 #include "visual/node/visual_node.h"
+#include "visual/widgets/content_widgets.h"
 #include "visual/snap.h"
 #include "viewport/viewport.h"
 #include "data/blueprint.h"
@@ -127,7 +128,8 @@ void CanvasInput::update_hover(Pt world_pos) {
         state_ == InputState::DraggingRoutingPoint ||
         state_ == InputState::CreatingWire ||
         state_ == InputState::ReconnectingWire ||
-        state_ == InputState::ResizingNode) {
+        state_ == InputState::ResizingNode ||
+        state_ == InputState::DraggingSlider) {
         hovered_wire_id_ = {};
         hovered_routing_point_ = nullptr;
         return;
@@ -249,6 +251,13 @@ void CanvasInput::enter_marquee(Pt world_pos) {
     marquee_end_ = world_pos;
 }
 
+void CanvasInput::enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width) {
+    state_ = InputState::DraggingSlider;
+    slider_node_id_ = bp_.interner().intern(node_widget->id());
+    slider_widget_world_pos_ = slider_world_pos;
+    slider_widget_width_ = slider_width;
+}
+
 void CanvasInput::leave_state() {
     state_ = InputState::Idle;
     drag_offsets_.clear();
@@ -290,6 +299,30 @@ std::string CanvasInput::check_content_toggle(visual::Widget& widget, Pt world_p
         float lx = world_pos.x - wpos.x;
         float ly = world_pos.y - wpos.y;
         if (cb.contains(lx, ly)) return node_id;
+    }
+    return {};
+}
+
+// ============================================================================
+// Slider content hit check
+// ============================================================================
+
+std::string CanvasInput::check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x) {
+    std::string node_id(widget.id());
+    const Node* node = bp_.find_node(node_id);
+    if (!node) return {};
+    if (node->node_content.type != NodeContentType::Slider) return {};
+
+    if (auto* nw = dynamic_cast<visual::NodeWidget*>(&widget)) {
+        Bounds cb = nw->contentBounds();
+        Pt wpos = nw->worldPos();
+        float lx = world_pos.x - wpos.x;
+        float ly = world_pos.y - wpos.y;
+        if (cb.contains(lx, ly)) {
+            // local X within the slider widget itself
+            out_local_x = lx - cb.x;
+            return node_id;
+        }
     }
     return {};
 }
@@ -341,6 +374,32 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             // Resize handle on a resizable widget (group, text annotation)
             enter_resize_node(hrh->widget, hrh->corner);
         } else if (auto* hn = std::get_if<visual::HitNode>(&hit)) {
+            // Check if click landed on Slider content area → enter drag
+            float slider_local_x = 0.0f;
+            auto slider_id = check_slider_hit(*hn->widget, world, slider_local_x);
+            if (!slider_id.empty()) {
+                auto* nw = dynamic_cast<visual::NodeWidget*>(hn->widget);
+                if (nw) {
+                    Bounds cb = nw->contentBounds();
+                    Pt nw_pos = nw->worldPos();
+                    Pt slider_wpos(nw_pos.x + cb.x, nw_pos.y + cb.y);
+                    enter_drag_slider(hn->widget, slider_wpos, cb.w);
+
+                    // Compute initial value from click position
+                    const Node* node = bp_.find_node(slider_id);
+                    if (node) {
+                        // Inline SliderWidget::normalizedFromLocalX logic
+                        float pad = visual::SliderWidget::HANDLE_RADIUS;
+                        float track_w = cb.w - 2.0f * pad;
+                        float t = (track_w > 0.0f) ? std::clamp((slider_local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
+                        float val = node->node_content.min + t * (node->node_content.max - node->node_content.min);
+                        result.slider_node_id = std::move(slider_id);
+                        result.slider_value = val;
+                    }
+                }
+                return result;
+            }
+
             // Check if click landed on Switch/VerticalToggle content area
             auto toggle_id = check_content_toggle(*hn->widget, world);
             if (!toggle_id.empty()) {
@@ -537,6 +596,24 @@ InputResult CanvasInput::on_mouse_drag(MouseButton btn, Pt screen_delta, Pt canv
             case InputState::ResizingNode:
                 handle_resize_node(world_delta);
                 break;
+
+            case InputState::DraggingSlider: {
+                last_world_pos_ = last_world_pos_ + world_delta;
+                // Recompute slider value from current world cursor position
+                float local_x = last_world_pos_.x - slider_widget_world_pos_.x;
+                float pad = visual::SliderWidget::HANDLE_RADIUS;
+                float track_w = slider_widget_width_ - 2.0f * pad;
+                float t = (track_w > 0.0f) ? std::clamp((local_x - pad) / track_w, 0.0f, 1.0f) : 0.0f;
+
+                std::string_view nid_sv = bp_.interner().resolve(slider_node_id_);
+                const Node* node = bp_.find_node(nid_sv);
+                if (node) {
+                    float val = node->node_content.min + t * (node->node_content.max - node->node_content.min);
+                    result.slider_node_id = std::string(nid_sv);
+                    result.slider_value = val;
+                }
+                break;
+            }
 
             case InputState::Idle:
                 break;

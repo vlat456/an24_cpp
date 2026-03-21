@@ -82,6 +82,13 @@ public:
         std::string sub_blueprint_id;
     } pendingBakeIn;
 
+    struct SetNameState {
+        bool show = false;
+        std::string doc_id;            ///< Document whose blueprint name to set
+        bool save_after = false;       ///< If true, trigger save after name is confirmed
+        char buf[128] = {};            ///< ImGui input buffer
+    } setName;
+
     bool showInspector = true;
     EditorSettings settings;
 

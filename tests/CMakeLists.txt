@@ -1389,14 +1389,17 @@ gtest_discover_tests(flat_blueprint_tests)
 # Library conversion tests
 add_executable(library_v2_tests
     test_library_v2.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(library_v2_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(library_v2_tests PRIVATE
     json_parser
+    spdlog::spdlog
     GTest::gtest_main
 )
 gtest_discover_tests(library_v2_tests)

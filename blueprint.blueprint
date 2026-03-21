@@ -1,6 +1,6 @@
 {
   "meta": {
-    "name": ""
+    "name": "MainBlueprint"
   },
   "nodes": {
     "azs_1": {
@@ -335,6 +335,38 @@
       ],
       "type": "RUG82"
     },
+    "rug_82_1_1": {
+      "blueprint_path": "systems/RUG_82_1",
+      "expandable": true,
+      "pos": [
+        400.0,
+        -192.0
+      ],
+      "size": [
+        128.0,
+        80.0
+      ],
+      "type": "RUG_82_1"
+    },
+    "slider_1": {
+      "content": {
+        "kind": "slider",
+        "label": "",
+        "max": 1.0,
+        "min": 0.0,
+        "unit": "",
+        "value": 1.0
+      },
+      "params": {
+        "max": "100",
+        "min": "0.0"
+      },
+      "pos": [
+        272.0,
+        -176.0
+      ],
+      "type": "Slider"
+    },
     "voltmeter_1": {
       "content": {
         "kind": "gauge",
@@ -371,7 +403,7 @@
         "max": 400.0,
         "min": 0.0,
         "unit": "V",
-        "value": 20.0
+        "value": 1.0
       },
       "layout_overrides": [
         {
@@ -397,7 +429,7 @@
       "content": {
         "kind": "gauge",
         "label": "V",
-        "max": 28.0,
+        "max": 100.0,
         "min": 0.0,
         "unit": "V",
         "value": 0.0
@@ -449,14 +481,53 @@
       "type": "RU19A"
     }
   },
+  "sub_blueprints": {
+    "rug_82_1_1": {
+      "collapsed": true,
+      "overrides": {
+        "layout": {
+          "blueprintinput_1": [
+            96.0,
+            160.0
+          ],
+          "blueprintoutput_1": [
+            816.0,
+            160.0
+          ],
+          "fasttmo_1": [
+            496.0,
+            160.0
+          ],
+          "lut_1": [
+            304.0,
+            160.0
+          ],
+          "lut_2": [
+            640.0,
+            160.0
+          ]
+        }
+      },
+      "pos": [
+        352.0,
+        -176.0
+      ],
+      "size": [
+        120.0,
+        96.0
+      ],
+      "template": "systems/RUG_82_1",
+      "type_name": "RUG_82_1"
+    }
+  },
   "version": 2,
   "viewport": {
     "grid": 16.0,
     "pan": [
-      249.421875,
-      -211.4850311279297
+      186.71949768066406,
+      -240.3280487060547
     ],
-    "zoom": 1.2791826725006104
+    "zoom": 1.1845356225967407
   },
   "wires": [
     {
@@ -734,17 +805,6 @@
     },
     {
       "from": [
-        "fasttmo_1",
-        "out"
-      ],
-      "id": "wire_37",
-      "to": [
-        "voltmeter_2",
-        "v_in"
-      ]
-    },
-    {
-      "from": [
         "main_bus",
         "v"
       ],
@@ -808,6 +868,17 @@
       ],
       "to": [
         "main_bus",
+        "v"
+      ]
+    },
+    {
+      "from": [
+        "slider_1",
+        "out"
+      ],
+      "id": "wire_44",
+      "to": [
+        "rug_82_1_1",
         "v"
       ]
     }

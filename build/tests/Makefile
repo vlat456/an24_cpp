@@ -1597,6 +1597,7 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
@@ -1620,6 +1621,7 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
@@ -1643,6 +1645,7 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s

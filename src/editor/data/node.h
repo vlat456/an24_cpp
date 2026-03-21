@@ -15,7 +15,8 @@ enum class NodeContentType {
     Switch,          ///< Кнопка-переключатель
     VerticalToggle,  ///< Вертикальный тумблер (слайдер)
     Value,           ///< Отображаемое значение
-    Text             ///< Текст
+    Text,            ///< Текст
+    Slider           ///< Интерактивный слайдер с min/max
 };
 
 /// Содержимое узла (пока placeholder)
@@ -219,6 +220,13 @@ inline NodeContent create_node_content_from_def(const TypeDefinition* def) {
     } else if (ct == "Text") {
         content.type = NodeContentType::Text;
         content.label = "OFF";
+    } else if (ct == "Slider") {
+        content.type = NodeContentType::Slider;
+        content.value = 0.0f;
+        auto min_it = def->params.find("min");
+        content.min = (min_it != def->params.end()) ? std::stof(min_it->second) : 0.0f;
+        auto max_it = def->params.find("max");
+        content.max = (max_it != def->params.end()) ? std::stof(max_it->second) : 1.0f;
     }
     return content;
 }

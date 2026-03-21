@@ -386,7 +386,7 @@ Blueprint expand_type_definition(const TypeDefinition& def, const TypeRegistry& 
     for (const auto& dev : def.devices) {
         Node node;
         node.id = I.intern(dev.name);
-        node.name = dev.name;
+        node.name = dev.display_name.empty() ? dev.name : dev.display_name;
         node.type_name = dev.classname;
 
         // Position and size from stored layout (editor-saved blueprints)
@@ -548,9 +548,18 @@ static json build_devices_json(const std::vector<Node>& nodes,
 }
 
 /// Build the "connections" JSON array, rewriting blueprint-node endpoints.
+/// For collapsed sub-blueprints, uses port_to_node_key to map exposed port
+/// names (e.g. "v") to internal node keys (e.g. "blueprintinput_1").
 static json build_connections_json(const std::vector<Wire>& wires,
                                    const std::set<std::string>& blueprint_node_ids,
+                                   const std::vector<SubBlueprintInstance>& sub_blueprints,
                                    const ui::StringInterner& I) {
+    // Build a lookup: sbi.id → pointer to SubBlueprintInstance
+    std::map<std::string, const SubBlueprintInstance*> sbi_by_id;
+    for (const auto& sbi : sub_blueprints) {
+        sbi_by_id[sbi.id] = &sbi;
+    }
+
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
 
@@ -560,12 +569,31 @@ static json build_connections_json(const std::vector<Wire>& wires,
         std::string to_node(I.resolve(w.end.node_id));
         std::string to_port(I.resolve(w.end.port_name));
 
+        // Rewrite endpoints that target collapsed sub-blueprint nodes.
+        // The port name on the wire is the exposed name (e.g. "v"),
+        // but the simulator needs the prefixed internal node + "ext" port.
         if (blueprint_node_ids.count(from_node) > 0) {
-            from_node = from_node + ":" + from_port;
+            std::string internal_key = from_port;  // fallback: expose name == node key
+            auto sbi_it = sbi_by_id.find(from_node);
+            if (sbi_it != sbi_by_id.end()) {
+                auto key_it = sbi_it->second->port_to_node_key.find(from_port);
+                if (key_it != sbi_it->second->port_to_node_key.end()) {
+                    internal_key = key_it->second;
+                }
+            }
+            from_node = from_node + ":" + internal_key;
             from_port = "ext";
         }
         if (blueprint_node_ids.count(to_node) > 0) {
-            to_node = to_node + ":" + to_port;
+            std::string internal_key = to_port;  // fallback: expose name == node key
+            auto sbi_it = sbi_by_id.find(to_node);
+            if (sbi_it != sbi_by_id.end()) {
+                auto key_it = sbi_it->second->port_to_node_key.find(to_port);
+                if (key_it != sbi_it->second->port_to_node_key.end()) {
+                    internal_key = key_it->second;
+                }
+            }
+            to_node = to_node + ":" + internal_key;
             to_port = "ext";
         }
 
@@ -681,7 +709,7 @@ std::string Blueprint::to_simulator_json() const {
         if (n.expandable)
             blueprint_node_ids.emplace(I.resolve(n.id));
     }
-    j["connections"] = build_connections_json(wires, blueprint_node_ids, I);
+    j["connections"] = build_connections_json(wires, blueprint_node_ids, sub_blueprint_instances, I);
     j["editor"] = build_editor_json(*this);
 
     return j.dump(2);
@@ -699,6 +727,7 @@ static std::string content_type_to_string(NodeContentType t) {
         case NodeContentType::VerticalToggle: return "vertical_toggle";
         case NodeContentType::Value:          return "value";
         case NodeContentType::Text:           return "text";
+        case NodeContentType::Slider:         return "slider";
     }
     spdlog::error("Unknown NodeContentType enum value: {}", static_cast<int>(t));
     return "none";
@@ -710,6 +739,7 @@ static NodeContentType string_to_content_type(const std::string& s) {
     if (s == "vertical_toggle" || s == "VerticalToggle") return NodeContentType::VerticalToggle;
     if (s == "value"   || s == "Value")          return NodeContentType::Value;
     if (s == "text"    || s == "Text")           return NodeContentType::Text;
+    if (s == "slider"  || s == "Slider")         return NodeContentType::Slider;
     if (s == "HoldButton")     return NodeContentType::Switch;
     return NodeContentType::None;
 }
@@ -867,7 +897,7 @@ FlatBlueprint Blueprint::to_flat() const {
     const auto& I = *interner_;
     FlatBlueprint bpv2;
     bpv2.version = 2;
-    bpv2.meta.name = "";
+    bpv2.meta.name = name;
 
     FlatViewport vp;
     vp.pan = {pan.x, pan.y};
@@ -895,6 +925,33 @@ FlatBlueprint Blueprint::to_flat() const {
         }
 
         bpv2.nodes[nid] = node_to_flat(n, I);
+    }
+
+    // Auto-generate exposes from BlueprintInput/BlueprintOutput nodes
+    for (const auto& n : nodes) {
+        if (n.group_id.empty() &&
+            (n.type_name == "BlueprintInput" || n.type_name == "BlueprintOutput")) {
+            std::string nid(I.resolve(n.id));
+            // Use display_name if set, otherwise the node key
+            std::string port_name = (n.name.empty() || n.name == nid) ? nid : n.name;
+
+            FlatPort fp;
+            auto dir_it = n.params.find("exposed_direction");
+            if (dir_it != n.params.end()) {
+                fp.direction = dir_it->second;
+            } else {
+                fp.direction = (n.type_name == "BlueprintInput") ? "In" : "Out";
+            }
+
+            auto type_it = n.params.find("exposed_type");
+            if (type_it != n.params.end()) {
+                fp.type = type_it->second;
+            } else {
+                fp.type = "Any";
+            }
+
+            bpv2.exposes[port_name] = fp;
+        }
     }
 
     std::set<std::string> emitted_wire_keys;
@@ -1136,6 +1193,16 @@ void Blueprint::expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistr
         for (auto& node : sub_bp.nodes) {
             std::string old_id(sub_bp.interner().resolve(node.id));
             std::string new_id = sbi.id + ":" + old_id;
+
+            // Build port_to_node_key: map expose name → unprefixed node key
+            // for BlueprintInput/BlueprintOutput nodes.
+            // node.name carries the display_name (e.g. "v") set by expand_type_definition;
+            // old_id is the internal key (e.g. "blueprintinput_1").
+            if (node.type_name == "BlueprintInput" || node.type_name == "BlueprintOutput") {
+                std::string expose_name = node.name;
+                sbi.port_to_node_key[expose_name] = old_id;
+            }
+
             node.id = I.intern(new_id);
             node.name = new_id;
             node.group_id = sbi.id;
@@ -1221,6 +1288,7 @@ void Blueprint::finalize_after_load(Blueprint& bp) {
 
 std::optional<Blueprint> Blueprint::from_flat(const FlatBlueprint& bpv2) {
     Blueprint bp;
+    bp.name = bpv2.meta.name;
 
     if (bpv2.viewport.has_value()) {
         bp.pan = Pt(bpv2.viewport->pan[0], bpv2.viewport->pan[1]);

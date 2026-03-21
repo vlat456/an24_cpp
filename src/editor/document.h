@@ -103,6 +103,7 @@ public:
     std::unordered_set<std::string>& heldButtons() { return held_buttons_; }
 
     void triggerSwitch(const std::string& node_id);
+    void setSliderValue(const std::string& node_id, float value);
     void holdButtonPress(const std::string& node_id);
     void holdButtonRelease(const std::string& node_id);
 

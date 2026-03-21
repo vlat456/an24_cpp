@@ -75,4 +75,5 @@ template class Greater<JitProvider>;
 template class Lesser<JitProvider>;
 template class GreaterEq<JitProvider>;
 template class LesserEq<JitProvider>;
+template class Slider<JitProvider>;
 

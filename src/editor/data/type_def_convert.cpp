@@ -198,6 +198,7 @@ static void convert_nodes_to_devices(const FlatBlueprint& bp, TypeDefinition& td
         DeviceInstance dev;
         dev.name = name;
         dev.classname = node.type;
+        dev.display_name = node.display_name;
         dev.params = std::unordered_map<std::string, std::string>(
             node.params.begin(), node.params.end());
         if (node.pos[0] != 0.0f || node.pos[1] != 0.0f) dev.pos = {node.pos[0], node.pos[1]};
@@ -258,7 +259,7 @@ TypeDefinition flat_to_type_definition(const FlatBlueprint& bp) {
         td.domains = domains;
     }
 
-    // Exposes → ports
+    // Exposes → ports (single source of truth — no fallback scanning)
     for (const auto& [name, ep] : bp.exposes) {
         Port port;
         port.direction = parse_direction(ep.direction);

@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include "editor/data/flat_blueprint.h"
 #include "editor/data/type_def_convert.h"
+#include "editor/data/blueprint.h"
 #include "json_parser.h"
 #include <filesystem>
 #include <fstream>
@@ -464,4 +465,252 @@ TEST(LibraryV2, BlueprintExtensionOnly) {
     EXPECT_TRUE(registry.has("NewFormat"));
 
     std::filesystem::remove_all(temp_dir);
+}
+
+// ==================================================================
+// Test 9: NoFallbackPortDerivation — exposes is single source of truth
+// ==================================================================
+
+TEST(LibraryV2, NoFallbackPortDerivation) {
+    // A composite blueprint with BlueprintInput/BlueprintOutput nodes
+    // but NO explicit exposes should result in ZERO ports.
+    // This verifies there is no silent fallback that scans nodes.
+    FlatBlueprint bp;
+    bp.version = 2;
+    bp.meta.name = "NoExposes";
+    bp.meta.cpp_class = false;
+    bp.meta.domains = {"Electrical"};
+
+    FlatNode input_node;
+    input_node.type = "BlueprintInput";
+    input_node.params["exposed_type"] = "V";
+    input_node.params["exposed_direction"] = "In";
+    bp.nodes["vin"] = input_node;
+
+    FlatNode output_node;
+    output_node.type = "BlueprintOutput";
+    output_node.params["exposed_type"] = "V";
+    output_node.params["exposed_direction"] = "Out";
+    bp.nodes["vout"] = output_node;
+
+    // Exposes is intentionally empty — no ports declared
+    ASSERT_TRUE(bp.exposes.empty());
+
+    TypeDefinition td = flat_to_type_definition(bp);
+
+    // Must have zero ports — no silent fallback from nodes
+    EXPECT_TRUE(td.ports.empty())
+        << "flat_to_type_definition must NOT silently derive ports from nodes; "
+           "exposes is the single source of truth";
+
+    // Devices should still be loaded
+    ASSERT_EQ(td.devices.size(), 2u);
+}
+
+// ==================================================================
+// Test 10: ExposesPopulatedPortsWork — explicit exposes → correct ports
+// ==================================================================
+
+TEST(LibraryV2, ExposesPopulatedPortsWork) {
+    // A composite blueprint with explicit exposes should produce correct ports.
+    FlatBlueprint bp;
+    bp.version = 2;
+    bp.meta.name = "WithExposes";
+    bp.meta.cpp_class = false;
+    bp.meta.domains = {"Electrical"};
+
+    bp.exposes["power_in"] = FlatPort{"In", "V", std::nullopt};
+    bp.exposes["signal_out"] = FlatPort{"Out", "Bool", std::nullopt};
+
+    FlatNode input_node;
+    input_node.type = "BlueprintInput";
+    input_node.display_name = "power_in";
+    bp.nodes["bp_in_1"] = input_node;
+
+    FlatNode output_node;
+    output_node.type = "BlueprintOutput";
+    output_node.display_name = "signal_out";
+    bp.nodes["bp_out_1"] = output_node;
+
+    TypeDefinition td = flat_to_type_definition(bp);
+
+    ASSERT_EQ(td.ports.size(), 2u);
+    EXPECT_EQ(td.ports.at("power_in").direction, PortDirection::In);
+    EXPECT_EQ(td.ports.at("power_in").type, PortType::V);
+    EXPECT_EQ(td.ports.at("signal_out").direction, PortDirection::Out);
+    EXPECT_EQ(td.ports.at("signal_out").type, PortType::Bool);
+}
+
+// ==================================================================
+// Test 11: ExposesPopulatedViaRegistry — .blueprint file with exposes
+//          loads ports correctly through the registry pipeline
+// ==================================================================
+
+TEST(LibraryV2, ExposesPopulatedViaRegistry) {
+    auto temp_dir = std::filesystem::temp_directory_path() / "test_library_v2_exposes";
+    std::filesystem::create_directories(temp_dir);
+
+    // Write a composite .blueprint with explicit exposes
+    {
+        FlatBlueprint bp;
+        bp.meta.name = "SubCircuit";
+        bp.meta.cpp_class = false;
+        bp.meta.domains = {"Electrical"};
+
+        bp.exposes["v_in"] = FlatPort{"In", "V", std::nullopt};
+        bp.exposes["v_out"] = FlatPort{"Out", "V", std::nullopt};
+
+        FlatNode input_node;
+        input_node.type = "BlueprintInput";
+        input_node.params["exposed_type"] = "V";
+        bp.nodes["vin"] = input_node;
+
+        FlatNode output_node;
+        output_node.type = "BlueprintOutput";
+        output_node.params["exposed_type"] = "V";
+        bp.nodes["vout"] = output_node;
+
+        FlatWire wire;
+        wire.id = "w0";
+        wire.from = {"vin", "port"};
+        wire.to = {"vout", "port"};
+        bp.wires.push_back(wire);
+
+        std::ofstream f(temp_dir / "SubCircuit.blueprint");
+        f << serialize_flat_blueprint(bp);
+    }
+
+    TypeRegistry registry = load_type_registry(temp_dir.string());
+    auto* def = registry.get("SubCircuit");
+    ASSERT_NE(def, nullptr);
+
+    // Ports must come from the exposes section
+    ASSERT_EQ(def->ports.size(), 2u);
+    EXPECT_EQ(def->ports.at("v_in").direction, PortDirection::In);
+    EXPECT_EQ(def->ports.at("v_in").type, PortType::V);
+    EXPECT_EQ(def->ports.at("v_out").direction, PortDirection::Out);
+    EXPECT_EQ(def->ports.at("v_out").type, PortType::V);
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+// ==================================================================
+// Test 12: SimExportRewritesMismatchedPorts — wire rewriting uses
+//          port_to_node_key so exposed port name ("v") maps to the
+//          correct internal node key ("blueprintinput_1").
+//          Regression test for the RUG84_1 bug.
+// ==================================================================
+
+TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
+    // ----------------------------------------------------------
+    // Build a Blueprint that simulates a parent containing:
+    //   - bat_main_1 (Battery)
+    //   - sub_1 (collapsed sub-blueprint, expandable)
+    //   - internal nodes: sub_1:blueprintinput_1, sub_1:blueprintoutput_1
+    //   - wire: bat_main_1.v_out → sub_1.v
+    //
+    // The SubBlueprintInstance has port_to_node_key = {"v" → "blueprintinput_1"}
+    // to_simulator_json() must rewrite the wire target to:
+    //   "sub_1:blueprintinput_1.ext" (correct)
+    //   NOT "sub_1:v.ext" (old bug)
+    // ----------------------------------------------------------
+
+    Blueprint bp;
+    auto& I = bp.interner();
+
+    // Battery node
+    {
+        Node n;
+        n.id = I.intern("bat_main_1");
+        n.name = "bat_main_1";
+        n.type_name = "Battery";
+        n.inputs.push_back(EditorPort{I.intern("v_in"), PortSide::Input, PortType::V});
+        n.outputs.push_back(EditorPort{I.intern("v_out"), PortSide::Output, PortType::V});
+        bp.nodes.push_back(std::move(n));
+    }
+
+    // Expandable sub-blueprint node (the collapsed UI node)
+    {
+        Node n;
+        n.id = I.intern("sub_1");
+        n.name = "sub_1";
+        n.type_name = "MismatchSub";
+        n.expandable = true;
+        n.inputs.push_back(EditorPort{I.intern("v"), PortSide::Input, PortType::V});
+        n.outputs.push_back(EditorPort{I.intern("Comp"), PortSide::Output, PortType::Any});
+        bp.nodes.push_back(std::move(n));
+    }
+
+    // Internal nodes (expanded from sub-blueprint, hidden inside the group)
+    {
+        Node n;
+        n.id = I.intern("sub_1:blueprintinput_1");
+        n.name = "sub_1:blueprintinput_1";
+        n.type_name = "BlueprintInput";
+        n.group_id = "sub_1";
+        n.inputs.push_back(EditorPort{I.intern("ext"), PortSide::Input, PortType::V});
+        n.outputs.push_back(EditorPort{I.intern("port"), PortSide::Output, PortType::V});
+        bp.nodes.push_back(std::move(n));
+    }
+    {
+        Node n;
+        n.id = I.intern("sub_1:blueprintoutput_1");
+        n.name = "sub_1:blueprintoutput_1";
+        n.type_name = "BlueprintOutput";
+        n.group_id = "sub_1";
+        n.inputs.push_back(EditorPort{I.intern("port"), PortSide::Input, PortType::Any});
+        n.outputs.push_back(EditorPort{I.intern("ext"), PortSide::Output, PortType::Any});
+        bp.nodes.push_back(std::move(n));
+    }
+
+    // Wire: bat_main_1.v_out → sub_1.v (uses expose port name)
+    {
+        Wire wire;
+        wire.id = I.intern("wire_0");
+        wire.start.node_id = I.intern("bat_main_1");
+        wire.start.port_name = I.intern("v_out");
+        wire.end.node_id = I.intern("sub_1");
+        wire.end.port_name = I.intern("v");
+        bp.wires.push_back(std::move(wire));
+    }
+
+    // Sub-blueprint instance with the critical port_to_node_key mapping
+    {
+        SubBlueprintInstance sbi;
+        sbi.id = "sub_1";
+        sbi.type_name = "MismatchSub";
+        sbi.port_to_node_key["v"] = "blueprintinput_1";
+        sbi.port_to_node_key["Comp"] = "blueprintoutput_1";
+        sbi.internal_node_ids = {"sub_1:blueprintinput_1", "sub_1:blueprintoutput_1"};
+        bp.sub_blueprint_instances.push_back(std::move(sbi));
+    }
+
+    bp.rebuild_all_indices();
+
+    // Export to simulator JSON
+    std::string sim_json = bp.to_simulator_json();
+    auto j = nlohmann::json::parse(sim_json);
+    ASSERT_TRUE(j.contains("connections"));
+    auto& conns = j["connections"];
+
+    // Find the connection from bat_main_1 to the sub-blueprint
+    bool found_correct = false;
+    bool found_wrong = false;
+    for (const auto& conn : conns) {
+        std::string to = conn.at("to").get<std::string>();
+        if (to == "sub_1:blueprintinput_1.ext") {
+            found_correct = true;
+            EXPECT_EQ(conn.at("from").get<std::string>(), "bat_main_1.v_out");
+        }
+        if (to == "sub_1:v.ext") {
+            found_wrong = true;
+        }
+    }
+
+    EXPECT_TRUE(found_correct)
+        << "Expected connection to 'sub_1:blueprintinput_1.ext' not found in simulator JSON.\n"
+        << "Connections JSON: " << j["connections"].dump(2);
+    EXPECT_FALSE(found_wrong)
+        << "Old buggy connection 'sub_1:v.ext' should NOT appear in simulator JSON.\n"
+        << "Connections JSON: " << j["connections"].dump(2);
 }

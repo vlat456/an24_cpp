@@ -157,6 +157,11 @@ private:
     Pt resize_original_pos_;
     Pt resize_original_size_;
 
+    // Slider drag — stored as InternedId + cached widget bounds
+    ui::InternedId slider_node_id_;
+    Pt slider_widget_world_pos_;  ///< world pos of the SliderWidget at drag start
+    float slider_widget_width_ = 0.0f;  ///< width of the SliderWidget
+
     // Marquee
     Pt marquee_start_;
     Pt marquee_end_;
@@ -181,6 +186,7 @@ private:
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
                               Pt anchor_pos, PortSide fixed_side);
     void enter_marquee(Pt world_pos);
+    void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
     void leave_state();  // return to Idle (clean up transient data)
 
 public:
@@ -217,6 +223,11 @@ private:
     /// Check if a click on a node widget hit a Switch/VerticalToggle content area.
     /// Returns the node ID if toggled, empty string otherwise.
     std::string check_content_toggle(visual::Widget& widget, Pt world_pos);
+
+    /// Check if a click on a node widget hit a Slider content area.
+    /// Returns the node ID if hit, empty string otherwise.
+    /// Sets out_local_x to the local X coordinate within the slider widget.
+    std::string check_slider_hit(visual::Widget& widget, Pt world_pos, float& out_local_x);
 
     // ---- Utility ----
 

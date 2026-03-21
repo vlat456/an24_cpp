@@ -136,6 +136,7 @@ enum class ComponentType {
     Resistor,
     SampleHold,
     SlewRate,
+    Slider,
     SolenoidValve,
     Splitter,
     Spring,
@@ -208,6 +209,7 @@ constexpr size_t Relay_PORT_COUNT = 3;
 constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
+constexpr size_t Slider_PORT_COUNT = 2;
 constexpr size_t SolenoidValve_PORT_COUNT = 3;
 constexpr size_t Splitter_PORT_COUNT = 3;
 constexpr size_t Spring_PORT_COUNT = 3;
@@ -482,6 +484,10 @@ constexpr const char* SlewRate_PORTS[] = {
     "in",
     "out"
 };
+constexpr const char* Slider_PORTS[] = {
+    "control",
+    "out"
+};
 constexpr const char* SolenoidValve_PORTS[] = {
     "ctrl",
     "flow_in",
@@ -656,6 +662,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Resistor", {"v_in", "v_out"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
+        {"Slider", {"control", "out"}},
         {"SolenoidValve", {"ctrl", "flow_in", "flow_out"}},
         {"Splitter", {"i", "o1", "o2"}},
         {"Spring", {"force_out", "pos_a", "pos_b"}},
@@ -736,6 +743,7 @@ using ComponentVariant = std::variant<
     Resistor<JitProvider>,
     SampleHold<JitProvider>,
     SlewRate<JitProvider>,
+    Slider<JitProvider>,
     SolenoidValve<JitProvider>,
     Splitter<JitProvider>,
     Spring<JitProvider>,

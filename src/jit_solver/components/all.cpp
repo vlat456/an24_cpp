@@ -1776,6 +1776,17 @@ void LesserEq<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 // =============================================================================
+// Slider
+// =============================================================================
+
+template <typename Provider>
+void Slider<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+    // Pass control input directly to output (editor pushes value via signal_overrides_)
+    float val = st.across[provider.get(PortNames::control)];
+    st.across[provider.get(PortNames::out)] = val;
+}
+
+// =============================================================================
 // Explicit Template Instantiation for JitProvider
 // =============================================================================
 

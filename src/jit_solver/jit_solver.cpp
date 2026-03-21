@@ -531,6 +531,13 @@ ComponentVariant create_component_variant(
         setup_component_ports(comp, dev, result);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "Slider") {
+        Slider<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.min = get_float(dev, "min", 0.0f);
+        comp.max = get_float(dev, "max", 1.0f);
+        return ComponentVariant(std::move(comp));
+    }
     else {
         throw std::runtime_error("Unknown component type: " + dev.classname);
     }

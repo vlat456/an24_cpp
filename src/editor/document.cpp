@@ -187,6 +187,13 @@ void Document::updateNodeContentFromSimulation() {
             float tripped_voltage = simulation_.get_port_value(nid, "tripped");
             node.node_content.tripped = (tripped_voltage > 0.5f);
         }
+        // Sync Slider range from params (allows live editing via Properties)
+        else if (node.type_name == "Slider") {
+            auto min_it = node.params.find("min");
+            if (min_it != node.params.end()) node.node_content.min = std::stof(min_it->second);
+            auto max_it = node.params.find("max");
+            if (max_it != node.params.end()) node.node_content.max = std::stof(max_it->second);
+        }
     }
 
     // Push updated content to visual widgets in all windows
@@ -245,6 +252,28 @@ void Document::triggerSwitch(const std::string& node_id) {
     float next = (current < 0.5f) ? 1.0f : 0.0f;
     std::string control_port = node_id + ".control";
     signal_overrides_[control_port] = next;
+}
+
+void Document::setSliderValue(const std::string& node_id, float value) {
+    // Update data layer
+    Node* node = blueprint_.find_node(std::string_view(node_id));
+    if (!node || node->node_content.type != NodeContentType::Slider) return;
+    node->node_content.value = value;
+
+    // Push slider value to simulation via signal override
+    std::string control_port = node_id + ".control";
+    signal_overrides_[control_port] = value;
+
+    // Push to visual widgets in all windows
+    auto& I = blueprint_.interner();
+    ui::InternedId nid = I.intern(node_id);
+    for (const auto& win : window_manager_.windows()) {
+        if (node->group_id != win->group_id) continue;
+        auto* widget = win->scene.find(I.resolve(nid));
+        if (!widget) continue;
+        auto* nw = dynamic_cast<visual::NodeWidget*>(widget);
+        if (nw) nw->updateContent(node->node_content);
+    }
 }
 
 void Document::holdButtonPress(const std::string& node_id) {
@@ -482,6 +511,9 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r, con
     }
     if (!r.toggle_switch_node_id.empty()) {
         triggerSwitch(r.toggle_switch_node_id);
+    }
+    if (!r.slider_node_id.empty()) {
+        setSliderValue(r.slider_node_id, r.slider_value);
     }
 
     return action;

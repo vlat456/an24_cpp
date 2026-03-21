@@ -125,6 +125,15 @@ void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterne
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<VerticalToggleWidget>(
                 data.node_content.state, data.node_content.tripped);
+        } else if (data.node_content.type == NodeContentType::Slider) {
+            float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
+            float v_pad = 2.0f;
+            auto* container = layout_->emplaceChild<Container>(
+                Edges{margin, v_pad, margin, v_pad});
+            container->setFlexGrow(1.0f);
+            content_widget_ = container->emplaceChild<SliderWidget>(
+                data.node_content.value, data.node_content.min,
+                data.node_content.max);
         } else if (data.node_content.type != NodeContentType::None) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
@@ -223,6 +232,11 @@ void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringIntern
         auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
         content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
             data.node_content.state, data.node_content.tripped);
+    } else if (data.node_content.type == NodeContentType::Slider) {
+        auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
+        content_widget_ = inner->emplaceChild<SliderWidget>(
+            data.node_content.value, data.node_content.min,
+            data.node_content.max);
     } else if (data.node_content.type != NodeContentType::None) {
         if (!data.node_content.label.empty()) {
             content_widget_ = center->emplaceChild<Label>(

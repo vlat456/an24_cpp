@@ -101,6 +101,10 @@ bool WindowSystem::closeDocument(Document& doc) {
         pendingBakeIn.doc_id.clear();
         pendingBakeIn.show_confirmation = false;
     }
+    if (setName.doc_id == closing_id) {
+        setName.doc_id.clear();
+        setName.show = false;
+    }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }

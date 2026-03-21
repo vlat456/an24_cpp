@@ -198,6 +198,81 @@ void VerticalToggleWidget::updateFromContent(const NodeContent& content) {
     tripped_ = content.tripped;
 }
 
+// ============================================================================
+// SliderWidget
+// ============================================================================
+
+SliderWidget::SliderWidget(float value, float min_val, float max_val)
+    : value_(value), min_val_(min_val), max_val_(max_val)
+{
+    setFlexible(false);
+    setSize(Pt(MIN_WIDTH, HEIGHT));
+}
+
+Pt SliderWidget::preferredSize(IDrawList*) const {
+    return Pt(MIN_WIDTH, HEIGHT);
+}
+
+void SliderWidget::layout(float w, float h) {
+    setSize(Pt(w, HEIGHT));
+}
+
+float SliderWidget::normalizedFromLocalX(float local_x) const {
+    float pad = HANDLE_RADIUS;
+    float track_w = size().x - 2.0f * pad;
+    if (track_w <= 0.0f) return 0.0f;
+    float t = (local_x - pad) / track_w;
+    return std::clamp(t, 0.0f, 1.0f);
+}
+
+void SliderWidget::render(IDrawList* dl, const RenderContext& ctx) const {
+    Pt origin = ctx.world_to_screen(worldPos());
+    float zoom = ctx.zoom;
+    float w = size().x * zoom;
+    float h = HEIGHT * zoom;
+    float pad = HANDLE_RADIUS * zoom;
+    float track_h = TRACK_HEIGHT * zoom;
+    float r = ROUNDING * zoom;
+
+    // Track background
+    float track_y = origin.y + (h - track_h) / 2.0f;
+    Pt track_min(origin.x + pad, track_y);
+    Pt track_max(origin.x + w - pad, track_y + track_h);
+    dl->add_rect_filled_with_rounding(track_min, track_max, 0xFF1C1D24, r);
+
+    // Filled portion
+    float range = max_val_ - min_val_;
+    float t = (range > 1e-6f) ? std::clamp((value_ - min_val_) / range, 0.0f, 1.0f) : 0.0f;
+    float track_w = w - 2.0f * pad;
+    float fill_w = t * track_w;
+    if (fill_w > 0.5f) {
+        Pt fill_max(track_min.x + fill_w, track_y + track_h);
+        dl->add_rect_filled_with_rounding(track_min, fill_max, 0xFF3A6830, r);
+    }
+
+    // Handle circle
+    float cx = track_min.x + t * track_w;
+    float cy = origin.y + h / 2.0f;
+    float handle_r = HANDLE_RADIUS * zoom;
+    dl->add_circle_filled(Pt(cx, cy), handle_r, 0xFF5078C0, 16);
+    dl->add_circle(Pt(cx, cy), handle_r, 0xFF3050A0, 16);
+
+    // Value text below track
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.1f", value_);
+    float font = FONT_SIZE * zoom;
+    Pt text_sz = dl->calc_text_size(buf, font);
+    float tx = origin.x + (w - text_sz.x) / 2.0f;
+    float ty = track_max.y + 1.0f * zoom;
+    dl->add_text(Pt(tx, ty), buf, render_theme::COLOR_TEXT_DIM, font);
+}
+
+void SliderWidget::updateFromContent(const NodeContent& content) {
+    value_ = content.value;
+    min_val_ = content.min;
+    max_val_ = content.max;
+}
+
 VoltmeterWidget::VoltmeterWidget(float value, float min_val, float max_val,
                                  const std::string& unit)
     : value_(value), min_val_(min_val), max_val_(max_val), unit_(unit)

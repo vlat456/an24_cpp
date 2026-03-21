@@ -2,6 +2,7 @@
 #include "editor/visual/dialogs/file_dialogs.h"
 #include <imgui.h>
 #include <filesystem>
+#include <cstring>
 
 
 MainMenu::Result MainMenu::render(WindowSystem& ws) {
@@ -20,6 +21,7 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
     }
 
     renderFileMenu(ws, result);
+    renderBlueprintMenu(ws);
     renderEditMenu(ws);
     renderViewMenu(ws);
 
@@ -46,7 +48,13 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 
     if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
         if (active_doc) {
-            if (active_doc->filepath().empty()) {
+            // If blueprint has no name yet, prompt for one before saving
+            if (active_doc->blueprint().name.empty()) {
+                ws.setName.show = true;
+                ws.setName.doc_id = active_doc->id();
+                ws.setName.save_after = true;
+                std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+            } else if (active_doc->filepath().empty()) {
                 if (auto path = dialogs::saveBlueprint()) {
                     active_doc->save(*path);
                     ws.settings.addRecentFile(*path);
@@ -144,6 +152,37 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
         }
         if (ImGui::MenuItem("Reset Zoom", "Ctrl+0")) {
             active_doc->viewport().zoom = 1.0f;
+        }
+    }
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
+    if (!ImGui::BeginMenu("Blueprint")) return;
+
+    Document* active_doc = ws.activeDocument();
+
+    // Show current name (or "not set")
+    if (active_doc && !active_doc->blueprint().name.empty()) {
+        ImGui::TextDisabled("Name: %s", active_doc->blueprint().name.c_str());
+    } else {
+        ImGui::TextDisabled("Name: (not set)");
+    }
+    ImGui::Separator();
+
+    if (ImGui::MenuItem("Set Name...", nullptr, false, active_doc != nullptr)) {
+        if (active_doc) {
+            ws.setName.show = true;
+            ws.setName.doc_id = active_doc->id();
+            ws.setName.save_after = false;
+            std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
+            // Pre-fill with current name
+            const auto& current = active_doc->blueprint().name;
+            if (!current.empty()) {
+                std::strncpy(ws.setName.buf, current.c_str(),
+                             sizeof(ws.setName.buf) - 1);
+            }
         }
     }
 

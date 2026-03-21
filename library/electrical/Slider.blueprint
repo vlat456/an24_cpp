@@ -1,0 +1,18 @@
+{
+  "exposes": {
+    "control": { "direction": "In", "type": "Any" },
+    "out":     { "direction": "Out", "type": "Any" }
+  },
+  "meta": {
+    "content_type": "Slider",
+    "cpp_class": true,
+    "description": "Interactive slider control with configurable min/max range. Drag the handle to set the output value.",
+    "domains": [ "Logical" ],
+    "name": "Slider"
+  },
+  "params": {
+    "min": { "default": "0.0", "type": "float" },
+    "max": { "default": "1.0", "type": "float" }
+  },
+  "version": 2
+}

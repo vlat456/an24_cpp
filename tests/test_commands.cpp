@@ -1098,3 +1098,95 @@ TEST_F(CommandTest, SetPortLayout_ClearOverrides) {
 
     EXPECT_TRUE(bp.find_node(node_id)->layout_overrides.empty());
 }
+
+// =============================================================================
+// REGRESSION: Slider min/max must sync to NodeContent when params are edited
+// =============================================================================
+
+TEST_F(CommandTest, REGRESSION_SetParamSyncsSliderMinMax) {
+    auto& I = bp.interner();
+    ui::InternedId id = I.intern("slider1");
+
+    Node n;
+    n.id = id;
+    n.type_name = "Slider";
+    n.params["min"] = "0.0";
+    n.params["max"] = "100.0";
+    n.node_content.type = NodeContentType::Slider;
+    n.node_content.min = 0.0f;
+    n.node_content.max = 100.0f;
+    n.node_content.value = 0.0f;
+    bp.add_node(Node{n});
+
+    // Verify initial state
+    Node* node = bp.find_node(id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_FLOAT_EQ(node->node_content.max, 100.0f);
+
+    // Change max via command (simulates Properties panel edit)
+    execute(bp, cmd_set_param(id, "max", "200.0"));
+
+    // Both params and node_content must agree
+    EXPECT_EQ(node->params["max"], "200.0");
+    EXPECT_FLOAT_EQ(node->node_content.max, 200.0f);  // was broken: stayed at 100.0
+
+    // Change min via command
+    execute(bp, cmd_set_param(id, "min", "-50.0"));
+
+    EXPECT_EQ(node->params["min"], "-50.0");
+    EXPECT_FLOAT_EQ(node->node_content.min, -50.0f);
+}
+
+TEST_F(CommandTest, REGRESSION_SetParamSyncsGaugeMinMax) {
+    auto& I = bp.interner();
+    ui::InternedId id = I.intern("gauge1");
+
+    Node n;
+    n.id = id;
+    n.type_name = "Voltmeter";
+    n.params["min"] = "0.0";
+    n.params["max"] = "28.0";
+    n.node_content.type = NodeContentType::Gauge;
+    n.node_content.min = 0.0f;
+    n.node_content.max = 28.0f;
+    bp.add_node(Node{n});
+
+    execute(bp, cmd_set_param(id, "max", "100.0"));
+
+    Node* node = bp.find_node(id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->params["max"], "100.0");
+    EXPECT_FLOAT_EQ(node->node_content.max, 100.0f);
+}
+
+TEST_F(CommandTest, REGRESSION_SliderValueRespectsRange) {
+    // Verify that a Slider with max=100 produces values in [0, 100],
+    // not stuck in [0, 1].
+    auto& I = bp.interner();
+    ui::InternedId id = I.intern("slider_range");
+
+    Node n;
+    n.id = id;
+    n.type_name = "Slider";
+    n.params["min"] = "0.0";
+    n.params["max"] = "100.0";
+    n.node_content.type = NodeContentType::Slider;
+    n.node_content.min = 0.0f;
+    n.node_content.max = 100.0f;
+    n.node_content.value = 0.0f;
+    bp.add_node(Node{n});
+
+    Node* node = bp.find_node(id);
+    ASSERT_NE(node, nullptr);
+
+    // Simulate what canvas_input does: normalized t=0.5 should map to 50.0
+    float t = 0.5f;
+    float val = node->node_content.min + t * (node->node_content.max - node->node_content.min);
+    EXPECT_FLOAT_EQ(val, 50.0f);
+
+    // After editing max to 200 via Properties
+    execute(bp, cmd_set_param(id, "max", "200.0"));
+
+    float val2 = node->node_content.min + t * (node->node_content.max - node->node_content.min);
+    EXPECT_FLOAT_EQ(val2, 100.0f);  // 0.5 * 200 = 100
+}

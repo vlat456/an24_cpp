@@ -117,6 +117,9 @@ struct Blueprint {
     /// Returns false if id not found in sub_blueprint_instances or already baked in.
     bool bake_in_sub_blueprint(const std::string& id);
 
+    /// Blueprint name (meta.name in serialized format). Used as classname in library.
+    std::string name;
+
     /// Viewport состояние (pan/zoom) - сохраняется с схемой
     Pt pan;
     float zoom;

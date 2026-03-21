@@ -820,6 +820,13 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 // Convert to TypeDefinition
                 TypeDefinition def = flat_to_type_definition(*bp_opt);
 
+                // Warn and derive classname from filename if empty
+                if (def.classname.empty()) {
+                    def.classname = entry.path().stem().string();
+                    spdlog::warn("[json_parser] Blueprint '{}' has empty meta.name, using filename '{}' as classname",
+                                 entry.path().string(), def.classname);
+                }
+
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {
                     spdlog::error("[json_parser] Duplicate classname '{}' in '{}', skipping",
@@ -915,6 +922,7 @@ DeviceInstance merge_device_instance(
 MenuTree TypeRegistry::build_menu_tree() const {
     MenuTree root;
     for (const auto& [classname, _] : types) {
+        if (classname.empty()) continue;  // Skip entries with empty classnames
         MenuTree* node = &root;
 
         auto cat_it = categories.find(classname);
