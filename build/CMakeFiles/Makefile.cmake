@@ -239,4 +239,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/refnode_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/rug82_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/solenoid_valve_regression_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/current_sense_tests.dir/DependInfo.cmake"
   )

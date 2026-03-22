@@ -4,6 +4,7 @@
 #include "../../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <set>
 
 // ==================================================================
 // Helper: port direction string → enum and back
@@ -193,26 +194,75 @@ FlatBlueprint type_definition_to_flat(const TypeDefinition& td) {
 // ==================================================================
 
 /// Convert FlatBlueprint nodes → TypeDefinition devices.
-static void convert_nodes_to_devices(const FlatBlueprint& bp, TypeDefinition& td) {
+/// For BlueprintInput/BlueprintOutput nodes with a display_name, the device key
+/// is renamed to the display_name (which matches the expose port name).
+/// Returns a rename map: old_key → new_key for connection rewriting.
+static std::map<std::string, std::string> convert_nodes_to_devices(const FlatBlueprint& bp, TypeDefinition& td) {
+    std::map<std::string, std::string> rename;
+
+    // Collect all node keys to detect collisions with renamed IO nodes.
+    std::set<std::string> all_keys;
+    for (const auto& [name, _] : bp.nodes) all_keys.insert(name);
+
+    // Track names already claimed by renamed IO nodes to detect duplicates.
+    std::set<std::string> claimed;
+
     for (const auto& [name, node] : bp.nodes) {
         DeviceInstance dev;
-        dev.name = name;
         dev.classname = node.type;
-        dev.display_name = node.display_name;
         dev.params = std::unordered_map<std::string, std::string>(
             node.params.begin(), node.params.end());
         if (node.pos[0] != 0.0f || node.pos[1] != 0.0f) dev.pos = {node.pos[0], node.pos[1]};
         if (node.size.has_value()) dev.size = {(*node.size)[0], (*node.size)[1]};
+
+        // Canonical rename: BlueprintInput/Output nodes use their display_name
+        // (the expose port name) as the device key, so that all downstream code
+        // — expansion, wire rewriting, simulator signal lookup — uses a single
+        // consistent name with no fallback mappings needed.
+        bool is_bp_io = (node.type == "BlueprintInput" || node.type == "BlueprintOutput");
+        bool renamed = false;
+        if (is_bp_io && !node.display_name.empty() && node.display_name != name) {
+            // Guard: skip rename if display_name collides with another node key
+            // or was already claimed by a previous IO node rename.
+            bool collides = (all_keys.count(node.display_name) > 0 && node.display_name != name)
+                         || claimed.count(node.display_name) > 0;
+            if (collides) {
+                spdlog::warn("[type_def_convert] Cannot rename '{}' → '{}': name collision, keeping original key",
+                             name, node.display_name);
+            } else {
+                dev.name = node.display_name;
+                rename[name] = node.display_name;
+                claimed.insert(node.display_name);
+                renamed = true;
+            }
+        }
+        if (!renamed) {
+            dev.name = name;
+            dev.display_name = node.display_name;
+        }
+
         td.devices.push_back(dev);
     }
+    return rename;
 }
 
 /// Convert FlatBlueprint wires → TypeDefinition connections.
-static void convert_wires_to_connections(const FlatBlueprint& bp, TypeDefinition& td) {
+/// Applies the rename map so that wires referencing old BlueprintInput/Output
+/// node keys (e.g. "blueprintinput_1") are rewritten to the canonical expose
+/// name (e.g. "v").
+static void convert_wires_to_connections(const FlatBlueprint& bp, TypeDefinition& td,
+                                         const std::map<std::string, std::string>& rename) {
     for (const auto& wire : bp.wires) {
+        std::string from_node = wire.from.node;
+        std::string to_node   = wire.to.node;
+        auto it_from = rename.find(from_node);
+        if (it_from != rename.end()) from_node = it_from->second;
+        auto it_to = rename.find(to_node);
+        if (it_to != rename.end()) to_node = it_to->second;
+
         Connection conn;
-        conn.from = wire.from.node + "." + wire.from.port;
-        conn.to = wire.to.node + "." + wire.to.port;
+        conn.from = from_node + "." + wire.from.port;
+        conn.to   = to_node   + "." + wire.to.port;
         for (const auto& pt : wire.routing) conn.routing_points.push_back({pt[0], pt[1]});
         td.connections.push_back(conn);
     }
@@ -271,8 +321,8 @@ TypeDefinition flat_to_type_definition(const FlatBlueprint& bp) {
     // Params
     for (const auto& [key, pd] : bp.params) td.params[key] = pd.default_val;
 
-    convert_nodes_to_devices(bp, td);
-    convert_wires_to_connections(bp, td);
+    auto rename = convert_nodes_to_devices(bp, td);
+    convert_wires_to_connections(bp, td, rename);
     convert_flat_sub_blueprints(bp, td);
 
     return td;

@@ -595,9 +595,10 @@ TEST(LibraryV2, ExposesPopulatedViaRegistry) {
 }
 
 // ==================================================================
-// Test 12: SimExportRewritesMismatchedPorts — wire rewriting uses
-//          port_to_node_key so exposed port name ("v") maps to the
-//          correct internal node key ("blueprintinput_1").
+// Test 12: SimExportRewritesMismatchedPorts — with Option B rename,
+//          BlueprintInput/Output nodes are renamed to their expose
+//          names in the TypeDefinition. Wire rewriting uses the
+//          expose name directly as the internal node key.
 //          Regression test for the RUG84_1 bug.
 // ==================================================================
 
@@ -606,13 +607,11 @@ TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
     // Build a Blueprint that simulates a parent containing:
     //   - bat_main_1 (Battery)
     //   - sub_1 (collapsed sub-blueprint, expandable)
-    //   - internal nodes: sub_1:blueprintinput_1, sub_1:blueprintoutput_1
+    //   - internal nodes: sub_1:v, sub_1:Comp  (Option B: renamed to expose names)
     //   - wire: bat_main_1.v_out → sub_1.v
     //
-    // The SubBlueprintInstance has port_to_node_key = {"v" → "blueprintinput_1"}
     // to_simulator_json() must rewrite the wire target to:
-    //   "sub_1:blueprintinput_1.ext" (correct)
-    //   NOT "sub_1:v.ext" (old bug)
+    //   "sub_1:v.ext" (expose name == internal node key)
     // ----------------------------------------------------------
 
     Blueprint bp;
@@ -641,11 +640,11 @@ TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
         bp.nodes.push_back(std::move(n));
     }
 
-    // Internal nodes (expanded from sub-blueprint, hidden inside the group)
+    // Internal nodes (expanded from sub-blueprint — Option B: already renamed to expose names)
     {
         Node n;
-        n.id = I.intern("sub_1:blueprintinput_1");
-        n.name = "sub_1:blueprintinput_1";
+        n.id = I.intern("sub_1:v");
+        n.name = "sub_1:v";
         n.type_name = "BlueprintInput";
         n.group_id = "sub_1";
         n.inputs.push_back(EditorPort{I.intern("ext"), PortSide::Input, PortType::V});
@@ -654,8 +653,8 @@ TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
     }
     {
         Node n;
-        n.id = I.intern("sub_1:blueprintoutput_1");
-        n.name = "sub_1:blueprintoutput_1";
+        n.id = I.intern("sub_1:Comp");
+        n.name = "sub_1:Comp";
         n.type_name = "BlueprintOutput";
         n.group_id = "sub_1";
         n.inputs.push_back(EditorPort{I.intern("port"), PortSide::Input, PortType::Any});
@@ -674,14 +673,12 @@ TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
         bp.wires.push_back(std::move(wire));
     }
 
-    // Sub-blueprint instance with the critical port_to_node_key mapping
+    // Sub-blueprint instance (no port_to_node_key needed with Option B)
     {
         SubBlueprintInstance sbi;
         sbi.id = "sub_1";
         sbi.type_name = "MismatchSub";
-        sbi.port_to_node_key["v"] = "blueprintinput_1";
-        sbi.port_to_node_key["Comp"] = "blueprintoutput_1";
-        sbi.internal_node_ids = {"sub_1:blueprintinput_1", "sub_1:blueprintoutput_1"};
+        sbi.internal_node_ids = {"sub_1:v", "sub_1:Comp"};
         bp.sub_blueprint_instances.push_back(std::move(sbi));
     }
 
@@ -695,22 +692,15 @@ TEST(LibraryV2, SimExportRewritesMismatchedPorts) {
 
     // Find the connection from bat_main_1 to the sub-blueprint
     bool found_correct = false;
-    bool found_wrong = false;
     for (const auto& conn : conns) {
         std::string to = conn.at("to").get<std::string>();
-        if (to == "sub_1:blueprintinput_1.ext") {
+        if (to == "sub_1:v.ext") {
             found_correct = true;
             EXPECT_EQ(conn.at("from").get<std::string>(), "bat_main_1.v_out");
-        }
-        if (to == "sub_1:v.ext") {
-            found_wrong = true;
         }
     }
 
     EXPECT_TRUE(found_correct)
-        << "Expected connection to 'sub_1:blueprintinput_1.ext' not found in simulator JSON.\n"
-        << "Connections JSON: " << j["connections"].dump(2);
-    EXPECT_FALSE(found_wrong)
-        << "Old buggy connection 'sub_1:v.ext' should NOT appear in simulator JSON.\n"
+        << "Expected connection to 'sub_1:v.ext' not found in simulator JSON.\n"
         << "Connections JSON: " << j["connections"].dump(2);
 }

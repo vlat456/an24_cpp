@@ -239,9 +239,9 @@ float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const
 
     auto it = build_result_->port_to_signal.find(port_name);
     if (it == build_result_->port_to_signal.end()) {
-        // Blueprint port fallback: "node_id.port_name" → "node_id:port_name.ext"
-        // Collapsed Blueprint nodes are skipped in serialization; their ports are
-        // rewritten to internal BlueprintInput/Output ext alias ports.
+        // Sub-blueprint port lookup: the editor queries "sbi_id.expose_name"
+        // but the simulator has "sbi_id:expose_name.ext" (prefixed internal node
+        // with the "ext" alias port). Rewrite to bridge the two naming schemes.
         auto dot = port_name.find('.');
         if (dot != std::string::npos) {
             std::string fallback = port_name.substr(0, dot) + ":" +

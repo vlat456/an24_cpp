@@ -193,6 +193,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/refnode_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rug82_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/solenoid_valve_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

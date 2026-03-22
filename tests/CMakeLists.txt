@@ -1673,3 +1673,19 @@ target_link_libraries(solenoid_valve_regression_tests PRIVATE
 )
 gtest_discover_tests(solenoid_valve_regression_tests)
 
+# CurrentSense (ammeter) component tests
+add_executable(current_sense_tests
+    test_current_sense.cpp
+)
+target_include_directories(current_sense_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(current_sense_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(current_sense_tests)
+

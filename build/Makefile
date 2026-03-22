@@ -1523,6 +1523,19 @@ solenoid_valve_regression_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/build
 .PHONY : solenoid_valve_regression_tests/fast
 
+#=============================================================================
+# Target rules for targets named current_sense_tests
+
+# Build rule for target.
+current_sense_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 current_sense_tests
+.PHONY : current_sense_tests
+
+# fast build rule for target.
+current_sense_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
+.PHONY : current_sense_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1559,6 +1572,7 @@ help:
 	@echo "... command_tests"
 	@echo "... comparison_components_tests"
 	@echo "... convert_library"
+	@echo "... current_sense_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_interning_tests"

@@ -26,11 +26,6 @@ struct SubBlueprintInstance {
 
     std::vector<std::string> internal_node_ids;
 
-    /// Mapping: expose port name → internal node key (unprefixed).
-    /// E.g. {"v" → "blueprintinput_1", "Comp" → "blueprintoutput_1"}.
-    /// Built during expansion, used by to_simulator_json() for wire rewriting.
-    std::map<std::string, std::string> port_to_node_key;
-
     SubBlueprintInstance() = default;
 
     SubBlueprintInstance(const std::string& id_, const std::string& path, const std::string& type)

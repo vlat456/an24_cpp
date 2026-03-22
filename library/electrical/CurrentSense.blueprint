@@ -1,0 +1,32 @@
+{
+  "exposes": {
+    "i_out": {
+      "direction": "Out",
+      "type": "I"
+    },
+    "v_in": {
+      "direction": "In",
+      "type": "V"
+    },
+    "v_out": {
+      "direction": "Out",
+      "type": "V"
+    }
+  },
+  "meta": {
+    "content_type": "Text",
+    "cpp_class": true,
+    "description": "Series current measurement node (ammeter). Near-zero resistance passthrough that outputs measured current in amperes.",
+    "domains": [
+      "Electrical"
+    ],
+    "name": "CurrentSense"
+  },
+  "params": {
+    "conductance": {
+      "default": "1000.0",
+      "type": "float"
+    }
+  },
+  "version": 2
+}

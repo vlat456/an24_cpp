@@ -548,18 +548,12 @@ static json build_devices_json(const std::vector<Node>& nodes,
 }
 
 /// Build the "connections" JSON array, rewriting blueprint-node endpoints.
-/// For collapsed sub-blueprints, uses port_to_node_key to map exposed port
-/// names (e.g. "v") to internal node keys (e.g. "blueprintinput_1").
+/// For collapsed sub-blueprints, uses the expose port name directly as the
+/// internal node key (Option B rename ensures they match).
 static json build_connections_json(const std::vector<Wire>& wires,
                                    const std::set<std::string>& blueprint_node_ids,
                                    const std::vector<SubBlueprintInstance>& sub_blueprints,
                                    const ui::StringInterner& I) {
-    // Build a lookup: sbi.id → pointer to SubBlueprintInstance
-    std::map<std::string, const SubBlueprintInstance*> sbi_by_id;
-    for (const auto& sbi : sub_blueprints) {
-        sbi_by_id[sbi.id] = &sbi;
-    }
-
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
 
@@ -571,29 +565,14 @@ static json build_connections_json(const std::vector<Wire>& wires,
 
         // Rewrite endpoints that target collapsed sub-blueprint nodes.
         // The port name on the wire is the exposed name (e.g. "v"),
-        // but the simulator needs the prefixed internal node + "ext" port.
+        // and the internal node key is also "v" (Option B rename),
+        // so we just prefix with "sbi_id:" and use "ext" as the port.
         if (blueprint_node_ids.count(from_node) > 0) {
-            std::string internal_key = from_port;  // fallback: expose name == node key
-            auto sbi_it = sbi_by_id.find(from_node);
-            if (sbi_it != sbi_by_id.end()) {
-                auto key_it = sbi_it->second->port_to_node_key.find(from_port);
-                if (key_it != sbi_it->second->port_to_node_key.end()) {
-                    internal_key = key_it->second;
-                }
-            }
-            from_node = from_node + ":" + internal_key;
+            from_node = from_node + ":" + from_port;
             from_port = "ext";
         }
         if (blueprint_node_ids.count(to_node) > 0) {
-            std::string internal_key = to_port;  // fallback: expose name == node key
-            auto sbi_it = sbi_by_id.find(to_node);
-            if (sbi_it != sbi_by_id.end()) {
-                auto key_it = sbi_it->second->port_to_node_key.find(to_port);
-                if (key_it != sbi_it->second->port_to_node_key.end()) {
-                    internal_key = key_it->second;
-                }
-            }
-            to_node = to_node + ":" + internal_key;
+            to_node = to_node + ":" + to_port;
             to_port = "ext";
         }
 
@@ -1193,15 +1172,6 @@ void Blueprint::expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistr
         for (auto& node : sub_bp.nodes) {
             std::string old_id(sub_bp.interner().resolve(node.id));
             std::string new_id = sbi.id + ":" + old_id;
-
-            // Build port_to_node_key: map expose name → unprefixed node key
-            // for BlueprintInput/BlueprintOutput nodes.
-            // node.name carries the display_name (e.g. "v") set by expand_type_definition;
-            // old_id is the internal key (e.g. "blueprintinput_1").
-            if (node.type_name == "BlueprintInput" || node.type_name == "BlueprintOutput") {
-                std::string expose_name = node.name;
-                sbi.port_to_node_key[expose_name] = old_id;
-            }
 
             node.id = I.intern(new_id);
             node.name = new_id;

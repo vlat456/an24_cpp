@@ -14,6 +14,7 @@ template class Relay<JitProvider>;
 template class Resistor<JitProvider>;
 template class Load<JitProvider>;
 template class Comparator<JitProvider>;
+template class CurrentSense<JitProvider>;
 template class HoldButton<JitProvider>;
 template class Generator<JitProvider>;
 template class GS24<JitProvider>;

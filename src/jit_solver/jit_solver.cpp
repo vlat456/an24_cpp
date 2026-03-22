@@ -119,6 +119,12 @@ ComponentVariant create_component_variant(
         comp.pre_load();
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "CurrentSense") {
+        CurrentSense<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.conductance = get_float(dev, "conductance", 1000.0f);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "HoldButton") {
         HoldButton<JitProvider> comp;
         setup_component_ports(comp, dev, result);

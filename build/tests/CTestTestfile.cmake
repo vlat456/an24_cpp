@@ -91,3 +91,4 @@ include("/Users/vladimir/an24_cpp/build/tests/fuel_tank_regression_tests[1]_incl
 include("/Users/vladimir/an24_cpp/build/tests/refnode_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/rug82_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/solenoid_valve_regression_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/current_sense_tests[1]_include.cmake")

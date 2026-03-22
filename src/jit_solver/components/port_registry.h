@@ -38,6 +38,7 @@ enum class PortNames : uint32_t {
     heat_out,
     i,
     i1,
+    i_out,
     i2,
     in,
     input,
@@ -91,6 +92,7 @@ enum class ComponentType {
     Bus,
     Clamp,
     Comparator,
+    CurrentSense,
     DMR400,
     Divide,
     ElectricHeater,
@@ -164,6 +166,7 @@ constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Clamp_PORT_COUNT = 2;
 constexpr size_t Comparator_PORT_COUNT = 3;
+constexpr size_t CurrentSense_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
@@ -278,6 +281,11 @@ constexpr const char* Comparator_PORTS[] = {
     "Va",
     "Vb",
     "o"
+};
+constexpr const char* CurrentSense_PORTS[] = {
+    "i_out",
+    "v_in",
+    "v_out"
 };
 constexpr const char* DMR400_PORTS[] = {
     "lamp",
@@ -560,6 +568,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"i", PortNames::i},
         {"i1", PortNames::i1},
         {"i2", PortNames::i2},
+        {"i_out", PortNames::i_out},
         {"in", PortNames::in},
         {"input", PortNames::input},
         {"k_mod", PortNames::k_mod},
@@ -617,6 +626,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Bus", {"v"}},
         {"Clamp", {"in", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
+        {"CurrentSense", {"i_out", "v_in", "v_out"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
@@ -698,6 +708,7 @@ using ComponentVariant = std::variant<
     Bus<JitProvider>,
     Clamp<JitProvider>,
     Comparator<JitProvider>,
+    CurrentSense<JitProvider>,
     DMR400<JitProvider>,
     Divide<JitProvider>,
     ElectricHeater<JitProvider>,

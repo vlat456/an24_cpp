@@ -567,6 +567,23 @@ template <typename Provider>
 void Merger<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
 
 // =============================================================================
+// CurrentSense
+// =============================================================================
+
+template <typename Provider>
+void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    float g = conductance;
+
+    // High-conductance two-port: near-zero voltage drop between v_in and v_out
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
+
+    // Measured current: I = (v_in - v_out) * G
+    float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
+    st.across[provider.get(PortNames::i_out)] = v_diff * g;
+}
+
+// =============================================================================
 // IndicatorLight
 // =============================================================================
 

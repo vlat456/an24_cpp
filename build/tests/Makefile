@@ -1389,6 +1389,20 @@ solenoid_valve_regression_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/build
 .PHONY : solenoid_valve_regression_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/current_sense_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/current_sense_tests.dir/rule
+.PHONY : tests/CMakeFiles/current_sense_tests.dir/rule
+
+# Convenience name for target.
+current_sense_tests: tests/CMakeFiles/current_sense_tests.dir/rule
+.PHONY : current_sense_tests
+
+# fast build rule for target.
+current_sense_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
+.PHONY : current_sense_tests/fast
+
 __/_deps/imgui-src/imgui.o: __/_deps/imgui-src/imgui.cpp.o
 .PHONY : __/_deps/imgui-src/imgui.o
 
@@ -2991,6 +3005,30 @@ test_comparison_components.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/comparison_components_tests.dir/build.make tests/CMakeFiles/comparison_components_tests.dir/test_comparison_components.cpp.s
 .PHONY : test_comparison_components.cpp.s
 
+test_current_sense.o: test_current_sense.cpp.o
+.PHONY : test_current_sense.o
+
+# target to build an object file
+test_current_sense.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.o
+.PHONY : test_current_sense.cpp.o
+
+test_current_sense.i: test_current_sense.cpp.i
+.PHONY : test_current_sense.i
+
+# target to preprocess a source file
+test_current_sense.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.i
+.PHONY : test_current_sense.cpp.i
+
+test_current_sense.s: test_current_sense.cpp.s
+.PHONY : test_current_sense.s
+
+# target to generate assembly for a file
+test_current_sense.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.s
+.PHONY : test_current_sense.cpp.s
+
 test_data.o: test_data.cpp.o
 .PHONY : test_data.o
 
@@ -4556,6 +4594,7 @@ help:
 	@echo "... codegen_sanitize_tests"
 	@echo "... command_tests"
 	@echo "... comparison_components_tests"
+	@echo "... current_sense_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_interning_tests"
@@ -4780,6 +4819,9 @@ help:
 	@echo "... test_comparison_components.o"
 	@echo "... test_comparison_components.i"
 	@echo "... test_comparison_components.s"
+	@echo "... test_current_sense.o"
+	@echo "... test_current_sense.i"
+	@echo "... test_current_sense.s"
 	@echo "... test_data.o"
 	@echo "... test_data.i"
 	@echo "... test_data.s"
