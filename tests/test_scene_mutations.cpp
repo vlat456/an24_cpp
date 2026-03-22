@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include "visual/scene_mutations.h"
 #include "visual/scene.h"
+#include "visual/persist.h"
 #include "visual/node/node_factory.h"
+#include "visual/node/visual_node.h"
 #include "visual/wire/wire.h"
 #include "visual/wire/routing_point.h"
 #include "visual/node/bus_node_widget.h"
@@ -270,4 +272,26 @@ TEST(SceneMutations, RebuildMultipleBusWires) {
     ASSERT_NE(bus_widget, nullptr);
     EXPECT_NE(bus_widget->port("w0"), nullptr);
     EXPECT_NE(bus_widget->port("w1"), nullptr);
+}
+
+TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto bp_opt = load_blueprint_from_file("/Users/vladimir/an24_cpp/GSC.blueprint", interner, arena);
+    ASSERT_TRUE(bp_opt.has_value());
+
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, *bp_opt, interner, arena, "");
+
+    auto* add_widget_base = scene.find("add_1");
+    ASSERT_NE(add_widget_base, nullptr);
+    auto* add_widget = dynamic_cast<visual::NodeWidget*>(add_widget_base);
+    ASSERT_NE(add_widget, nullptr);
+    EXPECT_NE(add_widget->port("A"), nullptr);
+    EXPECT_NE(add_widget->port("B"), nullptr);
+    EXPECT_NE(add_widget->port("o"), nullptr);
+
+    // A known top-level wire in GSC.blueprint should be rendered as a widget.
+    EXPECT_NE(scene.find("wire_21"), nullptr);
 }

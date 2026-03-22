@@ -23,6 +23,16 @@
       "params": {
         "internal_r": 0.01,
         "v_nominal": 28.0
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
@@ -30,15 +40,41 @@
       "type": "RefNode",
       "params": {
         "value": 0.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
       "id": "vin",
-      "type": "BlueprintInput"
+      "type": "BlueprintInput",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "vout",
-      "type": "BlueprintOutput"
+      "type": "BlueprintOutput",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
+      }
     }
   ],
   "wires": [

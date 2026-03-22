@@ -10,6 +10,20 @@
       "position": {
         "x": 928.0,
         "y": 48.0
+      },
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -19,6 +33,20 @@
       "position": {
         "x": 368.0,
         "y": -96.0
+      },
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -32,6 +60,16 @@
       "params": {
         "max": 10.0,
         "min": 0.05
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -40,6 +78,20 @@
       "position": {
         "x": 1040.0,
         "y": 32.0
+      },
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -53,6 +105,16 @@
       "params": {
         "deadzone": 0.01,
         "tau": 0.2
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -96,6 +158,20 @@
       "position": {
         "x": 208.0,
         "y": 0.0
+      },
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -105,6 +181,20 @@
       "position": {
         "x": 496.0,
         "y": -96.0
+      },
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -122,6 +212,20 @@
         "filter_alpha": 0.2,
         "output_max": 1.0,
         "output_min": 0.0
+      },
+      "ports": {
+        "feedback": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "output": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "setpoint": {
+          "direction": "In",
+          "type": "Any"
+        }
       }
     },
     {
@@ -135,6 +239,12 @@
       },
       "params": {
         "value": 2.8
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
@@ -150,6 +260,12 @@
       "height": 32.0,
       "params": {
         "value": 2.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
@@ -163,6 +279,12 @@
       },
       "params": {
         "value": 28.5
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
@@ -176,6 +298,12 @@
       },
       "params": {
         "value": 0.05
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
@@ -194,7 +322,17 @@
           "port_name": "v",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "k_mod": {
+          "direction": "Out",
+          "type": "V"
+        },
+        "v_gen": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "slider_1",
@@ -208,7 +346,17 @@
       "content_value": 1.0,
       "content_min": 0.0,
       "content_max": 1.0,
-      "content_unit": ""
+      "content_unit": "",
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "splitter_1",
@@ -218,7 +366,21 @@
         "y": -128.0
       },
       "width": 48.0,
-      "height": 80.0
+      "height": 80.0,
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o1": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "o2": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "splitter_2",
@@ -226,6 +388,20 @@
       "position": {
         "x": 752.0,
         "y": -144.0
+      },
+      "ports": {
+        "i": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o1": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "o2": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -252,7 +428,13 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     }
   ],
   "wires": [
@@ -444,6 +626,16 @@
             "position": {
               "x": 896.0,
               "y": 128.0
+            },
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": "Any"
+              },
+              "port": {
+                "direction": "In",
+                "type": "Any"
+              }
             }
           },
           {
@@ -454,6 +646,16 @@
             "position": {
               "x": 576.0,
               "y": 96.0
+            },
+            "ports": {
+              "input": {
+                "direction": "In",
+                "type": "Any"
+              },
+              "output": {
+                "direction": "Out",
+                "type": "Any"
+              }
             }
           },
           {
@@ -471,6 +673,20 @@
               "filter_alpha": 0.2,
               "output_max": 1.0,
               "output_min": 0.0
+            },
+            "ports": {
+              "feedback": {
+                "direction": "In",
+                "type": "Any"
+              },
+              "output": {
+                "direction": "Out",
+                "type": "Any"
+              },
+              "setpoint": {
+                "direction": "In",
+                "type": "Any"
+              }
             }
           },
           {
@@ -484,6 +700,12 @@
             },
             "params": {
               "value": 28.5
+            },
+            "ports": {
+              "v": {
+                "direction": "Out",
+                "type": "V"
+              }
             }
           },
           {
@@ -493,6 +715,16 @@
             "position": {
               "x": 80.0,
               "y": 80.0
+            },
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": "Any"
+              },
+              "port": {
+                "direction": "Out",
+                "type": "Any"
+              }
             }
           }
         ],

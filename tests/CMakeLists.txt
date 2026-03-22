@@ -314,6 +314,7 @@ gtest_discover_tests(specialized_node_widget_tests)
 add_executable(scene_mutations_tests
     test_scene_mutations.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp

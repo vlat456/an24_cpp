@@ -14,7 +14,17 @@
         "y": 80.0
       },
       "width": 160.0,
-      "height": 64.0
+      "height": 64.0,
+      "ports": {
+        "vin": {
+          "direction": "In",
+          "type": "V"
+        },
+        "vout": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "lamp_pass_through_1:lamp",
@@ -35,7 +45,21 @@
       "content_value": 0.0,
       "content_min": 0.0,
       "content_max": 1.0,
-      "content_unit": ""
+      "content_unit": "",
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": "I"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "lamp_pass_through_1:vin",
@@ -46,7 +70,17 @@
         "y": 80.0
       },
       "width": 176.0,
-      "height": 64.0
+      "height": 64.0,
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "lamp_pass_through_1:vout",
@@ -57,7 +91,17 @@
         "y": 160.0
       },
       "width": 192.0,
-      "height": 64.0
+      "height": 64.0,
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
+      }
     }
   ],
   "wires": [
@@ -106,7 +150,21 @@
             "content_value": 0.0,
             "content_min": 0.0,
             "content_max": 1.0,
-            "content_unit": ""
+            "content_unit": "",
+            "ports": {
+              "brightness": {
+                "direction": "Out",
+                "type": "I"
+              },
+              "v_in": {
+                "direction": "In",
+                "type": "V"
+              },
+              "v_out": {
+                "direction": "Out",
+                "type": "V"
+              }
+            }
           },
           {
             "id": "vin",
@@ -117,7 +175,17 @@
               "y": 80.0
             },
             "width": 176.0,
-            "height": 64.0
+            "height": 64.0,
+            "ports": {
+              "ext": {
+                "direction": "In",
+                "type": "Any"
+              },
+              "port": {
+                "direction": "Out",
+                "type": "Any"
+              }
+            }
           },
           {
             "id": "vout",
@@ -128,7 +196,17 @@
               "y": 160.0
             },
             "width": 192.0,
-            "height": 64.0
+            "height": 64.0,
+            "ports": {
+              "ext": {
+                "direction": "Out",
+                "type": "Any"
+              },
+              "port": {
+                "direction": "In",
+                "type": "Any"
+              }
+            }
           }
         ],
         "wires": [

@@ -22,15 +22,49 @@
       "type": "IndicatorLight",
       "params": {
         "max_brightness": 100.0
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": "I"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
       }
     },
     {
       "id": "vin",
-      "type": "BlueprintInput"
+      "type": "BlueprintInput",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "vout",
-      "type": "BlueprintOutput"
+      "type": "BlueprintOutput",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
+      }
     }
   ],
   "wires": [

@@ -230,11 +230,6 @@ private:
     /// Shorthand: resolve an InternedId to string_view via the interner.
     std::string_view resolve(ui::InternedId id) const { return interner_->resolve(id); }
 
-    // == from_flat decomposition helpers (removed — v3 migration) ==
-
-    /// Enrich loaded nodes with port definitions and default params from the registry.
-    static void enrich_nodes_from_registry(Blueprint& bp, const TypeRegistry& registry);
-
     /// Add a wire's ID to bus_wire_index_ if it touches a bus node.
     void addToBusIndex(const Wire& w);
     /// Remove a wire's ID from bus_wire_index_ if it touches a bus node.

@@ -1778,6 +1778,7 @@ __/src/editor/visual/persist.o: __/src/editor/visual/persist.cpp.o
 
 # target to build an object file
 __/src/editor/visual/persist.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.o
@@ -1791,6 +1792,7 @@ __/src/editor/visual/persist.i: __/src/editor/visual/persist.cpp.i
 
 # target to preprocess a source file
 __/src/editor/visual/persist.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.i
@@ -1804,6 +1806,7 @@ __/src/editor/visual/persist.s: __/src/editor/visual/persist.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/visual/persist.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.s

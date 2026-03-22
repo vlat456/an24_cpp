@@ -32,7 +32,33 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "temp": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "bat_main_1",
@@ -61,7 +87,17 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "bus_1",
@@ -72,7 +108,13 @@
         "y": 368.0
       },
       "width": 80.0,
-      "height": 32.0
+      "height": 32.0,
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "bus_2",
@@ -88,7 +130,13 @@
       "color_r": 0.0832914486527443,
       "color_g": 0.08329154551029205,
       "color_b": 0.48878926038742065,
-      "color_a": 1.0
+      "color_a": 1.0,
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "dmr_vsu",
@@ -104,7 +152,25 @@
           "port_name": "v_gen_ref",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "lamp": {
+          "direction": "Out",
+          "type": "V"
+        },
+        "v_gen_ref": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "fasttmo_1",
@@ -122,7 +188,17 @@
           "port_name": "out",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "fasttmo_2",
@@ -144,7 +220,17 @@
           "port_name": "out",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "fasttmo_3",
@@ -166,7 +252,17 @@
           "port_name": "out",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
     },
     {
       "id": "group_1",
@@ -221,7 +317,25 @@
           "port_name": "state",
           "position": 3
         }
-      ]
+      ],
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": "Temperature"
+        },
+        "state": {
+          "direction": "Out",
+          "type": "Bool"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "light_1",
@@ -250,7 +364,21 @@
           "port_name": "v_out",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": "I"
+        },
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "main_bus",
@@ -266,7 +394,13 @@
       "color_r": 0.30135926604270935,
       "color_g": 0.4161490797996521,
       "color_b": 0.08012809604406357,
-      "color_a": 1.0
+      "color_a": 1.0,
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "refnode_1",
@@ -285,7 +419,13 @@
       "color_r": 0.5962733030319214,
       "color_g": 0.155549556016922,
       "color_b": 0.5825862288475037,
-      "color_a": 1.0
+      "color_a": 1.0,
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "rug_82_1_1",
@@ -303,7 +443,17 @@
           "port_name": "Comp",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "k_mod": {
+          "direction": "Out",
+          "type": "V"
+        },
+        "v_gen": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "voltmeter_1",
@@ -329,7 +479,13 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "voltmeter_2",
@@ -355,7 +511,13 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "voltmeter_3",
@@ -381,7 +543,13 @@
           "port_name": "v_in",
           "side": "bottom"
         }
-      ]
+      ],
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     },
     {
       "id": "vsu_1",
@@ -405,7 +573,29 @@
           "port_name": "k_mod",
           "side": "top"
         }
-      ]
+      ],
+      "ports": {
+        "k_mod": {
+          "direction": "In",
+          "type": "V"
+        },
+        "rpm_out": {
+          "direction": "Out",
+          "type": "RPM"
+        },
+        "t4_out": {
+          "direction": "Out",
+          "type": "Temperature"
+        },
+        "v_bus": {
+          "direction": "Out",
+          "type": "V"
+        },
+        "v_start": {
+          "direction": "In",
+          "type": "V"
+        }
+      }
     }
   ],
   "wires": [

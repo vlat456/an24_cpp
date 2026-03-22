@@ -24,6 +24,16 @@
       "position": {
         "x": 96.0,
         "y": 160.0
+      },
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -33,6 +43,16 @@
       "position": {
         "x": 816.0,
         "y": 160.0
+      },
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
       }
     },
     {
@@ -45,6 +65,16 @@
       "params": {
         "deadzone": 0.001,
         "tau": 0.05
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -53,6 +83,16 @@
       "position": {
         "x": 304.0,
         "y": 160.0
+      },
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "output": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     },
     {
@@ -62,6 +102,16 @@
       "position": {
         "x": 640.0,
         "y": 160.0
+      },
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "output": {
+          "direction": "Out",
+          "type": "Any"
+        }
       }
     }
   ],

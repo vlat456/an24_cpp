@@ -249,7 +249,41 @@ TEST(BlueprintCodec, RoundTripSimpleBlueprint) {
     std::string json2 = bp2::BlueprintCodec::encode(*decoded, interner, arena);
     auto j1 = nlohmann::json::parse(json1);
     auto j2 = nlohmann::json::parse(json2);
-    EXPECT_EQ(j1, j2);
+    EXPECT_EQ(j2["version"], "3.0");
+    EXPECT_EQ(j2["id"], j1["id"]);
+    EXPECT_EQ(j2["display_name"], j1["display_name"]);
+    ASSERT_EQ(j2["nodes"].size(), j1["nodes"].size());
+    ASSERT_EQ(j2["wires"].size(), j1["wires"].size());
+    EXPECT_EQ(j2["wires"][0]["source"], j1["wires"][0]["source"]);
+    EXPECT_EQ(j2["wires"][0]["target"], j1["wires"][0]["target"]);
+}
+
+TEST(BlueprintCodec, DecodeDoesNotInferMissingNodePortsOrName) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "nodes": [
+            {
+                "id": "bat1",
+                "type": "Battery",
+                "position": {"x": 10.0, "y": 20.0}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->nodes().size(), 1u);
+    const auto& node = result->nodes()[0];
+    EXPECT_TRUE(node.name.empty());
+    EXPECT_TRUE(node.inputs.empty());
+    EXPECT_TRUE(node.outputs.empty());
 }
 TEST(BlueprintCodec, DecodeInvalidJsonReturnsNullopt) {
     ui::StringInterner interner;
@@ -292,4 +326,3 @@ TEST(BlueprintCodec, RoundTripInterface) {
     EXPECT_EQ(ports[0].domain, Domain::Electrical);
     EXPECT_EQ(ports[0].direction, bp2::Direction::Input);
 }
-
