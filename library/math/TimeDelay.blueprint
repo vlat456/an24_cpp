@@ -1,35 +1,31 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "TimeDelay",
+  "display_name": "TimeDelay",
+  "interface": [
+    {
+      "name": "in",
+      "domain": 2,
+      "direction": 0,
       "type": "Bool"
     },
-    "out": {
-      "direction": "Out",
+    {
+      "name": "out",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Logic delay node with separate ON and OFF timers",
-    "domains": [
-      "Logical"
-    ],
-    "name": "TimeDelay",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "delay_off": {
-      "default": "0.1",
-      "type": "float"
-    },
-    "delay_on": {
-      "default": "0.5",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Logic delay node with separate ON and OFF timers",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "delay_off": "0.1",
+    "delay_on": "0.5"
+  }
 }

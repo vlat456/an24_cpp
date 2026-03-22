@@ -4,8 +4,6 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
-#include "editor/data/flat_blueprint.h"
-#include "editor/data/type_def_convert.h"
 
 using json = nlohmann::json;
 
@@ -799,7 +797,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
         return registry;
     }
 
-    // Scan for *.blueprint files recursively (v2 format)
+    // Scan for *.blueprint files recursively (v3 format only)
     size_t loaded_count = 0;
     for (const auto& entry : std::filesystem::recursive_directory_iterator(library_path)) {
         if (entry.is_regular_file() && entry.path().extension() == ".blueprint") {
@@ -809,16 +807,153 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 std::string content((std::istreambuf_iterator<char>(file)),
                                      std::istreambuf_iterator<char>());
 
-                // Parse v2 blueprint
-                auto bp_opt = parse_flat_blueprint(content);
-                if (!bp_opt.has_value()) {
-                    spdlog::error("[json_parser] Failed to parse v2 blueprint '{}'",
+                json j = json::parse(content);
+                if (!j.contains("version") || !j["version"].is_string()
+                    || j["version"].get<std::string>() != "3.0") {
+                    spdlog::error("[json_parser] Rejecting non-v3 blueprint '{}'",
                                   entry.path().string());
                     continue;
                 }
 
-                // Convert to TypeDefinition
-                TypeDefinition def = flat_to_type_definition(*bp_opt);
+                TypeDefinition def;
+                if (j.contains("id") && j["id"].is_string()) {
+                    def.classname = j["id"].get<std::string>();
+                } else {
+                    def.classname = entry.path().stem().string();
+                }
+
+                if (j.contains("display_name") && j["display_name"].is_string()) {
+                    def.description = j["display_name"].get<std::string>();
+                } else if (j.contains("description") && j["description"].is_string()) {
+                    def.description = j["description"].get<std::string>();
+                }
+
+                if (j.contains("cpp_class") && j["cpp_class"].is_boolean()) {
+                    def.cpp_class = j["cpp_class"].get<bool>();
+                } else {
+                    def.cpp_class = true;
+                }
+
+                if (j.contains("priority") && j["priority"].is_string()) {
+                    def.priority = j["priority"].get<std::string>();
+                }
+                if (j.contains("critical") && j["critical"].is_boolean()) {
+                    def.critical = j["critical"].get<bool>();
+                }
+                if (j.contains("content_type") && j["content_type"].is_string()) {
+                    def.content_type = j["content_type"].get<std::string>();
+                }
+                if (j.contains("render_hint") && j["render_hint"].is_string()) {
+                    def.render_hint = j["render_hint"].get<std::string>();
+                }
+                if (j.contains("visual_only") && j["visual_only"].is_boolean()) {
+                    def.visual_only = j["visual_only"].get<bool>();
+                }
+
+                if (j.contains("domains") && j["domains"].is_array()) {
+                    std::vector<Domain> domains;
+                    for (const auto& d : j["domains"]) {
+                        if (d.is_string()) {
+                            domains.push_back(parse_domain(d.get<std::string>()));
+                        }
+                    }
+                    if (!domains.empty()) {
+                        def.domains = std::move(domains);
+                    }
+                }
+
+                if (j.contains("interface") && j["interface"].is_array()) {
+                    for (const auto& p : j["interface"]) {
+                        if (!p.is_object() || !p.contains("name") || !p["name"].is_string()) {
+                            continue;
+                        }
+                        Port port;
+                        int dir = p.value("direction", 1);
+                        if (dir == 0) port.direction = PortDirection::In;
+                        else if (dir == 2) port.direction = PortDirection::InOut;
+                        else port.direction = PortDirection::Out;
+
+                        std::string type_s = p.value("type", std::string("Any"));
+                        try {
+                            port.type = parse_port_type(type_s);
+                        } catch (...) {
+                            port.type = PortType::Any;
+                        }
+
+                        def.ports[p["name"].get<std::string>()] = port;
+                    }
+                }
+
+                if (j.contains("param_defaults") && j["param_defaults"].is_object()) {
+                    for (auto& [k, v] : j["param_defaults"].items()) {
+                        if (v.is_string()) {
+                            def.params[k] = v.get<std::string>();
+                        } else if (v.is_number()) {
+                            def.params[k] = std::to_string(v.get<double>());
+                        }
+                    }
+                }
+
+                auto parse_endpoint = [](std::string const& s) -> std::optional<std::pair<std::string, std::string>> {
+                    if (s.empty() || s[0] != '/') return std::nullopt;
+                    size_t colon = s.rfind(':');
+                    if (colon == std::string::npos || colon <= 1 || colon + 1 >= s.size()) {
+                        return std::nullopt;
+                    }
+                    std::string node = s.substr(1, colon - 1);
+                    std::string port = s.substr(colon + 1);
+                    return std::make_pair(node, port);
+                };
+
+                if (j.contains("nodes") && j["nodes"].is_array()) {
+                    for (auto const& n : j["nodes"]) {
+                        if (!n.is_object() || !n.contains("id") || !n["id"].is_string()) {
+                            continue;
+                        }
+                        DeviceInstance dev;
+                        dev.name = n["id"].get<std::string>();
+                        dev.classname = n.value("type", std::string());
+                        if (n.contains("name") && n["name"].is_string()) {
+                            dev.display_name = n["name"].get<std::string>();
+                        }
+                        if (n.contains("params") && n["params"].is_object()) {
+                            for (auto& [k, v] : n["params"].items()) {
+                                if (v.is_string()) dev.params[k] = v.get<std::string>();
+                                else if (v.is_number()) dev.params[k] = std::to_string(v.get<double>());
+                            }
+                        }
+                        def.devices.push_back(std::move(dev));
+                    }
+                }
+
+                if (j.contains("wires") && j["wires"].is_array()) {
+                    for (auto const& w : j["wires"]) {
+                        if (!w.is_object() || !w.contains("source") || !w.contains("target")
+                            || !w["source"].is_string() || !w["target"].is_string()) {
+                            continue;
+                        }
+                        auto src = parse_endpoint(w["source"].get<std::string>());
+                        auto tgt = parse_endpoint(w["target"].get<std::string>());
+                        if (!src || !tgt) continue;
+                        Connection c;
+                        c.from = src->first + "." + src->second;
+                        c.to = tgt->first + "." + tgt->second;
+                        def.connections.push_back(std::move(c));
+                    }
+                }
+
+                if (j.contains("nested") && j["nested"].is_array()) {
+                    for (auto const& n : j["nested"]) {
+                        if (!n.is_object()) continue;
+                        if (!n.contains("id") || !n["id"].is_string()) continue;
+                        if (!n.contains("blueprint") || !n["blueprint"].is_string()) continue;
+                        SubBlueprintRef ref;
+                        ref.id = n["id"].get<std::string>();
+                        ref.type_name = n["blueprint"].get<std::string>();
+                        ref.blueprint_path = ref.type_name;
+                        def.sub_blueprints.push_back(std::move(ref));
+                    }
+                }
 
                 // Warn and derive classname from filename if empty
                 if (def.classname.empty()) {

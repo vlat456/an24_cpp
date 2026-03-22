@@ -1,23 +1,24 @@
 {
-  "exposes": {
-    "input": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Gyroscope",
+  "display_name": "Gyroscope",
+  "interface": [
+    {
+      "name": "input",
+      "domain": 1,
+      "direction": 0,
       "type": "I"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Gyroscope sensor (power-only load)",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Gyroscope"
-  },
-  "params": {
-    "conductance": {
-      "default": "0.035",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Gyroscope sensor (power-only load)",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "conductance": "0.035"
+  }
 }

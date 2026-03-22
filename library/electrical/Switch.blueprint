@@ -1,36 +1,43 @@
 {
-  "exposes": {
-    "control": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Switch",
+  "display_name": "Switch",
+  "interface": [
+    {
+      "name": "control",
+      "domain": 16,
+      "direction": 0,
       "type": "Temperature"
     },
-    "state": {
-      "direction": "Out",
+    {
+      "name": "state",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     },
-    "v_in": {
-      "direction": "In",
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "v_out": {
-      "direction": "Out",
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "content_type": "Switch",
-    "cpp_class": true,
-    "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Switch"
-  },
-  "params": {
-    "closed": {
-      "default": "false",
-      "type": "bool"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
+  "domains": [
+    "Electrical"
+  ],
+  "content_type": "Switch",
+  "param_defaults": {
+    "closed": "false"
+  }
 }

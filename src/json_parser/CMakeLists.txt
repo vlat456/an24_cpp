@@ -1,7 +1,5 @@
 add_library(json_parser
     json_parser.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/flat_blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/type_def_convert.cpp
 )
 target_include_directories(json_parser PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}

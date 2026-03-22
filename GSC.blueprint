@@ -1,458 +1,293 @@
 {
-  "meta": {
-    "name": "GS24_1"
-  },
-  "nodes": {
-    "add_1": {
-      "pos": [
-        928.0,
-        48.0
-      ],
-      "type": "Add"
+  "version": "3.0",
+  "id": "GS24_1",
+  "display_name": "GS24_1",
+  "interface": [],
+  "nodes": [
+    {
+      "id": "add_1",
+      "type": "Add",
+      "position": {
+        "x": 928.0,
+        "y": 48.0
+      }
     },
-    "add_2": {
-      "display_name": "ОстНамагн",
-      "pos": [
-        368.0,
-        -96.0
-      ],
-      "type": "Add"
+    {
+      "id": "add_2",
+      "type": "Add",
+      "name": "ОстНамагн",
+      "position": {
+        "x": 368.0,
+        "y": -96.0
+      }
     },
-    "clamp_1": {
-      "display_name": "SoftProtect",
+    {
+      "id": "clamp_1",
+      "type": "Clamp",
+      "name": "SoftProtect",
+      "position": {
+        "x": 1152.0,
+        "y": 32.0
+      },
       "params": {
-        "max": "10",
-        "min": "0.05"
+        "max": 10.0,
+        "min": 0.05
+      }
+    },
+    {
+      "id": "divide_1",
+      "type": "Divide",
+      "position": {
+        "x": 1040.0,
+        "y": 32.0
+      }
+    },
+    {
+      "id": "fasttmo_1",
+      "type": "FastTMO",
+      "name": "Inductance",
+      "position": {
+        "x": 624.0,
+        "y": -144.0
       },
-      "pos": [
-        1152.0,
-        32.0
-      ],
-      "type": "Clamp"
-    },
-    "divide_1": {
-      "pos": [
-        1040.0,
-        32.0
-      ],
-      "type": "Divide"
-    },
-    "fasttmo_1": {
-      "display_name": "Inductance",
       "params": {
-        "deadzone": "0.01",
-        "tau": "0.2"
-      },
-      "pos": [
-        624.0,
-        -144.0
-      ],
-      "type": "FastTMO"
+        "deadzone": 0.01,
+        "tau": 0.2
+      }
     },
-    "group_1": {
-      "color": {
-        "a": 1.0,
-        "b": 0.06744556874036789,
-        "g": 0.06744556874036789,
-        "r": 0.3497757911682129
-      },
-      "display_name": "ЭДС",
-      "pos": [
-        160.0,
-        -176.0
-      ],
+    {
+      "id": "group_1",
+      "type": "Group",
+      "name": "ЭДС",
       "render_hint": "group",
-      "size": [
-        560.0,
-        496.0
-      ],
-      "type": "Group"
-    },
-    "group_2": {
-      "color": {
-        "a": 1.0,
-        "b": 0.33183854818344116,
-        "g": 0.02976137585937977,
-        "r": 0.02976130321621895
+      "position": {
+        "x": 160.0,
+        "y": -176.0
       },
-      "display_name": "РУГ+ОС",
-      "pos": [
-        720.0,
-        -176.0
-      ],
+      "width": 560.0,
+      "height": 496.0,
+      "has_color": true,
+      "color_r": 0.3497757911682129,
+      "color_g": 0.06744556874036789,
+      "color_b": 0.06744556874036789,
+      "color_a": 1.0
+    },
+    {
+      "id": "group_2",
+      "type": "Group",
+      "name": "РУГ+ОС",
       "render_hint": "group",
-      "size": [
-        608.0,
-        560.0
-      ],
-      "type": "Group"
+      "position": {
+        "x": 720.0,
+        "y": -176.0
+      },
+      "width": 608.0,
+      "height": 560.0,
+      "has_color": true,
+      "color_r": 0.02976130321621895,
+      "color_g": 0.02976137585937977,
+      "color_b": 0.33183854818344116,
+      "color_a": 1.0
     },
-    "multiply_1": {
-      "display_name": "MagneticFlux",
-      "pos": [
-        208.0,
-        0.0
-      ],
-      "type": "Multiply"
+    {
+      "id": "multiply_1",
+      "type": "Multiply",
+      "name": "MagneticFlux",
+      "position": {
+        "x": 208.0,
+        "y": 0.0
+      }
     },
-    "multiply_2": {
-      "display_name": "Gain",
-      "pos": [
-        496.0,
-        -96.0
-      ],
-      "type": "Multiply"
+    {
+      "id": "multiply_2",
+      "type": "Multiply",
+      "name": "Gain",
+      "position": {
+        "x": 496.0,
+        "y": -96.0
+      }
     },
-    "pid_1": {
+    {
+      "id": "pid_1",
+      "type": "PID",
       "group_id": "rug_82_1_1",
-      "params": {
-        "Kd": "0.001",
-        "Ki": "2",
-        "Kp": "0.4",
-        "filter_alpha": "0.2",
-        "output_max": "1",
-        "output_min": "0"
+      "position": {
+        "x": 400.0,
+        "y": 64.0
       },
-      "pos": [
-        400.0,
-        64.0
-      ],
-      "type": "PID"
+      "params": {
+        "Kd": 0.001,
+        "Ki": 2.0,
+        "Kp": 0.4,
+        "filter_alpha": 0.2,
+        "output_max": 1.0,
+        "output_min": 0.0
+      }
     },
-    "refnode_1": {
-      "display_name": "Gen_Power",
-      "params": {
-        "value": "2.8"
-      },
-      "pos": [
-        432.0,
-        16.0
-      ],
+    {
+      "id": "refnode_1",
+      "type": "RefNode",
+      "name": "Gen_Power",
       "render_hint": "ref",
-      "type": "RefNode"
-    },
-    "refnode_3": {
-      "display_name": "СопрОбмоток",
-      "params": {
-        "value": "2"
+      "position": {
+        "x": 432.0,
+        "y": 16.0
       },
-      "pos": [
-        848.0,
-        208.0
-      ],
-      "render_hint": "ref",
-      "size": [
-        112.0,
-        32.0
-      ],
-      "type": "RefNode"
+      "params": {
+        "value": 2.8
+      }
     },
-    "refnode_4": {
+    {
+      "id": "refnode_3",
+      "type": "RefNode",
+      "name": "СопрОбмоток",
+      "render_hint": "ref",
+      "position": {
+        "x": 848.0,
+        "y": 208.0
+      },
+      "width": 112.0,
+      "height": 32.0,
+      "params": {
+        "value": 2.0
+      }
+    },
+    {
+      "id": "refnode_4",
+      "type": "RefNode",
+      "render_hint": "ref",
       "group_id": "rug_82_1_1",
-      "params": {
-        "value": "28.5"
+      "position": {
+        "x": 256.0,
+        "y": 16.0
       },
-      "pos": [
-        256.0,
-        16.0
-      ],
-      "render_hint": "ref",
-      "type": "RefNode"
-    },
-    "refnode_5": {
-      "display_name": "ОстНамагнVal",
       "params": {
-        "value": "0.05"
-      },
-      "pos": [
-        240.0,
-        -64.0
-      ],
-      "render_hint": "ref",
-      "type": "RefNode"
+        "value": 28.5
+      }
     },
-    "rug_82_1_1": {
-      "blueprint_path": "systems/RUG_82_1",
+    {
+      "id": "refnode_5",
+      "type": "RefNode",
+      "name": "ОстНамагнVal",
+      "render_hint": "ref",
+      "position": {
+        "x": 240.0,
+        "y": -64.0
+      },
+      "params": {
+        "value": 0.05
+      }
+    },
+    {
+      "id": "rug_82_1_1",
+      "type": "RUG82",
       "expandable": true,
+      "blueprint_path": "systems/RUG_82_1",
+      "position": {
+        "x": 752.0,
+        "y": 32.0
+      },
+      "width": 120.0,
+      "height": 96.0,
       "layout_overrides": [
         {
-          "port": "v",
+          "port_name": "v",
           "side": "top"
         }
-      ],
-      "pos": [
-        752.0,
-        32.0
-      ],
-      "size": [
-        120.0,
-        96.0
-      ],
-      "type": "RUG_82_1"
+      ]
     },
-    "slider_1": {
-      "content": {
-        "kind": "slider",
-        "label": "",
-        "max": 1.0,
-        "min": 0.0,
-        "unit": "",
-        "value": 1.0
-      },
+    {
+      "id": "slider_1",
+      "type": "Slider",
       "params": {
-        "max": "1.0",
-        "min": "0.0"
+        "max": 1.0,
+        "min": 0.0
       },
-      "type": "Slider"
+      "content_type": 6,
+      "content_label": "",
+      "content_value": 1.0,
+      "content_min": 0.0,
+      "content_max": 1.0,
+      "content_unit": ""
     },
-    "splitter_1": {
-      "pos": [
-        880.0,
-        -128.0
-      ],
-      "size": [
-        48.0,
-        80.0
-      ],
-      "type": "Splitter"
+    {
+      "id": "splitter_1",
+      "type": "Splitter",
+      "position": {
+        "x": 880.0,
+        "y": -128.0
+      },
+      "width": 48.0,
+      "height": 80.0
     },
-    "splitter_2": {
-      "pos": [
-        752.0,
-        -144.0
-      ],
-      "type": "Splitter"
+    {
+      "id": "splitter_2",
+      "type": "Splitter",
+      "position": {
+        "x": 752.0,
+        "y": -144.0
+      }
     },
-    "voltmeter_1": {
-      "content": {
-        "kind": "gauge",
-        "label": "V",
+    {
+      "id": "voltmeter_1",
+      "type": "Voltmeter",
+      "position": {
+        "x": 816.0,
+        "y": -368.0
+      },
+      "width": 96.0,
+      "height": 176.0,
+      "params": {
         "max": 28.0,
-        "min": 0.0,
-        "unit": "V",
-        "value": 0.13060763478279114
+        "min": 0.0
       },
+      "content_type": 1,
+      "content_label": "V",
+      "content_value": 0.13060763478279114,
+      "content_min": 0.0,
+      "content_max": 28.0,
+      "content_unit": "V",
       "layout_overrides": [
         {
-          "port": "v_in",
+          "port_name": "v_in",
           "side": "bottom"
-        }
-      ],
-      "params": {
-        "max": "28.0",
-        "min": "0.0"
-      },
-      "pos": [
-        816.0,
-        -368.0
-      ],
-      "size": [
-        96.0,
-        176.0
-      ],
-      "type": "Voltmeter"
-    }
-  },
-  "sub_blueprints": {
-    "rug_82_1_1": {
-      "collapsed": true,
-      "nodes": {
-        "Comp": {
-          "group_id": "rug_82_1_1",
-          "params": {
-            "exposed_direction": "Out",
-            "exposed_type": "Any"
-          },
-          "pos": [
-            896.0,
-            128.0
-          ],
-          "type": "BlueprintOutput"
-        },
-        "lut_2": {
-          "display_name": "CarbonPileLUT",
-          "group_id": "rug_82_1_1",
-          "params": {
-            "table": "0.0:50.0; 0.2:25.0; 0.5:10.0; 0.8:5.0; 1.0:0.1"
-          },
-          "pos": [
-            576.0,
-            96.0
-          ],
-          "type": "LUT"
-        },
-        "pid_1": {
-          "group_id": "rug_82_1_1",
-          "params": {
-            "Kd": "0.001",
-            "Ki": "2",
-            "Kp": "0.4",
-            "filter_alpha": "0.2",
-            "output_max": "1",
-            "output_min": "0"
-          },
-          "pos": [
-            400.0,
-            64.0
-          ],
-          "type": "PID"
-        },
-        "refnode_4": {
-          "group_id": "rug_82_1_1",
-          "params": {
-            "value": "28.5"
-          },
-          "pos": [
-            256.0,
-            16.0
-          ],
-          "render_hint": "ref",
-          "type": "RefNode"
-        },
-        "v": {
-          "group_id": "rug_82_1_1",
-          "params": {
-            "exposed_direction": "In",
-            "exposed_type": "V"
-          },
-          "pos": [
-            80.0,
-            80.0
-          ],
-          "type": "BlueprintInput"
-        }
-      },
-      "pos": [
-        768.0,
-        48.0
-      ],
-      "size": [
-        120.0,
-        96.0
-      ],
-      "template": "systems/RUG_82_1",
-      "type_name": "RUG_82_1",
-      "wires": [
-        {
-          "from": [
-            "lut_2",
-            "output"
-          ],
-          "id": "rug_82_1_1:lut_2.output->Comp.port",
-          "to": [
-            "Comp",
-            "port"
-          ]
-        },
-        {
-          "from": [
-            "lut_2",
-            "refnode_1"
-          ],
-          "id": "rug_82_1_1:lut_2.output->Comp.port",
-          "to": [
-            "Comp",
-            "blueprintinput_1"
-          ]
-        },
-        {
-          "from": [
-            "pid_1",
-            "output"
-          ],
-          "id": "wire_41",
-          "to": [
-            "lut_2",
-            "input"
-          ]
-        },
-        {
-          "from": [
-            "v",
-            "port"
-          ],
-          "id": "wire_42",
-          "to": [
-            "pid_1",
-            "feedback"
-          ]
-        },
-        {
-          "from": [
-            "refnode_4",
-            "v"
-          ],
-          "id": "wire_43",
-          "to": [
-            "pid_1",
-            "setpoint"
-          ]
         }
       ]
     }
-  },
-  "version": 2,
-  "viewport": {
-    "grid": 16.0,
-    "pan": [
-      312.0421142578125,
-      -259.7108154296875
-    ],
-    "zoom": 1.1701408624649048
-  },
+  ],
   "wires": [
     {
-      "from": [
-        "refnode_1",
-        "v"
-      ],
       "id": "wire_16",
-      "routing": [
+      "source": "/refnode_1:v",
+      "target": "/multiply_2:B",
+      "routing_points": [
         [
           464.0,
           -48.0
         ]
-      ],
-      "to": [
-        "multiply_2",
-        "B"
       ]
     },
     {
-      "from": [
-        "refnode_3",
-        "v"
-      ],
       "id": "wire_20",
-      "routing": [
+      "source": "/refnode_3:v",
+      "target": "/add_1:B",
+      "routing_points": [
         [
           896.0,
           96.0
         ]
-      ],
-      "to": [
-        "add_1",
-        "B"
       ]
     },
     {
-      "from": [
-        "add_1",
-        "o"
-      ],
       "id": "wire_21",
-      "to": [
-        "divide_1",
-        "B"
-      ]
+      "source": "/add_1:o",
+      "target": "/divide_1:B"
     },
     {
-      "from": [
-        "splitter_1",
-        "o2"
-      ],
       "id": "wire_26",
-      "routing": [
+      "source": "/splitter_1:o2",
+      "target": "/divide_1:A",
+      "routing_points": [
         [
           1008.0,
           -96.0
@@ -461,30 +296,18 @@
           1008.0,
           64.0
         ]
-      ],
-      "to": [
-        "divide_1",
-        "A"
       ]
     },
     {
-      "from": [
-        "divide_1",
-        "o"
-      ],
       "id": "wire_27",
-      "to": [
-        "clamp_1",
-        "in"
-      ]
+      "source": "/divide_1:o",
+      "target": "/clamp_1:in"
     },
     {
-      "from": [
-        "clamp_1",
-        "out"
-      ],
       "id": "wire_28",
-      "routing": [
+      "source": "/clamp_1:out",
+      "target": "/multiply_1:B",
+      "routing_points": [
         [
           1264.0,
           64.0
@@ -501,19 +324,13 @@
           176.0,
           48.0
         ]
-      ],
-      "to": [
-        "multiply_1",
-        "B"
       ]
     },
     {
-      "from": [
-        "multiply_2",
-        "o"
-      ],
       "id": "wire_38",
-      "routing": [
+      "source": "/multiply_2:o",
+      "target": "/fasttmo_1:in",
+      "routing_points": [
         [
           592.0,
           -64.0
@@ -522,30 +339,18 @@
           592.0,
           -112.0
         ]
-      ],
-      "to": [
-        "fasttmo_1",
-        "in"
       ]
     },
     {
-      "from": [
-        "refnode_4",
-        "v"
-      ],
       "id": "wire_43",
-      "to": [
-        "pid_1",
-        "setpoint"
-      ]
+      "source": "/refnode_4:v",
+      "target": "/pid_1:setpoint"
     },
     {
-      "from": [
-        "splitter_1",
-        "o1"
-      ],
       "id": "wire_44",
-      "routing": [
+      "source": "/splitter_1:o1",
+      "target": "/rug_82_1_1:v",
+      "routing_points": [
         [
           960.0,
           -80.0
@@ -558,80 +363,44 @@
           816.0,
           -32.0
         ]
-      ],
-      "to": [
-        "rug_82_1_1",
-        "v"
       ]
     },
     {
-      "from": [
-        "rug_82_1_1",
-        "Comp"
-      ],
       "id": "wire_45",
-      "to": [
-        "add_1",
-        "A"
-      ]
+      "source": "/rug_82_1_1:Comp",
+      "target": "/add_1:A"
     },
     {
-      "from": [
-        "fasttmo_1",
-        "out"
-      ],
       "id": "wire_46",
-      "to": [
-        "splitter_2",
-        "i"
-      ]
+      "source": "/fasttmo_1:out",
+      "target": "/splitter_2:i"
     },
     {
-      "from": [
-        "splitter_2",
-        "o1"
-      ],
       "id": "wire_47",
-      "to": [
-        "splitter_1",
-        "i"
-      ]
+      "source": "/splitter_2:o1",
+      "target": "/splitter_1:i"
     },
     {
-      "from": [
-        "splitter_2",
-        "o2"
-      ],
       "id": "wire_48",
-      "routing": [
+      "source": "/splitter_2:o2",
+      "target": "/voltmeter_1:v_in",
+      "routing_points": [
         [
           864.0,
           -112.0
         ]
-      ],
-      "to": [
-        "voltmeter_1",
-        "v_in"
       ]
     },
     {
-      "from": [
-        "slider_1",
-        "out"
-      ],
       "id": "wire_49",
-      "to": [
-        "multiply_1",
-        "A"
-      ]
+      "source": "/slider_1:out",
+      "target": "/multiply_1:A"
     },
     {
-      "from": [
-        "multiply_1",
-        "o"
-      ],
       "id": "wire_50",
-      "routing": [
+      "source": "/multiply_1:o",
+      "target": "/add_2:B",
+      "routing_points": [
         [
           336.0,
           32.0
@@ -640,33 +409,126 @@
           336.0,
           -48.0
         ]
-      ],
-      "to": [
-        "add_2",
-        "B"
       ]
     },
     {
-      "from": [
-        "add_2",
-        "o"
-      ],
       "id": "wire_52",
-      "to": [
-        "multiply_2",
-        "A"
-      ]
+      "source": "/add_2:o",
+      "target": "/multiply_2:A"
     },
     {
-      "from": [
-        "refnode_5",
-        "v"
-      ],
       "id": "wire_53",
-      "to": [
-        "add_2",
-        "A"
-      ]
+      "source": "/refnode_5:v",
+      "target": "/add_2:A"
     }
-  ]
+  ],
+  "nested": [
+    {
+      "id": "rug_82_1_1",
+      "embedded": true,
+      "position": {
+        "x": 768.0,
+        "y": 48.0
+      },
+      "blueprint": "RUG82",
+      "definition": {
+        "version": "3.0",
+        "id": "RUG82",
+        "display_name": "systems/RUG_82_1",
+        "interface": [],
+        "nodes": [
+          {
+            "id": "Comp",
+            "type": "BlueprintOutput",
+            "group_id": "rug_82_1_1",
+            "position": {
+              "x": 896.0,
+              "y": 128.0
+            }
+          },
+          {
+            "id": "lut_2",
+            "type": "LUT",
+            "name": "CarbonPileLUT",
+            "group_id": "rug_82_1_1",
+            "position": {
+              "x": 576.0,
+              "y": 96.0
+            }
+          },
+          {
+            "id": "pid_1",
+            "type": "PID",
+            "group_id": "rug_82_1_1",
+            "position": {
+              "x": 400.0,
+              "y": 64.0
+            },
+            "params": {
+              "Kd": 0.001,
+              "Ki": 2.0,
+              "Kp": 0.4,
+              "filter_alpha": 0.2,
+              "output_max": 1.0,
+              "output_min": 0.0
+            }
+          },
+          {
+            "id": "refnode_4",
+            "type": "RefNode",
+            "render_hint": "ref",
+            "group_id": "rug_82_1_1",
+            "position": {
+              "x": 256.0,
+              "y": 16.0
+            },
+            "params": {
+              "value": 28.5
+            }
+          },
+          {
+            "id": "v",
+            "type": "BlueprintInput",
+            "group_id": "rug_82_1_1",
+            "position": {
+              "x": 80.0,
+              "y": 80.0
+            }
+          }
+        ],
+        "wires": [
+          {
+            "id": "rug_82_1_1:lut_2.output->Comp.port",
+            "source": "/lut_2:output",
+            "target": "/Comp:port"
+          },
+          {
+            "id": "rug_82_1_1:lut_2.output->Comp.port",
+            "source": "/lut_2:refnode_1",
+            "target": "/Comp:blueprintinput_1"
+          },
+          {
+            "id": "wire_41",
+            "source": "/pid_1:output",
+            "target": "/lut_2:input"
+          },
+          {
+            "id": "wire_42",
+            "source": "/v:port",
+            "target": "/pid_1:feedback"
+          },
+          {
+            "id": "wire_43",
+            "source": "/refnode_4:v",
+            "target": "/pid_1:setpoint"
+          }
+        ],
+        "nested": []
+      }
+    }
+  ],
+  "pan_x": 312.0421142578125,
+  "pan_y": -259.7108154296875,
+  "zoom": 1.1701408624649048,
+  "grid_step": 16.0
 }

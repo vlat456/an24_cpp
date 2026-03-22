@@ -1,29 +1,27 @@
 {
-  "exposes": {
-    "v_in": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Voltmeter",
+  "display_name": "Voltmeter",
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     }
-  },
-  "meta": {
-    "content_type": "Gauge",
-    "cpp_class": true,
-    "description": "Analog voltmeter gauge for measuring voltage",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Voltmeter",
-    "priority": "low"
-  },
-  "params": {
-    "max": {
-      "default": "28.0",
-      "type": "float"
-    },
-    "min": {
-      "default": "0.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Analog voltmeter gauge for measuring voltage",
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "low",
+  "content_type": "Gauge",
+  "param_defaults": {
+    "max": "28.0",
+    "min": "0.0"
+  }
 }

@@ -6,7 +6,6 @@ add_library(blueprint_v2 STATIC
     codec/blueprint_codec.cpp
     flattener/flattener.cpp
     editor_model/editor_model.cpp
-    bridge/blueprint_bridge.cpp
     validation/path_resolver.cpp
     validation/wire_validator.cpp
     validation/invariant_checker.cpp

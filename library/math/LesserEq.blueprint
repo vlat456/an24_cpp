@@ -1,25 +1,33 @@
 {
-  "exposes": {
-    "A": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "LesserEq",
+  "display_name": "LesserEq",
+  "interface": [
+    {
+      "name": "A",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "B": {
-      "direction": "In",
+    {
+      "name": "B",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "o": {
-      "direction": "Out",
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Returns 1.0 if A <= B, else 0.0",
-    "domains": [
-      "Logical"
-    ],
-    "name": "LesserEq"
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Returns 1.0 if A <= B, else 0.0",
+  "domains": [
+    "Logical"
+  ]
 }

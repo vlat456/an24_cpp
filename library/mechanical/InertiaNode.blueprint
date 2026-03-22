@@ -1,31 +1,31 @@
 {
-  "exposes": {
-    "input": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "InertiaNode",
+  "display_name": "InertiaNode",
+  "interface": [
+    {
+      "name": "input",
+      "domain": 1,
+      "direction": 0,
       "type": "I"
     },
-    "output": {
-      "direction": "Out",
+    {
+      "name": "output",
+      "domain": 16,
+      "direction": 1,
       "type": "Temperature"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Mechanical inertia simulation node",
-    "domains": [
-      "Mechanical"
-    ],
-    "name": "InertiaNode"
-  },
-  "params": {
-    "damping": {
-      "default": "0.5",
-      "type": "float"
-    },
-    "mass": {
-      "default": "1.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Mechanical inertia simulation node",
+  "domains": [
+    "Mechanical"
+  ],
+  "param_defaults": {
+    "damping": "0.5",
+    "mass": "1.0"
+  }
 }

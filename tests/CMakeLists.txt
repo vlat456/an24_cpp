@@ -1229,6 +1229,23 @@ target_link_libraries(sub_blueprint_ref_tests PRIVATE
 )
 gtest_discover_tests(sub_blueprint_ref_tests)
 
+add_executable(v3_migration_tests
+    test_v3_migration.cpp
+)
+target_include_directories(v3_migration_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(v3_migration_tests PRIVATE
+    blueprint_v2
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(v3_migration_tests)
+
 # Document + WindowSystem tests (MDI lifecycle, regression tests)
 # DISABLED: test_document_window_system.cpp was removed
 # add_executable(document_window_system_tests
@@ -1236,38 +1253,6 @@ gtest_discover_tests(sub_blueprint_ref_tests)
 #     ...
 # )
 
-
-# FlatBlueprint format tests (was v2 format)
-add_executable(flat_blueprint_tests
-    test_blueprint_v2.cpp
-)
-target_include_directories(flat_blueprint_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(flat_blueprint_tests PRIVATE
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(flat_blueprint_tests)
-
-# Library conversion tests
-add_executable(library_v2_tests
-    test_library_v2.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(library_v2_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(library_v2_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(library_v2_tests)
 
 # Multi-domain scheduling tests
 add_executable(multi_domain_tests
@@ -1635,23 +1620,6 @@ target_link_libraries(bp2_editor_model_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_editor_model_tests)
-
-# BlueprintBridge v2 tests (Phase 7)
-add_executable(bp2_bridge_tests
-    blueprint_v2/test_bridge.cpp
-)
-target_include_directories(bp2_bridge_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(bp2_bridge_tests PRIVATE
-    blueprint_v2
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(bp2_bridge_tests)
 
 add_executable(bp2_bake_tests
     blueprint_v2/test_bake.cpp

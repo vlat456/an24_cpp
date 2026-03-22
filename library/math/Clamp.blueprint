@@ -1,35 +1,31 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Clamp",
+  "display_name": "Clamp",
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "out": {
-      "direction": "Out",
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Clamps input value between min and max parameters",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Clamp",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "params": {
-    "max": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "min": {
-      "default": "0.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Clamps input value between min and max parameters",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "max": "1.0",
+    "min": "0.0"
+  }
 }

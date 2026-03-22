@@ -1,31 +1,30 @@
 {
-  "exposes": {
-    "input": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "LUT",
+  "display_name": "LUT",
+  "interface": [
+    {
+      "name": "input",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "output": {
-      "direction": "Out",
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Lookup table with linear interpolation. Maps input signal to output via breakpoint table. Table is defined as semicolon-separated key:value pairs in the 'table' param.",
-    "domains": [
-      "Logical"
-    ],
-    "name": "LUT",
-    "size": [
-      3.0,
-      2.0
-    ]
-  },
-  "params": {
-    "table": {
-      "default": "0:0; 100:100",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Lookup table with linear interpolation. Maps input signal to output via breakpoint table. Table is defined as semicolon-separated key:value pairs in the 'table' param.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "table": "0:0; 100:100"
+  }
 }

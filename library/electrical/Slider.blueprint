@@ -1,18 +1,32 @@
 {
-  "exposes": {
-    "control": { "direction": "In", "type": "Any" },
-    "out":     { "direction": "Out", "type": "Any" }
-  },
-  "meta": {
-    "content_type": "Slider",
-    "cpp_class": true,
-    "description": "Interactive slider control with configurable min/max range. Drag the handle to set the output value.",
-    "domains": [ "Logical" ],
-    "name": "Slider"
-  },
-  "params": {
-    "min": { "default": "0.0", "type": "float" },
-    "max": { "default": "1.0", "type": "float" }
-  },
-  "version": 2
+  "version": "3.0",
+  "id": "Slider",
+  "display_name": "Slider",
+  "interface": [
+    {
+      "name": "control",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any"
+    },
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any"
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Interactive slider control with configurable min/max range. Drag the handle to set the output value.",
+  "domains": [
+    "Logical"
+  ],
+  "content_type": "Slider",
+  "param_defaults": {
+    "min": "0.0",
+    "max": "1.0"
+  }
 }

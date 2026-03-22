@@ -448,6 +448,7 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
+  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_set \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/valarray \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
@@ -520,8 +521,16 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   _deps/json-src/include/nlohmann/ordered_map.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley.hpp \
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/interface/port_descriptor.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/path/path.h \
+  /Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/codegen/codegen.h \
+  /Users/vladimir/an24_cpp/src/ui/core/interned_id.h \
+  /Users/vladimir/an24_cpp/src/editor/data/port.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
@@ -532,7 +541,9 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
   /Users/vladimir/an24_cpp/src/jit_solver/scheduling.h \
-  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/ui/core/interned_id.h
 
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h:
@@ -544,6 +555,10 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
 /Users/vladimir/an24_cpp/src/jit_solver/component.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.h:
 
 _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp:
 
@@ -650,6 +665,8 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/stack:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/ratio:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/optional:
 
@@ -782,6 +799,8 @@ _deps/json-src/include/nlohmann/detail/input/binary_reader.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_intptr_t.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__random/uniform_int_distribution.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/interface/port_descriptor.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__locale:
 
@@ -927,6 +946,8 @@ _deps/json-src/include/nlohmann/detail/meta/std_fs.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shuffle.h:
 
+/Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/istream_iterator.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/shift_right.h:
@@ -1063,6 +1084,8 @@ _deps/json-src/include/nlohmann/detail/iterators/iteration_proxy.hpp:
 
 _deps/json-src/include/nlohmann/detail/conversions/from_json.hpp:
 
+/Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_set:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill_n.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__memory/allocator_traits.h:
@@ -1149,6 +1172,8 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_useconds_t.h:
 
+/Users/vladimir/an24_cpp/src/ui/core/interned_id.h:
+
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/default_sentinel.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/reverse.h:
@@ -1168,6 +1193,8 @@ _deps/json-src/include/nlohmann/detail/input/input_adapters.hpp:
 /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uintptr_t.h:
+
+/Users/vladimir/an24_cpp/src/blueprint_v2/path/path.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rune_t.h:
 
@@ -1458,6 +1485,8 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
+
+/Users/vladimir/an24_cpp/src/editor/data/port.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
 

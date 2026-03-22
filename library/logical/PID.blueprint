@@ -1,51 +1,41 @@
 {
-  "exposes": {
-    "feedback": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "PID",
+  "display_name": "PID",
+  "interface": [
+    {
+      "name": "feedback",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "output": {
-      "direction": "Out",
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     },
-    "setpoint": {
-      "direction": "In",
+    {
+      "name": "setpoint",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "PID controller with proportional, integral, and derivative terms",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "PID"
-  },
-  "params": {
-    "Kd": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Ki": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Kp": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "filter_alpha": {
-      "default": "0.2",
-      "type": "float"
-    },
-    "output_max": {
-      "default": "1000.0",
-      "type": "float"
-    },
-    "output_min": {
-      "default": "-1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "PID controller with proportional, integral, and derivative terms",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "Kd": "0.0",
+    "Ki": "0.0",
+    "Kp": "1.0",
+    "filter_alpha": "0.2",
+    "output_max": "1000.0",
+    "output_min": "-1000.0"
+  }
 }

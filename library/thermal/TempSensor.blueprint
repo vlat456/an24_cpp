@@ -1,27 +1,30 @@
 {
-  "exposes": {
-    "temp_in": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "TempSensor",
+  "display_name": "TempSensor",
+  "interface": [
+    {
+      "name": "temp_in",
+      "domain": 1,
+      "direction": 0,
       "type": "I"
     },
-    "temp_out": {
-      "direction": "Out",
+    {
+      "name": "temp_out",
+      "domain": 16,
+      "direction": 1,
       "type": "Temperature"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Temperature sensor with sensitivity",
-    "domains": [
-      "Thermal"
-    ],
-    "name": "TempSensor"
-  },
-  "params": {
-    "sensitivity": {
-      "default": "1.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Temperature sensor with sensitivity",
+  "domains": [
+    "Thermal"
+  ],
+  "param_defaults": {
+    "sensitivity": "1.0"
+  }
 }

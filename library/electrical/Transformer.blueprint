@@ -1,27 +1,30 @@
 {
-  "exposes": {
-    "primary": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Transformer",
+  "display_name": "Transformer",
+  "interface": [
+    {
+      "name": "primary",
+      "domain": 1,
+      "direction": 0,
       "type": "I"
     },
-    "secondary": {
-      "direction": "Out",
+    {
+      "name": "secondary",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "AC transformer with voltage ratio",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Transformer"
-  },
-  "params": {
-    "ratio": {
-      "default": "1.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "AC transformer with voltage ratio",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "ratio": "1.0"
+  }
 }

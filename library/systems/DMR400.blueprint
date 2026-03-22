@@ -1,30 +1,40 @@
 {
-  "exposes": {
-    "lamp": {
-      "direction": "Out",
+  "version": "3.0",
+  "id": "DMR400",
+  "display_name": "DMR400",
+  "interface": [
+    {
+      "name": "lamp",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     },
-    "v_gen_ref": {
-      "direction": "In",
+    {
+      "name": "v_gen_ref",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "v_in": {
-      "direction": "In",
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "v_out": {
-      "direction": "Out",
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "DMR400 Differential Minimum Relay with smart connection logic",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "DMR400",
-    "priority": "high"
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "DMR400 Differential Minimum Relay with smart connection logic",
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high"
 }

@@ -1,86 +1,69 @@
 {
-  "exposes": {
-    "vin": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "simple_battery",
+  "display_name": "simple_battery",
+  "interface": [
+    {
+      "name": "vin",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "vout": {
-      "direction": "Out",
+    {
+      "name": "vout",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "critical": true,
-    "description": "Simple battery module with exposed input/output ports",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "simple_battery",
-    "priority": "high"
-  },
-  "nodes": {
-    "bat": {
+  ],
+  "nodes": [
+    {
+      "id": "bat",
+      "type": "Battery",
       "params": {
-        "internal_r": "0.01",
-        "v_nominal": "28.0"
-      },
-      "type": "Battery"
+        "internal_r": 0.01,
+        "v_nominal": 28.0
+      }
     },
-    "gnd": {
+    {
+      "id": "gnd",
+      "type": "RefNode",
       "params": {
-        "value": "0.0"
-      },
-      "type": "RefNode"
+        "value": 0.0
+      }
     },
-    "vin": {
-      "params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
+    {
+      "id": "vin",
       "type": "BlueprintInput"
     },
-    "vout": {
-      "params": {
-        "exposed_direction": "Out",
-        "exposed_type": "V"
-      },
+    {
+      "id": "vout",
       "type": "BlueprintOutput"
     }
-  },
-  "version": 2,
+  ],
   "wires": [
     {
-      "from": [
-        "vin",
-        "port"
-      ],
       "id": "w0",
-      "to": [
-        "bat",
-        "v_in"
-      ]
+      "source": "/vin:port",
+      "target": "/bat:v_in"
     },
     {
-      "from": [
-        "bat",
-        "v_out"
-      ],
       "id": "w1",
-      "to": [
-        "vout",
-        "port"
-      ]
+      "source": "/bat:v_out",
+      "target": "/vout:port"
     },
     {
-      "from": [
-        "gnd",
-        "v"
-      ],
       "id": "w2",
-      "to": [
-        "vin",
-        "port"
-      ]
+      "source": "/gnd:v",
+      "target": "/vin:port"
     }
-  ]
+  ],
+  "nested": [],
+  "cpp_class": false,
+  "description": "Simple battery module with exposed input/output ports",
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high",
+  "critical": true
 }

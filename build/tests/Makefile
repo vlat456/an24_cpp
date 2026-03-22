@@ -1096,32 +1096,18 @@ sub_blueprint_ref_tests/fast:
 .PHONY : sub_blueprint_ref_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/flat_blueprint_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/flat_blueprint_tests.dir/rule
-.PHONY : tests/CMakeFiles/flat_blueprint_tests.dir/rule
+tests/CMakeFiles/v3_migration_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/v3_migration_tests.dir/rule
+.PHONY : tests/CMakeFiles/v3_migration_tests.dir/rule
 
 # Convenience name for target.
-flat_blueprint_tests: tests/CMakeFiles/flat_blueprint_tests.dir/rule
-.PHONY : flat_blueprint_tests
+v3_migration_tests: tests/CMakeFiles/v3_migration_tests.dir/rule
+.PHONY : v3_migration_tests
 
 # fast build rule for target.
-flat_blueprint_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
-.PHONY : flat_blueprint_tests/fast
-
-# Convenience name for target.
-tests/CMakeFiles/library_v2_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/library_v2_tests.dir/rule
-.PHONY : tests/CMakeFiles/library_v2_tests.dir/rule
-
-# Convenience name for target.
-library_v2_tests: tests/CMakeFiles/library_v2_tests.dir/rule
-.PHONY : library_v2_tests
-
-# fast build rule for target.
-library_v2_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
-.PHONY : library_v2_tests/fast
+v3_migration_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/build
+.PHONY : v3_migration_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/multi_domain_tests.dir/rule:
@@ -1446,20 +1432,6 @@ bp2_editor_model_tests/fast:
 .PHONY : bp2_editor_model_tests/fast
 
 # Convenience name for target.
-tests/CMakeFiles/bp2_bridge_tests.dir/rule:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_bridge_tests.dir/rule
-.PHONY : tests/CMakeFiles/bp2_bridge_tests.dir/rule
-
-# Convenience name for target.
-bp2_bridge_tests: tests/CMakeFiles/bp2_bridge_tests.dir/rule
-.PHONY : bp2_bridge_tests
-
-# fast build rule for target.
-bp2_bridge_tests/fast:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/build
-.PHONY : bp2_bridge_tests/fast
-
-# Convenience name for target.
 tests/CMakeFiles/bp2_bake_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_bake_tests.dir/rule
 .PHONY : tests/CMakeFiles/bp2_bake_tests.dir/rule
@@ -1574,7 +1546,6 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.o
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.cpp.o
 
@@ -1591,7 +1562,6 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.i
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.i
 .PHONY : __/src/editor/data/blueprint.cpp.i
 
@@ -1608,7 +1578,6 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.s
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
@@ -2248,30 +2217,6 @@ blueprint_v2/test_blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.s
 .PHONY : blueprint_v2/test_blueprint.cpp.s
 
-blueprint_v2/test_bridge.o: blueprint_v2/test_bridge.cpp.o
-.PHONY : blueprint_v2/test_bridge.o
-
-# target to build an object file
-blueprint_v2/test_bridge.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.o
-.PHONY : blueprint_v2/test_bridge.cpp.o
-
-blueprint_v2/test_bridge.i: blueprint_v2/test_bridge.cpp.i
-.PHONY : blueprint_v2/test_bridge.i
-
-# target to preprocess a source file
-blueprint_v2/test_bridge.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.i
-.PHONY : blueprint_v2/test_bridge.cpp.i
-
-blueprint_v2/test_bridge.s: blueprint_v2/test_bridge.cpp.s
-.PHONY : blueprint_v2/test_bridge.s
-
-# target to generate assembly for a file
-blueprint_v2/test_bridge.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.s
-.PHONY : blueprint_v2/test_bridge.cpp.s
-
 blueprint_v2/test_codec.o: blueprint_v2/test_codec.cpp.o
 .PHONY : blueprint_v2/test_codec.o
 
@@ -2848,30 +2793,6 @@ test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
 
-test_blueprint_v2.o: test_blueprint_v2.cpp.o
-.PHONY : test_blueprint_v2.o
-
-# target to build an object file
-test_blueprint_v2.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.o
-.PHONY : test_blueprint_v2.cpp.o
-
-test_blueprint_v2.i: test_blueprint_v2.cpp.i
-.PHONY : test_blueprint_v2.i
-
-# target to preprocess a source file
-test_blueprint_v2.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.i
-.PHONY : test_blueprint_v2.cpp.i
-
-test_blueprint_v2.s: test_blueprint_v2.cpp.s
-.PHONY : test_blueprint_v2.s
-
-# target to generate assembly for a file
-test_blueprint_v2.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/test_blueprint_v2.cpp.s
-.PHONY : test_blueprint_v2.cpp.s
-
 test_clamp_normalize.o: test_clamp_normalize.cpp.o
 .PHONY : test_clamp_normalize.o
 
@@ -3327,30 +3248,6 @@ test_lamp_passthrough_jit.s: test_lamp_passthrough_jit.cpp.s
 test_lamp_passthrough_jit.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lamp_passthrough_jit_test.dir/build.make tests/CMakeFiles/lamp_passthrough_jit_test.dir/test_lamp_passthrough_jit.cpp.s
 .PHONY : test_lamp_passthrough_jit.cpp.s
-
-test_library_v2.o: test_library_v2.cpp.o
-.PHONY : test_library_v2.o
-
-# target to build an object file
-test_library_v2.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.o
-.PHONY : test_library_v2.cpp.o
-
-test_library_v2.i: test_library_v2.cpp.i
-.PHONY : test_library_v2.i
-
-# target to preprocess a source file
-test_library_v2.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.i
-.PHONY : test_library_v2.cpp.i
-
-test_library_v2.s: test_library_v2.cpp.s
-.PHONY : test_library_v2.s
-
-# target to generate assembly for a file
-test_library_v2.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/test_library_v2.cpp.s
-.PHONY : test_library_v2.cpp.s
 
 test_logic_gates.o: test_logic_gates.cpp.o
 .PHONY : test_logic_gates.o
@@ -4240,6 +4137,30 @@ test_unmapped_port_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/unmapped_port_regression_tests.dir/build.make tests/CMakeFiles/unmapped_port_regression_tests.dir/test_unmapped_port_regression.cpp.s
 .PHONY : test_unmapped_port_regression.cpp.s
 
+test_v3_migration.o: test_v3_migration.cpp.o
+.PHONY : test_v3_migration.o
+
+# target to build an object file
+test_v3_migration.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.o
+.PHONY : test_v3_migration.cpp.o
+
+test_v3_migration.i: test_v3_migration.cpp.i
+.PHONY : test_v3_migration.i
+
+# target to preprocess a source file
+test_v3_migration.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.i
+.PHONY : test_v3_migration.cpp.i
+
+test_v3_migration.s: test_v3_migration.cpp.s
+.PHONY : test_v3_migration.s
+
+# target to generate assembly for a file
+test_v3_migration.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/test_v3_migration.cpp.s
+.PHONY : test_v3_migration.cpp.s
+
 test_v_to_bool.o: test_v_to_bool.cpp.o
 .PHONY : test_v_to_bool.o
 
@@ -4506,7 +4427,6 @@ help:
 	@echo "... blueprint_ports_tests"
 	@echo "... bp2_bake_tests"
 	@echo "... bp2_blueprint_tests"
-	@echo "... bp2_bridge_tests"
 	@echo "... bp2_codec_tests"
 	@echo "... bp2_editor_model_tests"
 	@echo "... bp2_flattener_tests"
@@ -4530,7 +4450,6 @@ help:
 	@echo "... electric_pump_regression_tests"
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
-	@echo "... flat_blueprint_tests"
 	@echo "... fuel_tank_regression_tests"
 	@echo "... generator_tests"
 	@echo "... gidro_accumulator_regression_tests"
@@ -4539,7 +4458,6 @@ help:
 	@echo "... inverter_regression_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
-	@echo "... library_v2_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -4579,6 +4497,7 @@ help:
 	@echo "... ui_scene_tests"
 	@echo "... ui_widget_purity_tests"
 	@echo "... unmapped_port_regression_tests"
+	@echo "... v3_migration_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"
@@ -4660,9 +4579,6 @@ help:
 	@echo "... blueprint_v2/test_blueprint.o"
 	@echo "... blueprint_v2/test_blueprint.i"
 	@echo "... blueprint_v2/test_blueprint.s"
-	@echo "... blueprint_v2/test_bridge.o"
-	@echo "... blueprint_v2/test_bridge.i"
-	@echo "... blueprint_v2/test_bridge.s"
 	@echo "... blueprint_v2/test_codec.o"
 	@echo "... blueprint_v2/test_codec.i"
 	@echo "... blueprint_v2/test_codec.s"
@@ -4735,9 +4651,6 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
-	@echo "... test_blueprint_v2.o"
-	@echo "... test_blueprint_v2.i"
-	@echo "... test_blueprint_v2.s"
 	@echo "... test_clamp_normalize.o"
 	@echo "... test_clamp_normalize.i"
 	@echo "... test_clamp_normalize.s"
@@ -4795,9 +4708,6 @@ help:
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
-	@echo "... test_library_v2.o"
-	@echo "... test_library_v2.i"
-	@echo "... test_library_v2.s"
 	@echo "... test_logic_gates.o"
 	@echo "... test_logic_gates.i"
 	@echo "... test_logic_gates.s"
@@ -4909,6 +4819,9 @@ help:
 	@echo "... test_unmapped_port_regression.o"
 	@echo "... test_unmapped_port_regression.i"
 	@echo "... test_unmapped_port_regression.s"
+	@echo "... test_v3_migration.o"
+	@echo "... test_v3_migration.i"
+	@echo "... test_v3_migration.s"
 	@echo "... test_v_to_bool.o"
 	@echo "... test_v_to_bool.i"
 	@echo "... test_v_to_bool.s"

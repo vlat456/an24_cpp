@@ -1264,30 +1264,17 @@ sub_blueprint_ref_tests/fast:
 .PHONY : sub_blueprint_ref_tests/fast
 
 #=============================================================================
-# Target rules for targets named flat_blueprint_tests
+# Target rules for targets named v3_migration_tests
 
 # Build rule for target.
-flat_blueprint_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 flat_blueprint_tests
-.PHONY : flat_blueprint_tests
+v3_migration_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 v3_migration_tests
+.PHONY : v3_migration_tests
 
 # fast build rule for target.
-flat_blueprint_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/flat_blueprint_tests.dir/build.make tests/CMakeFiles/flat_blueprint_tests.dir/build
-.PHONY : flat_blueprint_tests/fast
-
-#=============================================================================
-# Target rules for targets named library_v2_tests
-
-# Build rule for target.
-library_v2_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 library_v2_tests
-.PHONY : library_v2_tests
-
-# fast build rule for target.
-library_v2_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/library_v2_tests.dir/build.make tests/CMakeFiles/library_v2_tests.dir/build
-.PHONY : library_v2_tests/fast
+v3_migration_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/v3_migration_tests.dir/build.make tests/CMakeFiles/v3_migration_tests.dir/build
+.PHONY : v3_migration_tests/fast
 
 #=============================================================================
 # Target rules for targets named multi_domain_tests
@@ -1589,19 +1576,6 @@ bp2_editor_model_tests/fast:
 .PHONY : bp2_editor_model_tests/fast
 
 #=============================================================================
-# Target rules for targets named bp2_bridge_tests
-
-# Build rule for target.
-bp2_bridge_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_bridge_tests
-.PHONY : bp2_bridge_tests
-
-# fast build rule for target.
-bp2_bridge_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/build
-.PHONY : bp2_bridge_tests/fast
-
-#=============================================================================
 # Target rules for targets named bp2_bake_tests
 
 # Build rule for target.
@@ -1672,7 +1646,6 @@ help:
 	@echo "... blueprint_v2"
 	@echo "... bp2_bake_tests"
 	@echo "... bp2_blueprint_tests"
-	@echo "... bp2_bridge_tests"
 	@echo "... bp2_codec_tests"
 	@echo "... bp2_editor_model_tests"
 	@echo "... bp2_flattener_tests"
@@ -1698,7 +1671,6 @@ help:
 	@echo "... electric_pump_regression_tests"
 	@echo "... expand_typedef_tests"
 	@echo "... factory_validation_tests"
-	@echo "... flat_blueprint_tests"
 	@echo "... fuel_tank_regression_tests"
 	@echo "... generator_tests"
 	@echo "... gidro_accumulator_regression_tests"
@@ -1714,7 +1686,6 @@ help:
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
-	@echo "... library_v2_tests"
 	@echo "... logic_gates_tests"
 	@echo "... logical_solver_tests"
 	@echo "... lut_codegen_tests"
@@ -1757,6 +1728,7 @@ help:
 	@echo "... ui_widget_purity_tests"
 	@echo "... unmapped_port_regression_tests"
 	@echo "... update_port_registry"
+	@echo "... v3_migration_tests"
 	@echo "... v_to_bool_tests"
 	@echo "... visual_container_tests"
 	@echo "... visual_grid_tests"

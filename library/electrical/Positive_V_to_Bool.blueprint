@@ -1,25 +1,27 @@
 {
-  "exposes": {
-    "Vin": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Positive_V_to_Bool",
+  "display_name": "Positive_V_to_Bool",
+  "interface": [
+    {
+      "name": "Vin",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "o": {
-      "direction": "Out",
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Convert positive voltage to TRUE (v > 0)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Positive_V_to_Bool",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Convert positive voltage to TRUE (v > 0)",
+  "domains": [
+    "Logical"
+  ]
 }

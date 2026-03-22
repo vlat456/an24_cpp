@@ -1,42 +1,51 @@
 {
-  "exposes": {
-    "k_mod": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "RU19A",
+  "display_name": "RU19A",
+  "interface": [
+    {
+      "name": "k_mod",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "rpm_out": {
-      "direction": "Out",
+    {
+      "name": "rpm_out",
+      "domain": 4,
+      "direction": 1,
       "type": "RPM"
     },
-    "t4_out": {
-      "direction": "Out",
+    {
+      "name": "t4_out",
+      "domain": 16,
+      "direction": 1,
       "type": "Temperature"
     },
-    "v_bus": {
-      "direction": "Out",
+    {
+      "name": "v_bus",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     },
-    "v_start": {
-      "direction": "In",
+    {
+      "name": "v_start",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "RU19A-300 Auxiliary Power Unit (ВСУ) with 5-state startup sequence",
-    "domains": [
-      "Electrical",
-      "Mechanical",
-      "Thermal"
-    ],
-    "name": "RU19A",
-    "priority": "high"
-  },
-  "params": {
-    "target_rpm": {
-      "default": "16000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "RU19A-300 Auxiliary Power Unit (ВСУ) with 5-state startup sequence",
+  "domains": [
+    "Electrical",
+    "Mechanical",
+    "Thermal"
+  ],
+  "priority": "high",
+  "param_defaults": {
+    "target_rpm": "16000.0"
+  }
 }

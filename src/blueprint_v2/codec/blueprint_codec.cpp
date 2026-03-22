@@ -192,6 +192,14 @@ std::optional<Blueprint> BlueprintCodec::decode(
     DecodeError* error_out) {
     try {
         auto j = nlohmann::json::parse(json_str);
+        if (!j.contains("version") || !j["version"].is_string()
+            || j["version"].get<std::string>() != "3.0") {
+            if (error_out) {
+                error_out->message = "Unsupported blueprint version (expected \"3.0\")";
+            }
+            return std::nullopt;
+        }
+
         Blueprint bp;
         if (j.contains("id") && j["id"].is_string()) {
             bp = bp.with_id(interner.intern(j["id"].get<std::string>()));

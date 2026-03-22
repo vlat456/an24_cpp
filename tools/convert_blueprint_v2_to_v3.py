@@ -27,7 +27,14 @@ def convert_ports_from_exposes(exposes: Dict[str, Any]) -> List[Dict[str, Any]]:
         direction = dir_map.get(str(meta.get("direction", "Out")), 1)
         ptype = str(meta.get("type", "Any"))
         domain = domain_map.get(ptype, 1)
-        out.append({"name": name, "domain": domain, "direction": direction})
+        out.append(
+            {
+                "name": name,
+                "domain": domain,
+                "direction": direction,
+                "type": ptype,
+            }
+        )
     return out
 
 
@@ -163,15 +170,57 @@ def convert_subblueprint(sb_id: str, sb: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def convert_document(src: Dict[str, Any], file_stem: str) -> Dict[str, Any]:
+    meta = src.get("meta", {}) if isinstance(src.get("meta"), dict) else {}
     v3: Dict[str, Any] = {
         "version": "3.0",
-        "id": src.get("meta", {}).get("name", file_stem),
-        "display_name": src.get("meta", {}).get("name", file_stem),
+        "id": meta.get("name", file_stem),
+        "display_name": meta.get("name", file_stem),
         "interface": convert_ports_from_exposes(src.get("exposes", {})),
         "nodes": [],
         "wires": [],
         "nested": [],
     }
+
+    # Preserve component/type-definition metadata for v3-only type loading.
+    if "cpp_class" in meta:
+        v3["cpp_class"] = bool(meta["cpp_class"])
+    if "description" in meta:
+        v3["description"] = str(meta["description"])
+    if isinstance(meta.get("domains"), list):
+        v3["domains"] = [str(d) for d in meta["domains"]]
+    if "priority" in meta:
+        v3["priority"] = str(meta["priority"])
+    if "critical" in meta:
+        v3["critical"] = bool(meta["critical"])
+    if "content_type" in meta:
+        v3["content_type"] = str(meta["content_type"])
+    if "render_hint" in meta:
+        v3["render_hint"] = str(meta["render_hint"])
+    if "visual_only" in meta:
+        v3["visual_only"] = bool(meta["visual_only"])
+
+    if isinstance(src.get("params"), dict):
+        param_defaults: Dict[str, str] = {}
+        for k, v in src["params"].items():
+            if isinstance(v, dict) and "default" in v:
+                param_defaults[str(k)] = str(v["default"])
+            elif isinstance(v, str):
+                param_defaults[str(k)] = v
+        if param_defaults:
+            v3["param_defaults"] = param_defaults
+
+    # Default classification policy:
+    # - Explicit visual_only => non-cpp_class
+    # - Presence of graph content (nodes/wires/sub_blueprints) => composite (cpp_class=false)
+    # - Otherwise primitive C++ component (cpp_class=true)
+    has_graph = bool(src.get("nodes") or src.get("wires") or src.get("sub_blueprints"))
+    if "cpp_class" not in v3:
+        if bool(v3.get("visual_only", False)):
+            v3["cpp_class"] = False
+        elif has_graph:
+            v3["cpp_class"] = False
+        else:
+            v3["cpp_class"] = True
 
     for nid, n in src.get("nodes", {}).items():
         if isinstance(n, dict):

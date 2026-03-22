@@ -1,49 +1,57 @@
 {
-  "exposes": {
-    "control": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "AZS",
+  "display_name": "AZS",
+  "interface": [
+    {
+      "name": "control",
+      "domain": 16,
+      "direction": 0,
       "type": "Temperature"
     },
-    "state": {
-      "direction": "Out",
+    {
+      "name": "state",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     },
-    "temp": {
-      "direction": "Out",
+    {
+      "name": "temp",
+      "domain": 16,
+      "direction": 1,
       "type": "Temperature"
     },
-    "tripped": {
-      "direction": "Out",
+    {
+      "name": "tripped",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     },
-    "v_in": {
-      "direction": "In",
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "v_out": {
-      "direction": "Out",
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "content_type": "VerticalToggle",
-    "cpp_class": true,
-    "description": "Aircraft circuit breaker (Автомат Защиты Сети). Hybrid switch + thermal fuse. Manual toggle via control, auto-trips on overcurrent. Thermal model: T += (I² * r_heat - T * k_cool) * dt. Trips at T > 1.0.",
-    "domains": [
-      "Electrical",
-      "Thermal"
-    ],
-    "name": "AZS"
-  },
-  "params": {
-    "closed": {
-      "default": "false",
-      "type": "bool"
-    },
-    "i_nominal": {
-      "default": "20.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Aircraft circuit breaker (Автомат Защиты Сети). Hybrid switch + thermal fuse. Manual toggle via control, auto-trips on overcurrent. Thermal model: T += (I² * r_heat - T * k_cool) * dt. Trips at T > 1.0.",
+  "domains": [
+    "Electrical",
+    "Thermal"
+  ],
+  "content_type": "VerticalToggle",
+  "param_defaults": {
+    "closed": "false",
+    "i_nominal": "20.0"
+  }
 }

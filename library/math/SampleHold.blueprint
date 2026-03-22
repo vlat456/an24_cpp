@@ -1,29 +1,33 @@
 {
-  "exposes": {
-    "in": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "SampleHold",
+  "display_name": "SampleHold",
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "out": {
-      "direction": "Out",
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     },
-    "trigger": {
-      "direction": "In",
+    {
+      "name": "trigger",
+      "domain": 2,
+      "direction": 0,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Samples 'in' when 'trigger' rises and holds it",
-    "domains": [
-      "Logical"
-    ],
-    "name": "SampleHold",
-    "size": [
-      2.0,
-      1.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Samples 'in' when 'trigger' rises and holds it",
+  "domains": [
+    "Logical"
+  ]
 }

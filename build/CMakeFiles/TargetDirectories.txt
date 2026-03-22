@@ -180,8 +180,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/comparison_components_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/sub_blueprint_ref_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/flat_blueprint_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/library_v2_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/v3_migration_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_domain_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/command_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/transformer_tests.dir
@@ -205,7 +204,6 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_codec_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_flattener_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_editor_model_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bridge_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bake_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir

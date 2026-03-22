@@ -1,29 +1,33 @@
 {
-  "exposes": {
-    "A": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Divide",
+  "display_name": "Divide",
+  "interface": [
+    {
+      "name": "A",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "B": {
-      "direction": "In",
+    {
+      "name": "B",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "o": {
-      "direction": "Out",
+    {
+      "name": "o",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Divider: o = A / B (returns 0 if B is 0)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "Divide",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Divider: o = A / B (returns 0 if B is 0)",
+  "domains": [
+    "Logical"
+  ]
 }

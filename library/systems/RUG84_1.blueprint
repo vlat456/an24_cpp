@@ -1,128 +1,96 @@
 {
-  "exposes": {
-    "Comp": {
-      "direction": "Out",
+  "version": "3.0",
+  "id": "RUG_82_1",
+  "display_name": "RUG_82_1",
+  "interface": [
+    {
+      "name": "Comp",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     },
-    "v": {
-      "direction": "In",
+    {
+      "name": "v",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     }
-  },
-  "meta": {
-    "name": "RUG_82_1"
-  },
-  "nodes": {
-    "blueprintinput_1": {
-      "display_name": "v",
-      "params": {
-        "exposed_direction": "In",
-        "exposed_type": "V"
-      },
-      "pos": [
-        96.0,
-        160.0
-      ],
-      "type": "BlueprintInput"
+  ],
+  "nodes": [
+    {
+      "id": "blueprintinput_1",
+      "type": "BlueprintInput",
+      "name": "v",
+      "position": {
+        "x": 96.0,
+        "y": 160.0
+      }
     },
-    "blueprintoutput_1": {
-      "display_name": "Comp",
-      "params": {
-        "exposed_direction": "Out",
-        "exposed_type": "Any"
-      },
-      "pos": [
-        816.0,
-        160.0
-      ],
-      "type": "BlueprintOutput"
+    {
+      "id": "blueprintoutput_1",
+      "type": "BlueprintOutput",
+      "name": "Comp",
+      "position": {
+        "x": 816.0,
+        "y": 160.0
+      }
     },
-    "fasttmo_1": {
-      "params": {
-        "deadzone": "0.001",
-        "tau": "0.05"
+    {
+      "id": "fasttmo_1",
+      "type": "FastTMO",
+      "position": {
+        "x": 496.0,
+        "y": 160.0
       },
-      "pos": [
-        496.0,
-        160.0
-      ],
-      "type": "FastTMO"
+      "params": {
+        "deadzone": 0.001,
+        "tau": 0.05
+      }
     },
-    "lut_1": {
-      "params": {
-        "table": "24.0:1.0; 27.0:0.9; 28.5:0.5; 30.0:0.1; 32.0:0.0"
-      },
-      "pos": [
-        304.0,
-        160.0
-      ],
-      "type": "LUT"
+    {
+      "id": "lut_1",
+      "type": "LUT",
+      "position": {
+        "x": 304.0,
+        "y": 160.0
+      }
     },
-    "lut_2": {
-      "display_name": "LUT_CarbonPile",
-      "params": {
-        "table": "0.0:50.0; 0.2:25.0; 0.5:5.0; 0.8:1.2; 1.0:0.5"
-      },
-      "pos": [
-        640.0,
-        160.0
-      ],
-      "type": "LUT"
+    {
+      "id": "lut_2",
+      "type": "LUT",
+      "name": "LUT_CarbonPile",
+      "position": {
+        "x": 640.0,
+        "y": 160.0
+      }
     }
-  },
-  "version": 2,
-  "viewport": {
-    "grid": 16.0,
-    "pan": [
-      0.0,
-      0.0
-    ],
-    "zoom": 1.0
-  },
+  ],
   "wires": [
     {
-      "from": [
-        "lut_1",
-        "output"
-      ],
       "id": "wire_0",
-      "to": [
-        "fasttmo_1",
-        "in"
-      ]
+      "source": "/lut_1:output",
+      "target": "/fasttmo_1:in"
     },
     {
-      "from": [
-        "fasttmo_1",
-        "out"
-      ],
       "id": "wire_1",
-      "to": [
-        "lut_2",
-        "input"
-      ]
+      "source": "/fasttmo_1:out",
+      "target": "/lut_2:input"
     },
     {
-      "from": [
-        "blueprintinput_1",
-        "port"
-      ],
       "id": "wire_3",
-      "to": [
-        "lut_1",
-        "input"
-      ]
+      "source": "/blueprintinput_1:port",
+      "target": "/lut_1:input"
     },
     {
-      "from": [
-        "lut_2",
-        "output"
-      ],
       "id": "wire_4",
-      "to": [
-        "blueprintoutput_1",
-        "port"
-      ]
+      "source": "/lut_2:output",
+      "target": "/blueprintoutput_1:port"
     }
-  ]
+  ],
+  "nested": [],
+  "cpp_class": false,
+  "pan_x": 0.0,
+  "pan_y": 0.0,
+  "zoom": 1.0,
+  "grid_step": 16.0
 }

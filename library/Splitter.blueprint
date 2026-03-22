@@ -1,35 +1,37 @@
 {
-  "exposes": {
-    "i": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Splitter",
+  "display_name": "Splitter",
+  "interface": [
+    {
+      "name": "i",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "o1": {
-      "alias": "i",
-      "direction": "Out",
+    {
+      "name": "o1",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     },
-    "o2": {
-      "alias": "i",
-      "direction": "Out",
+    {
+      "name": "o2",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "1-to-2 signal splitter. One real input port with 2 virtual alias outputs. All ports are type 'Any' for universal compatibility across all domains.",
-    "domains": [
-      "Electrical",
-      "Mechanical",
-      "Hydraulic",
-      "Thermal"
-    ],
-    "name": "Splitter",
-    "priority": "high",
-    "size": [
-      3.0,
-      3.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "1-to-2 signal splitter. One real input port with 2 virtual alias outputs. All ports are type 'Any' for universal compatibility across all domains.",
+  "domains": [
+    "Electrical",
+    "Mechanical",
+    "Hydraulic",
+    "Thermal"
+  ],
+  "priority": "high"
 }

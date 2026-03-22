@@ -1,31 +1,36 @@
 {
-  "exposes": {
-    "control": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "Relay",
+  "display_name": "Relay",
+  "interface": [
+    {
+      "name": "control",
+      "domain": 2,
+      "direction": 0,
       "type": "Bool"
     },
-    "v_in": {
-      "direction": "In",
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     },
-    "v_out": {
-      "direction": "Out",
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Relay"
-  },
-  "params": {
-    "closed": {
-      "default": "false",
-      "type": "bool"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrical relay (on/off switch). When closed, connects v_in to v_out. Uses post_step voltage merging for realistic behavior.",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "closed": "false"
+  }
 }

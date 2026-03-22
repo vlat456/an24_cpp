@@ -33,7 +33,7 @@ target_include_directories(an24_codegen PUBLIC
 # Codegen tool for generating port registry and ComponentVariant
 add_executable(codegen_test codegen_test.cpp)
 target_include_directories(codegen_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver spdlog::spdlog)
+target_link_libraries(codegen_test PRIVATE an24_codegen json_parser jit_solver blueprint_v2 spdlog::spdlog)
 
 # Disabled for AOT-only refactor - needs template component instantiation
 # add_executable(test_generated
@@ -188,4 +188,3 @@ target_include_directories(convert_library PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(convert_library PRIVATE json_parser nlohmann_json::nlohmann_json spdlog::spdlog)
-

@@ -1,31 +1,27 @@
 {
-  "exposes": {
-    "v": {
-      "alias": "dynamic",
-      "direction": "InOut",
+  "version": "3.0",
+  "id": "Bus",
+  "display_name": "Bus",
+  "interface": [
+    {
+      "name": "v",
+      "domain": 1,
+      "direction": 2,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "critical": true,
-    "description": "Electrical bus - connects all ports to the same signal node. Used as wire junction/collector for distributing power to multiple loads.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "Bus",
-    "priority": "high",
-    "render_hint": "bus",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "params": {
-    "port_edge": {
-      "default": "bottom",
-      "type": "string"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Electrical bus - connects all ports to the same signal node. Used as wire junction/collector for distributing power to multiple loads.",
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high",
+  "critical": true,
+  "render_hint": "bus",
+  "param_defaults": {
+    "port_edge": "bottom"
+  }
 }

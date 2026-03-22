@@ -1,28 +1,31 @@
 {
-  "exposes": {
-    "k_mod": {
-      "direction": "Out",
+  "version": "3.0",
+  "id": "RUG82",
+  "display_name": "RUG82",
+  "interface": [
+    {
+      "name": "k_mod",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     },
-    "v_gen": {
-      "direction": "In",
+    {
+      "name": "v_gen",
+      "domain": 1,
+      "direction": 0,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "RUG82 Voltage Regulator with PI controller for maintaining 28.5V on bus",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "RUG82",
-    "priority": "high"
-  },
-  "params": {
-    "v_target": {
-      "default": "28.5",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "RUG82 Voltage Regulator with PI controller for maintaining 28.5V on bus",
+  "domains": [
+    "Electrical"
+  ],
+  "priority": "high",
+  "param_defaults": {
+    "v_target": "28.5"
+  }
 }

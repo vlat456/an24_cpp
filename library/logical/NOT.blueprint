@@ -1,25 +1,27 @@
 {
-  "exposes": {
-    "A": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "NOT",
+  "display_name": "NOT",
+  "interface": [
+    {
+      "name": "A",
+      "domain": 2,
+      "direction": 0,
       "type": "Bool"
     },
-    "o": {
-      "direction": "Out",
+    {
+      "name": "o",
+      "domain": 2,
+      "direction": 1,
       "type": "Bool"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Logical NOT gate: output = !A (inverter)",
-    "domains": [
-      "Logical"
-    ],
-    "name": "NOT",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Logical NOT gate: output = !A (inverter)",
+  "domains": [
+    "Logical"
+  ]
 }

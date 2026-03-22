@@ -1,43 +1,39 @@
 {
-  "exposes": {
-    "feedback": {
-      "direction": "In",
+  "version": "3.0",
+  "id": "PI",
+  "display_name": "PI",
+  "interface": [
+    {
+      "name": "feedback",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     },
-    "output": {
-      "direction": "Out",
+    {
+      "name": "output",
+      "domain": 1,
+      "direction": 1,
       "type": "Any"
     },
-    "setpoint": {
-      "direction": "In",
+    {
+      "name": "setpoint",
+      "domain": 1,
+      "direction": 0,
       "type": "Any"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "PI controller with proportional and integral terms (no derivative)",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "PI"
-  },
-  "params": {
-    "Ki": {
-      "default": "0.0",
-      "type": "float"
-    },
-    "Kp": {
-      "default": "1.0",
-      "type": "float"
-    },
-    "output_max": {
-      "default": "1000.0",
-      "type": "float"
-    },
-    "output_min": {
-      "default": "-1000.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "PI controller with proportional and integral terms (no derivative)",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "Ki": "0.0",
+    "Kp": "1.0",
+    "output_max": "1000.0",
+    "output_min": "-1000.0"
+  }
 }

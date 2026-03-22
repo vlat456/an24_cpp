@@ -1,28 +1,25 @@
 {
-  "exposes": {
-    "v": {
-      "direction": "Out",
+  "version": "3.0",
+  "id": "RefNode",
+  "display_name": "RefNode",
+  "interface": [
+    {
+      "name": "v",
+      "domain": 1,
+      "direction": 1,
       "type": "V"
     }
-  },
-  "meta": {
-    "cpp_class": true,
-    "description": "Reference node with fixed voltage (used for ground or voltage sources). Provides a constant voltage reference point in the circuit.",
-    "domains": [
-      "Electrical"
-    ],
-    "name": "RefNode",
-    "render_hint": "ref",
-    "size": [
-      2.0,
-      2.0
-    ]
-  },
-  "params": {
-    "value": {
-      "default": "0.0",
-      "type": "float"
-    }
-  },
-  "version": 2
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Reference node with fixed voltage (used for ground or voltage sources). Provides a constant voltage reference point in the circuit.",
+  "domains": [
+    "Electrical"
+  ],
+  "render_hint": "ref",
+  "param_defaults": {
+    "value": "0.0"
+  }
 }
