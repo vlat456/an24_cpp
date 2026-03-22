@@ -492,12 +492,6 @@
   "output": "examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o"
 },
 {
-  "directory": "/Users/vladimir/an24_cpp/build/examples",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/convert_library.dir/convert_library.cpp.o -c /Users/vladimir/an24_cpp/examples/convert_library.cpp",
-  "file": "/Users/vladimir/an24_cpp/examples/convert_library.cpp",
-  "output": "examples/CMakeFiles/convert_library.dir/convert_library.cpp.o"
-},
-{
   "directory": "/Users/vladimir/an24_cpp/build/tools",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/update_port_registry.dir/update_port_registry.cpp.o -c /Users/vladimir/an24_cpp/tools/update_port_registry.cpp",
   "file": "/Users/vladimir/an24_cpp/tools/update_port_registry.cpp",

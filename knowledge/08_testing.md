@@ -1,0 +1,179 @@
+# Testing
+
+## Test Framework
+
+Uses Google Test (gtest). Tests are organized by feature area in `tests/`.
+
+## Running Tests
+
+```bash
+# Run all tests
+cd build && ctest
+
+# Run specific test executable
+./build/tests/editor_data_tests
+
+# Run with regex filter
+ctest -R "editor_data" --output-on-failure
+
+# Run specific test case
+./build/tests/editor_data_tests --gtest_filter="DataTest.TestName"
+```
+
+## Test Structure
+
+```cpp
+#include <gtest/gtest.h>
+#include "jit_solver/components/all.h"
+#include "jit_solver/components/port_registry.h"
+
+// Helper factory
+static AND<JitProvider> make_and() {
+    AND<JitProvider> comp;
+    comp.provider.set(PortNames::A, 0);
+    comp.provider.set(PortNames::B, 1);
+    comp.provider.set(PortNames::o, 2);
+    return comp;
+}
+
+static SimulationState make_state() {
+    SimulationState st;
+    st.across.resize(3, 0.0f);
+    st.through.resize(3, 0.0f);
+    st.conductance.resize(3, 0.0f);
+    return st;
+}
+
+TEST(ANDTest, BothTrue_ReturnsTrue) {
+    auto comp = make_and();
+    auto st = make_state();
+    
+    st.across[0] = 1.0f;  // A = TRUE
+    st.across[1] = 1.0f;  // B = TRUE
+    
+    comp.solve_logical(st, 1.0f/60.0f);
+    
+    EXPECT_NEAR(st.across[2], 1.0f, 0.001f);
+}
+
+TEST(ANDTest, OneFalse_ReturnsFalse) {
+    auto comp = make_and();
+    auto st = make_state();
+    
+    st.across[0] = 1.0f;  // A = TRUE
+    st.across[1] = 0.0f;  // B = FALSE
+    
+    comp.solve_logical(st, 1.0f/60.0f);
+    
+    EXPECT_NEAR(st.across[2], 0.0f, 0.001f);
+}
+```
+
+## Test Categories
+
+### Component Tests
+Test individual component behavior:
+- `test_logic_gates.cpp` - AND, OR, NOT, XOR
+- `test_current_sense.cpp` - CurrentSense
+- `test_transformer.cpp` - Transformer
+- `test_pid.cpp` - PID controller
+
+### Regression Tests
+Catch specific bugs from reappearing:
+- `test_switch_regression.cpp`
+- `test_hydraulic_loop_regression.cpp`
+- `test_rug82_regression.cpp`
+
+### Editor Tests
+Test editor functionality:
+- `test_commands.cpp` - Command execution
+- `test_visual_node_widget.cpp` - Node rendering
+- `test_blueprint_loading.cpp` - JSON loading
+
+### UI Tests
+Test UI framework:
+- `test_ui_linear_layout.cpp`
+- `test_ui_math.cpp`
+- `test_ui_interning.cpp`
+
+### Integration Tests
+Test end-to-end scenarios:
+- `test_simulation.cpp`
+- `test_blueprint_loading.cpp`
+
+### Blueprint V2 Tests
+Test the new blueprint system:
+- `test_blueprint.cpp` - Blueprint class
+- `test_registry.cpp` - TypeRegistry
+- `test_flattener.cpp` - Flattening
+- `test_bake.cpp` - Bake/unbake
+- `test_validation.cpp` - Validation
+
+### Codegen Tests
+Test AOT generation:
+- `test_codegen_sanitize.cpp`
+- `test_aot_composite.cpp`
+
+## Test Naming Convention
+
+| Pattern | Example |
+|---------|---------|
+| `<Component>Test.<Scenario>_<Result>` | `ANDTest.BothTrue_ReturnsTrue` |
+| `<Feature>Test.<Scenario>` | `LayoutTest.TooManyPorts_Wraps` |
+| Regression | `SwitchRegression.CycleDetection_Works` |
+
+## Test Helpers
+
+### JSON Test Data
+Embed test blueprints inline:
+```cpp
+TEST(BlueprintLoading, LoadsSimpleBattery) {
+    const char* json = R"({
+        "id": "test_battery",
+        "cpp_class": true,
+        "interface": [
+            {"name": "v_out", "domain": 1, "direction": 1, "type": "V"}
+        ]
+    })";
+    
+    auto result = parse_json(json);
+    EXPECT_TRUE(result.has_value());
+}
+```
+
+### Simulation Helpers
+```cpp
+static void run_steps(SimulationState& st, std::vector<ComponentVariant>& comps, int n) {
+    for (int i = 0; i < n; ++i) {
+        st.clear_through();
+        for (auto& c : comps) {
+            std::visit([&](auto& comp) { comp.solve_electrical(st, 1.0f/60.0f); }, c);
+        }
+        st.precompute_inv_conductance();
+        solve_sor_iteration(st.across.data(), st.through.data(),
+                           st.inv_conductance.data(), st.dynamic_signals_count, 1.3f);
+    }
+}
+```
+
+## Adding New Tests
+
+1. Create `tests/test_<feature>.cpp`
+2. Add to CMakeLists.txt:
+```cmake
+add_executable(test_<feature> tests/test_<feature>.cpp)
+target_link_libraries(test_<feature> gtest gtest_main ...)
+add_test(NAME test_<feature> COMMAND test_<feature>)
+```
+3. Run `cmake -B build` to regenerate
+
+## Test File Index
+
+| Category | Files |
+|----------|-------|
+| Components | `test_logic_gates.cpp`, `test_current_sense.cpp`, `test_transformer.cpp`, `test_pid.cpp`, `test_slew_rate.cpp`, `test_clamp_normalize.cpp` |
+| Regression | `test_switch_regression.cpp`, `test_rug82_regression.cpp`, `test_gidro_accumulator_regression.cpp` |
+| Editor | `test_commands.cpp`, `test_visual_*.cpp`, `test_blueprint_loading.cpp` |
+| UI | `test_ui_*.cpp` |
+| Blueprint V2 | `tests/blueprint_v2/test_*.cpp` |
+| Codegen | `test_aot_composite.cpp`, `test_codegen_sanitize.cpp` |

@@ -19,8 +19,6 @@
 
 using ui::Pt;
 
-struct FlatBlueprint;  // Forward declaration
-
 /// Blueprint - схема соединений (все домены: электрика, гидравлика, механика)
 ///
 /// В отличие от Circuit - более общее название.
@@ -232,28 +230,10 @@ private:
     /// Shorthand: resolve an InternedId to string_view via the interner.
     std::string_view resolve(ui::InternedId id) const { return interner_->resolve(id); }
 
-    // == from_flat decomposition helpers ==
-
-    /// Load nodes from flat representation (dedup, deserialize fields).
-    static void load_nodes_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
+    // == from_flat decomposition helpers (removed — v3 migration) ==
 
     /// Enrich loaded nodes with port definitions and default params from the registry.
     static void enrich_nodes_from_registry(Blueprint& bp, const TypeRegistry& registry);
-
-    /// Load wires from flat representation (dedup, intern IDs).
-    static void load_wires_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
-
-    /// Load sub-blueprint instance metadata and overrides.
-    /// For embedded (baked-in) sub-blueprints, restores any nodes/wires from
-    /// sub_blueprint.nodes that are missing from the top-level nodes list.
-    static void load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2,
-                                              const TypeRegistry& registry);
-
-    /// Re-expand non-baked sub-blueprints (nodes, wires, layout) from the registry.
-    static void expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistry& registry);
-
-    /// Finalize wire ID counter and group IDs after loading.
-    static void finalize_after_load(Blueprint& bp);
 
     /// Add a wire's ID to bus_wire_index_ if it touches a bus node.
     void addToBusIndex(const Wire& w);
@@ -355,19 +335,8 @@ public:
 
     // == Serialization ==
     
-    /// Serialize to editor JSON format (flat v2 schema)
-    std::string serialize() const;
-    
-    /// Deserialize from editor JSON format
-    static std::optional<Blueprint> deserialize(const std::string& json);
-    
     /// Serialize to simulator JSON format (rewrites wires, skips Blueprint nodes)
     std::string to_simulator_json() const;
-    
-    // == Flat conversion (internal) ==
-    
-    FlatBlueprint to_flat() const;
-    static std::optional<Blueprint> from_flat(const FlatBlueprint& flat);
 };
 
 /// Expand a TypeDefinition (blueprint) into a Blueprint with Nodes + Wires.

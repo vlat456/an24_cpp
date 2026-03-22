@@ -367,19 +367,6 @@ benchmark_jit_vs_aot/fast:
 .PHONY : benchmark_jit_vs_aot/fast
 
 #=============================================================================
-# Target rules for targets named convert_library
-
-# Build rule for target.
-convert_library: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 convert_library
-.PHONY : convert_library
-
-# fast build rule for target.
-convert_library/fast:
-	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/convert_library.dir/build.make examples/CMakeFiles/convert_library.dir/build
-.PHONY : convert_library/fast
-
-#=============================================================================
 # Target rules for targets named update_port_registry
 
 # Build rule for target.
@@ -1659,7 +1646,6 @@ help:
 	@echo "... codegen_test"
 	@echo "... command_tests"
 	@echo "... comparison_components_tests"
-	@echo "... convert_library"
 	@echo "... current_sense_tests"
 	@echo "... dt_regression_tests"
 	@echo "... editor_componentvariant_tests"
