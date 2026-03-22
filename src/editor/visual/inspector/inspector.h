@@ -1,7 +1,9 @@
 #pragma once
 
 #include "visual/inspector/display_tree.h"
-#include "data/blueprint.h"
+#include "blueprint_v2/blueprint/blueprint.h"
+#include "blueprint_v2/path/path.h"
+#include "ui/core/interned_id.h"
 #include <string>
 #include <vector>
 
@@ -22,11 +24,16 @@ public:
     Inspector() = default;
 
     /// Constructor with blueprint pointer and group filter
-    Inspector(const Blueprint* bp, const std::string& group_id = "");
+    Inspector(const bp2::Blueprint* bp, const bp2::PathArena* arena,
+              const ui::StringInterner* interner, const std::string& group_id = "");
 
     /// Set the blueprint to inspect (for switching between documents)
-    void setBlueprint(const Blueprint& bp, const std::string& group_id = "") {
+    void setBlueprint(const bp2::Blueprint& bp, const bp2::PathArena& arena,
+                      const ui::StringInterner& interner,
+                      const std::string& group_id = "") {
         bp_ = &bp;
+        arena_ = &arena;
+        interner_ = &interner;
         group_id_ = group_id;
         markDirty();
     }
@@ -54,7 +61,9 @@ public:
     void buildDisplayTree();
 
 private:
-    const Blueprint* bp_ = nullptr;
+    const bp2::Blueprint*    bp_       = nullptr;
+    const bp2::PathArena*    arena_    = nullptr;
+    const ui::StringInterner* interner_ = nullptr;
     std::string group_id_;
     std::vector<DisplayNode> display_tree_;
 
@@ -64,9 +73,13 @@ private:
     size_t last_wire_count_ = 0;
 
     /// Check whether a node belongs to this inspector's group
-    bool ownsNode(const Node& n) const { return n.group_id == group_id_; }
+    bool ownsNode(const bp2::Blueprint::Node& n) const { return n.group_id == group_id_; }
     /// Check whether a wire belongs to this inspector's group (both endpoints)
-    bool ownsWire(const Wire& w) const;
+    bool ownsWire(const bp2::Blueprint::Wire& w) const;
+
+    /// Decode a Port path: extract node_id and port_name.
+    /// Returns {node_id, port_name} or empty InternedIds on failure.
+    std::pair<ui::InternedId, ui::InternedId> decode_port_path(bp2::Path p) const;
 
     /// Check scene topology and mark dirty if changed. Returns true if rebuild needed.
     bool detectSceneChange();
@@ -77,9 +90,10 @@ private:
     std::string search_lower_;  // precomputed lowercase of search_
 
     // Data model helpers (inspector_core.cpp)
-    std::string findConnectionFor(const Node& node, const EditorPort& port, PortSide side) const;
+    std::string findConnectionFor(const bp2::Blueprint::Node& node,
+                                  const EditorPort& port, PortSide side) const;
     void sortDisplayTree();
-    bool passesFilter(const Node& node) const;
+    bool passesFilter(const bp2::Blueprint::Node& node) const;
 
     // Selection output (consumed by main loop)
     std::string clicked_node_id_;

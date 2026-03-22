@@ -1,13 +1,14 @@
 #pragma once
 
-#include "data/blueprint.h"
 #include "window/window_manager.h"
 #include "visual/scene.h"
 #include "input/canvas_input.h"
 #include "jit_solver/simulator.h"
 #include "json_parser/json_parser.h"
 #include "visual/render_context.h"
-#include "undo/undo_stack.h"
+#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/path/path.h"
+#include "ui/core/interned_id.h"
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -37,7 +38,9 @@ public:
 
     /// Returns true if this is an untitled, empty document (never saved, no content)
     bool isPristine() const {
-        return filepath_.empty() && blueprint_.nodes.empty() && blueprint_.wires.empty();
+        return filepath_.empty()
+            && model_.current().nodes().empty()
+            && model_.current().wires().empty();
     }
 
     // ── File I/O ──
@@ -47,14 +50,16 @@ public:
 
     // ── Blueprint & window access ──
 
-    Blueprint& blueprint() { return blueprint_; }
-    const Blueprint& blueprint() const { return blueprint_; }
+    bp2::Blueprint const& blueprint() const { return model_.current(); }
 
-    UndoStack& undoStack() { return undo_stack_; }
-    const UndoStack& undoStack() const { return undo_stack_; }
-    
-    bool canUndo() const { return undo_stack_.can_undo(); }
-    bool canRedo() const { return undo_stack_.can_redo(); }
+    bp2::EditorModel& model() { return model_; }
+    const bp2::EditorModel& model() const { return model_; }
+
+    ui::StringInterner& interner() { return interner_; }
+    bp2::PathArena& arena() { return arena_; }
+
+    bool canUndo() const { return model_.can_undo(); }
+    bool canRedo() const { return model_.can_redo(); }
     bool performUndo();
     bool performRedo();
 
@@ -86,13 +91,10 @@ public:
     void updateSimulationStep(float dt);
 
     /// Update node_content (gauges, switches, etc.) from simulation values.
-    /// Needs TypeRegistry for reset_node_content logic.
     void updateNodeContentFromSimulation();
     void resetNodeContent(const TypeRegistry& registry);
 
     /// Build a set of wire IDs that are energized (have non-zero voltage).
-    /// Used by the renderer to visually highlight powered wires.
-    /// string_view keys reference the StringInterner's stable deque storage.
     void buildEnergizedWireSet(
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
         const std::string& group_id) const;
@@ -122,9 +124,6 @@ public:
 
     // ── Input result dispatch ──
 
-    /// Apply input result from any window's CanvasInput.
-    /// Updates context menu state, rebuilds simulation, etc.
-    /// Returns true if context menu / node menu should be shown (caller handles ImGui popup).
     struct InputResultAction {
         bool show_context_menu = false;
         Pt context_menu_pos;
@@ -137,13 +136,28 @@ public:
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 
 private:
+    // ── Private helpers ──
+
+    /// Build a minimal legacy ::Blueprint from the current bp2::Blueprint,
+    /// sufficient for Blueprint::to_simulator_json() (simulation use only).
+    Blueprint build_legacy_for_simulation() const;
+
+    /// Extract (node_id, port_name) InternedId pair from a bp2::Path
+    /// (expects PathKind::Port with Node parent). Returns empty pair on error.
+    /// arena_ is mutable because PathArena::parent() may lazily build cache.
+    std::pair<ui::InternedId, ui::InternedId>
+    bp2_path_to_node_port(const bp2::Path& path) const;
+
+    // ── Private data ──
+
     std::string id_;
     std::string filepath_;
     std::string display_name_ = "Untitled";
 
-    Blueprint blueprint_;
-    UndoStack undo_stack_;
-    WindowManager window_manager_{blueprint_, undo_stack_};
+    ui::StringInterner interner_;
+    bp2::PathArena arena_{interner_};
+    bp2::EditorModel model_;
+    WindowManager window_manager_{model_, interner_, arena_};
     Simulator<JIT_Solver> simulation_;
     bool simulation_running_ = false;
 

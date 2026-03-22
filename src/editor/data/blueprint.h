@@ -244,7 +244,10 @@ private:
     static void load_wires_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
 
     /// Load sub-blueprint instance metadata and overrides.
-    static void load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2);
+    /// For embedded (baked-in) sub-blueprints, restores any nodes/wires from
+    /// sub_blueprint.nodes that are missing from the top-level nodes list.
+    static void load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2,
+                                              const TypeRegistry& registry);
 
     /// Re-expand non-baked sub-blueprints (nodes, wires, layout) from the registry.
     static void expand_non_baked_sub_blueprints(Blueprint& bp, const TypeRegistry& registry);

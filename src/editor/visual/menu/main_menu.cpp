@@ -49,7 +49,7 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
     if (ImGui::MenuItem("Save", "Ctrl+S", false, active_doc != nullptr)) {
         if (active_doc) {
             // If blueprint has no name yet, prompt for one before saving
-            if (active_doc->blueprint().name.empty()) {
+            if (active_doc->blueprint().name().empty()) {
                 ws.setName.show = true;
                 ws.setName.doc_id = active_doc->id();
                 ws.setName.save_after = true;
@@ -164,8 +164,8 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
     Document* active_doc = ws.activeDocument();
 
     // Show current name (or "not set")
-    if (active_doc && !active_doc->blueprint().name.empty()) {
-        ImGui::TextDisabled("Name: %s", active_doc->blueprint().name.c_str());
+    if (active_doc && !active_doc->blueprint().name().empty()) {
+        ImGui::TextDisabled("Name: %s", active_doc->blueprint().name().c_str());
     } else {
         ImGui::TextDisabled("Name: (not set)");
     }
@@ -178,7 +178,7 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
             ws.setName.save_after = false;
             std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
             // Pre-fill with current name
-            const auto& current = active_doc->blueprint().name;
+            const auto& current = active_doc->blueprint().name();
             if (!current.empty()) {
                 std::strncpy(ws.setName.buf, current.c_str(),
                              sizeof(ws.setName.buf) - 1);

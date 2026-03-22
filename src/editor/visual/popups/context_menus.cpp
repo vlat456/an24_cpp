@@ -50,9 +50,18 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     Document* doc = ws.findDocumentById(ws.nodeContextMenu.source_doc_id);
     if (!doc) doc = ws.activeDocument();
-    Node* node_ptr = doc ? doc->blueprint().find_node(ws.nodeContextMenu.node_id) : nullptr;
+
+    // Resolve the node
+    const bp2::Blueprint::Node* node_ptr = nullptr;
+    if (doc) {
+        ui::InternedId node_iid = doc->interner().lookup(ws.nodeContextMenu.node_id);
+        if (!node_iid.empty()) {
+            node_ptr = doc->blueprint().find_node(node_iid);
+        }
+    }
+
     if (doc && node_ptr) {
-        Node& node = *node_ptr;
+        const bp2::Blueprint::Node& node = *node_ptr;
         ImGui::Text("Node: %s", node.name.c_str());
         ImGui::Separator();
         
@@ -76,15 +85,17 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         }
         
         if (node.expandable && ImGui::MenuItem("Open in New Window")) {
-            std::string node_id_str(doc->blueprint().interner().resolve(node.id));
+            std::string node_id_str(doc->interner().resolve(node.id));
             doc->openSubWindow(node_id_str);
         }
         
-        std::string node_id_str_for_sbi(doc->blueprint().interner().resolve(node.id));
+        // Check for a nested (sub-blueprint) reference that can be baked in
         const std::string& sbi_id = !ws.nodeContextMenu.group_id.empty()
-            ? ws.nodeContextMenu.group_id : node_id_str_for_sbi;
-        auto* sb = doc->blueprint().find_sub_blueprint_instance(sbi_id);
-        if (sb && !sb->baked_in) {
+            ? ws.nodeContextMenu.group_id : ws.nodeContextMenu.node_id;
+        ui::InternedId sbi_iid = doc->interner().lookup(sbi_id);
+        const bp2::Blueprint::Nested* nested = sbi_iid.empty()
+            ? nullptr : doc->blueprint().find_nested(sbi_iid);
+        if (nested && !nested->embedded) {
             if (ImGui::MenuItem("Bake In (Embed)")) {
                 ws.pendingBakeIn.show_confirmation = true;
                 ws.pendingBakeIn.sub_blueprint_id = sbi_id;
@@ -93,7 +104,9 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             }
             ImGui::Separator();
             if (ImGui::MenuItem("Edit Original")) {
-                std::string lib_path = "library/" + sb->blueprint_path + ".json";
+                // Resolve blueprint path from the nested's inline_def or blueprint_id
+                std::string bp_id_str(doc->interner().resolve(nested->blueprint_id));
+                std::string lib_path = "library/" + bp_id_str + ".json";
                 ws.openDocument(lib_path);
             }
         }
@@ -101,4 +114,3 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
     
     ImGui::EndPopup();
 }
-

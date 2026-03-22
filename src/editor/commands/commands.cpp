@@ -1,208 +1,78 @@
 #include "commands.h"
-#include "data/blueprint.h"
 #include <spdlog/spdlog.h>
-#include <algorithm>
+#include <functional>
 
-// =============================================================================
-// Execute implementation for each command type (void — no inverse)
-// =============================================================================
-
-static void execute(Blueprint& bp, const CmdAddNode& cmd) {
-    bp.add_node(Node{cmd.node});  // Copy
-
-    // If node belongs to a group, restore its internal_node_ids entry
-    if (!cmd.node.group_id.empty()) {
-        std::string node_id_str(bp.interner().resolve(cmd.node.id));
-        for (auto& g : bp.sub_blueprint_instances) {
-            if (g.id == cmd.node.group_id) {
-                if (std::find(g.internal_node_ids.begin(), g.internal_node_ids.end(), node_id_str)
-                    == g.internal_node_ids.end()) {
-                    g.internal_node_ids.push_back(node_id_str);
-                }
-                break;
+void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd) {
+    std::visit([&](auto c) {
+        using T = std::decay_t<decltype(c)>;
+        if constexpr (std::is_same_v<T, CmdAddNode>) {
+            model.add_node(std::move(c.node));
+        } else if constexpr (std::is_same_v<T, CmdRemoveNode>) {
+            model.remove_node(c.node_id);
+        } else if constexpr (std::is_same_v<T, CmdMoveNode>) {
+            model.update_node_position(c.node_id, c.x, c.y);
+        } else if constexpr (std::is_same_v<T, CmdAddWire>) {
+            model.add_wire(std::move(c.wire));
+        } else if constexpr (std::is_same_v<T, CmdRemoveWire>) {
+            model.remove_wire(c.wire_id);
+        } else if constexpr (std::is_same_v<T, CmdSetParam>) {
+            // CmdSetParam has copyable fields, just use c directly
+            {
+                auto const* n = model.current().find_node(c.node_id);
+                if (!n) { spdlog::warn("[cmd] node {} not found", c.node_id.raw()); return; }
+                auto updated = *n;
+                updated.params[c.key] = c.value;
+                model.remove_node(c.node_id);
+                model.add_node(std::move(updated));
             }
+        } else if constexpr (std::is_same_v<T, CmdResizeNode>) {
+            auto const* n = model.current().find_node(c.node_id);
+            if (!n) { spdlog::warn("[cmd] node {} not found", c.node_id.raw()); return; }
+            auto updated = *n;
+            updated.x = c.x; updated.y = c.y; updated.width = c.w; updated.height = c.h;
+            model.remove_node(c.node_id);
+            model.add_node(std::move(updated));
+        } else if constexpr (std::is_same_v<T, CmdSetGridStep>) {
+            auto updated = model.current().with_viewport(
+                model.current().pan_x(), model.current().pan_y(),
+                model.current().zoom(), c.new_step);
+            model.replace_current(std::move(updated));
+        } else if constexpr (std::is_same_v<T, CmdSetName>) {
+            auto const* n = model.current().find_node(c.node_id);
+            if (!n) { spdlog::warn("[cmd] node {} not found", c.node_id.raw()); return; }
+            auto updated = *n;
+            updated.name = std::move(c.new_name);
+            model.remove_node(c.node_id);
+            model.add_node(std::move(updated));
+        } else if constexpr (std::is_same_v<T, CmdAddNested>) {
+            model.add_nested(std::move(c.nested));
+        } else if constexpr (std::is_same_v<T, CmdRemoveNested>) {
+            model.remove_nested(c.nested_id);
+        } else if constexpr (std::is_same_v<T, CmdSetRoutingPoints>) {
+            auto const* w = model.current().find_wire(c.wire_id);
+            if (!w) { spdlog::warn("[cmd] wire {} not found", c.wire_id.raw()); return; }
+            auto updated = *w;
+            updated.routing_points = std::move(c.points);
+            model.remove_wire(c.wire_id);
+            model.add_wire(std::move(updated));
+        } else if constexpr (std::is_same_v<T, CmdSetPortLayout>) {
+            auto const* n = model.current().find_node(c.node_id);
+            if (!n) { spdlog::warn("[cmd] node {} not found", c.node_id.raw()); return; }
+            auto updated = *n;
+            updated.layout_overrides = std::move(c.overrides);
+            model.remove_node(c.node_id);
+            model.add_node(std::move(updated));
+        } else if constexpr (std::is_same_v<T, CmdSetColor>) {
+            auto const* n = model.current().find_node(c.node_id);
+            if (!n) { spdlog::warn("[cmd] node {} not found", c.node_id.raw()); return; }
+            auto updated = *n;
+            updated.has_color = c.has_color;
+            updated.color_r = c.r;
+            updated.color_g = c.g;
+            updated.color_b = c.b;
+            updated.color_a = c.a;
+            model.remove_node(c.node_id);
+            model.add_node(std::move(updated));
         }
-    }
-}
-
-static void execute(Blueprint& bp, const CmdRemoveNode& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdRemoveNode: node {} not found", cmd.node_id.raw());
-        return;
-    }
-
-    size_t idx = it->second;
-
-    // Remove connected wires
-    bp.wires.erase(
-        std::remove_if(bp.wires.begin(), bp.wires.end(),
-            [&](const Wire& w) {
-                return w.start.node_id == cmd.node_id || w.end.node_id == cmd.node_id;
-            }),
-        bp.wires.end());
-
-    // Remove node
-    bp.nodes.erase(bp.nodes.begin() + idx);
-
-    // Clean up internal_node_ids in sub-blueprint instances
-    std::string node_id_str(bp.interner().resolve(cmd.node_id));
-    for (auto& g : bp.sub_blueprint_instances) {
-        g.internal_node_ids.erase(
-            std::remove(g.internal_node_ids.begin(), g.internal_node_ids.end(), node_id_str),
-            g.internal_node_ids.end());
-    }
-
-    // Rebuild indices
-    bp.rebuild_all_indices();
-}
-
-static void execute(Blueprint& bp, const CmdMoveNode& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdMoveNode: node {} not found", cmd.node_id.raw());
-        return;
-    }
-    bp.nodes[it->second].pos = cmd.new_pos;
-}
-
-static void execute(Blueprint& bp, const CmdAddWire& cmd) {
-    bp.add_wire(Wire{cmd.wire});
-}
-
-static void execute(Blueprint& bp, const CmdRemoveWire& cmd) {
-    auto it = bp.wire_id_index_.find(cmd.wire_id);
-    if (it == bp.wire_id_index_.end()) {
-        spdlog::warn("[cmd] CmdRemoveWire: wire {} not found", cmd.wire_id.raw());
-        return;
-    }
-
-    bp.wires.erase(bp.wires.begin() + it->second);
-    bp.rebuild_wire_index();
-    bp.rebuild_wire_id_index();
-    bp.rebuild_port_occupancy_index();
-}
-
-static void execute(Blueprint& bp, const CmdReconnectWire& cmd) {
-    auto it = bp.wire_id_index_.find(cmd.wire_id);
-    if (it == bp.wire_id_index_.end()) {
-        spdlog::warn("[cmd] CmdReconnectWire: wire {} not found", cmd.wire_id.raw());
-        return;
-    }
-
-    Wire& wire = bp.wires[it->second];
-    Wire old_wire = wire;  // snapshot before modification
-
-    WireEnd& endpoint = cmd.is_start ? wire.start : wire.end;
-    endpoint.node_id = cmd.new_node_id;
-    endpoint.port_name = cmd.new_port_name;
-
-    // Update derived indices to reflect the changed endpoints
-    bp.rekey_wire(old_wire, wire);
-    bp.updateBusIndexForEndpoints(old_wire, wire);
-    bp.updatePortOccupancyForEndpoints(old_wire, wire);
-}
-
-static void execute(Blueprint& bp, const CmdSetParam& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdSetParam: node {} not found", cmd.node_id.raw());
-        return;
-    }
-    Node& node = bp.nodes[it->second];
-    node.params[cmd.key] = cmd.new_value;
-
-    // Sync min/max params to node_content for content types that use them
-    if ((node.node_content.type == NodeContentType::Slider ||
-         node.node_content.type == NodeContentType::Gauge) && !cmd.new_value.empty()) {
-        if (cmd.key == "min") node.node_content.min = std::stof(cmd.new_value);
-        if (cmd.key == "max") node.node_content.max = std::stof(cmd.new_value);
-    }
-}
-
-static void execute(Blueprint& bp, const CmdResizeNode& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdResizeNode: node {} not found", cmd.node_id.raw());
-        return;
-    }
-    Node& node = bp.nodes[it->second];
-    node.pos = cmd.new_pos;
-    node.set_explicit_size(cmd.new_size);
-    spdlog::info("[DEBUG-CMD] CmdResizeNode: node={} size=({},{}) has_explicit_size={}",
-                 bp.interner().resolve(cmd.node_id), cmd.new_size.x, cmd.new_size.y, true);
-}
-
-static void execute(Blueprint& bp, const CmdSetRoutingPoints& cmd) {
-    auto it = bp.wire_id_index_.find(cmd.wire_id);
-    if (it == bp.wire_id_index_.end()) {
-        spdlog::warn("[cmd] CmdSetRoutingPoints: wire {} not found", cmd.wire_id.raw());
-        return;
-    }
-    bp.wires[it->second].routing_points = cmd.new_points;
-}
-
-static void execute(Blueprint& bp, const CmdSetGridStep& cmd) {
-    bp.grid_step = cmd.new_step;
-}
-
-static void execute(Blueprint& bp, const CmdSetName& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdSetName: node {} not found", cmd.node_id.raw());
-        return;
-    }
-    bp.nodes[it->second].name = cmd.new_name;
-}
-
-static void execute(Blueprint& bp, const CmdSwapBusPorts& cmd) {
-    const Wire* wa = bp.find_wire(cmd.wire_id_a);
-    const Wire* wb = bp.find_wire(cmd.wire_id_b);
-
-    if (!wa || !wb) {
-        spdlog::warn("[cmd] CmdSwapBusPorts: wire not found");
-        return;
-    }
-
-    size_t idx_a = static_cast<size_t>(wa - bp.wires.data());
-    size_t idx_b = static_cast<size_t>(wb - bp.wires.data());
-
-    std::swap(bp.wires[idx_a], bp.wires[idx_b]);
-    bp.rebuild_wire_id_index();
-}
-
-static void execute(Blueprint& bp, const CmdAddSubBlueprint& cmd) {
-    bp.sub_blueprint_instances.push_back(cmd.instance);
-}
-
-static void execute(Blueprint& bp, const CmdRemoveSubBlueprint& cmd) {
-    auto it = std::find_if(bp.sub_blueprint_instances.begin(),
-                           bp.sub_blueprint_instances.end(),
-                           [&](const SubBlueprintInstance& sbi) {
-                               return sbi.id == cmd.instance_id;
-                           });
-
-    if (it == bp.sub_blueprint_instances.end()) {
-        spdlog::warn("[cmd] CmdRemoveSubBlueprint: instance '{}' not found", cmd.instance_id);
-        return;
-    }
-
-    bp.sub_blueprint_instances.erase(it);
-}
-
-static void execute(Blueprint& bp, const CmdSetPortLayout& cmd) {
-    auto it = bp.node_index_.find(cmd.node_id);
-    if (it == bp.node_index_.end()) {
-        spdlog::warn("[cmd] CmdSetPortLayout: node {} not found", cmd.node_id.raw());
-        return;
-    }
-    bp.nodes[it->second].layout_overrides = cmd.new_overrides;
-}
-
-// =============================================================================
-// Main dispatch
-// =============================================================================
-
-void execute(Blueprint& bp, const Command& cmd) {
-    std::visit([&](auto&& c) { execute(bp, c); }, cmd);
+    }, std::move(cmd));
 }

@@ -276,6 +276,19 @@ json_parser/fast:
 .PHONY : json_parser/fast
 
 #=============================================================================
+# Target rules for targets named blueprint_v2
+
+# Build rule for target.
+blueprint_v2: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 blueprint_v2
+.PHONY : blueprint_v2
+
+# fast build rule for target.
+blueprint_v2/fast:
+	$(MAKE) $(MAKESILENT) -f src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build.make src/blueprint_v2/CMakeFiles/blueprint_v2.dir/build
+.PHONY : blueprint_v2/fast
+
+#=============================================================================
 # Target rules for targets named hello_world
 
 # Build rule for target.
@@ -1524,6 +1537,110 @@ solenoid_valve_regression_tests/fast:
 .PHONY : solenoid_valve_regression_tests/fast
 
 #=============================================================================
+# Target rules for targets named bp2_path_tests
+
+# Build rule for target.
+bp2_path_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_path_tests
+.PHONY : bp2_path_tests
+
+# fast build rule for target.
+bp2_path_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/build
+.PHONY : bp2_path_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_interface_tests
+
+# Build rule for target.
+bp2_interface_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_interface_tests
+.PHONY : bp2_interface_tests
+
+# fast build rule for target.
+bp2_interface_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/build
+.PHONY : bp2_interface_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_blueprint_tests
+
+# Build rule for target.
+bp2_blueprint_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_blueprint_tests
+.PHONY : bp2_blueprint_tests
+
+# fast build rule for target.
+bp2_blueprint_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/build
+.PHONY : bp2_blueprint_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_registry_tests
+
+# Build rule for target.
+bp2_registry_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_registry_tests
+.PHONY : bp2_registry_tests
+
+# fast build rule for target.
+bp2_registry_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
+.PHONY : bp2_registry_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_codec_tests
+
+# Build rule for target.
+bp2_codec_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_codec_tests
+.PHONY : bp2_codec_tests
+
+# fast build rule for target.
+bp2_codec_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/build
+.PHONY : bp2_codec_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_flattener_tests
+
+# Build rule for target.
+bp2_flattener_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_flattener_tests
+.PHONY : bp2_flattener_tests
+
+# fast build rule for target.
+bp2_flattener_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/build
+.PHONY : bp2_flattener_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_editor_model_tests
+
+# Build rule for target.
+bp2_editor_model_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_editor_model_tests
+.PHONY : bp2_editor_model_tests
+
+# fast build rule for target.
+bp2_editor_model_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/build
+.PHONY : bp2_editor_model_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_bridge_tests
+
+# Build rule for target.
+bp2_bridge_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_bridge_tests
+.PHONY : bp2_bridge_tests
+
+# fast build rule for target.
+bp2_bridge_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/build
+.PHONY : bp2_bridge_tests/fast
+
+#=============================================================================
 # Target rules for targets named current_sense_tests
 
 # Build rule for target.
@@ -1565,6 +1682,15 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... blueprint_v2"
+	@echo "... bp2_blueprint_tests"
+	@echo "... bp2_bridge_tests"
+	@echo "... bp2_codec_tests"
+	@echo "... bp2_editor_model_tests"
+	@echo "... bp2_flattener_tests"
+	@echo "... bp2_interface_tests"
+	@echo "... bp2_path_tests"
+	@echo "... bp2_registry_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"

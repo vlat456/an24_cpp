@@ -1102,7 +1102,8 @@ void Blueprint::load_wires_from_flat(Blueprint& bp, const FlatBlueprint& bpv2) {
     }
 }
 
-void Blueprint::load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2) {
+void Blueprint::load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint& bpv2,
+                                              const TypeRegistry& registry) {
     auto& I = bp.interner();
     std::set<std::string> loaded_group_ids;
 
@@ -1116,6 +1117,186 @@ void Blueprint::load_sub_blueprints_from_flat(Blueprint& bp, const FlatBlueprint
         sbi.baked_in = sb.is_embedded();
         sbi.pos = Pt(sb.pos[0], sb.pos[1]);
         sbi.size = Pt(sb.size[0], sb.size[1]);
+
+        // ── Restore embedded nodes from sub_blueprint.nodes ──
+        // When a sub-blueprint is baked-in (editable), its nodes are saved
+        // inside sub_blueprints[id].nodes with unprefixed local IDs.
+        // On load, they may or may not also exist in the top-level nodes map.
+        // We must ensure ALL embedded nodes are present in bp.nodes.
+        if (sb.is_embedded()) {
+            std::string prefix = id + ":";
+
+            // Build set of existing node IDs for quick lookup
+            std::set<std::string> existing_ids;
+            for (const auto& n : bp.nodes) {
+                existing_ids.insert(std::string(I.resolve(n.id)));
+            }
+
+            for (const auto& [local_id, nv] : sb.nodes) {
+                // Try both prefixed and unprefixed forms
+                std::string prefixed_id = prefix + local_id;
+                bool have_prefixed = existing_ids.count(prefixed_id) > 0;
+                bool have_unprefixed = existing_ids.count(local_id) > 0;
+
+                // Check if the unprefixed node has matching group_id
+                bool unprefixed_belongs = false;
+                if (have_unprefixed) {
+                    if (const Node* existing = bp.find_node(std::string_view(local_id))) {
+                        unprefixed_belongs = (existing->group_id == id);
+                    }
+                }
+
+                if (have_prefixed || unprefixed_belongs) continue;
+
+                // Node is missing from top-level — inject it
+                std::string node_id = prefixed_id;
+                Node n;
+                n.id = I.intern(node_id);
+                n.type_name = nv.type;
+                n.name = nv.display_name.empty() ? node_id : nv.display_name;
+                n.render_hint = nv.render_hint;
+                n.expandable = nv.expandable;
+                n.group_id = id;  // force correct group ownership
+                n.blueprint_path = nv.blueprint_path;
+
+                if (nv.pos.size() >= 2) {
+                    n.pos = Pt(nv.pos[0], nv.pos[1]);
+                }
+                if (nv.size.has_value()) {
+                    n.set_explicit_size(Pt((*nv.size)[0], (*nv.size)[1]));
+                }
+
+                for (const auto& fov : nv.layout_overrides) {
+                    PortLayoutOverride ov;
+                    ov.port_name = fov.port;
+                    if (fov.side.has_value()) {
+                        ov.side = parse_port_layout_side(*fov.side);
+                    }
+                    if (fov.position.has_value()) {
+                        ov.position = static_cast<uint8_t>(*fov.position);
+                    }
+                    n.layout_overrides.push_back(std::move(ov));
+                }
+
+                for (const auto& [k, v] : nv.params) {
+                    n.params[k] = v;
+                }
+
+                if (nv.content.has_value()) {
+                    n.node_content.type = string_to_content_type(nv.content->kind);
+                    n.node_content.label = nv.content->label;
+                    n.node_content.value = nv.content->value;
+                    n.node_content.min = nv.content->min;
+                    n.node_content.max = nv.content->max;
+                    n.node_content.unit = nv.content->unit;
+                    n.node_content.state = nv.content->state;
+                }
+
+                if (nv.color.has_value()) {
+                    NodeColor c;
+                    c.r = nv.color->r;
+                    c.g = nv.color->g;
+                    c.b = nv.color->b;
+                    c.a = nv.color->a;
+                    n.color = c;
+                }
+
+                // Enrich with port definitions from registry
+                const auto* def = registry.get(n.type_name);
+                if (def) {
+                    for (const auto& [port_name, port_def] : def->ports) {
+                        EditorPort p;
+                        p.name = I.intern(port_name);
+                        p.type = port_def.type;
+                        if (port_def.direction == PortDirection::In) {
+                            p.side = PortSide::Input;
+                            n.inputs.push_back(p);
+                        } else if (port_def.direction == PortDirection::Out) {
+                            p.side = PortSide::Output;
+                            n.outputs.push_back(p);
+                        } else if (port_def.direction == PortDirection::InOut) {
+                            p.side = PortSide::Input;
+                            n.inputs.push_back(p);
+                            EditorPort p_out = p;
+                            p_out.side = PortSide::Output;
+                            n.outputs.push_back(p_out);
+                        }
+                    }
+                    for (const auto& [key, value] : def->params) {
+                        if (n.params.find(key) == n.params.end()) {
+                            n.params[key] = value;
+                        }
+                    }
+                    if (n.render_hint.empty()) {
+                        n.render_hint = def->render_hint;
+                    }
+                }
+
+                spdlog::info("[persist] Restored embedded node '{}' (type={}) into group '{}'",
+                             node_id, n.type_name, id);
+                existing_ids.insert(node_id);
+                bp.nodes.push_back(std::move(n));
+            }
+
+            // Restore embedded wires with prefixed node IDs
+            for (const auto& wv : sb.wires) {
+                std::string start_node = prefix + wv.from.node;
+                std::string end_node = prefix + wv.to.node;
+
+                // Check if both endpoints exist (prefixed or unprefixed)
+                bool start_ok = existing_ids.count(start_node) > 0;
+                bool end_ok = existing_ids.count(end_node) > 0;
+
+                // Fall back to unprefixed if the prefixed form doesn't exist
+                // but the unprefixed node belongs to this group
+                if (!start_ok && existing_ids.count(wv.from.node) > 0) {
+                    if (const Node* sn = bp.find_node(std::string_view(wv.from.node))) {
+                        if (sn->group_id == id) { start_node = wv.from.node; start_ok = true; }
+                    }
+                }
+                if (!end_ok && existing_ids.count(wv.to.node) > 0) {
+                    if (const Node* en = bp.find_node(std::string_view(wv.to.node))) {
+                        if (en->group_id == id) { end_node = wv.to.node; end_ok = true; }
+                    }
+                }
+
+                if (!start_ok || !end_ok) continue;
+
+                // Check for duplicate wire
+                bool already_exists = false;
+                for (const auto& ew : bp.wires) {
+                    std::string es(I.resolve(ew.start.node_id));
+                    std::string ee(I.resolve(ew.end.node_id));
+                    std::string esp(I.resolve(ew.start.port_name));
+                    std::string eep(I.resolve(ew.end.port_name));
+                    if (es == start_node && ee == end_node &&
+                        esp == wv.from.port && eep == wv.to.port) {
+                        already_exists = true;
+                        break;
+                    }
+                }
+                if (already_exists) continue;
+
+                Wire w;
+                std::string wire_id = wv.id.empty()
+                    ? (start_node + "." + wv.from.port + "→" + end_node + "." + wv.to.port)
+                    : wv.id;
+                w.id = I.intern(wire_id);
+                w.start.node_id = I.intern(start_node);
+                w.start.port_name = I.intern(wv.from.port);
+                w.start.side = PortSide::Output;
+                w.end.node_id = I.intern(end_node);
+                w.end.port_name = I.intern(wv.to.port);
+                w.end.side = PortSide::Input;
+
+                for (const auto& pt : wv.routing) {
+                    w.routing_points.push_back(Pt(pt[0], pt[1]));
+                }
+
+                spdlog::info("[persist] Restored embedded wire '{}' in group '{}'", wire_id, id);
+                bp.wires.push_back(std::move(w));
+            }
+        }
 
         for (const auto& n : bp.nodes) {
             std::string nid(I.resolve(n.id));
@@ -1272,7 +1453,7 @@ std::optional<Blueprint> Blueprint::from_flat(const FlatBlueprint& bpv2) {
     enrich_nodes_from_registry(bp, registry);
     load_wires_from_flat(bp, bpv2);
     bp.rebuild_all_indices();
-    load_sub_blueprints_from_flat(bp, bpv2);
+    load_sub_blueprints_from_flat(bp, bpv2, registry);
     expand_non_baked_sub_blueprints(bp, registry);
     finalize_after_load(bp);
 

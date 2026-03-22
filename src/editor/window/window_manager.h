@@ -1,55 +1,47 @@
 #pragma once
 
 #include "window/blueprint_window.h"
-#include "undo/undo_stack.h"
+#include "blueprint_v2/editor_model/editor_model.h"
+#include "blueprint_v2/path/path.h"
+#include "ui/core/interned_id.h"
 #include <memory>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
-/// Manages multiple editor windows (one per nesting level).
-/// Owns all BlueprintWindows; the root window is always present.
 class WindowManager {
 public:
-    /// Construct with a shared blueprint and undo stack. Creates the root window.
-    explicit WindowManager(Blueprint& bp, UndoStack& undo_stack)
-        : bp_(bp), undo_stack_(undo_stack)
+    explicit WindowManager(bp2::EditorModel& model, ui::StringInterner& interner,
+                           bp2::PathArena& arena)
+        : model_(model), interner_(interner), arena_(arena)
     {
-        windows_.push_back(std::make_unique<BlueprintWindow>(bp, undo_stack, "", "Root"));
+        windows_.push_back(std::make_unique<BlueprintWindow>(
+            model_, interner_, arena_, "", "Root"));
     }
 
-    /// The root window (always index 0, always open).
     BlueprintWindow& root() { return *windows_[0]; }
-
-    /// All windows (for rendering iteration).
     const std::vector<std::unique_ptr<BlueprintWindow>>& windows() const { return windows_; }
     std::vector<std::unique_ptr<BlueprintWindow>>& windows() { return windows_; }
 
-    /// Open a sub-window for a collapsed group. Returns the window.
-    /// If already open, returns the existing window.
     BlueprintWindow* open(const std::string& group_id, const std::string& title) {
-        // Check if already open
         for (auto& w : windows_) {
-            if (w->group_id == group_id) {
-                w->open = true;
-                return w.get();
-            }
+            if (w->group_id == group_id) { w->open = true; return w.get(); }
         }
-        windows_.push_back(std::make_unique<BlueprintWindow>(bp_, undo_stack_, group_id, title));
+        windows_.push_back(std::make_unique<BlueprintWindow>(
+            model_, interner_, arena_, group_id, title));
         return windows_.back().get();
     }
 
-    /// Close a sub-window by group_id. Root window cannot be closed.
     void close(const std::string& group_id) {
-        if (group_id.empty()) return;  // never close root
+        if (group_id.empty()) return;
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
-                [&group_id](const std::unique_ptr<BlueprintWindow>& w) {
+                [&](const std::unique_ptr<BlueprintWindow>& w) {
                     return w->group_id == group_id;
                 }),
             windows_.end());
     }
 
-    /// Remove windows that the user closed (open == false), except root.
     void remove_closed_windows() {
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
@@ -59,40 +51,34 @@ public:
             windows_.end());
     }
 
-    /// Close sub-windows whose group_id no longer exists in sub_blueprint_instances.
-    /// Call after deleting sub-blueprint nodes.
     void remove_orphaned_windows() {
-        std::unordered_set<std::string> live_groups;
-        for (const auto& g : bp_.sub_blueprint_instances) {
-            live_groups.insert(g.id);
-        }
+        std::unordered_set<std::string> live;
+        for (auto const& n : model_.current().nested())
+            live.insert(std::string(interner_.resolve(n.id)));
         windows_.erase(
             std::remove_if(windows_.begin(), windows_.end(),
-                [&live_groups](const std::unique_ptr<BlueprintWindow>& w) {
-                    return !w->group_id.empty() && !live_groups.count(w->group_id);
+                [&](const std::unique_ptr<BlueprintWindow>& w) {
+                    return !w->group_id.empty() && !live.count(w->group_id);
                 }),
             windows_.end());
     }
 
-    /// Find window by group_id (nullptr if not found).
     BlueprintWindow* find(const std::string& group_id) {
-        for (auto& w : windows_) {
+        for (auto& w : windows_)
             if (w->group_id == group_id) return w.get();
-        }
         return nullptr;
     }
 
-    /// Close all sub-windows (keep root only).
     void close_all() {
         if (windows_.size() > 1)
             windows_.erase(windows_.begin() + 1, windows_.end());
     }
 
-    /// Number of open windows.
     size_t count() const { return windows_.size(); }
 
 private:
-    Blueprint& bp_;
-    UndoStack& undo_stack_;
+    bp2::EditorModel& model_;
+    ui::StringInterner& interner_;
+    bp2::PathArena& arena_;
     std::vector<std::unique_ptr<BlueprintWindow>> windows_;
 };

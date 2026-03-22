@@ -46,11 +46,11 @@ void SubWindowRenderer::renderToolbar(Document& doc, BlueprintWindow& win, ::Win
     if (win.read_only) ImGui::BeginDisabled();
     
     if (ImGui::Button("Auto Layout")) {
-        doc.blueprint().auto_layout_group(win.group_id);
-        // Cancel gesture before rebuild — user may have started a drag and
-        // moved the cursor to the button.
+        // TODO Phase 8: implement auto_layout_group as a bp2 command.
+        // For now, just cancel any in-flight gesture and rebuild.
         win.input.cancel_gesture();
-        visual::mutations::rebuild(win.scene, doc.blueprint(), win.group_id);
+        visual::mutations::rebuild(win.scene, doc.blueprint(),
+                                   doc.interner(), doc.arena(), win.group_id);
         fitViewToContent(doc, win);
     }
     
@@ -82,13 +82,14 @@ void SubWindowRenderer::renderCanvas(Document& doc, BlueprintWindow& win, ::Wind
 
 void SubWindowRenderer::fitViewToContent(Document& doc, BlueprintWindow& win) {
     Pt bmin(1e9f, 1e9f), bmax(-1e9f, -1e9f);
-    for (const auto& node : doc.blueprint().nodes) {
+    for (const bp2::Blueprint::Node& node : doc.blueprint().nodes()) {
         if (node.group_id != win.group_id) continue;
-        bmin.x = std::min(bmin.x, node.pos.x);
-        bmin.y = std::min(bmin.y, node.pos.y);
-        Pt node_sz = node.get_size();
-        bmax.x = std::max(bmax.x, node.pos.x + node_sz.x);
-        bmax.y = std::max(bmax.y, node.pos.y + node_sz.y);
+        bmin.x = std::min(bmin.x, node.x);
+        bmin.y = std::min(bmin.y, node.y);
+        float w = node.width.value_or(120.0f);
+        float h = node.height.value_or(80.0f);
+        bmax.x = std::max(bmax.x, node.x + w);
+        bmax.y = std::max(bmax.y, node.y + h);
     }
     if (bmin.x < bmax.x && bmin.y < bmax.y) {
         ImVec2 ws = ImGui::GetContentRegionAvail();

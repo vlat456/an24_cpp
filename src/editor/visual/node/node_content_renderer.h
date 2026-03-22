@@ -1,6 +1,6 @@
 #pragma once
 
-#include "editor/data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/math/pt.h"
 #include "editor/document.h"
 #include "editor/window/blueprint_window.h"
@@ -24,11 +24,10 @@ private:
     
     HoldButtonCallback holdButtonCallback_;
     
-    void renderSwitch(const Node& node, NodeContent& content, float width, bool readOnly, Document& doc);
-    void renderValue(NodeContent& content, float width, bool readOnly);
-    void renderGauge(const NodeContent& content, float width);
-    void renderText(const NodeContent& content);
+    void renderSwitch(const bp2::Blueprint::Node& node, float width, bool readOnly, Document& doc);
+    void renderValue(const bp2::Blueprint::Node& node, float width, bool readOnly);
+    void renderGauge(const bp2::Blueprint::Node& node, float width);
+    void renderText(const bp2::Blueprint::Node& node);
     
-    bool isHoldButton(const Node& node) const;
+    bool isHoldButton(const bp2::Blueprint::Node& node, const ui::StringInterner& interner) const;
 };
-

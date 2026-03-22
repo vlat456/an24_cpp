@@ -20,6 +20,7 @@ events:
     names:
       - "uname"
     candidate_directories:
+      - "/Users/vladimir/.opencode/bin/"
       - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
@@ -46,6 +47,7 @@ events:
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.opencode/bin/uname"
       - "/Users/vladimir/.local/bin/uname"
       - "/Users/vladimir/.rbenv/shims/uname"
       - "/opt/homebrew/bin/uname"
@@ -63,6 +65,7 @@ events:
     found: "/usr/bin/uname"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.opencode/bin"
         - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"
@@ -123,6 +126,7 @@ events:
     names:
       - "install_name_tool"
     candidate_directories:
+      - "/Users/vladimir/.opencode/bin/"
       - "/Users/vladimir/.local/bin/"
       - "/Users/vladimir/.rbenv/shims/"
       - "/opt/homebrew/bin/"
@@ -149,6 +153,7 @@ events:
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/vladimir/Library/Application Support/JetBrains/Toolbox/scripts/"
     searched_directories:
+      - "/Users/vladimir/.opencode/bin/install_name_tool"
       - "/Users/vladimir/.local/bin/install_name_tool"
       - "/Users/vladimir/.rbenv/shims/install_name_tool"
       - "/opt/homebrew/bin/install_name_tool"
@@ -166,6 +171,7 @@ events:
     found: "/usr/bin/install_name_tool"
     search_context:
       ENV{PATH}:
+        - "/Users/vladimir/.opencode/bin"
         - "/Users/vladimir/.local/bin"
         - "/Users/vladimir/.rbenv/shims"
         - "/opt/homebrew/bin"

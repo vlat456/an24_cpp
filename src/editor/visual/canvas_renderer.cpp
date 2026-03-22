@@ -9,6 +9,7 @@
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
 #include "ui/renderer/tooltip.h"
+#include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
 #include <cstdio>
@@ -105,13 +106,22 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
         std::string_view wire_id_sv = wire->id();
-        auto wire_iid = doc.blueprint().interner().lookup(wire_id_sv);
-        const ::Wire* data_wire = doc.blueprint().find_wire(wire_iid);
+        auto& interner = doc.interner();
+        auto wire_iid = interner.lookup(wire_id_sv);
+        const bp2::Blueprint::Wire* data_wire = doc.blueprint().find_wire(wire_iid);
         if (!data_wire) return;
 
-        const auto& bp_interner = doc.blueprint().interner();
-        std::string_view node_sv = bp_interner.resolve(data_wire->start.node_id);
-        std::string_view port_sv = bp_interner.resolve(data_wire->start.port_name);
+        // Decode the source port path: Port -> Node -> Root
+        const auto& arena = doc.arena();
+        bp2::Path src = data_wire->source;
+        if (src.kind() != bp2::PathKind::Port) return;
+        ui::InternedId port_iid = src.segment();
+        bp2::Path node_path = arena.parent(src);
+        if (node_path.kind() != bp2::PathKind::Node) return;
+        ui::InternedId node_iid = node_path.segment();
+
+        std::string_view node_sv = interner.resolve(node_iid);
+        std::string_view port_sv = interner.resolve(port_iid);
         std::string signal_key;
         signal_key.reserve(node_sv.size() + 1 + port_sv.size());
         signal_key.append(node_sv);

@@ -171,6 +171,7 @@ target_link_libraries(an24_editor PRIVATE
     nfd
     jit_solver
     json_parser
+    blueprint_v2
     nlohmann_json::nlohmann_json
 )
 

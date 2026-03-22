@@ -5,7 +5,6 @@
 #include "ui/core/interned_id.h"
 #include "data/port.h"
 #include "commands/commands.h"
-#include "undo/undo_stack.h"
 #include <optional>
 #include <string>
 #include <string_view>
@@ -22,7 +21,6 @@ class RoutingPoint;
 } // namespace visual
 
 struct Viewport;
-struct Blueprint;
 
 /// Unified canvas input handler — one per editor window.
 /// Owns selection + FSM state, processes raw mouse/key events.
@@ -42,7 +40,8 @@ struct Blueprint;
 class CanvasInput {
 public:
     CanvasInput(visual::Scene& scene, Viewport& viewport,
-                Blueprint& bp, UndoStack& undo_stack, const std::string& group_id);
+                bp2::EditorModel& model, ui::StringInterner& interner,
+                bp2::PathArena& arena, const std::string& group_id);
 
     /// When true, the FSM suppresses all editing gestures.
     bool read_only = false;
@@ -104,19 +103,17 @@ public:
     
     // ---- Undo/Redo ----
     
-    UndoStack& undo_stack() { return undo_stack_; }
-    const UndoStack& undo_stack() const { return undo_stack_; }
-    
     /// Take a snapshot and execute a command (mutation).
     void snapshot_and_execute(Command cmd);
 
 private:
     visual::Scene& scene_;
     Viewport& viewport_;
-    Blueprint& bp_;
+    bp2::EditorModel& model_;
+    ui::StringInterner& interner_;
+    bp2::PathArena& arena_;
     ui::InternedId group_iid_;  // interned handle for O(1) comparisons
     std::string_view group_id_;  // resolved from interner (stable storage)
-    UndoStack& undo_stack_;
     
     // Initial positions for drag-to-command commit
     std::vector<Pt> drag_initial_positions_;

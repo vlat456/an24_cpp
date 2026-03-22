@@ -556,6 +556,7 @@ target_include_directories(editor_simulation_tests PRIVATE
 target_link_libraries(editor_simulation_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(editor_simulation_tests)
@@ -606,6 +607,7 @@ target_include_directories(logical_solver_tests PRIVATE
 target_link_libraries(logical_solver_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     GTest::gtest_main
 )
 gtest_discover_tests(logical_solver_tests)
@@ -989,6 +991,7 @@ target_include_directories(node_deletion_tests PRIVATE
 target_link_libraries(node_deletion_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1033,6 +1036,7 @@ target_include_directories(multi_window_tests PRIVATE
 target_link_libraries(multi_window_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1080,6 +1084,7 @@ target_include_directories(params_integrity_tests PRIVATE
 target_link_libraries(params_integrity_tests PRIVATE
     jit_solver
     json_parser
+    blueprint_v2
     spdlog::spdlog
     GTest::gtest_main
 )
@@ -1672,6 +1677,120 @@ target_link_libraries(solenoid_valve_regression_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(solenoid_valve_regression_tests)
+
+# Blueprint v2 tests (Phase 0-4: Path, Interface, Blueprint, TypeRegistry, Codec)
+add_executable(bp2_path_tests
+    blueprint_v2/test_path.cpp
+)
+target_include_directories(bp2_path_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_path_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_path_tests)
+
+add_executable(bp2_interface_tests
+    blueprint_v2/test_interface.cpp
+)
+target_include_directories(bp2_interface_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_interface_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_interface_tests)
+
+# Blueprint v2: Blueprint class tests (Phase 3)
+add_executable(bp2_blueprint_tests
+    blueprint_v2/test_blueprint.cpp
+)
+target_include_directories(bp2_blueprint_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+)
+target_link_libraries(bp2_blueprint_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_blueprint_tests)
+
+# Registry v2 tests (Phase 4)
+add_executable(bp2_registry_tests
+    blueprint_v2/test_registry.cpp
+)
+target_include_directories(bp2_registry_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_registry_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_registry_tests)
+
+# Codec v2 tests (Phase 5)
+add_executable(bp2_codec_tests
+    blueprint_v2/test_codec.cpp
+)
+target_include_directories(bp2_codec_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bp2_codec_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_codec_tests)
+
+# Flattener v2 tests (Phase 6)
+add_executable(bp2_flattener_tests
+    blueprint_v2/test_flattener.cpp
+)
+target_include_directories(bp2_flattener_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+)
+target_link_libraries(bp2_flattener_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_flattener_tests)
+
+# EditorModel v2 tests (Phase 7)
+add_executable(bp2_editor_model_tests
+    blueprint_v2/test_editor_model.cpp
+)
+target_include_directories(bp2_editor_model_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_editor_model_tests PRIVATE
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_editor_model_tests)
+
+# BlueprintBridge v2 tests (Phase 7)
+add_executable(bp2_bridge_tests
+    blueprint_v2/test_bridge.cpp
+)
+target_include_directories(bp2_bridge_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bp2_bridge_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_bridge_tests)
 
 # CurrentSense (ammeter) component tests
 add_executable(current_sense_tests

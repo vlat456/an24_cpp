@@ -126,6 +126,54 @@
   "output": "src/json_parser/CMakeFiles/json_parser.dir/__/editor/data/type_def_convert.cpp.o"
 },
 {
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/path/path.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/path/path.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/path/path.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/path/path.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/interface/interface.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/interface/interface.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/interface/interface.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/blueprint/blueprint.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/blueprint/blueprint.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/blueprint/blueprint.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/registry/type_registry.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/registry/type_registry.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/registry/type_registry.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/codec/blueprint_codec.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/codec/blueprint_codec.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/codec/blueprint_codec.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/flattener/flattener.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/flattener/flattener.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/flattener/flattener.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/flattener/flattener.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/editor_model/editor_model.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/editor_model/editor_model.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/editor_model/editor_model.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/editor_model/editor_model.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/blueprint_v2",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/blueprint_v2.dir/bridge/blueprint_bridge.cpp.o -c /Users/vladimir/an24_cpp/src/blueprint_v2/bridge/blueprint_bridge.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/blueprint_v2/bridge/blueprint_bridge.cpp",
+  "output": "src/blueprint_v2/CMakeFiles/blueprint_v2.dir/bridge/blueprint_bridge.cpp.o"
+},
+{
   "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/hello_world.dir/main.cpp.o -c /Users/vladimir/an24_cpp/examples/main.cpp",
   "file": "/Users/vladimir/an24_cpp/examples/main.cpp",
@@ -1894,6 +1942,54 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.o -c /Users/vladimir/an24_cpp/tests/test_solenoid_valve_regression.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_solenoid_valve_regression.cpp",
   "output": "tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_path.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_path.cpp",
+  "output": "tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_interface.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_interface.cpp",
+  "output": "tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_blueprint.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_blueprint.cpp",
+  "output": "tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_registry.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_registry.cpp",
+  "output": "tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_codec.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_codec.cpp",
+  "output": "tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_flattener.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_flattener.cpp",
+  "output": "tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_editor_model.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_editor_model.cpp",
+  "output": "tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.o -c /Users/vladimir/an24_cpp/tests/blueprint_v2/test_bridge.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/blueprint_v2/test_bridge.cpp",
+  "output": "tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

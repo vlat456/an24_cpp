@@ -1390,6 +1390,118 @@ solenoid_valve_regression_tests/fast:
 .PHONY : solenoid_valve_regression_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/bp2_path_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_path_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_path_tests.dir/rule
+
+# Convenience name for target.
+bp2_path_tests: tests/CMakeFiles/bp2_path_tests.dir/rule
+.PHONY : bp2_path_tests
+
+# fast build rule for target.
+bp2_path_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/build
+.PHONY : bp2_path_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_interface_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_interface_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_interface_tests.dir/rule
+
+# Convenience name for target.
+bp2_interface_tests: tests/CMakeFiles/bp2_interface_tests.dir/rule
+.PHONY : bp2_interface_tests
+
+# fast build rule for target.
+bp2_interface_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/build
+.PHONY : bp2_interface_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_blueprint_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_blueprint_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_blueprint_tests.dir/rule
+
+# Convenience name for target.
+bp2_blueprint_tests: tests/CMakeFiles/bp2_blueprint_tests.dir/rule
+.PHONY : bp2_blueprint_tests
+
+# fast build rule for target.
+bp2_blueprint_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/build
+.PHONY : bp2_blueprint_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_registry_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_registry_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_registry_tests.dir/rule
+
+# Convenience name for target.
+bp2_registry_tests: tests/CMakeFiles/bp2_registry_tests.dir/rule
+.PHONY : bp2_registry_tests
+
+# fast build rule for target.
+bp2_registry_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/build
+.PHONY : bp2_registry_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_codec_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_codec_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_codec_tests.dir/rule
+
+# Convenience name for target.
+bp2_codec_tests: tests/CMakeFiles/bp2_codec_tests.dir/rule
+.PHONY : bp2_codec_tests
+
+# fast build rule for target.
+bp2_codec_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/build
+.PHONY : bp2_codec_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_flattener_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_flattener_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_flattener_tests.dir/rule
+
+# Convenience name for target.
+bp2_flattener_tests: tests/CMakeFiles/bp2_flattener_tests.dir/rule
+.PHONY : bp2_flattener_tests
+
+# fast build rule for target.
+bp2_flattener_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/build
+.PHONY : bp2_flattener_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_editor_model_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_editor_model_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_editor_model_tests.dir/rule
+
+# Convenience name for target.
+bp2_editor_model_tests: tests/CMakeFiles/bp2_editor_model_tests.dir/rule
+.PHONY : bp2_editor_model_tests
+
+# fast build rule for target.
+bp2_editor_model_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/build
+.PHONY : bp2_editor_model_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/bp2_bridge_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bp2_bridge_tests.dir/rule
+.PHONY : tests/CMakeFiles/bp2_bridge_tests.dir/rule
+
+# Convenience name for target.
+bp2_bridge_tests: tests/CMakeFiles/bp2_bridge_tests.dir/rule
+.PHONY : bp2_bridge_tests
+
+# fast build rule for target.
+bp2_bridge_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/build
+.PHONY : bp2_bridge_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/current_sense_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/current_sense_tests.dir/rule
 .PHONY : tests/CMakeFiles/current_sense_tests.dir/rule
@@ -2452,6 +2564,198 @@ __/src/ui/core/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_grid_tests.dir/build.make tests/CMakeFiles/ui_grid_tests.dir/__/src/ui/core/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/ui_linear_layout_tests.dir/build.make tests/CMakeFiles/ui_linear_layout_tests.dir/__/src/ui/core/widget.cpp.s
 .PHONY : __/src/ui/core/widget.cpp.s
+
+blueprint_v2/test_blueprint.o: blueprint_v2/test_blueprint.cpp.o
+.PHONY : blueprint_v2/test_blueprint.o
+
+# target to build an object file
+blueprint_v2/test_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.o
+.PHONY : blueprint_v2/test_blueprint.cpp.o
+
+blueprint_v2/test_blueprint.i: blueprint_v2/test_blueprint.cpp.i
+.PHONY : blueprint_v2/test_blueprint.i
+
+# target to preprocess a source file
+blueprint_v2/test_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.i
+.PHONY : blueprint_v2/test_blueprint.cpp.i
+
+blueprint_v2/test_blueprint.s: blueprint_v2/test_blueprint.cpp.s
+.PHONY : blueprint_v2/test_blueprint.s
+
+# target to generate assembly for a file
+blueprint_v2/test_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_blueprint_tests.dir/build.make tests/CMakeFiles/bp2_blueprint_tests.dir/blueprint_v2/test_blueprint.cpp.s
+.PHONY : blueprint_v2/test_blueprint.cpp.s
+
+blueprint_v2/test_bridge.o: blueprint_v2/test_bridge.cpp.o
+.PHONY : blueprint_v2/test_bridge.o
+
+# target to build an object file
+blueprint_v2/test_bridge.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.o
+.PHONY : blueprint_v2/test_bridge.cpp.o
+
+blueprint_v2/test_bridge.i: blueprint_v2/test_bridge.cpp.i
+.PHONY : blueprint_v2/test_bridge.i
+
+# target to preprocess a source file
+blueprint_v2/test_bridge.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.i
+.PHONY : blueprint_v2/test_bridge.cpp.i
+
+blueprint_v2/test_bridge.s: blueprint_v2/test_bridge.cpp.s
+.PHONY : blueprint_v2/test_bridge.s
+
+# target to generate assembly for a file
+blueprint_v2/test_bridge.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bridge_tests.dir/build.make tests/CMakeFiles/bp2_bridge_tests.dir/blueprint_v2/test_bridge.cpp.s
+.PHONY : blueprint_v2/test_bridge.cpp.s
+
+blueprint_v2/test_codec.o: blueprint_v2/test_codec.cpp.o
+.PHONY : blueprint_v2/test_codec.o
+
+# target to build an object file
+blueprint_v2/test_codec.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.o
+.PHONY : blueprint_v2/test_codec.cpp.o
+
+blueprint_v2/test_codec.i: blueprint_v2/test_codec.cpp.i
+.PHONY : blueprint_v2/test_codec.i
+
+# target to preprocess a source file
+blueprint_v2/test_codec.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.i
+.PHONY : blueprint_v2/test_codec.cpp.i
+
+blueprint_v2/test_codec.s: blueprint_v2/test_codec.cpp.s
+.PHONY : blueprint_v2/test_codec.s
+
+# target to generate assembly for a file
+blueprint_v2/test_codec.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_codec.cpp.s
+.PHONY : blueprint_v2/test_codec.cpp.s
+
+blueprint_v2/test_editor_model.o: blueprint_v2/test_editor_model.cpp.o
+.PHONY : blueprint_v2/test_editor_model.o
+
+# target to build an object file
+blueprint_v2/test_editor_model.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.o
+.PHONY : blueprint_v2/test_editor_model.cpp.o
+
+blueprint_v2/test_editor_model.i: blueprint_v2/test_editor_model.cpp.i
+.PHONY : blueprint_v2/test_editor_model.i
+
+# target to preprocess a source file
+blueprint_v2/test_editor_model.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.i
+.PHONY : blueprint_v2/test_editor_model.cpp.i
+
+blueprint_v2/test_editor_model.s: blueprint_v2/test_editor_model.cpp.s
+.PHONY : blueprint_v2/test_editor_model.s
+
+# target to generate assembly for a file
+blueprint_v2/test_editor_model.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_editor_model_tests.dir/build.make tests/CMakeFiles/bp2_editor_model_tests.dir/blueprint_v2/test_editor_model.cpp.s
+.PHONY : blueprint_v2/test_editor_model.cpp.s
+
+blueprint_v2/test_flattener.o: blueprint_v2/test_flattener.cpp.o
+.PHONY : blueprint_v2/test_flattener.o
+
+# target to build an object file
+blueprint_v2/test_flattener.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.o
+.PHONY : blueprint_v2/test_flattener.cpp.o
+
+blueprint_v2/test_flattener.i: blueprint_v2/test_flattener.cpp.i
+.PHONY : blueprint_v2/test_flattener.i
+
+# target to preprocess a source file
+blueprint_v2/test_flattener.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.i
+.PHONY : blueprint_v2/test_flattener.cpp.i
+
+blueprint_v2/test_flattener.s: blueprint_v2/test_flattener.cpp.s
+.PHONY : blueprint_v2/test_flattener.s
+
+# target to generate assembly for a file
+blueprint_v2/test_flattener.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_flattener_tests.dir/build.make tests/CMakeFiles/bp2_flattener_tests.dir/blueprint_v2/test_flattener.cpp.s
+.PHONY : blueprint_v2/test_flattener.cpp.s
+
+blueprint_v2/test_interface.o: blueprint_v2/test_interface.cpp.o
+.PHONY : blueprint_v2/test_interface.o
+
+# target to build an object file
+blueprint_v2/test_interface.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.o
+.PHONY : blueprint_v2/test_interface.cpp.o
+
+blueprint_v2/test_interface.i: blueprint_v2/test_interface.cpp.i
+.PHONY : blueprint_v2/test_interface.i
+
+# target to preprocess a source file
+blueprint_v2/test_interface.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.i
+.PHONY : blueprint_v2/test_interface.cpp.i
+
+blueprint_v2/test_interface.s: blueprint_v2/test_interface.cpp.s
+.PHONY : blueprint_v2/test_interface.s
+
+# target to generate assembly for a file
+blueprint_v2/test_interface.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_interface_tests.dir/build.make tests/CMakeFiles/bp2_interface_tests.dir/blueprint_v2/test_interface.cpp.s
+.PHONY : blueprint_v2/test_interface.cpp.s
+
+blueprint_v2/test_path.o: blueprint_v2/test_path.cpp.o
+.PHONY : blueprint_v2/test_path.o
+
+# target to build an object file
+blueprint_v2/test_path.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.o
+.PHONY : blueprint_v2/test_path.cpp.o
+
+blueprint_v2/test_path.i: blueprint_v2/test_path.cpp.i
+.PHONY : blueprint_v2/test_path.i
+
+# target to preprocess a source file
+blueprint_v2/test_path.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.i
+.PHONY : blueprint_v2/test_path.cpp.i
+
+blueprint_v2/test_path.s: blueprint_v2/test_path.cpp.s
+.PHONY : blueprint_v2/test_path.s
+
+# target to generate assembly for a file
+blueprint_v2/test_path.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.s
+.PHONY : blueprint_v2/test_path.cpp.s
+
+blueprint_v2/test_registry.o: blueprint_v2/test_registry.cpp.o
+.PHONY : blueprint_v2/test_registry.o
+
+# target to build an object file
+blueprint_v2/test_registry.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.o
+.PHONY : blueprint_v2/test_registry.cpp.o
+
+blueprint_v2/test_registry.i: blueprint_v2/test_registry.cpp.i
+.PHONY : blueprint_v2/test_registry.i
+
+# target to preprocess a source file
+blueprint_v2/test_registry.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.i
+.PHONY : blueprint_v2/test_registry.cpp.i
+
+blueprint_v2/test_registry.s: blueprint_v2/test_registry.cpp.s
+.PHONY : blueprint_v2/test_registry.s
+
+# target to generate assembly for a file
+blueprint_v2/test_registry.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.s
+.PHONY : blueprint_v2/test_registry.cpp.s
 
 editor_componentvariant_test.o: editor_componentvariant_test.cpp.o
 .PHONY : editor_componentvariant_test.o
@@ -4589,6 +4893,14 @@ help:
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
+	@echo "... bp2_blueprint_tests"
+	@echo "... bp2_bridge_tests"
+	@echo "... bp2_codec_tests"
+	@echo "... bp2_editor_model_tests"
+	@echo "... bp2_flattener_tests"
+	@echo "... bp2_interface_tests"
+	@echo "... bp2_path_tests"
+	@echo "... bp2_registry_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -4750,6 +5062,30 @@ help:
 	@echo "... __/src/ui/core/widget.o"
 	@echo "... __/src/ui/core/widget.i"
 	@echo "... __/src/ui/core/widget.s"
+	@echo "... blueprint_v2/test_blueprint.o"
+	@echo "... blueprint_v2/test_blueprint.i"
+	@echo "... blueprint_v2/test_blueprint.s"
+	@echo "... blueprint_v2/test_bridge.o"
+	@echo "... blueprint_v2/test_bridge.i"
+	@echo "... blueprint_v2/test_bridge.s"
+	@echo "... blueprint_v2/test_codec.o"
+	@echo "... blueprint_v2/test_codec.i"
+	@echo "... blueprint_v2/test_codec.s"
+	@echo "... blueprint_v2/test_editor_model.o"
+	@echo "... blueprint_v2/test_editor_model.i"
+	@echo "... blueprint_v2/test_editor_model.s"
+	@echo "... blueprint_v2/test_flattener.o"
+	@echo "... blueprint_v2/test_flattener.i"
+	@echo "... blueprint_v2/test_flattener.s"
+	@echo "... blueprint_v2/test_interface.o"
+	@echo "... blueprint_v2/test_interface.i"
+	@echo "... blueprint_v2/test_interface.s"
+	@echo "... blueprint_v2/test_path.o"
+	@echo "... blueprint_v2/test_path.i"
+	@echo "... blueprint_v2/test_path.s"
+	@echo "... blueprint_v2/test_registry.o"
+	@echo "... blueprint_v2/test_registry.i"
+	@echo "... blueprint_v2/test_registry.s"
 	@echo "... editor_componentvariant_test.o"
 	@echo "... editor_componentvariant_test.i"
 	@echo "... editor_componentvariant_test.s"
