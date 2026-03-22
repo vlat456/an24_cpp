@@ -109,12 +109,28 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
                         ui::StringInterner& interner,
                         PathArena& arena) {
     for (auto const& w : arr) {
+        if (!w.is_object()) {
+            continue;
+        }
+        if (!w.contains("id") || !w["id"].is_string()) {
+            continue;
+        }
+        if (!w.contains("source") || !w["source"].is_string()) {
+            continue;
+        }
+        if (!w.contains("target") || !w["target"].is_string()) {
+            continue;
+        }
+
         Blueprint::Wire wire;
         wire.id = interner.intern(w["id"].get<std::string>());
         auto src = arena.parse(w["source"].get<std::string>());
         auto tgt = arena.parse(w["target"].get<std::string>());
-        if (src) wire.source = *src;
-        if (tgt) wire.target = *tgt;
+        if (!src || !tgt) {
+            continue;
+        }
+        wire.source = *src;
+        wire.target = *tgt;
         bp = bp.with_wire(std::move(wire));
     }
     return bp;

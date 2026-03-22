@@ -7,6 +7,10 @@ add_library(blueprint_v2 STATIC
     flattener/flattener.cpp
     editor_model/editor_model.cpp
     bridge/blueprint_bridge.cpp
+    validation/path_resolver.cpp
+    validation/wire_validator.cpp
+    validation/invariant_checker.cpp
+    bake/bake_ops.cpp
 )
 target_include_directories(blueprint_v2 PUBLIC
     ${CMAKE_SOURCE_DIR}/src

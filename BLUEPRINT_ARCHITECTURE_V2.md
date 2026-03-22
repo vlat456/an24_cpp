@@ -314,8 +314,14 @@ public:
 
     // === Validation ===
 
-    /// Validates all invariants. Throws on failure.
+    /// Validates structural/type invariants. Throws on failure.
+    /// NOTE: This overload does not validate wire Path endpoint resolution,
+    /// because Path values are arena-relative.
     void validate(TypeRegistry const& registry) const;
+
+    /// Full validation including wire Path endpoint resolution using the caller's
+    /// PathArena context.
+    void validate(TypeRegistry const& registry, PathArena const& arena) const;
 
     // === Operations ===
 

@@ -5,11 +5,24 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <unordered_map>
+#include <unordered_set>
 
 namespace bp2 {
 
 // Forward declaration for registry
 class TypeRegistry;
+
+struct Rect {
+    float x_min = 0.0f;
+    float y_min = 0.0f;
+    float x_max = 0.0f;
+    float y_max = 0.0f;
+
+    bool contains(float x, float y) const {
+        return x >= x_min && x <= x_max && y >= y_min && y <= y_max;
+    }
+};
 
 class EditorModel {
 public:
@@ -25,6 +38,8 @@ public:
     bool remove_wire(ui::InternedId id);
     bool add_nested(Blueprint::Nested nested);
     bool remove_nested(ui::InternedId id);
+    bool update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn);
+    bool update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn);
     bool update_node_position(ui::InternedId id, float x, float y);
 
     // === History ===
@@ -63,12 +78,34 @@ public:
     bool bake_nested(ui::InternedId id, TypeRegistry const& registry,
                      ui::StringInterner& interner);
 
+    // === Derived queries ===
+    std::vector<ui::InternedId> nodes_in_rect(Rect const& r) const;
+    bool wire_exists(Path source, Path target) const;
+
 private:
+    struct PathPairHash {
+        size_t operator()(std::pair<Path, Path> const& p) const noexcept {
+            size_t h = std::hash<Path>{}(p.first);
+            h ^= std::hash<Path>{}(p.second) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            return h;
+        }
+    };
+
+    struct Indices {
+        std::unordered_map<ui::InternedId, std::pair<float, float>> node_pos;
+        std::unordered_set<std::pair<Path, Path>, PathPairHash> wire_set;
+        bool valid = false;
+    };
+
+    void invalidate_indices() { indices_.valid = false; }
+    void ensure_indices() const;
+
     Blueprint current_;
     std::vector<Blueprint> undo_stack_;
     std::vector<Blueprint> redo_stack_;
     size_t max_history_ = 100;
     size_t save_depth_ = 0;
+    mutable Indices indices_;
 };
 
 } // namespace bp2

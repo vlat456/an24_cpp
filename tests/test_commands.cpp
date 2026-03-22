@@ -138,12 +138,11 @@ TEST_F(CommandTest, SetNameUndoRedo) {
     node.name = "OldName";
     model.add_node(std::move(node));
 
+    model.push_checkpoint();
     execute(model, interner, cmd_set_name(node_id, "NewName"));
     EXPECT_EQ(model.current().find_node(node_id)->name, "NewName");
 
-    // Undo the add_node inside cmd_set_name (removes "NewName" node, re-adds "OldName" node)
     model.undo();
-    // After undo: node restored to "OldName" state
     EXPECT_EQ(model.current().find_node(node_id)->name, "OldName");
 }
 
@@ -371,6 +370,7 @@ TEST_F(CommandTest, UndoRoundTripChecksumMoveNode) {
 
     size_t before = blueprint_checksum(model.current());
 
+    model.push_checkpoint();
     execute(model, interner, cmd_move_node(id, 100.0f, 200.0f));
     EXPECT_NE(blueprint_checksum(model.current()), before);
 
@@ -387,16 +387,16 @@ TEST_F(CommandTest, UndoRoundTripChecksumSetParam) {
 
     size_t before = blueprint_checksum(model.current());
 
+    model.push_checkpoint();
     execute(model, interner, cmd_set_param(id, key, 2.0f));
-    // CmdSetParam does remove_node + add_node (2 checkpoints); undo both
-    model.undo(); // undo add_node (updated)
-    model.undo(); // undo remove_node (original)
+    model.undo();
     EXPECT_EQ(blueprint_checksum(model.current()), before);
 }
 
 TEST_F(CommandTest, UndoRoundTripChecksumAddRemoveNode) {
     size_t before = blueprint_checksum(model.current());
 
+    model.push_checkpoint();
     model.add_node(make_node(interner, "n", 0.0f, 0.0f));
     EXPECT_NE(blueprint_checksum(model.current()), before);
 
@@ -440,6 +440,7 @@ TEST_F(CommandTest, UndoRoundTripChecksumAddRemoveWire) {
     size_t before = blueprint_checksum(model.current());
 
     auto w = make_wire(interner, arena, "w1", "n", "out", "n", "in");
+    model.push_checkpoint();
     model.add_wire(std::move(w));
     EXPECT_EQ(model.current().wires().size(), 1u);
 
@@ -557,14 +558,13 @@ TEST_F(CommandTest, SetPortLayout_UndoRestoresOriginal) {
 
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> overrides;
     overrides.push_back({"v_in", std::string("Bottom"), std::nullopt});
+
+    model.push_checkpoint();
     execute(model, interner, cmd_set_port_layout(node_id, overrides));
 
     ASSERT_EQ(model.current().find_node(node_id)->layout_overrides.size(), 1u);
 
-    // Undo both checkpoints from remove_node + add_node
-    model.undo(); // undo add_node (updated)
-    model.undo(); // undo remove_node (original)
-
+    model.undo();
     EXPECT_TRUE(model.current().find_node(node_id)->layout_overrides.empty())
         << "Undo should restore original empty layout_overrides";
 }

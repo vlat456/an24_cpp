@@ -1069,45 +1069,6 @@ lamp_passthrough_jit_test/fast:
 .PHONY : lamp_passthrough_jit_test/fast
 
 #=============================================================================
-# Target rules for targets named node_deletion_tests
-
-# Build rule for target.
-node_deletion_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 node_deletion_tests
-.PHONY : node_deletion_tests
-
-# fast build rule for target.
-node_deletion_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/node_deletion_tests.dir/build.make tests/CMakeFiles/node_deletion_tests.dir/build
-.PHONY : node_deletion_tests/fast
-
-#=============================================================================
-# Target rules for targets named multi_window_tests
-
-# Build rule for target.
-multi_window_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 multi_window_tests
-.PHONY : multi_window_tests
-
-# fast build rule for target.
-multi_window_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_window_tests.dir/build.make tests/CMakeFiles/multi_window_tests.dir/build
-.PHONY : multi_window_tests/fast
-
-#=============================================================================
-# Target rules for targets named params_integrity_tests
-
-# Build rule for target.
-params_integrity_tests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 params_integrity_tests
-.PHONY : params_integrity_tests
-
-# fast build rule for target.
-params_integrity_tests/fast:
-	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/params_integrity_tests.dir/build.make tests/CMakeFiles/params_integrity_tests.dir/build
-.PHONY : params_integrity_tests/fast
-
-#=============================================================================
 # Target rules for targets named expand_typedef_tests
 
 # Build rule for target.
@@ -1641,6 +1602,32 @@ bp2_bridge_tests/fast:
 .PHONY : bp2_bridge_tests/fast
 
 #=============================================================================
+# Target rules for targets named bp2_bake_tests
+
+# Build rule for target.
+bp2_bake_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_bake_tests
+.PHONY : bp2_bake_tests
+
+# fast build rule for target.
+bp2_bake_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_bake_tests.dir/build.make tests/CMakeFiles/bp2_bake_tests.dir/build
+.PHONY : bp2_bake_tests/fast
+
+#=============================================================================
+# Target rules for targets named bp2_validation_tests
+
+# Build rule for target.
+bp2_validation_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bp2_validation_tests
+.PHONY : bp2_validation_tests
+
+# fast build rule for target.
+bp2_validation_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/build
+.PHONY : bp2_validation_tests/fast
+
+#=============================================================================
 # Target rules for targets named current_sense_tests
 
 # Build rule for target.
@@ -1683,6 +1670,7 @@ help:
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
 	@echo "... blueprint_v2"
+	@echo "... bp2_bake_tests"
 	@echo "... bp2_blueprint_tests"
 	@echo "... bp2_bridge_tests"
 	@echo "... bp2_codec_tests"
@@ -1691,6 +1679,7 @@ help:
 	@echo "... bp2_interface_tests"
 	@echo "... bp2_path_tests"
 	@echo "... bp2_registry_tests"
+	@echo "... bp2_validation_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -1732,10 +1721,7 @@ help:
 	@echo "... lut_tests"
 	@echo "... monostable_tests"
 	@echo "... multi_domain_tests"
-	@echo "... multi_window_tests"
 	@echo "... nfd"
-	@echo "... node_deletion_tests"
-	@echo "... params_integrity_tests"
 	@echo "... pd_tests"
 	@echo "... pi_p_tests"
 	@echo "... pid_tests"

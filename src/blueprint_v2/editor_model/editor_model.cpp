@@ -10,6 +10,7 @@ bool EditorModel::add_node(Blueprint::Node node) {
     if (current_.find_node(node.id)) return false;
     push_checkpoint();
     current_ = current_.with_node(std::move(node));
+    invalidate_indices();
     return true;
 }
 
@@ -17,14 +18,16 @@ bool EditorModel::remove_node(ui::InternedId id) {
     if (!current_.find_node(id)) return false;
     push_checkpoint();
     current_ = current_.without_node(id);
+    invalidate_indices();
     return true;
 }
 
 bool EditorModel::add_wire(Blueprint::Wire wire) {
     if (current_.find_wire(wire.id)) return false;
-    if (wire.source == wire.target) return false;  // self-loop
+    if (wire.source == wire.target) return false;
     push_checkpoint();
     current_ = current_.with_wire(std::move(wire));
+    invalidate_indices();
     return true;
 }
 
@@ -32,6 +35,7 @@ bool EditorModel::remove_wire(ui::InternedId id) {
     if (!current_.find_wire(id)) return false;
     push_checkpoint();
     current_ = current_.without_wire(id);
+    invalidate_indices();
     return true;
 }
 
@@ -39,6 +43,7 @@ bool EditorModel::add_nested(Blueprint::Nested nested) {
     if (current_.find_nested(nested.id)) return false;
     push_checkpoint();
     current_ = current_.with_nested(std::move(nested));
+    invalidate_indices();
     return true;
 }
 
@@ -46,24 +51,50 @@ bool EditorModel::remove_nested(ui::InternedId id) {
     if (!current_.find_nested(id)) return false;
     push_checkpoint();
     current_ = current_.without_nested(id);
+    invalidate_indices();
+    return true;
+}
+
+bool EditorModel::update_node(ui::InternedId id, std::function<void(Blueprint::Node&)> fn) {
+    auto const* existing = current_.find_node(id);
+    if (!existing) return false;
+    Blueprint::Node updated = *existing;
+    fn(updated);
+    push_checkpoint();
+    current_ = current_.without_node(id).with_node(std::move(updated));
+    invalidate_indices();
+    return true;
+}
+
+bool EditorModel::update_wire(ui::InternedId id, std::function<void(Blueprint::Wire&)> fn) {
+    auto const* existing = current_.find_wire(id);
+    if (!existing) return false;
+    Blueprint::Wire updated = *existing;
+    fn(updated);
+    push_checkpoint();
+    current_ = current_.without_wire(id).with_wire(std::move(updated));
+    invalidate_indices();
     return true;
 }
 
 bool EditorModel::update_node_position(ui::InternedId id, float x, float y) {
-    auto const* existing = current_.find_node(id);
-    if (!existing) return false;
-    Blueprint::Node updated = *existing;
-    updated.x = x;
-    updated.y = y;
-    push_checkpoint();
-    current_ = current_.without_node(id).with_node(std::move(updated));
-    return true;
+    return update_node(id, [x, y](Blueprint::Node& n) {
+        n.x = x;
+        n.y = y;
+    });
 }
 
 void EditorModel::push_checkpoint() {
     redo_stack_.clear();
     if (undo_stack_.size() >= max_history_) {
         undo_stack_.erase(undo_stack_.begin());
+        // If the saved state was at position 0, it's been evicted.
+        // Mark dirty permanently by using a sentinel value.
+        if (save_depth_ == 0) {
+            save_depth_ = SIZE_MAX;
+        } else if (save_depth_ != SIZE_MAX) {
+            --save_depth_;
+        }
     }
     undo_stack_.push_back(current_);
 }
@@ -73,6 +104,7 @@ void EditorModel::undo() {
     redo_stack_.push_back(std::move(current_));
     current_ = std::move(undo_stack_.back());
     undo_stack_.pop_back();
+    invalidate_indices();
 }
 
 void EditorModel::redo() {
@@ -80,17 +112,21 @@ void EditorModel::redo() {
     undo_stack_.push_back(std::move(current_));
     current_ = std::move(redo_stack_.back());
     redo_stack_.pop_back();
+    invalidate_indices();
 }
 
 bool EditorModel::bake_nested(ui::InternedId id,
                                TypeRegistry const& registry,
                                ui::StringInterner& interner) {
+    (void)interner;
     auto const* nested = current_.find_nested(id);
     if (!nested) return false;
     if (nested->embedded) return false;
 
     auto* entry = registry.find(nested->blueprint_id);
     if (!entry || !entry->blueprint) return false;
+
+    push_checkpoint();
 
     Blueprint::Nested baked;
     baked.id = nested->id;
@@ -101,9 +137,44 @@ bool EditorModel::bake_nested(ui::InternedId id,
     baked.x = nested->x;
     baked.y = nested->y;
 
-    push_checkpoint();
     current_ = current_.without_nested(id).with_nested(std::move(baked));
+    invalidate_indices();
     return true;
+}
+
+void EditorModel::ensure_indices() const {
+    if (indices_.valid) return;
+
+    indices_.node_pos.clear();
+    indices_.wire_set.clear();
+
+    indices_.node_pos.reserve(current_.nodes().size());
+    for (auto const& n : current_.nodes()) {
+        indices_.node_pos[n.id] = {n.x, n.y};
+    }
+
+    indices_.wire_set.reserve(current_.wires().size());
+    for (auto const& w : current_.wires()) {
+        indices_.wire_set.insert({w.source, w.target});
+    }
+
+    indices_.valid = true;
+}
+
+std::vector<ui::InternedId> EditorModel::nodes_in_rect(Rect const& r) const {
+    ensure_indices();
+    std::vector<ui::InternedId> out;
+    for (auto const& kv : indices_.node_pos) {
+        if (r.contains(kv.second.first, kv.second.second)) {
+            out.push_back(kv.first);
+        }
+    }
+    return out;
+}
+
+bool EditorModel::wire_exists(Path source, Path target) const {
+    ensure_indices();
+    return indices_.wire_set.find({source, target}) != indices_.wire_set.end();
 }
 
 std::string EditorModel::generate_unique_node_id(

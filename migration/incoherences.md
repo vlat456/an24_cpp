@@ -33,7 +33,12 @@ class PathResolver {
 };
 ```
 
-**Phase Files:** No phase implements `PathResolver`. It's mentioned in the flattening algorithm but never built as a standalone class.
+**Status:** RESOLVED ✓
+
+Implemented in:
+- `src/blueprint_v2/validation/path_resolver.h`
+- `src/blueprint_v2/validation/path_resolver.cpp`
+- Tests: `tests/blueprint_v2/test_validation.cpp` (`PathResolver.*`)
 
 **Impact:** Wire validation (Part VIII) depends on this. Without it, we can't validate boundary crossing rules.
 
@@ -50,7 +55,12 @@ class WireValidator {
 };
 ```
 
-**Phase Files:** No phase implements `WireValidator`.
+**Status:** RESOLVED ✓
+
+Implemented in:
+- `src/blueprint_v2/validation/wire_validator.h`
+- `src/blueprint_v2/validation/wire_validator.cpp`
+- Tests: `tests/blueprint_v2/test_validation.cpp` (`WireValidator.*`)
 
 **Impact:** The invariants I4 (wire validity) cannot be enforced at construction time without this.
 
@@ -129,7 +139,14 @@ class EditorModel {
 };
 ```
 
-**Phase 7:** Does not implement `spatial_index` or `wire_set`. Only covers undo/redo stack.
+**Status:** PARTIALLY RESOLVED
+
+`bp2::EditorModel` now has derived-index style queries:
+- `nodes_in_rect(Rect)`
+- `wire_exists(Path, Path)`
+
+Implementation uses a cached map/set index in `editor_model.h/.cpp`.
+A true spatial tree is still optional future optimization.
 
 **Impact:** 
 - `nodes_in_rect(Rect r)` cannot work without spatial_index
@@ -147,7 +164,11 @@ Blueprint clone(InternedId new_id) const;
 std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
 ```
 
-**Phase 3:** Does not implement `clone()` or `all_ports()`.
+**Status:** RESOLVED ✓
+
+Implemented in:
+- `src/blueprint_v2/blueprint/blueprint.h`
+- `src/blueprint_v2/blueprint/blueprint.cpp`
 
 **Impact:**
 - `clone()` is needed for bake-in (Phase 7)
@@ -164,7 +185,13 @@ std::vector<std::pair<Path, PortDescriptor>> all_ports(PathArena& arena) const;
 Blueprint bake_all(Blueprint const& bp, TypeRegistry const& registry);
 ```
 
-**Phase 7:** Only covers single-level `bake_nested()`. Recursive bake-all is not implemented.
+**Status:** RESOLVED ✓
+
+Implemented in:
+- `src/blueprint_v2/bake/bake_ops.h`
+- `src/blueprint_v2/bake/bake_ops.cpp`
+- Includes `bake_nested`, `try_unbake`, and recursive `bake_all`
+- Tests: `tests/blueprint_v2/test_bake.cpp`
 
 **Fix:** Add `bake_all()` to Phase 7.
 
@@ -288,7 +315,13 @@ struct Nested {
 
 **Architecture (Part IX):** Defines 6 categories of invariants but no `InvariantChecker` class is specified or implemented.
 
-**Phase Files:** No explicit invariant checking phase.
+**Status:** RESOLVED ✓
+
+Implemented in:
+- `src/blueprint_v2/validation/invariant_checker.h`
+- `src/blueprint_v2/validation/invariant_checker.cpp`
+- `Blueprint::validate(registry, arena)` delegates to invariant checker
+- Tests: `tests/blueprint_v2/test_validation.cpp` (`BlueprintValidate.*`)
 
 **Fix:** Either:
 1. Add `Blueprint::validate()` method (mentioned in architecture) to Phase 3
@@ -309,12 +342,12 @@ struct Nested {
 
 | Priority | Issue | Phase to Fix |
 |----------|-------|--------------|
-| High | Missing PathResolver | Add to Phase 2 |
-| High | Missing WireValidator | Add to Phase 3 or 6 |
+| High | Missing PathResolver | **RESOLVED** |
+| High | Missing WireValidator | **RESOLVED** |
 | ~~High~~ | ~~Params key type~~ | **RESOLVED: InternedId** |
-| Medium | Missing clone()/all_ports() | Add to Phase 3 |
-| Medium | Missing bake_all() | Add to Phase 7 |
-| Medium | EditorModel spatial_index | Add to Phase 7 |
+| Medium | Missing clone()/all_ports() | **RESOLVED** |
+| Medium | Missing bake_all() | **RESOLVED** |
+| Medium | EditorModel spatial_index | **PARTIAL (lightweight index done)** |
 | Medium | TypeRegistry Entry needs Blueprint* | Fix Phase 4 |
 | ~~Low~~ | ~~Path size claim~~ | **RESOLVED: ~12 bytes (ui::InternedId is uint32_t)** |
 | Low | JSON version (2.0 vs 3.0) | Update architecture doc |

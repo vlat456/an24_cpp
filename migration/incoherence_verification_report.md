@@ -45,10 +45,11 @@ class Path {
 - No `PathResolver` class found
 - No implementation in any source files
 
-**Status:** STILL EXISTS ✗
-- PathResolver is not implemented anywhere
-- The flattener (flattener.h) uses direct Path manipulation without a resolver class
-- This affects wire validation (Part VIII) - boundary crossing rules cannot be validated
+**Status:** FIXED ✓
+- Implemented in:
+  - `src/blueprint_v2/validation/path_resolver.h`
+  - `src/blueprint_v2/validation/path_resolver.cpp`
+- Covered by tests in `tests/blueprint_v2/test_validation.cpp` (`PathResolver.*`)
 
 **Impact:** Medium-High
 - Wire validation cannot enforce I4 (wire validity) without path resolution
@@ -96,14 +97,11 @@ TEST(PathResolver, CanConnectInvalidPath) {
 - No `WireValidator` class found
 - No wire validation logic in any source files
 
-**Status:** STILL EXISTS ✗
-- WireValidator is not implemented anywhere
-- Invariants I4 (wire validity) cannot be enforced at construction time
-- No validation of:
-  - Path existence
-  - Domain matching
-  - Direction compatibility (input to output only)
-  - Cyclic connections
+**Status:** FIXED ✓
+- Implemented in:
+  - `src/blueprint_v2/validation/wire_validator.h`
+  - `src/blueprint_v2/validation/wire_validator.cpp`
+- Covered by tests in `tests/blueprint_v2/test_validation.cpp` (`WireValidator.*`)
 
 **Impact:** High
 - Invalid wires can be added to blueprints
@@ -224,10 +222,12 @@ std::unordered_map<ui::InternedId, float> params;
 - No `spatial_index` for `nodes_in_rect(Rect r)` functionality
 - No `wire_set` for wire deduplication queries
 
-**Status:** PARTIAL ✗
-- EditorModel exists in old codebase but not in `bp2::` namespace
-- Spatial index for `nodes_in_rect()` is missing
-- Wire deduplication exists but uses different structure
+**Status:** PARTIAL (IMPROVED)
+- `bp2::EditorModel` now includes derived indices and query APIs:
+  - `nodes_in_rect(Rect)`
+  - `wire_exists(Path, Path)`
+- Implemented with a cached derived index (`node_pos`, `wire_set`) rebuilt lazily.
+- Note: this is a lightweight map/set index, not a full spatial tree.
 
 **Impact:** Medium
 - `nodes_in_rect()` query would be O(N) without spatial index
@@ -273,10 +273,10 @@ TEST(EditorModel, WireSetDeduplication) {
 - `all_ports()` method is **NOT** present
 - Only basic `with_id()` exists (line 76)
 
-**Status:** STILL EXISTS ✗
-- `clone()` method is missing
-- `all_ports()` method is missing
-- Copy constructor exists but requires manual ID change
+**Status:** FIXED ✓
+- Both methods are implemented in:
+  - `src/blueprint_v2/blueprint/blueprint.h`
+  - `src/blueprint_v2/blueprint/blueprint.cpp`
 
 **Impact:** Medium
 - `clone()` needed for bake-in (Phase 7) - must manually copy and change ID
@@ -329,9 +329,12 @@ TEST(Blueprint, AllPortsIncludesNestedPorts) {
 - Not found
 - No recursive bake-all implementation
 
-**Status:** STILL EXISTS ✗
-- `bake_all()` function is completely missing
-- Only single-level baking exists (if at all)
+**Status:** FIXED ✓
+- Implemented in:
+  - `src/blueprint_v2/bake/bake_ops.h`
+  - `src/blueprint_v2/bake/bake_ops.cpp`
+- Includes `bake_nested`, `try_unbake`, and recursive `bake_all`.
+- Covered by tests in `tests/blueprint_v2/test_bake.cpp`.
 
 **Impact:** Medium
 - Cannot recursively expand nested blueprint references
@@ -529,10 +532,13 @@ grep -A 10 "to_string" src/blueprint_v2/path/path.cpp
 - I5: Interface consistency (ports exist in type registry)
 - I6: Nested consistency (blueprint_id exists in registry)
 
-**Status:** STILL EXISTS ✗
-- No InvariantChecker class
-- No validate() method on Blueprint
-- Invariants are not enforced anywhere
+**Status:** FIXED ✓
+- Implemented:
+  - `src/blueprint_v2/validation/invariant_checker.h`
+  - `src/blueprint_v2/validation/invariant_checker.cpp`
+- `Blueprint::validate(registry, arena)` now delegates to `InvariantChecker`.
+- `Blueprint::validate(registry)` remains as structural/type validation overload.
+- Covered by tests in `tests/blueprint_v2/test_validation.cpp`.
 
 **Impact:** High
 - Blueprints can be in invalid states
@@ -597,35 +603,35 @@ TEST(InvariantChecker, ValidBlueprintPasses) {
 | # | Issue | Status | Priority | Test Cases Needed |
 |---|-------|--------|----------|-------------------|
 | 1 | Path size claim | **FIXED** | Low | No |
-| 2 | Missing PathResolver | **STILL EXISTS** | **High** | **Yes** |
-| 3 | Missing WireValidator | **STILL EXISTS** | **High** | **Yes** |
+| 2 | Missing PathResolver | **FIXED** | **High** | **Done** |
+| 3 | Missing WireValidator | **FIXED** | **High** | **Done** |
 | 4 | Direction enum | **FIXED** | N/A | No |
 | 5 | Params key type | **FIXED** | N/A | No |
 | 6 | JSON version | **DOCUMENTED** | Low | No |
 | 7 | EditorModel spatial index | **PARTIAL** | Medium | **Yes** |
-| 8 | Missing clone()/all_ports() | **STILL EXISTS** | Medium | **Yes** |
-| 9 | Missing bake_all() | **STILL EXISTS** | Medium | **Yes** |
+| 8 | Missing clone()/all_ports() | **FIXED** | Medium | **Done** |
+| 9 | Missing bake_all() | **FIXED** | Medium | **Done** |
 | 10 | TypeRegistry Entry | **FIXED** | N/A | No |
 | 11 | Interface port representation | **FIXED** | Low | No |
 | 12 | FlatNetlist port_to_signal | **OK** | Low | No |
 | 13 | InternedId vs SymbolTable | **FIXED** | N/A | No |
 | 14 | Nested::inline_def storage | **FIXED** | N/A | No |
 | 15 | Path parse format | **NEEDS DOCS** | Low | No |
-| 16 | InvariantChecker | **STILL EXISTS** | **High** | **Yes** |
+| 16 | InvariantChecker | **FIXED** | **High** | **Done** |
 
 ---
 
 ## Priority Recommendations
 
 ### High Priority (Blocking/Security)
-1. **PathResolver** - Needed for wire validation and boundary crossing rules
-2. **WireValidator** - Critical for data integrity, prevents corrupt blueprints
-3. **InvariantChecker** - Enforces all 6 invariants, prevents runtime errors
+1. Completed: **PathResolver**
+2. Completed: **WireValidator**
+3. Completed: **InvariantChecker**
 
 ### Medium Priority (Feature/Performance)
-4. **clone() and all_ports() methods** - Needed for bake-in and UI
-5. **bake_all() function** - Needed for recursive blueprint expansion
-6. **EditorModel spatial index** - Performance optimization for large blueprints
+4. Completed: **clone() and all_ports() methods**
+5. Completed: **bake_all()/try_unbake/bake_nested ops**
+6. Partially completed: **EditorModel derived indices** (lightweight index)
 
 ### Low Priority (Documentation)
 7. **JSON version update** - Update architecture doc to v3.0

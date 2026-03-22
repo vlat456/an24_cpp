@@ -149,6 +149,7 @@ public:
 
     /// Validates all invariants. Throws std::runtime_error on failure.
     void validate(TypeRegistry const& registry) const;
+    void validate(TypeRegistry const& registry, PathArena const& arena) const;
 
     bool operator==(Blueprint const& other) const;
     bool operator!=(Blueprint const& other) const { return !(*this == other); }

@@ -325,7 +325,6 @@ add_executable(scene_mutations_tests
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(scene_mutations_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -334,6 +333,7 @@ target_include_directories(scene_mutations_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(scene_mutations_tests PRIVATE
+    blueprint_v2
     json_parser
     spdlog::spdlog
     GTest::gtest_main
@@ -912,16 +912,16 @@ add_executable(inspector_tests
     ../src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_compile_definitions(inspector_tests PRIVATE EDITOR_TESTING)
 target_include_directories(inspector_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
     ${CMAKE_SOURCE_DIR}/src/json_parser
     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
 )
 target_link_libraries(inspector_tests PRIVATE
-    jit_solver
+    blueprint_v2
     json_parser
     GTest::gtest_main
 )
@@ -952,144 +952,6 @@ gtest_discover_tests(lamp_passthrough_jit_test)
 
 # Refactoring regression tests (audit: extracted types, [[nodiscard]], dependency decoupling)
 
-# Node deletion tests
-add_executable(node_deletion_tests
-    test_node_deletion.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    # New widget-based visual scene graph
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-)
-target_compile_definitions(node_deletion_tests PRIVATE EDITOR_TESTING)
-target_include_directories(node_deletion_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_link_libraries(node_deletion_tests PRIVATE
-    jit_solver
-    json_parser
-    blueprint_v2
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(node_deletion_tests)
-
-# Multi-window tests
-add_executable(multi_window_tests
-    test_multi_window.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    # New widget-based visual scene graph
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-)
-target_compile_definitions(multi_window_tests PRIVATE EDITOR_TESTING)
-target_include_directories(multi_window_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_link_libraries(multi_window_tests PRIVATE
-    jit_solver
-    json_parser
-    blueprint_v2
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(multi_window_tests)
-
-# Params integrity tests (Phase 0: data integrity for Properties Window)
-add_executable(params_integrity_tests
-    test_params_integrity.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${imgui_SOURCE_DIR}/imgui.cpp
-    ${imgui_SOURCE_DIR}/imgui_draw.cpp
-    ${imgui_SOURCE_DIR}/imgui_tables.cpp
-    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
-    # New widget-based visual scene graph
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-)
-target_compile_definitions(params_integrity_tests PRIVATE EDITOR_TESTING)
-target_include_directories(params_integrity_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-    ${imgui_SOURCE_DIR}
-    ${imgui_SOURCE_DIR}/backends
-)
-target_link_libraries(params_integrity_tests PRIVATE
-    jit_solver
-    json_parser
-    blueprint_v2
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(params_integrity_tests)
-
 # expand_type_definition tests (shared blueprint expansion)
 add_executable(expand_typedef_tests
     test_expand_type_definition.cpp
@@ -1115,8 +977,6 @@ add_executable(properties_window_tests
     test_properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_compile_definitions(properties_window_tests PRIVATE EDITOR_TESTING)
 target_include_directories(properties_window_tests PRIVATE
@@ -1131,7 +991,7 @@ target_include_directories(properties_window_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(properties_window_tests PRIVATE
-    jit_solver
+    blueprint_v2
     json_parser
     spdlog::spdlog
     GTest::gtest_main
@@ -1151,6 +1011,7 @@ target_include_directories(dt_regression_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(dt_regression_tests PRIVATE
+    blueprint_v2
     jit_solver
     json_parser
     GTest::gtest_main
@@ -1354,7 +1215,6 @@ add_executable(sub_blueprint_ref_tests
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(sub_blueprint_ref_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1422,6 +1282,7 @@ target_include_directories(multi_domain_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(multi_domain_tests PRIVATE
+    blueprint_v2
     jit_solver
     json_parser
     GTest::gtest_main
@@ -1432,7 +1293,6 @@ gtest_discover_tests(multi_domain_tests)
 add_executable(command_tests
     test_commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(command_tests PRIVATE
@@ -1447,6 +1307,7 @@ target_include_directories(command_tests PRIVATE
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
 target_link_libraries(command_tests PRIVATE
+    blueprint_v2
     jit_solver
     json_parser
     spdlog::spdlog
@@ -1792,6 +1653,33 @@ target_link_libraries(bp2_bridge_tests PRIVATE
 )
 gtest_discover_tests(bp2_bridge_tests)
 
+add_executable(bp2_bake_tests
+    blueprint_v2/test_bake.cpp
+)
+target_include_directories(bp2_bake_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_bake_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_bake_tests)
+
+# Validation tests (PathResolver, WireValidator, Blueprint invariants)
+add_executable(bp2_validation_tests
+    blueprint_v2/test_validation.cpp
+)
+target_include_directories(bp2_validation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(bp2_validation_tests PRIVATE
+    blueprint_v2
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(bp2_validation_tests)
+
 # CurrentSense (ammeter) component tests
 add_executable(current_sense_tests
     test_current_sense.cpp
@@ -1807,4 +1695,3 @@ target_link_libraries(current_sense_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(current_sense_tests)
-

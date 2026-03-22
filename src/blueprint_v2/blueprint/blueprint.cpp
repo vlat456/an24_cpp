@@ -1,7 +1,9 @@
 #include "blueprint.h"
 #include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/validation/invariant_checker.h"
 #include "ui/core/interned_id.h"
 #include <algorithm>
+#include <unordered_set>
 
 namespace bp2 {
 
@@ -293,54 +295,53 @@ std::vector<std::pair<Path, PortDescriptor>> Blueprint::all_ports(PathArena& are
 }
 
 void Blueprint::validate(TypeRegistry const& registry) const {
-    // I1: Uniqueness -- node IDs
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        for (size_t j = i + 1; j < nodes_.size(); ++j) {
-            if (nodes_[i].id == nodes_[j].id) {
-                throw std::runtime_error(
-                    "Blueprint validation: duplicate node ID");
-            }
+    // NOTE: Path values are arena-relative. Full wire endpoint validation
+    // requires the caller to provide the arena that created wire/source/target
+    // paths. This overload performs structural/type checks only.
+    std::unordered_set<ui::InternedId> node_ids;
+    for (auto const& n : nodes_) {
+        if (!node_ids.insert(n.id).second) {
+            throw std::runtime_error("Blueprint validation: duplicate node ID");
         }
     }
-    // I1: wire IDs
-    for (size_t i = 0; i < wires_.size(); ++i) {
-        for (size_t j = i + 1; j < wires_.size(); ++j) {
-            if (wires_[i].id == wires_[j].id) {
-                throw std::runtime_error(
-                    "Blueprint validation: duplicate wire ID");
-            }
+
+    std::unordered_set<ui::InternedId> wire_ids;
+    for (auto const& w : wires_) {
+        if (!wire_ids.insert(w.id).second) {
+            throw std::runtime_error("Blueprint validation: duplicate wire ID");
         }
     }
-    // I1: nested IDs
-    for (size_t i = 0; i < nested_.size(); ++i) {
-        for (size_t j = i + 1; j < nested_.size(); ++j) {
-            if (nested_[i].id == nested_[j].id) {
-                throw std::runtime_error(
-                    "Blueprint validation: duplicate nested ID");
-            }
+
+    std::unordered_set<ui::InternedId> nested_ids;
+    for (auto const& n : nested_) {
+        if (!nested_ids.insert(n.id).second) {
+            throw std::runtime_error("Blueprint validation: duplicate nested ID");
         }
     }
-    // I2: node types exist in registry
+
     for (auto const& node : nodes_) {
         if (!registry.has(node.type)) {
-            throw std::runtime_error(
-                "Blueprint validation: unknown node type");
+            throw std::runtime_error("Blueprint validation: unknown node type");
         }
     }
-    // I5: embedded consistency + I2 reference validity
+
     for (auto const& n : nested_) {
         if (n.embedded && !n.inline_def) {
-            throw std::runtime_error(
-                "Blueprint validation: embedded nested missing inline_def");
+            throw std::runtime_error("Blueprint validation: embedded nested missing inline_def");
         }
         if (!n.embedded && n.blueprint_id.empty()) {
-            throw std::runtime_error(
-                "Blueprint validation: non-embedded nested missing blueprint_id");
+            throw std::runtime_error("Blueprint validation: non-embedded nested missing blueprint_id");
         }
         if (!n.embedded && !n.blueprint_id.empty() && !registry.has(n.blueprint_id)) {
-            throw std::runtime_error(
-                "Blueprint validation: unknown nested blueprint");
+            throw std::runtime_error("Blueprint validation: unknown nested blueprint");
         }
+    }
+}
+
+void Blueprint::validate(TypeRegistry const& registry, PathArena const& arena) const {
+    auto r = InvariantChecker::validate(*this, arena, registry);
+    if (!r.valid) {
+        throw std::runtime_error(std::string("Blueprint validation: ") + r.error);
     }
 }
 

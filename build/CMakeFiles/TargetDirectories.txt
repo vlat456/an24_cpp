@@ -165,9 +165,6 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pi_p_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/inspector_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lamp_passthrough_jit_test.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/node_deletion_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/multi_window_tests.dir
-/Users/vladimir/an24_cpp/build/tests/CMakeFiles/params_integrity_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/expand_typedef_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir
@@ -209,6 +206,8 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_flattener_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_editor_model_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bridge_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bake_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir

@@ -206,9 +206,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/pi_p_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/inspector_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/lamp_passthrough_jit_test.dir/DependInfo.cmake"
-  "tests/CMakeFiles/node_deletion_tests.dir/DependInfo.cmake"
-  "tests/CMakeFiles/multi_window_tests.dir/DependInfo.cmake"
-  "tests/CMakeFiles/params_integrity_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/expand_typedef_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/properties_window_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/dt_regression_tests.dir/DependInfo.cmake"
@@ -250,5 +247,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/bp2_flattener_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_editor_model_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_bridge_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/bp2_bake_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/bp2_validation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/current_sense_tests.dir/DependInfo.cmake"
   )
