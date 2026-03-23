@@ -603,6 +603,54 @@ TEST(BlueprintCodec, DecodeNodeLayoutOverrideInvalidSideFails) {
     EXPECT_NE(err.message.find("layout_overrides"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsDuplicateNodeIdsEarly) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "dup",
+        "display_name": "Dup",
+        "interface": [],
+        "nodes": [
+            {"id": "n1", "type": "Battery", "position": {"x": 0, "y": 0}},
+            {"id": "n1", "type": "Resistor", "position": {"x": 10, "y": 0}}
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("duplicate node ID"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsDuplicateWireIdsEarly) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "dup_w",
+        "display_name": "DupW",
+        "interface": [],
+        "nodes": [],
+        "wires": [
+            {"id": "w1", "source": "/a:p", "target": "/b:q"},
+            {"id": "w1", "source": "/c:p", "target": "/d:q"}
+        ],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("duplicate wire ID"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

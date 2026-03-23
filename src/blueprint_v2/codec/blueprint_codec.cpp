@@ -1,4 +1,5 @@
 #include "blueprint_codec.h"
+#include "blueprint_v2/validation/invariant_checker.h"
 #include <nlohmann/json.hpp>
 #include <cerrno>
 #include <cstdlib>
@@ -621,6 +622,12 @@ std::optional<Blueprint> BlueprintCodec::decode(
         bp = decode_nodes(bp, j["nodes"], interner, registry);
         bp = decode_wires(bp, j["wires"], interner, arena);
         bp = decode_nested(bp, j["nested"], interner, registry, arena);
+
+        auto inv = InvariantChecker::validate(bp, arena, registry);
+        if (!inv.valid) {
+            if (error_out) error_out->message = inv.error;
+            return std::nullopt;
+        }
         bp = bp.with_viewport(
             j.value("pan_x", 0.0f),
             j.value("pan_y", 0.0f),
