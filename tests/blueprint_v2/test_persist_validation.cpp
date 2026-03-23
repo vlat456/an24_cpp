@@ -108,3 +108,23 @@ TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
     std::error_code ec;
     fs::remove(tmp, ec);
 }
+
+TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("integrity_ok"));
+    bp = bp.with_display_name("Integrity OK");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("bat1");
+    n.type = interner.intern("Battery");
+    n.x = 0.0f;
+    n.y = 0.0f;
+    bp = bp.with_node(std::move(n));
+
+    std::string err;
+    EXPECT_TRUE(validate_blueprint_integrity(bp, interner, arena, &err));
+    EXPECT_TRUE(err.empty());
+}

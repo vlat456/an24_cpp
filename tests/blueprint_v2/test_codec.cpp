@@ -1904,3 +1904,57 @@ TEST(BlueprintCodec, EncodeDeterministicInterfaceAndNodePortOrdering) {
     std::string ports_dump = j["nodes"][0]["ports"].dump();
     EXPECT_LT(ports_dump.find("\"a_out\""), ports_dump.find("\"z_in\""));
 }
+
+TEST(BlueprintCodec, EncodeGoldenSnapshotStable) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("golden_bp"));
+    bp = bp.with_display_name("Golden BP");
+    bp = bp.with_name("GoldenName");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Battery");
+    n.x = 12.5f;
+    n.y = -3.25f;
+    n.params[interner.intern("zeta")] = 1.0f;
+    n.params[interner.intern("alpha")] = 2.0f;
+    n.string_params["beta"] = "x";
+    bp = bp.with_node(std::move(n));
+
+    std::string actual = bp2::BlueprintCodec::encode(bp, interner, arena);
+    const std::string expected = R"({
+  "display_name": "Golden BP",
+  "grid_step": 16.0,
+  "id": "golden_bp",
+  "interface": [],
+  "name": "GoldenName",
+  "nested": [],
+  "nodes": [
+    {
+      "id": "n1",
+      "params": {
+        "alpha": 2.0,
+        "zeta": 1.0
+      },
+      "position": {
+        "x": 12.5,
+        "y": -3.25
+      },
+      "string_params": {
+        "beta": "x"
+      },
+      "type": "Battery"
+    }
+  ],
+  "pan_x": 0.0,
+  "pan_y": 0.0,
+  "version": "3.0",
+  "wires": [],
+  "zoom": 1.0
+})";
+
+    EXPECT_EQ(actual, expected);
+}

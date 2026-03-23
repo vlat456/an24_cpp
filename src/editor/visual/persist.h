@@ -28,6 +28,13 @@ struct TypeRegistry;
     bp2::PathArena& arena,
     const TypeRegistry& parser_registry);
 
+/// Shared integrity validation (bp2 invariants against runtime registry).
+[[nodiscard]] bool validate_blueprint_integrity(
+    const bp2::Blueprint& bp,
+    ui::StringInterner& interner,
+    const bp2::PathArena& arena,
+    std::string* error_out = nullptr);
+
 /// Validate a blueprint with bp2 invariants and parser type registry checks.
 [[nodiscard]] bool validate_blueprint_for_persist(
     const bp2::Blueprint& bp,

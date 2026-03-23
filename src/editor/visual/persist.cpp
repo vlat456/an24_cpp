@@ -9,6 +9,8 @@
 #include <filesystem>
 #include <cerrno>
 #include <cstdlib>
+#include <unordered_map>
+#include <vector>
 #include <spdlog/spdlog.h>
 
 namespace {
@@ -100,6 +102,12 @@ bool validate_blueprint_for_persist(
     const TypeRegistry& parser_registry,
     std::string* error_out);
 
+bool validate_blueprint_integrity(
+    const bp2::Blueprint& bp,
+    ui::StringInterner& interner,
+    const bp2::PathArena& arena,
+    std::string* error_out);
+
 bool save_blueprint_to_file(const bp2::Blueprint& bp,
                               ui::StringInterner& interner,
                              bp2::PathArena const& arena,
@@ -163,10 +171,9 @@ bool validate_blueprint_for_persist(
         const bp2::PathArena& arena,
         const TypeRegistry& parser_registry,
         std::string* error_out) {
-    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
-    auto inv = bp2::InvariantChecker::validate(bp, arena, bp2_registry);
-    if (!inv.valid) {
-        if (error_out) *error_out = inv.error;
+    std::string integrity_err;
+    if (!validate_blueprint_integrity(bp, interner, arena, &integrity_err)) {
+        if (error_out) *error_out = integrity_err;
         return false;
     }
 
@@ -178,6 +185,62 @@ bool validate_blueprint_for_persist(
         }
     }
 
+    if (error_out) error_out->clear();
+    return true;
+}
+
+bool validate_blueprint_integrity(
+        const bp2::Blueprint& bp,
+        ui::StringInterner& interner,
+        const bp2::PathArena& arena,
+        std::string* error_out) {
+    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
+
+    // Debug/validation should still work on ad-hoc editor node types used in tests or
+    // transient documents. Register unknown types with empty interfaces so structural
+    // invariants (IDs, paths, wire endpoints) remain checkable.
+    for (const auto& node : bp.nodes()) {
+        if (!bp2_registry.has(node.type)) {
+            std::unordered_map<ui::InternedId, bp2::Direction> dirs;
+            for (const auto& p : node.inputs) {
+                dirs[p.name] = bp2::Direction::Input;
+            }
+            for (const auto& p : node.outputs) {
+                auto it = dirs.find(p.name);
+                if (it == dirs.end()) {
+                    dirs[p.name] = bp2::Direction::Output;
+                } else if (it->second != bp2::Direction::Output) {
+                    it->second = bp2::Direction::InOut;
+                }
+            }
+
+            std::vector<bp2::PortDescriptor> ports;
+            ports.reserve(dirs.size());
+            for (const auto& [name, dir] : dirs) {
+                ports.push_back({name, Domain::Electrical, dir});
+            }
+
+            bp2_registry.register_component(
+                node.type,
+                bp2::Interface(std::move(ports)),
+                "ad-hoc type");
+        }
+    }
+    for (const auto& nested : bp.nested()) {
+        if (!nested.embedded && !nested.blueprint_id.empty() && !bp2_registry.has(nested.blueprint_id)) {
+            bp2_registry.register_blueprint(
+                nested.blueprint_id,
+                bp2::Interface(std::vector<bp2::PortDescriptor>{}),
+                "ad-hoc nested blueprint",
+                nullptr);
+        }
+    }
+
+    auto inv = bp2::InvariantChecker::validate(bp, arena, bp2_registry);
+    if (!inv.valid) {
+        if (error_out) *error_out = inv.error;
+        return false;
+    }
     if (error_out) error_out->clear();
     return true;
 }

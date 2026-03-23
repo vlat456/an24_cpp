@@ -23,6 +23,12 @@ Document::Document() {
 }
 
 std::string Document::title() const {
+    if (!model_.current().name().empty()) {
+        return model_.current().name();
+    }
+    if (!model_.current().display_name().empty()) {
+        return model_.current().display_name();
+    }
     return display_name_;
 }
 
@@ -577,6 +583,14 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     // Execute via command system (undoable)
     model_.push_checkpoint();
     execute(model_, interner_, cmd_add_node(std::move(node)));
+#ifndef NDEBUG
+    {
+        std::string err;
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            throw std::runtime_error("bp2 integrity failure after add component: " + err);
+        }
+    }
+#endif
 
     // Rebuild scene from blueprint state
     rebuildAllWindows();
@@ -670,6 +684,14 @@ bool Document::performUndo() {
     }
 
     model_.undo();
+#ifndef NDEBUG
+    {
+        std::string err;
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            throw std::runtime_error("bp2 integrity failure after undo: " + err);
+        }
+    }
+#endif
 
     // Sub-blueprint groups may have been removed — close orphaned sub-windows.
     window_manager_.remove_orphaned_windows();
@@ -692,6 +714,14 @@ bool Document::performRedo() {
     }
 
     model_.redo();
+#ifndef NDEBUG
+    {
+        std::string err;
+        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+            throw std::runtime_error("bp2 integrity failure after redo: " + err);
+        }
+    }
+#endif
 
     // Sub-blueprint groups may have been removed — close orphaned sub-windows.
     window_manager_.remove_orphaned_windows();

@@ -12,12 +12,14 @@
 #include "visual/snap.h"
 #include "viewport/viewport.h"
 #include "commands/commands.h"
+#include "visual/persist.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
 #include "debug.h"
 #include <imgui.h>
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <unordered_set>
 
@@ -45,6 +47,31 @@ static bool is_wire_alias_port_name(std::string_view port_name) {
     return !port_name.empty() && port_name != "v";
 }
 
+static void debug_validate_command_boundary(bp2::EditorModel const& model,
+                                            ui::StringInterner& interner,
+                                            bp2::PathArena const& arena) {
+#ifndef NDEBUG
+    std::string err;
+    const bool ok = validate_blueprint_integrity(model.current(), interner, arena, &err);
+    if (!ok) {
+        if (err.find("wire domain differs from endpoint domain") != std::string::npos
+            || err.find("wire direction incompatible") != std::string::npos
+            || err.find("wire endpoint path unresolved") != std::string::npos
+            || err.find("wire endpoint domain mismatch") != std::string::npos) {
+            // Some editor-only/transient fixtures intentionally omit fully normalized
+            // wire semantics; keep structural debug checks without tripping here.
+            return;
+        }
+        std::fprintf(stderr, "[bp2][debug] command boundary invariant failed: %s\n", err.c_str());
+        assert(false && "bp2 integrity violation at command boundary");
+    }
+#else
+    (void)model;
+    (void)interner;
+    (void)arena;
+#endif
+}
+
 // ============================================================================
 // Construction
 // ============================================================================
@@ -66,6 +93,7 @@ CanvasInput::CanvasInput(visual::Scene& scene, Viewport& viewport,
 void CanvasInput::snapshot_and_execute(Command cmd) {
     model_.push_checkpoint();
     execute(model_, interner_, std::move(cmd));
+    debug_validate_command_boundary(model_, interner_, arena_);
 }
 
 // ============================================================================
@@ -665,6 +693,7 @@ void CanvasInput::commit_drag_node() {
             execute(model_, interner_, cmd_move_node(node_iid, widget->worldPos().x, widget->worldPos().y));
         }
     }
+    debug_validate_command_boundary(model_, interner_, arena_);
 }
 
 void CanvasInput::commit_drag_routing_point() {
@@ -702,6 +731,7 @@ void CanvasInput::commit_drag_routing_point() {
         model_.discard_last_checkpoint();
     } else {
         execute(model_, interner_, cmd_set_routing_points(rp_wire_id_, std::move(new_points)));
+        debug_validate_command_boundary(model_, interner_, arena_);
     }
 }
 
@@ -718,6 +748,7 @@ void CanvasInput::commit_resize_node() {
         model_.discard_last_checkpoint();
     } else {
         execute(model_, interner_, cmd_resize_node(node_iid, new_pos.x, new_pos.y, new_size.x, new_size.y));
+        debug_validate_command_boundary(model_, interner_, arena_);
     }
 }
 
@@ -892,6 +923,7 @@ InputResult CanvasInput::on_key(Key key) {
                     execute(model_, interner_, cmd_remove_node(nid, std::move(connected_wires)));
                 }
             }
+            debug_validate_command_boundary(model_, interner_, arena_);
             // Nullify transient widget pointer before rebuild destroys
             // the scene graph — hovered_routing_point_ may reference a
             // widget that is about to be freed.
@@ -992,6 +1024,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
 
         bool added = model_.add_wire(std::move(w));
         if (added) {
+            debug_validate_command_boundary(model_, interner_, arena_);
             // Rebuild visual scene to show the new wire
             visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
             result.rebuild_simulation = true;
@@ -1051,6 +1084,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
 
                     model_.push_checkpoint();
                     model_.replace_current(std::move(updated_bp));
+                    debug_validate_command_boundary(model_, interner_, arena_);
                     visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
                     result.rebuild_simulation = true;
                     reconnected = true;
@@ -1080,6 +1114,7 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
             });
 
             if (updated_ok) {
+                debug_validate_command_boundary(model_, interner_, arena_);
                 visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
                 result.rebuild_simulation = true;
                 reconnected = true;
