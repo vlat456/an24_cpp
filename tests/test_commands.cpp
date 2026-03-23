@@ -91,7 +91,7 @@ TEST_F(CommandTest, AddRemoveNode) {
     execute(model, interner, cmd_add_node(node));
     EXPECT_EQ(model.current().nodes().size(), 1u);
 
-    execute(model, interner, cmd_remove_node(node_id));
+    execute(model, interner, cmd_remove_node(node_id, {}));
     EXPECT_EQ(model.current().nodes().size(), 0u);
 }
 
