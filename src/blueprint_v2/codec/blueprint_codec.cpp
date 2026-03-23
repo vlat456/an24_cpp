@@ -59,8 +59,15 @@ static nlohmann::json encode_node_ports(const Blueprint::Node& node,
 
 nlohmann::json encode_interface(Interface const& iface,
                                  ui::StringInterner const& interner) {
+    std::vector<PortDescriptor> sorted = iface.ports();
+    std::sort(sorted.begin(), sorted.end(), [&](const PortDescriptor& a, const PortDescriptor& b) {
+        std::string_view na = interner.resolve(a.name);
+        std::string_view nb = interner.resolve(b.name);
+        return na < nb;
+    });
+
     auto arr = nlohmann::json::array();
-    for (auto const& port : iface.ports()) {
+    for (auto const& port : sorted) {
         nlohmann::json p;
         p["name"] = std::string(interner.resolve(port.name));
         p["domain"] = static_cast<int>(port.domain);

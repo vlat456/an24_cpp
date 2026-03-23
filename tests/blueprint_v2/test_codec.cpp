@@ -667,3 +667,33 @@ TEST(BlueprintCodec, EncodeDeterministicParamKeyOrdering) {
     EXPECT_LT(dumped.find("\"alpha\""), dumped.find("\"zeta\""));
     EXPECT_LT(dumped_s.find("\"beta\""), dumped_s.find("\"gamma\""));
 }
+
+TEST(BlueprintCodec, EncodeDeterministicInterfaceAndNodePortOrdering) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("port_order_test"));
+    bp = bp.with_display_name("Port Order Test");
+    bp = bp.with_interface(bp2::Interface({
+        {interner.intern("z_if"), Domain::Electrical, bp2::Direction::Input},
+        {interner.intern("a_if"), Domain::Electrical, bp2::Direction::Output},
+    }));
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Battery");
+    n.inputs.emplace_back(interner.intern("z_in"), PortSide::Input, PortType::V);
+    n.outputs.emplace_back(interner.intern("a_out"), PortSide::Output, PortType::V);
+    bp = bp.with_node(std::move(n));
+
+    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
+    auto j = nlohmann::json::parse(json_str);
+
+    ASSERT_EQ(j["interface"].size(), 2u);
+    EXPECT_EQ(j["interface"][0]["name"], "a_if");
+    EXPECT_EQ(j["interface"][1]["name"], "z_if");
+
+    std::string ports_dump = j["nodes"][0]["ports"].dump();
+    EXPECT_LT(ports_dump.find("\"a_out\""), ports_dump.find("\"z_in\""));
+}
