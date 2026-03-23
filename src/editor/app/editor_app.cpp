@@ -209,6 +209,8 @@ void EditorApp::update() {
     if (Document* doc = ws_.activeDocument()) {
         doc->updateSimulationStep(io.DeltaTime);
         doc->updateNodeContentFromSimulation();
+        ws_.oscilloscope.on_blueprint_changed(*doc);
+        ws_.oscilloscope.sample(*doc, doc->isSimulationRunning());
     }
 }
 
@@ -242,6 +244,7 @@ void EditorApp::render() {
     }
     
     sub_window_renderer_.renderAll(ws_);
+    oscilloscope_window_.render(ws_);
     
     context_menus_.renderAddComponent(ws_);
     context_menus_.renderNodeContext(ws_);

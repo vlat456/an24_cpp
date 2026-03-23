@@ -543,6 +543,30 @@ __/src/editor/commands/commands.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/commands.cpp.s
 .PHONY : __/src/editor/commands/commands.cpp.s
 
+__/src/editor/commands/extract_blueprint.o: __/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.o
+
+__/src/editor/commands/extract_blueprint.i: __/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.i
+
+__/src/editor/commands/extract_blueprint.s: __/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.s
+
 __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.o
 
@@ -662,6 +686,30 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/oscilloscope.o: __/src/editor/oscilloscope.cpp.o
+.PHONY : __/src/editor/oscilloscope.o
+
+# target to build an object file
+__/src/editor/oscilloscope.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.o
+.PHONY : __/src/editor/oscilloscope.cpp.o
+
+__/src/editor/oscilloscope.i: __/src/editor/oscilloscope.cpp.i
+.PHONY : __/src/editor/oscilloscope.i
+
+# target to preprocess a source file
+__/src/editor/oscilloscope.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.i
+.PHONY : __/src/editor/oscilloscope.cpp.i
+
+__/src/editor/oscilloscope.s: __/src/editor/oscilloscope.cpp.s
+.PHONY : __/src/editor/oscilloscope.s
+
+# target to generate assembly for a file
+__/src/editor/oscilloscope.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/oscilloscope.cpp.s
+.PHONY : __/src/editor/oscilloscope.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -1311,6 +1359,30 @@ __/src/editor/visual/widgets/content_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.s
 
+__/src/editor/visual/windows/oscilloscope_window.o: __/src/editor/visual/windows/oscilloscope_window.cpp.o
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.o
+
+# target to build an object file
+__/src/editor/visual/windows/oscilloscope_window.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.o
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.o
+
+__/src/editor/visual/windows/oscilloscope_window.i: __/src/editor/visual/windows/oscilloscope_window.cpp.i
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.i
+
+# target to preprocess a source file
+__/src/editor/visual/windows/oscilloscope_window.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.i
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.i
+
+__/src/editor/visual/windows/oscilloscope_window.s: __/src/editor/visual/windows/oscilloscope_window.cpp.s
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.s
+
+# target to generate assembly for a file
+__/src/editor/visual/windows/oscilloscope_window.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/windows/oscilloscope_window.cpp.s
+.PHONY : __/src/editor/visual/windows/oscilloscope_window.cpp.s
+
 __/src/editor/visual/windows/sub_window_renderer.o: __/src/editor/visual/windows/sub_window_renderer.cpp.o
 .PHONY : __/src/editor/visual/windows/sub_window_renderer.o
 
@@ -1558,6 +1630,9 @@ help:
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
+	@echo "... __/src/editor/commands/extract_blueprint.o"
+	@echo "... __/src/editor/commands/extract_blueprint.i"
+	@echo "... __/src/editor/commands/extract_blueprint.s"
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
@@ -1573,6 +1648,9 @@ help:
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/oscilloscope.o"
+	@echo "... __/src/editor/oscilloscope.i"
+	@echo "... __/src/editor/oscilloscope.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -1654,6 +1732,9 @@ help:
 	@echo "... __/src/editor/visual/widgets/content_widgets.o"
 	@echo "... __/src/editor/visual/widgets/content_widgets.i"
 	@echo "... __/src/editor/visual/widgets/content_widgets.s"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.o"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.i"
+	@echo "... __/src/editor/visual/windows/oscilloscope_window.s"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.o"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.i"
 	@echo "... __/src/editor/visual/windows/sub_window_renderer.s"

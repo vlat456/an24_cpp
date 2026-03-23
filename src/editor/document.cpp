@@ -686,6 +686,12 @@ Document::InputResultAction Document::applyInputResult(const InputResult& r,
     if (!r.slider_node_id.empty()) {
         setSliderValue(r.slider_node_id, r.slider_value);
     }
+    if (!r.toggle_probe_wire_id.empty()) {
+        action.toggle_probe_wire_id = r.toggle_probe_wire_id;
+        action.toggle_probe_group_id = group_id;
+        action.has_toggle_probe_world_pos = r.has_toggle_probe_world_pos;
+        action.toggle_probe_world_pos = r.toggle_probe_world_pos;
+    }
 
     return action;
 }

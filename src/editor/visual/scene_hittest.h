@@ -10,7 +10,7 @@
 /// Returns a std::variant<> so the caller can pattern-match on the result.
 
 #include "ui/math/pt.h"
-#include "input/input_types.h"
+#include "editor/input/input_types.h"
 #include "visual/port/visual_port.h"
 #include <variant>
 #include <cstddef>

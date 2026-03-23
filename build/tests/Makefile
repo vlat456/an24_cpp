@@ -1550,6 +1550,30 @@ __/src/editor/commands/commands.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.s
 .PHONY : __/src/editor/commands/commands.cpp.s
 
+__/src/editor/commands/extract_blueprint.o: __/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.o
+
+# target to build an object file
+__/src/editor/commands/extract_blueprint.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.o
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.o
+
+__/src/editor/commands/extract_blueprint.i: __/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.i
+
+# target to preprocess a source file
+__/src/editor/commands/extract_blueprint.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.i
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.i
+
+__/src/editor/commands/extract_blueprint.s: __/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.s
+
+# target to generate assembly for a file
+__/src/editor/commands/extract_blueprint.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/extract_blueprint.cpp.s
+.PHONY : __/src/editor/commands/extract_blueprint.cpp.s
+
 __/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
 .PHONY : __/src/editor/data/blueprint.o
 
@@ -4654,6 +4678,9 @@ help:
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
+	@echo "... __/src/editor/commands/extract_blueprint.o"
+	@echo "... __/src/editor/commands/extract_blueprint.i"
+	@echo "... __/src/editor/commands/extract_blueprint.s"
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"

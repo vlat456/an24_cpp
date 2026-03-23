@@ -28,6 +28,7 @@ enum class Key {
 struct Modifiers {
     bool alt = false;
     bool ctrl = false;   // Ctrl or Cmd on macOS
+    bool shift = false;
 };
 
 /// Resize handle corners
@@ -62,6 +63,9 @@ struct InputResult {
     std::string context_menu_node_id;       ///< ID of the right-clicked node
     std::string open_sub_window;   ///< non-empty = open this collapsed group
     std::string toggle_switch_node_id;  ///< non-empty = toggle this Switch/AZS node
+    std::string toggle_probe_wire_id;   ///< non-empty = toggle oscilloscope probe on wire
+    bool has_toggle_probe_world_pos = false;
+    ui::Pt toggle_probe_world_pos;
     std::string slider_node_id;         ///< non-empty = set this Slider node's value
     float slider_value = 0.0f;          ///< raw value (already mapped from min..max)
 
@@ -71,6 +75,11 @@ struct InputResult {
         show_context_menu  |= o.show_context_menu;
         if (!o.open_sub_window.empty()) open_sub_window = o.open_sub_window;
         if (!o.toggle_switch_node_id.empty()) toggle_switch_node_id = o.toggle_switch_node_id;
+        if (!o.toggle_probe_wire_id.empty()) toggle_probe_wire_id = o.toggle_probe_wire_id;
+        if (o.has_toggle_probe_world_pos) {
+            has_toggle_probe_world_pos = true;
+            toggle_probe_world_pos = o.toggle_probe_world_pos;
+        }
         if (!o.slider_node_id.empty()) {
             slider_node_id = o.slider_node_id;
             slider_value = o.slider_value;

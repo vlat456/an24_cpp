@@ -108,6 +108,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/app/editor_app.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/oscilloscope.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
@@ -134,6 +135,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/menu/main_menu.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/dialogs/file_dialogs.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/sub_window_renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/oscilloscope_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
@@ -180,4 +182,3 @@ target_link_libraries(an24_editor PRIVATE
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
-

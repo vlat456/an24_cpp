@@ -394,6 +394,16 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
     last_world_pos_ = world;
 
     if (btn == MouseButton::Left) {
+        if (mods.shift) {
+            auto hit = visual::hit_test(scene_, world);
+            if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
+                result.toggle_probe_wire_id = std::string(hw->wire->id());
+                result.has_toggle_probe_world_pos = true;
+                result.toggle_probe_world_pos = world;
+                return result;
+            }
+        }
+
         if (read_only) {
             // Read-only: left-click only allows panning and node selection (for inspection)
             auto hit = visual::hit_test(scene_, world);

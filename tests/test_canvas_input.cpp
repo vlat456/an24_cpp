@@ -4,9 +4,11 @@
 #include "editor/viewport/viewport.h"
 #include "editor/visual/scene.h"
 #include "editor/visual/scene_mutations.h"
+#include "editor/visual/scene_hittest.h"
 #include "editor/visual/node/bus_node_widget.h"
 #include "editor/visual/node/visual_node.h"
 #include "editor/visual/port/visual_port.h"
+#include "editor/visual/wire/wire.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/path/path.h"
@@ -372,4 +374,60 @@ TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
         EXPECT_NE(src_n, I.intern("split"));
         EXPECT_NE(tgt_n, I.intern("split"));
     }
+}
+
+TEST(CanvasInputWireProbe, ShiftClickWireRequestsProbeToggle) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "Battery", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto load = make_node(I, "load", "Lamp", 420.0f, 120.0f);
+    load.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(load));
+    bp = bp.with_wire(make_wire(I, arena, "wire_probe", "src", "v_out", "load", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* wire = dynamic_cast<visual::Wire*>(scene.find("wire_probe"));
+    ASSERT_NE(wire, nullptr);
+    ASSERT_GE(wire->polyline().size(), 2u);
+    ui::Pt probe_pos = wire->polyline()[0];
+    bool found_wire_hit = false;
+    const auto& poly = wire->polyline();
+    for (size_t i = 0; i + 1 < poly.size(); ++i) {
+        const ui::Pt a = poly[i];
+        const ui::Pt b = poly[i + 1];
+        for (int step = 1; step <= 3; ++step) {
+            const float t = static_cast<float>(step) / 4.0f;
+            ui::Pt p(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+            auto hr = visual::hit_test(scene, p);
+            if (std::holds_alternative<visual::HitWire>(hr)) {
+                probe_pos = p;
+                found_wire_hit = true;
+                break;
+            }
+        }
+        if (found_wire_hit) break;
+    }
+    ASSERT_TRUE(found_wire_hit);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    Modifiers mods;
+    mods.shift = true;
+    InputResult r = input.on_mouse_down(probe_pos, MouseButton::Left, canvas_min, mods);
+
+    EXPECT_EQ(r.toggle_probe_wire_id, "wire_probe");
+    EXPECT_TRUE(r.has_toggle_probe_world_pos);
+    EXPECT_NEAR(r.toggle_probe_world_pos.x, probe_pos.x, 1.5f);
+    EXPECT_NEAR(r.toggle_probe_world_pos.y, probe_pos.y, 1.5f);
+    EXPECT_EQ(input.selected_wire(), nullptr);
 }

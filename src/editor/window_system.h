@@ -5,6 +5,7 @@
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
+#include "oscilloscope.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -98,7 +99,9 @@ public:
     } pendingExtract;
 
     bool showInspector = true;
+    bool showOscilloscope = true;
     EditorSettings settings;
+    OscilloscopeModel oscilloscope;
 
     // ── Utility ──
 

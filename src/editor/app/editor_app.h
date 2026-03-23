@@ -5,6 +5,7 @@
 #include "editor/visual/panels/inspector_panel.h"
 #include "editor/visual/panels/document_area.h"
 #include "editor/visual/windows/sub_window_renderer.h"
+#include "editor/visual/windows/oscilloscope_window.h"
 #include "editor/visual/popups/context_menus.h"
 #include "editor/visual/popups/color_picker_dialog.h"
 #include "editor/visual/popups/bake_in_dialog.h"
@@ -47,6 +48,7 @@ private:
     InspectorPanel inspector_panel_;
     DocumentArea document_area_;
     SubWindowRenderer sub_window_renderer_;
+    OscilloscopeWindow oscilloscope_window_;
     ContextMenus context_menus_;
     ColorPickerDialog color_picker_;
     BakeInDialog bake_in_dialog_;

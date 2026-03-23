@@ -141,6 +141,11 @@ public:
         bool show_node_context_menu = false;
         std::string context_menu_node_id;
         std::string node_context_menu_group_id;
+
+        std::string toggle_probe_wire_id;
+        std::string toggle_probe_group_id;
+        bool has_toggle_probe_world_pos = false;
+        Pt toggle_probe_world_pos;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 

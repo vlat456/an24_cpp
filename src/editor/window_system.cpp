@@ -268,4 +268,8 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
         nodeContextMenu.group_id = action.node_context_menu_group_id;
         nodeContextMenu.source_doc_id = doc.id();
     }
+    if (!action.toggle_probe_wire_id.empty()) {
+        const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
+        oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
+    }
 }

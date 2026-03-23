@@ -138,6 +138,9 @@ void MainMenu::renderViewMenu(WindowSystem& ws) {
     if (ImGui::MenuItem("Inspector", nullptr, ws.showInspector)) {
         ws.showInspector = !ws.showInspector;
     }
+    if (ImGui::MenuItem("Oscilloscope", nullptr, ws.showOscilloscope)) {
+        ws.showOscilloscope = !ws.showOscilloscope;
+    }
 
     Document* active_doc = ws.activeDocument();
     if (active_doc) {

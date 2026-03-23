@@ -14,6 +14,21 @@
 #include <unordered_set>
 #include <cstdio>
 
+static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                                 Pt cmin, ImDrawList* draw_list) {
+    if (!ws.showOscilloscope) return;
+    for (const auto& [wire_id, probe] : ws.oscilloscope.probes()) {
+        if (probe.doc_id != doc.id()) continue;
+        if (probe.group_id != win.group_id) continue;
+
+        const auto* p = ws.oscilloscope.probe(wire_id);
+        if (!p) continue;
+        Pt sp = win.viewport.world_to_screen(p->world_pos, cmin);
+        draw_list->AddCircleFilled(ImVec2(sp.x, sp.y), 7.0f, p->color, 24);
+        draw_list->AddCircle(ImVec2(sp.x, sp.y), 9.0f, IM_COL32(20, 20, 20, 220), 24, 2.0f);
+    }
+}
+
 static ImGuiDrawList make_dl(ImDrawList* raw) {
     ImGuiDrawList dl;
     dl.dl = raw;
@@ -36,6 +51,7 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
     renderBlueprint(win, doc, cmin, cmax, draw_list);
     renderTooltips(win, doc, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
+    render_probe_markers(win, doc, ws, cmin, draw_list);
     node_renderer_.render(doc, win, cmin);
     renderMarquee(win, cmin, draw_list);
     
@@ -193,6 +209,7 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     Modifiers mods;
     mods.alt  = io.KeyAlt;
     mods.ctrl = io.KeyCtrl || io.KeySuper;
+    mods.shift = io.KeyShift;
 
     ImVec2 mp = ImGui::GetMousePos();
     Pt screen_pos(mp.x, mp.y);
@@ -234,4 +251,3 @@ void CanvasRenderer::handleInput(BlueprintWindow& win, Document& doc, WindowSyst
     key_handler::process_keys(io.WantCaptureKeyboard, win.read_only,
         [&](Key k) { dispatch(win.input.on_key(k)); });
 }
-
