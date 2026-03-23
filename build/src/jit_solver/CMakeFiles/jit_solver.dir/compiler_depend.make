@@ -2047,7 +2047,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   /Library/Developer/CommandLineTools/usr/include/c++/v1/type_traits \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/typeinfo \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_map \
-  /Library/Developer/CommandLineTools/usr/include/c++/v1/unordered_set \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/utility \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/valarray \
   /Library/Developer/CommandLineTools/usr/include/c++/v1/variant \
@@ -2136,15 +2135,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o: /Users/vladimir/an24_c
   _deps/spdlog-src/include/spdlog/spdlog.h \
   _deps/spdlog-src/include/spdlog/tweakme.h \
   _deps/spdlog-src/include/spdlog/version.h \
-  /Users/vladimir/an24_cpp/src/editor/layout_constants.h \
-  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
-  /Users/vladimir/an24_cpp/src/ui/core/interned_id.h \
-  /Users/vladimir/an24_cpp/src/ui/math/pt.h \
-  /Users/vladimir/an24_cpp/src/editor/data/blueprint.h \
-  /Users/vladimir/an24_cpp/src/editor/data/node.h \
-  /Users/vladimir/an24_cpp/src/editor/data/port.h \
-  /Users/vladimir/an24_cpp/src/editor/data/sub_blueprint_instance.h \
-  /Users/vladimir/an24_cpp/src/editor/data/wire.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/parse_number.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
@@ -3230,8 +3220,6 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: /Users/vladimir/an24_cpp
 
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.h:
 
-/Users/vladimir/an24_cpp/src/editor/data/node.h:
-
 /Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp:
 
 /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h:
@@ -3460,8 +3448,6 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tuple:
 
-/Users/vladimir/an24_cpp/src/editor/data/blueprint.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__tree:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__split_buffer:
@@ -3469,8 +3455,6 @@ _deps/json-src/include/nlohmann/ordered_map.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__ranges/enable_view.h:
-
-/Users/vladimir/an24_cpp/src/editor/layout_constants.h:
 
 _deps/spdlog-src/include/spdlog/common.h:
 
@@ -3800,8 +3784,6 @@ _deps/spdlog-src/include/spdlog/details/log_msg_buffer.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/fill.h:
 
-/Users/vladimir/an24_cpp/src/ui/math/pt.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__functional/pointer_to_unary_function.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/signal.h:
@@ -3883,8 +3865,6 @@ _deps/json-src/include/nlohmann/detail/macro_scope.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/memory:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_useconds_t.h:
-
-/Users/vladimir/an24_cpp/src/ui/core/interned_id.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/default_sentinel.h:
 
@@ -4064,8 +4044,6 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fsblkcnt_t.h:
 
-/Users/vladimir/an24_cpp/src/editor/data/wire.h:
-
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/copy_if.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h:
@@ -4125,8 +4103,6 @@ _deps/spdlog-src/include/spdlog/spdlog.h:
 _deps/spdlog-src/include/spdlog/details/synchronous_factory.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h:
-
-/Users/vladimir/an24_cpp/src/editor/data/sub_blueprint_instance.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__algorithm/all_of.h:
 
@@ -4207,8 +4183,6 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 /Library/Developer/CommandLineTools/usr/include/c++/v1/vector:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/concepts:
-
-/Users/vladimir/an24_cpp/src/editor/data/port.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_int32_t.h:
 

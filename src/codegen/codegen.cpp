@@ -626,7 +626,7 @@ std::string CodeGen::generate_source(
 
     // Post-step is now integrated into each step_N() method
     // (runs after SOR, before logical — correct execution order)
-    // This method is kept empty for backward compatibility with test harnesses
+    // This method is kept empty for current test harnesses
     oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
     oss << "    // No-op: post_step is now inlined into step_N() functions\n";
     oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
@@ -1032,4 +1032,3 @@ std::map<std::string, CompositeCodegenResult> CodeGen::generate_all_composites(
 
     return results;
 }
-

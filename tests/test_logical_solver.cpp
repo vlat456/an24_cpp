@@ -4,6 +4,7 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/visual/persist.h"
+#include "sim_test_json.h"
 
 /// TDD: Logical Solver and Comparator Component
 /// These tests are written FIRST (TDD approach) and will FAIL until implementation is complete
@@ -158,7 +159,7 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_BasicBehavior) {
 
     // Create simulator and start
     Simulator<JIT_Solver> simulator;
-    simulator.start(bp);
+    simulator.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Test 1: Initial state (all zeros) -> output FALSE (diff=0, not > Von)
     simulator.step(0.016f);  // 60Hz = 16.67ms
@@ -214,7 +215,7 @@ TEST(LogicalSolverTest, Comparator_Hysteresis_WithVbOffset) {
     bp.add_node(std::move(comp));
 
     Simulator<JIT_Solver> simulator;
-    simulator.start(bp);
+    simulator.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Using default params: Von=5, Voff=2
     // Set Vb=10, Va=15 -> (15-10) = 5, at Von threshold -> TRUE

@@ -1,6 +1,5 @@
 #include "simulator.h"
 #include "scheduling.h"
-#include "../editor/data/blueprint.h"
 #include "../json_parser/json_parser.h"
 #include "../parse_number.h"
 #include "components/port_registry.h"
@@ -13,7 +12,6 @@ template<typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     : build_result_(std::move(other.build_result_))
     , state_(std::move(other.state_))
-    , cached_blueprint_(std::move(other.cached_blueprint_))
     , running_(other.running_)
     , time_(other.time_)
     , step_count_(other.step_count_)
@@ -37,7 +35,6 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
 
         build_result_ = std::move(other.build_result_);
         state_ = std::move(other.state_);
-        cached_blueprint_ = std::move(other.cached_blueprint_);
         running_ = other.running_;
         time_ = other.time_;
         step_count_ = other.step_count_;
@@ -57,9 +54,7 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
 }
 
 template<typename SolverTag>
-void Simulator<SolverTag>::start(const Blueprint& bp) {
-    // Convert blueprint to JSON, then parse as simulator format
-    std::string json_str = bp.to_simulator_json();
+void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     auto ctx = parse_json(json_str);
 
     // Build systems from parsed context
@@ -103,9 +98,6 @@ void Simulator<SolverTag>::start(const Blueprint& bp) {
     // Move LUT arena from build result to simulation state
     state_.lut_keys = std::move(build_result_->lut_keys);
     state_.lut_values = std::move(build_result_->lut_values);
-
-    // Cache blueprint for potential rebuilds
-    cached_blueprint_ = bp;
 
     // Reset time, step count, and accumulators
     time_ = 0.0f;
@@ -239,9 +231,8 @@ float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const
 
     auto it = build_result_->port_to_signal.find(port_name);
     if (it == build_result_->port_to_signal.end()) {
-        // Sub-blueprint port lookup: the editor queries "sbi_id.expose_name"
-        // but the simulator has "sbi_id:expose_name.ext" (prefixed internal node
-        // with the "ext" alias port). Rewrite to bridge the two naming schemes.
+        // Sub-blueprint port lookup: editor queries "sbi_id.expose_name"
+        // while simulator keys are "sbi_id:expose_name.ext".
         auto dot = port_name.find('.');
         if (dot != std::string::npos) {
             std::string fallback = port_name.substr(0, dot) + ":" +

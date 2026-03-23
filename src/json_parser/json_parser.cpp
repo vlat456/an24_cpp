@@ -475,11 +475,11 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
         // Check if ports are already occupied - log warning but don't throw
         if (!from_allows_multiple && occupied_ports.count(conn.from)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
                           conn.from);
         }
         if (!to_allows_multiple && occupied_ports.count(conn.to)) {
-            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing for compatibility",
+            spdlog::warn("[json_parser] Port '{}' already has a wire connected (one-to-one violation) - allowing duplicate",
                           conn.to);
         }
 

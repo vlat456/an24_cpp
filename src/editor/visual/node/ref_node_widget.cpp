@@ -6,6 +6,7 @@
 #include "editor/layout_constants.h"
 #include "visual/snap.h"
 #include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
 
@@ -46,6 +47,32 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
     setSize(Pt(w, h));
     positionPort();
 }
+
+RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+    : RefNodeWidget([
+        &]() {
+            Node node;
+            node.id = data.id;
+            node.name = data.name;
+            node.type_name = std::string(interner.resolve(data.type));
+            node.pos = ui::Pt(data.x, data.y);
+            node.inputs = data.inputs;
+            node.outputs = data.outputs;
+            if (data.width.has_value() && data.height.has_value()) {
+                node.set_explicit_size(ui::Pt(*data.width, *data.height));
+            }
+            if (data.has_color) {
+                NodeColor c;
+                c.r = data.color_r;
+                c.g = data.color_g;
+                c.b = data.color_b;
+                c.a = data.color_a;
+                node.color = c;
+            }
+            return node;
+        }(),
+        interner)
+{}
 
 // ============================================================================
 // Layout

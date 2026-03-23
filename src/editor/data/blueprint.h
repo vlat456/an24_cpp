@@ -329,9 +329,6 @@ public:
     void auto_layout_group(const std::string& group_id);
 
     // == Serialization ==
-    
-    /// Serialize to simulator JSON format (rewrites wires, skips Blueprint nodes)
-    std::string to_simulator_json() const;
 };
 
 /// Expand a TypeDefinition (blueprint) into a Blueprint with Nodes + Wires.

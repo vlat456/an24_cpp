@@ -9,6 +9,7 @@
 #include "data/node.h"
 #include "data/blueprint.h"
 #include "json_parser/json_parser.h"
+#include <nlohmann/json.hpp>
 #include "blueprint_v2/path/path.h"
 #include <spdlog/spdlog.h>
 #include <stdexcept>
@@ -29,46 +30,121 @@ std::string Document::title() const {
 // Private helpers
 // ============================================================================
 
-/// Build a legacy ::Blueprint from the current bp2::Blueprint for the simulator.
-/// Only populates fields used by Blueprint::to_simulator_json():
-///   nodes (id, type_name, params as string→string), wires (start/end node+port).
-Blueprint Document::build_legacy_for_simulation() const {
-    Blueprint legacy;
+using json = nlohmann::json;
+
+static const char* sim_port_type_str(PortType t) {
+    switch (t) {
+        case PortType::V: return "V";
+        case PortType::I: return "I";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Any:
+        default: return "Any";
+    }
+}
+
+std::string Document::build_simulation_json() const {
     const bp2::Blueprint& bp = model_.current();
+    json out = json::object();
+    out["templates"] = json::object();
+
+    json devices = json::array();
+    std::set<std::string> emitted_ids;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        Node node;
-        node.id   = n.id;
-        node.name = n.name;
-        node.type_name = std::string(interner_.resolve(n.type));
-        node.group_id  = n.group_id;
-        node.expandable = n.expandable;
-        node.collapsed  = n.collapsed;
-        node.pos = ui::Pt(n.x, n.y);
+        if (n.expandable) continue;
 
-        // Convert InternedId→float params to string→string for simulator JSON
-        for (const auto& [k, v] : n.params) {
-            node.params[std::string(interner_.resolve(k))] = std::to_string(v);
+        std::string nid = std::string(interner_.resolve(n.id));
+        if (!emitted_ids.insert(nid).second) {
+            spdlog::warn("[dedup] Duplicate node '{}' on sim export", nid);
+            continue;
         }
 
-        node.inputs  = n.inputs;
-        node.outputs = n.outputs;
+        json device = json::object();
+        device["name"] = nid;
+        device["template_name"] = "";
+        device["classname"] = std::string(interner_.resolve(n.type));
+        if (!n.render_hint.empty()) {
+            device["render_hint"] = n.render_hint;
+        }
+        device["priority"] = "med";
+        device["bucket"] = nullptr;
+        device["critical"] = false;
 
-        legacy.add_node(std::move(node));
+        json ports = json::object();
+        for (const auto& p : n.inputs) {
+            ports[std::string(interner_.resolve(p.name))] = {
+                {"direction", "In"},
+                {"type", sim_port_type_str(p.type)}
+            };
+        }
+        for (const auto& p : n.outputs) {
+            ports[std::string(interner_.resolve(p.name))] = {
+                {"direction", "Out"},
+                {"type", sim_port_type_str(p.type)}
+            };
+        }
+        device["ports"] = std::move(ports);
+
+        json params = json::object();
+        for (const auto& [k, v] : n.params) {
+            params[std::string(interner_.resolve(k))] = std::to_string(v);
+        }
+        if (!params.empty()) {
+            device["params"] = std::move(params);
+        }
+
+        devices.push_back(std::move(device));
     }
+    out["devices"] = std::move(devices);
+
+    std::set<std::string> blueprint_node_ids;
+    for (const auto& n : bp.nodes()) {
+        if (n.expandable) {
+            blueprint_node_ids.insert(std::string(interner_.resolve(n.id)));
+        }
+    }
+
+    json connections = json::array();
+    std::set<std::string> emitted_conn_keys;
 
     for (const bp2::Blueprint::Wire& w : bp.wires()) {
         auto [src_node, src_port] = bp2_path_to_node_port(w.source);
         auto [tgt_node, tgt_port] = bp2_path_to_node_port(w.target);
         if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty())
             continue;
-        Wire wire = Wire::make(w.id,
-            WireEnd(src_node, src_port, PortSide::Output),
-            WireEnd(tgt_node, tgt_port, PortSide::Input));
-        legacy.add_wire(std::move(wire));
-    }
 
-    return legacy;
+        std::string src_node_s = std::string(interner_.resolve(src_node));
+        std::string src_port_s = std::string(interner_.resolve(src_port));
+        std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
+        std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
+
+        if (blueprint_node_ids.count(src_node_s) > 0) {
+            src_node_s = src_node_s + ":" + src_port_s;
+            src_port_s = "ext";
+        }
+        if (blueprint_node_ids.count(tgt_node_s) > 0) {
+            tgt_node_s = tgt_node_s + ":" + tgt_port_s;
+            tgt_port_s = "ext";
+        }
+
+        const std::string key = src_node_s + "." + src_port_s + "→" + tgt_node_s + "." + tgt_port_s;
+        if (!emitted_conn_keys.insert(key).second) {
+            spdlog::warn("[dedup] Duplicate connection on sim export: {}", key);
+            continue;
+        }
+
+        json conn = json::object();
+        conn["from"] = src_node_s + "." + src_port_s;
+        conn["to"] = tgt_node_s + "." + tgt_port_s;
+        connections.push_back(std::move(conn));
+    }
+    out["connections"] = std::move(connections);
+
+    return out.dump(2);
 }
 
 /// Extract (node_id, port_name) from a bp2::Path (Node→Port path).
@@ -154,8 +230,7 @@ bool Document::load(const std::string& path) {
 void Document::startSimulation() {
     if (!simulation_running_) {
         try {
-            Blueprint legacy = build_legacy_for_simulation();
-            simulation_.start(legacy);
+            simulation_.start_from_json(build_simulation_json());
             simulation_running_ = true;
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to start simulation: {}", e.what());
@@ -173,8 +248,7 @@ void Document::rebuildSimulation() {
     if (simulation_running_) {
         simulation_.stop();
         try {
-            Blueprint legacy = build_legacy_for_simulation();
-            simulation_.start(legacy);
+            simulation_.start_from_json(build_simulation_json());
         } catch (const std::runtime_error& e) {
             spdlog::error("[sim] Failed to rebuild simulation: {}", e.what());
             simulation_running_ = false;

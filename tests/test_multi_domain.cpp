@@ -5,6 +5,7 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "ui/core/interned_id.h"
+#include "sim_test_json.h"
 
 namespace ui {
 inline std::ostream& operator<<(std::ostream& os, InternedId id) {
@@ -256,7 +257,7 @@ static Blueprint make_electric_heater_circuit() {
 TEST(MultiDomain, Mechanical_RunsEvery3rdStep) {
     Blueprint bp = make_spring_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Override spring positions to generate force
     // Spring: delta_x = (pos_a - pos_b) - rest_length
@@ -301,7 +302,7 @@ TEST(MultiDomain, Mechanical_RunsEvery3rdStep) {
 TEST(MultiDomain, Thermal_RunsEvery60thStep) {
     Blueprint bp = make_temp_sensor_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Override temperature input
     sim.apply_overrides({{"tempsensor.temp_in", 25.0f}});
@@ -400,7 +401,7 @@ TEST(MultiDomain, Electrical_RunsEveryStep) {
     bp.add_wire(std::move(w3));
 
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Need to run simulation to get voltage (SOR needs iterations to converge)
     for (int i = 0; i < 10; i++) {
@@ -427,7 +428,7 @@ TEST(MultiDomain, Electrical_RunsEveryStep) {
 TEST(MultiDomain, Mechanical_AccumulatesDt) {
     Blueprint bp = make_spring_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Set spring to generate force
     sim.apply_overrides({{"spring.pos_a", 0.0f}, {"spring.pos_b", 0.05f}});
@@ -461,7 +462,7 @@ TEST(MultiDomain, Mechanical_AccumulatesDt) {
 TEST(MultiDomain, Components_SortedByDomain) {
     Blueprint bp = make_spring_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Get the build result to check domain sorting
     // We can't directly access build_result_ from outside, but we can verify
@@ -493,7 +494,7 @@ TEST(MultiDomain, Components_SortedByDomain) {
 TEST(MultiDomain, MultiDomain_ElectricHeater_InBothVectors) {
     Blueprint bp = make_electric_heater_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // ElectricHeater is both Electrical and Thermal
     // Electrical should run every step

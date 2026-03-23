@@ -27,11 +27,9 @@ public:
                         bake_doc->interner().lookup(ws.pendingBakeIn.sub_blueprint_id);
                     if (!nested_iid.empty()) {
                         // NOTE: bake_nested() requires a populated bp2::TypeRegistry to look
-                        // up the library blueprint by ID.  The editor currently maintains the
-                        // legacy ::TypeRegistry (JSON-parsed) but does not yet build a parallel
-                        // bp2::TypeRegistry.  Until that gap is closed this call will return
-                        // false for reference-type nested blueprints.  Embedded (inline_def)
-                        // nesteds are unaffected.
+                        // up the library blueprint by ID. If the registry is empty this call
+                        // returns false for reference-type nested blueprints. Embedded
+                        // (inline_def) nesteds are unaffected.
                         bp2::TypeRegistry bp2_registry;
                         bool ok = bake_doc->model().bake_nested(
                             nested_iid, bp2_registry, bake_doc->interner());
@@ -56,4 +54,3 @@ public:
         }
     }
 };
-

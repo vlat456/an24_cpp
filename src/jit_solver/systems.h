@@ -34,7 +34,7 @@ public:
     /// Add component and register it in all applicable domains
     void add_component(std::unique_ptr<Component> comp, const std::vector<Domain>& domains);
 
-    /// Add electrical component (legacy, for compatibility)
+    /// Add electrical component
     void add_electrical(std::unique_ptr<Component> comp);
 
     /// Add hydraulic component to bucket

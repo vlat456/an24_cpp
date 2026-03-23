@@ -8,11 +8,15 @@
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
+#include "data/wire.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 
 namespace visual {
+
+using DataWire = ::Wire;
 
 // ============================================================================
 // Construction
@@ -21,7 +25,7 @@ namespace visual {
 BusNodeWidget::BusNodeWidget(const ::Node& data,
                              const ui::StringInterner& interner,
                              PortEdge port_edge,
-                             const std::vector<::Wire>& wires)
+                             const std::vector<BusWireRef>& wires)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
@@ -36,7 +40,7 @@ BusNodeWidget::BusNodeWidget(const ::Node& data,
 
     // Collect wires connected to this node
     for (const auto& w : wires) {
-        if (w.start.node_id == node_iid_ || w.end.node_id == node_iid_) {
+        if (w.start_node_id == node_iid_ || w.end_node_id == node_iid_) {
             wires_.push_back(w);
         }
     }
@@ -51,6 +55,53 @@ BusNodeWidget::BusNodeWidget(const ::Node& data,
 
     rebuildPorts();
 }
+
+BusNodeWidget::BusNodeWidget(const ::Node& data,
+                             const ui::StringInterner& interner,
+                             PortEdge port_edge,
+                             const std::vector<DataWire>& wires)
+    : BusNodeWidget(
+        data,
+        interner,
+        port_edge,
+        [&]() {
+            std::vector<BusWireRef> refs;
+            refs.reserve(wires.size());
+            for (const auto& w : wires) {
+                refs.push_back(BusWireRef{w.id, w.start.node_id, w.end.node_id});
+            }
+            return refs;
+        }())
+{}
+
+BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
+                             const ui::StringInterner& interner,
+                             PortEdge port_edge,
+                             const std::vector<BusWireRef>& wires)
+    : BusNodeWidget([
+        &]() {
+            Node node;
+            node.id = data.id;
+            node.name = data.name;
+            node.type_name = std::string(interner.resolve(data.type));
+            node.pos = ui::Pt(data.x, data.y);
+            if (data.width.has_value() && data.height.has_value()) {
+                node.set_explicit_size(ui::Pt(*data.width, *data.height));
+            }
+            if (data.has_color) {
+                NodeColor c;
+                c.r = data.color_r;
+                c.g = data.color_g;
+                c.b = data.color_b;
+                c.a = data.color_a;
+                node.color = c;
+            }
+            return node;
+        }(),
+        interner,
+        port_edge,
+        wires)
+{}
 
 // ============================================================================
 // Port management
@@ -192,19 +243,27 @@ Port* BusNodeWidget::portByName(std::string_view port_name,
     return nullptr;
 }
 
-void BusNodeWidget::connectWire(const ::Wire& wire) {
-    if (wire.start.node_id == node_iid_ || wire.end.node_id == node_iid_) {
+void BusNodeWidget::connectWire(const BusWireRef& wire) {
+    if (wire.start_node_id == node_iid_ || wire.end_node_id == node_iid_) {
         wires_.push_back(wire);
         rebuildPorts();
     }
 }
 
-void BusNodeWidget::disconnectWire(const ::Wire& wire) {
+void BusNodeWidget::connectWire(const DataWire& wire) {
+    connectWire(BusWireRef{wire.id, wire.start.node_id, wire.end.node_id});
+}
+
+void BusNodeWidget::disconnectWire(const BusWireRef& wire) {
     wires_.erase(
         std::remove_if(wires_.begin(), wires_.end(),
-            [&](const ::Wire& w) { return w.id == wire.id; }),
+            [&](const BusWireRef& w) { return w.id == wire.id; }),
         wires_.end());
     rebuildPorts();
+}
+
+void BusNodeWidget::disconnectWire(const DataWire& wire) {
+    disconnectWire(BusWireRef{wire.id, wire.start.node_id, wire.end.node_id});
 }
 
 bool BusNodeWidget::swapAliasPorts(ui::InternedId wire_id_a,

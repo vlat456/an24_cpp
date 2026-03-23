@@ -6,7 +6,7 @@
  * macOS: Core Profile 3.2 + Forward Compatible + GLSL 150
  * Linux: Core Profile 3.0+ + GLSL 130
  *
- * macOS не поддерживает Compatibility Profile и legacy GLSL (120, 130).
+ * macOS не поддерживает Compatibility Profile и старые версии GLSL (120, 130).
  * Единственный рабочий путь — Core Profile ≥ 3.2 + GLSL 150.
  *
  * Эти константы используются в an24_editor.cpp и проверяются юнит-тестами.

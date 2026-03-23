@@ -138,9 +138,8 @@ public:
 private:
     // ── Private helpers ──
 
-    /// Build a minimal legacy ::Blueprint from the current bp2::Blueprint,
-    /// sufficient for Blueprint::to_simulator_json() (simulation use only).
-    Blueprint build_legacy_for_simulation() const;
+    /// Build simulator JSON from current bp2 model.
+    std::string build_simulation_json() const;
 
     /// Extract (node_id, port_name) InternedId pair from a bp2::Path
     /// (expects PathKind::Port with Node parent). Returns empty pair on error.

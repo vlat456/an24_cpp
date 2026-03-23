@@ -6,7 +6,7 @@
 /// TDD Step 9: GL setup configuration
 ///
 /// Верифицирует что OpenGL-конфигурация корректна для текущей платформы.
-/// Основная проблема: macOS не поддерживает legacy GLSL (120, 130),
+/// Основная проблема: macOS не поддерживает старые GLSL версии (120, 130),
 /// только Core Profile 3.2+ с GLSL 150.
 
 // ========== macOS-specific tests ==========
@@ -27,7 +27,7 @@ TEST(GLSetupTest, MacOS_CoreProfile_Required) {
 }
 
 TEST(GLSetupTest, MacOS_ForwardCompat_Required) {
-    // Forward compatibility обязателен для macOS OpenGL Core Profile
+    // Forward mode обязателен для macOS OpenGL Core Profile
     EXPECT_TRUE(gl_setup::FORWARD_COMPAT);
 }
 

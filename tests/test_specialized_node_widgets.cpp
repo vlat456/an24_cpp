@@ -14,8 +14,25 @@ using ui::Pt;
 #include "editor/layout_constants.h"
 #include "visual/port/visual_port.h"
 #include "ui/core/interned_id.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 
 static ui::StringInterner g_interner;
+
+
+static bp2::Blueprint::Node to_bp2_node(const Node& node) {
+    return visual::NodeFactory::to_bp2_node(node, g_interner);
+}
+
+static visual::BusWireRef to_bus_wire_ref(const Wire& w) {
+    return visual::BusWireRef{w.id, w.start.node_id, w.end.node_id};
+}
+
+static std::vector<visual::BusWireRef> to_bus_wire_refs(const std::vector<Wire>& wires) {
+    std::vector<visual::BusWireRef> out;
+    out.reserve(wires.size());
+    for (const auto& w : wires) out.push_back(to_bus_wire_ref(w));
+    return out;
+}
 
 // ============================================================================
 // RefNodeWidget
@@ -29,7 +46,7 @@ TEST(RefNodeWidget, ConstructFromNode) {
     node.render_hint = "ref";
     node.output(g_interner.intern("v"), PortType::V);
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(rw.nodeId(), "gnd1");
     EXPECT_EQ(rw.name(), "GND");
@@ -48,7 +65,7 @@ TEST(RefNodeWidget, SinglePortCenteredOnTopEdge) {
     node.output(g_interner.intern("v"), PortType::V);
     node.at(100, 200);
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     auto* p = rw.port();
     ASSERT_NE(p, nullptr);
@@ -71,7 +88,7 @@ TEST(RefNodeWidget, UsesFirstInputIfNoOutputs) {
     node.render_hint = "ref";
     node.input(g_interner.intern("sig"), PortType::I);
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     ASSERT_NE(rw.port(), nullptr);
     EXPECT_EQ(rw.port()->name(), "sig");
@@ -85,7 +102,7 @@ TEST(RefNodeWidget, DefaultPortWhenNoPorts) {
     node.type_name = "RefNode";
     node.render_hint = "ref";
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     ASSERT_NE(rw.port(), nullptr);
     EXPECT_EQ(rw.port()->name(), "v");
@@ -99,7 +116,7 @@ TEST(RefNodeWidget, FindPortByName) {
     node.render_hint = "ref";
     node.output(g_interner.intern("v"), PortType::V);
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     EXPECT_NE(rw.port("v"), nullptr);
     EXPECT_EQ(rw.port("nonexistent"), nullptr);
@@ -112,7 +129,7 @@ TEST(RefNodeWidget, SizeSnappedToGrid) {
     node.type_name = "RefNode";
     node.render_hint = "ref";
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
 
     float grid = 16.0f;
     EXPECT_FLOAT_EQ(std::fmod(rw.size().x, grid), 0.0f);
@@ -129,7 +146,7 @@ TEST(RefNodeWidget, AddToScene) {
     node.render_hint = "ref";
     node.output(g_interner.intern("v"), PortType::V);
 
-    auto ptr = std::make_unique<visual::RefNodeWidget>(node, g_interner);
+    auto ptr = std::make_unique<visual::RefNodeWidget>(to_bp2_node(node), g_interner);
     auto* rw = ptr.get();
     scene.add(std::move(ptr));
 
@@ -148,7 +165,7 @@ TEST(TextNodeWidget, ConstructFromNode) {
     node.render_hint = "text";
     node.params["text"] = "Hello World";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(tw.nodeId(), "txt1");
     EXPECT_EQ(tw.name(), "Note");
@@ -164,7 +181,7 @@ TEST(TextNodeWidget, FontSizeParsing) {
         node.id = g_interner.intern("t1"); node.name = "T"; node.type_name = "TextNode";
         node.render_hint = "text";
         node.params["font_size"] = "small";
-        visual::TextNodeWidget tw(node, g_interner);
+        visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
         EXPECT_FLOAT_EQ(tw.baseFontSize(), 9.0f);
     }
     {
@@ -172,7 +189,7 @@ TEST(TextNodeWidget, FontSizeParsing) {
         node.id = g_interner.intern("t2"); node.name = "T"; node.type_name = "TextNode";
         node.render_hint = "text";
         node.params["font_size"] = "medium";
-        visual::TextNodeWidget tw(node, g_interner);
+        visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
         EXPECT_FLOAT_EQ(tw.baseFontSize(), 12.0f);
     }
     {
@@ -180,7 +197,7 @@ TEST(TextNodeWidget, FontSizeParsing) {
         node.id = g_interner.intern("t3"); node.name = "T"; node.type_name = "TextNode";
         node.render_hint = "text";
         // No font_size param -> default large
-        visual::TextNodeWidget tw(node, g_interner);
+        visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
         EXPECT_FLOAT_EQ(tw.baseFontSize(), 14.0f);
     }
 }
@@ -192,7 +209,7 @@ TEST(TextNodeWidget, EmptyTextDefault) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
 
     EXPECT_TRUE(tw.text().empty());
 }
@@ -204,7 +221,7 @@ TEST(TextNodeWidget, SetText) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
 
     tw.setText("Updated");
     EXPECT_EQ(tw.text(), "Updated");
@@ -217,7 +234,7 @@ TEST(TextNodeWidget, SizeSnappedToGrid) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
 
     float grid = 16.0f;
     EXPECT_FLOAT_EQ(std::fmod(tw.size().x, grid), 0.0f);
@@ -236,7 +253,7 @@ TEST(GroupNodeWidget, ConstructFromNode) {
     node.render_hint = "group";
     node.size_wh(200, 150);
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(gw.nodeId(), "grp1");
     EXPECT_EQ(gw.name(), "Power Section");
@@ -253,7 +270,7 @@ TEST(GroupNodeWidget, EnforcesMinimumSize) {
     node.render_hint = "group";
     node.size_wh(10, 10);  // Smaller than minimum
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     EXPECT_GE(gw.size().x, 64.0f);
     EXPECT_GE(gw.size().y, 64.0f);
@@ -268,7 +285,7 @@ TEST(GroupNodeWidget, BorderHitTestTitleBar) {
     node.size_wh(208, 208);  // Pre-snapped to grid
     node.at(100, 100);
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     // Title bar should be clickable
     EXPECT_TRUE(gw.containsBorder(Pt(150, 105)));
@@ -283,7 +300,7 @@ TEST(GroupNodeWidget, BorderHitTestInterior) {
     node.size_wh(208, 208);  // Pre-snapped to grid
     node.at(100, 100);
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     // Interior (well inside borders and below title) should NOT be clickable
     EXPECT_FALSE(gw.containsBorder(Pt(200, 250)));
@@ -298,7 +315,7 @@ TEST(GroupNodeWidget, BorderHitTestEdges) {
     node.size_wh(208, 208);  // Pre-snapped to grid (16)
     node.at(100, 100);
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     // Verify size
     EXPECT_FLOAT_EQ(gw.size().x, 208.0f);
@@ -321,7 +338,7 @@ TEST(GroupNodeWidget, BorderHitTestOutside) {
     node.size_wh(208, 208);  // Pre-snapped to grid
     node.at(100, 100);
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     // Outside completely
     EXPECT_FALSE(gw.containsBorder(Pt(50, 50)));
@@ -336,7 +353,7 @@ TEST(GroupNodeWidget, CustomColor) {
     node.render_hint = "group";
     node.color = NodeColor{0.2f, 0.4f, 0.6f, 1.0f};
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
 
     EXPECT_TRUE(gw.customColor().has_value());
 }
@@ -352,7 +369,7 @@ TEST(BusNodeWidget, ConstructWithNoWires) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(bw.nodeId(), "bus1");
     EXPECT_EQ(bw.name(), "Main Bus");
@@ -378,7 +395,7 @@ TEST(BusNodeWidget, ConstructWithWires) {
         wire_output(g_interner.intern("bus1"), g_interner.intern("v")),
         wire_input(g_interner.intern("load1"), g_interner.intern("v_in"))));
 
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     // 2 alias ports (w1, w2) + 1 base "v" port = 3
     EXPECT_EQ(bw.ports().size(), 3u);
@@ -399,7 +416,7 @@ TEST(BusNodeWidget, ResolveWirePort) {
         wire_output(g_interner.intern("bat1"), g_interner.intern("v_out")),
         wire_input(g_interner.intern("bus1"), g_interner.intern("v"))));
 
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     // Asking for "v" with wire_id "w1" should return the alias port
     auto* alias = bw.resolveWirePort("v", "w1");
@@ -419,13 +436,13 @@ TEST(BusNodeWidget, ConnectWire) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
     EXPECT_EQ(bw.ports().size(), 1u);
 
     Wire wire = Wire::make(g_interner.intern("w1"),
         wire_output(g_interner.intern("bat1"), g_interner.intern("v_out")),
         wire_input(g_interner.intern("bus1"), g_interner.intern("v")));
-    bw.connectWire(wire);
+    bw.connectWire(to_bus_wire_ref(wire));
 
     // Now 1 alias + 1 base = 2
     EXPECT_EQ(bw.ports().size(), 2u);
@@ -447,11 +464,11 @@ TEST(BusNodeWidget, DisconnectWire) {
         wire_input(g_interner.intern("load1"), g_interner.intern("v_in")));
 
     std::vector<Wire> wires = {w1, w2};
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     EXPECT_EQ(bw.ports().size(), 3u);
 
-    bw.disconnectWire(w1);
+    bw.disconnectWire(to_bus_wire_ref(w1));
 
     // Now 1 alias (w2) + 1 base = 2
     EXPECT_EQ(bw.ports().size(), 2u);
@@ -474,7 +491,7 @@ TEST(BusNodeWidget, SwapAliasPorts) {
         wire_input(g_interner.intern("load1"), g_interner.intern("v_in")));
 
     std::vector<Wire> wires = {w1, w2};
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     // Get positions before swap
     auto* p1_before = bw.port("w1");
@@ -504,7 +521,7 @@ TEST(BusNodeWidget, SwapNonexistentFails) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
 
     EXPECT_FALSE(bw.swapAliasPorts(g_interner.intern("nope1"), g_interner.intern("nope2")));
 }
@@ -517,7 +534,7 @@ TEST(BusNodeWidget, HorizontalOrientation) {
     node.render_hint = "bus";
     node.size_wh(160, 32);
 
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom);
 
     EXPECT_EQ(bw.portEdge(), visual::PortEdge::Bottom);
 }
@@ -530,7 +547,7 @@ TEST(BusNodeWidget, VerticalOrientation) {
     node.render_hint = "bus";
     node.size_wh(32, 160);
 
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Right);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Right);
 
     EXPECT_EQ(bw.portEdge(), visual::PortEdge::Right);
 }
@@ -548,7 +565,7 @@ TEST(BusNodeWidget, IgnoresUnrelatedWires) {
         wire_output(g_interner.intern("bat1"), g_interner.intern("v_out")),
         wire_input(g_interner.intern("load1"), g_interner.intern("v_in"))));
 
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     // Only the base "v" port
     EXPECT_EQ(bw.ports().size(), 1u);
@@ -561,14 +578,14 @@ TEST(BusNodeWidget, ConnectUnrelatedWireIgnored) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
     EXPECT_EQ(bw.ports().size(), 1u);
 
     // Wire not connected to bus1
     Wire wire = Wire::make(g_interner.intern("w_other"),
         wire_output(g_interner.intern("bat1"), g_interner.intern("v_out")),
         wire_input(g_interner.intern("load1"), g_interner.intern("v_in")));
-    bw.connectWire(wire);
+    bw.connectWire(to_bus_wire_ref(wire));
 
     // Still just the base port
     EXPECT_EQ(bw.ports().size(), 1u);
@@ -585,7 +602,7 @@ TEST(NodeFactory, CreatesBusNode) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_NE(dynamic_cast<visual::BusNodeWidget*>(w.get()), nullptr);
 }
@@ -597,7 +614,7 @@ TEST(NodeFactory, CreatesRefNode) {
     node.type_name = "RefNode";
     node.render_hint = "ref";
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_NE(dynamic_cast<visual::RefNodeWidget*>(w.get()), nullptr);
 }
@@ -609,7 +626,7 @@ TEST(NodeFactory, CreatesGroupNode) {
     node.type_name = "Group";
     node.render_hint = "group";
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_NE(dynamic_cast<visual::GroupNodeWidget*>(w.get()), nullptr);
 }
@@ -621,7 +638,7 @@ TEST(NodeFactory, CreatesTextNode) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_NE(dynamic_cast<visual::TextNodeWidget*>(w.get()), nullptr);
 }
@@ -634,7 +651,7 @@ TEST(NodeFactory, CreatesStandardNodeByDefault) {
     node.input(g_interner.intern("v_in"), PortType::V);
     node.output(g_interner.intern("v_out"), PortType::V);
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_NE(dynamic_cast<visual::NodeWidget*>(w.get()), nullptr);
 }
@@ -651,7 +668,7 @@ TEST(NodeFactory, BusNodeWithWires) {
         wire_output(g_interner.intern("bat1"), g_interner.intern("v_out")),
         wire_input(g_interner.intern("bus1"), g_interner.intern("v"))));
 
-    auto w = visual::NodeFactory::create(node, g_interner, wires);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner, to_bus_wire_refs(wires));
     auto* bus = dynamic_cast<visual::BusNodeWidget*>(w.get());
     ASSERT_NE(bus, nullptr);
     EXPECT_EQ(bus->ports().size(), 2u);  // 1 alias + 1 base
@@ -671,7 +688,7 @@ TEST(RefNodeWidget, SetCustomColorViaBasePointer) {
     node.type_name = "RefNode";
     node.render_hint = "ref";
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
     visual::Widget* base = &rw;
 
     EXPECT_FALSE(base->customColor().has_value());
@@ -690,7 +707,7 @@ TEST(TextNodeWidget, SetCustomColorViaBasePointer) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
     visual::Widget* base = &tw;
 
     EXPECT_FALSE(base->customColor().has_value());
@@ -709,7 +726,7 @@ TEST(GroupNodeWidget, SetCustomColorViaBasePointer) {
     node.type_name = "Group";
     node.render_hint = "group";
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
     visual::Widget* base = &gw;
 
     EXPECT_FALSE(base->customColor().has_value());
@@ -728,7 +745,7 @@ TEST(BusNodeWidget, SetCustomColorViaBasePointer) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
     visual::Widget* base = &bw;
 
     EXPECT_FALSE(base->customColor().has_value());
@@ -753,7 +770,7 @@ TEST(RefNodeWidget, RenderPostDoesNotCrash) {
     node.type_name = "RefNode";
     node.render_hint = "ref";
 
-    visual::RefNodeWidget rw(node, g_interner);
+    visual::RefNodeWidget rw(to_bp2_node(node), g_interner);
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
     ctx.pan = Pt(0, 0);
@@ -767,7 +784,7 @@ TEST(TextNodeWidget, RenderPostDoesNotCrash) {
     node.type_name = "TextNode";
     node.render_hint = "text";
 
-    visual::TextNodeWidget tw(node, g_interner);
+    visual::TextNodeWidget tw(to_bp2_node(node), g_interner);
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
     ctx.pan = Pt(0, 0);
@@ -781,7 +798,7 @@ TEST(GroupNodeWidget, RenderPostDoesNotCrash) {
     node.type_name = "Group";
     node.render_hint = "group";
 
-    visual::GroupNodeWidget gw(node, g_interner);
+    visual::GroupNodeWidget gw(to_bp2_node(node), g_interner);
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
     ctx.pan = Pt(0, 0);
@@ -795,7 +812,7 @@ TEST(BusNodeWidget, RenderPostDoesNotCrash) {
     node.type_name = "Bus";
     node.render_hint = "bus";
 
-    visual::BusNodeWidget bw(node, g_interner);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner);
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
     ctx.pan = Pt(0, 0);
@@ -828,13 +845,13 @@ TEST(BusNodeWidget, DisconnectOneWirePreservesOthers) {
         wire_input(g_interner.intern("bus1"), g_interner.intern("v")));
 
     std::vector<Wire> wires = {w1, w2, w3};
-    visual::BusNodeWidget bw(node, g_interner, visual::PortEdge::Bottom, wires);
+    visual::BusNodeWidget bw(to_bp2_node(node), g_interner, visual::PortEdge::Bottom, to_bus_wire_refs(wires));
 
     // 3 alias ports + 1 base = 4
     EXPECT_EQ(bw.ports().size(), 4u);
 
     // Disconnect w1 — w2 and w3 should survive
-    bw.disconnectWire(w1);
+    bw.disconnectWire(to_bus_wire_ref(w1));
 
     EXPECT_EQ(bw.ports().size(), 3u);  // 2 alias + 1 base
     EXPECT_EQ(bw.port("w1"), nullptr);
@@ -856,7 +873,7 @@ TEST(NodeFactory, CreatesWidgetWithCustomColor) {
     node.type_name = "Battery";
     node.color = NodeColor{0.8f, 0.2f, 0.1f, 1.0f};
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->customColor().has_value());
 }
@@ -869,7 +886,7 @@ TEST(NodeFactory, BusNodeCreatedWithCustomColor) {
     node.render_hint = "bus";
     node.color = NodeColor{0.1f, 0.9f, 0.5f, 1.0f};
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->customColor().has_value());
 }
@@ -882,7 +899,7 @@ TEST(NodeFactory, GroupNodeCreatedWithCustomColor) {
     node.render_hint = "group";
     node.color = NodeColor{0.3f, 0.6f, 0.9f, 0.5f};
 
-    auto w = visual::NodeFactory::create(node, g_interner);
+    auto w = visual::NodeFactory::create(to_bp2_node(node), g_interner);
     ASSERT_NE(w, nullptr);
     EXPECT_TRUE(w->customColor().has_value());
 }

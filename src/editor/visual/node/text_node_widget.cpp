@@ -6,6 +6,7 @@
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
 
@@ -46,6 +47,32 @@ TextNodeWidget::TextNodeWidget(const ::Node& data, const ui::StringInterner& int
     float h = editor_math::snap_size_to_layout_grid(std::max(sz.y, 32.0f));
     setSize(Pt(w, h));
 }
+
+TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+    : TextNodeWidget([
+        &]() {
+            Node node;
+            node.id = data.id;
+            node.name = data.name;
+            node.pos = ui::Pt(data.x, data.y);
+            if (data.width.has_value() && data.height.has_value()) {
+                node.set_explicit_size(ui::Pt(*data.width, *data.height));
+            }
+            for (const auto& [k, v] : data.params) {
+                node.params[std::string(interner.resolve(k))] = std::to_string(v);
+            }
+            if (data.has_color) {
+                NodeColor c;
+                c.r = data.color_r;
+                c.g = data.color_g;
+                c.b = data.color_b;
+                c.a = data.color_a;
+                node.color = c;
+            }
+            return node;
+        }(),
+        interner)
+{}
 
 // ============================================================================
 // Layout

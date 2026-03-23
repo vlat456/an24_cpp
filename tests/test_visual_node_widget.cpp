@@ -9,9 +9,43 @@ using ui::Pt;
 #include "visual/scene.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include "ui/core/interned_id.h"
 
 static ui::StringInterner g_interner;
+
+static bp2::Blueprint::Node to_bp2_node(const Node& node) {
+    bp2::Blueprint::Node out;
+    out.id = node.id;
+    out.type = g_interner.intern(node.type_name);
+    out.name = node.name;
+    out.render_hint = node.render_hint;
+    out.group_id = node.group_id;
+    out.x = node.pos.x;
+    out.y = node.pos.y;
+    if (node.has_explicit_size()) {
+        out.width = node.explicit_size().x;
+        out.height = node.explicit_size().y;
+    }
+    out.inputs = node.inputs;
+    out.outputs = node.outputs;
+    out.content_type = static_cast<bp2::NodeContentType>(node.node_content.type);
+    out.content_label = node.node_content.label;
+    out.content_value = node.node_content.value;
+    out.content_min = node.node_content.min;
+    out.content_max = node.node_content.max;
+    out.content_unit = node.node_content.unit;
+    out.content_state = node.node_content.state;
+    out.content_tripped = node.node_content.tripped;
+    if (node.color.has_value()) {
+        out.has_color = true;
+        out.color_r = node.color->r;
+        out.color_g = node.color->g;
+        out.color_b = node.color->b;
+        out.color_a = node.color->a;
+    }
+    return out;
+}
 
 // ============================================================================
 // Basic construction
@@ -25,7 +59,7 @@ TEST(VisualNodeWidget, ConstructFromSimpleNode) {
     node.input(g_interner.intern("v_in"), PortType::V);
     node.output(g_interner.intern("v_out"), PortType::V);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.nodeId(), "bat1");
     EXPECT_EQ(nw.name(), "Battery");
@@ -42,7 +76,7 @@ TEST(VisualNodeWidget, HasCorrectPorts) {
     node.input(g_interner.intern("b"), PortType::I);
     node.output(g_interner.intern("c"), PortType::V);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 3u);
     EXPECT_NE(nw.port("a"), nullptr);
@@ -62,7 +96,7 @@ TEST(VisualNodeWidget, AutoSizesSnappedToGrid) {
     node.name = "X";
     node.type_name = "T";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     // Size should be positive and snapped to PORT_LAYOUT_GRID (16)
     EXPECT_GT(nw.size().x, 0.0f);
@@ -80,7 +114,7 @@ TEST(VisualNodeWidget, ExplicitSizeRespected) {
     node.type_name = "T";
     node.size_wh(200, 160);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     // Explicit size should be respected if >= preferred
     EXPECT_GE(nw.size().x, 200.0f);
@@ -94,7 +128,7 @@ TEST(VisualNodeWidget, PositionFromNodeData) {
     node.type_name = "T";
     node.at(100, 200);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_FLOAT_EQ(nw.localPos().x, 100.0f);
     EXPECT_FLOAT_EQ(nw.localPos().y, 200.0f);
@@ -118,7 +152,7 @@ TEST(VisualNodeWidget, SwitchContent) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 2u);
     EXPECT_GT(nw.size().x, 0.0f);
@@ -140,7 +174,7 @@ TEST(VisualNodeWidget, GaugeContent) {
     content.unit = "V";
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 1u);
     EXPECT_GT(nw.size().y, 40.0f); // Gauge needs more vertical space
@@ -160,7 +194,7 @@ TEST(VisualNodeWidget, VerticalToggleContent) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 2u);
     EXPECT_NE(nw.port("v_in"), nullptr);
@@ -178,7 +212,7 @@ TEST(VisualNodeWidget, CustomColorFromNodeData) {
     node.type_name = "T";
     node.color = NodeColor{0.5f, 0.3f, 0.1f, 1.0f};
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_TRUE(nw.customColor().has_value());
 }
@@ -189,7 +223,7 @@ TEST(VisualNodeWidget, NoCustomColorByDefault) {
     node.name = "X";
     node.type_name = "T";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_FALSE(nw.customColor().has_value());
 }
@@ -209,7 +243,7 @@ TEST(VisualNodeWidget, AddToScene) {
     node.output(g_interner.intern("v_out"), PortType::V);
     node.at(50, 50);
 
-    auto nw_ptr = std::make_unique<visual::NodeWidget>(node, g_interner);
+    auto nw_ptr = std::make_unique<visual::NodeWidget>(to_bp2_node(node), g_interner);
     auto* nw = nw_ptr.get();
     scene.add(std::move(nw_ptr));
 
@@ -231,7 +265,7 @@ TEST(VisualNodeWidget, PortWorldPositions) {
     node.output(g_interner.intern("out1"), PortType::V);
     node.at(100, 100);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     // Input port should be on the left side
     auto* in_port = nw.port("in1");
@@ -268,7 +302,7 @@ TEST(VisualNodeWidget, UpdateContentDoesNotCrash) {
     content.state = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     // Update to new state - should not crash
     NodeContent updated;
@@ -287,7 +321,7 @@ TEST(VisualNodeWidget, NodeWithNoPorts) {
     node.name = "Label";
     node.type_name = "TextNode";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 0u);
     EXPECT_GT(nw.size().x, 0.0f);
@@ -308,7 +342,7 @@ TEST(VisualNodeWidget, AsymmetricPortCounts) {
     node.output(g_interner.intern("out2"), PortType::V);
     node.output(g_interner.intern("out3"), PortType::V);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     EXPECT_EQ(nw.ports().size(), 4u);
     EXPECT_NE(nw.port("in"), nullptr);
@@ -331,7 +365,7 @@ TEST(VisualNodeWidget, SetCustomColorViaBasePointer) {
     node.name = "X";
     node.type_name = "T";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
     visual::Widget* base = &nw;
 
     EXPECT_FALSE(base->customColor().has_value());
@@ -366,7 +400,7 @@ TEST(VisualNodeWidget, ContentBoundsNonZeroForSwitch) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     // Content area should have non-zero width and height
@@ -388,7 +422,7 @@ TEST(VisualNodeWidget, ContentBoundsNonZeroForVerticalToggle) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     EXPECT_GT(cb.w, 0.0f);
@@ -403,7 +437,7 @@ TEST(VisualNodeWidget, ContentBoundsZeroWhenNoContent) {
     node.input(g_interner.intern("v_in"), PortType::V);
     node.output(g_interner.intern("v_out"), PortType::V);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     EXPECT_FLOAT_EQ(cb.w, 0.0f);
@@ -425,7 +459,7 @@ TEST(VisualNodeWidget, ContentBoundsInsideNodeBounds) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     // Content bounds are in node-local coordinates
@@ -452,7 +486,7 @@ TEST(VisualNodeWidget, ContentBoundsHeaderClickOutsideContent) {
     content.tripped = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     // Header is at the top of the node. A click at (node_width/2, 5) should
@@ -473,7 +507,7 @@ TEST(VisualNodeWidget, RenderPostDoesNotCrashWithNullDrawList) {
     node.name = "X";
     node.type_name = "T";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
@@ -488,7 +522,7 @@ TEST(VisualNodeWidget, RenderDoesNotCrashWithNullDrawList) {
     node.name = "X";
     node.type_name = "T";
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     visual::RenderContext ctx;
     ctx.zoom = 1.0f;
@@ -509,7 +543,7 @@ TEST(VisualNodeWidget, InputPortCenterAtLeftEdge) {
     node.output(g_interner.intern("out1"), PortType::V);
     node.at(100, 200);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* in_port = nw.port("in1");
     ASSERT_NE(in_port, nullptr);
@@ -529,7 +563,7 @@ TEST(VisualNodeWidget, OutputPortCenterAtRightEdge) {
     node.output(g_interner.intern("out1"), PortType::V);
     node.at(100, 200);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* out_port = nw.port("out1");
     ASSERT_NE(out_port, nullptr);
@@ -550,7 +584,7 @@ TEST(VisualNodeWidget, MultiplePortsAllAtEdges) {
     node.output(g_interner.intern("d"), PortType::Bool);
     node.at(50, 50);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     float left_edge = nw.worldPos().x;
     float right_edge = nw.worldPos().x + nw.size().x;
@@ -576,7 +610,7 @@ TEST(VisualNodeWidget, PortRowsHavePaddingBelowHeader) {
     node.output(g_interner.intern("out1"), PortType::V);
     node.at(0, 0);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     // Header height is 24, port row should have vertical padding
     // Port is vertically centered in its parent container:
@@ -614,7 +648,7 @@ TEST(VisualNodeWidget, VerticalTogglePortsAtEdges) {
     content.state = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     float left_edge = nw.worldPos().x;
     float right_edge = nw.worldPos().x + nw.size().x;
@@ -649,7 +683,7 @@ TEST(VisualNodeWidget, VerticalToggleOutputLabelsRightAligned) {
     content.state = false;
     node.with_content(content);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     float node_right = nw.worldPos().x + nw.size().x;
     float indent = visual::PortConstants::RADIUS * 2 + visual::PortConstants::RIGHT_LABEL_OFFSET;
@@ -702,7 +736,7 @@ TEST(VisualNodeWidget, OverriddenInputPortSnapsToRightEdge) {
     ov.side = PortLayoutSide::Right;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* in_port = nw.port("in1");
     ASSERT_NE(in_port, nullptr);
@@ -736,7 +770,7 @@ TEST(VisualNodeWidget, OverriddenOutputPortSnapsToLeftEdge) {
     ov.side = PortLayoutSide::Left;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* out_port = nw.port("out1");
     ASSERT_NE(out_port, nullptr);
@@ -770,7 +804,7 @@ TEST(VisualNodeWidget, OverriddenPortToTopSnapsToTopEdge) {
     ov.side = PortLayoutSide::Top;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* in2_port = nw.port("in2");
     ASSERT_NE(in2_port, nullptr);
@@ -799,7 +833,7 @@ TEST(VisualNodeWidget, OverriddenPortToBottomSnapsToBottomEdge) {
     ov.side = PortLayoutSide::Bottom;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     auto* out2_port = nw.port("out2");
     ASSERT_NE(out2_port, nullptr);
@@ -839,7 +873,7 @@ TEST(VisualNodeWidget, FourSidedSwitchContentHasNonZeroBounds) {
     ov.position = 0;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     EXPECT_GT(cb.w, 0.0f) << "Switch content width should be non-zero in four-sided layout";
@@ -869,7 +903,7 @@ TEST(VisualNodeWidget, FourSidedVerticalToggleContentHasNonZeroBounds) {
     ov.side = PortLayoutSide::Bottom;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     EXPECT_GT(cb.w, 0.0f) << "VerticalToggle content width should be non-zero in four-sided layout";
@@ -897,7 +931,7 @@ TEST(VisualNodeWidget, FourSidedContentBoundsInsideNode) {
     ov.side = PortLayoutSide::Top;
     node.layout_overrides.push_back(ov);
 
-    visual::NodeWidget nw(node, g_interner);
+    visual::NodeWidget nw(to_bp2_node(node), g_interner);
 
     Bounds cb = nw.contentBounds();
     EXPECT_GE(cb.x, 0.0f);

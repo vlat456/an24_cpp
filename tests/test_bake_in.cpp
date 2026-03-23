@@ -153,5 +153,5 @@ TEST(BakeIn, NonexistentId_ReturnsFalse) {
 
 // NOTE: RoundTrip_EmbeddedNodesRestoredFromSubBlueprint and
 // RoundTrip_AllNodesInTopLevel_NoDoubling tests were removed as part of
-// the v3 migration (they relied on legacy FlatBlueprint serialize/deserialize).
+// the v3 migration (they relied on FlatBlueprint serialize/deserialize).
 // Equivalent coverage is provided by tests/blueprint_v2/test_codec.cpp.

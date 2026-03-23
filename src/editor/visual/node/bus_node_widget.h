@@ -2,17 +2,25 @@
 #include "visual/widget.h"
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
-#include "data/wire.h"
 #include "ui/core/interned_id.h"
+#include "data/node.h"
+#include "data/wire.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
 #include <vector>
 #include <optional>
 #include <cstdint>
 
-struct Node;
-
 namespace visual {
+
+using DataWire = ::Wire;
+
+struct BusWireRef {
+    ui::InternedId id;
+    ui::InternedId start_node_id;
+    ui::InternedId end_node_id;
+};
 
 /// Port strip edge placement for bus nodes.
 enum class PortEdge {
@@ -30,7 +38,15 @@ public:
     BusNodeWidget(const ::Node& data,
                   const ui::StringInterner& interner,
                   PortEdge port_edge = PortEdge::Bottom,
-                  const std::vector<::Wire>& wires = {});
+                  const std::vector<BusWireRef>& wires = {});
+    BusNodeWidget(const ::Node& data,
+                  const ui::StringInterner& interner,
+                  PortEdge port_edge,
+                  const std::vector<DataWire>& wires);
+    BusNodeWidget(const bp2::Blueprint::Node& data,
+                  const ui::StringInterner& interner,
+                  PortEdge port_edge = PortEdge::Bottom,
+                  const std::vector<BusWireRef>& wires = {});
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -52,8 +68,10 @@ public:
                      std::string_view wire_id = {}) const override;
 
     /// Wire management: dynamically add/remove alias ports
-    void connectWire(const ::Wire& wire);
-    void disconnectWire(const ::Wire& wire);
+    void connectWire(const BusWireRef& wire);
+    void connectWire(const DataWire& wire);
+    void disconnectWire(const BusWireRef& wire);
+    void disconnectWire(const DataWire& wire);
 
     /// Swap two alias port positions (by wire_id)
     bool swapAliasPorts(ui::InternedId wire_id_a,
@@ -74,7 +92,7 @@ private:
     std::string type_name_;
 
     PortEdge port_edge_;
-    std::vector<::Wire> wires_;     ///< Connected wires (for alias port tracking)
+    std::vector<BusWireRef> wires_;     ///< Connected wires (for alias port tracking)
     std::vector<Port*> ports_;    ///< Non-owning: alias ports + base "v" port
     bool size_explicitly_set_ = false; ///< True if user manually resized this bus
 

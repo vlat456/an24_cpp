@@ -6,6 +6,7 @@
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
 #include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
 
@@ -32,6 +33,29 @@ GroupNodeWidget::GroupNodeWidget(const ::Node& data, const ui::StringInterner& i
     float h = editor_math::snap_size_to_layout_grid(std::max(sz.y, editor_constants::MIN_GROUP_HEIGHT));
     setSize(Pt(w, h));
 }
+
+GroupNodeWidget::GroupNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+    : GroupNodeWidget([
+        &]() {
+            Node node;
+            node.id = data.id;
+            node.name = data.name;
+            node.pos = ui::Pt(data.x, data.y);
+            if (data.width.has_value() && data.height.has_value()) {
+                node.set_explicit_size(ui::Pt(*data.width, *data.height));
+            }
+            if (data.has_color) {
+                NodeColor c;
+                c.r = data.color_r;
+                c.g = data.color_g;
+                c.b = data.color_b;
+                c.a = data.color_a;
+                node.color = c;
+            }
+            return node;
+        }(),
+        interner)
+{}
 
 // ============================================================================
 // Hit testing

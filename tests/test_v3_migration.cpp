@@ -29,9 +29,9 @@ TEST(V3Migration, LibraryLoaderParsesConvertedLibraryAsV3Only) {
 }
 
 TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
-    std::string legacy = R"({
+    std::string old_schema = R"({
         "version": 2,
-        "meta": {"name": "legacy"},
+        "meta": {"name": "old_schema"},
         "nodes": {},
         "wires": []
     })";
@@ -41,7 +41,7 @@ TEST(V3Migration, CodecRejectsLegacyVersion2Json) {
     bp2::TypeRegistry registry;
     bp2::DecodeError err;
 
-    auto bp = bp2::BlueprintCodec::decode(legacy, interner, arena, registry, &err);
+    auto bp = bp2::BlueprintCodec::decode(old_schema, interner, arena, registry, &err);
     EXPECT_FALSE(bp.has_value());
     EXPECT_NE(err.message.find("Unsupported blueprint version"), std::string::npos);
 }

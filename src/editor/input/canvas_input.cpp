@@ -929,7 +929,7 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         visual::Port* start_port = wire_start_port_;
         visual::Port* end_port = ph->port;
 
-        // Check compatibility
+        // Check side pairing
         bool compatible = visual::Port::areSidesCompatible(start_port->side(), end_port->side());
         if (!compatible) return result;
 

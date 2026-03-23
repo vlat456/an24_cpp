@@ -46,7 +46,7 @@ enum class PortType {
     Temperature,  // Temperature (degrees Celsius)
     Pressure,     // Pressure (Pascal, bar, etc.)
     Position,     // Position/Displacement (mechanical position)
-    Any,          // Wildcard - can connect to any type (for adapters)
+    Any,          // Wildcard - can connect to any type
 };
 
 /// Port direction

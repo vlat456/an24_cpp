@@ -4,9 +4,67 @@
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
+#include "blueprint_v2/path/path.h"
 #include "ui/core/interned_id.h"
+#include "sim_test_json.h"
 
 /// Simulation integration tests
+
+static std::pair<ui::InternedId, ui::InternedId>
+path_to_node_port_for_test(const bp2::Path& path, bp2::PathArena& arena) {
+    if (path.kind() != bp2::PathKind::Port) return {};
+    ui::InternedId port_name = path.segment();
+    bp2::Path parent = arena.parent(path);
+    if (parent.kind() != bp2::PathKind::Node) return {};
+    return {parent.segment(), port_name};
+}
+
+static Blueprint build_test_blueprint_from_bp2(const bp2::Blueprint& bp,
+                                                ui::StringInterner& src_interner,
+                                                bp2::PathArena& arena) {
+    Blueprint out_bp;
+    auto& L = out_bp.interner();
+
+    for (const bp2::Blueprint::Node& n : bp.nodes()) {
+        Node node;
+        node.id = L.intern(std::string(src_interner.resolve(n.id)));
+        node.name = n.name;
+        node.type_name = std::string(src_interner.resolve(n.type));
+        node.group_id = n.group_id;
+        node.expandable = n.expandable;
+        node.collapsed = n.collapsed;
+        node.pos = ui::Pt(n.x, n.y);
+        for (const auto& [k, v] : n.params) {
+            node.params[std::string(src_interner.resolve(k))] = std::to_string(v);
+        }
+        for (const auto& p : n.inputs) {
+            node.inputs.emplace_back(
+                L.intern(std::string(src_interner.resolve(p.name))), p.side, p.type);
+        }
+        for (const auto& p : n.outputs) {
+            node.outputs.emplace_back(
+                L.intern(std::string(src_interner.resolve(p.name))), p.side, p.type);
+        }
+        out_bp.add_node(std::move(node));
+    }
+
+    for (const bp2::Blueprint::Wire& w : bp.wires()) {
+        auto [src_node, src_port] = path_to_node_port_for_test(w.source, arena);
+        auto [tgt_node, tgt_port] = path_to_node_port_for_test(w.target, arena);
+        if (src_node.empty() || src_port.empty() || tgt_node.empty() || tgt_port.empty()) continue;
+        Wire wire = Wire::make(
+            L.intern(std::string(src_interner.resolve(w.id))),
+            WireEnd(L.intern(std::string(src_interner.resolve(src_node))),
+                    L.intern(std::string(src_interner.resolve(src_port))),
+                    PortSide::Output),
+            WireEnd(L.intern(std::string(src_interner.resolve(tgt_node))),
+                    L.intern(std::string(src_interner.resolve(tgt_port))),
+                    PortSide::Input));
+        out_bp.add_wire(std::move(wire));
+    }
+
+    return out_bp;
+}
 
 /// Helper to create a simple test circuit: gnd → battery → resistor → gnd
 static Blueprint create_simple_circuit() {
@@ -81,16 +139,35 @@ static Blueprint create_simple_circuit() {
 TEST(SimulationTest, BuildsFromBlueprint) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     ASSERT_TRUE(sim.is_built());
     EXPECT_GE(sim.get_signal_count(), 2u); // at least gnd + battery
 }
 
+TEST(SimulationTest, Regression_GSCReinternedLegacyExportHasNoEmptyEndpoints) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    auto bp_opt = load_blueprint_from_file("/Users/vladimir/an24_cpp/GSC.blueprint", interner, arena);
+    ASSERT_TRUE(bp_opt.has_value());
+
+    Blueprint test_bp = build_test_blueprint_from_bp2(*bp_opt, interner, arena);
+    std::string sim_json = sim_test_json::from_blueprint(test_bp);
+
+    EXPECT_EQ(sim_json.find("\"name\": \"\""), std::string::npos);
+    EXPECT_EQ(sim_json.find(":.ext"), std::string::npos);
+    EXPECT_NO_THROW((void)parse_json(sim_json));
+
+    Simulator<JIT_Solver> sim;
+    EXPECT_NO_THROW(sim.start_from_json(sim_json));
+    EXPECT_TRUE(sim.is_built());
+}
+
 TEST(SimulationTest, StepCounterIncrements) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     EXPECT_EQ(sim.get_step_count(), 0u);
     sim.step(0.016f);
@@ -104,7 +181,7 @@ TEST(SimulationTest, RunningFlag) {
     EXPECT_FALSE(sim.is_running());
 
     Blueprint bp = create_simple_circuit();
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_TRUE(sim.is_running());
 
     sim.step(0.016f);
@@ -118,7 +195,7 @@ TEST(SimulationTest, ResetClearsState) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
 
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Run simulation to get some non-zero values
     for (int i = 0; i < 50; i++) sim.step(0.016f);
@@ -150,7 +227,7 @@ TEST(SimulationTest, RebuildResetsState) {
     Simulator<JIT_Solver> sim;
 
     // First build
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     size_t signals_first = sim.get_signal_count();
 
     // Run a few steps
@@ -159,7 +236,7 @@ TEST(SimulationTest, RebuildResetsState) {
     EXPECT_GT(sim.get_step_count(), 0u);
 
     // Rebuild — state should reset, not accumulate signals
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_EQ(sim.get_signal_count(), signals_first);
     EXPECT_EQ(sim.get_time(), 0.0f);
     EXPECT_EQ(sim.get_step_count(), 0u);
@@ -170,7 +247,7 @@ TEST(SimulationTest, RebuildResetsState) {
 TEST(SimulationTest, BatteryVoltageConverges) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Run enough steps for SOR convergence
     for (int i = 0; i < 200; i++) sim.step(0.016f);
@@ -184,7 +261,7 @@ TEST(SimulationTest, BatteryVoltageConverges) {
 TEST(SimulationTest, GroundRemainsZero) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -197,7 +274,7 @@ TEST(SimulationTest, GroundRemainsZero) {
 TEST(SimulationTest, GetPortValue) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -210,7 +287,7 @@ TEST(SimulationTest, GetPortValue) {
 TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     EXPECT_EQ(sim.get_port_value("nonexistent", "port"), 0.0f);
 }
@@ -220,7 +297,7 @@ TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
 TEST(SimulationTest, WireIsEnergized_ActiveCircuit) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -260,7 +337,7 @@ TEST(SimulatorTest, StartBuildsComponents) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
 
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     EXPECT_TRUE(sim.is_running());
     EXPECT_TRUE(sim.is_built());
@@ -271,7 +348,7 @@ TEST(SimulatorTest, StopDestroysComponents) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
 
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_TRUE(sim.is_built());
 
     sim.stop();
@@ -285,19 +362,19 @@ TEST(SimulatorTest, MultipleStartStopCycles) {
     Simulator<JIT_Solver> sim;
 
     // First cycle
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_TRUE(sim.is_built());
     sim.stop();
     EXPECT_FALSE(sim.is_built());
 
     // Second cycle
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_TRUE(sim.is_built());
     sim.stop();
     EXPECT_FALSE(sim.is_built());
 
     // Third cycle
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_TRUE(sim.is_built());
 }
 
@@ -306,7 +383,7 @@ TEST(SimulatorTest, AfterStopGetVoltageReturnsZero) {
     Blueprint bp = create_simple_circuit();
     Simulator<JIT_Solver> sim;
 
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Run simulation to get non-zero voltage
     for (int i = 0; i < 50; i++) sim.step(0.016f);
@@ -396,7 +473,7 @@ static Blueprint create_merger_circuit() {
 TEST(SimulationTest, Merger_CircuitConverges) {
     Blueprint bp = create_merger_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -413,7 +490,7 @@ TEST(SimulationTest, Merger_AllPortsSameSignal) {
     // Merger aliases i1, i2 to o — all should be the same voltage
     Blueprint bp = create_merger_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
@@ -421,8 +498,8 @@ TEST(SimulationTest, Merger_AllPortsSameSignal) {
     float v_i2 = sim.get_wire_voltage("mrg.i2");
     float v_o = sim.get_wire_voltage("mrg.o");
 
-    EXPECT_FLOAT_EQ(v_i1, v_o) << "Merger i1 and o must be same signal";
-    EXPECT_FLOAT_EQ(v_i2, v_o) << "Merger i2 and o must be same signal";
+    EXPECT_NEAR(v_i1, v_o, 1e-6f) << "Merger i1 and o must be same signal";
+    EXPECT_NEAR(v_i2, v_o, 1e-6f) << "Merger i2 and o must be same signal";
 }
 
 // =============================================================================
@@ -458,7 +535,7 @@ TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {
     // NO wire from lamp.v_out to ground — intentionally floating
 
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Run for 2 simulated seconds (120 steps at 60Hz)
     for (int i = 0; i < 120; i++) {
@@ -501,7 +578,7 @@ TEST(SimulationTest, TwoRefNodes_CircuitStable) {
     bp.add_wire(std::move(w3));
 
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     for (int i = 0; i < 200; i++) {
         sim.step(0.016f);

@@ -6,6 +6,7 @@
 #include "editor/data/node.h"
 #include "editor/data/wire.h"
 #include "ui/core/interned_id.h"
+#include "sim_test_json.h"
 
 namespace ui {
 inline std::ostream& operator<<(std::ostream& os, InternedId id) {
@@ -90,7 +91,7 @@ TEST(DtRegression, SOR_OmegaIsCanonical) {
 TEST(DtRegression, Simulator_TimeAccumulatesVariableDt) {
     Blueprint bp = make_battery_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Feed variable frame deltas (simulating 60Hz, 144Hz, 30Hz mix)
     const float dts[] = {1.0f/60.0f, 1.0f/144.0f, 1.0f/30.0f, 1.0f/60.0f, 1.0f/75.0f};
@@ -109,7 +110,7 @@ TEST(DtRegression, Simulator_TimeAccumulatesVariableDt) {
 TEST(DtRegression, SimController_TimeAccumulatesVariableDt) {
     Blueprint bp = make_battery_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     const float dts[] = {1.0f/60.0f, 1.0f/144.0f, 1.0f/30.0f};
     float expected_time = 0.0f;
@@ -131,7 +132,7 @@ TEST(DtRegression, SimController_TimeAccumulatesVariableDt) {
 TEST(DtRegression, Simulator_ElectricalSolvesEveryStep) {
     Blueprint bp = make_battery_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     // Step with a very small dt — electrical must still solve
     sim.step(0.001f);  // 1ms frame (1000 Hz)
@@ -159,7 +160,7 @@ TEST(DtRegression, Simulator_SteadyStateIsDtIndependent) {
     // Run until steady state with 60Hz dt
     Blueprint bp60 = make_battery_circuit();
     Simulator<JIT_Solver> sim60;
-    sim60.start(bp60);
+    sim60.start_from_json(sim_test_json::from_blueprint(bp60));
     for (int i = 0; i < 200; ++i) sim60.step(1.0f / 60.0f);
     float v60 = sim60.get_wire_voltage("bat.v_out");
     sim60.stop();
@@ -167,7 +168,7 @@ TEST(DtRegression, Simulator_SteadyStateIsDtIndependent) {
     // Run until steady state with 144Hz dt (more steps needed for same real time)
     Blueprint bp144 = make_battery_circuit();
     Simulator<JIT_Solver> sim144;
-    sim144.start(bp144);
+    sim144.start_from_json(sim_test_json::from_blueprint(bp144));
     for (int i = 0; i < 480; ++i) sim144.step(1.0f / 144.0f);
     float v144 = sim144.get_wire_voltage("bat.v_out");
     sim144.stop();
@@ -186,7 +187,7 @@ TEST(DtRegression, Simulator_SteadyStateIsDtIndependent) {
 TEST(DtRegression, Simulator_StepCounterResetsOnStart) {
     Blueprint bp = make_battery_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     sim.step(0.016f);
     sim.step(0.016f);
@@ -194,7 +195,7 @@ TEST(DtRegression, Simulator_StepCounterResetsOnStart) {
 
     // Restart resets
     sim.stop();
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
     EXPECT_EQ(sim.get_step_count(), 0u);
     EXPECT_NEAR(sim.get_time(), 0.0f, 1e-9f);
 
@@ -210,7 +211,7 @@ TEST(DtRegression, Simulator_StepCounterResetsOnStart) {
 TEST(DtRegression, Simulator_UsesDtParameterNotConstant) {
     Blueprint bp = make_battery_circuit();
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     sim.step(0.01f);
     float t1 = sim.get_time();
@@ -244,7 +245,7 @@ TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
     bp.add_node(std::move(comp));
 
     Simulator<JIT_Solver> sim;
-    sim.start(bp);
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
 
     const float dt = 1.0f / 60.0f;
 

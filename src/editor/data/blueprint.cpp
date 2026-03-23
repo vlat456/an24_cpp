@@ -71,7 +71,7 @@ bool Blueprint::add_wire_validated(Wire wire) {
     PortType start_type = find_port_type(*start_node, wire.start.port_name);
     PortType end_type = find_port_type(*end_node, wire.end.port_name);
 
-    // Check compatibility
+    // Check convertible type
     if (!are_ports_compatible(start_type, end_type)) return false;
 
     // Check one-to-one connections (except for Bus/RefNode)
@@ -674,26 +674,5 @@ static json build_editor_json(const Blueprint& bp) {
     return editor;
 }
 
-std::string Blueprint::to_simulator_json() const {
-    const auto& I = *interner_;
-    json j = json::object();
-
-    j["templates"] = json::object();
-    j["devices"] = build_devices_json(nodes, I);
-
-    // Collect expandable node IDs for connection rewriting
-    std::set<std::string> blueprint_node_ids;
-    for (const auto& n : nodes) {
-        if (n.expandable)
-            blueprint_node_ids.emplace(I.resolve(n.id));
-    }
-    j["connections"] = build_connections_json(wires, blueprint_node_ids, sub_blueprint_instances, I);
-    j["editor"] = build_editor_json(*this);
-
-    return j.dump(2);
-}
-
 // Legacy flat conversion code removed (v3 migration).
 // Serialization is now handled by bp2::codec (blueprint_codec.h).
-
-

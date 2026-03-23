@@ -7,6 +7,7 @@
 #include "visual/node/bounds.h"
 #include "visual/snap.h"
 #include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -55,6 +56,62 @@ NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
 
     layout(w, h);
 }
+
+NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
+    : NodeWidget([
+        &]() {
+            Node node;
+            node.id = data.id;
+            node.name = data.name;
+            node.type_name = std::string(interner.resolve(data.type));
+            node.render_hint = data.render_hint;
+            node.expandable = data.expandable;
+            node.collapsed = data.collapsed;
+            node.blueprint_path = data.blueprint_path;
+            node.group_id = data.group_id;
+            node.pos = ui::Pt(data.x, data.y);
+
+            if (data.width.has_value() && data.height.has_value()) {
+                node.set_explicit_size(ui::Pt(*data.width, *data.height));
+            }
+
+            node.inputs = data.inputs;
+            node.outputs = data.outputs;
+
+            for (const auto& ov : data.layout_overrides) {
+                PortLayoutOverride lo;
+                lo.port_name = ov.port_name;
+                if (ov.side.has_value()) {
+                    lo.side = parse_port_layout_side(*ov.side);
+                }
+                if (ov.position.has_value()) {
+                    lo.position = static_cast<uint8_t>(*ov.position);
+                }
+                node.layout_overrides.push_back(std::move(lo));
+            }
+
+            node.node_content.type = static_cast<NodeContentType>(data.content_type);
+            node.node_content.label = data.content_label;
+            node.node_content.value = data.content_value;
+            node.node_content.min = data.content_min;
+            node.node_content.max = data.content_max;
+            node.node_content.unit = data.content_unit;
+            node.node_content.state = data.content_state;
+            node.node_content.tripped = data.content_tripped;
+
+            if (data.has_color) {
+                NodeColor c;
+                c.r = data.color_r;
+                c.g = data.color_g;
+                c.b = data.color_b;
+                c.a = data.color_a;
+                node.color = c;
+            }
+
+            return node;
+        }(),
+        interner)
+{}
 
 // ============================================================================
 // Layout construction

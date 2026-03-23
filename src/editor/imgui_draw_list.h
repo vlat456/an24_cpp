@@ -4,7 +4,7 @@
 #include "ui/math/pt.h"
 #include <imgui.h>
 
-/// ImGui adapter for IDrawList interface
+/// ImGui wrapper for IDrawList interface
 /// Wraps ImDrawList* from ImGui for use with the blueprint renderer
 class ImGuiDrawList : public ui::IDrawList {
 public:

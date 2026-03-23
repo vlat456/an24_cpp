@@ -470,5 +470,5 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
 // ============================================================
 // NOTE: RoundTrip_PreservesReferences, RoundTrip_BakedIn_PreservesFlag,
 // and MixedMode_ReferencesAndBakedIn tests were removed as part of the
-// v3 migration (they relied on legacy FlatBlueprint serialize/deserialize).
+// v3 migration (they relied on FlatBlueprint serialize/deserialize).
 // Equivalent coverage is provided by tests/blueprint_v2/test_codec.cpp.

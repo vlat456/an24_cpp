@@ -3,12 +3,12 @@
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
 #include "ui/core/interned_id.h"
+#include "data/node.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
 #include <optional>
 #include <cstdint>
-
-struct Node;
 
 namespace visual {
 
@@ -17,6 +17,7 @@ namespace visual {
 class RefNodeWidget : public Widget {
 public:
     explicit RefNodeWidget(const ::Node& data, const ui::StringInterner& interner);
+    explicit RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
     bool isClickable() const override { return true; }
@@ -47,7 +48,7 @@ private:
     Port* port_ = nullptr;
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const ::Node& data, const ui::StringInterner& interner);
+    void buildLayout(const Node& data, const ui::StringInterner& interner);
     void positionPort();
 };
 

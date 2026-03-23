@@ -4,8 +4,8 @@
 #include "state.h"
 #include "systems.h"
 #include "SOR_constants.h"
-#include "../editor/data/blueprint.h"
 #include <optional>
+#include <string>
 #include <unordered_map>
 
 /// Empty tag type for JIT solver specialization
@@ -25,8 +25,8 @@ public:
     Simulator(Simulator&& other) noexcept;
     Simulator& operator=(Simulator&& other) noexcept;
 
-    /// Start simulation - builds components from blueprint
-    void start(const Blueprint& bp);
+    /// Start simulation - builds components from simulator JSON
+    void start_from_json(const std::string& json_str);
 
     /// Stop simulation - destroys components (clears component state!)
     void stop();
@@ -77,9 +77,6 @@ private:
     /// Simulation state (voltages, currents)
     SimulationState state_;
 
-    /// Cached blueprint for rebuilds
-    Blueprint cached_blueprint_;
-
     /// Is simulation running?
     bool running_ = false;
 
@@ -98,5 +95,4 @@ private:
     float accumulator_thermal_ = 0.0f;
 };
 
-// Type alias for backward compatibility
 using JIT_Simulator = Simulator<JIT_Solver>;
