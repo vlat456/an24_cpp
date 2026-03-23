@@ -161,7 +161,7 @@ TEST(BlueprintCodec, DecodeEmptyBlueprint) {
 TEST(BlueprintCodec, DecodeNodesWithParams) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
 
     std::string json = R"({
         "version": "3.0",
@@ -193,14 +193,17 @@ TEST(BlueprintCodec, DecodeNodesWithParams) {
 TEST(BlueprintCodec, DecodeWires) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(interner);
 
     std::string json = R"({
         "version": "3.0",
         "id": "test",
         "display_name": "Test",
         "interface": [],
-        "nodes": [],
+        "nodes": [
+            {"id": "bat1", "type": "Battery", "position": {"x": 0.0, "y": 0.0}},
+            {"id": "r1", "type": "Resistor", "position": {"x": 10.0, "y": 0.0}}
+        ],
         "wires": [
             {"id": "w1", "source": "/bat1:v_out", "target": "/r1:in"}
         ],
@@ -694,6 +697,57 @@ TEST(BlueprintCodec, DecodeRejectsUnknownTopLevelFields) {
     EXPECT_NE(err.message.find("unknown top-level"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsUnknownNodeFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "legacy": true
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown node field"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsUnknownWireFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [
+            {"id": "w1", "source": "/a:p", "target": "/b:q", "extra": 1}
+        ],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown wire field"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -709,10 +763,24 @@ TEST(BlueprintCodec, RoundTripInterface) {
     auto decoded = bp2::BlueprintCodec::decode(json_str, interner, arena, reg);
     ASSERT_TRUE(decoded.has_value());
     EXPECT_EQ(decoded->iface().size(), 3u);
-    auto ports = decoded->iface().ports();
-    EXPECT_EQ(interner.resolve(ports[0].name), "v_in");
-    EXPECT_EQ(ports[0].domain, Domain::Electrical);
-    EXPECT_EQ(ports[0].direction, bp2::Direction::Input);
+    bool has_v_in = false;
+    bool has_v_out = false;
+    bool has_gnd = false;
+    for (const auto& p : decoded->iface().ports()) {
+        std::string name(interner.resolve(p.name));
+        if (name == "v_in" && p.domain == Domain::Electrical && p.direction == bp2::Direction::Input) {
+            has_v_in = true;
+        }
+        if (name == "v_out" && p.domain == Domain::Electrical && p.direction == bp2::Direction::Output) {
+            has_v_out = true;
+        }
+        if (name == "gnd" && p.domain == Domain::Electrical && p.direction == bp2::Direction::InOut) {
+            has_gnd = true;
+        }
+    }
+    EXPECT_TRUE(has_v_in);
+    EXPECT_TRUE(has_v_out);
+    EXPECT_TRUE(has_gnd);
 }
 
 TEST(BlueprintCodec, EncodeDeterministicNodeAndWireOrdering) {

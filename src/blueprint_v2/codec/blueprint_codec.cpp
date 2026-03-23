@@ -265,6 +265,19 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
             throw std::runtime_error("invalid node entry: missing string field 'type'");
         }
 
+        static const std::unordered_set<std::string> allowed_node_fields = {
+            "id", "type", "name", "render_hint", "group_id", "expandable", "collapsed",
+            "blueprint_path", "position", "width", "height", "params", "string_params",
+            "ports", "layout_overrides", "content_type", "content_label", "content_value",
+            "content_min", "content_max", "content_unit", "content_state", "content_tripped",
+            "has_color", "color_r", "color_g", "color_b", "color_a"
+        };
+        for (auto it = n.begin(); it != n.end(); ++it) {
+            if (allowed_node_fields.find(it.key()) == allowed_node_fields.end()) {
+                throw std::runtime_error("unknown node field: " + it.key());
+            }
+        }
+
         Blueprint::Node node;
         node.id = interner.intern(n["id"].get<std::string>());
         node.type = interner.intern(n["type"].get<std::string>());
@@ -471,6 +484,15 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
         }
         if (!w.contains("target") || !w["target"].is_string()) {
             throw std::runtime_error("invalid wire entry: missing string field 'target'");
+        }
+
+        static const std::unordered_set<std::string> allowed_wire_fields = {
+            "id", "source", "target", "routing_points"
+        };
+        for (auto it = w.begin(); it != w.end(); ++it) {
+            if (allowed_wire_fields.find(it.key()) == allowed_wire_fields.end()) {
+                throw std::runtime_error("unknown wire field: " + it.key());
+            }
         }
 
         Blueprint::Wire wire;
