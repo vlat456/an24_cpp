@@ -3,6 +3,8 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/validation/invariant_checker.h"
+#include <random>
 
 TEST(EditorModel, EmptyByDefault) {
     bp2::EditorModel model;
@@ -484,4 +486,104 @@ TEST(EditorModel, IsDirtyAfterUndoStackTruncation) {
     // The saved state (was at undo_stack_[0]) has been evicted.
     // Document should be dirty.
     EXPECT_TRUE(model.is_dirty());
+}
+
+TEST(EditorModel, RandomizedEditsMaintainInvariants) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry registry = bp2::TypeRegistry::create_test_registry(interner);
+    bp2::EditorModel model;
+
+    std::mt19937 rng(1337u);
+    int next_node = 0;
+    int next_wire = 0;
+
+    auto validate_now = [&]() {
+        auto r = bp2::InvariantChecker::validate(model.current(), arena, registry);
+        ASSERT_TRUE(r.valid) << r.error;
+    };
+
+    auto choose_index = [&](size_t size) -> size_t {
+        std::uniform_int_distribution<size_t> d(0, size - 1);
+        return d(rng);
+    };
+
+    for (int step = 0; step < 600; ++step) {
+        std::uniform_int_distribution<int> op_dist(0, 6);
+        const int op = op_dist(rng);
+
+        if (op == 0) {
+            bp2::Blueprint::Node n;
+            n.id = interner.intern("n_" + std::to_string(next_node++));
+            n.type = interner.intern("Battery");
+            std::uniform_real_distribution<float> pos(-500.0f, 500.0f);
+            n.x = pos(rng);
+            n.y = pos(rng);
+            EXPECT_TRUE(model.add_node(std::move(n)));
+        } else if (op == 1) {
+            const auto& nodes = model.current().nodes();
+            if (nodes.size() >= 2) {
+                const size_t src_i = choose_index(nodes.size());
+                size_t dst_i = choose_index(nodes.size());
+                if (dst_i == src_i) {
+                    dst_i = (dst_i + 1) % nodes.size();
+                }
+
+                bp2::Blueprint::Wire w;
+                w.id = interner.intern("w_" + std::to_string(next_wire++));
+                w.source = arena.make_port(
+                    arena.make_node(arena.root(), nodes[src_i].id),
+                    interner.intern("v_out"));
+                w.target = arena.make_port(
+                    arena.make_node(arena.root(), nodes[dst_i].id),
+                    interner.intern("v_in"));
+                EXPECT_TRUE(model.add_wire(std::move(w)));
+            }
+        } else if (op == 2) {
+            const auto& wires = model.current().wires();
+            if (!wires.empty()) {
+                const auto& w = wires[choose_index(wires.size())];
+                EXPECT_TRUE(model.remove_wire(w.id));
+            }
+        } else if (op == 3) {
+            const auto& nodes = model.current().nodes();
+            if (!nodes.empty()) {
+                const auto node_id = nodes[choose_index(nodes.size())].id;
+
+                std::vector<ui::InternedId> incident;
+                for (const auto& w : model.current().wires()) {
+                    const auto src_parent = arena.parent(w.source);
+                    const auto dst_parent = arena.parent(w.target);
+                    if (src_parent.kind() == bp2::PathKind::Node && src_parent.segment() == node_id) {
+                        incident.push_back(w.id);
+                        continue;
+                    }
+                    if (dst_parent.kind() == bp2::PathKind::Node && dst_parent.segment() == node_id) {
+                        incident.push_back(w.id);
+                    }
+                }
+                for (auto wid : incident) {
+                    EXPECT_TRUE(model.remove_wire(wid));
+                }
+                EXPECT_TRUE(model.remove_node(node_id));
+            }
+        } else if (op == 4) {
+            const auto& nodes = model.current().nodes();
+            if (!nodes.empty()) {
+                const auto node_id = nodes[choose_index(nodes.size())].id;
+                std::uniform_real_distribution<float> pos(-1000.0f, 1000.0f);
+                EXPECT_TRUE(model.update_node_position(node_id, pos(rng), pos(rng)));
+            }
+        } else if (op == 5) {
+            if (model.can_undo()) {
+                model.undo();
+            }
+        } else {
+            if (model.can_redo()) {
+                model.redo();
+            }
+        }
+
+        validate_now();
+    }
 }
