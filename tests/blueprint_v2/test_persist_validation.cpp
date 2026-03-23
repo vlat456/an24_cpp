@@ -67,3 +67,44 @@ TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
     EXPECT_FALSE(ok);
     EXPECT_NE(err.find("unknown node type"), std::string::npos);
 }
+
+TEST(PersistValidation, SaveUsesTypedParamNormalizationWhenRegistryAvailable) {
+    namespace fs = std::filesystem;
+
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("persist_typed"));
+    bp = bp.with_display_name("Persist Typed");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Text");
+    n.x = 0.0f;
+    n.y = 0.0f;
+    n.params[interner.intern("font_size")] = 16.0f;
+    n.string_params["table"] = "0:0;1:2";
+    bp = bp.with_node(std::move(n));
+
+    fs::path tmp = fs::temp_directory_path() / "bp2_save_typed.blueprint";
+    ASSERT_TRUE(save_blueprint_to_file(bp, interner, arena, tmp.c_str()));
+
+    std::ifstream in(tmp);
+    ASSERT_TRUE(in.is_open());
+    nlohmann::json j;
+    in >> j;
+
+    ASSERT_EQ(j["nodes"].size(), 1u);
+    const auto& node = j["nodes"][0];
+    ASSERT_TRUE(node.contains("params"));
+    EXPECT_TRUE(node["params"].contains("font_size"));
+    EXPECT_TRUE(node["params"]["font_size"].is_number());
+    // Unknown descriptor keys still persist through string_params.
+    ASSERT_TRUE(node.contains("string_params"));
+    EXPECT_TRUE(node["string_params"].contains("table"));
+    EXPECT_EQ(node["string_params"]["table"].get<std::string>(), "0:0;1:2");
+
+    std::error_code ec;
+    fs::remove(tmp, ec);
+}

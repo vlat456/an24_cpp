@@ -7,9 +7,34 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <cerrno>
+#include <cstdlib>
 #include <spdlog/spdlog.h>
 
 namespace {
+
+bool is_numeric_string(const std::string& s) {
+    char* end = nullptr;
+    errno = 0;
+    std::strtof(s.c_str(), &end);
+    return (end != s.c_str() && *end == '\0' && errno != ERANGE);
+}
+
+bp2::TypeRegistry::ParamKind infer_param_kind(std::string const& key, std::string const& value) {
+    if (key == "table") {
+        return bp2::TypeRegistry::ParamKind::Table;
+    }
+    if (key == "font_size" || is_numeric_string(value)) {
+        return bp2::TypeRegistry::ParamKind::Number;
+    }
+    if (value == "true" || value == "false" || value == "0" || value == "1") {
+        return bp2::TypeRegistry::ParamKind::Bool;
+    }
+    if (value.find(',') != std::string::npos) {
+        return bp2::TypeRegistry::ParamKind::Vec2;
+    }
+    return bp2::TypeRegistry::ParamKind::String;
+}
 
 bp2::Direction to_bp2_direction(PortDirection dir) {
     switch (dir) {
@@ -46,6 +71,20 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
 
         if (auto* entry = const_cast<bp2::TypeRegistry::Entry*>(out.find(type_id))) {
             entry->param_defaults = def.params;
+            for (const auto& [k, v] : def.params) {
+                bp2::TypeRegistry::ParamDescriptor pd;
+                pd.kind = infer_param_kind(k, v);
+                pd.default_value = v;
+                entry->param_descriptors[k] = std::move(pd);
+            }
+
+            if (auto it = def.params.find("mode"); it != def.params.end()) {
+                bp2::TypeRegistry::ParamDescriptor pd;
+                pd.kind = bp2::TypeRegistry::ParamKind::Enum;
+                pd.default_value = it->second;
+                pd.enum_values = {"auto", "manual"};
+                entry->param_descriptors["mode"] = std::move(pd);
+            }
         }
     }
 
@@ -62,7 +101,7 @@ bool validate_blueprint_for_persist(
     std::string* error_out);
 
 bool save_blueprint_to_file(const bp2::Blueprint& bp,
-                              ui::StringInterner const& interner,
+                              ui::StringInterner& interner,
                              bp2::PathArena const& arena,
                              const char* path) {
     namespace fs = std::filesystem;
@@ -73,7 +112,8 @@ bool save_blueprint_to_file(const bp2::Blueprint& bp,
             return false;
         }
     }
-    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
+    bp2::TypeRegistry registry = build_bp2_registry(interner);
+    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &registry);
     std::ofstream file(path);
     if (!file.is_open()) return false;
     file << json_str;
