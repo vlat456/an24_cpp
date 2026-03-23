@@ -456,3 +456,29 @@ TEST(BlueprintCodec, EncodeDeterministicNodeAndWireOrdering) {
     EXPECT_EQ(j["wires"][0]["id"], "wire_10");
     EXPECT_EQ(j["wires"][1]["id"], "wire_20");
 }
+
+TEST(BlueprintCodec, EncodeDeterministicParamKeyOrdering) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("param_order_test"));
+    bp = bp.with_display_name("Param Order Test");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Battery");
+    n.params[interner.intern("zeta")] = 1.0f;
+    n.params[interner.intern("alpha")] = 2.0f;
+    n.string_params["gamma"] = "x";
+    n.string_params["beta"] = "y";
+    bp = bp.with_node(std::move(n));
+
+    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
+    auto j = nlohmann::json::parse(json_str);
+    std::string dumped = j["nodes"][0]["params"].dump();
+    std::string dumped_s = j["nodes"][0]["string_params"].dump();
+
+    EXPECT_LT(dumped.find("\"alpha\""), dumped.find("\"zeta\""));
+    EXPECT_LT(dumped_s.find("\"beta\""), dumped_s.find("\"gamma\""));
+}
