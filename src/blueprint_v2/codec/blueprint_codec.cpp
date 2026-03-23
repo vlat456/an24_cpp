@@ -306,8 +306,13 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                     } else {
                         node.string_params[key] = s;
                     }
+                    continue;
                 }
+
+                throw std::runtime_error("invalid node entry: params values must be number or string");
             }
+        } else if (n.contains("params") && !n["params"].is_object()) {
+            throw std::runtime_error("invalid node entry: params must be an object");
         }
         if (n.contains("string_params") && n["string_params"].is_object()) {
             for (auto& [key, val] : n["string_params"].items()) {
@@ -486,10 +491,17 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
         nested.id = interner.intern(n["id"].get<std::string>());
         nested.blueprint_id = interner.intern(n["blueprint"].get<std::string>());
         nested.embedded = n.value("embedded", false);
-        if (n.contains("position")) {
-            nested.x = n["position"].value("x", 0.0f);
-            nested.y = n["position"].value("y", 0.0f);
+        if (!n.contains("position") || !n["position"].is_object()) {
+            throw std::runtime_error("invalid nested entry: missing object field 'position'");
         }
+        if (!n["position"].contains("x") || !n["position"]["x"].is_number()) {
+            throw std::runtime_error("invalid nested entry: missing numeric field 'position.x'");
+        }
+        if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
+            throw std::runtime_error("invalid nested entry: missing numeric field 'position.y'");
+        }
+        nested.x = n["position"]["x"].get<float>();
+        nested.y = n["position"]["y"].get<float>();
         if (nested.embedded && n.contains("definition")) {
             auto inner = BlueprintCodec::decode(n["definition"].dump(), interner, arena, registry);
             if (inner) {
