@@ -1845,6 +1845,7 @@ __/src/editor/visual/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.o
 .PHONY : __/src/editor/visual/persist.cpp.o
 
 __/src/editor/visual/persist.i: __/src/editor/visual/persist.cpp.i
@@ -1860,6 +1861,7 @@ __/src/editor/visual/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.i
 .PHONY : __/src/editor/visual/persist.cpp.i
 
 __/src/editor/visual/persist.s: __/src/editor/visual/persist.cpp.s
@@ -1875,6 +1877,7 @@ __/src/editor/visual/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.s
 .PHONY : __/src/editor/visual/persist.cpp.s
 
 __/src/editor/visual/port/visual_port.o: __/src/editor/visual/port/visual_port.cpp.o
@@ -2425,6 +2428,30 @@ blueprint_v2/test_path.s: blueprint_v2/test_path.cpp.s
 blueprint_v2/test_path.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_path_tests.dir/build.make tests/CMakeFiles/bp2_path_tests.dir/blueprint_v2/test_path.cpp.s
 .PHONY : blueprint_v2/test_path.cpp.s
+
+blueprint_v2/test_persist_validation.o: blueprint_v2/test_persist_validation.cpp.o
+.PHONY : blueprint_v2/test_persist_validation.o
+
+# target to build an object file
+blueprint_v2/test_persist_validation.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.o
+.PHONY : blueprint_v2/test_persist_validation.cpp.o
+
+blueprint_v2/test_persist_validation.i: blueprint_v2/test_persist_validation.cpp.i
+.PHONY : blueprint_v2/test_persist_validation.i
+
+# target to preprocess a source file
+blueprint_v2/test_persist_validation.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.i
+.PHONY : blueprint_v2/test_persist_validation.cpp.i
+
+blueprint_v2/test_persist_validation.s: blueprint_v2/test_persist_validation.cpp.s
+.PHONY : blueprint_v2/test_persist_validation.s
+
+# target to generate assembly for a file
+blueprint_v2/test_persist_validation.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/blueprint_v2/test_persist_validation.cpp.s
+.PHONY : blueprint_v2/test_persist_validation.cpp.s
 
 blueprint_v2/test_registry.o: blueprint_v2/test_registry.cpp.o
 .PHONY : blueprint_v2/test_registry.o
@@ -4711,6 +4738,9 @@ help:
 	@echo "... blueprint_v2/test_path.o"
 	@echo "... blueprint_v2/test_path.i"
 	@echo "... blueprint_v2/test_path.s"
+	@echo "... blueprint_v2/test_persist_validation.o"
+	@echo "... blueprint_v2/test_persist_validation.i"
+	@echo "... blueprint_v2/test_persist_validation.s"
 	@echo "... blueprint_v2/test_registry.o"
 	@echo "... blueprint_v2/test_registry.i"
 	@echo "... blueprint_v2/test_registry.s"

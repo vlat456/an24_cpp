@@ -15,29 +15,6 @@
 
 namespace {
 
-bool is_numeric_string(const std::string& s) {
-    char* end = nullptr;
-    errno = 0;
-    std::strtof(s.c_str(), &end);
-    return (end != s.c_str() && *end == '\0' && errno != ERANGE);
-}
-
-bp2::TypeRegistry::ParamKind infer_param_kind(std::string const& key, std::string const& value) {
-    if (key == "table") {
-        return bp2::TypeRegistry::ParamKind::Table;
-    }
-    if (key == "font_size" || is_numeric_string(value)) {
-        return bp2::TypeRegistry::ParamKind::Number;
-    }
-    if (value == "true" || value == "false" || value == "0" || value == "1") {
-        return bp2::TypeRegistry::ParamKind::Bool;
-    }
-    if (value.find(',') != std::string::npos) {
-        return bp2::TypeRegistry::ParamKind::Vec2;
-    }
-    return bp2::TypeRegistry::ParamKind::String;
-}
-
 bp2::Direction to_bp2_direction(PortDirection dir) {
     switch (dir) {
         case PortDirection::In: return bp2::Direction::Input;
@@ -45,6 +22,25 @@ bp2::Direction to_bp2_direction(PortDirection dir) {
         case PortDirection::InOut: return bp2::Direction::InOut;
     }
     return bp2::Direction::Output;
+}
+
+Domain to_bp2_domain_from_port_type(PortType t, Domain fallback) {
+    switch (t) {
+        case PortType::V:
+        case PortType::I:
+        case PortType::Any:
+            return Domain::Electrical;
+        case PortType::Bool:
+            return Domain::Logical;
+        case PortType::RPM:
+        case PortType::Position:
+            return Domain::Mechanical;
+        case PortType::Pressure:
+            return Domain::Hydraulic;
+        case PortType::Temperature:
+            return Domain::Thermal;
+    }
+    return fallback;
 }
 
 bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
@@ -55,10 +51,15 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
         std::vector<bp2::PortDescriptor> ports;
         ports.reserve(def.ports.size());
 
+        Domain inferred_domain = Domain::Electrical;
+        if (def.domains.has_value() && !def.domains->empty()) {
+            inferred_domain = (*def.domains)[0];
+        }
+
         for (const auto& [name, port] : def.ports) {
             bp2::PortDescriptor pd;
             pd.name = interner.intern(name);
-            pd.domain = static_cast<Domain>(port.type);
+            pd.domain = to_bp2_domain_from_port_type(port.type, inferred_domain);
             pd.direction = to_bp2_direction(port.direction);
             ports.push_back(pd);
         }
@@ -73,20 +74,6 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
 
         if (auto* entry = const_cast<bp2::TypeRegistry::Entry*>(out.find(type_id))) {
             entry->param_defaults = def.params;
-            for (const auto& [k, v] : def.params) {
-                bp2::TypeRegistry::ParamDescriptor pd;
-                pd.kind = infer_param_kind(k, v);
-                pd.default_value = v;
-                entry->param_descriptors[k] = std::move(pd);
-            }
-
-            if (auto it = def.params.find("mode"); it != def.params.end()) {
-                bp2::TypeRegistry::ParamDescriptor pd;
-                pd.kind = bp2::TypeRegistry::ParamKind::Enum;
-                pd.default_value = it->second;
-                pd.enum_values = {"auto", "manual"};
-                entry->param_descriptors["mode"] = std::move(pd);
-            }
         }
     }
 
