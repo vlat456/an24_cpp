@@ -226,6 +226,27 @@ Interface decode_interface(nlohmann::json const& arr,
                            ui::StringInterner& interner) {
     std::vector<PortDescriptor> ports;
     for (auto const& p : arr) {
+        if (!p.is_object()) {
+            throw std::runtime_error("invalid interface entry: expected object");
+        }
+        static const std::unordered_set<std::string> allowed_interface_fields = {
+            "name", "domain", "direction"
+        };
+        for (auto it = p.begin(); it != p.end(); ++it) {
+            if (allowed_interface_fields.find(it.key()) == allowed_interface_fields.end()) {
+                throw std::runtime_error("unknown interface field: " + it.key());
+            }
+        }
+        if (!p.contains("name") || !p["name"].is_string()) {
+            throw std::runtime_error("invalid interface entry: missing string field 'name'");
+        }
+        if (!p.contains("domain") || !p["domain"].is_number_integer()) {
+            throw std::runtime_error("invalid interface entry: missing integer field 'domain'");
+        }
+        if (!p.contains("direction") || !p["direction"].is_number_integer()) {
+            throw std::runtime_error("invalid interface entry: missing integer field 'direction'");
+        }
+
         PortDescriptor pd;
         pd.name = interner.intern(p["name"].get<std::string>());
         pd.domain = static_cast<Domain>(p["domain"].get<int>());
@@ -535,6 +556,15 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
         }
         if (!n.contains("blueprint") || !n["blueprint"].is_string()) {
             throw std::runtime_error("invalid nested entry: missing string field 'blueprint'");
+        }
+
+        static const std::unordered_set<std::string> allowed_nested_fields = {
+            "id", "blueprint", "embedded", "position", "definition"
+        };
+        for (auto it = n.begin(); it != n.end(); ++it) {
+            if (allowed_nested_fields.find(it.key()) == allowed_nested_fields.end()) {
+                throw std::runtime_error("unknown nested field: " + it.key());
+            }
         }
 
         Blueprint::Nested nested;

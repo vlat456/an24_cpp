@@ -748,6 +748,67 @@ TEST(BlueprintCodec, DecodeRejectsUnknownWireFields) {
     EXPECT_NE(err.message.find("unknown wire field"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsUnknownNestedFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [
+            {
+                "id": "sub1",
+                "blueprint": "KnownBp",
+                "embedded": true,
+                "position": {"x": 0, "y": 0},
+                "extra": 1,
+                "definition": {
+                    "version": "3.0",
+                    "id": "inner",
+                    "display_name": "Inner",
+                    "interface": [],
+                    "nodes": [],
+                    "wires": [],
+                    "nested": []
+                }
+            }
+        ]
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown nested field"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsUnknownInterfaceFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [
+            {"name": "p", "domain": 1, "direction": 0, "extra": true}
+        ],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown interface field"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
