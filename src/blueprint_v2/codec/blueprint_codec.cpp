@@ -22,6 +22,17 @@ static float parse_finite_float(nlohmann::json const& value, std::string const& 
     return v;
 }
 
+static bool is_known_port_type_value(int v) {
+    return v == static_cast<int>(PortType::V)
+        || v == static_cast<int>(PortType::I)
+        || v == static_cast<int>(PortType::Bool)
+        || v == static_cast<int>(PortType::RPM)
+        || v == static_cast<int>(PortType::Temperature)
+        || v == static_cast<int>(PortType::Pressure)
+        || v == static_cast<int>(PortType::Position)
+        || v == static_cast<int>(PortType::Any);
+}
+
 static bool is_default_node_content(const Blueprint::Node& node) {
     return node.content_type == NodeContentType::None
         && node.content_label.empty()
@@ -509,7 +520,11 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                 PortType ptype = PortType::Any;
                 if (p.contains("type")) {
                     if (p["type"].is_number_integer()) {
-                        ptype = static_cast<PortType>(p["type"].get<int>());
+                        const int type_v = p["type"].get<int>();
+                        if (!is_known_port_type_value(type_v)) {
+                            throw std::runtime_error("invalid node entry: unknown port type value");
+                        }
+                        ptype = static_cast<PortType>(type_v);
                     } else if (p["type"].is_string()) {
                         std::string type_s = p["type"].get<std::string>();
                         if (!is_known_port_type_name(type_s)) {
@@ -521,7 +536,13 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                     }
                 }
 
-                std::string dir = p.value("direction", std::string("Out"));
+                std::string dir = "Out";
+                if (p.contains("direction")) {
+                    if (!p["direction"].is_string()) {
+                        throw std::runtime_error("invalid node entry: port direction must be string");
+                    }
+                    dir = p["direction"].get<std::string>();
+                }
                 if (dir == "In") {
                     node.inputs.emplace_back(pid, PortSide::Input, ptype);
                 } else if (dir == "Out") {
@@ -636,10 +657,18 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
         }
         nested.x = parse_finite_float(n["position"]["x"], "nested.position.x");
         nested.y = parse_finite_float(n["position"]["y"], "nested.position.y");
+        if (nested.embedded && !n.contains("definition")) {
+            throw std::runtime_error("invalid nested entry: embedded nested requires definition");
+        }
+        if (!nested.embedded && n.contains("definition")) {
+            throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
+        }
         if (nested.embedded && n.contains("definition")) {
             auto inner = BlueprintCodec::decode(n["definition"].dump(), interner, arena, registry);
             if (inner) {
                 nested.inline_def = std::make_unique<Blueprint>(std::move(*inner));
+            } else {
+                throw std::runtime_error("invalid nested entry: failed to decode embedded definition");
             }
         }
         if (!nested.embedded && !nested.blueprint_id.empty()) {
@@ -746,10 +775,18 @@ std::optional<Blueprint> BlueprintCodec::decode(
             if (error_out) error_out->message = inv.error;
             return std::nullopt;
         }
-        const float pan_x = j.value("pan_x", 0.0f);
-        const float pan_y = j.value("pan_y", 0.0f);
-        const float zoom = j.value("zoom", 1.0f);
-        const float grid_step = j.value("grid_step", 16.0f);
+
+        auto viewport_or_default = [&](const char* key, float default_value) -> float {
+            if (!j.contains(key)) return default_value;
+            if (!j[key].is_number()) {
+                throw std::runtime_error(std::string("invalid viewport field type: ") + key);
+            }
+            return j[key].get<float>();
+        };
+        const float pan_x = viewport_or_default("pan_x", 0.0f);
+        const float pan_y = viewport_or_default("pan_y", 0.0f);
+        const float zoom = viewport_or_default("zoom", 1.0f);
+        const float grid_step = viewport_or_default("grid_step", 16.0f);
         if (!std::isfinite(pan_x) || !std::isfinite(pan_y)
             || !std::isfinite(zoom) || !std::isfinite(grid_step)) {
             if (error_out) error_out->message = "invalid non-finite viewport value";
