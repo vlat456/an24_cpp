@@ -6,6 +6,7 @@
 #include "editor/visual/scene_hittest.h"
 #include "editor/visual/renderer/draw_list.h"
 #include "editor/imgui_draw_list.h"
+#include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
 #include "ui/renderer/tooltip.h"
@@ -24,9 +25,49 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
         const auto* p = ws.oscilloscope.probe(wire_id);
         if (!p) continue;
         Pt sp = win.viewport.world_to_screen(p->world_pos, cmin);
-        draw_list->AddCircleFilled(ImVec2(sp.x, sp.y), 7.0f, p->color, 24);
-        draw_list->AddCircle(ImVec2(sp.x, sp.y), 9.0f, IM_COL32(20, 20, 20, 220), 24, 2.0f);
+        visual::osc::draw_probe_marker(draw_list, sp, p->color);
     }
+}
+
+static void render_hover_scope_tooltip(Document& doc,
+                                       WindowSystem& ws,
+                                       const std::string& label,
+                                       const std::string& signal_key,
+                                       const Pt& anchor_screen,
+                                       bool simulation_running) {
+    const std::deque<float>& samples = ws.oscilloscope.ensure_virtual_channel(doc, signal_key, simulation_running);
+
+    OscilloscopeProbe pseudo;
+    pseudo.label = label;
+    pseudo.wire_id = "hover_scope";
+    pseudo.color = IM_COL32(80, 200, 255, 255);
+
+    const ImVec2 display = ImGui::GetIO().DisplaySize;
+    constexpr float kWindowW = 260.0f;
+    constexpr float kWindowH = 96.0f;
+    float px = anchor_screen.x + 10.0f;
+    float py = anchor_screen.y - (kWindowH + 10.0f);
+    if (px + kWindowW > display.x - 8.0f) px = display.x - kWindowW - 8.0f;
+    if (py < 8.0f) py = anchor_screen.y + 10.0f;
+    if (py + kWindowH > display.y - 8.0f) py = display.y - kWindowH - 8.0f;
+
+    ImGui::SetNextWindowBgAlpha(0.96f);
+    ImGui::SetNextWindowPos(ImVec2(px, py), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(kWindowW, kWindowH), ImGuiCond_Always);
+    if (ImGui::Begin("##hover_scope", nullptr,
+                     ImGuiWindowFlags_NoDecoration |
+                     ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing |
+                     ImGuiWindowFlags_NoNav)) {
+        std::vector<OscilloscopeModel::ChannelView> one;
+        one.push_back({&pseudo, &samples});
+        float min_v = 0.0f;
+        float max_v = 0.0f;
+        visual::osc::compute_range(one, min_v, max_v);
+        visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 52.0f, -1.0f);
+        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples));
+    }
+    ImGui::End();
 }
 
 static ImGuiDrawList make_dl(ImDrawList* raw) {
@@ -49,7 +90,7 @@ void CanvasRenderer::render(BlueprintWindow& win, Document& doc, WindowSystem& w
 
     renderGrid(win, cmin, cmax, draw_list);
     renderBlueprint(win, doc, cmin, cmax, draw_list);
-    renderTooltips(win, doc, cmin, draw_list);
+    renderTooltips(win, doc, ws, cmin, draw_list);
     renderTempWire(win, cmin, draw_list);
     render_probe_markers(win, doc, ws, cmin, draw_list);
     node_renderer_.render(doc, win, cmin);
@@ -91,7 +132,8 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
     win.scene.render(&dl, ctx);
 }
 
-void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin, ImDrawList* draw_list) {
+void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowSystem& ws,
+                                    Pt cmin, ImDrawList* draw_list) {
     if (!doc.isSimulationRunning()) return;
 
     ImVec2 mp = ImGui::GetMousePos();
@@ -118,6 +160,9 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
         tip.screen_pos = port_screen;
         tip.label = std::string(node_id) + "." + std::string(port_name);
         tip.value = buf;
+
+        render_hover_scope_tooltip(doc, ws, tip.label, tip.label, tip.screen_pos, doc.isSimulationRunning());
+        return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
@@ -169,6 +214,9 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, Pt cmin
         tip.screen_pos = win.viewport.world_to_screen(anchor, cmin);
         tip.label = signal_key;
         tip.value = buf;
+
+        render_hover_scope_tooltip(doc, ws, signal_key, signal_key, tip.screen_pos, doc.isSimulationRunning());
+        return;
     }
 
     if (tip.active) {

@@ -1023,6 +1023,30 @@ __/src/editor/visual/node/visual_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/node/visual_node.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node.cpp.s
 
+__/src/editor/visual/oscilloscope_plot.o: __/src/editor/visual/oscilloscope_plot.cpp.o
+.PHONY : __/src/editor/visual/oscilloscope_plot.o
+
+# target to build an object file
+__/src/editor/visual/oscilloscope_plot.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.o
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.o
+
+__/src/editor/visual/oscilloscope_plot.i: __/src/editor/visual/oscilloscope_plot.cpp.i
+.PHONY : __/src/editor/visual/oscilloscope_plot.i
+
+# target to preprocess a source file
+__/src/editor/visual/oscilloscope_plot.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.i
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.i
+
+__/src/editor/visual/oscilloscope_plot.s: __/src/editor/visual/oscilloscope_plot.cpp.s
+.PHONY : __/src/editor/visual/oscilloscope_plot.s
+
+# target to generate assembly for a file
+__/src/editor/visual/oscilloscope_plot.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/visual/oscilloscope_plot.cpp.s
+.PHONY : __/src/editor/visual/oscilloscope_plot.cpp.s
+
 __/src/editor/visual/panels/document_area.o: __/src/editor/visual/panels/document_area.cpp.o
 .PHONY : __/src/editor/visual/panels/document_area.o
 
@@ -1690,6 +1714,9 @@ help:
 	@echo "... __/src/editor/visual/node/visual_node.o"
 	@echo "... __/src/editor/visual/node/visual_node.i"
 	@echo "... __/src/editor/visual/node/visual_node.s"
+	@echo "... __/src/editor/visual/oscilloscope_plot.o"
+	@echo "... __/src/editor/visual/oscilloscope_plot.i"
+	@echo "... __/src/editor/visual/oscilloscope_plot.s"
 	@echo "... __/src/editor/visual/panels/document_area.o"
 	@echo "... __/src/editor/visual/panels/document_area.i"
 	@echo "... __/src/editor/visual/panels/document_area.s"

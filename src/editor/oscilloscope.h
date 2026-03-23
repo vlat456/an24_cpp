@@ -40,11 +40,26 @@ public:
         const std::deque<float>* samples = nullptr;
     };
     std::vector<ChannelView> channels() const;
+    const std::deque<float>* samples_for_signal(const std::string& signal_key) const;
+
+    struct SampleStats {
+        bool has_value = false;
+        float min_v = 0.0f;
+        float max_v = 0.0f;
+        float last_v = 0.0f;
+    };
+    static SampleStats compute_stats(const std::deque<float>& samples);
+
+    const std::deque<float>& ensure_virtual_channel(Document& doc,
+                                                    const std::string& signal_key,
+                                                    bool simulation_running);
+    void clear_virtual_channels();
 
 private:
     size_t max_samples_ = 1200;
     std::unordered_map<std::string, OscilloscopeProbe> probes_;
     std::unordered_map<std::string, std::deque<float>> samples_;
+    std::unordered_map<std::string, std::deque<float>> virtual_samples_;
 
     static uint32_t color_for_index(size_t i);
 };

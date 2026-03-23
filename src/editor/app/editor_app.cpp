@@ -207,6 +207,7 @@ void EditorApp::update() {
     }
     
     if (Document* doc = ws_.activeDocument()) {
+        ws_.oscilloscope.clear_virtual_channels();
         doc->updateSimulationStep(io.DeltaTime);
         doc->updateNodeContentFromSimulation();
         ws_.oscilloscope.on_blueprint_changed(*doc);

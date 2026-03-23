@@ -184,3 +184,44 @@ std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const 
     });
     return out;
 }
+
+const std::deque<float>* OscilloscopeModel::samples_for_signal(const std::string& signal_key) const {
+    for (const auto& [wire_id, p] : probes_) {
+        (void)wire_id;
+        if (p.signal_key != signal_key) continue;
+        auto it = samples_.find(p.wire_id);
+        if (it == samples_.end()) continue;
+        return &it->second;
+    }
+    auto vit = virtual_samples_.find(signal_key);
+    if (vit != virtual_samples_.end()) return &vit->second;
+    return nullptr;
+}
+
+OscilloscopeModel::SampleStats OscilloscopeModel::compute_stats(const std::deque<float>& samples) {
+    SampleStats s;
+    if (samples.empty()) return s;
+    s.has_value = true;
+    s.min_v = samples.front();
+    s.max_v = samples.front();
+    s.last_v = samples.back();
+    for (float v : samples) {
+        s.min_v = std::min(s.min_v, v);
+        s.max_v = std::max(s.max_v, v);
+    }
+    return s;
+}
+
+const std::deque<float>& OscilloscopeModel::ensure_virtual_channel(Document& doc,
+                                                                    const std::string& signal_key,
+                                                                    bool simulation_running) {
+    auto& q = virtual_samples_[signal_key];
+    const float v = simulation_running ? doc.simulation().get_wire_voltage(signal_key) : 0.0f;
+    q.push_back(v);
+    while (q.size() > max_samples_) q.pop_front();
+    return q;
+}
+
+void OscilloscopeModel::clear_virtual_channels() {
+    virtual_samples_.clear();
+}
