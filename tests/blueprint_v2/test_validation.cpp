@@ -6,6 +6,7 @@
 #include "blueprint_v2/validation/path_resolver.h"
 #include "blueprint_v2/validation/wire_validator.h"
 #include "blueprint_v2/validation/invariant_checker.h"
+#include "blueprint_v2/diagnostics/repair.h"
 
 using bp2::Direction;
 using bp2::Interface;
@@ -355,4 +356,56 @@ TEST(BlueprintValidate, ValidBlueprintPasses) {
     EXPECT_TRUE(r.valid) << r.error;
     EXPECT_NO_THROW(bp.validate(reg));
     EXPECT_NO_THROW(bp.validate(reg, arena));
+}
+
+TEST(BlueprintRepair, DiagnoseAndRepairRemovesInvalidWireEndpoints) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "bat1", "Battery"));
+
+    bp2::Blueprint::Wire w;
+    w.id = I.intern("w_bad");
+    w.source = arena.make_port(arena.make_node(arena.root(), I.intern("bat1")), I.intern("v_out"));
+    w.target = arena.make_port(arena.make_node(arena.root(), I.intern("ghost")), I.intern("in"));
+    w.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w));
+
+    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg);
+    EXPECT_TRUE(report.changed);
+    EXPECT_EQ(report.removed_wires, 1u);
+    EXPECT_TRUE(bp.wires().empty());
+
+    bool saw_invalid_wire_issue = false;
+    for (const auto& issue : report.issues) {
+        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::InvalidWireEndpoint) {
+            saw_invalid_wire_issue = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(saw_invalid_wire_issue);
+}
+
+TEST(BlueprintRepair, DiagnoseReportsUnknownNodeType) {
+    ui::StringInterner I;
+    bp2::TypeRegistry reg = bp2::TypeRegistry::create_test_registry(I);
+    PathArena arena(I);
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(make_node(I, "n1", "NoSuchType"));
+
+    auto report = bp2::diagnostics::diagnose_and_repair(bp, arena, reg);
+    EXPECT_FALSE(report.changed);
+    EXPECT_EQ(report.removed_wires, 0u);
+
+    bool saw_unknown_type_issue = false;
+    for (const auto& issue : report.issues) {
+        if (issue.kind == bp2::diagnostics::IntegrityIssue::Kind::UnknownNodeType) {
+            saw_unknown_type_issue = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(saw_unknown_type_issue);
 }

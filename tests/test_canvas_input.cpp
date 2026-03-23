@@ -227,6 +227,102 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     EXPECT_TRUE(found_bus_to_src);
 }
 
+TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
+    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto s2 = make_node(I, "s2", "Battery", 40.0f, 220.0f);
+    s2.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+    auto l2 = make_node(I, "l2", "Lamp", 420.0f, 220.0f);
+    l2.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(s1));
+    bp = bp.with_node(std::move(s2));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_node(std::move(l2));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "s1", "v_out", "l1", "v_in"));
+    bp = bp.with_wire(make_wire(I, arena, "wire_1", "s2", "v_out", "l2", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* l2_widget = dynamic_cast<visual::Widget*>(scene.find("l2"));
+    ASSERT_NE(l2_widget, nullptr);
+    auto* l2_in = l2_widget->portByName("v_in");
+    ASSERT_NE(l2_in, nullptr);
+
+    auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
+    ASSERT_NE(l1_widget, nullptr);
+    auto* l1_in = l1_widget->portByName("v_in");
+    ASSERT_NE(l1_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Reconnect wire_1 target from l2:v_in to l1:v_in
+    input.on_mouse_down(port_center(l2_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(l1_in), canvas_min);
+
+    const auto* w0 = model.current().find_wire(I.intern("wire_0"));
+    const auto* w1 = model.current().find_wire(I.intern("wire_1"));
+    ASSERT_NE(w0, nullptr);
+    ASSERT_NE(w1, nullptr);
+
+    auto [w1_src_n, w1_src_p] = endpoint_node_port(w1->source, arena);
+    auto [w1_tgt_n, w1_tgt_p] = endpoint_node_port(w1->target, arena);
+    auto [w0_tgt_n, w0_tgt_p] = endpoint_node_port(w0->target, arena);
+
+    EXPECT_EQ(w1_src_n, I.intern("s2"));
+    EXPECT_EQ(w1_src_p, I.intern("v_out"));
+    EXPECT_EQ(w1_tgt_n, I.intern("l1"));
+    EXPECT_EQ(w1_tgt_p, I.intern("v_in"));
+
+    // wire_0 remains unchanged
+    EXPECT_EQ(w0_tgt_n, I.intern("l1"));
+    EXPECT_EQ(w0_tgt_p, I.intern("v_in"));
+}
+
+TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto s1 = make_node(I, "s1", "Battery", 40.0f, 60.0f);
+    s1.outputs.push_back(EditorPort(I.intern("v_out"), PortSide::Output, PortType::V));
+    auto l1 = make_node(I, "l1", "Lamp", 420.0f, 60.0f);
+    l1.inputs.push_back(EditorPort(I.intern("v_in"), PortSide::Input, PortType::V));
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(s1));
+    bp = bp.with_node(std::move(l1));
+    bp = bp.with_wire(make_wire(I, arena, "wire_0", "s1", "v_out", "l1", "v_in"));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* l1_widget = dynamic_cast<visual::Widget*>(scene.find("l1"));
+    ASSERT_NE(l1_widget, nullptr);
+    auto* l1_in = l1_widget->portByName("v_in");
+    ASSERT_NE(l1_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    ASSERT_EQ(model.current().wires().size(), 1u);
+    input.on_mouse_down(port_center(l1_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, ui::Pt(900.0f, 900.0f), canvas_min);
+
+    EXPECT_TRUE(model.current().wires().empty());
+}
+
 TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {
     ui::StringInterner I;
     bp2::PathArena arena(I);

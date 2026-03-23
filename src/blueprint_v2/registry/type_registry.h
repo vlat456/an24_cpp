@@ -7,11 +7,27 @@
 #include <optional>
 #include <string>
 #include <functional>
+#include <vector>
 
 namespace bp2 {
 
 class TypeRegistry {
 public:
+    enum class ParamKind {
+        Number,
+        String,
+        Bool,
+        Enum,
+        Table,
+        Vec2,
+    };
+
+    struct ParamDescriptor {
+        ParamKind kind = ParamKind::String;
+        std::string default_value;
+        std::vector<std::string> enum_values;
+    };
+
     struct Entry {
         ui::InternedId type_id;
         Interface iface;
@@ -19,6 +35,7 @@ public:
         bool is_blueprint = false;
         Blueprint const* blueprint = nullptr;
         std::unordered_map<std::string, std::string> param_defaults;
+        std::unordered_map<std::string, ParamDescriptor> param_descriptors;
     };
 
     TypeRegistry() = default;
@@ -27,14 +44,16 @@ public:
         ui::InternedId type_id,
         Interface iface,
         std::string description = "",
-        std::unordered_map<std::string, std::string> param_defaults = {});
+        std::unordered_map<std::string, std::string> param_defaults = {},
+        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {});
 
     void register_blueprint(
         ui::InternedId type_id,
         Interface iface,
         std::string description = "",
         Blueprint const* bp = nullptr,
-        std::unordered_map<std::string, std::string> param_defaults = {});
+        std::unordered_map<std::string, std::string> param_defaults = {},
+        std::unordered_map<std::string, ParamDescriptor> param_descriptors = {});
 
     Entry const* find(ui::InternedId type_id) const;
     bool has(ui::InternedId type_id) const;

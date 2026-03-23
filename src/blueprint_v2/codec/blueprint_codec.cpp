@@ -1,9 +1,11 @@
 #include "blueprint_codec.h"
 #include "blueprint_v2/validation/invariant_checker.h"
 #include <nlohmann/json.hpp>
+#include <algorithm>
 #include <cerrno>
 #include <cmath>
 #include <cstdlib>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -20,6 +22,114 @@ static float parse_finite_float(nlohmann::json const& value, std::string const& 
         throw std::runtime_error("invalid non-finite numeric field: " + field_name);
     }
     return v;
+}
+
+static bool parse_number_string(std::string const& s, float& out) {
+    char* end = nullptr;
+    errno = 0;
+    const float parsed = std::strtof(s.c_str(), &end);
+    const bool parsed_ok = (end != s.c_str() && *end == '\0' && errno != ERANGE);
+    if (!parsed_ok || !std::isfinite(parsed)) {
+        return false;
+    }
+    out = parsed;
+    return true;
+}
+
+static bool parse_bool_string(std::string const& s, std::string& normalized) {
+    if (s == "true" || s == "1") {
+        normalized = "true";
+        return true;
+    }
+    if (s == "false" || s == "0") {
+        normalized = "false";
+        return true;
+    }
+    return false;
+}
+
+static bool parse_vec2_string(std::string const& s) {
+    const auto comma = s.find(',');
+    if (comma == std::string::npos) {
+        return false;
+    }
+    const std::string lhs = s.substr(0, comma);
+    const std::string rhs = s.substr(comma + 1);
+    float x = 0.0f;
+    float y = 0.0f;
+    return parse_number_string(lhs, x) && parse_number_string(rhs, y);
+}
+
+static void assign_param_by_descriptor(Blueprint::Node& node,
+                                       ui::StringInterner& interner,
+                                       std::string const& key,
+                                       nlohmann::json const& val,
+                                       TypeRegistry::ParamDescriptor const& desc) {
+    const auto key_iid = interner.intern(key);
+    switch (desc.kind) {
+        case TypeRegistry::ParamKind::Number: {
+            if (val.is_number()) {
+                node.params[key_iid] = parse_finite_float(val, "params." + key);
+                return;
+            }
+            if (val.is_string()) {
+                float parsed = 0.0f;
+                if (!parse_number_string(val.get<std::string>(), parsed)) {
+                    throw std::runtime_error("invalid node entry: param '" + key + "' must be number");
+                }
+                node.params[key_iid] = parsed;
+                return;
+            }
+            throw std::runtime_error("invalid node entry: param '" + key + "' must be number");
+        }
+        case TypeRegistry::ParamKind::Bool: {
+            if (val.is_boolean()) {
+                node.string_params[key] = val.get<bool>() ? "true" : "false";
+                return;
+            }
+            if (val.is_string()) {
+                std::string normalized;
+                if (!parse_bool_string(val.get<std::string>(), normalized)) {
+                    throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
+                }
+                node.string_params[key] = std::move(normalized);
+                return;
+            }
+            throw std::runtime_error("invalid node entry: param '" + key + "' must be bool");
+        }
+        case TypeRegistry::ParamKind::Enum: {
+            if (!val.is_string()) {
+                throw std::runtime_error("invalid node entry: enum param '" + key + "' must be string");
+            }
+            const std::string enum_v = val.get<std::string>();
+            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), enum_v)
+                != desc.enum_values.end();
+            if (!allowed) {
+                throw std::runtime_error("invalid node entry: enum param '" + key + "' value not allowed");
+            }
+            node.string_params[key] = enum_v;
+            return;
+        }
+        case TypeRegistry::ParamKind::Table:
+        case TypeRegistry::ParamKind::String: {
+            if (!val.is_string()) {
+                throw std::runtime_error("invalid node entry: param '" + key + "' must be string");
+            }
+            node.string_params[key] = val.get<std::string>();
+            return;
+        }
+        case TypeRegistry::ParamKind::Vec2: {
+            if (!val.is_string()) {
+                throw std::runtime_error("invalid node entry: vec2 param '" + key + "' must be string");
+            }
+            const std::string vec = val.get<std::string>();
+            if (!parse_vec2_string(vec)) {
+                throw std::runtime_error("invalid node entry: vec2 param '" + key + "' format invalid");
+            }
+            node.string_params[key] = vec;
+            return;
+        }
+    }
 }
 
 static bool is_known_port_type_value(int v) {
@@ -400,19 +510,26 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         if (n.contains("height")) {
             node.height = parse_finite_float(n["height"], "height");
         }
+        const TypeRegistry::Entry* type_entry = registry.find(node.type);
+
         if (n.contains("params") && n["params"].is_object()) {
             for (auto& [key, val] : n["params"].items()) {
+                if (type_entry) {
+                    auto dit = type_entry->param_descriptors.find(key);
+                    if (dit != type_entry->param_descriptors.end()) {
+                        assign_param_by_descriptor(node, interner, key, val, dit->second);
+                        continue;
+                    }
+                }
+
                 if (val.is_number()) {
-                    node.params[interner.intern(key)] = val.get<float>();
+                    node.params[interner.intern(key)] = parse_finite_float(val, "params." + key);
                     continue;
                 }
                 if (val.is_string()) {
                     const std::string s = val.get<std::string>();
-                    char* end = nullptr;
-                    errno = 0;
-                    const float parsed = std::strtof(s.c_str(), &end);
-                    const bool parsed_ok = (end != s.c_str() && *end == '\0' && errno != ERANGE);
-                    if (parsed_ok) {
+                    float parsed = 0.0f;
+                    if (parse_number_string(s, parsed)) {
                         node.params[interner.intern(key)] = parsed;
                     } else {
                         node.string_params[key] = s;
@@ -436,8 +553,8 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
             throw std::runtime_error("invalid node entry: string_params must be an object");
         }
 
-        if (auto* entry = registry.find(node.type)) {
-            for (const auto& [k, v] : entry->param_defaults) {
+        if (type_entry) {
+            for (const auto& [k, v] : type_entry->param_defaults) {
                 const auto key_iid = interner.intern(k);
                 if (node.params.find(key_iid) != node.params.end()) {
                     continue;
@@ -445,11 +562,55 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                 if (node.string_params.find(k) != node.string_params.end()) {
                     continue;
                 }
-                char* end = nullptr;
-                errno = 0;
-                const float parsed = std::strtof(v.c_str(), &end);
-                const bool parsed_ok = (end != v.c_str() && *end == '\0' && errno != ERANGE);
-                if (parsed_ok) {
+
+                auto dit = type_entry->param_descriptors.find(k);
+                if (dit != type_entry->param_descriptors.end()) {
+                    const auto& desc = dit->second;
+                    switch (desc.kind) {
+                        case TypeRegistry::ParamKind::Number: {
+                            float parsed = 0.0f;
+                            if (parse_number_string(v, parsed)) {
+                                node.params[key_iid] = parsed;
+                            } else {
+                                throw std::runtime_error("invalid default for numeric param '" + k + "'");
+                            }
+                            break;
+                        }
+                        case TypeRegistry::ParamKind::Bool: {
+                            std::string normalized;
+                            if (parse_bool_string(v, normalized)) {
+                                node.string_params[k] = std::move(normalized);
+                            } else {
+                                throw std::runtime_error("invalid default for bool param '" + k + "'");
+                            }
+                            break;
+                        }
+                        case TypeRegistry::ParamKind::Enum: {
+                            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), v)
+                                != desc.enum_values.end();
+                            if (!allowed) {
+                                throw std::runtime_error("invalid default for enum param '" + k + "'");
+                            }
+                            node.string_params[k] = v;
+                            break;
+                        }
+                        case TypeRegistry::ParamKind::Vec2: {
+                            if (!parse_vec2_string(v)) {
+                                throw std::runtime_error("invalid default for vec2 param '" + k + "'");
+                            }
+                            node.string_params[k] = v;
+                            break;
+                        }
+                        case TypeRegistry::ParamKind::Table:
+                        case TypeRegistry::ParamKind::String:
+                            node.string_params[k] = v;
+                            break;
+                    }
+                    continue;
+                }
+
+                float parsed = 0.0f;
+                if (parse_number_string(v, parsed)) {
                     node.params[key_iid] = parsed;
                 } else {
                     node.string_params[k] = v;

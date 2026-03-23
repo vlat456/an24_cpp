@@ -342,6 +342,108 @@ TEST(BlueprintCodec, DecodeBackfillsMissingParamsFromRegistryDefaults) {
     EXPECT_EQ(table_it->second, "0:0; 100:100");
 }
 
+TEST(BlueprintCodec, DecodeAppliesTypedParamDescriptors) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    reg.register_component(
+        interner.intern("TypedComp"),
+        bp2::Interface({
+            {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+            {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+        }),
+        "typed",
+        {
+            {"gain", "1.0"},
+            {"enabled", "false"},
+            {"mode", "auto"},
+            {"table", "0:0;1:1"},
+            {"offset", "0.0,0.0"},
+        },
+        {
+            {"gain", {bp2::TypeRegistry::ParamKind::Number, "1.0", {}}},
+            {"enabled", {bp2::TypeRegistry::ParamKind::Bool, "false", {}}},
+            {"mode", {bp2::TypeRegistry::ParamKind::Enum, "auto", {"auto", "manual"}}},
+            {"table", {bp2::TypeRegistry::ParamKind::Table, "0:0;1:1", {}}},
+            {"offset", {bp2::TypeRegistry::ParamKind::Vec2, "0.0,0.0", {}}},
+        }
+    );
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "t1",
+                "type": "TypedComp",
+                "position": {"x": 10.0, "y": 20.0},
+                "params": {
+                    "gain": "2.5",
+                    "enabled": true,
+                    "mode": "manual",
+                    "table": "0:0;10:20",
+                    "offset": "1.0,2.0"
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->nodes().size(), 1u);
+    const auto& node = result->nodes()[0];
+
+    EXPECT_FLOAT_EQ(node.params.at(interner.intern("gain")), 2.5f);
+    EXPECT_EQ(node.string_params.at("enabled"), "true");
+    EXPECT_EQ(node.string_params.at("mode"), "manual");
+    EXPECT_EQ(node.string_params.at("table"), "0:0;10:20");
+    EXPECT_EQ(node.string_params.at("offset"), "1.0,2.0");
+}
+
+TEST(BlueprintCodec, DecodeRejectsInvalidTypedEnumParam) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    reg.register_component(
+        interner.intern("TypedComp"),
+        bp2::Interface({
+            {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+            {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+        }),
+        "typed",
+        {{"mode", "auto"}},
+        {{"mode", {bp2::TypeRegistry::ParamKind::Enum, "auto", {"auto", "manual"}}}}
+    );
+
+    bp2::DecodeError err;
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "t1",
+                "type": "TypedComp",
+                "position": {"x": 10.0, "y": 20.0},
+                "params": {"mode": "invalid_mode"}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("enum param"), std::string::npos);
+}
+
 TEST(BlueprintCodec, EncodeDecodePreservesBlueprintNameField) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
