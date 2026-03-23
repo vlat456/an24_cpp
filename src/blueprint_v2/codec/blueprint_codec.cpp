@@ -272,10 +272,17 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         if (n.contains("blueprint_path") && n["blueprint_path"].is_string()) {
             node.blueprint_path = n["blueprint_path"].get<std::string>();
         }
-        if (n.contains("position")) {
-            node.x = n["position"].value("x", 0.0f);
-            node.y = n["position"].value("y", 0.0f);
+        if (!n.contains("position") || !n["position"].is_object()) {
+            throw std::runtime_error("invalid node entry: missing object field 'position'");
         }
+        if (!n["position"].contains("x") || !n["position"]["x"].is_number()) {
+            throw std::runtime_error("invalid node entry: missing numeric field 'position.x'");
+        }
+        if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
+            throw std::runtime_error("invalid node entry: missing numeric field 'position.y'");
+        }
+        node.x = n["position"]["x"].get<float>();
+        node.y = n["position"]["y"].get<float>();
         if (n.contains("width") && n["width"].is_number()) {
             node.width = n["width"].get<float>();
         }
@@ -444,10 +451,16 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
         wire.target = *tgt;
         if (w.contains("routing_points") && w["routing_points"].is_array()) {
             for (auto const& rp : w["routing_points"]) {
-                if (!rp.is_array() || rp.size() != 2) continue;
-                if (!rp[0].is_number() || !rp[1].is_number()) continue;
+                if (!rp.is_array() || rp.size() != 2) {
+                    throw std::runtime_error("invalid wire entry: routing_points must be [x,y] pairs");
+                }
+                if (!rp[0].is_number() || !rp[1].is_number()) {
+                    throw std::runtime_error("invalid wire entry: routing_points values must be numeric");
+                }
                 wire.routing_points.emplace_back(rp[0].get<float>(), rp[1].get<float>());
             }
+        } else if (w.contains("routing_points") && !w["routing_points"].is_array()) {
+            throw std::runtime_error("invalid wire entry: routing_points must be an array");
         }
         bp = bp.with_wire(std::move(wire));
     }
