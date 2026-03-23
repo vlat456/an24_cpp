@@ -1391,6 +1391,103 @@ TEST(BlueprintCodec, DecodeRejectsInvalidNodeContentFieldType) {
     EXPECT_NE(err.message.find("content_value"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsNodeContentMinGreaterThanMax) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "content_min": 10,
+                "content_max": 5
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("content_min"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsEmbeddedDefinitionInvalidType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [
+            {
+                "id": "sub1",
+                "blueprint": "inner",
+                "embedded": true,
+                "position": {"x": 0, "y": 0},
+                "definition": 42
+            }
+        ]
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("embedded definition"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsEmbeddedDefinitionWithContextualError) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [
+            {
+                "id": "sub1",
+                "blueprint": "inner",
+                "embedded": true,
+                "position": {"x": 0, "y": 0},
+                "definition": {
+                    "version": "3.0",
+                    "id": "inner",
+                    "display_name": "Inner",
+                    "interface": [],
+                    "nodes": [],
+                    "wires": [],
+                    "nested": [],
+                    "legacy": 1
+                }
+            }
+        ]
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("embedded definition"), std::string::npos);
+    EXPECT_NE(err.message.find("unknown top-level"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

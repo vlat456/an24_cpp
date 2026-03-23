@@ -467,6 +467,9 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         if (n.contains("content_max")) {
             node.content_max = parse_finite_float(n["content_max"], "content_max");
         }
+        if (node.content_min > node.content_max) {
+            throw std::runtime_error("invalid node entry: content_min must be <= content_max");
+        }
         if (n.contains("content_unit") && !n["content_unit"].is_string()) {
             throw std::runtime_error("invalid node entry: content_unit must be string");
         }
@@ -692,10 +695,17 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
             throw std::runtime_error("invalid nested entry: non-embedded nested must not contain definition");
         }
         if (nested.embedded && n.contains("definition")) {
-            auto inner = BlueprintCodec::decode(n["definition"].dump(), interner, arena, registry);
+            DecodeError inner_err;
+            auto inner = BlueprintCodec::decode(
+                n["definition"].dump(), interner, arena, registry, &inner_err);
             if (inner) {
                 nested.inline_def = std::make_unique<Blueprint>(std::move(*inner));
             } else {
+                if (!inner_err.message.empty()) {
+                    throw std::runtime_error(
+                        "invalid nested entry: failed to decode embedded definition: "
+                        + inner_err.message);
+                }
                 throw std::runtime_error("invalid nested entry: failed to decode embedded definition");
             }
         }
