@@ -18,7 +18,8 @@ class BlueprintCodec {
 public:
     static std::string encode(Blueprint const& bp,
                               ui::StringInterner const& interner,
-                              PathArena const& arena);
+                              PathArena const& arena,
+                              TypeRegistry const* registry = nullptr);
 
     static std::optional<Blueprint> decode(
         std::string_view json,

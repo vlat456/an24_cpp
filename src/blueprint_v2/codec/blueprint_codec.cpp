@@ -60,6 +60,12 @@ static bool parse_vec2_string(std::string const& s) {
     return parse_number_string(lhs, x) && parse_number_string(rhs, y);
 }
 
+static std::string float_to_string(float v) {
+    std::ostringstream oss;
+    oss << v;
+    return oss.str();
+}
+
 static void assign_param_by_descriptor(Blueprint::Node& node,
                                        ui::StringInterner& interner,
                                        std::string const& key,
@@ -213,7 +219,8 @@ nlohmann::json encode_interface(Interface const& iface,
 }
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
-                             ui::StringInterner const& interner) {
+                             ui::StringInterner const& interner,
+                             TypeRegistry const* registry) {
     std::vector<Blueprint::Node const*> sorted;
     sorted.reserve(nodes.size());
     for (auto const& node : nodes) sorted.push_back(&node);
@@ -239,18 +246,89 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
         n["position"] = {{"x", node.x}, {"y", node.y}};
         if (node.width.has_value()) n["width"] = *node.width;
         if (node.height.has_value()) n["height"] = *node.height;
-        if (!node.params.empty()) {
-            nlohmann::json params;
-            for (auto const& [k, v] : node.params) {
-                params[std::string(interner.resolve(k))] = v;
+
+        nlohmann::json params = nlohmann::json::object();
+        nlohmann::json sparams = nlohmann::json::object();
+        std::unordered_set<std::string> descriptor_keys;
+        const TypeRegistry::Entry* entry = registry ? registry->find(node.type) : nullptr;
+
+        if (entry) {
+            for (const auto& [key, desc] : entry->param_descriptors) {
+                descriptor_keys.insert(key);
+                ui::InternedId key_iid = interner.lookup(key);
+                const auto pit = key_iid.empty() ? node.params.end() : node.params.find(key_iid);
+                const auto sit = node.string_params.find(key);
+
+                switch (desc.kind) {
+                    case TypeRegistry::ParamKind::Number: {
+                        if (pit != node.params.end()) {
+                            params[key] = pit->second;
+                        } else if (sit != node.string_params.end()) {
+                            float parsed = 0.0f;
+                            if (parse_number_string(sit->second, parsed)) {
+                                params[key] = parsed;
+                            }
+                        }
+                        break;
+                    }
+                    case TypeRegistry::ParamKind::Bool: {
+                        if (sit != node.string_params.end()) {
+                            std::string normalized;
+                            if (parse_bool_string(sit->second, normalized)) {
+                                params[key] = (normalized == "true");
+                            }
+                        } else if (pit != node.params.end()) {
+                            params[key] = (pit->second != 0.0f);
+                        }
+                        break;
+                    }
+                    case TypeRegistry::ParamKind::Enum: {
+                        if (sit != node.string_params.end()) {
+                            const bool allowed = std::find(desc.enum_values.begin(), desc.enum_values.end(), sit->second)
+                                != desc.enum_values.end();
+                            if (allowed) {
+                                params[key] = sit->second;
+                            }
+                        }
+                        break;
+                    }
+                    case TypeRegistry::ParamKind::Vec2: {
+                        if (sit != node.string_params.end() && parse_vec2_string(sit->second)) {
+                            params[key] = sit->second;
+                        }
+                        break;
+                    }
+                    case TypeRegistry::ParamKind::Table:
+                    case TypeRegistry::ParamKind::String: {
+                        if (sit != node.string_params.end()) {
+                            params[key] = sit->second;
+                        } else if (pit != node.params.end()) {
+                            params[key] = float_to_string(pit->second);
+                        }
+                        break;
+                    }
+                }
             }
+        }
+
+        for (auto const& [k, v] : node.params) {
+            std::string key = std::string(interner.resolve(k));
+            if (descriptor_keys.find(key) != descriptor_keys.end()) {
+                continue;
+            }
+            params[key] = v;
+        }
+        for (auto const& [k, v] : node.string_params) {
+            if (descriptor_keys.find(k) != descriptor_keys.end()) {
+                continue;
+            }
+            sparams[k] = v;
+        }
+
+        if (!params.empty()) {
             n["params"] = params;
         }
-        if (!node.string_params.empty()) {
-            nlohmann::json sparams;
-            for (auto const& [k, v] : node.string_params) {
-                sparams[k] = v;
-            }
+        if (!sparams.empty()) {
             n["string_params"] = sparams;
         }
 
@@ -326,8 +404,9 @@ nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
 }
 
 nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
-                               ui::StringInterner const& interner,
-                               PathArena const& arena) {
+                                ui::StringInterner const& interner,
+                                PathArena const& arena,
+                                TypeRegistry const* registry) {
     std::vector<Blueprint::Nested const*> sorted;
     sorted.reserve(nested_vec.size());
     for (auto const& nested : nested_vec) sorted.push_back(&nested);
@@ -347,7 +426,7 @@ nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
         n["position"] = {{"x", nested.x}, {"y", nested.y}};
         if (nested.embedded && nested.inline_def) {
             n["definition"] = nlohmann::json::parse(
-                BlueprintCodec::encode(*nested.inline_def, interner, arena)
+                BlueprintCodec::encode(*nested.inline_def, interner, arena, registry)
             );
         }
         arr.push_back(n);
@@ -926,15 +1005,16 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
 
 std::string BlueprintCodec::encode(Blueprint const& bp,
                                     ui::StringInterner const& interner,
-                                    PathArena const& arena) {
+                                    PathArena const& arena,
+                                    TypeRegistry const* registry) {
     nlohmann::json j;
     j["version"] = "3.0";
     j["id"] = std::string(interner.resolve(bp.id()));
     j["display_name"] = bp.display_name();
     j["interface"] = encode_interface(bp.iface(), interner);
-    j["nodes"] = encode_nodes(bp.nodes(), interner);
+    j["nodes"] = encode_nodes(bp.nodes(), interner, registry);
     j["wires"] = encode_wires(bp.wires(), interner, arena);
-    j["nested"] = encode_nested(bp.nested(), interner, arena);
+    j["nested"] = encode_nested(bp.nested(), interner, arena, registry);
     j["pan_x"] = bp.pan_x();
     j["pan_y"] = bp.pan_y();
     j["zoom"] = bp.zoom();

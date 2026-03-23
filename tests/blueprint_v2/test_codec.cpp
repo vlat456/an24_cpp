@@ -1822,6 +1822,59 @@ TEST(BlueprintCodec, EncodeDeterministicParamKeyOrdering) {
     EXPECT_LT(dumped_s.find("\"beta\""), dumped_s.find("\"gamma\""));
 }
 
+TEST(BlueprintCodec, EncodeNormalizesTypedParamsWithRegistry) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    reg.register_component(
+        interner.intern("TypedComp"),
+        bp2::Interface({
+            {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+            {interner.intern("out"), Domain::Electrical, bp2::Direction::Output},
+        }),
+        "typed",
+        {},
+        {
+            {"gain", {bp2::TypeRegistry::ParamKind::Number, "1.0", {}}},
+            {"enabled", {bp2::TypeRegistry::ParamKind::Bool, "false", {}}},
+            {"mode", {bp2::TypeRegistry::ParamKind::Enum, "auto", {"auto", "manual"}}},
+            {"offset", {bp2::TypeRegistry::ParamKind::Vec2, "0.0,0.0", {}}},
+        }
+    );
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("typed_encode"));
+    bp = bp.with_display_name("Typed Encode");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("TypedComp");
+    n.params[interner.intern("gain")] = 2.5f;
+    n.string_params["enabled"] = "1";
+    n.string_params["mode"] = "manual";
+    n.string_params["offset"] = "1.0,2.0";
+    n.string_params["other"] = "kept_in_string_params";
+    bp = bp.with_node(std::move(n));
+
+    std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena, &reg);
+    auto j = nlohmann::json::parse(encoded);
+
+    ASSERT_EQ(j["nodes"].size(), 1u);
+    auto& node = j["nodes"][0];
+    ASSERT_TRUE(node.contains("params"));
+    EXPECT_FLOAT_EQ(node["params"]["gain"].get<float>(), 2.5f);
+    EXPECT_TRUE(node["params"]["enabled"].get<bool>());
+    EXPECT_EQ(node["params"]["mode"].get<std::string>(), "manual");
+    EXPECT_EQ(node["params"]["offset"].get<std::string>(), "1.0,2.0");
+
+    ASSERT_TRUE(node.contains("string_params"));
+    EXPECT_TRUE(node["string_params"].contains("other"));
+    EXPECT_FALSE(node["string_params"].contains("enabled"));
+    EXPECT_FALSE(node["string_params"].contains("mode"));
+    EXPECT_FALSE(node["string_params"].contains("offset"));
+}
+
 TEST(BlueprintCodec, EncodeDeterministicInterfaceAndNodePortOrdering) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
