@@ -651,6 +651,27 @@ TEST(BlueprintCodec, DecodeRejectsDuplicateWireIdsEarly) {
     EXPECT_NE(err.message.find("duplicate wire ID"), std::string::npos);
 }
 
+TEST(BlueprintCodec, EncodeDeterministicParamKeyOrderingAcrossRepeatedCalls) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("repeat_order_test"));
+    bp = bp.with_display_name("Repeat Order Test");
+
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("Battery");
+    n.params[interner.intern("z")]=1.0f;
+    n.params[interner.intern("a")]=2.0f;
+    n.params[interner.intern("m")]=3.0f;
+    bp = bp.with_node(std::move(n));
+
+    std::string first = bp2::BlueprintCodec::encode(bp, interner, arena);
+    std::string second = bp2::BlueprintCodec::encode(bp, interner, arena);
+    EXPECT_EQ(first, second);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
