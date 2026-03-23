@@ -237,6 +237,11 @@ static PortType parse_port_type_name(std::string_view s) {
     return PortType::Any;
 }
 
+static bool is_known_port_type_name(std::string_view s) {
+    return s == "V" || s == "I" || s == "Bool" || s == "RPM"
+        || s == "Temperature" || s == "Pressure" || s == "Position" || s == "Any";
+}
+
 Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                        ui::StringInterner& interner,
                        TypeRegistry const& registry) {
@@ -407,7 +412,13 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                     if (p["type"].is_number_integer()) {
                         ptype = static_cast<PortType>(p["type"].get<int>());
                     } else if (p["type"].is_string()) {
-                        ptype = parse_port_type_name(p["type"].get<std::string>());
+                        std::string type_s = p["type"].get<std::string>();
+                        if (!is_known_port_type_name(type_s)) {
+                            throw std::runtime_error("invalid node entry: unknown port type string");
+                        }
+                        ptype = parse_port_type_name(type_s);
+                    } else {
+                        throw std::runtime_error("invalid node entry: port type must be int or string");
                     }
                 }
 
@@ -416,11 +427,15 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                     node.inputs.emplace_back(pid, PortSide::Input, ptype);
                 } else if (dir == "Out") {
                     node.outputs.emplace_back(pid, PortSide::Output, ptype);
-                } else {
+                } else if (dir == "InOut") {
                     node.inputs.emplace_back(pid, PortSide::InOut, ptype);
                     node.outputs.emplace_back(pid, PortSide::InOut, ptype);
+                } else {
+                    throw std::runtime_error("invalid node entry: unknown port direction");
                 }
             }
+        } else if (n.contains("ports") && !n["ports"].is_object()) {
+            throw std::runtime_error("invalid node entry: ports must be an object");
         }
 
         bp = bp.with_node(std::move(node));
@@ -512,6 +527,8 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
             auto* entry = registry.find(nested.blueprint_id);
             if (entry) {
                 nested.iface = entry->iface;
+            } else {
+                throw std::runtime_error("unknown nested blueprint");
             }
         }
         bp = bp.with_nested(std::move(nested));
