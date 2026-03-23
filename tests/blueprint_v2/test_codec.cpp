@@ -166,6 +166,8 @@ TEST(BlueprintCodec, DecodeNodesWithParams) {
     std::string json = R"({
         "version": "3.0",
         "id": "test",
+        "display_name": "Test",
+        "interface": [],
         "nodes": [
             {
                 "id": "bat1",
@@ -196,6 +198,8 @@ TEST(BlueprintCodec, DecodeWires) {
     std::string json = R"({
         "version": "3.0",
         "id": "test",
+        "display_name": "Test",
+        "interface": [],
         "nodes": [],
         "wires": [
             {"id": "w1", "source": "/bat1:v_out", "target": "/r1:in"}
@@ -266,6 +270,8 @@ TEST(BlueprintCodec, DecodeDoesNotInferMissingNodePortsOrName) {
     std::string json = R"({
         "version": "3.0",
         "id": "test",
+        "display_name": "Test",
+        "interface": [],
         "nodes": [
             {
                 "id": "bat1",
@@ -306,6 +312,8 @@ TEST(BlueprintCodec, DecodeBackfillsMissingParamsFromRegistryDefaults) {
     std::string json = R"({
         "version": "3.0",
         "id": "test",
+        "display_name": "Test",
+        "interface": [],
         "nodes": [
             {
                 "id": "lut1",
@@ -358,15 +366,26 @@ TEST(BlueprintCodec, DecodeInvalidJsonReturnsNullopt) {
     EXPECT_FALSE(err.message.empty());
 }
 
-TEST(BlueprintCodec, DecodeMissingIdStillWorks) {
+TEST(BlueprintCodec, DecodeMissingIdFails) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;
 
-    std::string json = R"({"version": "3.0", "nodes": [], "wires": [], "nested": []})";
+    std::string json = R"({"version": "3.0", "display_name": "X", "interface": [], "nodes": [], "wires": [], "nested": []})";
     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg);
-    ASSERT_TRUE(result.has_value());
-    EXPECT_TRUE(result->id().empty());
+    EXPECT_FALSE(result.has_value());
+}
+
+TEST(BlueprintCodec, DecodeMissingDisplayNameFails) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({"version": "3.0", "id": "x", "interface": [], "nodes": [], "wires": [], "nested": []})";
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("display_name"), std::string::npos);
 }
 
 TEST(BlueprintCodec, RoundTripInterface) {

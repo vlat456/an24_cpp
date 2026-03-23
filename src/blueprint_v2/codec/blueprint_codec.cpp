@@ -210,6 +210,16 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                        ui::StringInterner& interner,
                        TypeRegistry const& registry) {
     for (auto const& n : arr) {
+        if (!n.is_object()) {
+            throw std::runtime_error("invalid node entry: expected object");
+        }
+        if (!n.contains("id") || !n["id"].is_string()) {
+            throw std::runtime_error("invalid node entry: missing string field 'id'");
+        }
+        if (!n.contains("type") || !n["type"].is_string()) {
+            throw std::runtime_error("invalid node entry: missing string field 'type'");
+        }
+
         Blueprint::Node node;
         node.id = interner.intern(n["id"].get<std::string>());
         node.type = interner.intern(n["type"].get<std::string>());
@@ -380,16 +390,16 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
                         PathArena& arena) {
     for (auto const& w : arr) {
         if (!w.is_object()) {
-            continue;
+            throw std::runtime_error("invalid wire entry: expected object");
         }
         if (!w.contains("id") || !w["id"].is_string()) {
-            continue;
+            throw std::runtime_error("invalid wire entry: missing string field 'id'");
         }
         if (!w.contains("source") || !w["source"].is_string()) {
-            continue;
+            throw std::runtime_error("invalid wire entry: missing string field 'source'");
         }
         if (!w.contains("target") || !w["target"].is_string()) {
-            continue;
+            throw std::runtime_error("invalid wire entry: missing string field 'target'");
         }
 
         Blueprint::Wire wire;
@@ -397,7 +407,7 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
         auto src = arena.parse(w["source"].get<std::string>());
         auto tgt = arena.parse(w["target"].get<std::string>());
         if (!src || !tgt) {
-            continue;
+            throw std::runtime_error("invalid wire entry: endpoint path parse failed");
         }
         wire.source = *src;
         wire.target = *tgt;
@@ -418,11 +428,19 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
                          TypeRegistry const& registry,
                          PathArena& arena) {
     for (auto const& n : arr) {
+        if (!n.is_object()) {
+            throw std::runtime_error("invalid nested entry: expected object");
+        }
+        if (!n.contains("id") || !n["id"].is_string()) {
+            throw std::runtime_error("invalid nested entry: missing string field 'id'");
+        }
+        if (!n.contains("blueprint") || !n["blueprint"].is_string()) {
+            throw std::runtime_error("invalid nested entry: missing string field 'blueprint'");
+        }
+
         Blueprint::Nested nested;
         nested.id = interner.intern(n["id"].get<std::string>());
-        if (n.contains("blueprint") && n["blueprint"].is_string()) {
-            nested.blueprint_id = interner.intern(n["blueprint"].get<std::string>());
-        }
+        nested.blueprint_id = interner.intern(n["blueprint"].get<std::string>());
         nested.embedded = n.value("embedded", false);
         if (n.contains("position")) {
             nested.x = n["position"].value("x", 0.0f);
@@ -484,28 +502,41 @@ std::optional<Blueprint> BlueprintCodec::decode(
             return std::nullopt;
         }
 
+        if (!j.contains("id") || !j["id"].is_string()) {
+            if (error_out) error_out->message = "Missing required string field: id";
+            return std::nullopt;
+        }
+        if (!j.contains("display_name") || !j["display_name"].is_string()) {
+            if (error_out) error_out->message = "Missing required string field: display_name";
+            return std::nullopt;
+        }
+        if (!j.contains("interface") || !j["interface"].is_array()) {
+            if (error_out) error_out->message = "Missing required array field: interface";
+            return std::nullopt;
+        }
+        if (!j.contains("nodes") || !j["nodes"].is_array()) {
+            if (error_out) error_out->message = "Missing required array field: nodes";
+            return std::nullopt;
+        }
+        if (!j.contains("wires") || !j["wires"].is_array()) {
+            if (error_out) error_out->message = "Missing required array field: wires";
+            return std::nullopt;
+        }
+        if (!j.contains("nested") || !j["nested"].is_array()) {
+            if (error_out) error_out->message = "Missing required array field: nested";
+            return std::nullopt;
+        }
+
         Blueprint bp;
-        if (j.contains("id") && j["id"].is_string()) {
-            bp = bp.with_id(interner.intern(j["id"].get<std::string>()));
-        }
-        if (j.contains("display_name") && j["display_name"].is_string()) {
-            bp = bp.with_display_name(j["display_name"].get<std::string>());
-        }
+        bp = bp.with_id(interner.intern(j["id"].get<std::string>()));
+        bp = bp.with_display_name(j["display_name"].get<std::string>());
         if (j.contains("name") && j["name"].is_string()) {
             bp = bp.with_name(j["name"].get<std::string>());
         }
-        if (j.contains("interface") && j["interface"].is_array()) {
-            bp = bp.with_interface(decode_interface(j["interface"], interner));
-        }
-        if (j.contains("nodes") && j["nodes"].is_array()) {
-            bp = decode_nodes(bp, j["nodes"], interner, registry);
-        }
-        if (j.contains("wires") && j["wires"].is_array()) {
-            bp = decode_wires(bp, j["wires"], interner, arena);
-        }
-        if (j.contains("nested") && j["nested"].is_array()) {
-            bp = decode_nested(bp, j["nested"], interner, registry, arena);
-        }
+        bp = bp.with_interface(decode_interface(j["interface"], interner));
+        bp = decode_nodes(bp, j["nodes"], interner, registry);
+        bp = decode_wires(bp, j["wires"], interner, arena);
+        bp = decode_nested(bp, j["nested"], interner, registry, arena);
         bp = bp.with_viewport(
             j.value("pan_x", 0.0f),
             j.value("pan_y", 0.0f),
