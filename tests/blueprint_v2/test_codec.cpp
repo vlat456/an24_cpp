@@ -672,6 +672,28 @@ TEST(BlueprintCodec, EncodeDeterministicParamKeyOrderingAcrossRepeatedCalls) {
     EXPECT_EQ(first, second);
 }
 
+TEST(BlueprintCodec, DecodeRejectsUnknownTopLevelFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [],
+        "legacy_field": 123
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown top-level"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

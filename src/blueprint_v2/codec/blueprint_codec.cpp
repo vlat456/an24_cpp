@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace bp2 {
 
@@ -610,6 +611,17 @@ std::optional<Blueprint> BlueprintCodec::decode(
         if (!j.contains("nested") || !j["nested"].is_array()) {
             if (error_out) error_out->message = "Missing required array field: nested";
             return std::nullopt;
+        }
+
+        static const std::unordered_set<std::string> allowed_top_level = {
+            "version", "id", "display_name", "name", "interface", "nodes",
+            "wires", "nested", "pan_x", "pan_y", "zoom", "grid_step"
+        };
+        for (auto it = j.begin(); it != j.end(); ++it) {
+            if (allowed_top_level.find(it.key()) == allowed_top_level.end()) {
+                if (error_out) error_out->message = "unknown top-level field: " + it.key();
+                return std::nullopt;
+            }
         }
 
         Blueprint bp;
