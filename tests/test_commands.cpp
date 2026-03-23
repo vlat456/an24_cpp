@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include "editor/commands/commands.h"
+#include "editor/commands/extract_blueprint.h"
 #include "editor/commands/transaction_guard.h"
 #include "editor/commands/blueprint_checksum.h"
+#include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/path/path.h"
@@ -32,6 +34,47 @@ static bp2::Blueprint::Wire make_wire(ui::StringInterner& I,
     w.target = arena.make_port(arena.make_node(arena.root(), I.intern(dst_node)),
                                I.intern(dst_port));
     return w;
+}
+
+static bp2::Blueprint make_extract_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("bp_extract"));
+    bp = bp.with_display_name("ExtractFixture");
+
+    auto ext_in = make_node(I, "ext_in");
+    ext_in.type = I.intern("Source");
+    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+
+    auto a = make_node(I, "a");
+    a.type = I.intern("NodeA");
+    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+
+    auto b = make_node(I, "b");
+    b.type = I.intern("NodeB");
+    b.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+
+    auto ext_out = make_node(I, "ext_out");
+    ext_out.type = I.intern("Sink");
+    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(std::move(ext_in));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+    bp = bp.with_node(std::move(ext_out));
+
+    auto w0 = make_wire(I, arena, "w0", "ext_in", "out", "a", "in");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(I, arena, "w1", "a", "out", "b", "in");
+    w1.domain = Domain::Electrical;
+    auto w2 = make_wire(I, arena, "w2", "b", "out", "ext_out", "in");
+    w2.domain = Domain::Electrical;
+
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w2));
+    return bp;
 }
 
 class CommandTest : public ::testing::Test {
@@ -634,4 +677,127 @@ TEST_F(CommandTest, REGRESSION_SetParamMutatesNodeParam) {
     auto* n = model.current().find_node(id);
     ASSERT_NE(n, nullptr);
     EXPECT_FLOAT_EQ(n->params.at(key_max), 200.0f);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    EXPECT_EQ(updated->find_node(interner.intern("a")), nullptr);
+    EXPECT_EQ(updated->find_node(interner.intern("b")), nullptr);
+    ASSERT_EQ(updated->nested().size(), 1u);
+    const auto& nested = updated->nested()[0];
+    ASSERT_TRUE(nested.inline_def != nullptr);
+    EXPECT_EQ(updated->find_node(nested.id) != nullptr, true);
+
+    // External graph keeps two wires: ext_in -> collapsed, collapsed -> ext_out.
+    ASSERT_EQ(updated->wires().size(), 2u);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+    model.replace_current(source);
+
+    const size_t before = blueprint_checksum(model.current());
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        model.current(),
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+    ASSERT_TRUE(updated.has_value()) << err;
+
+    model.push_checkpoint();
+    model.replace_current(std::move(*updated));
+    const size_t after = blueprint_checksum(model.current());
+    EXPECT_NE(after, before);
+
+    model.undo();
+    EXPECT_EQ(blueprint_checksum(model.current()), before);
+
+    model.redo();
+    EXPECT_EQ(blueprint_checksum(model.current()), after);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsNonRootGroup) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "group_1",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("root group"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsSmallSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("at least 2"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_DeterministicIfaceNaming) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err1;
+    std::string err2;
+    auto a = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err1);
+    auto b = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err2);
+
+    ASSERT_TRUE(a.has_value()) << err1;
+    ASSERT_TRUE(b.has_value()) << err2;
+
+    std::string sa = bp2::BlueprintCodec::encode(*a, interner, arena);
+    std::string sb = bp2::BlueprintCodec::encode(*b, interner, arena);
+    EXPECT_EQ(sa, sb);
 }

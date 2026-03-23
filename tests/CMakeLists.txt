@@ -1317,6 +1317,7 @@ gtest_discover_tests(multi_domain_tests)
 add_executable(command_tests
     test_commands.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(command_tests PRIVATE

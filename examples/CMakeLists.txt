@@ -142,6 +142,7 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_render.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/extract_blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/imgui_theme.cpp
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -179,5 +180,4 @@ target_link_libraries(an24_editor PRIVATE
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(benchmark_jit_vs_aot PRIVATE json_parser jit_solver spdlog::spdlog)
-
 

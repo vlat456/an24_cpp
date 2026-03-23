@@ -89,6 +89,14 @@ public:
         char buf[128] = {};            ///< ImGui input buffer
     } setName;
 
+    struct PendingExtractToBlueprint {
+        bool show_dialog = false;
+        std::string doc_id;
+        std::string group_id;
+        std::vector<ui::InternedId> selected_node_ids;
+        char name_buf[128] = {};
+    } pendingExtract;
+
     bool showInspector = true;
     EditorSettings settings;
 

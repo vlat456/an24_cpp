@@ -104,6 +104,12 @@ bool WindowSystem::closeDocument(Document& doc) {
         setName.doc_id.clear();
         setName.show = false;
     }
+    if (pendingExtract.doc_id == closing_id) {
+        pendingExtract.doc_id.clear();
+        pendingExtract.group_id.clear();
+        pendingExtract.selected_node_ids.clear();
+        pendingExtract.show_dialog = false;
+    }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
     }
@@ -154,6 +160,10 @@ bool WindowSystem::closeAllDocuments() {
     colorPicker.show = false;
     pendingBakeIn.doc_id.clear();
     pendingBakeIn.show_confirmation = false;
+    pendingExtract.doc_id.clear();
+    pendingExtract.group_id.clear();
+    pendingExtract.selected_node_ids.clear();
+    pendingExtract.show_dialog = false;
     pending_tab_focus_ = nullptr;
 
     documents_.clear();

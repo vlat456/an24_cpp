@@ -1,5 +1,6 @@
 #include "document.h"
 #include "commands/commands.h"
+#include "commands/extract_blueprint.h"
 #include "visual/scene_mutations.h"
 #include "visual/persist.h"
 #include "visual/snap.h"
@@ -607,6 +608,24 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt /*world_pos*/,
     // This requires: expand_type_definition → build bp2 nodes/wires/nested,
     // then CmdAddNode * N + CmdAddNested + auto-layout.
     spdlog::warn("[editor] addBlueprint('{}') not yet implemented in bp2 mode", blueprint_name);
+}
+
+bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+                                  const std::string& blueprint_name,
+                                  const std::string& group_id,
+                                  std::string* error_out) {
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        model_.current(), selected_node_ids, blueprint_name, group_id,
+        interner_, arena_, error_out);
+    if (!updated) {
+        return false;
+    }
+
+    model_.push_checkpoint();
+    model_.replace_current(std::move(*updated));
+
+    rebuildAllWindows();
+    return true;
 }
 
 // ============================================================================

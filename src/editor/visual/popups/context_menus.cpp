@@ -1,6 +1,7 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
 #include <imgui.h>
+#include <cstring>
 
 
 void ContextMenus::renderAddComponent(WindowSystem& ws) {
@@ -79,6 +80,27 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         if (!is_read_only) {
             if (ImGui::MenuItem("Set Color...")) {
                 ws.openColorPickerForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.group_id, *doc);
+            }
+            const auto& selected = doc->input().selected_node_ids();
+            const bool can_extract = selected.size() >= 2 && ws.nodeContextMenu.group_id.empty();
+            if (ImGui::MenuItem("Extract to Blueprint...", nullptr, false, can_extract)) {
+                ws.pendingExtract.show_dialog = true;
+                ws.pendingExtract.doc_id = doc->id();
+                ws.pendingExtract.group_id = ws.nodeContextMenu.group_id;
+                ws.pendingExtract.selected_node_ids = selected;
+
+                std::string suggested = "extracted_blueprint_1";
+                int idx = 1;
+                while (idx < 100000) {
+                    std::string candidate = "extracted_blueprint_" + std::to_string(idx);
+                    if (doc->interner().lookup(candidate).empty()) {
+                        suggested = std::move(candidate);
+                        break;
+                    }
+                    ++idx;
+                }
+                std::memset(ws.pendingExtract.name_buf, 0, sizeof(ws.pendingExtract.name_buf));
+                std::strncpy(ws.pendingExtract.name_buf, suggested.c_str(), sizeof(ws.pendingExtract.name_buf) - 1);
             }
             if (ImGui::MenuItem("Delete")) {
                 auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);

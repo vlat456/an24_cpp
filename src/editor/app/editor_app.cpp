@@ -249,6 +249,7 @@ void EditorApp::render() {
     color_picker_.render(ws_);
     bake_in_dialog_.render(ws_);
     set_name_dialog_.render(ws_);
+    extract_to_blueprint_dialog_.render(ws_);
     
     ws_.propertiesWindow().render();
     

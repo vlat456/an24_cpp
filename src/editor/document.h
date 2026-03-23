@@ -11,6 +11,7 @@
 #include "ui/core/interned_id.h"
 #include <string>
 #include <string_view>
+#include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -120,6 +121,11 @@ public:
     void addBlueprint(const std::string& blueprint_name, Pt world_pos,
                       const std::string& group_id,
                       TypeRegistry& registry);
+
+    bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
+                           const std::string& blueprint_name,
+                           const std::string& group_id,
+                           std::string* error_out = nullptr);
 
     // ── Sub-windows ──
 
