@@ -400,7 +400,11 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                 Blueprint::Node::PortLayoutOverride ov;
                 ov.port_name = lo["port_name"].get<std::string>();
                 if (lo.contains("side") && lo["side"].is_string()) {
-                    ov.side = lo["side"].get<std::string>();
+                    std::string side = lo["side"].get<std::string>();
+                    if (side != "left" && side != "right" && side != "top" && side != "bottom") {
+                        throw std::runtime_error("invalid node entry: layout_overrides has unknown side");
+                    }
+                    ov.side = std::move(side);
                 }
                 if (lo.contains("position") && lo["position"].is_number_integer()) {
                     ov.position = lo["position"].get<int>();

@@ -573,6 +573,36 @@ TEST(BlueprintCodec, DecodeNestedUnknownBlueprintFails) {
     EXPECT_NE(err.message.find("unknown nested blueprint"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeNodeLayoutOverrideInvalidSideFails) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0.0, "y": 0.0},
+                "layout_overrides": [
+                    {"port_name": "v_out", "side": "diagonal"}
+                ]
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("layout_overrides"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
