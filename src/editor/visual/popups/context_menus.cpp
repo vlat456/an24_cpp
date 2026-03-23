@@ -93,7 +93,23 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 int idx = 1;
                 while (idx < 100000) {
                     std::string candidate = "extracted_blueprint_" + std::to_string(idx);
-                    if (doc->interner().lookup(candidate).empty()) {
+                    bool used = false;
+                    ui::InternedId cid = doc->interner().intern(candidate);
+                    for (const auto& nn : doc->blueprint().nested()) {
+                        if (nn.blueprint_id == cid) {
+                            used = true;
+                            break;
+                        }
+                    }
+                    if (!used) {
+                        for (const auto& node_it : doc->blueprint().nodes()) {
+                            if (node_it.name == candidate) {
+                                used = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!used) {
                         suggested = std::move(candidate);
                         break;
                     }

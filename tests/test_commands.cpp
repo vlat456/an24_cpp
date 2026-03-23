@@ -77,6 +77,47 @@ static bp2::Blueprint make_extract_fixture(ui::StringInterner& I, bp2::PathArena
     return bp;
 }
 
+static bp2::Blueprint make_extract_iface_collision_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("bp_extract_collision"));
+    bp = bp.with_display_name("ExtractIfaceCollision");
+
+    auto ext_in = make_node(I, "ext_in");
+    ext_in.type = I.intern("Source");
+    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+
+    auto a = make_node(I, "a");
+    a.type = I.intern("NodeA");
+    a.inputs.emplace_back(I.intern("sig"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(I.intern("link"), PortSide::Output, PortType::V);
+
+    auto b = make_node(I, "b");
+    b.type = I.intern("NodeB");
+    b.inputs.emplace_back(I.intern("link"), PortSide::Input, PortType::V);
+    b.outputs.emplace_back(I.intern("sig"), PortSide::Output, PortType::V);
+
+    auto ext_out = make_node(I, "ext_out");
+    ext_out.type = I.intern("Sink");
+    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(std::move(ext_in));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+    bp = bp.with_node(std::move(ext_out));
+
+    auto w0 = make_wire(I, arena, "w0", "ext_in", "out", "a", "sig");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(I, arena, "w1", "a", "link", "b", "link");
+    w1.domain = Domain::Electrical;
+    auto w2 = make_wire(I, arena, "w2", "b", "sig", "ext_out", "in");
+    w2.domain = Domain::Electrical;
+
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w2));
+    return bp;
+}
+
 class CommandTest : public ::testing::Test {
 protected:
     ui::StringInterner interner;
@@ -694,15 +735,52 @@ TEST_F(CommandTest, ExtractToBlueprint_BasicAtomic) {
         &err);
 
     ASSERT_TRUE(updated.has_value()) << err;
-    EXPECT_EQ(updated->find_node(interner.intern("a")), nullptr);
-    EXPECT_EQ(updated->find_node(interner.intern("b")), nullptr);
     ASSERT_EQ(updated->nested().size(), 1u);
     const auto& nested = updated->nested()[0];
     ASSERT_TRUE(nested.inline_def != nullptr);
-    EXPECT_EQ(updated->find_node(nested.id) != nullptr, true);
+    const auto* collapsed = updated->find_node(nested.id);
+    ASSERT_NE(collapsed, nullptr);
 
-    // External graph keeps two wires: ext_in -> collapsed, collapsed -> ext_out.
-    ASSERT_EQ(updated->wires().size(), 2u);
+    const auto* a = updated->find_node(interner.intern("a"));
+    const auto* b = updated->find_node(interner.intern("b"));
+    ASSERT_NE(a, nullptr);
+    ASSERT_NE(b, nullptr);
+    EXPECT_EQ(a->group_id, std::string(interner.resolve(nested.id)));
+    EXPECT_EQ(b->group_id, std::string(interner.resolve(nested.id)));
+
+    // Keep internal selected wire in subgroup, plus subgroup bridge wires and root boundary wires.
+    ASSERT_EQ(updated->wires().size(), 5u);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_UsesCanonicalBridgeNodeIds) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    const ui::InternedId nested_id = updated->nested()[0].id;
+    const std::string nested_sid(interner.resolve(nested_id));
+
+    const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
+    const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
+
+    ASSERT_NE(in_bridge, nullptr);
+    ASSERT_NE(out_bridge, nullptr);
+    EXPECT_EQ(in_bridge->type, interner.intern("BlueprintInput"));
+    EXPECT_EQ(out_bridge->type, interner.intern("BlueprintOutput"));
+    EXPECT_EQ(in_bridge->group_id, nested_sid);
+    EXPECT_EQ(out_bridge->group_id, nested_sid);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_UndoRedoRoundTrip) {
@@ -800,4 +878,22 @@ TEST_F(CommandTest, ExtractToBlueprint_DeterministicIfaceNaming) {
     std::string sa = bp2::BlueprintCodec::encode(*a, interner, arena);
     std::string sb = bp2::BlueprintCodec::encode(*b, interner, arena);
     EXPECT_EQ(sa, sb);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsInputOutputIfaceNameCollision) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_iface_collision_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("collision"), std::string::npos);
 }
