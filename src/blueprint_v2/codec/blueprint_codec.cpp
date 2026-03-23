@@ -247,10 +247,26 @@ Interface decode_interface(nlohmann::json const& arr,
             throw std::runtime_error("invalid interface entry: missing integer field 'direction'");
         }
 
+        const int domain_v = p["domain"].get<int>();
+        if (domain_v != static_cast<int>(Domain::Electrical)
+            && domain_v != static_cast<int>(Domain::Logical)
+            && domain_v != static_cast<int>(Domain::Mechanical)
+            && domain_v != static_cast<int>(Domain::Hydraulic)
+            && domain_v != static_cast<int>(Domain::Thermal)) {
+            throw std::runtime_error("invalid interface entry: unknown domain value");
+        }
+
+        const int direction_v = p["direction"].get<int>();
+        if (direction_v != static_cast<int>(Direction::Input)
+            && direction_v != static_cast<int>(Direction::Output)
+            && direction_v != static_cast<int>(Direction::InOut)) {
+            throw std::runtime_error("invalid interface entry: unknown direction value");
+        }
+
         PortDescriptor pd;
         pd.name = interner.intern(p["name"].get<std::string>());
-        pd.domain = static_cast<Domain>(p["domain"].get<int>());
-        pd.direction = static_cast<Direction>(p["direction"].get<int>());
+        pd.domain = static_cast<Domain>(domain_v);
+        pd.direction = static_cast<Direction>(direction_v);
         ports.push_back(pd);
     }
     return Interface(std::move(ports));

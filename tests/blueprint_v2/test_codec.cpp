@@ -809,6 +809,52 @@ TEST(BlueprintCodec, DecodeRejectsUnknownInterfaceFields) {
     EXPECT_NE(err.message.find("unknown interface field"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsInterfaceUnknownDomainValue) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [
+            {"name": "p", "domain": 99, "direction": 0}
+        ],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown domain"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsInterfaceUnknownDirectionValue) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [
+            {"name": "p", "domain": 1, "direction": 99}
+        ],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown direction"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
