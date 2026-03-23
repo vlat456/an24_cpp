@@ -341,6 +341,44 @@ target_link_libraries(scene_mutations_tests PRIVATE
 )
 gtest_discover_tests(scene_mutations_tests)
 
+# Canvas input interaction regression tests (bus wire create/reconnect/swap)
+add_executable(canvas_input_tests
+    test_canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/commands/commands.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/viewport/viewport.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_mutations.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
+)
+target_compile_definitions(canvas_input_tests PRIVATE EDITOR_TESTING)
+target_include_directories(canvas_input_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${imgui_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}/backends
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(canvas_input_tests PRIVATE
+    blueprint_v2
+    json_parser
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(canvas_input_tests)
+
 # Port registry tests (TDD for codegen)
 add_executable(port_registry_tests
     port_registry_test.cpp

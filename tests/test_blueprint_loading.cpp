@@ -460,18 +460,13 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
     {
         std::ofstream f(tmp_dir / "TestComp.blueprint");
         f << R"({
-            "version": 2,
-            "meta": {
-                "name": "TestComp",
-                "description": "Test component",
-                "domains": ["Electrical"],
-                "cpp_class": true
-            },
-            "exposes": {
-                "v_out": {"direction": "Out", "type": "V"}
-            },
-            "params": {},
-            "nodes": {},
+            "version": "3.0",
+            "id": "TestComp",
+            "display_name": "TestComp",
+            "interface": [
+                {"name": "v_out", "domain": 1, "direction": 1, "type": "V"}
+            ],
+            "nodes": [],
             "wires": []
         })";
     }
@@ -480,16 +475,11 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
     {
         std::ofstream f(tmp_dir / "Ignored.json");
         f << R"({
-            "version": 2,
-            "meta": {
-                "name": "Ignored",
-                "description": "Should not be loaded",
-                "domains": ["Electrical"],
-                "cpp_class": true
-            },
-            "exposes": {},
-            "params": {},
-            "nodes": {},
+            "version": "3.0",
+            "id": "Ignored",
+            "display_name": "Ignored",
+            "interface": [],
+            "nodes": [],
             "wires": []
         })";
     }
@@ -564,7 +554,7 @@ TEST(BlueprintExtension, AllLibraryFilesAreBlueprintExtension) {
     EXPECT_EQ(other_count, 0u) << "No non-.blueprint files should exist in library/";
 }
 
-// Verify blueprint.blueprint (main save file) exists and is valid v2
+// Verify blueprint.blueprint (main save file) exists and is valid v3
 TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
     namespace fs = std::filesystem;
 
@@ -582,9 +572,11 @@ TEST(BlueprintExtension, MainSaveFileIsBlueprintExtension) {
     }
     ASSERT_FALSE(content.empty()) << "blueprint.blueprint not found";
 
-    // Must be valid JSON with version: 2
+    // Must be valid JSON with version: "3.0"
     auto j = nlohmann::json::parse(content);
-    EXPECT_EQ(j.at("version").get<int>(), 2) << "blueprint.blueprint must be v2 format";
+    ASSERT_TRUE(j.contains("version")) << "blueprint.blueprint must have a version field";
+    ASSERT_TRUE(j.at("version").is_string()) << "version must be a string in v3 format";
+    EXPECT_EQ(j.at("version").get<std::string>(), "3.0") << "blueprint.blueprint must be v3 format";
 }
 
 // Verify codegen source_file uses .blueprint extension

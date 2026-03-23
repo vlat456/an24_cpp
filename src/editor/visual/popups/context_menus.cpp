@@ -25,7 +25,9 @@ void ContextMenus::renderAddComponent(WindowSystem& ws) {
             }
         }
         for (const auto& classname : tree.entries) {
-            if (ImGui::MenuItem(classname.c_str())) {
+            auto lbl_it = tree.labels.find(classname);
+            const std::string& label = (lbl_it != tree.labels.end()) ? lbl_it->second : classname;
+            if (ImGui::MenuItem(label.c_str())) {
                 Document* doc = ws.findDocumentById(ws.contextMenu.source_doc_id);
                 if (!doc) doc = ws.activeDocument();
                 if (doc) {

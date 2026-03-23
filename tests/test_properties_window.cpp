@@ -241,6 +241,7 @@ TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
 
 TEST_F(PropertiesWindowTest, ApplyNoChangesDoesNotPushUndo) {
     model.add_node(make_node(interner, "bat1", {{"v", 28.0f}}));
+    model.clear_history(); // setup only — not part of undo test
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
@@ -328,6 +329,7 @@ TEST_F(PropertiesWindowTest, ParamAndNameChangeSingleUndo) {
     auto n = make_node(interner, "bat1", {{"v", 28.0f}});
     n.name = "OriginalName";
     model.add_node(std::move(n));
+    model.clear_history(); // setup only — not part of undo test
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
@@ -382,6 +384,7 @@ TEST_F(PropertiesWindowTest, CloseGracefullyWhenNodeRemoved) {
 
 TEST_F(PropertiesWindowTest, ApplyGracefullyWhenNodeRemoved) {
     model.add_node(make_node(interner, "bat1", {{"v", 28.0f}}));
+    model.clear_history(); // setup only — not part of undo test
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bat1"));
     ASSERT_NE(node_ptr, nullptr);
@@ -389,8 +392,9 @@ TEST_F(PropertiesWindowTest, ApplyGracefullyWhenNodeRemoved) {
     PropertiesWindow win;
     win.open(*node_ptr, "bat1", model, interner, [](const std::string&) {});
 
-    // Remove node before apply
+    // Remove node before apply (simulate node deleted externally)
     model.remove_node(interner.intern("bat1"));
+    model.clear_history(); // isolate: test only cares that apply() adds nothing
 
     // apply() should detect the missing node and close without crashing
     win.apply();
@@ -498,6 +502,7 @@ TEST_F(PropertiesWindowTest, PortLayoutOverride_NoChangesDoesNotPushUndo) {
     n.name = "AZS";
     n.inputs.push_back(EditorPort(interner.intern("v_in"), PortSide::Input, PortType::V));
     model.add_node(std::move(n));
+    model.clear_history(); // setup only — not part of undo test
 
     const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("azs1"));
     ASSERT_NE(node_ptr, nullptr);

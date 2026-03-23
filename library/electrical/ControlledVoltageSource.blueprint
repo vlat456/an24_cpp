@@ -1,0 +1,40 @@
+{
+  "version": "3.0",
+  "id": "ControlledVoltageSource",
+  "display_name": "ControlledVoltageSource",
+  "interface": [
+    {
+      "name": "v_pos",
+      "domain": 1,
+      "direction": 1,
+      "type": "V"
+    },
+    {
+      "name": "v_neg",
+      "domain": 1,
+      "direction": 0,
+      "type": "V"
+    },
+    {
+      "name": "cmd",
+      "domain": 2,
+      "direction": 0,
+      "type": "Signal"
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Control-to-electrical domain bridge (voltage source). Converts a control/scalar command into a Thevenin Norton source stamped during solve_electrical(). v_source = cmd * gain + offset, clamped to [min_v, max_v].",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "gain": "1.0",
+    "offset": "0.0",
+    "min_v": "0.0",
+    "max_v": "30.0",
+    "r_internal": "0.1"
+  }
+}

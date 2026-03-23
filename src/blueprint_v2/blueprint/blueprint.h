@@ -34,6 +34,9 @@ public:
         ui::InternedId type;
         Interface iface;
         std::unordered_map<ui::InternedId, float> params;
+        /// String-valued parameters (e.g. font_size, text content).
+        /// Kept separate from numeric params to avoid stof() failures.
+        std::unordered_map<std::string, std::string> string_params;
         float x = 0.0f;
         float y = 0.0f;
 
@@ -78,6 +81,7 @@ public:
 
         bool operator==(Node const& o) const {
             return id == o.id && type == o.type && params == o.params
+                && string_params == o.string_params
                 && x == o.x && y == o.y && group_id == o.group_id;
         }
     };

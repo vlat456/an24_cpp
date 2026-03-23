@@ -173,6 +173,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/visual_node_widget_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/specialized_node_widget_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/scene_mutations_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/canvas_input_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_registry_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/port_macro_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/editor_componentvariant_tests.dir/DependInfo.cmake"

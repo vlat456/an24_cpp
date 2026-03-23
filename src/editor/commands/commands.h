@@ -14,7 +14,10 @@
 // =============================================================================
 
 struct CmdAddNode       { bp2::Blueprint::Node node; };
-struct CmdRemoveNode    { ui::InternedId node_id; };
+struct CmdRemoveNode    {
+    ui::InternedId node_id;
+    std::vector<ui::InternedId> connected_wire_ids;
+};
 struct CmdMoveNode      { ui::InternedId node_id; float x; float y; };
 struct CmdAddWire       { bp2::Blueprint::Wire wire; };
 struct CmdRemoveWire    { ui::InternedId wire_id; };
@@ -51,7 +54,10 @@ void execute(bp2::EditorModel& model, ui::StringInterner& interner, Command cmd)
 
 // Factories
 inline Command cmd_add_node(bp2::Blueprint::Node n)    { return CmdAddNode{std::move(n)}; }
-inline Command cmd_remove_node(ui::InternedId id)       { return CmdRemoveNode{id}; }
+inline Command cmd_remove_node(ui::InternedId id,
+                               std::vector<ui::InternedId> connected_wire_ids = {}) {
+    return CmdRemoveNode{id, std::move(connected_wire_ids)};
+}
 inline Command cmd_move_node(ui::InternedId id, float x, float y) { return CmdMoveNode{id,x,y}; }
 inline Command cmd_add_wire(bp2::Blueprint::Wire w)    { return CmdAddWire{std::move(w)}; }
 inline Command cmd_remove_wire(ui::InternedId id)       { return CmdRemoveWire{id}; }

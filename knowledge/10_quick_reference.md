@@ -36,6 +36,15 @@ cd build && ctest
 | Tests | `tests/*.cpp` |
 | Generated Code | `generated/*.cpp, *.h` |
 
+## Knowledge Notes
+
+| Topic | File |
+|------|------|
+| Component internals | `knowledge/03_components.md` |
+| Blueprint/library format | `knowledge/07_library.md` |
+| Electrical-logical bridge nodes | `knowledge/11_domain_bridges.md` |
+| `GSC.blueprint` bridge migration plan | `knowledge/12_gsc_bridge_plan.md` |
+
 ## Domain Values
 
 | Domain | Value | Method | Frequency |

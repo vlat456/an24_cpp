@@ -1,5 +1,7 @@
 #include "blueprint_codec.h"
 #include <nlohmann/json.hpp>
+#include <cerrno>
+#include <cstdlib>
 #include <unordered_map>
 
 namespace bp2 {
@@ -90,6 +92,13 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                 params[std::string(interner.resolve(k))] = v;
             }
             n["params"] = params;
+        }
+        if (!node.string_params.empty()) {
+            nlohmann::json sparams;
+            for (auto const& [k, v] : node.string_params) {
+                sparams[k] = v;
+            }
+            n["string_params"] = sparams;
         }
 
         if (!node.inputs.empty() || !node.outputs.empty()) {
@@ -198,7 +207,8 @@ static PortType parse_port_type_name(std::string_view s) {
 }
 
 Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
-                       ui::StringInterner& interner) {
+                       ui::StringInterner& interner,
+                       TypeRegistry const& registry) {
     for (auto const& n : arr) {
         Blueprint::Node node;
         node.id = interner.intern(n["id"].get<std::string>());
@@ -233,7 +243,50 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         }
         if (n.contains("params") && n["params"].is_object()) {
             for (auto& [key, val] : n["params"].items()) {
-                node.params[interner.intern(key)] = val.get<float>();
+                if (val.is_number()) {
+                    node.params[interner.intern(key)] = val.get<float>();
+                    continue;
+                }
+                if (val.is_string()) {
+                    const std::string s = val.get<std::string>();
+                    char* end = nullptr;
+                    errno = 0;
+                    const float parsed = std::strtof(s.c_str(), &end);
+                    const bool parsed_ok = (end != s.c_str() && *end == '\0' && errno != ERANGE);
+                    if (parsed_ok) {
+                        node.params[interner.intern(key)] = parsed;
+                    } else {
+                        node.string_params[key] = s;
+                    }
+                }
+            }
+        }
+        if (n.contains("string_params") && n["string_params"].is_object()) {
+            for (auto& [key, val] : n["string_params"].items()) {
+                if (val.is_string()) {
+                    node.string_params[key] = val.get<std::string>();
+                }
+            }
+        }
+
+        if (auto* entry = registry.find(node.type)) {
+            for (const auto& [k, v] : entry->param_defaults) {
+                const auto key_iid = interner.intern(k);
+                if (node.params.find(key_iid) != node.params.end()) {
+                    continue;
+                }
+                if (node.string_params.find(k) != node.string_params.end()) {
+                    continue;
+                }
+                char* end = nullptr;
+                errno = 0;
+                const float parsed = std::strtof(v.c_str(), &end);
+                const bool parsed_ok = (end != v.c_str() && *end == '\0' && errno != ERANGE);
+                if (parsed_ok) {
+                    node.params[key_iid] = parsed;
+                } else {
+                    node.string_params[k] = v;
+                }
             }
         }
 
@@ -409,6 +462,9 @@ std::string BlueprintCodec::encode(Blueprint const& bp,
     j["pan_y"] = bp.pan_y();
     j["zoom"] = bp.zoom();
     j["grid_step"] = bp.grid_step();
+    if (!bp.name().empty()) {
+        j["name"] = bp.name();
+    }
     return j.dump(2);
 }
 
@@ -435,11 +491,14 @@ std::optional<Blueprint> BlueprintCodec::decode(
         if (j.contains("display_name") && j["display_name"].is_string()) {
             bp = bp.with_display_name(j["display_name"].get<std::string>());
         }
+        if (j.contains("name") && j["name"].is_string()) {
+            bp = bp.with_name(j["name"].get<std::string>());
+        }
         if (j.contains("interface") && j["interface"].is_array()) {
             bp = bp.with_interface(decode_interface(j["interface"], interner));
         }
         if (j.contains("nodes") && j["nodes"].is_array()) {
-            bp = decode_nodes(bp, j["nodes"], interner);
+            bp = decode_nodes(bp, j["nodes"], interner, registry);
         }
         if (j.contains("wires") && j["wires"].is_array()) {
             bp = decode_wires(bp, j["wires"], interner, arena);

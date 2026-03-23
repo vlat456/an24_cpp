@@ -77,4 +77,8 @@ template class Lesser<JitProvider>;
 template class GreaterEq<JitProvider>;
 template class LesserEq<JitProvider>;
 template class Slider<JitProvider>;
+template class VoltageSense<JitProvider>;
+template class ControlledVoltageSource<JitProvider>;
+template class ControlledCurrentSource<JitProvider>;
+template class VariableConductance<JitProvider>;
 

@@ -1,0 +1,39 @@
+{
+  "version": "3.0",
+  "id": "ControlledCurrentSource",
+  "display_name": "ControlledCurrentSource",
+  "interface": [
+    {
+      "name": "v_pos",
+      "domain": 1,
+      "direction": 1,
+      "type": "V"
+    },
+    {
+      "name": "v_neg",
+      "domain": 1,
+      "direction": 0,
+      "type": "V"
+    },
+    {
+      "name": "cmd",
+      "domain": 2,
+      "direction": 0,
+      "type": "Signal"
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Control-to-electrical domain bridge (current source). Converts a control/scalar command into a Norton current source stamped during solve_electrical(). i_source = cmd * gain, clamped to [min_i, max_i]. g_shunt is a small parallel conductance to keep the node well-conditioned.",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "gain": "1.0",
+    "min_i": "0.0",
+    "max_i": "100.0",
+    "g_shunt": "0.001"
+  }
+}

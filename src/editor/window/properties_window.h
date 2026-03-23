@@ -2,11 +2,11 @@
 
 #include "blueprint_v2/blueprint/blueprint.h"
 #include "blueprint_v2/editor_model/editor_model.h"
-#include "commands/commands.h"
 #include "ui/core/interned_id.h"
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 /// Callback when properties are applied: receives the node ID
 using PropertyCallback = std::function<void(const std::string& node_id)>;
@@ -19,8 +19,8 @@ using PropertyCallback = std::function<void(const std::string& node_id)>;
 /// until the user clicks "OK" / apply(). On "Cancel" the pending state is
 /// simply discarded.
 ///
-/// On "OK", the window diffs pending vs snapshot, then emits CmdSetParam /
-/// CmdSetName / CmdSetPortLayout commands via execute() for each change.
+/// On "OK", the window diffs pending vs snapshot, then applies all changes
+/// atomically as a single undo checkpoint via push_checkpoint + replace_current.
 ///
 /// Safety: The window stores only the node ID, never a raw Node*.
 /// The node pointer is resolved fresh from the Blueprint each frame via
@@ -49,6 +49,11 @@ public:
         pending_params_[key] = value;
     }
 
+    /// Set a pending string param value (for testing without ImGui).
+    void set_pending_string_param(const std::string& key, const std::string& value) {
+        pending_string_params_[key] = value;
+    }
+
     /// Set the pending name (for testing without ImGui).
     void set_pending_name(const std::string& name) {
         pending_name_ = name;
@@ -71,6 +76,11 @@ public:
         return pending_params_;
     }
 
+    /// Read pending string params (for testing / display).
+    const std::unordered_map<std::string, std::string>& pending_string_params() const {
+        return pending_string_params_;
+    }
+
     /// Read pending name (for testing / display).
     const std::string& pending_name() const { return pending_name_; }
 
@@ -84,10 +94,12 @@ private:
     // Shadow copies: edited by the UI, never touching the live node until apply().
     std::string pending_name_;
     std::unordered_map<std::string, float> pending_params_;
+    std::unordered_map<std::string, std::string> pending_string_params_;
 
     // Snapshot of the node state at open() time — used for diffing at apply().
     std::string snapshot_name_;
     std::unordered_map<std::string, float> snapshot_params_;
+    std::unordered_map<std::string, std::string> snapshot_string_params_;
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> pending_layout_overrides_;
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> snapshot_layout_overrides_;
 
@@ -102,6 +114,18 @@ private:
 
     /// Render a generic float InputFloat for a param
     void render_generic_param(const std::string& key);
+
+    /// Render an ImGui table editor for a LUT "table" param
+    void render_table_param(const std::string& key);
+
+    /// Render a multiline text editor for "text" param (Text nodes)
+    void render_text_param(const std::string& key);
+
+    /// Render a dropdown for "font_size" param
+    void render_font_size_param(const std::string& key);
+
+    /// Render a generic string InputText for a param
+    void render_generic_string_param(const std::string& key);
 
     /// Render port layout override section (side/position for each port)
     void render_port_layout_section(const bp2::Blueprint::Node& node);

@@ -60,7 +60,9 @@ private:
 
         // Update the blueprint display name via EditorModel (immutable update)
         doc->model().replace_current(
-            doc->model().current().with_display_name(ws.setName.buf));
+            doc->model().current()
+                .with_name(ws.setName.buf)
+                .with_display_name(ws.setName.buf));
 
         // If save was deferred until name was set, proceed with save now
         if (ws.setName.save_after) {

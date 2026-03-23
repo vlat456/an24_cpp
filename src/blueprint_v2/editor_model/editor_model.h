@@ -61,6 +61,13 @@ public:
         if (!undo_stack_.empty()) undo_stack_.pop_back();
     }
 
+    /// Clear undo/redo history (useful after loading a file or for test setup).
+    void clear_history() {
+        undo_stack_.clear();
+        redo_stack_.clear();
+        save_depth_ = 0;
+    }
+
     // === Wire ID generation ===
     int next_wire_id_ = 0;
     std::string allocate_wire_id() {
@@ -72,7 +79,7 @@ public:
                                        ui::StringInterner const& interner) const;
 
     // === Direct blueprint replacement ===
-    void replace_current(Blueprint bp) { current_ = std::move(bp); }
+    void replace_current(Blueprint bp) { current_ = std::move(bp); invalidate_indices(); }
 
     // === Bake/Unbake ===
     bool bake_nested(ui::InternedId id, TypeRegistry const& registry,

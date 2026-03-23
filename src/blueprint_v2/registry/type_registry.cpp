@@ -5,24 +5,32 @@
 namespace bp2 {
 
 void TypeRegistry::register_component(
-    ui::InternedId type_id, Interface iface, std::string description) {
+    ui::InternedId type_id,
+    Interface iface,
+    std::string description,
+    std::unordered_map<std::string, std::string> param_defaults) {
     Entry entry;
     entry.type_id = type_id;
     entry.iface = std::move(iface);
     entry.description = std::move(description);
     entry.is_blueprint = false;
+    entry.param_defaults = std::move(param_defaults);
     entries_[type_id] = std::move(entry);
 }
 
 void TypeRegistry::register_blueprint(
-    ui::InternedId type_id, Interface iface, std::string description,
-    Blueprint const* bp) {
+    ui::InternedId type_id,
+    Interface iface,
+    std::string description,
+    Blueprint const* bp,
+    std::unordered_map<std::string, std::string> param_defaults) {
     Entry entry;
     entry.type_id = type_id;
     entry.iface = std::move(iface);
     entry.description = std::move(description);
     entry.is_blueprint = true;
     entry.blueprint = bp;
+    entry.param_defaults = std::move(param_defaults);
     entries_[type_id] = std::move(entry);
 }
 

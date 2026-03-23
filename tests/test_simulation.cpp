@@ -502,6 +502,64 @@ TEST(SimulationTest, Merger_AllPortsSameSignal) {
     EXPECT_NEAR(v_i2, v_o, 1e-6f) << "Merger i2 and o must be same signal";
 }
 
+TEST(SimulationTest, Splitter_DefaultPortsDoNotOutputZero) {
+    // Regression: Splitter aliases were lost in v3 migration, causing o1/o2 to stay 0.
+    Blueprint bp;
+    bp.grid_step = 16.0f;
+    auto& I = bp.interner();
+
+    Node gnd;
+    gnd.id = I.intern("gnd"); gnd.type_name = "RefNode"; gnd.render_hint = "ref";
+    gnd.output(I.intern("v")); gnd.at(0, 0);
+    bp.add_node(std::move(gnd));
+
+    Node bat;
+    bat.id = I.intern("bat"); bat.type_name = "Battery";
+    bat.input(I.intern("v_in")); bat.output(I.intern("v_out")); bat.at(100, 0);
+    bp.add_node(std::move(bat));
+
+    // Splitter with default v3 ports (no explicit alias metadata).
+    Node spl;
+    spl.id = I.intern("spl"); spl.type_name = "Splitter";
+    spl.input(I.intern("i")); spl.output(I.intern("o1")); spl.output(I.intern("o2")); spl.at(250, 0);
+    bp.add_node(std::move(spl));
+
+    Node l1;
+    l1.id = I.intern("l1"); l1.type_name = "Resistor";
+    l1.input(I.intern("v_in")); l1.output(I.intern("v_out")); l1.at(400, -40);
+    bp.add_node(std::move(l1));
+
+    Node l2;
+    l2.id = I.intern("l2"); l2.type_name = "Resistor";
+    l2.input(I.intern("v_in")); l2.output(I.intern("v_out")); l2.at(400, 40);
+    bp.add_node(std::move(l2));
+
+    Wire w1; w1.start = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Output); w1.end = WireEnd(I.intern("bat"), I.intern("v_in"), PortSide::Input);
+    Wire w2; w2.start = WireEnd(I.intern("bat"), I.intern("v_out"), PortSide::Output); w2.end = WireEnd(I.intern("spl"), I.intern("i"), PortSide::Input);
+    Wire w3; w3.start = WireEnd(I.intern("spl"), I.intern("o1"), PortSide::Output); w3.end = WireEnd(I.intern("l1"), I.intern("v_in"), PortSide::Input);
+    Wire w4; w4.start = WireEnd(I.intern("spl"), I.intern("o2"), PortSide::Output); w4.end = WireEnd(I.intern("l2"), I.intern("v_in"), PortSide::Input);
+    Wire w5; w5.start = WireEnd(I.intern("l1"), I.intern("v_out"), PortSide::Output); w5.end = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Input);
+    Wire w6; w6.start = WireEnd(I.intern("l2"), I.intern("v_out"), PortSide::Output); w6.end = WireEnd(I.intern("gnd"), I.intern("v"), PortSide::Input);
+    bp.add_wire(std::move(w1));
+    bp.add_wire(std::move(w2));
+    bp.add_wire(std::move(w3));
+    bp.add_wire(std::move(w4));
+    bp.add_wire(std::move(w5));
+    bp.add_wire(std::move(w6));
+
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+    for (int i = 0; i < 200; i++) sim.step(0.016f);
+
+    float v_i = sim.get_wire_voltage("spl.i");
+    float v_o1 = sim.get_wire_voltage("spl.o1");
+    float v_o2 = sim.get_wire_voltage("spl.o2");
+
+    EXPECT_GT(v_i, 5.0f);
+    EXPECT_NEAR(v_i, v_o1, 1e-6f);
+    EXPECT_NEAR(v_i, v_o2, 1e-6f);
+}
+
 // =============================================================================
 // NaN regression: floating chain endpoint diverges with SOR omega=1.8
 // =============================================================================

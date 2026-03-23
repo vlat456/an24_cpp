@@ -640,6 +640,19 @@ scene_mutations_tests/fast:
 .PHONY : scene_mutations_tests/fast
 
 #=============================================================================
+# Target rules for targets named canvas_input_tests
+
+# Build rule for target.
+canvas_input_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 canvas_input_tests
+.PHONY : canvas_input_tests
+
+# fast build rule for target.
+canvas_input_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/build
+.PHONY : canvas_input_tests/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -1640,6 +1653,7 @@ help:
 	@echo "... bp2_path_tests"
 	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"

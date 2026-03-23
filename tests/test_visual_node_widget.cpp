@@ -4,6 +4,7 @@ using ui::Pt;
 
 #include <gtest/gtest.h>
 #include "visual/node/visual_node.h"
+#include "visual/node/node_factory.h"
 #include "visual/port/visual_port.h"
 #include "visual/primitives/primitives.h"
 #include "visual/scene.h"
@@ -15,36 +16,7 @@ using ui::Pt;
 static ui::StringInterner g_interner;
 
 static bp2::Blueprint::Node to_bp2_node(const Node& node) {
-    bp2::Blueprint::Node out;
-    out.id = node.id;
-    out.type = g_interner.intern(node.type_name);
-    out.name = node.name;
-    out.render_hint = node.render_hint;
-    out.group_id = node.group_id;
-    out.x = node.pos.x;
-    out.y = node.pos.y;
-    if (node.has_explicit_size()) {
-        out.width = node.explicit_size().x;
-        out.height = node.explicit_size().y;
-    }
-    out.inputs = node.inputs;
-    out.outputs = node.outputs;
-    out.content_type = static_cast<bp2::NodeContentType>(node.node_content.type);
-    out.content_label = node.node_content.label;
-    out.content_value = node.node_content.value;
-    out.content_min = node.node_content.min;
-    out.content_max = node.node_content.max;
-    out.content_unit = node.node_content.unit;
-    out.content_state = node.node_content.state;
-    out.content_tripped = node.node_content.tripped;
-    if (node.color.has_value()) {
-        out.has_color = true;
-        out.color_r = node.color->r;
-        out.color_g = node.color->g;
-        out.color_b = node.color->b;
-        out.color_a = node.color->a;
-    }
-    return out;
+    return visual::NodeFactory::to_bp2_node(node, g_interner);
 }
 
 // ============================================================================

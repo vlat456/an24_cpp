@@ -438,6 +438,20 @@ scene_mutations_tests/fast:
 .PHONY : scene_mutations_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/canvas_input_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/canvas_input_tests.dir/rule
+.PHONY : tests/CMakeFiles/canvas_input_tests.dir/rule
+
+# Convenience name for target.
+canvas_input_tests: tests/CMakeFiles/canvas_input_tests.dir/rule
+.PHONY : canvas_input_tests
+
+# fast build rule for target.
+canvas_input_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/build
+.PHONY : canvas_input_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/port_registry_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_registry_tests.dir/rule
 .PHONY : tests/CMakeFiles/port_registry_tests.dir/rule
@@ -1511,6 +1525,7 @@ __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 
 # target to build an object file
 __/src/editor/commands/commands.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.cpp.o
@@ -1520,6 +1535,7 @@ __/src/editor/commands/commands.i: __/src/editor/commands/commands.cpp.i
 
 # target to preprocess a source file
 __/src/editor/commands/commands.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.i
 .PHONY : __/src/editor/commands/commands.cpp.i
@@ -1529,6 +1545,7 @@ __/src/editor/commands/commands.s: __/src/editor/commands/commands.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/commands/commands.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/commands/commands.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/properties_window_tests.dir/build.make tests/CMakeFiles/properties_window_tests.dir/__/src/editor/commands/commands.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/commands/commands.cpp.s
 .PHONY : __/src/editor/commands/commands.cpp.s
@@ -1581,11 +1598,36 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
 
+__/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
+.PHONY : __/src/editor/input/canvas_input.o
+
+# target to build an object file
+__/src/editor/input/canvas_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.o
+.PHONY : __/src/editor/input/canvas_input.cpp.o
+
+__/src/editor/input/canvas_input.i: __/src/editor/input/canvas_input.cpp.i
+.PHONY : __/src/editor/input/canvas_input.i
+
+# target to preprocess a source file
+__/src/editor/input/canvas_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.i
+.PHONY : __/src/editor/input/canvas_input.cpp.i
+
+__/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
+.PHONY : __/src/editor/input/canvas_input.s
+
+# target to generate assembly for a file
+__/src/editor/input/canvas_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.s
+.PHONY : __/src/editor/input/canvas_input.cpp.s
+
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
 
 # target to build an object file
 __/src/editor/viewport/viewport.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.cpp.o
@@ -1595,6 +1637,7 @@ __/src/editor/viewport/viewport.i: __/src/editor/viewport/viewport.cpp.i
 
 # target to preprocess a source file
 __/src/editor/viewport/viewport.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.i
 .PHONY : __/src/editor/viewport/viewport.cpp.i
@@ -1604,6 +1647,7 @@ __/src/editor/viewport/viewport.s: __/src/editor/viewport/viewport.cpp.s
 
 # target to generate assembly for a file
 __/src/editor/viewport/viewport.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_viewport_tests.dir/build.make tests/CMakeFiles/editor_viewport_tests.dir/__/src/editor/viewport/viewport.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/viewport/viewport.cpp.s
 .PHONY : __/src/editor/viewport/viewport.cpp.s
@@ -1639,6 +1683,7 @@ __/src/editor/visual/node/bus_node_widget.o: __/src/editor/visual/node/bus_node_
 __/src/editor/visual/node/bus_node_widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.o
 
 __/src/editor/visual/node/bus_node_widget.i: __/src/editor/visual/node/bus_node_widget.cpp.i
@@ -1648,6 +1693,7 @@ __/src/editor/visual/node/bus_node_widget.i: __/src/editor/visual/node/bus_node_
 __/src/editor/visual/node/bus_node_widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.i
 
 __/src/editor/visual/node/bus_node_widget.s: __/src/editor/visual/node/bus_node_widget.cpp.s
@@ -1657,6 +1703,7 @@ __/src/editor/visual/node/bus_node_widget.s: __/src/editor/visual/node/bus_node_
 __/src/editor/visual/node/bus_node_widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/bus_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/bus_node_widget.cpp.s
 
 __/src/editor/visual/node/group_node_widget.o: __/src/editor/visual/node/group_node_widget.cpp.o
@@ -1667,6 +1714,7 @@ __/src/editor/visual/node/group_node_widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.o
 
 __/src/editor/visual/node/group_node_widget.i: __/src/editor/visual/node/group_node_widget.cpp.i
@@ -1677,6 +1725,7 @@ __/src/editor/visual/node/group_node_widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.i
 
 __/src/editor/visual/node/group_node_widget.s: __/src/editor/visual/node/group_node_widget.cpp.s
@@ -1687,6 +1736,7 @@ __/src/editor/visual/node/group_node_widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/group_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/group_node_widget.cpp.s
 
 __/src/editor/visual/node/ref_node_widget.o: __/src/editor/visual/node/ref_node_widget.cpp.o
@@ -1696,6 +1746,7 @@ __/src/editor/visual/node/ref_node_widget.o: __/src/editor/visual/node/ref_node_
 __/src/editor/visual/node/ref_node_widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.o
 
 __/src/editor/visual/node/ref_node_widget.i: __/src/editor/visual/node/ref_node_widget.cpp.i
@@ -1705,6 +1756,7 @@ __/src/editor/visual/node/ref_node_widget.i: __/src/editor/visual/node/ref_node_
 __/src/editor/visual/node/ref_node_widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.i
 
 __/src/editor/visual/node/ref_node_widget.s: __/src/editor/visual/node/ref_node_widget.cpp.s
@@ -1714,6 +1766,7 @@ __/src/editor/visual/node/ref_node_widget.s: __/src/editor/visual/node/ref_node_
 __/src/editor/visual/node/ref_node_widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/ref_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/ref_node_widget.cpp.s
 
 __/src/editor/visual/node/text_node_widget.o: __/src/editor/visual/node/text_node_widget.cpp.o
@@ -1723,6 +1776,7 @@ __/src/editor/visual/node/text_node_widget.o: __/src/editor/visual/node/text_nod
 __/src/editor/visual/node/text_node_widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.o
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.o
 
 __/src/editor/visual/node/text_node_widget.i: __/src/editor/visual/node/text_node_widget.cpp.i
@@ -1732,6 +1786,7 @@ __/src/editor/visual/node/text_node_widget.i: __/src/editor/visual/node/text_nod
 __/src/editor/visual/node/text_node_widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.i
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.i
 
 __/src/editor/visual/node/text_node_widget.s: __/src/editor/visual/node/text_node_widget.cpp.s
@@ -1741,6 +1796,7 @@ __/src/editor/visual/node/text_node_widget.s: __/src/editor/visual/node/text_nod
 __/src/editor/visual/node/text_node_widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/text_node_widget.cpp.s
 .PHONY : __/src/editor/visual/node/text_node_widget.cpp.s
 
 __/src/editor/visual/node/visual_node.o: __/src/editor/visual/node/visual_node.cpp.o
@@ -1751,6 +1807,7 @@ __/src/editor/visual/node/visual_node.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.o
 .PHONY : __/src/editor/visual/node/visual_node.cpp.o
 
 __/src/editor/visual/node/visual_node.i: __/src/editor/visual/node/visual_node.cpp.i
@@ -1761,6 +1818,7 @@ __/src/editor/visual/node/visual_node.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.i
 .PHONY : __/src/editor/visual/node/visual_node.cpp.i
 
 __/src/editor/visual/node/visual_node.s: __/src/editor/visual/node/visual_node.cpp.s
@@ -1771,6 +1829,7 @@ __/src/editor/visual/node/visual_node.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/node/visual_node.cpp.s
 .PHONY : __/src/editor/visual/node/visual_node.cpp.s
 
 __/src/editor/visual/persist.o: __/src/editor/visual/persist.cpp.o
@@ -1779,6 +1838,7 @@ __/src/editor/visual/persist.o: __/src/editor/visual/persist.cpp.o
 # target to build an object file
 __/src/editor/visual/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.o
@@ -1793,6 +1853,7 @@ __/src/editor/visual/persist.i: __/src/editor/visual/persist.cpp.i
 # target to preprocess a source file
 __/src/editor/visual/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.i
@@ -1807,6 +1868,7 @@ __/src/editor/visual/persist.s: __/src/editor/visual/persist.cpp.s
 # target to generate assembly for a file
 __/src/editor/visual/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_simulation_tests.dir/build.make tests/CMakeFiles/editor_simulation_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.s
@@ -1825,6 +1887,7 @@ __/src/editor/visual/port/visual_port.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.o
 .PHONY : __/src/editor/visual/port/visual_port.cpp.o
 
 __/src/editor/visual/port/visual_port.i: __/src/editor/visual/port/visual_port.cpp.i
@@ -1837,6 +1900,7 @@ __/src/editor/visual/port/visual_port.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.i
 .PHONY : __/src/editor/visual/port/visual_port.cpp.i
 
 __/src/editor/visual/port/visual_port.s: __/src/editor/visual/port/visual_port.cpp.s
@@ -1849,6 +1913,7 @@ __/src/editor/visual/port/visual_port.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/port/visual_port.cpp.s
 .PHONY : __/src/editor/visual/port/visual_port.cpp.s
 
 __/src/editor/visual/primitives/primitives.o: __/src/editor/visual/primitives/primitives.cpp.o
@@ -1860,6 +1925,7 @@ __/src/editor/visual/primitives/primitives.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.o
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.o
 
 __/src/editor/visual/primitives/primitives.i: __/src/editor/visual/primitives/primitives.cpp.i
@@ -1871,6 +1937,7 @@ __/src/editor/visual/primitives/primitives.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.i
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.i
 
 __/src/editor/visual/primitives/primitives.s: __/src/editor/visual/primitives/primitives.cpp.s
@@ -1882,6 +1949,7 @@ __/src/editor/visual/primitives/primitives.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/primitives/primitives.cpp.s
 .PHONY : __/src/editor/visual/primitives/primitives.cpp.s
 
 __/src/editor/visual/scene.o: __/src/editor/visual/scene.cpp.o
@@ -1896,6 +1964,7 @@ __/src/editor/visual/scene.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.o
 .PHONY : __/src/editor/visual/scene.cpp.o
 
 __/src/editor/visual/scene.i: __/src/editor/visual/scene.cpp.i
@@ -1910,6 +1979,7 @@ __/src/editor/visual/scene.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.i
 .PHONY : __/src/editor/visual/scene.cpp.i
 
 __/src/editor/visual/scene.s: __/src/editor/visual/scene.cpp.s
@@ -1924,6 +1994,7 @@ __/src/editor/visual/scene.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/scene.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/scene.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene.cpp.s
 .PHONY : __/src/editor/visual/scene.cpp.s
 
 __/src/editor/visual/scene_hittest.o: __/src/editor/visual/scene_hittest.cpp.o
@@ -1932,6 +2003,7 @@ __/src/editor/visual/scene_hittest.o: __/src/editor/visual/scene_hittest.cpp.o
 # target to build an object file
 __/src/editor/visual/scene_hittest.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.o
 .PHONY : __/src/editor/visual/scene_hittest.cpp.o
 
 __/src/editor/visual/scene_hittest.i: __/src/editor/visual/scene_hittest.cpp.i
@@ -1940,6 +2012,7 @@ __/src/editor/visual/scene_hittest.i: __/src/editor/visual/scene_hittest.cpp.i
 # target to preprocess a source file
 __/src/editor/visual/scene_hittest.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.i
 .PHONY : __/src/editor/visual/scene_hittest.cpp.i
 
 __/src/editor/visual/scene_hittest.s: __/src/editor/visual/scene_hittest.cpp.s
@@ -1948,6 +2021,7 @@ __/src/editor/visual/scene_hittest.s: __/src/editor/visual/scene_hittest.cpp.s
 # target to generate assembly for a file
 __/src/editor/visual/scene_hittest.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_hittest.cpp.s
 .PHONY : __/src/editor/visual/scene_hittest.cpp.s
 
 __/src/editor/visual/scene_mutations.o: __/src/editor/visual/scene_mutations.cpp.o
@@ -1956,6 +2030,7 @@ __/src/editor/visual/scene_mutations.o: __/src/editor/visual/scene_mutations.cpp
 # target to build an object file
 __/src/editor/visual/scene_mutations.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.o
 .PHONY : __/src/editor/visual/scene_mutations.cpp.o
 
 __/src/editor/visual/scene_mutations.i: __/src/editor/visual/scene_mutations.cpp.i
@@ -1964,6 +2039,7 @@ __/src/editor/visual/scene_mutations.i: __/src/editor/visual/scene_mutations.cpp
 # target to preprocess a source file
 __/src/editor/visual/scene_mutations.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.i
 .PHONY : __/src/editor/visual/scene_mutations.cpp.i
 
 __/src/editor/visual/scene_mutations.s: __/src/editor/visual/scene_mutations.cpp.s
@@ -1972,6 +2048,7 @@ __/src/editor/visual/scene_mutations.s: __/src/editor/visual/scene_mutations.cpp
 # target to generate assembly for a file
 __/src/editor/visual/scene_mutations.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/scene_mutations.cpp.s
 .PHONY : __/src/editor/visual/scene_mutations.cpp.s
 
 __/src/editor/visual/widget.o: __/src/editor/visual/widget.cpp.o
@@ -1989,6 +2066,7 @@ __/src/editor/visual/widget.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.o
 .PHONY : __/src/editor/visual/widget.cpp.o
 
 __/src/editor/visual/widget.i: __/src/editor/visual/widget.cpp.i
@@ -2006,6 +2084,7 @@ __/src/editor/visual/widget.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.i
 .PHONY : __/src/editor/visual/widget.cpp.i
 
 __/src/editor/visual/widget.s: __/src/editor/visual/widget.cpp.s
@@ -2023,6 +2102,7 @@ __/src/editor/visual/widget.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widget.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widget.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widget.cpp.s
 .PHONY : __/src/editor/visual/widget.cpp.s
 
 __/src/editor/visual/widgets/content_widgets.o: __/src/editor/visual/widgets/content_widgets.cpp.o
@@ -2033,6 +2113,7 @@ __/src/editor/visual/widgets/content_widgets.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.o
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.o
 
 __/src/editor/visual/widgets/content_widgets.i: __/src/editor/visual/widgets/content_widgets.cpp.i
@@ -2043,6 +2124,7 @@ __/src/editor/visual/widgets/content_widgets.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.i
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.i
 
 __/src/editor/visual/widgets/content_widgets.s: __/src/editor/visual/widgets/content_widgets.cpp.s
@@ -2053,6 +2135,7 @@ __/src/editor/visual/widgets/content_widgets.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_node_widget_tests.dir/build.make tests/CMakeFiles/visual_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/widgets/content_widgets.cpp.s
 .PHONY : __/src/editor/visual/widgets/content_widgets.cpp.s
 
 __/src/editor/visual/wire/wire.o: __/src/editor/visual/wire/wire.cpp.o
@@ -2064,6 +2147,7 @@ __/src/editor/visual/wire/wire.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.o
 .PHONY : __/src/editor/visual/wire/wire.cpp.o
 
 __/src/editor/visual/wire/wire.i: __/src/editor/visual/wire/wire.cpp.i
@@ -2075,6 +2159,7 @@ __/src/editor/visual/wire/wire.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.i
 .PHONY : __/src/editor/visual/wire/wire.cpp.i
 
 __/src/editor/visual/wire/wire.s: __/src/editor/visual/wire/wire.cpp.s
@@ -2086,6 +2171,7 @@ __/src/editor/visual/wire/wire.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/visual_hittest_tests.dir/build.make tests/CMakeFiles/visual_hittest_tests.dir/__/src/editor/visual/wire/wire.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/specialized_node_widget_tests.dir/build.make tests/CMakeFiles/specialized_node_widget_tests.dir/__/src/editor/visual/wire/wire.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/scene_mutations_tests.dir/build.make tests/CMakeFiles/scene_mutations_tests.dir/__/src/editor/visual/wire/wire.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/visual/wire/wire.cpp.s
 .PHONY : __/src/editor/visual/wire/wire.cpp.s
 
 __/src/editor/window/properties_window.o: __/src/editor/window/properties_window.cpp.o
@@ -2795,6 +2881,30 @@ test_blueprint_ports.s: test_blueprint_ports.cpp.s
 test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
+
+test_canvas_input.o: test_canvas_input.cpp.o
+.PHONY : test_canvas_input.o
+
+# target to build an object file
+test_canvas_input.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.o
+.PHONY : test_canvas_input.cpp.o
+
+test_canvas_input.i: test_canvas_input.cpp.i
+.PHONY : test_canvas_input.i
+
+# target to preprocess a source file
+test_canvas_input.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.i
+.PHONY : test_canvas_input.cpp.i
+
+test_canvas_input.s: test_canvas_input.cpp.s
+.PHONY : test_canvas_input.s
+
+# target to generate assembly for a file
+test_canvas_input.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/test_canvas_input.cpp.s
+.PHONY : test_canvas_input.cpp.s
 
 test_clamp_normalize.o: test_clamp_normalize.cpp.o
 .PHONY : test_clamp_normalize.o
@@ -4437,6 +4547,7 @@ help:
 	@echo "... bp2_path_tests"
 	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
@@ -4519,6 +4630,9 @@ help:
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/input/canvas_input.o"
+	@echo "... __/src/editor/input/canvas_input.i"
+	@echo "... __/src/editor/input/canvas_input.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -4654,6 +4768,9 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
+	@echo "... test_canvas_input.o"
+	@echo "... test_canvas_input.i"
+	@echo "... test_canvas_input.s"
 	@echo "... test_clamp_normalize.o"
 	@echo "... test_clamp_normalize.i"
 	@echo "... test_clamp_normalize.s"

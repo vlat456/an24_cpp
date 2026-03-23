@@ -285,6 +285,69 @@ TEST(BlueprintCodec, DecodeDoesNotInferMissingNodePortsOrName) {
     EXPECT_TRUE(node.inputs.empty());
     EXPECT_TRUE(node.outputs.empty());
 }
+
+TEST(BlueprintCodec, DecodeBackfillsMissingParamsFromRegistryDefaults) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(
+        interner.intern("LUT"),
+        bp2::Interface({
+            {interner.intern("input"), Domain::Logical, bp2::Direction::Input},
+            {interner.intern("output"), Domain::Logical, bp2::Direction::Output},
+        }),
+        "LUT"
+    );
+    auto* lut_entry = const_cast<bp2::TypeRegistry::Entry*>(reg.find(interner.intern("LUT")));
+    ASSERT_NE(lut_entry, nullptr);
+    lut_entry->param_defaults["table"] = "0:0; 100:100";
+    lut_entry->param_defaults["gain"] = "1.5";
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "nodes": [
+            {
+                "id": "lut1",
+                "type": "LUT",
+                "position": {"x": 10.0, "y": 20.0}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg);
+    ASSERT_TRUE(result.has_value());
+    ASSERT_EQ(result->nodes().size(), 1u);
+    const auto& node = result->nodes()[0];
+
+    auto gain_it = node.params.find(interner.intern("gain"));
+    ASSERT_NE(gain_it, node.params.end());
+    EXPECT_FLOAT_EQ(gain_it->second, 1.5f);
+
+    auto table_it = node.string_params.find("table");
+    ASSERT_NE(table_it, node.string_params.end());
+    EXPECT_EQ(table_it->second, "0:0; 100:100");
+}
+
+TEST(BlueprintCodec, EncodeDecodePreservesBlueprintNameField) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("name_test"));
+    bp = bp.with_display_name("Name Test");
+    bp = bp.with_name("MyBlueprintName");
+
+    std::string encoded = bp2::BlueprintCodec::encode(bp, interner, arena);
+    auto decoded = bp2::BlueprintCodec::decode(encoded, interner, arena, reg);
+    ASSERT_TRUE(decoded.has_value());
+
+    EXPECT_EQ(decoded->name(), "MyBlueprintName");
+    EXPECT_EQ(decoded->display_name(), "Name Test");
+}
 TEST(BlueprintCodec, DecodeInvalidJsonReturnsNullopt) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

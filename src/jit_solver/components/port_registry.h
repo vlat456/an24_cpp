@@ -26,6 +26,7 @@ enum class PortNames : uint32_t {
     Vin,
     ac_out,
     brightness,
+    cmd,
     control,
     ctrl,
     dc_in,
@@ -73,7 +74,10 @@ enum class PortNames : uint32_t {
     v_gen,
     v_gen_ref,
     v_in,
+    v_neg,
     v_out,
+    v_pos,
+    v_ref,
     v_start
 };
 
@@ -92,6 +96,8 @@ enum class ComponentType {
     Bus,
     Clamp,
     Comparator,
+    ControlledCurrentSource,
+    ControlledVoltageSource,
     CurrentSense,
     DMR400,
     Divide,
@@ -147,6 +153,8 @@ enum class ComponentType {
     TempSensor,
     TimeDelay,
     Transformer,
+    VariableConductance,
+    VoltageSense,
     Voltmeter,
     XOR,
     _COUNT  // sentinel — must be last
@@ -166,6 +174,8 @@ constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Clamp_PORT_COUNT = 2;
 constexpr size_t Comparator_PORT_COUNT = 3;
+constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
+constexpr size_t ControlledVoltageSource_PORT_COUNT = 3;
 constexpr size_t CurrentSense_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
@@ -221,6 +231,8 @@ constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t TimeDelay_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
+constexpr size_t VariableConductance_PORT_COUNT = 3;
+constexpr size_t VoltageSense_PORT_COUNT = 3;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
 constexpr size_t XOR_PORT_COUNT = 3;
 
@@ -281,6 +293,16 @@ constexpr const char* Comparator_PORTS[] = {
     "Va",
     "Vb",
     "o"
+};
+constexpr const char* ControlledCurrentSource_PORTS[] = {
+    "cmd",
+    "v_neg",
+    "v_pos"
+};
+constexpr const char* ControlledVoltageSource_PORTS[] = {
+    "cmd",
+    "v_neg",
+    "v_pos"
 };
 constexpr const char* CurrentSense_PORTS[] = {
     "i_out",
@@ -534,6 +556,16 @@ constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
 };
+constexpr const char* VariableConductance_PORTS[] = {
+    "cmd",
+    "v_in",
+    "v_out"
+};
+constexpr const char* VoltageSense_PORTS[] = {
+    "out",
+    "v_in",
+    "v_ref"
+};
 constexpr const char* Voltmeter_PORTS[] = {
     "v_in"
 };
@@ -555,6 +587,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"Vin", PortNames::Vin},
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
+        {"cmd", PortNames::cmd},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
         {"dc_in", PortNames::dc_in},
@@ -602,7 +635,10 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"v_gen", PortNames::v_gen},
         {"v_gen_ref", PortNames::v_gen_ref},
         {"v_in", PortNames::v_in},
+        {"v_neg", PortNames::v_neg},
         {"v_out", PortNames::v_out},
+        {"v_pos", PortNames::v_pos},
+        {"v_ref", PortNames::v_ref},
         {"v_start", PortNames::v_start},
     };
     auto it = map.find(name);
@@ -626,6 +662,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Bus", {"v"}},
         {"Clamp", {"in", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
+        {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
+        {"ControlledVoltageSource", {"cmd", "v_neg", "v_pos"}},
         {"CurrentSense", {"i_out", "v_in", "v_out"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},
@@ -681,6 +719,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"TempSensor", {"temp_in", "temp_out"}},
         {"TimeDelay", {"in", "out"}},
         {"Transformer", {"primary", "secondary"}},
+        {"VariableConductance", {"cmd", "v_in", "v_out"}},
+        {"VoltageSense", {"out", "v_in", "v_ref"}},
         {"Voltmeter", {"v_in"}},
         {"XOR", {"A", "B", "o"}},
     };
@@ -708,6 +748,8 @@ using ComponentVariant = std::variant<
     Bus<JitProvider>,
     Clamp<JitProvider>,
     Comparator<JitProvider>,
+    ControlledCurrentSource<JitProvider>,
+    ControlledVoltageSource<JitProvider>,
     CurrentSense<JitProvider>,
     DMR400<JitProvider>,
     Divide<JitProvider>,
@@ -763,6 +805,8 @@ using ComponentVariant = std::variant<
     TempSensor<JitProvider>,
     TimeDelay<JitProvider>,
     Transformer<JitProvider>,
+    VariableConductance<JitProvider>,
+    VoltageSense<JitProvider>,
     Voltmeter<JitProvider>,
     XOR<JitProvider>
 >;

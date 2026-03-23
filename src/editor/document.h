@@ -58,6 +58,9 @@ public:
     ui::StringInterner& interner() { return interner_; }
     bp2::PathArena& arena() { return arena_; }
 
+    /// Re-seed next wire id counter from current blueprint wires.
+    void sync_next_wire_id();
+
     bool canUndo() const { return model_.can_undo(); }
     bool canRedo() const { return model_.can_redo(); }
     bool performUndo();

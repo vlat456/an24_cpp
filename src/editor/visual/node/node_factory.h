@@ -52,7 +52,15 @@ struct NodeFactory {
             out.color_a = node.color->a;
         }
         for (const auto& [k, v] : node.params) {
-            out.params[mut_interner.intern(k)] = std::stof(v);
+            // Try numeric conversion first; fall back to string_params for
+            // non-numeric values like "font_size" = "small" or "text" = "...".
+            try {
+                out.params[mut_interner.intern(k)] = std::stof(v);
+            } catch (const std::invalid_argument&) {
+                out.string_params[k] = v;
+            } catch (const std::out_of_range&) {
+                out.string_params[k] = v;
+            }
         }
         for (const auto& lo : node.layout_overrides) {
             bp2::Blueprint::Node::PortLayoutOverride ov;

@@ -104,6 +104,7 @@ struct TypeDefinition {
 /// Tree structure mirroring library/ subdirectory hierarchy for menu building.
 struct MenuTree {
     std::vector<std::string> entries;                        // Classnames at this level (sorted)
+    std::unordered_map<std::string, std::string> labels;     // classname -> display label
     std::map<std::string, MenuTree> children;                // Subfolder name -> subtree (sorted by key)
 };
 

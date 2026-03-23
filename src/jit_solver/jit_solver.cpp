@@ -189,6 +189,40 @@ ComponentVariant create_component_variant(
         comp.max = get_float(dev, "max", 28.0f);
         return ComponentVariant(std::move(comp));
     }
+    else if (dev.classname == "VoltageSense") {
+        VoltageSense<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.gain   = get_float(dev, "gain",   1.0f);
+        comp.offset = get_float(dev, "offset", 0.0f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "ControlledVoltageSource") {
+        ControlledVoltageSource<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.gain       = get_float(dev, "gain",       1.0f);
+        comp.offset     = get_float(dev, "offset",     0.0f);
+        comp.min_v      = get_float(dev, "min_v",      0.0f);
+        comp.max_v      = get_float(dev, "max_v",     30.0f);
+        comp.r_internal = get_float(dev, "r_internal", 0.1f);
+        comp.pre_load();
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "ControlledCurrentSource") {
+        ControlledCurrentSource<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.gain    = get_float(dev, "gain",    1.0f);
+        comp.min_i   = get_float(dev, "min_i",   0.0f);
+        comp.max_i   = get_float(dev, "max_i", 100.0f);
+        comp.g_shunt = get_float(dev, "g_shunt", 0.001f);
+        return ComponentVariant(std::move(comp));
+    }
+    else if (dev.classname == "VariableConductance") {
+        VariableConductance<JitProvider> comp;
+        setup_component_ports(comp, dev, result);
+        comp.g_min = get_float(dev, "g_min", 0.001f);
+        comp.g_max = get_float(dev, "g_max",  10.0f);
+        return ComponentVariant(std::move(comp));
+    }
     else if (dev.classname == "HighPowerLoad") {
         HighPowerLoad<JitProvider> comp;
         setup_component_ports(comp, dev, result);
@@ -594,8 +628,10 @@ BuildResult build_systems_dev(
     // Build port list
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
+    std::unordered_map<std::string, std::string> device_class;
 
     for (const auto& dev : devices) {
+        device_class[dev.name] = dev.classname;
         for (const auto& [port_name, port] : dev.ports) {
             std::string full_port = dev.name + "." + port_name;
             uint32_t idx = static_cast<uint32_t>(all_ports.size());
@@ -604,13 +640,33 @@ BuildResult build_systems_dev(
         }
     }
 
+    auto normalize_endpoint = [&](const std::string& endpoint) -> std::string {
+        auto dot = endpoint.find('.');
+        if (dot == std::string::npos) return endpoint;
+        const std::string dev = endpoint.substr(0, dot);
+        const std::string port = endpoint.substr(dot + 1);
+
+        auto d_it = device_class.find(dev);
+        if (d_it == device_class.end()) return endpoint;
+
+        // Bus alias ports in editor are wire-id based (e.g. bus.wire_12).
+        // In simulation all Bus endpoints must collapse to canonical bus.v.
+        if (d_it->second == "Bus" && port != "v") {
+            return dev + ".v";
+        }
+        return endpoint;
+    };
+
     // Union-Find for connected ports
     UnionFind uf(all_ports.size());
 
     // Union connected ports
     for (const auto& [from, to] : connections) {
-        auto it_from = port_to_idx.find(from);
-        auto it_to = port_to_idx.find(to);
+        std::string norm_from = normalize_endpoint(from);
+        std::string norm_to = normalize_endpoint(to);
+
+        auto it_from = port_to_idx.find(norm_from);
+        auto it_to = port_to_idx.find(norm_to);
         if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
             uf.unite(it_from->second, it_to->second);
         }
@@ -618,10 +674,27 @@ BuildResult build_systems_dev(
 
     // Union alias ports within same device (e.g., Splitter o1/o2 -> i)
     for (const auto& dev : devices) {
+        std::unordered_map<std::string, std::string> fallback_alias;
+        if (dev.classname == "Splitter") {
+            fallback_alias["o1"] = "i";
+            fallback_alias["o2"] = "i";
+        } else if (dev.classname == "Merger") {
+            fallback_alias["i1"] = "o";
+            fallback_alias["i2"] = "o";
+        } else if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            fallback_alias["ext"] = "port";
+        }
+
         for (const auto& [port_name, port] : dev.ports) {
-            if (port.alias.has_value() && !port.alias->empty()) {
+            std::optional<std::string> alias = port.alias;
+            if ((!alias.has_value() || alias->empty())) {
+                auto fit = fallback_alias.find(port_name);
+                if (fit != fallback_alias.end()) alias = fit->second;
+            }
+
+            if (alias.has_value() && !alias->empty()) {
                 std::string full_port = dev.name + "." + port_name;
-                std::string full_alias = dev.name + "." + *port.alias;
+                std::string full_alias = dev.name + "." + *alias;
 
                 auto it_port = port_to_idx.find(full_port);
                 auto it_alias = port_to_idx.find(full_alias);

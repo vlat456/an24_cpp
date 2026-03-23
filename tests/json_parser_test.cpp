@@ -614,8 +614,8 @@ static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
     static char buf[512];
     snprintf(buf, sizeof(buf),
-        R"({"version": 2, "meta": {"name": "%s", "cpp_class": true}, "exposes": {}})",
-        classname);
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": []})",
+        classname, classname);
     return buf;
 }
 

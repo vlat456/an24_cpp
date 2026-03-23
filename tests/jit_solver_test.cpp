@@ -1431,3 +1431,32 @@ TEST(SplitterTest, EnforcesOneToOneConnections) {
     float v_in = get_voltage(state, result, "split.i");
     EXPECT_GT(v_in, 25.0f) << "Splitter should work with 3 connections (1 per port)";
 }
+
+TEST(BusAliasTest, BusWireIdAliasesCollapseToBusPort) {
+    auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
+    auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
+                           {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+    auto bus = make_device("bus", "Bus", {{}}, {{"v", PortDirection::InOut}});
+    auto load = make_device("load", "Resistor", {{"conductance", "10.0"}},
+                            {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
+
+    std::vector<DeviceInstance> devices = {gnd, bat, bus, load};
+    // Emulate editor bus alias wire names stored as bus.wire_* endpoints.
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "bus.wire_1"},
+        {"bus.wire_2", "load.v_in"},
+        {"load.v_out", "gnd.v"},
+        {"bat.v_in", "gnd.v"},
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto state = run_sor(result, devices, 200);
+
+    float v_bus = get_voltage(state, result, "bus.v");
+    float v_bat = get_voltage(state, result, "bat.v_out");
+    float v_load = get_voltage(state, result, "load.v_in");
+
+    EXPECT_GT(v_bus, 25.0f);
+    EXPECT_NEAR(v_bus, v_bat, 1e-3f);
+    EXPECT_NEAR(v_bus, v_load, 1e-3f);
+}

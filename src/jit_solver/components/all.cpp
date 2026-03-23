@@ -637,6 +637,77 @@ void Voltmeter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 // =============================================================================
+// Domain Bridge Components
+// =============================================================================
+
+// VoltageSense -----------------------------------------------------------
+// solve_electrical: no-op — does not stamp conductance, just participates in
+// the electrical phase so its output ports are sequenced after SOR.
+template <typename Provider>
+void VoltageSense<Provider>::solve_electrical(SimulationState& /*st*/, float /*dt*/) {
+    // Intentional no-op: observe-only component, no Norton stamping.
+}
+
+// solve_logical runs AFTER SOR, so it reads the fully-settled electrical voltages.
+template <typename Provider>
+void VoltageSense<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+    float v    = st.across[provider.get(PortNames::v_in)];
+    float vref = st.across[provider.get(PortNames::v_ref)];
+    st.across[provider.get(PortNames::out)] = (v - vref) * gain + offset;
+}
+
+// ControlledVoltageSource ------------------------------------------------
+template <typename Provider>
+void ControlledVoltageSource<Provider>::pre_load() {
+    float safe_r = std::max(r_internal, 1e-9f);
+    inv_r = 1.0f / safe_r;
+}
+
+template <typename Provider>
+void ControlledVoltageSource<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    float cmd = st.across[provider.get(PortNames::cmd)];
+    float v_source = std::clamp(cmd * gain + offset, min_v, max_v);
+
+    // Thevenin -> Norton: stamp between v_pos and v_neg
+    float g = inv_r;
+    float v_pos = st.across[provider.get(PortNames::v_pos)];
+    float v_neg = st.across[provider.get(PortNames::v_neg)];
+
+    // Residual current from source to pos node: (v_source - (v_pos - v_neg)) * g
+    float i = (v_source - (v_pos - v_neg)) * g;
+    st.conductance[provider.get(PortNames::v_pos)] += g;
+    st.conductance[provider.get(PortNames::v_neg)] += g;
+    st.through[provider.get(PortNames::v_pos)] += i;
+    st.through[provider.get(PortNames::v_neg)] -= i;
+}
+
+// ControlledCurrentSource ------------------------------------------------
+template <typename Provider>
+void ControlledCurrentSource<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    float cmd = st.across[provider.get(PortNames::cmd)];
+    float i_source = std::clamp(cmd * gain, min_i, max_i);
+
+    // Norton: stamp g_shunt between the two nodes plus commanded current
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_pos), provider.get(PortNames::v_neg), g_shunt);
+
+    // Inject commanded current: positive current into v_pos, out of v_neg
+    st.through[provider.get(PortNames::v_pos)] += i_source;
+    st.through[provider.get(PortNames::v_neg)] -= i_source;
+}
+
+// VariableConductance ----------------------------------------------------
+template <typename Provider>
+void VariableConductance<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    float cmd = st.across[provider.get(PortNames::cmd)];
+    float t   = std::clamp(cmd, 0.0f, 1.0f);
+    float g   = g_min + (g_max - g_min) * t;
+
+    stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
+                   provider.get(PortNames::v_in), provider.get(PortNames::v_out), g);
+}
+
+// =============================================================================
 // Gyroscope & AGK47
 // =============================================================================
 

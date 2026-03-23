@@ -23,6 +23,7 @@ include("/Users/vladimir/an24_cpp/tests/visual_primitives_tests[1]_include.cmake
 include("/Users/vladimir/an24_cpp/tests/visual_node_widget_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/specialized_node_widget_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/scene_mutations_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/tests/canvas_input_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/port_registry_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/port_macro_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/tests/editor_componentvariant_tests[1]_include.cmake")

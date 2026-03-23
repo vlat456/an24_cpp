@@ -132,6 +132,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/visual_node_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/specialized_node_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/scene_mutations_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/canvas_input_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_componentvariant_tests.dir

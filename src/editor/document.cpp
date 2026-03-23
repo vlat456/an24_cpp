@@ -93,6 +93,9 @@ std::string Document::build_simulation_json() const {
         for (const auto& [k, v] : n.params) {
             params[std::string(interner_.resolve(k))] = std::to_string(v);
         }
+        for (const auto& [k, v] : n.string_params) {
+            params[k] = v;
+        }
         if (!params.empty()) {
             device["params"] = std::move(params);
         }
@@ -204,6 +207,7 @@ bool Document::load(const std::string& path) {
     {
         bp2::EditorModel fresh(model_.current());
         model_ = std::move(fresh);
+        sync_next_wire_id();
         model_.mark_saved();
     }
 
@@ -221,6 +225,30 @@ bool Document::load(const std::string& path) {
     auto pos = path.find_last_of("/\\");
     display_name_ = (pos != std::string::npos) ? path.substr(pos + 1) : path;
     return true;
+}
+
+void Document::sync_next_wire_id() {
+    int max_seen = -1;
+    for (const auto& w : model_.current().wires()) {
+        std::string_view wid = interner_.resolve(w.id);
+        if (wid.size() <= 5 || wid.substr(0, 5) != "wire_") {
+            continue;
+        }
+        int n = 0;
+        bool ok = true;
+        for (size_t i = 5; i < wid.size(); ++i) {
+            char c = wid[i];
+            if (c < '0' || c > '9') {
+                ok = false;
+                break;
+            }
+            n = n * 10 + (c - '0');
+        }
+        if (ok && n > max_seen) {
+            max_seen = n;
+        }
+    }
+    model_.next_wire_id_ = max_seen + 1;
 }
 
 // ============================================================================
@@ -521,7 +549,7 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         try {
             node.params[interner_.intern(k)] = std::stof(v);
         } catch (...) {
-            // Non-numeric params are skipped in bp2 node (simulation uses string form)
+            node.string_params[k] = v;
         }
     }
 

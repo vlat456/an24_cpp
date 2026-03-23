@@ -42,6 +42,10 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
         } else {
             out.register_blueprint(type_id, iface, def.description, nullptr);
         }
+
+        if (auto* entry = const_cast<bp2::TypeRegistry::Entry*>(out.find(type_id))) {
+            entry->param_defaults = def.params;
+        }
     }
 
     return out;

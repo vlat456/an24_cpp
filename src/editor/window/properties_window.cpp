@@ -1,4 +1,5 @@
 #include "properties_window.h"
+#include "parse_number.h"
 
 #ifndef EDITOR_TESTING
 #include <imgui.h>
@@ -6,7 +7,47 @@
 #endif
 
 #include <algorithm>
+#include <sstream>
 #include <vector>
+
+// Parse "k1:v1; k2:v2; ..." into parallel vectors
+static bool parse_table_entries(const std::string& str,
+                                std::vector<float>& keys,
+                                std::vector<float>& values) {
+    keys.clear();
+    values.clear();
+    size_t pos = 0;
+    while (pos < str.size()) {
+        while (pos < str.size() && (str[pos] == ' ' || str[pos] == ';')) ++pos;
+        if (pos >= str.size()) break;
+        size_t colon = str.find(':', pos);
+        if (colon == std::string::npos) break;
+        size_t end = str.find(';', colon + 1);
+        if (end == std::string::npos) end = str.size();
+        float k, v;
+        if (!locale_safe::parse_float(str.substr(pos, colon - pos), k) ||
+            !locale_safe::parse_float(str.substr(colon + 1, end - colon - 1), v)) {
+            break;
+        }
+        keys.push_back(k);
+        values.push_back(v);
+        pos = end;
+    }
+    return !keys.empty();
+}
+
+// Serialize back to "k1:v1; k2:v2; ..." (locale-independent)
+static std::string serialize_table_entries(const std::vector<float>& keys,
+                                           const std::vector<float>& values) {
+    std::string result;
+    for (size_t i = 0; i < keys.size(); ++i) {
+        if (i > 0) result += "; ";
+        result += locale_safe::format_float(keys[i], "%.6g");
+        result += ':';
+        result += locale_safe::format_float(values[i], "%.6g");
+    }
+    return result;
+}
 
 void PropertiesWindow::open(const bp2::Blueprint::Node& node,
                              const std::string& node_id_str,
@@ -27,10 +68,16 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     // Build string→float maps from InternedId→float params
     snapshot_params_.clear();
     pending_params_.clear();
+    snapshot_string_params_.clear();
+    pending_string_params_.clear();
     for (const auto& [key_iid, val] : node.params) {
         std::string key_str = std::string(interner_->resolve(key_iid));
         snapshot_params_[key_str] = val;
         pending_params_[key_str]  = val;
+    }
+    for (const auto& [key, val] : node.string_params) {
+        snapshot_string_params_[key] = val;
+        pending_string_params_[key] = val;
     }
 
     // Snapshot for diffing at apply() time
@@ -96,6 +143,25 @@ void PropertiesWindow::render() {
             }
         }
 
+        std::vector<std::string> string_keys;
+        string_keys.reserve(pending_string_params_.size());
+        for (const auto& [k, _] : pending_string_params_) string_keys.push_back(k);
+        std::sort(string_keys.begin(), string_keys.end());
+
+        for (const auto& key : string_keys) {
+            if (key == "table") {
+                render_table_param(key);
+            } else if (key == "text") {
+                render_text_param(key);
+            } else if (key == "font_size") {
+                render_font_size_param(key);
+            } else if (key == "port_edge") {
+                render_port_edge_param(key);
+            } else {
+                render_generic_string_param(key);
+            }
+        }
+
         // Port layout section
         render_port_layout_section(*target);
 
@@ -124,16 +190,32 @@ void PropertiesWindow::render_port_edge_param(const std::string& key) {
     const char* options[] = {"bottom", "top", "left", "right"};
     const char* labels[]  = {"Bottom", "Top", "Left", "Right"};
 
-    // port_edge is stored as a float index (0–3) into the options array
-    float& fval = pending_params_[key];
-    int current = static_cast<int>(fval);
-    if (current < 0 || current > 3) current = 0;
+    int current = 0;
+    auto fit = pending_params_.find(key);
+    if (fit != pending_params_.end()) {
+        current = static_cast<int>(fit->second);
+        if (current < 0 || current > 3) current = 0;
+    } else {
+        auto sit = pending_string_params_.find(key);
+        if (sit != pending_string_params_.end()) {
+            for (int i = 0; i < 4; ++i) {
+                if (sit->second == options[i]) {
+                    current = i;
+                    break;
+                }
+            }
+        }
+    }
 
     if (ImGui::BeginCombo(key.c_str(), labels[current])) {
         for (int i = 0; i < 4; ++i) {
             bool selected = (current == i);
             if (ImGui::Selectable(labels[i], selected)) {
-                fval = static_cast<float>(i);
+                if (fit != pending_params_.end()) {
+                    fit->second = static_cast<float>(i);
+                } else {
+                    pending_string_params_[key] = options[i];
+                }
             }
             if (selected) {
                 ImGui::SetItemDefaultFocus();
@@ -147,6 +229,108 @@ void PropertiesWindow::render_port_edge_param(const std::string& key) {
 void PropertiesWindow::render_generic_param(const std::string& key) {
 #ifndef EDITOR_TESTING
     ImGui::InputFloat(key.c_str(), &pending_params_[key]);
+#endif
+}
+
+void PropertiesWindow::render_table_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    ImGui::Text("Lookup Table");
+
+    std::vector<float> keys, values;
+    parse_table_entries(pending_string_params_[key], keys, values);
+
+    if (keys.empty()) {
+        keys.push_back(0.0f);
+        values.push_back(0.0f);
+    }
+
+    bool changed = false;
+    int remove_idx = -1;
+
+    if (ImGui::BeginTable("##lut", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchSame)) {
+        ImGui::TableSetupColumn("Input", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Output", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("##del", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+        ImGui::TableHeadersRow();
+
+        for (size_t i = 0; i < keys.size(); ++i) {
+            ImGui::TableNextRow();
+            ImGui::PushID(static_cast<int>(i));
+
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::InputFloat("##k", &keys[i], 0, 0, "%.2f")) changed = true;
+
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(-1);
+            if (ImGui::InputFloat("##v", &values[i], 0, 0, "%.2f")) changed = true;
+
+            ImGui::TableNextColumn();
+            if (ImGui::SmallButton("X")) remove_idx = static_cast<int>(i);
+
+            ImGui::PopID();
+        }
+        ImGui::EndTable();
+    }
+
+    if (remove_idx >= 0 && keys.size() > 1) {
+        keys.erase(keys.begin() + remove_idx);
+        values.erase(values.begin() + remove_idx);
+        changed = true;
+    }
+
+    if (ImGui::Button("+ Add Row")) {
+        float new_key = keys.empty() ? 0.0f : keys.back() + 1.0f;
+        float new_val = keys.empty() ? 0.0f : values.back();
+        keys.push_back(new_key);
+        values.push_back(new_val);
+        changed = true;
+    }
+
+    if (changed) {
+        pending_string_params_[key] = serialize_table_entries(keys, values);
+    }
+#endif
+}
+
+void PropertiesWindow::render_text_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    ImGui::InputTextMultiline(key.c_str(), &pending_string_params_[key], ImVec2(-1, 200));
+#endif
+}
+
+void PropertiesWindow::render_font_size_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    const char* options[] = {"small", "medium", "large"};
+    const char* labels[]  = {"Small", "Medium", "Large"};
+
+    std::string& value = pending_string_params_[key];
+    int current = 2;
+    for (int i = 0; i < 3; ++i) {
+        if (value == options[i]) {
+            current = i;
+            break;
+        }
+    }
+
+    if (ImGui::BeginCombo(key.c_str(), labels[current])) {
+        for (int i = 0; i < 3; ++i) {
+            bool selected = (current == i);
+            if (ImGui::Selectable(labels[i], selected)) {
+                value = options[i];
+            }
+            if (selected) {
+                ImGui::SetItemDefaultFocus();
+            }
+        }
+        ImGui::EndCombo();
+    }
+#endif
+}
+
+void PropertiesWindow::render_generic_string_param(const std::string& key) {
+#ifndef EDITOR_TESTING
+    ImGui::InputText(key.c_str(), &pending_string_params_[key]);
 #endif
 }
 
@@ -307,33 +491,54 @@ void PropertiesWindow::apply() {
         has_changes = true;
     }
 
+    if (!has_changes) {
+        for (const auto& [key, new_value] : pending_string_params_) {
+            auto snap_it = snapshot_string_params_.find(key);
+            if (snap_it == snapshot_string_params_.end() || snap_it->second != new_value) {
+                has_changes = true;
+                break;
+            }
+        }
+    }
+
+    if (!has_changes) {
+        for (const auto& [key, old_value] : snapshot_string_params_) {
+            if (pending_string_params_.find(key) == pending_string_params_.end()) {
+                has_changes = true;
+                break;
+            }
+        }
+    }
+
     // Check layout_overrides change
     if (pending_layout_overrides_ != snapshot_layout_overrides_) {
         has_changes = true;
     }
 
     if (has_changes) {
-        model_->push_checkpoint();
+        // Build a single modified node, then commit all changes in one checkpoint.
+        // This guarantees a single undo step regardless of how many fields changed.
+        bp2::Blueprint::Node updated = *target;
 
-        // Apply param changes
+        // Apply all pending params
+        updated.params.clear();
         for (const auto& [key, new_value] : pending_params_) {
-            auto snap_it = snapshot_params_.find(key);
-            if (snap_it == snapshot_params_.end() || snap_it->second != new_value) {
-                ui::InternedId key_iid = interner_->intern(key);
-                execute(*model_, *interner_, cmd_set_param(node_iid, key_iid, new_value));
-            }
+            ui::InternedId key_iid = interner_->intern(key);
+            updated.params[key_iid] = new_value;
         }
+
+        updated.string_params = pending_string_params_;
 
         // Apply name change
-        if (pending_name_ != snapshot_name_) {
-            execute(*model_, *interner_, cmd_set_name(node_iid, pending_name_));
-        }
+        updated.name = pending_name_;
 
         // Apply layout overrides change
-        if (pending_layout_overrides_ != snapshot_layout_overrides_) {
-            execute(*model_, *interner_,
-                    cmd_set_port_layout(node_iid, pending_layout_overrides_));
-        }
+        updated.layout_overrides = pending_layout_overrides_;
+
+        // Single atomic checkpoint + replace
+        model_->push_checkpoint();
+        model_->replace_current(
+            model_->current().without_node(node_iid).with_node(std::move(updated)));
     }
 
     if (on_apply_) {

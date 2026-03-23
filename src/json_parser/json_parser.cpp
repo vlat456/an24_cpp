@@ -922,6 +922,16 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                                 else if (v.is_number()) dev.params[k] = std::to_string(v.get<double>());
                             }
                         }
+                        if (n.contains("position") && n["position"].is_object()) {
+                            float px = n["position"].value("x", 0.0f);
+                            float py = n["position"].value("y", 0.0f);
+                            dev.pos = {px, py};
+                        }
+                        if (n.contains("size") && n["size"].is_object()) {
+                            float sw = n["size"].value("w", 0.0f);
+                            float sh = n["size"].value("h", 0.0f);
+                            dev.size = {sw, sh};
+                        }
                         def.devices.push_back(std::move(dev));
                     }
                 }
@@ -1075,6 +1085,12 @@ MenuTree TypeRegistry::build_menu_tree() const {
         }
 
         node->entries.push_back(classname);
+        auto it = types.find(classname);
+        if (it != types.end() && !it->second.description.empty()) {
+            node->labels[classname] = it->second.description;
+        } else {
+            node->labels[classname] = classname;
+        }
     }
 
     // Sort entries at every level

@@ -166,6 +166,8 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
     // Show current name (or "not set")
     if (active_doc && !active_doc->blueprint().name().empty()) {
         ImGui::TextDisabled("Name: %s", active_doc->blueprint().name().c_str());
+    } else if (active_doc && !active_doc->blueprint().display_name().empty()) {
+        ImGui::TextDisabled("Name: %s", active_doc->blueprint().display_name().c_str());
     } else {
         ImGui::TextDisabled("Name: (not set)");
     }
@@ -179,8 +181,12 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
             std::memset(ws.setName.buf, 0, sizeof(ws.setName.buf));
             // Pre-fill with current name
             const auto& current = active_doc->blueprint().name();
+            const auto& fallback = active_doc->blueprint().display_name();
             if (!current.empty()) {
                 std::strncpy(ws.setName.buf, current.c_str(),
+                             sizeof(ws.setName.buf) - 1);
+            } else if (!fallback.empty()) {
+                std::strncpy(ws.setName.buf, fallback.c_str(),
                              sizeof(ws.setName.buf) - 1);
             }
         }
@@ -188,4 +194,3 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
 
     ImGui::EndMenu();
 }
-

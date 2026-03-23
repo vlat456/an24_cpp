@@ -35,6 +35,16 @@ path_to_node_port(const bp2::Path& path, const bp2::PathArena& arena) {
     return {parent.segment(), port_name};
 }
 
+static bool is_bus_node(const bp2::EditorModel& model, ui::InternedId node_id) {
+    const bp2::Blueprint::Node* node = model.current().find_node(node_id);
+    if (!node) return false;
+    return node->render_hint == "bus";
+}
+
+static bool is_wire_alias_port_name(std::string_view port_name) {
+    return !port_name.empty() && port_name != "v";
+}
+
 // ============================================================================
 // Construction
 // ============================================================================
@@ -870,7 +880,16 @@ InputResult CanvasInput::on_key(Key key) {
             model_.push_checkpoint();
             for (const auto& nid : selected_node_ids_) {
                 if (!nid.empty()) {
-                    execute(model_, interner_, cmd_remove_node(nid));
+                    std::vector<ui::InternedId> connected_wires;
+                    connected_wires.reserve(model_.current().wires().size());
+                    for (const auto& w : model_.current().wires()) {
+                        auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
+                        auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+                        if (src_node == nid || tgt_node == nid) {
+                            connected_wires.push_back(w.id);
+                        }
+                    }
+                    execute(model_, interner_, cmd_remove_node(nid, std::move(connected_wires)));
                 }
             }
             // Nullify transient widget pointer before rebuild destroys
@@ -948,6 +967,14 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         ui::InternedId end_node_iid   = interner_.intern(end_node_sv);
         ui::InternedId end_port_iid   = interner_.intern(end_port->name());
 
+        // Bus visual alias ports are wire-id based; serialize canonical bus port "v".
+        if (is_bus_node(model_, start_node_iid) && start_port_iid != interner_.intern("v")) {
+            start_port_iid = interner_.intern("v");
+        }
+        if (is_bus_node(model_, end_node_iid) && end_port_iid != interner_.intern("v")) {
+            end_port_iid = interner_.intern("v");
+        }
+
         // Allocate wire ID
         std::string wire_id_str = model_.allocate_wire_id();
         ui::InternedId wire_iid = interner_.intern(wire_id_str);
@@ -963,15 +990,11 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         w.source = source;
         w.target = target;
 
-        // Checkpoint before mutation
-        model_.push_checkpoint();
         bool added = model_.add_wire(std::move(w));
         if (added) {
             // Rebuild visual scene to show the new wire
             visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
             result.rebuild_simulation = true;
-        } else {
-            model_.discard_last_checkpoint();
         }
     }
     return result;
@@ -1011,37 +1034,65 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         bool compatible = !same_as_fixed &&
             visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
 
-        if (compatible) {
+        if (is_bus_node(model_, port_node_iid) && is_wire_alias_port_name(ph->port->name())) {
+            size_t target_wire_idx = find_wire_index(hit_port_iid);
+            if (target_wire_idx != SIZE_MAX && target_wire_idx < wires.size()) {
+                if (target_wire_idx != reconnect_wire_idx_) {
+                    auto reordered = wires;
+                    std::swap(reordered[reconnect_wire_idx_], reordered[target_wire_idx]);
+
+                    bp2::Blueprint updated_bp = model_.current();
+                    for (const auto& old_wire : model_.current().wires()) {
+                        updated_bp = updated_bp.without_wire(old_wire.id);
+                    }
+                    for (const auto& new_wire : reordered) {
+                        updated_bp = updated_bp.with_wire(new_wire);
+                    }
+
+                    model_.push_checkpoint();
+                    model_.replace_current(std::move(updated_bp));
+                    visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
+                    result.rebuild_simulation = true;
+                    reconnected = true;
+                } else {
+                    reconnected = true;
+                }
+            }
+        } else if (compatible) {
             // Build updated wire with new endpoint
-            bp2::Blueprint::Wire updated = wire;
             ui::InternedId new_node_iid = interner_.intern(port_node_sv);
             ui::InternedId new_port_iid = interner_.intern(ph->port->name());
+
+            // Bus visual alias ports are wire-id based; serialize canonical bus port "v".
+            if (is_bus_node(model_, new_node_iid) && new_port_iid != interner_.intern("v")) {
+                new_port_iid = interner_.intern("v");
+            }
+
             bp2::Path new_node_path = arena_.make_node(arena_.root(), new_node_iid);
             bp2::Path new_port_path = arena_.make_port(new_node_path, new_port_iid);
 
-            if (reconnect_detach_start_) {
-                updated.source = new_port_path;
-            } else {
-                updated.target = new_port_path;
+            bool updated_ok = model_.update_wire(wire.id, [&](bp2::Blueprint::Wire& wr) {
+                if (reconnect_detach_start_) {
+                    wr.source = new_port_path;
+                } else {
+                    wr.target = new_port_path;
+                }
+            });
+
+            if (updated_ok) {
+                visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
+                result.rebuild_simulation = true;
+                reconnected = true;
             }
-
-            // Checkpoint before mutation
-            model_.push_checkpoint();
-            model_.remove_wire(wire.id);
-            model_.add_wire(std::move(updated));
-
-            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
-            result.rebuild_simulation = true;
-            reconnected = true;
         }
     }
 
     if (!reconnected && reconnect_wire_idx_ < model_.current().wires().size()) {
         // Wire dropped on empty space → remove it
-        model_.push_checkpoint();
-        execute(model_, interner_, cmd_remove_wire(wire.id));
-        visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
-        result.rebuild_simulation = true;
+        if (model_.remove_wire(wire.id)) {
+            visual::mutations::rebuild(scene_, model_.current(), interner_, arena_, group_id_);
+            result.rebuild_simulation = true;
+        }
     }
 
     return result;
@@ -1109,6 +1160,60 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
 
     ui::InternedId port_node_iid = interner_.intern(port_node_sv);
     ui::InternedId port_name_iid = interner_.intern(port_name_sv);
+
+    // Bus ports are special: alias ports are named by wire ID.
+    // Clicking base bus port "v" should start wire creation, not reconnect
+    // an arbitrary first wire.
+    if (is_bus_node(model_, port_node_iid)) {
+        if (port_name_sv == "v") {
+            return std::nullopt;
+        }
+
+        if (is_wire_alias_port_name(port_name_sv)) {
+            size_t wi = find_wire_index(port_name_iid);
+            if (wi == SIZE_MAX) return std::nullopt;
+            const bp2::Blueprint::Wire& w = model_.current().wires()[wi];
+
+            auto build_result = [&](bool detach_start) -> WirePortMatch {
+                Pt anchor_pos;
+                PortSide fixed_side;
+                if (detach_start) {
+                    fixed_side = PortSide::Input;
+                    auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+                    if (!w.routing_points.empty()) {
+                        anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
+                    } else {
+                        auto* end_widget = scene_.find(interner_.resolve(tgt_node));
+                        if (end_widget) {
+                            auto* end_port = end_widget->portByName(interner_.resolve(tgt_port), interner_.resolve(w.id));
+                            if (end_port)
+                                anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                        }
+                    }
+                } else {
+                    fixed_side = PortSide::Output;
+                    auto [src_node, src_port] = path_to_node_port(w.source, arena_);
+                    if (!w.routing_points.empty()) {
+                        anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
+                    } else {
+                        auto* start_widget = scene_.find(interner_.resolve(src_node));
+                        if (start_widget) {
+                            auto* start_port = start_widget->portByName(interner_.resolve(src_port), interner_.resolve(w.id));
+                            if (start_port)
+                                anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                        }
+                    }
+                }
+                return WirePortMatch{wi, detach_start, anchor_pos, fixed_side};
+            };
+
+            auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
+            auto [tgt_node, _tgt_port] = path_to_node_port(w.target, arena_);
+            if (src_node == port_node_iid) return build_result(true);
+            if (tgt_node == port_node_iid) return build_result(false);
+        }
+        return std::nullopt;
+    }
 
     // Helper: build WirePortMatch for a given wire index and side.
     auto build_result = [&](size_t wi, bool detach_start) -> WirePortMatch {

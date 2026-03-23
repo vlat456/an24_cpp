@@ -58,8 +58,13 @@ TextNodeWidget::TextNodeWidget(const bp2::Blueprint::Node& data, const ui::Strin
             if (data.width.has_value() && data.height.has_value()) {
                 node.set_explicit_size(ui::Pt(*data.width, *data.height));
             }
+            // Numeric params
             for (const auto& [k, v] : data.params) {
                 node.params[std::string(interner.resolve(k))] = std::to_string(v);
+            }
+            // String params (font_size, text content, etc.)
+            for (const auto& [k, v] : data.string_params) {
+                node.params[k] = v;
             }
             if (data.has_color) {
                 NodeColor c;

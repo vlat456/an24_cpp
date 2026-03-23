@@ -95,6 +95,33 @@ TEST_F(CommandTest, AddRemoveNode) {
     EXPECT_EQ(model.current().nodes().size(), 0u);
 }
 
+TEST_F(CommandTest, RemoveNodeAlsoRemovesConnectedWires) {
+    bp2::PathArena arena(interner);
+
+    auto n1 = make_node(interner, "n1");
+    auto n2 = make_node(interner, "n2");
+    auto n3 = make_node(interner, "n3");
+    execute(model, interner, cmd_add_node(n1));
+    execute(model, interner, cmd_add_node(n2));
+    execute(model, interner, cmd_add_node(n3));
+
+    execute(model, interner, cmd_add_wire(make_wire(interner, arena, "w1", "n1", "out", "n2", "in")));
+    execute(model, interner, cmd_add_wire(make_wire(interner, arena, "w2", "n2", "out", "n3", "in")));
+    execute(model, interner, cmd_add_wire(make_wire(interner, arena, "w3", "n1", "out2", "n3", "in2")));
+
+    ASSERT_EQ(model.current().wires().size(), 3u);
+
+    std::vector<ui::InternedId> connected = {
+        interner.intern("w1"),
+        interner.intern("w2"),
+    };
+    execute(model, interner, cmd_remove_node(interner.intern("n2"), connected));
+
+    EXPECT_EQ(model.current().find_node(interner.intern("n2")), nullptr);
+    ASSERT_EQ(model.current().wires().size(), 1u);
+    EXPECT_NE(model.current().find_wire(interner.intern("w3")), nullptr);
+}
+
 // =============================================================================
 // Undo/Redo round-trip for CmdSetGridStep
 // =============================================================================

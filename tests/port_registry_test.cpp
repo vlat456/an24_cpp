@@ -6,7 +6,7 @@
 // Test that ensures component ports in v2 blueprint match expected C++ field names
 
 TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
-    // Load RU19A definition from registry (v2 blueprint format)
+    // Load RU19A definition from registry (v3 blueprint format)
     std::ifstream registry_file(std::string(TEST_DATA_DIR) + "/library/systems/RU19A.blueprint");
     ASSERT_TRUE(registry_file.is_open());
 
@@ -18,10 +18,14 @@ TEST(PortRegistryTest, RU19A_Ports_Match_JsonRegistry) {
         "v_start", "v_bus", "k_mod", "rpm_out", "t4_out"
     };
 
-    // Get actual ports from v2 "exposes" section
+    // Get actual ports from v3 "interface" array
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["exposes"].items()) {
-        actual_ports.push_back(port_name);
+    if (registry.contains("interface") && registry["interface"].is_array()) {
+        for (auto& port : registry["interface"]) {
+            if (port.contains("name") && port["name"].is_string()) {
+                actual_ports.push_back(port["name"].get<std::string>());
+            }
+        }
     }
 
     // Sort for comparison
@@ -42,10 +46,14 @@ TEST(PortRegistryTest, DMR400_Ports_Match_JsonRegistry) {
         "v_gen_ref", "v_in", "v_out", "lamp"
     };
 
-    // Get actual ports from v2 "exposes" section
+    // Get actual ports from v3 "interface" array
     std::vector<std::string> actual_ports;
-    for (auto& [port_name, _] : registry["exposes"].items()) {
-        actual_ports.push_back(port_name);
+    if (registry.contains("interface") && registry["interface"].is_array()) {
+        for (auto& port : registry["interface"]) {
+            if (port.contains("name") && port["name"].is_string()) {
+                actual_ports.push_back(port["name"].get<std::string>());
+            }
+        }
     }
 
     std::sort(expected_ports.begin(), expected_ports.end());

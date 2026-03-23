@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/tests/canvas_input_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/tests/canvas_input_tests[1]_tests.cmake")
+else()
+  add_test(canvas_input_tests_NOT_BUILT canvas_input_tests_NOT_BUILT)
+endif()

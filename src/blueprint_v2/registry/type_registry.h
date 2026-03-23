@@ -18,16 +18,23 @@ public:
         std::string description;
         bool is_blueprint = false;
         Blueprint const* blueprint = nullptr;
+        std::unordered_map<std::string, std::string> param_defaults;
     };
 
     TypeRegistry() = default;
 
-    void register_component(ui::InternedId type_id, Interface iface,
-                            std::string description = "");
+    void register_component(
+        ui::InternedId type_id,
+        Interface iface,
+        std::string description = "",
+        std::unordered_map<std::string, std::string> param_defaults = {});
 
-    void register_blueprint(ui::InternedId type_id, Interface iface,
-                            std::string description = "",
-                            Blueprint const* bp = nullptr);
+    void register_blueprint(
+        ui::InternedId type_id,
+        Interface iface,
+        std::string description = "",
+        Blueprint const* bp = nullptr,
+        std::unordered_map<std::string, std::string> param_defaults = {});
 
     Entry const* find(ui::InternedId type_id) const;
     bool has(ui::InternedId type_id) const;

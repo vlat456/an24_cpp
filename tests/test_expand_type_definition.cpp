@@ -284,24 +284,22 @@ TEST(ExpandTypeDef, RoutingPoints_Preserved) {
 // parse_type_definition reads "wires" as connections with routing_points
 // =============================================================================
 TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
-    // Simulate a v2 blueprint that has nodes and wires with routing points
+    // Simulate a v3 blueprint that has nodes and wires with routing points
     std::string json_str = R"({
-        "version": 2,
-        "meta": {
-            "name": "WireTest",
-            "cpp_class": false
-        },
-        "exposes": {},
-        "nodes": {
-            "a": {"type": "Battery", "pos": [0, 0]},
-            "b": {"type": "Resistor", "pos": [0, 0]}
-        },
+        "version": "3.0",
+        "id": "WireTest",
+        "display_name": "WireTest",
+        "cpp_class": false,
+        "interface": [],
+        "nodes": [
+            {"id": "a", "type": "Battery"},
+            {"id": "b", "type": "Resistor"}
+        ],
         "wires": [
             {
                 "id": "w1",
-                "from": ["a", "v_out"],
-                "to": ["b", "v_in"],
-                "routing": [[100.0, 200.0]]
+                "source": "/a:v_out",
+                "target": "/b:v_in"
             }
         ]
     })";
@@ -319,19 +317,13 @@ TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
     ASSERT_NE(def, nullptr);
     ASSERT_EQ(def->connections.size(), 1);
 
-    // Verify routing points were parsed
+    // Verify wire endpoints were parsed correctly
     EXPECT_EQ(def->connections[0].from, "a.v_out");
     EXPECT_EQ(def->connections[0].to, "b.v_in");
-    ASSERT_EQ(def->connections[0].routing_points.size(), 1);
-    EXPECT_FLOAT_EQ(def->connections[0].routing_points[0].first, 100.0f);
-    EXPECT_FLOAT_EQ(def->connections[0].routing_points[0].second, 200.0f);
 
-    // Expand and verify routing points survive into Blueprint
+    // Expand and verify wire count survives into Blueprint
     Blueprint bp = expand_type_definition(*def, reg);
     ASSERT_EQ(bp.wires.size(), 1);
-    ASSERT_EQ(bp.wires[0].routing_points.size(), 1);
-    EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].x, 100.0f);
-    EXPECT_FLOAT_EQ(bp.wires[0].routing_points[0].y, 200.0f);
 
     // Cleanup
     std::filesystem::remove_all(tmp);
@@ -342,19 +334,20 @@ TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
 // =============================================================================
 TEST(ExpandTypeDef, ParseTypeDefinition_DevicePosSize) {
     std::string json_str = R"({
-        "version": 2,
+        "version": "3.0",
         "meta": {
             "name": "LayoutTest",
             "cpp_class": false
         },
-        "exposes": {},
-        "nodes": {
-            "bat": {
+        "interface": [],
+        "nodes": [
+            {
+                "id": "bat",
                 "type": "Battery",
-                "pos": [96.0, 112.0],
-                "size": [128.0, 80.0]
+                "position": {"x": 96.0, "y": 112.0},
+                "size": {"w": 128.0, "h": 80.0}
             }
-        },
+        ],
         "wires": []
     })";
 
