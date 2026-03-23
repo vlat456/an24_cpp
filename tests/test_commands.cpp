@@ -880,6 +880,140 @@ TEST_F(CommandTest, ExtractToBlueprint_DeterministicIfaceNaming) {
     EXPECT_EQ(sa, sb);
 }
 
+TEST_F(CommandTest, ExtractToBlueprint_InlineBlueprintStructure) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+    const auto& nested = updated->nested()[0];
+    ASSERT_TRUE(nested.inline_def != nullptr);
+    const bp2::Blueprint& inner = *nested.inline_def;
+
+    // Interface must have exactly 1 input ("in") and 1 output ("out").
+    const auto& iface = inner.iface();
+    ASSERT_EQ(iface.size(), 2u);
+    auto pd_in = iface.find(interner.intern("in"));
+    auto pd_out = iface.find(interner.intern("out"));
+    ASSERT_TRUE(pd_in.has_value());
+    ASSERT_TRUE(pd_out.has_value());
+    EXPECT_EQ(pd_in->direction, bp2::Direction::Input);
+    EXPECT_EQ(pd_out->direction, bp2::Direction::Output);
+
+    // Find the BlueprintInput node inside inline_def.
+    const bp2::Blueprint::Node* bp_in_node = nullptr;
+    const bp2::Blueprint::Node* bp_out_node = nullptr;
+    for (const auto& n : inner.nodes()) {
+        if (n.type == interner.intern("BlueprintInput")) bp_in_node = &n;
+        if (n.type == interner.intern("BlueprintOutput")) bp_out_node = &n;
+    }
+    ASSERT_NE(bp_in_node, nullptr);
+    ASSERT_NE(bp_out_node, nullptr);
+
+    // BlueprintInput: ext=Input, port=Output
+    ASSERT_EQ(bp_in_node->inputs.size(), 1u);
+    ASSERT_EQ(bp_in_node->outputs.size(), 1u);
+    EXPECT_EQ(bp_in_node->inputs[0].name, interner.intern("ext"));
+    EXPECT_EQ(bp_in_node->inputs[0].side, PortSide::Input);
+    EXPECT_EQ(bp_in_node->outputs[0].name, interner.intern("port"));
+    EXPECT_EQ(bp_in_node->outputs[0].side, PortSide::Output);
+
+    // BlueprintOutput: port=Input, ext=Output
+    ASSERT_EQ(bp_out_node->inputs.size(), 1u);
+    ASSERT_EQ(bp_out_node->outputs.size(), 1u);
+    EXPECT_EQ(bp_out_node->inputs[0].name, interner.intern("port"));
+    EXPECT_EQ(bp_out_node->inputs[0].side, PortSide::Input);
+    EXPECT_EQ(bp_out_node->outputs[0].name, interner.intern("ext"));
+    EXPECT_EQ(bp_out_node->outputs[0].side, PortSide::Output);
+
+    // Inline blueprint must contain internal nodes a and b.
+    EXPECT_NE(inner.find_node(interner.intern("a")), nullptr);
+    EXPECT_NE(inner.find_node(interner.intern("b")), nullptr);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    const ui::InternedId nested_id = updated->nested()[0].id;
+    const std::string nested_sid(interner.resolve(nested_id));
+
+    // Bridge nodes in parent with canonical naming.
+    const ui::InternedId in_bridge_id = interner.intern(nested_sid + ":in");
+    const ui::InternedId out_bridge_id = interner.intern(nested_sid + ":out");
+    const auto* in_bridge = updated->find_node(in_bridge_id);
+    const auto* out_bridge = updated->find_node(out_bridge_id);
+    ASSERT_NE(in_bridge, nullptr);
+    ASSERT_NE(out_bridge, nullptr);
+
+    // Bridge nodes must be in the subgroup.
+    EXPECT_EQ(in_bridge->group_id, nested_sid);
+    EXPECT_EQ(out_bridge->group_id, nested_sid);
+
+    // Find subgroup bridge wires:
+    // Input bridge: in_bridge.port -> a.in
+    // Output bridge: b.out -> out_bridge.port
+    bool found_in_bridge_wire = false;
+    bool found_out_bridge_wire = false;
+    const ui::InternedId port_id = interner.intern("port");
+    const ui::InternedId a_id = interner.intern("a");
+    const ui::InternedId b_id = interner.intern("b");
+    const ui::InternedId in_id = interner.intern("in");
+    const ui::InternedId out_id = interner.intern("out");
+
+    for (const auto& w : updated->wires()) {
+        // Decode source
+        if (w.source.kind() != bp2::PathKind::Port) continue;
+        bp2::Path src_node_path = arena.parent(w.source);
+        if (src_node_path.kind() != bp2::PathKind::Node) continue;
+        ui::InternedId src_node = src_node_path.segment();
+        ui::InternedId src_port = w.source.segment();
+
+        if (w.target.kind() != bp2::PathKind::Port) continue;
+        bp2::Path tgt_node_path = arena.parent(w.target);
+        if (tgt_node_path.kind() != bp2::PathKind::Node) continue;
+        ui::InternedId tgt_node = tgt_node_path.segment();
+        ui::InternedId tgt_port = w.target.segment();
+
+        // in_bridge.port -> a.in
+        if (src_node == in_bridge_id && src_port == port_id
+            && tgt_node == a_id && tgt_port == in_id) {
+            found_in_bridge_wire = true;
+        }
+        // b.out -> out_bridge.port
+        if (src_node == b_id && src_port == out_id
+            && tgt_node == out_bridge_id && tgt_port == port_id) {
+            found_out_bridge_wire = true;
+        }
+    }
+
+    EXPECT_TRUE(found_in_bridge_wire) << "Missing wire: input bridge .port -> a.in";
+    EXPECT_TRUE(found_out_bridge_wire) << "Missing wire: b.out -> output bridge .port";
+}
+
 TEST_F(CommandTest, ExtractToBlueprint_RejectsInputOutputIfaceNameCollision) {
     bp2::PathArena arena(interner);
     bp2::Blueprint source = make_extract_iface_collision_fixture(interner, arena);
