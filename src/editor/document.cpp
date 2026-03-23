@@ -182,7 +182,8 @@ bool Document::save(const std::string& path) {
 }
 
 bool Document::load(const std::string& path) {
-    auto bp = load_blueprint_from_file(path.c_str(), interner_, arena_);
+    TypeRegistry parser_registry = load_type_registry("library/");
+    auto bp = load_blueprint_from_file_validated(path.c_str(), interner_, arena_, parser_registry);
     if (!bp.has_value()) return false;
 
     // Close any sub-windows from previous blueprint

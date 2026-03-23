@@ -1,6 +1,7 @@
 #include "visual/persist.h"
 #include "blueprint_v2/codec/blueprint_codec.h"
 #include "blueprint_v2/registry/type_registry.h"
+#include "blueprint_v2/validation/invariant_checker.h"
 #include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 #include <fstream>
@@ -87,5 +88,33 @@ std::optional<bp2::Blueprint> load_blueprint_from_file(
         spdlog::error("[persist] Failed to load blueprint: {}", err.message);
         return std::nullopt;
     }
+    return bp;
+}
+
+std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
+        const char* path,
+        ui::StringInterner& interner,
+        bp2::PathArena& arena,
+        const TypeRegistry& parser_registry) {
+    auto bp = load_blueprint_from_file(path, interner, arena);
+    if (!bp) {
+        return std::nullopt;
+    }
+
+    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
+    auto inv = bp2::InvariantChecker::validate(*bp, arena, bp2_registry);
+    if (!inv.valid) {
+        spdlog::error("[persist] Invariant validation failed for '{}': {}", path, inv.error);
+        return std::nullopt;
+    }
+
+    for (const auto& node : bp->nodes()) {
+        std::string type_name(interner.resolve(node.type));
+        if (!parser_registry.has(type_name)) {
+            spdlog::error("[persist] Unknown node type '{}' in '{}'", type_name, path);
+            return std::nullopt;
+        }
+    }
+
     return bp;
 }

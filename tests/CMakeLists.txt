@@ -1676,9 +1676,12 @@ gtest_discover_tests(bp2_bake_tests)
 # Validation tests (PathResolver, WireValidator, Blueprint invariants)
 add_executable(bp2_validation_tests
     blueprint_v2/test_validation.cpp
+    blueprint_v2/test_persist_validation.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
 )
 target_include_directories(bp2_validation_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
 )
 target_link_libraries(bp2_validation_tests PRIVATE
     blueprint_v2
