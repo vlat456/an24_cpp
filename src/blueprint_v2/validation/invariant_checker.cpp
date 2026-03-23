@@ -2,6 +2,14 @@
 
 #include <unordered_set>
 
+namespace {
+
+static std::string iid_to_string(ui::InternedId id) {
+    return std::to_string(id.raw());
+}
+
+} // namespace
+
 namespace bp2 {
 
 InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
@@ -13,7 +21,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     std::unordered_set<ui::InternedId> node_ids;
     for (auto const& n : bp.nodes()) {
         if (!node_ids.insert(n.id).second) {
-            out.error = "duplicate node ID";
+            out.error = "duplicate node ID: " + iid_to_string(n.id);
             return out;
         }
     }
@@ -21,7 +29,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     std::unordered_set<ui::InternedId> wire_ids;
     for (auto const& w : bp.wires()) {
         if (!wire_ids.insert(w.id).second) {
-            out.error = "duplicate wire ID";
+            out.error = "duplicate wire ID: " + iid_to_string(w.id);
             return out;
         }
     }
@@ -29,29 +37,31 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     std::unordered_set<ui::InternedId> nested_ids;
     for (auto const& n : bp.nested()) {
         if (!nested_ids.insert(n.id).second) {
-            out.error = "duplicate nested ID";
+            out.error = "duplicate nested ID: " + iid_to_string(n.id);
             return out;
         }
     }
 
     for (auto const& node : bp.nodes()) {
         if (!registry.has(node.type)) {
-            out.error = "unknown node type";
+            out.error = "unknown node type at node id=" + iid_to_string(node.id)
+                + " type=" + iid_to_string(node.type);
             return out;
         }
     }
 
     for (auto const& n : bp.nested()) {
         if (n.embedded && !n.inline_def) {
-            out.error = "embedded nested missing inline_def";
+            out.error = "embedded nested missing inline_def id=" + iid_to_string(n.id);
             return out;
         }
         if (!n.embedded && n.blueprint_id.empty()) {
-            out.error = "non-embedded nested missing blueprint_id";
+            out.error = "non-embedded nested missing blueprint_id id=" + iid_to_string(n.id);
             return out;
         }
         if (!n.embedded && !n.blueprint_id.empty() && !registry.has(n.blueprint_id)) {
-            out.error = "unknown nested blueprint";
+            out.error = "unknown nested blueprint id=" + iid_to_string(n.id)
+                + " blueprint_id=" + iid_to_string(n.blueprint_id);
             return out;
         }
     }
@@ -59,7 +69,7 @@ InvariantChecker::Result InvariantChecker::validate(Blueprint const& bp,
     for (auto const& w : bp.wires()) {
         auto wr = WireValidator::validate(w, bp, arena, registry);
         if (!wr.valid) {
-            out.error = wr.error;
+            out.error = "wire id=" + iid_to_string(w.id) + ": " + wr.error;
             return out;
         }
     }

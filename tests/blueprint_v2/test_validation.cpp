@@ -251,6 +251,7 @@ TEST(BlueprintValidate, DuplicateNodeIdsFail) {
 
     auto r = bp2::InvariantChecker::validate(bp, arena, reg);
     EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("dup"), std::string::npos);
     EXPECT_THROW(bp.validate(reg), std::runtime_error);
 }
 
@@ -277,6 +278,7 @@ TEST(BlueprintValidate, DuplicateWireIdsFail) {
 
     auto r = bp2::InvariantChecker::validate(bp, arena, reg);
     EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("dup"), std::string::npos);
     EXPECT_THROW(bp.validate(reg), std::runtime_error);
 }
 
@@ -290,6 +292,7 @@ TEST(BlueprintValidate, UnknownNodeTypeFails) {
     PathArena arena(I);
     auto r = bp2::InvariantChecker::validate(bp, arena, reg);
     EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("unknown node type"), std::string::npos);
     EXPECT_THROW(bp.validate(reg), std::runtime_error);
 }
 
@@ -328,6 +331,7 @@ TEST(BlueprintValidate, WirePathUnresolvedFails) {
 
     auto r = bp2::InvariantChecker::validate(bp, arena, reg);
     EXPECT_FALSE(r.valid);
+    EXPECT_NE(r.error.find("wire id="), std::string::npos);
     EXPECT_THROW(bp.validate(reg, arena), std::runtime_error);
 }
 
