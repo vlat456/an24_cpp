@@ -72,8 +72,19 @@ nlohmann::json encode_interface(Interface const& iface,
 
 nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
                              ui::StringInterner const& interner) {
+    std::vector<Blueprint::Node const*> sorted;
+    sorted.reserve(nodes.size());
+    for (auto const& node : nodes) sorted.push_back(&node);
+    std::sort(sorted.begin(), sorted.end(), [&](Blueprint::Node const* a, Blueprint::Node const* b) {
+        std::string_view ida = interner.resolve(a->id);
+        std::string_view idb = interner.resolve(b->id);
+        if (ida == idb) return interner.resolve(a->type) < interner.resolve(b->type);
+        return ida < idb;
+    });
+
     auto arr = nlohmann::json::array();
-    for (auto const& node : nodes) {
+    for (auto const* node_ptr : sorted) {
+        auto const& node = *node_ptr;
         nlohmann::json n;
         n["id"] = std::string(interner.resolve(node.id));
         n["type"] = std::string(interner.resolve(node.type));
@@ -144,8 +155,18 @@ nlohmann::json encode_nodes(std::vector<Blueprint::Node> const& nodes,
 nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
                              ui::StringInterner const& interner,
                              PathArena const& path_arena) {
+    std::vector<Blueprint::Wire const*> sorted;
+    sorted.reserve(wires.size());
+    for (auto const& wire : wires) sorted.push_back(&wire);
+    std::sort(sorted.begin(), sorted.end(), [&](Blueprint::Wire const* a, Blueprint::Wire const* b) {
+        std::string_view ida = interner.resolve(a->id);
+        std::string_view idb = interner.resolve(b->id);
+        return ida < idb;
+    });
+
     auto arr = nlohmann::json::array();
-    for (auto const& wire : wires) {
+    for (auto const* wire_ptr : sorted) {
+        auto const& wire = *wire_ptr;
         nlohmann::json w;
         w["id"] = std::string(interner.resolve(wire.id));
         w["source"] = path_arena.to_string(wire.source);
@@ -163,10 +184,20 @@ nlohmann::json encode_wires(std::vector<Blueprint::Wire> const& wires,
 }
 
 nlohmann::json encode_nested(std::vector<Blueprint::Nested> const& nested_vec,
-                              ui::StringInterner const& interner,
-                              PathArena const& arena) {
+                               ui::StringInterner const& interner,
+                               PathArena const& arena) {
+    std::vector<Blueprint::Nested const*> sorted;
+    sorted.reserve(nested_vec.size());
+    for (auto const& nested : nested_vec) sorted.push_back(&nested);
+    std::sort(sorted.begin(), sorted.end(), [&](Blueprint::Nested const* a, Blueprint::Nested const* b) {
+        std::string_view ida = interner.resolve(a->id);
+        std::string_view idb = interner.resolve(b->id);
+        return ida < idb;
+    });
+
     auto arr = nlohmann::json::array();
-    for (auto const& nested : nested_vec) {
+    for (auto const* nested_ptr : sorted) {
+        auto const& nested = *nested_ptr;
         nlohmann::json n;
         n["id"] = std::string(interner.resolve(nested.id));
         n["blueprint"] = std::string(interner.resolve(nested.blueprint_id));

@@ -408,3 +408,51 @@ TEST(BlueprintCodec, RoundTripInterface) {
     EXPECT_EQ(ports[0].domain, Domain::Electrical);
     EXPECT_EQ(ports[0].direction, bp2::Direction::Input);
 }
+
+TEST(BlueprintCodec, EncodeDeterministicNodeAndWireOrdering) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("order_test"));
+    bp = bp.with_display_name("Order Test");
+
+    bp2::Blueprint::Node n3;
+    n3.id = interner.intern("z_node");
+    n3.type = interner.intern("Battery");
+    bp = bp.with_node(std::move(n3));
+
+    bp2::Blueprint::Node n1;
+    n1.id = interner.intern("a_node");
+    n1.type = interner.intern("Resistor");
+    bp = bp.with_node(std::move(n1));
+
+    bp2::Blueprint::Node n2;
+    n2.id = interner.intern("m_node");
+    n2.type = interner.intern("Switch");
+    bp = bp.with_node(std::move(n2));
+
+    bp2::Blueprint::Wire w2;
+    w2.id = interner.intern("wire_20");
+    w2.source = arena.make_port(arena.make_node(arena.root(), interner.intern("z_node")), interner.intern("v_out"));
+    w2.target = arena.make_port(arena.make_node(arena.root(), interner.intern("a_node")), interner.intern("in"));
+    bp = bp.with_wire(std::move(w2));
+
+    bp2::Blueprint::Wire w1;
+    w1.id = interner.intern("wire_10");
+    w1.source = arena.make_port(arena.make_node(arena.root(), interner.intern("m_node")), interner.intern("v_out"));
+    w1.target = arena.make_port(arena.make_node(arena.root(), interner.intern("a_node")), interner.intern("in"));
+    bp = bp.with_wire(std::move(w1));
+
+    std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena);
+    auto j = nlohmann::json::parse(json_str);
+
+    ASSERT_EQ(j["nodes"].size(), 3u);
+    EXPECT_EQ(j["nodes"][0]["id"], "a_node");
+    EXPECT_EQ(j["nodes"][1]["id"], "m_node");
+    EXPECT_EQ(j["nodes"][2]["id"], "z_node");
+
+    ASSERT_EQ(j["wires"].size(), 2u);
+    EXPECT_EQ(j["wires"][0]["id"], "wire_10");
+    EXPECT_EQ(j["wires"][1]["id"], "wire_20");
+}
