@@ -2,6 +2,7 @@
 #include "blueprint_v2/validation/invariant_checker.h"
 #include <nlohmann/json.hpp>
 #include <cerrno>
+#include <cmath>
 #include <cstdlib>
 #include <unordered_map>
 #include <unordered_set>
@@ -9,6 +10,17 @@
 namespace bp2 {
 
 namespace {
+
+static float parse_finite_float(nlohmann::json const& value, std::string const& field_name) {
+    if (!value.is_number()) {
+        throw std::runtime_error("invalid numeric field: " + field_name);
+    }
+    const float v = value.get<float>();
+    if (!std::isfinite(v)) {
+        throw std::runtime_error("invalid non-finite numeric field: " + field_name);
+    }
+    return v;
+}
 
 static bool is_default_node_content(const Blueprint::Node& node) {
     return node.content_type == NodeContentType::None
@@ -345,13 +357,13 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
             throw std::runtime_error("invalid node entry: missing numeric field 'position.y'");
         }
-        node.x = n["position"]["x"].get<float>();
-        node.y = n["position"]["y"].get<float>();
+        node.x = parse_finite_float(n["position"]["x"], "position.x");
+        node.y = parse_finite_float(n["position"]["y"], "position.y");
         if (n.contains("width") && n["width"].is_number()) {
-            node.width = n["width"].get<float>();
+            node.width = parse_finite_float(n["width"], "width");
         }
         if (n.contains("height") && n["height"].is_number()) {
-            node.height = n["height"].get<float>();
+            node.height = parse_finite_float(n["height"], "height");
         }
         if (n.contains("params") && n["params"].is_object()) {
             for (auto& [key, val] : n["params"].items()) {
@@ -447,8 +459,20 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
 
         if (n.contains("layout_overrides") && n["layout_overrides"].is_array()) {
             for (auto const& lo : n["layout_overrides"]) {
-                if (!lo.is_object()) continue;
-                if (!lo.contains("port_name") || !lo["port_name"].is_string()) continue;
+                if (!lo.is_object()) {
+                    throw std::runtime_error("invalid node entry: layout_overrides item must be an object");
+                }
+                static const std::unordered_set<std::string> allowed_layout_override_fields = {
+                    "port_name", "side", "position"
+                };
+                for (auto it = lo.begin(); it != lo.end(); ++it) {
+                    if (allowed_layout_override_fields.find(it.key()) == allowed_layout_override_fields.end()) {
+                        throw std::runtime_error("unknown layout_overrides field: " + it.key());
+                    }
+                }
+                if (!lo.contains("port_name") || !lo["port_name"].is_string()) {
+                    throw std::runtime_error("invalid node entry: layout_overrides missing string field 'port_name'");
+                }
                 Blueprint::Node::PortLayoutOverride ov;
                 ov.port_name = lo["port_name"].get<std::string>();
                 if (lo.contains("side") && lo["side"].is_string()) {
@@ -460,6 +484,8 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
                 }
                 if (lo.contains("position") && lo["position"].is_number_integer()) {
                     ov.position = lo["position"].get<int>();
+                } else if (lo.contains("position") && !lo["position"].is_number_integer()) {
+                    throw std::runtime_error("invalid node entry: layout_overrides.position must be integer");
                 }
                 node.layout_overrides.push_back(std::move(ov));
             }
@@ -467,7 +493,17 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
 
         if (n.contains("ports") && n["ports"].is_object()) {
             for (auto const& [port_name, p] : n["ports"].items()) {
-                if (!p.is_object()) continue;
+                if (!p.is_object()) {
+                    throw std::runtime_error("invalid node entry: port descriptor must be an object");
+                }
+                static const std::unordered_set<std::string> allowed_port_fields = {
+                    "direction", "type"
+                };
+                for (auto it = p.begin(); it != p.end(); ++it) {
+                    if (allowed_port_fields.find(it.key()) == allowed_port_fields.end()) {
+                        throw std::runtime_error("unknown node port field: " + it.key());
+                    }
+                }
                 auto pid = interner.intern(port_name);
 
                 PortType ptype = PortType::Any;
@@ -549,7 +585,9 @@ Blueprint decode_wires(Blueprint bp, nlohmann::json const& arr,
                 if (!rp[0].is_number() || !rp[1].is_number()) {
                     throw std::runtime_error("invalid wire entry: routing_points values must be numeric");
                 }
-                wire.routing_points.emplace_back(rp[0].get<float>(), rp[1].get<float>());
+                const float x = parse_finite_float(rp[0], "routing_points.x");
+                const float y = parse_finite_float(rp[1], "routing_points.y");
+                wire.routing_points.emplace_back(x, y);
             }
         } else if (w.contains("routing_points") && !w["routing_points"].is_array()) {
             throw std::runtime_error("invalid wire entry: routing_points must be an array");
@@ -596,8 +634,8 @@ Blueprint decode_nested(Blueprint bp, nlohmann::json const& arr,
         if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
             throw std::runtime_error("invalid nested entry: missing numeric field 'position.y'");
         }
-        nested.x = n["position"]["x"].get<float>();
-        nested.y = n["position"]["y"].get<float>();
+        nested.x = parse_finite_float(n["position"]["x"], "nested.position.x");
+        nested.y = parse_finite_float(n["position"]["y"], "nested.position.y");
         if (nested.embedded && n.contains("definition")) {
             auto inner = BlueprintCodec::decode(n["definition"].dump(), interner, arena, registry);
             if (inner) {
@@ -708,11 +746,16 @@ std::optional<Blueprint> BlueprintCodec::decode(
             if (error_out) error_out->message = inv.error;
             return std::nullopt;
         }
-        bp = bp.with_viewport(
-            j.value("pan_x", 0.0f),
-            j.value("pan_y", 0.0f),
-            j.value("zoom", 1.0f),
-            j.value("grid_step", 16.0f));
+        const float pan_x = j.value("pan_x", 0.0f);
+        const float pan_y = j.value("pan_y", 0.0f);
+        const float zoom = j.value("zoom", 1.0f);
+        const float grid_step = j.value("grid_step", 16.0f);
+        if (!std::isfinite(pan_x) || !std::isfinite(pan_y)
+            || !std::isfinite(zoom) || !std::isfinite(grid_step)) {
+            if (error_out) error_out->message = "invalid non-finite viewport value";
+            return std::nullopt;
+        }
+        bp = bp.with_viewport(pan_x, pan_y, zoom, grid_step);
         return bp;
     } catch (std::exception const& e) {
         if (error_out) error_out->message = e.what();

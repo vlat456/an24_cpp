@@ -725,6 +725,184 @@ TEST(BlueprintCodec, DecodeRejectsUnknownNodeFields) {
     EXPECT_NE(err.message.find("unknown node field"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsUnknownNodePortFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "ports": {
+                    "p1": {"direction": "Out", "type": "V", "legacy": true}
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown node port field"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsUnknownLayoutOverrideFields) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "layout_overrides": [
+                    {"port_name": "v_out", "side": "left", "legacy": 1}
+                ]
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("unknown layout_overrides field"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsLayoutOverrideNonObjectEntry) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "layout_overrides": [42]
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("layout_overrides item"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsLayoutOverrideMissingPortName) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "layout_overrides": [
+                    {"side": "left"}
+                ]
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("missing string field 'port_name'"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsLayoutOverrideNonIntegerPosition) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "layout_overrides": [
+                    {"port_name": "v_out", "position": 1.5}
+                ]
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("layout_overrides.position"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsPortDescriptorNonObject) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "ports": {
+                    "p1": 42
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("port descriptor"), std::string::npos);
+}
+
 TEST(BlueprintCodec, DecodeRejectsUnknownWireFields) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
@@ -853,6 +1031,115 @@ TEST(BlueprintCodec, DecodeRejectsInterfaceUnknownDirectionValue) {
     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
     EXPECT_FALSE(result.has_value());
     EXPECT_NE(err.message.find("unknown direction"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsNonFiniteNodePosition) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 1e50, "y": 0}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("non-finite"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsNonFiniteWireRoutingPoint) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [
+            {"id": "w1", "source": "/a:p", "target": "/b:q", "routing_points": [[1e50, 0]]}
+        ],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("non-finite"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsNonFiniteNestedPosition) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [
+            {
+                "id": "sub1",
+                "blueprint": "inner",
+                "embedded": true,
+                "position": {"x": 0, "y": -1e50},
+                "definition": {
+                    "version": "3.0",
+                    "id": "inner",
+                    "display_name": "Inner",
+                    "interface": [],
+                    "nodes": [],
+                    "wires": [],
+                    "nested": []
+                }
+            }
+        ]
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("non-finite"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsNonFiniteViewportValues) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [],
+        "zoom": 1e50
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("non-finite"), std::string::npos);
 }
 
 TEST(BlueprintCodec, RoundTripInterface) {
