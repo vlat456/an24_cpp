@@ -1488,6 +1488,129 @@ TEST(BlueprintCodec, DecodeRejectsEmbeddedDefinitionWithContextualError) {
     EXPECT_NE(err.message.find("unknown top-level"), std::string::npos);
 }
 
+TEST(BlueprintCodec, DecodeRejectsExcessiveZoom) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [],
+        "zoom": 1001.0
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("zoom"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsExcessiveGridStep) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": [],
+        "grid_step": 10001.0
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("grid_step"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsTopLevelNameWrongType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "name": 42,
+        "interface": [],
+        "nodes": [],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("name"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsOptionalNodeWidthWrongType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "width": "wide"
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("width"), std::string::npos);
+}
+
+TEST(BlueprintCodec, DecodeRejectsOptionalNodeColorWrongType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    bp2::DecodeError err;
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Battery",
+                "position": {"x": 0, "y": 0},
+                "has_color": true,
+                "color_r": "red"
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    EXPECT_FALSE(result.has_value());
+    EXPECT_NE(err.message.find("color_r"), std::string::npos);
+}
+
 TEST(BlueprintCodec, RoundTripInterface) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);

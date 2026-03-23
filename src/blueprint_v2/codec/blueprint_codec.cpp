@@ -341,22 +341,40 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         Blueprint::Node node;
         node.id = interner.intern(n["id"].get<std::string>());
         node.type = interner.intern(n["type"].get<std::string>());
-        if (n.contains("name") && n["name"].is_string()) {
+        if (n.contains("name") && !n["name"].is_string()) {
+            throw std::runtime_error("invalid node entry: name must be string");
+        }
+        if (n.contains("name")) {
             node.name = n["name"].get<std::string>();
         }
-        if (n.contains("render_hint") && n["render_hint"].is_string()) {
+        if (n.contains("render_hint") && !n["render_hint"].is_string()) {
+            throw std::runtime_error("invalid node entry: render_hint must be string");
+        }
+        if (n.contains("render_hint")) {
             node.render_hint = n["render_hint"].get<std::string>();
         }
-        if (n.contains("group_id") && n["group_id"].is_string()) {
+        if (n.contains("group_id") && !n["group_id"].is_string()) {
+            throw std::runtime_error("invalid node entry: group_id must be string");
+        }
+        if (n.contains("group_id")) {
             node.group_id = n["group_id"].get<std::string>();
         }
-        if (n.contains("expandable") && n["expandable"].is_boolean()) {
+        if (n.contains("expandable") && !n["expandable"].is_boolean()) {
+            throw std::runtime_error("invalid node entry: expandable must be boolean");
+        }
+        if (n.contains("expandable")) {
             node.expandable = n["expandable"].get<bool>();
         }
-        if (n.contains("collapsed") && n["collapsed"].is_boolean()) {
+        if (n.contains("collapsed") && !n["collapsed"].is_boolean()) {
+            throw std::runtime_error("invalid node entry: collapsed must be boolean");
+        }
+        if (n.contains("collapsed")) {
             node.collapsed = n["collapsed"].get<bool>();
         }
-        if (n.contains("blueprint_path") && n["blueprint_path"].is_string()) {
+        if (n.contains("blueprint_path") && !n["blueprint_path"].is_string()) {
+            throw std::runtime_error("invalid node entry: blueprint_path must be string");
+        }
+        if (n.contains("blueprint_path")) {
             node.blueprint_path = n["blueprint_path"].get<std::string>();
         }
         if (!n.contains("position") || !n["position"].is_object()) {
@@ -370,10 +388,16 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         }
         node.x = parse_finite_float(n["position"]["x"], "position.x");
         node.y = parse_finite_float(n["position"]["y"], "position.y");
-        if (n.contains("width") && n["width"].is_number()) {
+        if (n.contains("width") && !n["width"].is_number()) {
+            throw std::runtime_error("invalid node entry: width must be numeric");
+        }
+        if (n.contains("width")) {
             node.width = parse_finite_float(n["width"], "width");
         }
-        if (n.contains("height") && n["height"].is_number()) {
+        if (n.contains("height") && !n["height"].is_number()) {
+            throw std::runtime_error("invalid node entry: height must be numeric");
+        }
+        if (n.contains("height")) {
             node.height = parse_finite_float(n["height"], "height");
         }
         if (n.contains("params") && n["params"].is_object()) {
@@ -489,13 +513,28 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
             node.content_tripped = n["content_tripped"].get<bool>();
         }
 
-        if (n.contains("has_color") && n["has_color"].is_boolean()) {
+        if (n.contains("has_color") && !n["has_color"].is_boolean()) {
+            throw std::runtime_error("invalid node entry: has_color must be boolean");
+        }
+        if (n.contains("has_color")) {
             node.has_color = n["has_color"].get<bool>();
             if (node.has_color) {
-                node.color_r = n.value("color_r", node.color_r);
-                node.color_g = n.value("color_g", node.color_g);
-                node.color_b = n.value("color_b", node.color_b);
-                node.color_a = n.value("color_a", node.color_a);
+                if (n.contains("color_r") && !n["color_r"].is_number()) {
+                    throw std::runtime_error("invalid node entry: color_r must be numeric");
+                }
+                if (n.contains("color_g") && !n["color_g"].is_number()) {
+                    throw std::runtime_error("invalid node entry: color_g must be numeric");
+                }
+                if (n.contains("color_b") && !n["color_b"].is_number()) {
+                    throw std::runtime_error("invalid node entry: color_b must be numeric");
+                }
+                if (n.contains("color_a") && !n["color_a"].is_number()) {
+                    throw std::runtime_error("invalid node entry: color_a must be numeric");
+                }
+                if (n.contains("color_r")) node.color_r = parse_finite_float(n["color_r"], "color_r");
+                if (n.contains("color_g")) node.color_g = parse_finite_float(n["color_g"], "color_g");
+                if (n.contains("color_b")) node.color_b = parse_finite_float(n["color_b"], "color_b");
+                if (n.contains("color_a")) node.color_a = parse_finite_float(n["color_a"], "color_a");
             }
         }
 
@@ -800,7 +839,11 @@ std::optional<Blueprint> BlueprintCodec::decode(
         Blueprint bp;
         bp = bp.with_id(interner.intern(j["id"].get<std::string>()));
         bp = bp.with_display_name(j["display_name"].get<std::string>());
-        if (j.contains("name") && j["name"].is_string()) {
+        if (j.contains("name") && !j["name"].is_string()) {
+            if (error_out) error_out->message = "invalid top-level field type: name";
+            return std::nullopt;
+        }
+        if (j.contains("name")) {
             bp = bp.with_name(j["name"].get<std::string>());
         }
         bp = bp.with_interface(decode_interface(j["interface"], interner));
@@ -834,8 +877,16 @@ std::optional<Blueprint> BlueprintCodec::decode(
             if (error_out) error_out->message = "invalid viewport zoom: must be > 0";
             return std::nullopt;
         }
+        if (zoom > 1000.0f) {
+            if (error_out) error_out->message = "invalid viewport zoom: exceeds maximum";
+            return std::nullopt;
+        }
         if (grid_step <= 0.0f) {
             if (error_out) error_out->message = "invalid viewport grid_step: must be > 0";
+            return std::nullopt;
+        }
+        if (grid_step > 10000.0f) {
+            if (error_out) error_out->message = "invalid viewport grid_step: exceeds maximum";
             return std::nullopt;
         }
         bp = bp.with_viewport(pan_x, pan_y, zoom, grid_step);
