@@ -54,8 +54,15 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
 
 } // namespace
 
+bool validate_blueprint_for_persist(
+    const bp2::Blueprint& bp,
+    ui::StringInterner& interner,
+    const bp2::PathArena& arena,
+    const TypeRegistry& parser_registry,
+    std::string* error_out);
+
 bool save_blueprint_to_file(const bp2::Blueprint& bp,
-                             ui::StringInterner const& interner,
+                              ui::StringInterner const& interner,
                              bp2::PathArena const& arena,
                              const char* path) {
     namespace fs = std::filesystem;
@@ -101,20 +108,36 @@ std::optional<bp2::Blueprint> load_blueprint_from_file_validated(
         return std::nullopt;
     }
 
-    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
-    auto inv = bp2::InvariantChecker::validate(*bp, arena, bp2_registry);
-    if (!inv.valid) {
-        spdlog::error("[persist] Invariant validation failed for '{}': {}", path, inv.error);
+    std::string err;
+    if (!validate_blueprint_for_persist(*bp, interner, arena, parser_registry, &err)) {
+        spdlog::error("[persist] Invariant validation failed for '{}': {}", path, err);
         return std::nullopt;
     }
 
-    for (const auto& node : bp->nodes()) {
+    return bp;
+}
+
+bool validate_blueprint_for_persist(
+        const bp2::Blueprint& bp,
+        ui::StringInterner& interner,
+        const bp2::PathArena& arena,
+        const TypeRegistry& parser_registry,
+        std::string* error_out) {
+    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
+    auto inv = bp2::InvariantChecker::validate(bp, arena, bp2_registry);
+    if (!inv.valid) {
+        if (error_out) *error_out = inv.error;
+        return false;
+    }
+
+    for (const auto& node : bp.nodes()) {
         std::string type_name(interner.resolve(node.type));
         if (!parser_registry.has(type_name)) {
-            spdlog::error("[persist] Unknown node type '{}' in '{}'", type_name, path);
-            return std::nullopt;
+            if (error_out) *error_out = "unknown node type: " + type_name;
+            return false;
         }
     }
 
-    return bp;
+    if (error_out) error_out->clear();
+    return true;
 }

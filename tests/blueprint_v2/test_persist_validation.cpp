@@ -50,3 +50,20 @@ TEST(PersistValidation, RejectsInvalidWireEndpointOnLoad) {
     std::error_code ec;
     fs::remove(tmp, ec);
 }
+
+TEST(PersistValidation, ValidateBlueprintForPersistRejectsUnknownType) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
+
+    bp2::Blueprint bp;
+    bp2::Blueprint::Node n;
+    n.id = interner.intern("n1");
+    n.type = interner.intern("DefinitelyUnknownType");
+    bp = bp.with_node(std::move(n));
+
+    std::string err;
+    bool ok = validate_blueprint_for_persist(bp, interner, arena, parser_registry, &err);
+    EXPECT_FALSE(ok);
+    EXPECT_NE(err.find("unknown node type"), std::string::npos);
+}

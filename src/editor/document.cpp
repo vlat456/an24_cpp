@@ -171,6 +171,13 @@ bool Document::save(const std::string& path) {
     auto updated = model_.current().with_viewport(vp.pan.x, vp.pan.y, vp.zoom, vp.grid_step);
     model_.replace_current(std::move(updated));
 
+    TypeRegistry parser_registry = load_type_registry("library/");
+    std::string validation_error;
+    if (!validate_blueprint_for_persist(model_.current(), interner_, arena_, parser_registry, &validation_error)) {
+        spdlog::error("[persist] Refusing to save invalid blueprint '{}': {}", path, validation_error);
+        return false;
+    }
+
     if (!save_blueprint_to_file(model_.current(), interner_, arena_, path.c_str()))
         return false;
 
