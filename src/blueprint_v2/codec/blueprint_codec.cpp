@@ -403,10 +403,13 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         }
         if (n.contains("string_params") && n["string_params"].is_object()) {
             for (auto& [key, val] : n["string_params"].items()) {
-                if (val.is_string()) {
-                    node.string_params[key] = val.get<std::string>();
+                if (!val.is_string()) {
+                    throw std::runtime_error("invalid node entry: string_params values must be string");
                 }
+                node.string_params[key] = val.get<std::string>();
             }
+        } else if (n.contains("string_params") && !n["string_params"].is_object()) {
+            throw std::runtime_error("invalid node entry: string_params must be an object");
         }
 
         if (auto* entry = registry.find(node.type)) {
@@ -430,31 +433,56 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
             }
         }
 
-        if (n.contains("content_type") && n["content_type"].is_number_integer()) {
-            int ct = n["content_type"].get<int>();
-            if (ct >= 0 && ct <= static_cast<int>(NodeContentType::Slider)) {
-                node.content_type = static_cast<NodeContentType>(ct);
+        if (n.contains("content_type")) {
+            if (!n["content_type"].is_number_integer()) {
+                throw std::runtime_error("invalid node entry: content_type must be integer");
             }
+            int ct = n["content_type"].get<int>();
+            if (ct < 0 || ct > static_cast<int>(NodeContentType::Slider)) {
+                throw std::runtime_error("invalid node entry: content_type out of range");
+            }
+            node.content_type = static_cast<NodeContentType>(ct);
         }
-        if (n.contains("content_label") && n["content_label"].is_string()) {
+        if (n.contains("content_label") && !n["content_label"].is_string()) {
+            throw std::runtime_error("invalid node entry: content_label must be string");
+        }
+        if (n.contains("content_label")) {
             node.content_label = n["content_label"].get<std::string>();
         }
-        if (n.contains("content_value") && n["content_value"].is_number()) {
-            node.content_value = n["content_value"].get<float>();
+        if (n.contains("content_value") && !n["content_value"].is_number()) {
+            throw std::runtime_error("invalid node entry: content_value must be numeric");
         }
-        if (n.contains("content_min") && n["content_min"].is_number()) {
-            node.content_min = n["content_min"].get<float>();
+        if (n.contains("content_value")) {
+            node.content_value = parse_finite_float(n["content_value"], "content_value");
         }
-        if (n.contains("content_max") && n["content_max"].is_number()) {
-            node.content_max = n["content_max"].get<float>();
+        if (n.contains("content_min") && !n["content_min"].is_number()) {
+            throw std::runtime_error("invalid node entry: content_min must be numeric");
         }
-        if (n.contains("content_unit") && n["content_unit"].is_string()) {
+        if (n.contains("content_min")) {
+            node.content_min = parse_finite_float(n["content_min"], "content_min");
+        }
+        if (n.contains("content_max") && !n["content_max"].is_number()) {
+            throw std::runtime_error("invalid node entry: content_max must be numeric");
+        }
+        if (n.contains("content_max")) {
+            node.content_max = parse_finite_float(n["content_max"], "content_max");
+        }
+        if (n.contains("content_unit") && !n["content_unit"].is_string()) {
+            throw std::runtime_error("invalid node entry: content_unit must be string");
+        }
+        if (n.contains("content_unit")) {
             node.content_unit = n["content_unit"].get<std::string>();
         }
-        if (n.contains("content_state") && n["content_state"].is_boolean()) {
+        if (n.contains("content_state") && !n["content_state"].is_boolean()) {
+            throw std::runtime_error("invalid node entry: content_state must be boolean");
+        }
+        if (n.contains("content_state")) {
             node.content_state = n["content_state"].get<bool>();
         }
-        if (n.contains("content_tripped") && n["content_tripped"].is_boolean()) {
+        if (n.contains("content_tripped") && !n["content_tripped"].is_boolean()) {
+            throw std::runtime_error("invalid node entry: content_tripped must be boolean");
+        }
+        if (n.contains("content_tripped")) {
             node.content_tripped = n["content_tripped"].get<bool>();
         }
 
@@ -790,6 +818,14 @@ std::optional<Blueprint> BlueprintCodec::decode(
         if (!std::isfinite(pan_x) || !std::isfinite(pan_y)
             || !std::isfinite(zoom) || !std::isfinite(grid_step)) {
             if (error_out) error_out->message = "invalid non-finite viewport value";
+            return std::nullopt;
+        }
+        if (zoom <= 0.0f) {
+            if (error_out) error_out->message = "invalid viewport zoom: must be > 0";
+            return std::nullopt;
+        }
+        if (grid_step <= 0.0f) {
+            if (error_out) error_out->message = "invalid viewport grid_step: must be > 0";
             return std::nullopt;
         }
         bp = bp.with_viewport(pan_x, pan_y, zoom, grid_step);
