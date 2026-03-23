@@ -10,14 +10,19 @@ void render_channel_plot(const OscilloscopeProbe& probe,
                          float max_v,
                          float row_h,
                          float width) {
-    const std::string title = probe.label + "###" + probe.wire_id;
+    constexpr int kScopeWindowSamples = 300;
+    const std::string title = "##" + probe.wire_id;
     ImGui::PushStyleColor(ImGuiCol_PlotLines, probe.color);
+    ImGui::TextUnformatted(probe.label.c_str());
     if (samples.empty()) {
-        float zero = 0.0f;
-        ImGui::PlotLines(title.c_str(), &zero, 1, 0, "", min_v, max_v, ImVec2(width, row_h));
+        std::vector<float> vals(static_cast<size_t>(kScopeWindowSamples), 0.0f);
+        ImGui::PlotLines(title.c_str(), vals.data(), kScopeWindowSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     } else {
-        std::vector<float> vals(samples.begin(), samples.end());
-        ImGui::PlotLines(title.c_str(), vals.data(), static_cast<int>(vals.size()), 0, "", min_v, max_v, ImVec2(width, row_h));
+        std::vector<float> vals(static_cast<size_t>(kScopeWindowSamples), 0.0f);
+        const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kScopeWindowSamples));
+        auto src_begin = samples.end() - static_cast<std::ptrdiff_t>(copy_n);
+        std::copy(src_begin, samples.end(), vals.end() - static_cast<std::ptrdiff_t>(copy_n));
+        ImGui::PlotLines(title.c_str(), vals.data(), kScopeWindowSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     }
     ImGui::PopStyleColor();
 }

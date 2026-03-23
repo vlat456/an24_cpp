@@ -221,7 +221,3 @@ const std::deque<float>& OscilloscopeModel::ensure_virtual_channel(Document& doc
     while (q.size() > max_samples_) q.pop_front();
     return q;
 }
-
-void OscilloscopeModel::clear_virtual_channels() {
-    virtual_samples_.clear();
-}

@@ -43,8 +43,8 @@ static void render_hover_scope_tooltip(Document& doc,
     pseudo.color = IM_COL32(80, 200, 255, 255);
 
     const ImVec2 display = ImGui::GetIO().DisplaySize;
-    constexpr float kWindowW = 260.0f;
-    constexpr float kWindowH = 96.0f;
+    constexpr float kWindowW = 290.0f;
+    constexpr float kWindowH = 132.0f;
     float px = anchor_screen.x + 10.0f;
     float py = anchor_screen.y - (kWindowH + 10.0f);
     if (px + kWindowW > display.x - 8.0f) px = display.x - kWindowW - 8.0f;
@@ -64,7 +64,7 @@ static void render_hover_scope_tooltip(Document& doc,
         float min_v = 0.0f;
         float max_v = 0.0f;
         visual::osc::compute_range(one, min_v, max_v);
-        visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 52.0f, -1.0f);
+        visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 72.0f, -1.0f);
         visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples));
     }
     ImGui::End();

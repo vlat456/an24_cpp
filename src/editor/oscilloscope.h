@@ -53,8 +53,6 @@ public:
     const std::deque<float>& ensure_virtual_channel(Document& doc,
                                                     const std::string& signal_key,
                                                     bool simulation_running);
-    void clear_virtual_channels();
-
 private:
     size_t max_samples_ = 1200;
     std::unordered_map<std::string, OscilloscopeProbe> probes_;
