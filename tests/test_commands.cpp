@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <set>
 #include "editor/commands/commands.h"
 #include "editor/commands/extract_blueprint.h"
 #include "editor/commands/transaction_guard.h"
@@ -1030,4 +1031,155 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsInputOutputIfaceNameCollision) {
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("collision"), std::string::npos);
+}
+
+// Regression: dedupe_name must not produce a collision when a port name
+// already looks like a deduped suffix (e.g. "in" and "in_2" coexist).
+// The old counter-based dedupe would return "in", "in_2", "in_2" — a collision.
+TEST_F(CommandTest, ExtractToBlueprint_DedupeNameNoCollisionWithSuffixedPorts) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp_dedupe_regression"));
+    bp = bp.with_display_name("DedupeRegression");
+
+    // Three external sources
+    auto src1 = make_node(interner, "src1");
+    src1.type = interner.intern("Source");
+    src1.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+    auto src2 = make_node(interner, "src2");
+    src2.type = interner.intern("Source");
+    src2.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+    auto src3 = make_node(interner, "src3");
+    src3.type = interner.intern("Source");
+    src3.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    // Node a: two inputs with names "in" and "in_2"
+    auto a = make_node(interner, "a");
+    a.type = interner.intern("NodeA");
+    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    a.inputs.emplace_back(interner.intern("in_2"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    // Node b: two inputs — "in" (external) and "link" (internal from a)
+    // After dedupe, the external wire targeting b.in would produce iface_name "in"
+    // which collides with the deduped "in_2" from old counter-based code.
+    auto b = make_node(interner, "b");
+    b.type = interner.intern("NodeB");
+    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    b.inputs.emplace_back(interner.intern("link"), PortSide::Input, PortType::V);
+    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    auto sink = make_node(interner, "sink");
+    sink.type = interner.intern("Sink");
+    sink.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(std::move(src1));
+    bp = bp.with_node(std::move(src2));
+    bp = bp.with_node(std::move(src3));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+    bp = bp.with_node(std::move(sink));
+
+    // Three external wires into selected nodes:
+    //   src1.out -> a.in      (iface_name = "in")
+    //   src2.out -> a.in_2    (iface_name = "in_2")
+    //   src3.out -> b.in      (iface_name = "in" -> deduped to "in_?" )
+    // Old code: "in", "in_2", "in_2" -> COLLISION
+    auto w0 = make_wire(interner, arena, "w0", "src1", "out", "a", "in");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(interner, arena, "w1", "src2", "out", "a", "in_2");
+    w1.domain = Domain::Electrical;
+    auto w2 = make_wire(interner, arena, "w2", "src3", "out", "b", "in");
+    w2.domain = Domain::Electrical;
+    // Internal wire a->b (into b's "link" input, not "in")
+    auto w3 = make_wire(interner, arena, "w3", "a", "out", "b", "link");
+    w3.domain = Domain::Electrical;
+    // External wire b->sink
+    auto w4 = make_wire(interner, arena, "w4", "b", "out", "sink", "in");
+    w4.domain = Domain::Electrical;
+
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w2));
+    bp = bp.with_wire(std::move(w3));
+    bp = bp.with_wire(std::move(w4));
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        bp,
+        {interner.intern("a"), interner.intern("b")},
+        "test_dedupe",
+        "",
+        interner,
+        arena,
+        &err);
+
+    // Must succeed — deduplication should produce "in", "in_2", "in_3" (not a second "in_2")
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+
+    // Verify all interface port names are unique
+    ASSERT_EQ(updated->nested().size(), 1u);
+    const auto& iface = updated->nested()[0].iface;
+
+    std::set<std::string> port_names;
+    for (const auto& pd : iface.ports()) {
+        std::string name(interner.resolve(pd.name));
+        EXPECT_TRUE(port_names.insert(name).second)
+            << "Duplicate interface port name: " << name;
+    }
+}
+
+// Edge case: all selected nodes are fully internally connected (no boundary wires).
+// Result should be a nested blueprint with empty interface and a collapsed node with no ports.
+TEST_F(CommandTest, ExtractToBlueprint_ZeroExternalConnections) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp_zero_ext"));
+    bp = bp.with_display_name("ZeroExternal");
+
+    auto a = make_node(interner, "a");
+    a.type = interner.intern("NodeA");
+    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    auto b = make_node(interner, "b");
+    b.type = interner.intern("NodeB");
+    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+
+    // Single internal wire only, no external connections
+    auto w0 = make_wire(interner, arena, "w0", "a", "out", "b", "in");
+    w0.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w0));
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        bp,
+        {interner.intern("a"), interner.intern("b")},
+        "isolated_group",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << "extraction failed: " << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+
+    // Interface should be empty (no boundary connections)
+    const auto& iface = updated->nested()[0].iface;
+    EXPECT_EQ(iface.size(), 0u);
+
+    // Collapsed node should have no ports
+    const auto* collapsed = updated->find_node(updated->nested()[0].id);
+    ASSERT_NE(collapsed, nullptr);
+    EXPECT_TRUE(collapsed->inputs.empty());
+    EXPECT_TRUE(collapsed->outputs.empty());
+
+    // Internal wire should be preserved in parent (both endpoints are selected)
+    // Plus the inline_def should contain the wire
+    ASSERT_TRUE(updated->nested()[0].inline_def != nullptr);
+    EXPECT_GE(updated->nested()[0].inline_def->wires().size(), 1u);
 }

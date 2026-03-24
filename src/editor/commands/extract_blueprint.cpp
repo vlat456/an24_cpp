@@ -61,22 +61,30 @@ static bool path_to_node_port(const bp2::Path& path,
 }
 
 static std::string dedupe_name(const std::string& base,
-                               std::unordered_map<std::string, int>& counts) {
-    auto it = counts.find(base);
-    if (it == counts.end()) {
-        counts.emplace(base, 1);
+                               std::unordered_set<std::string>& used) {
+    if (used.find(base) == used.end()) {
+        used.insert(base);
         return base;
     }
-    ++it->second;
-    return base + "_" + std::to_string(it->second);
+    for (int i = 2; i < 1000000; ++i) {
+        std::string candidate = base + "_" + std::to_string(i);
+        if (used.find(candidate) == used.end()) {
+            used.insert(candidate);
+            return candidate;
+        }
+    }
+    return base + "_overflow";
 }
 
 static ui::InternedId next_unique_id(ui::StringInterner& interner,
                                      const std::unordered_set<ui::InternedId>& used,
                                      const std::string& prefix) {
     for (int i = 1; i < 1000000; ++i) {
-        ui::InternedId id = interner.intern(prefix + std::to_string(i));
-        if (used.find(id) == used.end()) return id;
+        std::string candidate = prefix + std::to_string(i);
+        ui::InternedId id = interner.lookup(candidate);
+        if (id.empty() || used.find(id) == used.end()) {
+            return interner.intern(candidate);
+        }
     }
     return {};
 }
@@ -210,15 +218,15 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     std::sort(plan.inputs.begin(), plan.inputs.end(), compare_external);
     std::sort(plan.outputs.begin(), plan.outputs.end(), compare_external);
 
-    std::unordered_map<std::string, int> input_name_counts;
+    std::unordered_set<std::string> input_name_used;
     for (auto& ec : plan.inputs) {
         if (ec.iface_name.empty()) ec.iface_name = "in";
-        ec.iface_name = dedupe_name(ec.iface_name, input_name_counts);
+        ec.iface_name = dedupe_name(ec.iface_name, input_name_used);
     }
-    std::unordered_map<std::string, int> output_name_counts;
+    std::unordered_set<std::string> output_name_used;
     for (auto& ec : plan.outputs) {
         if (ec.iface_name.empty()) ec.iface_name = "out";
-        ec.iface_name = dedupe_name(ec.iface_name, output_name_counts);
+        ec.iface_name = dedupe_name(ec.iface_name, output_name_used);
     }
 
     return plan;
