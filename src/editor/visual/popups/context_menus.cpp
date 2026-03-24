@@ -1,5 +1,6 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
+#include "editor/commands/extract_blueprint.h"
 #include <imgui.h>
 #include <cstring>
 
@@ -82,12 +83,15 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 ws.openColorPickerForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.group_id, *doc);
             }
             const auto& selected = doc->input().selected_node_ids();
-            const bool can_extract = selected.size() >= 2 && ws.nodeContextMenu.group_id.empty();
+            const bool can_extract = selected.size() >= 2;
             if (ImGui::MenuItem("Extract to Blueprint...", nullptr, false, can_extract)) {
                 ws.pendingExtract.show_dialog = true;
                 ws.pendingExtract.doc_id = doc->id();
                 ws.pendingExtract.group_id = ws.nodeContextMenu.group_id;
                 ws.pendingExtract.selected_node_ids = selected;
+                ws.pendingExtract.has_preview = false;
+                ws.pendingExtract.preview = {};
+                ws.pendingExtract.preview_error.clear();
 
                 std::string suggested = "extracted_blueprint_1";
                 int idx = 1;
@@ -117,6 +121,22 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 }
                 std::memset(ws.pendingExtract.name_buf, 0, sizeof(ws.pendingExtract.name_buf));
                 std::strncpy(ws.pendingExtract.name_buf, suggested.c_str(), sizeof(ws.pendingExtract.name_buf) - 1);
+
+                std::string preview_err;
+                auto preview = editor::commands::build_extract_to_blueprint_preview(
+                    doc->blueprint(),
+                    ws.pendingExtract.selected_node_ids,
+                    ws.pendingExtract.group_id,
+                    doc->interner(),
+                    doc->arena(),
+                    &preview_err);
+                if (preview) {
+                    ws.pendingExtract.preview = *preview;
+                    ws.pendingExtract.has_preview = true;
+                } else {
+                    ws.pendingExtract.preview_error = preview_err;
+                    ws.pendingExtract.has_preview = false;
+                }
             }
             if (ImGui::MenuItem("Delete")) {
                 auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);

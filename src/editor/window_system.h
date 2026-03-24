@@ -5,6 +5,7 @@
 #include "visual/inspector/inspector.h"
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
+#include "commands/extract_blueprint.h"
 #include "oscilloscope.h"
 #include <memory>
 #include <vector>
@@ -96,6 +97,9 @@ public:
         std::string group_id;
         std::vector<ui::InternedId> selected_node_ids;
         char name_buf[128] = {};
+        bool has_preview = false;
+        editor::commands::ExtractToBlueprintPreview preview;
+        std::string preview_error;
     } pendingExtract;
 
     bool showInspector = true;

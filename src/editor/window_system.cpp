@@ -109,6 +109,9 @@ bool WindowSystem::closeDocument(Document& doc) {
         pendingExtract.group_id.clear();
         pendingExtract.selected_node_ids.clear();
         pendingExtract.show_dialog = false;
+        pendingExtract.has_preview = false;
+        pendingExtract.preview = {};
+        pendingExtract.preview_error.clear();
     }
     if (pending_tab_focus_ == &doc) {
         pending_tab_focus_ = nullptr;
@@ -164,6 +167,9 @@ bool WindowSystem::closeAllDocuments() {
     pendingExtract.group_id.clear();
     pendingExtract.selected_node_ids.clear();
     pendingExtract.show_dialog = false;
+    pendingExtract.has_preview = false;
+    pendingExtract.preview = {};
+    pendingExtract.preview_error.clear();
     pending_tab_focus_ = nullptr;
 
     documents_.clear();

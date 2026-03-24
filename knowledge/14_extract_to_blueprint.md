@@ -28,8 +28,7 @@ If any precondition fails, the command must abort with no partial mutations.
 - Undo/redo as one checkpoint (single `replace_current`)
 
 ### Excluded (follow-up)
-- Sub-window/non-root group extraction
-- Extracting existing nested nodes specially
+- Extracting existing nested nodes specially (current policy: strict reject)
 - Existing BlueprintInput/BlueprintOutput special handling
 - Auto-layout sophistication
 - Any inference/coercion beyond explicit wire endpoint metadata
@@ -173,7 +172,6 @@ struct CmdExtractToBlueprint {
 
 ## Known Follow-Ups
 
-- Sub-group extraction with scoped paths
-- nested-within-selection handling policy
+- nested-within-selection advanced handling (flatten/keep-as-node policy, currently strict reject)
 - richer bridge node layout
 - optional preview UX

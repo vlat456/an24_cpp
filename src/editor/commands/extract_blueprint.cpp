@@ -113,6 +113,21 @@ static bool compare_external(const ExternalConnection& a, const ExternalConnecti
                           b.internal_node_id.raw(), b.internal_port.raw());
 }
 
+static std::unordered_map<ui::InternedId, float> build_node_center_y_map(
+    const std::vector<bp2::Blueprint::Node>& nodes) {
+    std::unordered_map<ui::InternedId, float> out;
+    out.reserve(nodes.size());
+    for (const auto& n : nodes) {
+        const float h = n.height.value_or(64.0f);
+        out[n.id] = n.y + (h * 0.5f);
+    }
+    return out;
+}
+
+static float fallback_lane_y(size_t index) {
+    return 40.0f + static_cast<float>(index) * 80.0f;
+}
+
 static bp2::Blueprint::Nested clone_nested(const bp2::Blueprint::Nested& n) {
     bp2::Blueprint::Nested copy;
     copy.id = n.id;
@@ -137,10 +152,11 @@ static ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,
 }
 
 static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
-                                                       const std::vector<ui::InternedId>& selected_ids,
-                                                       ui::StringInterner& interner,
-                                                       const bp2::PathArena& arena,
-                                                       std::string* error_out) {
+                                                        const std::vector<ui::InternedId>& selected_ids,
+                                                        const std::string& group_id,
+                                                        ui::StringInterner& interner,
+                                                        const bp2::PathArena& arena,
+                                                        std::string* error_out) {
     ExtractionPlan plan;
     plan.selected_set.insert(selected_ids.begin(), selected_ids.end());
     if (plan.selected_set.size() < 2) {
@@ -155,6 +171,14 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
 
     for (const auto& node : bp.nodes()) {
         if (plan.selected_set.find(node.id) == plan.selected_set.end()) continue;
+        if (node.group_id != group_id) {
+            if (error_out) *error_out = "selected nodes must belong to active group";
+            return std::nullopt;
+        }
+        if (node.expandable || bp.find_nested(node.id) != nullptr) {
+            if (error_out) *error_out = "extract does not support selecting nested blueprint instances yet";
+            return std::nullopt;
+        }
         plan.internal_nodes.push_back(node);
         min_x = std::min(min_x, node.x);
         min_y = std::min(min_y, node.y);
@@ -274,8 +298,22 @@ static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
     std::unordered_map<std::string, ui::InternedId> input_bridge_ids;
     std::unordered_map<std::string, ui::InternedId> output_bridge_ids;
 
-    float input_y = 0.0f;
-    for (const auto& ec : plan.inputs) {
+    const auto node_center_y = build_node_center_y_map(plan.internal_nodes);
+
+    std::vector<size_t> input_order(plan.inputs.size());
+    for (size_t i = 0; i < input_order.size(); ++i) input_order[i] = i;
+    std::sort(input_order.begin(), input_order.end(), [&](size_t a, size_t b) {
+        float ay = fallback_lane_y(a);
+        float by = fallback_lane_y(b);
+        if (auto it = node_center_y.find(plan.inputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
+        if (auto it = node_center_y.find(plan.inputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
+        if (ay != by) return ay < by;
+        return plan.inputs[a].iface_name < plan.inputs[b].iface_name;
+    });
+
+    std::unordered_map<ui::InternedId, int> input_lane_counts;
+    for (size_t rank = 0; rank < input_order.size(); ++rank) {
+        const auto& ec = plan.inputs[input_order[rank]];
         ui::InternedId id = next_unique_id(interner, used_node_ids, "bp_in_");
         used_node_ids.insert(id);
         input_bridge_ids[ec.iface_name] = id;
@@ -285,16 +323,32 @@ static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
         n.type = interner.intern("BlueprintInput");
         n.name = ec.iface_name;
         n.x = 0.0f;
-        n.y = input_y;
+        float base_y = fallback_lane_y(rank);
+        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
+            const int lane = input_lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * 16.0f;
+        }
+        n.y = base_y;
         const PortType pt = port_type_for_domain(ec.domain);
         n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
         n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
         out = out.with_node(std::move(n));
-        input_y += 80.0f;
     }
 
-    float output_y = 0.0f;
-    for (const auto& ec : plan.outputs) {
+    std::vector<size_t> output_order(plan.outputs.size());
+    for (size_t i = 0; i < output_order.size(); ++i) output_order[i] = i;
+    std::sort(output_order.begin(), output_order.end(), [&](size_t a, size_t b) {
+        float ay = fallback_lane_y(a);
+        float by = fallback_lane_y(b);
+        if (auto it = node_center_y.find(plan.outputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
+        if (auto it = node_center_y.find(plan.outputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
+        if (ay != by) return ay < by;
+        return plan.outputs[a].iface_name < plan.outputs[b].iface_name;
+    });
+
+    std::unordered_map<ui::InternedId, int> output_lane_counts;
+    for (size_t rank = 0; rank < output_order.size(); ++rank) {
+        const auto& ec = plan.outputs[output_order[rank]];
         ui::InternedId id = next_unique_id(interner, used_node_ids, "bp_out_");
         used_node_ids.insert(id);
         output_bridge_ids[ec.iface_name] = id;
@@ -304,12 +358,16 @@ static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
         n.type = interner.intern("BlueprintOutput");
         n.name = ec.iface_name;
         n.x = max_internal_right + 160.0f;
-        n.y = output_y;
+        float base_y = fallback_lane_y(rank);
+        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
+            const int lane = output_lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * 16.0f;
+        }
+        n.y = base_y;
         const PortType pt = port_type_for_domain(ec.domain);
         n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
         n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
         out = out.with_node(std::move(n));
-        output_y += 80.0f;
     }
 
     for (const auto& w : plan.internal_wires) {
@@ -359,16 +417,12 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out) {
-    if (!group_id.empty()) {
-        if (error_out) *error_out = "extract MVP supports root group only";
-        return std::nullopt;
-    }
     if (blueprint_name.empty()) {
         if (error_out) *error_out = "extract blueprint name must be non-empty";
         return std::nullopt;
     }
 
-    auto plan_opt = analyze_selection(source, selected_node_ids, interner, arena, error_out);
+    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
     if (!plan_opt) return std::nullopt;
     const ExtractionPlan& plan = *plan_opt;
 
@@ -438,6 +492,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     collapsed.expandable = true;
     collapsed.collapsed = true;
     collapsed.blueprint_path = blueprint_name;
+    collapsed.group_id = group_id;
     collapsed.x = plan.center_x;
     collapsed.y = plan.center_y;
     collapsed.width = 160.0f;
@@ -467,8 +522,22 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         }
     }
 
-    float input_y = plan.min_y;
-    for (const auto& ec : plan.inputs) {
+    const auto node_center_y = build_node_center_y_map(plan.internal_nodes);
+
+    std::vector<size_t> input_order(plan.inputs.size());
+    for (size_t i = 0; i < input_order.size(); ++i) input_order[i] = i;
+    std::sort(input_order.begin(), input_order.end(), [&](size_t a, size_t b) {
+        float ay = plan.min_y + fallback_lane_y(a);
+        float by = plan.min_y + fallback_lane_y(b);
+        if (auto it = node_center_y.find(plan.inputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
+        if (auto it = node_center_y.find(plan.inputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
+        if (ay != by) return ay < by;
+        return plan.inputs[a].iface_name < plan.inputs[b].iface_name;
+    });
+
+    std::unordered_map<ui::InternedId, int> input_lane_counts;
+    for (size_t rank = 0; rank < input_order.size(); ++rank) {
+        const auto& ec = plan.inputs[input_order[rank]];
         ui::InternedId id = make_iface_bridge_id(interner, nested_instance_id, ec.iface_name);
         if (used_node_ids.find(id) != used_node_ids.end()) {
             if (error_out) *error_out = "extract bridge node id collision";
@@ -484,15 +553,31 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         n.name = ec.iface_name;
         n.group_id = nested_group_id;
         n.x = plan.min_x - 160.0f;
-        n.y = input_y;
+        float base_y = plan.min_y + fallback_lane_y(rank);
+        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
+            const int lane = input_lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * 16.0f;
+        }
+        n.y = base_y;
         n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
         n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
         out = out.with_node(std::move(n));
-        input_y += 80.0f;
     }
 
-    float output_y = plan.min_y;
-    for (const auto& ec : plan.outputs) {
+    std::vector<size_t> output_order(plan.outputs.size());
+    for (size_t i = 0; i < output_order.size(); ++i) output_order[i] = i;
+    std::sort(output_order.begin(), output_order.end(), [&](size_t a, size_t b) {
+        float ay = plan.min_y + fallback_lane_y(a);
+        float by = plan.min_y + fallback_lane_y(b);
+        if (auto it = node_center_y.find(plan.outputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
+        if (auto it = node_center_y.find(plan.outputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
+        if (ay != by) return ay < by;
+        return plan.outputs[a].iface_name < plan.outputs[b].iface_name;
+    });
+
+    std::unordered_map<ui::InternedId, int> output_lane_counts;
+    for (size_t rank = 0; rank < output_order.size(); ++rank) {
+        const auto& ec = plan.outputs[output_order[rank]];
         ui::InternedId id = make_iface_bridge_id(interner, nested_instance_id, ec.iface_name);
         if (used_node_ids.find(id) != used_node_ids.end()) {
             if (error_out) *error_out = "extract bridge node id collision";
@@ -508,11 +593,15 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         n.name = ec.iface_name;
         n.group_id = nested_group_id;
         n.x = plan.max_x + 160.0f;
-        n.y = output_y;
+        float base_y = plan.min_y + fallback_lane_y(rank);
+        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
+            const int lane = output_lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * 16.0f;
+        }
+        n.y = base_y;
         n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
         n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
         out = out.with_node(std::move(n));
-        output_y += 80.0f;
     }
 
     for (const auto& ec : plan.inputs) {
@@ -562,6 +651,46 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         if (error_out) *error_out = integrity_err;
         return std::nullopt;
     }
+
+    if (error_out) error_out->clear();
+    return out;
+}
+
+std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
+    const bp2::Blueprint& source,
+    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::string& group_id,
+    ui::StringInterner& interner,
+    bp2::PathArena& arena,
+    std::string* error_out) {
+    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
+    if (!plan_opt) return std::nullopt;
+
+    const ExtractionPlan& plan = *plan_opt;
+    ExtractToBlueprintPreview out;
+    out.selected_nodes = plan.internal_nodes.size();
+    out.internal_wires = plan.internal_wires.size();
+    out.input_count = plan.inputs.size();
+    out.output_count = plan.outputs.size();
+    out.input_iface_names.reserve(plan.inputs.size());
+    out.output_iface_names.reserve(plan.outputs.size());
+
+    std::unordered_set<std::string> in_names;
+    in_names.reserve(plan.inputs.size());
+    for (const auto& ec : plan.inputs) {
+        out.input_iface_names.push_back(ec.iface_name);
+        in_names.insert(ec.iface_name);
+    }
+    for (const auto& ec : plan.outputs) {
+        out.output_iface_names.push_back(ec.iface_name);
+        if (in_names.find(ec.iface_name) != in_names.end()) {
+            out.iface_collision_names.push_back(ec.iface_name);
+        }
+    }
+    std::sort(out.iface_collision_names.begin(), out.iface_collision_names.end());
+    out.iface_collision_names.erase(
+        std::unique(out.iface_collision_names.begin(), out.iface_collision_names.end()),
+        out.iface_collision_names.end());
 
     if (error_out) error_out->clear();
     return out;
