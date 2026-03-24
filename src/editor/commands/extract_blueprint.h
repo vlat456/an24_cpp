@@ -22,6 +22,7 @@ struct ExtractToBlueprintPreview {
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const bp2::Blueprint& source,
     const std::vector<ui::InternedId>& selected_node_ids,
+    const std::string& blueprint_name,
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,

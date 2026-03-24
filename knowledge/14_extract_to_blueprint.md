@@ -18,19 +18,18 @@ If any precondition fails, the command must abort with no partial mutations.
 ## MVP Scope (deliberately narrow)
 
 ### Included
-- Root group only (`group_id == ""`)
+- Root and sub-group extraction (`group_id` must match all selected nodes)
 - Selection size >= 2
-- Selected items are regular nodes in current blueprint
+- Selected items may include embedded nested instances (non-embedded refs are rejected)
 - Internal wires preserved
 - Boundary wires become interface ports
 - Inline embedded nested definition created (`embedded = true`)
 - Collapsed expandable node created in parent
 - Undo/redo as one checkpoint (single `replace_current`)
+- Preview API with name validation and iface conflict reporting
 
 ### Excluded (follow-up)
-- Extracting existing nested nodes specially (current policy: strict reject)
 - Existing BlueprintInput/BlueprintOutput special handling
-- Auto-layout sophistication
 - Any inference/coercion beyond explicit wire endpoint metadata
 
 ---
@@ -78,15 +77,18 @@ struct ExtractionPlan {
     std::vector<ExternalConnection> inputs;
     std::vector<ExternalConnection> outputs;
     std::unordered_set<ui::InternedId> selected_set;
+    float min_x = 0.0f;    // bounding box of selected nodes
+    float min_y = 0.0f;
+    float max_x = 0.0f;
+    float max_y = 0.0f;
     float center_x = 0.0f;
     float center_y = 0.0f;
 };
 
-struct CmdExtractToBlueprint {
-    std::vector<ui::InternedId> selected_node_ids;
-    std::string new_blueprint_name;
-    std::string group_id; // MVP requires empty
-};
+// No CmdExtractToBlueprint struct — extraction is implemented as
+// free functions that compute and return the new blueprint atomically:
+//   build_extracted_blueprint_atomic(source, selected, name, group, interner, arena)
+//   build_extract_to_blueprint_preview(source, selected, name, group, interner, arena)
 ```
 
 ---
@@ -124,7 +126,6 @@ struct CmdExtractToBlueprint {
 - Show `Extract to Blueprint...` only when:
   - not read-only
   - active selection size >= 2
-  - group is root (MVP)
 
 ### Dialog
 - Modal asks for blueprint name.
@@ -152,7 +153,7 @@ struct CmdExtractToBlueprint {
 
 ---
 
-## Tests (MVP Required)
+## Tests (Current Required)
 
 1. `CommandTest.ExtractToBlueprint_BasicAtomic`
    - select 2 nodes with one input and one output boundary
@@ -161,17 +162,33 @@ struct CmdExtractToBlueprint {
 2. `CommandTest.ExtractToBlueprint_UndoRedoRoundTrip`
    - checksum before/after, undo returns exact original
 
-3. `CommandTest.ExtractToBlueprint_RejectsNonRootGroup`
+3. `CommandTest.ExtractToBlueprint_AllowsSubgroupExtraction`
 
 4. `CommandTest.ExtractToBlueprint_RejectsSmallSelection`
 
 5. `CommandTest.ExtractToBlueprint_DeterministicIfaceNaming`
    - repeated execution on same graph yields same generated iface names/order
 
+### Additional regression/edge-case tests
+
+- `UsesCanonicalBridgeNodeIds` — bridge node ID pattern `instance:iface_name`
+- `InlineBlueprintStructure` — interface, bridge port layout, internal nodes in inline_def
+- `SubgroupBridgeWiring` — bridge wires correctly wired in parent subgroup
+- `RejectsInputOutputIfaceNameCollision` — fail-fast on cross-direction port name collision
+- `DedupeNameNoCollisionWithSuffixedPorts` — "in", "in_2" dedup regression
+- `ZeroExternalConnections` — fully internal selection produces empty interface
+- `InlineBridgeYUsesLocalCoordinates` — bridge Y uses translated coordinates
+- `BridgeAutoLayoutTracksInternalY` — bridge Y ordering follows internal node positions
+- `AllowsEmbeddedNestedInstanceSelection` — embedded nested instances preserved in inline_def
+- `InlinesSelectedEmbeddedNestedDeterministically` — nested merge order is deterministic (independent interner runs)
+- `RejectsEmbeddedNestedMissingInlineDef` — fail-fast for embedded nested without inline_def
+- `RejectsNonEmbeddedNestedInstanceSelection` — non-embedded refs are rejected
+- `PreviewBasic`, `PreviewReportsIfaceCollision`, `PreviewRejectsEmptyName`, `PreviewRejectsDuplicateName`
+- `PreviewAllowsEmbeddedNestedSelection`, `PreviewRejectsNonEmbeddedNestedSelection`
+
 ---
 
 ## Known Follow-Ups
 
-- nested-within-selection advanced handling (flatten/keep-as-node policy, currently strict reject)
-- richer bridge node layout
-- optional preview UX
+- existing BlueprintInput/BlueprintOutput selection special handling
+- deeper nested flatten/merge strategies (beyond current embedded passthrough/inline-def carry-over)

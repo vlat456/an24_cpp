@@ -12,6 +12,14 @@ namespace editor::commands {
 
 namespace {
 
+// Layout constants for bridge node positioning
+static constexpr float kBridgeMarginX     = 160.0f;
+static constexpr float kDefaultNodeWidth  = 100.0f;
+static constexpr float kDefaultNodeHeight = 64.0f;
+static constexpr float kFallbackLaneStartY = 40.0f;
+static constexpr float kFallbackLaneStepY  = 80.0f;
+static constexpr float kMultiLaneOffsetY   = 16.0f;
+
 struct ExternalConnection {
     bool is_input = false;
     ui::InternedId external_node_id;
@@ -118,28 +126,18 @@ static std::unordered_map<ui::InternedId, float> build_node_center_y_map(
     std::unordered_map<ui::InternedId, float> out;
     out.reserve(nodes.size());
     for (const auto& n : nodes) {
-        const float h = n.height.value_or(64.0f);
+        const float h = n.height.value_or(kDefaultNodeHeight);
         out[n.id] = n.y + (h * 0.5f);
     }
     return out;
 }
 
 static float fallback_lane_y(size_t index) {
-    return 40.0f + static_cast<float>(index) * 80.0f;
+    return kFallbackLaneStartY + static_cast<float>(index) * kFallbackLaneStepY;
 }
 
 static bp2::Blueprint::Nested clone_nested(const bp2::Blueprint::Nested& n) {
-    bp2::Blueprint::Nested copy;
-    copy.id = n.id;
-    copy.blueprint_id = n.blueprint_id;
-    copy.embedded = n.embedded;
-    copy.iface = n.iface;
-    copy.x = n.x;
-    copy.y = n.y;
-    if (n.inline_def) {
-        copy.inline_def = std::make_unique<bp2::Blueprint>(*n.inline_def);
-    }
-    return copy;
+    return bp2::Blueprint::Nested(n);
 }
 
 static ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,
@@ -149,6 +147,140 @@ static ui::InternedId make_iface_bridge_id(ui::StringInterner& interner,
     id += ":";
     id += iface_name;
     return interner.intern(id);
+}
+
+static bool validate_blueprint_name_for_extract(const bp2::Blueprint& source,
+                                                const std::string& blueprint_name,
+                                                ui::StringInterner& interner,
+                                                ui::InternedId* blueprint_iid_out,
+                                                std::string* error_out) {
+    if (blueprint_name.empty()) {
+        if (error_out) *error_out = "extract blueprint name must be non-empty";
+        return false;
+    }
+
+    const ui::InternedId blueprint_iid = blueprint_iid_out
+        ? interner.intern(blueprint_name)
+        : interner.lookup(blueprint_name);
+    for (const auto& n : source.nested()) {
+        // On preview path (lookup), blueprint_iid may be empty if the name was
+        // never interned. Fall back to string comparison to avoid false negatives.
+        const bool matches = !blueprint_iid.empty()
+            ? (n.blueprint_id == blueprint_iid)
+            : (interner.resolve(n.blueprint_id) == blueprint_name);
+        if (matches) {
+            if (error_out) *error_out = "blueprint name already exists in nested definitions";
+            return false;
+        }
+    }
+    for (const auto& n : source.nodes()) {
+        if (n.name == blueprint_name) {
+            if (error_out) *error_out = "blueprint name already exists as node name";
+            return false;
+        }
+    }
+
+    if (blueprint_iid_out) *blueprint_iid_out = blueprint_iid;
+    return true;
+}
+
+struct BridgeSideBuildParams {
+    const std::vector<ExternalConnection>& conns;
+    bool is_input_side = true;
+    const std::unordered_map<ui::InternedId, float>& node_center_y;
+    float x = 0.0f;
+    float fallback_y_origin = 0.0f;
+    std::string group_id;
+    const char* unique_prefix = "";
+    const ui::InternedId* canonical_nested_instance_id = nullptr;
+};
+
+static bool create_bridge_nodes_for_side(
+    bp2::Blueprint& out,
+    const BridgeSideBuildParams& p,
+    ui::StringInterner& interner,
+    std::unordered_set<ui::InternedId>& used_node_ids,
+    std::unordered_map<std::string, ui::InternedId>& out_bridge_ids,
+    std::string* error_out) {
+    std::vector<size_t> order(p.conns.size());
+    for (size_t i = 0; i < order.size(); ++i) order[i] = i;
+    std::sort(order.begin(), order.end(), [&](size_t a, size_t b) {
+        float ay = p.fallback_y_origin + fallback_lane_y(a);
+        float by = p.fallback_y_origin + fallback_lane_y(b);
+        if (auto it = p.node_center_y.find(p.conns[a].internal_node_id); it != p.node_center_y.end()) ay = it->second;
+        if (auto it = p.node_center_y.find(p.conns[b].internal_node_id); it != p.node_center_y.end()) by = it->second;
+        const float epsilon = 0.5f;
+        if (ay < by - epsilon) return true;
+        if (ay > by + epsilon) return false;
+        return p.conns[a].iface_name < p.conns[b].iface_name;
+    });
+
+    std::unordered_map<ui::InternedId, int> lane_counts;
+    for (size_t rank = 0; rank < order.size(); ++rank) {
+        const auto& ec = p.conns[order[rank]];
+
+        ui::InternedId id;
+        if (p.canonical_nested_instance_id) {
+            id = make_iface_bridge_id(interner, *p.canonical_nested_instance_id, ec.iface_name);
+            if (used_node_ids.find(id) != used_node_ids.end()) {
+                if (error_out) *error_out = "extract bridge node id collision";
+                return false;
+            }
+        } else {
+            id = next_unique_id(interner, used_node_ids, p.unique_prefix);
+        }
+        used_node_ids.insert(id);
+        out_bridge_ids[ec.iface_name] = id;
+
+        bp2::Blueprint::Node n;
+        n.id = id;
+        n.type = interner.intern(p.is_input_side ? "BlueprintInput" : "BlueprintOutput");
+        n.name = ec.iface_name;
+        n.group_id = p.group_id;
+        n.x = p.x;
+
+        float base_y = p.fallback_y_origin + fallback_lane_y(rank);
+        if (auto it = p.node_center_y.find(ec.internal_node_id); it != p.node_center_y.end()) {
+            const int lane = lane_counts[ec.internal_node_id]++;
+            base_y = it->second + static_cast<float>(lane) * kMultiLaneOffsetY;
+        }
+        n.y = base_y;
+
+        const PortType pt = port_type_for_domain(ec.domain);
+        if (p.is_input_side) {
+            n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
+            n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
+        } else {
+            n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
+            n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
+        }
+        out = out.with_node(std::move(n));
+    }
+    return true;
+}
+
+static void append_bridge_to_internal_wires(bp2::Blueprint& out,
+                                            const std::vector<ExternalConnection>& conns,
+                                            bool is_input_side,
+                                            const std::unordered_map<std::string, ui::InternedId>& bridge_ids,
+                                            const char* wire_prefix,
+                                            ui::StringInterner& interner,
+                                            bp2::PathArena& arena,
+                                            std::unordered_set<ui::InternedId>& used_wire_ids) {
+    for (const auto& ec : conns) {
+        bp2::Blueprint::Wire w;
+        w.id = next_unique_id(interner, used_wire_ids, wire_prefix);
+        used_wire_ids.insert(w.id);
+        w.domain = ec.domain;
+        if (is_input_side) {
+            w.source = arena.make_port(arena.make_node(arena.root(), bridge_ids.at(ec.iface_name)), interner.intern("port"));
+            w.target = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
+        } else {
+            w.source = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
+            w.target = arena.make_port(arena.make_node(arena.root(), bridge_ids.at(ec.iface_name)), interner.intern("port"));
+        }
+        out = out.with_wire(std::move(w));
+    }
 }
 
 static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
@@ -175,15 +307,21 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             if (error_out) *error_out = "selected nodes must belong to active group";
             return std::nullopt;
         }
-        if (node.expandable || bp.find_nested(node.id) != nullptr) {
-            if (error_out) *error_out = "extract does not support selecting nested blueprint instances yet";
+        const bp2::Blueprint::Nested* nested = bp.find_nested(node.id);
+        if (nested) {
+            if (!nested->embedded) {
+                if (error_out) *error_out = "extract does not support selecting non-embedded nested instances";
+                return std::nullopt;
+            }
+        } else if (node.expandable) {
+            if (error_out) *error_out = "extract nested instance metadata missing";
             return std::nullopt;
         }
         plan.internal_nodes.push_back(node);
         min_x = std::min(min_x, node.x);
         min_y = std::min(min_y, node.y);
-        max_x = std::max(max_x, node.x + node.width.value_or(100.0f));
-        max_y = std::max(max_y, node.y + node.height.value_or(64.0f));
+        max_x = std::max(max_x, node.x + node.width.value_or(kDefaultNodeWidth));
+        max_y = std::max(max_y, node.y + node.height.value_or(kDefaultNodeHeight));
     }
 
     if (plan.internal_nodes.size() < 2) {
@@ -256,29 +394,64 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
     return plan;
 }
 
-static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
-                                             ui::StringInterner& interner,
-                                             bp2::PathArena& arena,
-                                             ui::InternedId blueprint_id) {
+static bool append_selected_embedded_nested_for_inline(
+    bp2::Blueprint& inline_bp,
+    const bp2::Blueprint& source,
+    const std::unordered_set<ui::InternedId>& selected_set,
+    std::string* error_out) {
+    std::vector<const bp2::Blueprint::Nested*> selected_nested;
+    selected_nested.reserve(source.nested().size());
+    for (const auto& n : source.nested()) {
+        if (selected_set.find(n.id) == selected_set.end()) continue;
+        selected_nested.push_back(&n);
+    }
+
+    std::sort(selected_nested.begin(), selected_nested.end(), [](const auto* a, const auto* b) {
+        return a->id.raw() < b->id.raw();
+    });
+
+    for (const auto* n : selected_nested) {
+        if (!n->embedded) {
+            if (error_out) *error_out = "selected non-embedded nested instance cannot be inlined";
+            return false;
+        }
+        if (!n->inline_def) {
+            if (error_out) *error_out = "selected embedded nested instance missing inline_def";
+            return false;
+        }
+        if (inline_bp.find_nested(n->id) != nullptr) {
+            if (error_out) *error_out = "inline merge nested id collision";
+            return false;
+        }
+        inline_bp = inline_bp.with_nested(clone_nested(*n));
+    }
+    return true;
+}
+
+static std::optional<bp2::Blueprint> build_inline_blueprint(const ExtractionPlan& plan,
+                                                             const bp2::Blueprint& source,
+                                                             ui::StringInterner& interner,
+                                                             bp2::PathArena& arena,
+                                                             ui::InternedId blueprint_id,
+                                                             std::string* error_out) {
     bp2::Blueprint out;
     out = out.with_id(blueprint_id);
     out = out.with_display_name(std::string(interner.resolve(blueprint_id)));
     out = out.with_name(std::string(interner.resolve(blueprint_id)));
 
-    float min_x = std::numeric_limits<float>::max();
-    float min_y = std::numeric_limits<float>::max();
-    for (const auto& n : plan.internal_nodes) {
-        min_x = std::min(min_x, n.x);
-        min_y = std::min(min_y, n.y);
-    }
-    const float left_margin = 160.0f;
+    const float min_x = plan.min_x;
+    const float min_y = plan.min_y;
+    const float left_margin = kBridgeMarginX;
 
+    std::vector<bp2::Blueprint::Node> translated_nodes;
+    translated_nodes.reserve(plan.internal_nodes.size());
     float max_internal_right = 0.0f;
     for (auto node : plan.internal_nodes) {
         node.x = (node.x - min_x) + left_margin;
         node.y = (node.y - min_y);
         node.group_id.clear();
-        max_internal_right = std::max(max_internal_right, node.x + node.width.value_or(100.0f));
+        max_internal_right = std::max(max_internal_right, node.x + node.width.value_or(kDefaultNodeWidth));
+        translated_nodes.push_back(node);
         out = out.with_node(std::move(node));
     }
 
@@ -298,76 +471,32 @@ static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
     std::unordered_map<std::string, ui::InternedId> input_bridge_ids;
     std::unordered_map<std::string, ui::InternedId> output_bridge_ids;
 
-    const auto node_center_y = build_node_center_y_map(plan.internal_nodes);
-
-    std::vector<size_t> input_order(plan.inputs.size());
-    for (size_t i = 0; i < input_order.size(); ++i) input_order[i] = i;
-    std::sort(input_order.begin(), input_order.end(), [&](size_t a, size_t b) {
-        float ay = fallback_lane_y(a);
-        float by = fallback_lane_y(b);
-        if (auto it = node_center_y.find(plan.inputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
-        if (auto it = node_center_y.find(plan.inputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
-        if (ay != by) return ay < by;
-        return plan.inputs[a].iface_name < plan.inputs[b].iface_name;
-    });
-
-    std::unordered_map<ui::InternedId, int> input_lane_counts;
-    for (size_t rank = 0; rank < input_order.size(); ++rank) {
-        const auto& ec = plan.inputs[input_order[rank]];
-        ui::InternedId id = next_unique_id(interner, used_node_ids, "bp_in_");
-        used_node_ids.insert(id);
-        input_bridge_ids[ec.iface_name] = id;
-
-        bp2::Blueprint::Node n;
-        n.id = id;
-        n.type = interner.intern("BlueprintInput");
-        n.name = ec.iface_name;
-        n.x = 0.0f;
-        float base_y = fallback_lane_y(rank);
-        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
-            const int lane = input_lane_counts[ec.internal_node_id]++;
-            base_y = it->second + static_cast<float>(lane) * 16.0f;
-        }
-        n.y = base_y;
-        const PortType pt = port_type_for_domain(ec.domain);
-        n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
-        n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
-        out = out.with_node(std::move(n));
+    // Use translated (local-coordinate) nodes so bridge Y aligns with actual positions
+    const auto node_center_y = build_node_center_y_map(translated_nodes);
+    BridgeSideBuildParams inline_input_params{plan.inputs, true, node_center_y, 0.0f, 0.0f, "", "bp_in_", nullptr};
+    if (!create_bridge_nodes_for_side(out,
+                                      inline_input_params,
+                                      interner,
+                                      used_node_ids,
+                                      input_bridge_ids,
+                                      error_out)) {
+        return std::nullopt;
     }
-
-    std::vector<size_t> output_order(plan.outputs.size());
-    for (size_t i = 0; i < output_order.size(); ++i) output_order[i] = i;
-    std::sort(output_order.begin(), output_order.end(), [&](size_t a, size_t b) {
-        float ay = fallback_lane_y(a);
-        float by = fallback_lane_y(b);
-        if (auto it = node_center_y.find(plan.outputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
-        if (auto it = node_center_y.find(plan.outputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
-        if (ay != by) return ay < by;
-        return plan.outputs[a].iface_name < plan.outputs[b].iface_name;
-    });
-
-    std::unordered_map<ui::InternedId, int> output_lane_counts;
-    for (size_t rank = 0; rank < output_order.size(); ++rank) {
-        const auto& ec = plan.outputs[output_order[rank]];
-        ui::InternedId id = next_unique_id(interner, used_node_ids, "bp_out_");
-        used_node_ids.insert(id);
-        output_bridge_ids[ec.iface_name] = id;
-
-        bp2::Blueprint::Node n;
-        n.id = id;
-        n.type = interner.intern("BlueprintOutput");
-        n.name = ec.iface_name;
-        n.x = max_internal_right + 160.0f;
-        float base_y = fallback_lane_y(rank);
-        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
-            const int lane = output_lane_counts[ec.internal_node_id]++;
-            base_y = it->second + static_cast<float>(lane) * 16.0f;
-        }
-        n.y = base_y;
-        const PortType pt = port_type_for_domain(ec.domain);
-        n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
-        n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
-        out = out.with_node(std::move(n));
+    BridgeSideBuildParams inline_output_params{plan.outputs,
+                                               false,
+                                               node_center_y,
+                                                max_internal_right + kBridgeMarginX,
+                                               0.0f,
+                                               "",
+                                               "bp_out_",
+                                               nullptr};
+    if (!create_bridge_nodes_for_side(out,
+                                      inline_output_params,
+                                      interner,
+                                      used_node_ids,
+                                      output_bridge_ids,
+                                      error_out)) {
+        return std::nullopt;
     }
 
     for (const auto& w : plan.internal_wires) {
@@ -381,53 +510,39 @@ static bp2::Blueprint build_inline_blueprint(const ExtractionPlan& plan,
         out = out.with_wire(std::move(nw));
     }
 
-    for (const auto& ec : plan.inputs) {
-        bp2::Blueprint::Wire w;
-        w.id = next_unique_id(interner, used_wire_ids, "bp_bridge_in_wire_");
-        used_wire_ids.insert(w.id);
-        w.domain = ec.domain;
-        w.source = arena.make_port(
-            arena.make_node(arena.root(), input_bridge_ids.at(ec.iface_name)),
-            interner.intern("port"));
-        w.target = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
-        out = out.with_wire(std::move(w));
-    }
-    for (const auto& ec : plan.outputs) {
-        bp2::Blueprint::Wire w;
-        w.id = next_unique_id(interner, used_wire_ids, "bp_bridge_out_wire_");
-        used_wire_ids.insert(w.id);
-        w.domain = ec.domain;
-        w.source = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
-        w.target = arena.make_port(
-            arena.make_node(arena.root(), output_bridge_ids.at(ec.iface_name)),
-            interner.intern("port"));
-        out = out.with_wire(std::move(w));
+    append_bridge_to_internal_wires(out,
+                                    plan.inputs,
+                                    true,
+                                    input_bridge_ids,
+                                    "bp_bridge_in_wire_",
+                                    interner,
+                                    arena,
+                                    used_wire_ids);
+    append_bridge_to_internal_wires(out,
+                                    plan.outputs,
+                                    false,
+                                    output_bridge_ids,
+                                    "bp_bridge_out_wire_",
+                                    interner,
+                                    arena,
+                                    used_wire_ids);
+
+    if (!append_selected_embedded_nested_for_inline(out, source, plan.selected_set, error_out)) {
+        return std::nullopt;
     }
 
     return out;
 }
 
-} // namespace
-
-std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
+static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     const bp2::Blueprint& source,
-    const std::vector<ui::InternedId>& selected_node_ids,
+    const ExtractionPlan& plan,
+    ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out) {
-    if (blueprint_name.empty()) {
-        if (error_out) *error_out = "extract blueprint name must be non-empty";
-        return std::nullopt;
-    }
-
-    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
-    if (!plan_opt) return std::nullopt;
-    const ExtractionPlan& plan = *plan_opt;
-
-    ui::InternedId blueprint_iid = interner.intern(blueprint_name);
-
     bp2::Blueprint out;
     out = out.with_id(source.id());
     out = out.with_display_name(source.display_name());
@@ -473,7 +588,9 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         out = out.with_nested(clone_nested(n));
     }
 
-    bp2::Blueprint inline_bp = build_inline_blueprint(plan, interner, arena, blueprint_iid);
+    auto inline_bp_opt = build_inline_blueprint(plan, source, interner, arena, blueprint_iid, error_out);
+    if (!inline_bp_opt) return std::nullopt;
+    bp2::Blueprint inline_bp = std::move(*inline_bp_opt);
 
     bp2::Blueprint::Nested nested;
     nested.id = nested_instance_id;
@@ -524,108 +641,55 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
 
     const auto node_center_y = build_node_center_y_map(plan.internal_nodes);
 
-    std::vector<size_t> input_order(plan.inputs.size());
-    for (size_t i = 0; i < input_order.size(); ++i) input_order[i] = i;
-    std::sort(input_order.begin(), input_order.end(), [&](size_t a, size_t b) {
-        float ay = plan.min_y + fallback_lane_y(a);
-        float by = plan.min_y + fallback_lane_y(b);
-        if (auto it = node_center_y.find(plan.inputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
-        if (auto it = node_center_y.find(plan.inputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
-        if (ay != by) return ay < by;
-        return plan.inputs[a].iface_name < plan.inputs[b].iface_name;
-    });
-
-    std::unordered_map<ui::InternedId, int> input_lane_counts;
-    for (size_t rank = 0; rank < input_order.size(); ++rank) {
-        const auto& ec = plan.inputs[input_order[rank]];
-        ui::InternedId id = make_iface_bridge_id(interner, nested_instance_id, ec.iface_name);
-        if (used_node_ids.find(id) != used_node_ids.end()) {
-            if (error_out) *error_out = "extract bridge node id collision";
-            return std::nullopt;
-        }
-        used_node_ids.insert(id);
-        input_bridge_ids[ec.iface_name] = id;
-
-        const PortType pt = port_type_for_domain(ec.domain);
-        bp2::Blueprint::Node n;
-        n.id = id;
-        n.type = interner.intern("BlueprintInput");
-        n.name = ec.iface_name;
-        n.group_id = nested_group_id;
-        n.x = plan.min_x - 160.0f;
-        float base_y = plan.min_y + fallback_lane_y(rank);
-        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
-            const int lane = input_lane_counts[ec.internal_node_id]++;
-            base_y = it->second + static_cast<float>(lane) * 16.0f;
-        }
-        n.y = base_y;
-        n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
-        n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
-        out = out.with_node(std::move(n));
+    BridgeSideBuildParams parent_input_params{plan.inputs,
+                                               true,
+                                               node_center_y,
+                                               plan.min_x - 160.0f,
+                                               plan.min_y,
+                                               nested_group_id,
+                                               "",
+                                               &nested_instance_id};
+    if (!create_bridge_nodes_for_side(out,
+                                      parent_input_params,
+                                      interner,
+                                      used_node_ids,
+                                      input_bridge_ids,
+                                      error_out)) {
+        return std::nullopt;
+    }
+    BridgeSideBuildParams parent_output_params{plan.outputs,
+                                                false,
+                                                node_center_y,
+                                                plan.max_x + 160.0f,
+                                                plan.min_y,
+                                                nested_group_id,
+                                                "",
+                                                &nested_instance_id};
+    if (!create_bridge_nodes_for_side(out,
+                                      parent_output_params,
+                                      interner,
+                                      used_node_ids,
+                                      output_bridge_ids,
+                                      error_out)) {
+        return std::nullopt;
     }
 
-    std::vector<size_t> output_order(plan.outputs.size());
-    for (size_t i = 0; i < output_order.size(); ++i) output_order[i] = i;
-    std::sort(output_order.begin(), output_order.end(), [&](size_t a, size_t b) {
-        float ay = plan.min_y + fallback_lane_y(a);
-        float by = plan.min_y + fallback_lane_y(b);
-        if (auto it = node_center_y.find(plan.outputs[a].internal_node_id); it != node_center_y.end()) ay = it->second;
-        if (auto it = node_center_y.find(plan.outputs[b].internal_node_id); it != node_center_y.end()) by = it->second;
-        if (ay != by) return ay < by;
-        return plan.outputs[a].iface_name < plan.outputs[b].iface_name;
-    });
-
-    std::unordered_map<ui::InternedId, int> output_lane_counts;
-    for (size_t rank = 0; rank < output_order.size(); ++rank) {
-        const auto& ec = plan.outputs[output_order[rank]];
-        ui::InternedId id = make_iface_bridge_id(interner, nested_instance_id, ec.iface_name);
-        if (used_node_ids.find(id) != used_node_ids.end()) {
-            if (error_out) *error_out = "extract bridge node id collision";
-            return std::nullopt;
-        }
-        used_node_ids.insert(id);
-        output_bridge_ids[ec.iface_name] = id;
-
-        const PortType pt = port_type_for_domain(ec.domain);
-        bp2::Blueprint::Node n;
-        n.id = id;
-        n.type = interner.intern("BlueprintOutput");
-        n.name = ec.iface_name;
-        n.group_id = nested_group_id;
-        n.x = plan.max_x + 160.0f;
-        float base_y = plan.min_y + fallback_lane_y(rank);
-        if (auto it = node_center_y.find(ec.internal_node_id); it != node_center_y.end()) {
-            const int lane = output_lane_counts[ec.internal_node_id]++;
-            base_y = it->second + static_cast<float>(lane) * 16.0f;
-        }
-        n.y = base_y;
-        n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
-        n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
-        out = out.with_node(std::move(n));
-    }
-
-    for (const auto& ec : plan.inputs) {
-        bp2::Blueprint::Wire w;
-        w.id = next_unique_id(interner, used_wire_ids, "extract_wire_");
-        used_wire_ids.insert(w.id);
-        w.domain = ec.domain;
-        w.source = arena.make_port(
-            arena.make_node(arena.root(), input_bridge_ids.at(ec.iface_name)),
-            interner.intern("port"));
-        w.target = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
-        out = out.with_wire(std::move(w));
-    }
-    for (const auto& ec : plan.outputs) {
-        bp2::Blueprint::Wire w;
-        w.id = next_unique_id(interner, used_wire_ids, "extract_wire_");
-        used_wire_ids.insert(w.id);
-        w.domain = ec.domain;
-        w.source = arena.make_port(arena.make_node(arena.root(), ec.internal_node_id), ec.internal_port);
-        w.target = arena.make_port(
-            arena.make_node(arena.root(), output_bridge_ids.at(ec.iface_name)),
-            interner.intern("port"));
-        out = out.with_wire(std::move(w));
-    }
+    append_bridge_to_internal_wires(out,
+                                    plan.inputs,
+                                    true,
+                                    input_bridge_ids,
+                                    "extract_wire_",
+                                    interner,
+                                    arena,
+                                    used_wire_ids);
+    append_bridge_to_internal_wires(out,
+                                    plan.outputs,
+                                    false,
+                                    output_bridge_ids,
+                                    "extract_wire_",
+                                    interner,
+                                    arena,
+                                    used_wire_ids);
 
     for (const auto& ec : plan.inputs) {
         bp2::Blueprint::Wire w;
@@ -646,6 +710,40 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         out = out.with_wire(std::move(w));
     }
 
+    return out;
+}
+
+} // namespace
+
+std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
+    const bp2::Blueprint& source,
+    const std::vector<ui::InternedId>& selected_node_ids,
+    const std::string& blueprint_name,
+    const std::string& group_id,
+    ui::StringInterner& interner,
+    bp2::PathArena& arena,
+    std::string* error_out) {
+    ui::InternedId blueprint_iid;
+    if (!validate_blueprint_name_for_extract(source, blueprint_name, interner, &blueprint_iid, error_out)) {
+        return std::nullopt;
+    }
+
+    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
+    if (!plan_opt) return std::nullopt;
+    const ExtractionPlan& plan = *plan_opt;
+
+    auto out_opt = build_parent_blueprint_from_plan(
+        source,
+        plan,
+        blueprint_iid,
+        blueprint_name,
+        group_id,
+        interner,
+        arena,
+        error_out);
+    if (!out_opt) return std::nullopt;
+    bp2::Blueprint out = std::move(*out_opt);
+
     std::string integrity_err;
     if (!validate_blueprint_integrity(out, interner, arena, &integrity_err)) {
         if (error_out) *error_out = integrity_err;
@@ -659,10 +757,15 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
 std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const bp2::Blueprint& source,
     const std::vector<ui::InternedId>& selected_node_ids,
+    const std::string& blueprint_name,
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out) {
+    if (!validate_blueprint_name_for_extract(source, blueprint_name, interner, nullptr, error_out)) {
+        return std::nullopt;
+    }
+
     auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
     if (!plan_opt) return std::nullopt;
 

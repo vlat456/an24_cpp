@@ -107,6 +107,12 @@ public:
         Interface iface;
         float x = 0.0f;
         float y = 0.0f;
+
+        Nested() = default;
+        Nested(const Nested& other);
+        Nested(Nested&& other) noexcept = default;
+        Nested& operator=(const Nested& other);
+        Nested& operator=(Nested&& other) noexcept = default;
     };
 
     Blueprint() = default;

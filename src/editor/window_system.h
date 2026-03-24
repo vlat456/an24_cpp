@@ -7,6 +7,7 @@
 #include "json_parser/json_parser.h"
 #include "commands/extract_blueprint.h"
 #include "oscilloscope.h"
+#include <cstring>
 #include <memory>
 #include <vector>
 #include <string>
@@ -100,6 +101,19 @@ public:
         bool has_preview = false;
         editor::commands::ExtractToBlueprintPreview preview;
         std::string preview_error;
+        std::string preview_name;
+
+        void reset() {
+            show_dialog = false;
+            doc_id.clear();
+            group_id.clear();
+            selected_node_ids.clear();
+            std::memset(name_buf, 0, sizeof(name_buf));
+            has_preview = false;
+            preview = {};
+            preview_error.clear();
+            preview_name.clear();
+        }
     } pendingExtract;
 
     bool showInspector = true;

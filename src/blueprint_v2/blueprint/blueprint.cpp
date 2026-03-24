@@ -7,6 +7,34 @@
 
 namespace bp2 {
 
+Blueprint::Nested::Nested(const Blueprint::Nested& other)
+    : id(other.id)
+    , blueprint_id(other.blueprint_id)
+    , embedded(other.embedded)
+    , iface(other.iface)
+    , x(other.x)
+    , y(other.y) {
+    if (other.inline_def) {
+        inline_def = std::make_unique<Blueprint>(*other.inline_def);
+    }
+}
+
+Blueprint::Nested& Blueprint::Nested::operator=(const Blueprint::Nested& other) {
+    if (this != &other) {
+        id = other.id;
+        blueprint_id = other.blueprint_id;
+        embedded = other.embedded;
+        iface = other.iface;
+        x = other.x;
+        y = other.y;
+        inline_def.reset();
+        if (other.inline_def) {
+            inline_def = std::make_unique<Blueprint>(*other.inline_def);
+        }
+    }
+    return *this;
+}
+
 Blueprint::Blueprint(Blueprint const& other)
     : id_(other.id_)
     , display_name_(other.display_name_)
@@ -25,19 +53,7 @@ Blueprint::Blueprint(Blueprint const& other)
     for (auto const& w : other.wires_) {
         wires_.push_back(w);  // Wire is copyable
     }
-    for (auto const& n : other.nested_) {
-        Nested copy;
-        copy.id = n.id;
-        copy.blueprint_id = n.blueprint_id;
-        copy.embedded = n.embedded;
-        copy.iface = n.iface;
-        copy.x = n.x;
-        copy.y = n.y;
-        if (n.inline_def) {
-            copy.inline_def = std::make_unique<Blueprint>(*n.inline_def);
-        }
-        nested_.push_back(std::move(copy));
-    }
+    for (auto const& n : other.nested_) nested_.push_back(n);
 }
 
 Blueprint::Blueprint(Blueprint&& other) noexcept
@@ -67,19 +83,7 @@ Blueprint& Blueprint::operator=(Blueprint const& other) {
         wires_.clear();
         for (auto const& w : other.wires_) wires_.push_back(w);
         nested_.clear();
-        for (auto const& n : other.nested_) {
-            Nested copy;
-            copy.id = n.id;
-            copy.blueprint_id = n.blueprint_id;
-            copy.embedded = n.embedded;
-            copy.iface = n.iface;
-            copy.x = n.x;
-            copy.y = n.y;
-            if (n.inline_def) {
-                copy.inline_def = std::make_unique<Blueprint>(*n.inline_def);
-            }
-            nested_.push_back(std::move(copy));
-        }
+        for (auto const& n : other.nested_) nested_.push_back(n);
         pan_x_ = other.pan_x_;
         pan_y_ = other.pan_y_;
         zoom_ = other.zoom_;

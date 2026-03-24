@@ -92,17 +92,20 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 ws.pendingExtract.has_preview = false;
                 ws.pendingExtract.preview = {};
                 ws.pendingExtract.preview_error.clear();
+                ws.pendingExtract.preview_name.clear();
 
                 std::string suggested = "extracted_blueprint_1";
                 int idx = 1;
                 while (idx < 100000) {
                     std::string candidate = "extracted_blueprint_" + std::to_string(idx);
                     bool used = false;
-                    ui::InternedId cid = doc->interner().intern(candidate);
-                    for (const auto& nn : doc->blueprint().nested()) {
-                        if (nn.blueprint_id == cid) {
-                            used = true;
-                            break;
+                    ui::InternedId cid = doc->interner().lookup(candidate);
+                    if (!cid.empty()) {
+                        for (const auto& nn : doc->blueprint().nested()) {
+                            if (nn.blueprint_id == cid) {
+                                used = true;
+                                break;
+                            }
                         }
                     }
                     if (!used) {
@@ -126,6 +129,7 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 auto preview = editor::commands::build_extract_to_blueprint_preview(
                     doc->blueprint(),
                     ws.pendingExtract.selected_node_ids,
+                    std::string(ws.pendingExtract.name_buf),
                     ws.pendingExtract.group_id,
                     doc->interner(),
                     doc->arena(),
@@ -133,9 +137,11 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 if (preview) {
                     ws.pendingExtract.preview = *preview;
                     ws.pendingExtract.has_preview = true;
+                    ws.pendingExtract.preview_name = std::string(ws.pendingExtract.name_buf);
                 } else {
                     ws.pendingExtract.preview_error = preview_err;
                     ws.pendingExtract.has_preview = false;
+                    ws.pendingExtract.preview_name.clear();
                 }
             }
             if (ImGui::MenuItem("Delete")) {

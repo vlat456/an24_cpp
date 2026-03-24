@@ -138,8 +138,8 @@ static bp2::Blueprint make_extract_subgroup_fixture(ui::StringInterner& I, bp2::
     return bp;
 }
 
-static bp2::Blueprint make_extract_with_nested_selection_fixture(ui::StringInterner& I,
-                                                                 bp2::PathArena& arena) {
+static bp2::Blueprint make_extract_with_embedded_nested_selection_fixture(ui::StringInterner& I,
+                                                                          bp2::PathArena& arena) {
     bp2::Blueprint bp = make_extract_fixture(I, arena);
 
     // Replace node "a" with a nested-instance-style expandable node.
@@ -158,6 +158,8 @@ static bp2::Blueprint make_extract_with_nested_selection_fixture(ui::StringInter
     nested.id = I.intern("sub_inst_1");
     nested.blueprint_id = I.intern("sub_blueprint_type");
     nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    *nested.inline_def = nested.inline_def->with_id(I.intern("sub_blueprint_type"));
     nested.iface = bp2::Interface({
         {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
         {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
@@ -170,6 +172,53 @@ static bp2::Blueprint make_extract_with_nested_selection_fixture(ui::StringInter
     w1.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w0));
     bp = bp.with_wire(std::move(w1));
+
+    return bp;
+}
+
+static bp2::Blueprint make_extract_with_nonembedded_nested_selection_fixture(ui::StringInterner& I,
+                                                                             bp2::PathArena& arena) {
+    bp2::Blueprint bp = make_extract_with_embedded_nested_selection_fixture(I, arena);
+    bp = bp.without_nested(I.intern("sub_inst_1"));
+    bp2::Blueprint::Nested n;
+    n.id = I.intern("sub_inst_1");
+    n.embedded = false;
+    n.blueprint_id = I.intern("SomeLibraryBlueprint");
+    bp = bp.with_nested(std::move(n));
+    return bp;
+}
+
+static bp2::Blueprint make_extract_with_two_embedded_nested_selection_fixture(ui::StringInterner& I,
+                                                                              bp2::PathArena& arena) {
+    bp2::Blueprint bp = make_extract_with_embedded_nested_selection_fixture(I, arena);
+
+    auto sub2 = make_node(I, "sub_inst_2");
+    sub2.type = I.intern("sub_blueprint_type_2");
+    sub2.expandable = true;
+    sub2.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    sub2.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    bp = bp.with_node(std::move(sub2));
+
+    bp2::Blueprint::Nested nested2;
+    nested2.id = I.intern("sub_inst_2");
+    nested2.blueprint_id = I.intern("sub_blueprint_type_2");
+    nested2.embedded = true;
+    nested2.inline_def = std::make_unique<bp2::Blueprint>();
+    *nested2.inline_def = nested2.inline_def->with_id(I.intern("sub_blueprint_type_2"));
+    nested2.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+    bp = bp.with_nested(std::move(nested2));
+
+    // Rewire chain: sub_inst_1.out -> sub_inst_2.in -> b.in
+    bp = bp.without_wire(I.intern("w1"));
+    auto w1 = make_wire(I, arena, "w1", "sub_inst_1", "out", "sub_inst_2", "in");
+    w1.domain = Domain::Electrical;
+    auto w1b = make_wire(I, arena, "w1b", "sub_inst_2", "out", "b", "in");
+    w1b.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w1b));
 
     return bp;
 }
@@ -967,9 +1016,105 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsSelectionOutsideActiveGroup) {
     EXPECT_NE(err.find("active group"), std::string::npos);
 }
 
-TEST_F(CommandTest, ExtractToBlueprint_RejectsNestedInstanceSelection) {
+TEST_F(CommandTest, ExtractToBlueprint_AllowsEmbeddedNestedInstanceSelection) {
     bp2::PathArena arena(interner);
-    bp2::Blueprint source = make_extract_with_nested_selection_fixture(interner, arena);
+    bp2::Blueprint source = make_extract_with_embedded_nested_selection_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 2u);
+    const std::string new_nested_sid(interner.resolve(updated->nested().back().id));
+
+    const auto* selected_nested_node = updated->find_node(interner.intern("sub_inst_1"));
+    ASSERT_NE(selected_nested_node, nullptr);
+    EXPECT_EQ(selected_nested_node->group_id, new_nested_sid);
+
+    const auto& created_nested = updated->nested().back();
+    ASSERT_TRUE(created_nested.inline_def != nullptr);
+    EXPECT_NE(created_nested.inline_def->find_nested(interner.intern("sub_inst_1")), nullptr);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_InlinesSelectedEmbeddedNestedDeterministically) {
+    auto run_extract = [](const std::vector<std::string>& selection_names) {
+        ui::StringInterner I;
+        bp2::PathArena A(I);
+        bp2::Blueprint source = make_extract_with_two_embedded_nested_selection_fixture(I, A);
+        std::vector<ui::InternedId> selection;
+        selection.reserve(selection_names.size());
+        for (const auto& s : selection_names) selection.push_back(I.intern(s));
+
+        std::string err;
+        auto updated = editor::commands::build_extracted_blueprint_atomic(
+            source,
+            selection,
+            "extracted_blueprint_1",
+            "",
+            I,
+            A,
+            &err);
+        EXPECT_TRUE(updated.has_value()) << err;
+
+        std::vector<std::string> nested_names;
+        if (!updated.has_value() || updated->nested().empty()) return nested_names;
+        const auto* created = updated->find_nested(updated->nested().back().id);
+        if (!created || !created->inline_def) return nested_names;
+        nested_names.reserve(created->inline_def->nested().size());
+        for (const auto& n : created->inline_def->nested()) {
+            nested_names.push_back(std::string(I.resolve(n.id)));
+        }
+        return nested_names;
+    };
+
+    const auto names_a = run_extract({"sub_inst_2", "b", "sub_inst_1"});
+    const auto names_b = run_extract({"sub_inst_1", "b", "sub_inst_2"});
+    EXPECT_EQ(names_a, names_b);
+    EXPECT_TRUE(std::find(names_a.begin(), names_a.end(), "sub_inst_1") != names_a.end());
+    EXPECT_TRUE(std::find(names_a.begin(), names_a.end(), "sub_inst_2") != names_a.end());
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsEmbeddedNestedMissingInlineDef) {
+    ui::StringInterner I;
+    bp2::PathArena A(I);
+    bp2::Blueprint source = make_extract_with_embedded_nested_selection_fixture(I, A);
+
+    source = source.without_nested(I.intern("sub_inst_1"));
+    bp2::Blueprint::Nested broken;
+    broken.id = I.intern("sub_inst_1");
+    broken.blueprint_id = I.intern("sub_blueprint_type");
+    broken.embedded = true;
+    broken.inline_def.reset();
+    broken.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+    source = source.with_nested(std::move(broken));
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {I.intern("sub_inst_1"), I.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        I,
+        A,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("missing inline_def"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_nonembedded_nested_selection_fixture(interner, arena);
 
     std::string err;
     auto updated = editor::commands::build_extracted_blueprint_atomic(
@@ -982,7 +1127,7 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsNestedInstanceSelection) {
         &err);
 
     EXPECT_FALSE(updated.has_value());
-    EXPECT_NE(err.find("nested blueprint instances"), std::string::npos);
+    EXPECT_NE(err.find("non-embedded nested instances"), std::string::npos);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_PreviewBasic) {
@@ -993,6 +1138,7 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewBasic) {
     auto preview = editor::commands::build_extract_to_blueprint_preview(
         source,
         {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
         "",
         interner,
         arena,
@@ -1018,6 +1164,7 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewReportsIfaceCollision) {
     auto preview = editor::commands::build_extract_to_blueprint_preview(
         source,
         {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
         "",
         interner,
         arena,
@@ -1026,6 +1173,42 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewReportsIfaceCollision) {
     ASSERT_TRUE(preview.has_value()) << err;
     ASSERT_EQ(preview->iface_collision_names.size(), 1u);
     EXPECT_EQ(preview->iface_collision_names[0], "sig");
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewAllowsEmbeddedNestedSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_embedded_nested_selection_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(preview.has_value()) << err;
+    EXPECT_EQ(preview->selected_nodes, 2u);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsNonEmbeddedNestedSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_nonembedded_nested_selection_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(preview.has_value());
+    EXPECT_NE(err.find("non-embedded nested instances"), std::string::npos);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {
@@ -1053,6 +1236,48 @@ TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {
 
     // a is above b, bridge for iface "in" should be above "in_2".
     EXPECT_LT(in_1->y, in_2->y);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsEmptyName) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(preview.has_value());
+    EXPECT_NE(err.find("non-empty"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsDuplicateName) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_fixture(interner, arena);
+
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("existing_inst");
+    nested.blueprint_id = interner.intern("extracted_blueprint_1");
+    nested.embedded = true;
+    source = source.with_nested(std::move(nested));
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(preview.has_value());
+    EXPECT_NE(err.find("already exists"), std::string::npos);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_RejectsSmallSelection) {
@@ -1405,4 +1630,79 @@ TEST_F(CommandTest, ExtractToBlueprint_ZeroExternalConnections) {
     // Plus the inline_def should contain the wire
     ASSERT_TRUE(updated->nested()[0].inline_def != nullptr);
     EXPECT_GE(updated->nested()[0].inline_def->wires().size(), 1u);
+}
+
+// Regression: bridge nodes inside inline_def must use translated (local) Y coordinates,
+// not original (world) Y coordinates. Nodes at world Y=500..600 should have bridge nodes
+// near Y=0..100 inside the inline blueprint, not at Y=532.
+TEST_F(CommandTest, ExtractToBlueprint_InlineBridgeYUsesLocalCoordinates) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp_bridge_y_regression"));
+    bp = bp.with_display_name("BridgeYRegression");
+
+    auto ext_in = make_node(interner, "ext_in");
+    ext_in.type = interner.intern("Source");
+    ext_in.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    // Place nodes far from origin to expose the pre-translation bug
+    auto a = make_node(interner, "a", 500.0f, 500.0f);
+    a.type = interner.intern("NodeA");
+    a.height = 64.0f;
+    a.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    auto b = make_node(interner, "b", 700.0f, 600.0f);
+    b.type = interner.intern("NodeB");
+    b.height = 64.0f;
+    b.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+    b.outputs.emplace_back(interner.intern("out"), PortSide::Output, PortType::V);
+
+    auto ext_out = make_node(interner, "ext_out");
+    ext_out.type = interner.intern("Sink");
+    ext_out.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(std::move(ext_in));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+    bp = bp.with_node(std::move(ext_out));
+
+    auto w0 = make_wire(interner, arena, "w0", "ext_in", "out", "a", "in");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(interner, arena, "w1", "a", "out", "b", "in");
+    w1.domain = Domain::Electrical;
+    auto w2 = make_wire(interner, arena, "w2", "b", "out", "ext_out", "in");
+    w2.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w2));
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        bp,
+        {interner.intern("a"), interner.intern("b")},
+        "bridge_y_test",
+        "",
+        interner,
+        arena,
+        &err);
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+    ASSERT_TRUE(updated->nested()[0].inline_def != nullptr);
+
+    const bp2::Blueprint& inner = *updated->nested()[0].inline_def;
+
+    // Find the BlueprintInput bridge inside inline_def
+    const bp2::Blueprint::Node* bp_in_node = nullptr;
+    for (const auto& n : inner.nodes()) {
+        if (n.type == interner.intern("BlueprintInput")) bp_in_node = &n;
+    }
+    ASSERT_NE(bp_in_node, nullptr);
+
+    // The bridge Y should be near the translated node Y (0..100 range),
+    // NOT near the original world Y (500+).
+    // Node "a" at world Y=500 becomes local Y=0, center at 32.
+    EXPECT_LT(bp_in_node->y, 200.0f)
+        << "Bridge node Y=" << bp_in_node->y
+        << " should use local coordinates (near 0..100), not world coordinates (near 500+)";
 }

@@ -19,7 +19,34 @@ public:
         ImGui::Text("Extract selected nodes into embedded blueprint");
         ImGui::Separator();
         ImGui::Text("Blueprint name:");
-        ImGui::InputText("##extract_name", ws.pendingExtract.name_buf, sizeof(ws.pendingExtract.name_buf));
+        const bool name_changed = ImGui::InputText("##extract_name", ws.pendingExtract.name_buf, sizeof(ws.pendingExtract.name_buf));
+
+        Document* doc_for_preview = ws.findDocumentById(ws.pendingExtract.doc_id);
+        if (!doc_for_preview) doc_for_preview = ws.activeDocument();
+        const std::string current_name(ws.pendingExtract.name_buf);
+        const bool name_matches_preview = ws.pendingExtract.preview_name == current_name;
+        const bool preview_stale = name_changed
+            || (!ws.pendingExtract.has_preview && !name_matches_preview);
+        if (preview_stale && doc_for_preview) {
+            ws.pendingExtract.preview = {};
+            ws.pendingExtract.preview_error.clear();
+            auto preview = editor::commands::build_extract_to_blueprint_preview(
+                doc_for_preview->blueprint(),
+                ws.pendingExtract.selected_node_ids,
+                current_name,
+                ws.pendingExtract.group_id,
+                doc_for_preview->interner(),
+                doc_for_preview->arena(),
+                &ws.pendingExtract.preview_error);
+            if (preview) {
+                ws.pendingExtract.preview = *preview;
+                ws.pendingExtract.has_preview = true;
+                ws.pendingExtract.preview_name = current_name;
+            } else {
+                ws.pendingExtract.has_preview = false;
+                ws.pendingExtract.preview_name = current_name;
+            }
+        }
 
         if (ws.pendingExtract.has_preview) {
             const auto& p = ws.pendingExtract.preview;
@@ -76,12 +103,7 @@ public:
                     spdlog::warn("[extract] failed: {}", err);
                 }
             }
-            ws.pendingExtract.doc_id.clear();
-            ws.pendingExtract.group_id.clear();
-            ws.pendingExtract.selected_node_ids.clear();
-            ws.pendingExtract.has_preview = false;
-            ws.pendingExtract.preview = {};
-            ws.pendingExtract.preview_error.clear();
+            ws.pendingExtract.reset();
             ImGui::CloseCurrentPopup();
         }
         if (!can_extract) {
@@ -90,12 +112,7 @@ public:
 
         ImGui::SameLine();
         if (ImGui::Button("Cancel")) {
-            ws.pendingExtract.doc_id.clear();
-            ws.pendingExtract.group_id.clear();
-            ws.pendingExtract.selected_node_ids.clear();
-            ws.pendingExtract.has_preview = false;
-            ws.pendingExtract.preview = {};
-            ws.pendingExtract.preview_error.clear();
+            ws.pendingExtract.reset();
             ImGui::CloseCurrentPopup();
         }
 
