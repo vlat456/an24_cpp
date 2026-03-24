@@ -223,6 +223,34 @@ static bp2::Blueprint make_extract_with_two_embedded_nested_selection_fixture(ui
     return bp;
 }
 
+static bp2::Blueprint make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(
+    ui::StringInterner& I,
+    bp2::PathArena& arena) {
+    bp2::Blueprint bp = make_extract_with_embedded_nested_selection_fixture(I, arena);
+
+    // Replace sub_inst_1 nested def with one that contains a non-embedded descendant.
+    bp = bp.without_nested(I.intern("sub_inst_1"));
+    bp2::Blueprint::Nested nested;
+    nested.id = I.intern("sub_inst_1");
+    nested.blueprint_id = I.intern("sub_blueprint_type");
+    nested.embedded = true;
+    nested.inline_def = std::make_unique<bp2::Blueprint>();
+    *nested.inline_def = nested.inline_def->with_id(I.intern("sub_blueprint_type"));
+
+    bp2::Blueprint::Nested child;
+    child.id = I.intern("child_nonembedded");
+    child.embedded = false;
+    child.blueprint_id = I.intern("SomeLibraryBlueprint");
+    *nested.inline_def = nested.inline_def->with_nested(std::move(child));
+
+    nested.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+    bp = bp.with_nested(std::move(nested));
+    return bp;
+}
+
 static bp2::Blueprint make_extract_layout_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_layout"));
@@ -268,6 +296,39 @@ static bp2::Blueprint make_extract_layout_fixture(ui::StringInterner& I, bp2::Pa
     bp = bp.with_wire(std::move(w1));
     bp = bp.with_wire(std::move(w2));
     bp = bp.with_wire(std::move(w3));
+
+    return bp;
+}
+
+static bp2::Blueprint make_extract_with_bridge_node_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("bp_extract_bridge_node"));
+    bp = bp.with_display_name("ExtractBridgeNode");
+
+    auto bridge = make_node(I, "bridge_in");
+    bridge.type = I.intern("BlueprintInput");
+    bridge.inputs.emplace_back(I.intern("ext"), PortSide::Input, PortType::V);
+    bridge.outputs.emplace_back(I.intern("port"), PortSide::Output, PortType::V);
+
+    auto a = make_node(I, "a");
+    a.type = I.intern("NodeA");
+    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+
+    auto ext = make_node(I, "ext");
+    ext.type = I.intern("Sink");
+    ext.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+
+    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(ext));
+
+    auto w0 = make_wire(I, arena, "w0", "bridge_in", "port", "a", "in");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(I, arena, "w1", "a", "out", "ext", "in");
+    w1.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
 
     return bp;
 }
@@ -1112,6 +1173,44 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsEmbeddedNestedMissingInlineDef) {
     EXPECT_NE(err.find("missing inline_def"), std::string::npos);
 }
 
+TEST_F(CommandTest, ExtractToBlueprint_RejectsEmbeddedNestedWithNonEmbeddedDescendant) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("non-embedded descendant references"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_AllowsNonEmbeddedDescendantWhenGuardEnabled) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err,
+        true);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+}
+
 TEST_F(CommandTest, ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection) {
     bp2::PathArena arena(interner);
     bp2::Blueprint source = make_extract_with_nonembedded_nested_selection_fixture(interner, arena);
@@ -1128,6 +1227,24 @@ TEST_F(CommandTest, ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection
 
     EXPECT_FALSE(updated.has_value());
     EXPECT_NE(err.find("non-embedded nested instances"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_RejectsBlueprintBridgeNodeSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_bridge_node_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("bridge_in"), interner.intern("a")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(err.find("BlueprintInput/BlueprintOutput"), std::string::npos);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_PreviewBasic) {
@@ -1209,6 +1326,62 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsNonEmbeddedNestedSelection)
 
     EXPECT_FALSE(preview.has_value());
     EXPECT_NE(err.find("non-embedded nested instances"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsBlueprintBridgeNodeSelection) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_bridge_node_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("bridge_in"), interner.intern("a")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(preview.has_value());
+    EXPECT_NE(err.find("BlueprintInput/BlueprintOutput"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewRejectsEmbeddedNestedWithNonEmbeddedDescendant) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    EXPECT_FALSE(preview.has_value());
+    EXPECT_NE(err.find("non-embedded descendant references"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewAllowsNonEmbeddedDescendantWhenGuardEnabled) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err,
+        true);
+
+    ASSERT_TRUE(preview.has_value()) << err;
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {

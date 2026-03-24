@@ -27,9 +27,9 @@ If any precondition fails, the command must abort with no partial mutations.
 - Collapsed expandable node created in parent
 - Undo/redo as one checkpoint (single `replace_current`)
 - Preview API with name validation and iface conflict reporting
+- Embedded nested selection allowed only when embedded descendants are transitively embedded (non-embedded descendants are rejected)
 
 ### Excluded (follow-up)
-- Existing BlueprintInput/BlueprintOutput special handling
 - Any inference/coercion beyond explicit wire endpoint metadata
 
 ---
@@ -190,5 +190,4 @@ struct ExtractionPlan {
 
 ## Known Follow-Ups
 
-- existing BlueprintInput/BlueprintOutput selection special handling
-- deeper nested flatten/merge strategies (beyond current embedded passthrough/inline-def carry-over)
+- deeper nested flatten/merge strategies (e.g. remapping non-embedded descendants instead of strict rejection)

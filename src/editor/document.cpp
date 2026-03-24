@@ -613,10 +613,11 @@ void Document::addBlueprint(const std::string& blueprint_name, Pt /*world_pos*/,
 bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                                   const std::string& blueprint_name,
                                   const std::string& group_id,
-                                  std::string* error_out) {
+                                  std::string* error_out,
+                                  bool allow_nonembedded_descendant_refs) {
     auto updated = editor::commands::build_extracted_blueprint_atomic(
         model_.current(), selected_node_ids, blueprint_name, group_id,
-        interner_, arena_, error_out);
+        interner_, arena_, error_out, allow_nonembedded_descendant_refs);
     if (!updated) {
         return false;
     }

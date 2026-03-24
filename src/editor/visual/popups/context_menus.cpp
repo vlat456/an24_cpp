@@ -1,6 +1,5 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
-#include "editor/commands/extract_blueprint.h"
 #include <imgui.h>
 #include <cstring>
 
@@ -93,6 +92,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 ws.pendingExtract.preview = {};
                 ws.pendingExtract.preview_error.clear();
                 ws.pendingExtract.preview_name.clear();
+                ws.pendingExtract.allow_nonembedded_descendant_refs = false;
+                ws.pendingExtract.preview_allow_nonembedded_descendant_refs = false;
 
                 std::string suggested = "extracted_blueprint_1";
                 int idx = 1;
@@ -125,24 +126,8 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
                 std::memset(ws.pendingExtract.name_buf, 0, sizeof(ws.pendingExtract.name_buf));
                 std::strncpy(ws.pendingExtract.name_buf, suggested.c_str(), sizeof(ws.pendingExtract.name_buf) - 1);
 
-                std::string preview_err;
-                auto preview = editor::commands::build_extract_to_blueprint_preview(
-                    doc->blueprint(),
-                    ws.pendingExtract.selected_node_ids,
-                    std::string(ws.pendingExtract.name_buf),
-                    ws.pendingExtract.group_id,
-                    doc->interner(),
-                    doc->arena(),
-                    &preview_err);
-                if (preview) {
-                    ws.pendingExtract.preview = *preview;
-                    ws.pendingExtract.has_preview = true;
-                    ws.pendingExtract.preview_name = std::string(ws.pendingExtract.name_buf);
-                } else {
-                    ws.pendingExtract.preview_error = preview_err;
-                    ws.pendingExtract.has_preview = false;
-                    ws.pendingExtract.preview_name.clear();
-                }
+                // Preview is computed lazily by ExtractToBlueprintDialog
+                // on first render frame (avoids duplicate computation).
             }
             if (ImGui::MenuItem("Delete")) {
                 auto action = doc->applyInputResult(doc->input().on_key(Key::Delete), ws.nodeContextMenu.group_id);

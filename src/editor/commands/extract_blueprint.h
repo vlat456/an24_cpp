@@ -26,7 +26,8 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    std::string* error_out = nullptr);
+    std::string* error_out = nullptr,
+    bool allow_nonembedded_descendant_refs = false);
 
 std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const bp2::Blueprint& source,
@@ -35,6 +36,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    std::string* error_out = nullptr);
+    std::string* error_out = nullptr,
+    bool allow_nonembedded_descendant_refs = false);
 
 } // namespace editor::commands

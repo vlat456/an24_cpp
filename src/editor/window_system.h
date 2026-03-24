@@ -102,6 +102,8 @@ public:
         editor::commands::ExtractToBlueprintPreview preview;
         std::string preview_error;
         std::string preview_name;
+        bool allow_nonembedded_descendant_refs = false;
+        bool preview_allow_nonembedded_descendant_refs = false;
 
         void reset() {
             show_dialog = false;
@@ -113,6 +115,8 @@ public:
             preview = {};
             preview_error.clear();
             preview_name.clear();
+            allow_nonembedded_descendant_refs = false;
+            preview_allow_nonembedded_descendant_refs = false;
         }
     } pendingExtract;
 

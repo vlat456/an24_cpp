@@ -125,7 +125,8 @@ public:
     bool extractToBlueprint(const std::vector<ui::InternedId>& selected_node_ids,
                            const std::string& blueprint_name,
                            const std::string& group_id,
-                           std::string* error_out = nullptr);
+                           std::string* error_out = nullptr,
+                           bool allow_nonembedded_descendant_refs = false);
 
     // ── Sub-windows ──
 

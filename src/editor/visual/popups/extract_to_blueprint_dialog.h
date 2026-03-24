@@ -20,13 +20,16 @@ public:
         ImGui::Separator();
         ImGui::Text("Blueprint name:");
         const bool name_changed = ImGui::InputText("##extract_name", ws.pendingExtract.name_buf, sizeof(ws.pendingExtract.name_buf));
+        const bool mode_changed = ImGui::Checkbox(
+            "Allow non-embedded descendant references (advanced)",
+            &ws.pendingExtract.allow_nonembedded_descendant_refs);
 
         Document* doc_for_preview = ws.findDocumentById(ws.pendingExtract.doc_id);
         if (!doc_for_preview) doc_for_preview = ws.activeDocument();
         const std::string current_name(ws.pendingExtract.name_buf);
-        const bool name_matches_preview = ws.pendingExtract.preview_name == current_name;
-        const bool preview_stale = name_changed
-            || (!ws.pendingExtract.has_preview && !name_matches_preview);
+        const bool needs_initial_preview = !ws.pendingExtract.has_preview
+            && ws.pendingExtract.preview_error.empty();
+        const bool preview_stale = name_changed || mode_changed || needs_initial_preview;
         if (preview_stale && doc_for_preview) {
             ws.pendingExtract.preview = {};
             ws.pendingExtract.preview_error.clear();
@@ -37,14 +40,19 @@ public:
                 ws.pendingExtract.group_id,
                 doc_for_preview->interner(),
                 doc_for_preview->arena(),
-                &ws.pendingExtract.preview_error);
+                &ws.pendingExtract.preview_error,
+                ws.pendingExtract.allow_nonembedded_descendant_refs);
             if (preview) {
                 ws.pendingExtract.preview = *preview;
                 ws.pendingExtract.has_preview = true;
                 ws.pendingExtract.preview_name = current_name;
+                ws.pendingExtract.preview_allow_nonembedded_descendant_refs =
+                    ws.pendingExtract.allow_nonembedded_descendant_refs;
             } else {
                 ws.pendingExtract.has_preview = false;
                 ws.pendingExtract.preview_name = current_name;
+                ws.pendingExtract.preview_allow_nonembedded_descendant_refs =
+                    ws.pendingExtract.allow_nonembedded_descendant_refs;
             }
         }
 
@@ -98,7 +106,8 @@ public:
                     ws.pendingExtract.selected_node_ids,
                     std::string(ws.pendingExtract.name_buf),
                     ws.pendingExtract.group_id,
-                    &err);
+                    &err,
+                    ws.pendingExtract.allow_nonembedded_descendant_refs);
                 if (!ok) {
                     spdlog::warn("[extract] failed: {}", err);
                 }

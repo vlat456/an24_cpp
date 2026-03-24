@@ -45,6 +45,11 @@ struct ExtractionPlan {
     float center_y = 0.0f;
 };
 
+static bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source,
+                                                           const std::unordered_set<ui::InternedId>& selected_set,
+                                                           bool allow_nonembedded_descendant_refs,
+                                                           std::string* error_out);
+
 static PortType port_type_for_domain(Domain d) {
     switch (d) {
         case Domain::Electrical: return PortType::V;
@@ -286,6 +291,7 @@ static void append_bridge_to_internal_wires(bp2::Blueprint& out,
 static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
                                                         const std::vector<ui::InternedId>& selected_ids,
                                                         const std::string& group_id,
+                                                        bool allow_nonembedded_descendant_refs,
                                                         ui::StringInterner& interner,
                                                         const bp2::PathArena& arena,
                                                         std::string* error_out) {
@@ -305,6 +311,11 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         if (plan.selected_set.find(node.id) == plan.selected_set.end()) continue;
         if (node.group_id != group_id) {
             if (error_out) *error_out = "selected nodes must belong to active group";
+            return std::nullopt;
+        }
+        if (node.type == interner.intern("BlueprintInput")
+            || node.type == interner.intern("BlueprintOutput")) {
+            if (error_out) *error_out = "extract does not support selecting BlueprintInput/BlueprintOutput bridge nodes";
             return std::nullopt;
         }
         const bp2::Blueprint::Nested* nested = bp.find_nested(node.id);
@@ -391,6 +402,14 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
         ec.iface_name = dedupe_name(ec.iface_name, output_name_used);
     }
 
+    if (!validate_selected_embedded_nested_merge_safety(
+            bp,
+            plan.selected_set,
+            allow_nonembedded_descendant_refs,
+            error_out)) {
+        return std::nullopt;
+    }
+
     return plan;
 }
 
@@ -424,6 +443,32 @@ static bool append_selected_embedded_nested_for_inline(
             return false;
         }
         inline_bp = inline_bp.with_nested(clone_nested(*n));
+    }
+    return true;
+}
+
+static bool contains_nonembedded_descendant_nested(const bp2::Blueprint& bp) {
+    for (const auto& n : bp.nested()) {
+        if (!n.embedded) return true;
+        if (n.inline_def && contains_nonembedded_descendant_nested(*n.inline_def)) return true;
+    }
+    return false;
+}
+
+static bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source,
+                                                           const std::unordered_set<ui::InternedId>& selected_set,
+                                                           bool allow_nonembedded_descendant_refs,
+                                                           std::string* error_out) {
+    if (allow_nonembedded_descendant_refs) return true;
+    for (const auto& n : source.nested()) {
+        if (selected_set.find(n.id) == selected_set.end()) continue;
+        if (!n.embedded || !n.inline_def) continue;
+        if (contains_nonembedded_descendant_nested(*n.inline_def)) {
+            if (error_out) {
+                *error_out = "selected embedded nested contains non-embedded descendant references";
+            }
+            return false;
+        }
     }
     return true;
 }
@@ -722,13 +767,21 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    std::string* error_out) {
+    std::string* error_out,
+    bool allow_nonembedded_descendant_refs) {
     ui::InternedId blueprint_iid;
     if (!validate_blueprint_name_for_extract(source, blueprint_name, interner, &blueprint_iid, error_out)) {
         return std::nullopt;
     }
 
-    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
+    auto plan_opt = analyze_selection(
+        source,
+        selected_node_ids,
+        group_id,
+        allow_nonembedded_descendant_refs,
+        interner,
+        arena,
+        error_out);
     if (!plan_opt) return std::nullopt;
     const ExtractionPlan& plan = *plan_opt;
 
@@ -761,12 +814,20 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     const std::string& group_id,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
-    std::string* error_out) {
+    std::string* error_out,
+    bool allow_nonembedded_descendant_refs) {
     if (!validate_blueprint_name_for_extract(source, blueprint_name, interner, nullptr, error_out)) {
         return std::nullopt;
     }
 
-    auto plan_opt = analyze_selection(source, selected_node_ids, group_id, interner, arena, error_out);
+    auto plan_opt = analyze_selection(
+        source,
+        selected_node_ids,
+        group_id,
+        allow_nonembedded_descendant_refs,
+        interner,
+        arena,
+        error_out);
     if (!plan_opt) return std::nullopt;
 
     const ExtractionPlan& plan = *plan_opt;
