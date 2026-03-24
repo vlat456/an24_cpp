@@ -43,8 +43,7 @@ void OscilloscopeWindow::render(WindowSystem& ws) {
     float plot_h = row_total_h - text_h - text_h - inner_spacing * 2.0f;
     if (plot_h < 28.0f) plot_h = 28.0f;
 
-    for (size_t i = 0; i < channels.size(); ++i) {
-        const auto& ch = channels[i];
+    for (const auto& ch : channels) {
         if (!ch.probe || !ch.samples) continue;
         const std::string child_id = "##osc_row_" + ch.probe->wire_id;
         ImGui::BeginChild(child_id.c_str(), ImVec2(0.0f, row_total_h), false,

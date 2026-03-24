@@ -40,8 +40,6 @@ public:
         const std::deque<float>* samples = nullptr;
     };
     std::vector<ChannelView> channels() const;
-    const std::deque<float>* samples_for_signal(const std::string& signal_key) const;
-
     struct SampleStats {
         bool has_value = false;
         float min_v = 0.0f;

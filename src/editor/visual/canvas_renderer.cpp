@@ -9,7 +9,6 @@
 #include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
-#include "ui/renderer/tooltip.h"
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
@@ -22,10 +21,8 @@ static void render_probe_markers(BlueprintWindow& win, Document& doc, WindowSyst
         if (probe.doc_id != doc.id()) continue;
         if (probe.group_id != win.group_id) continue;
 
-        const auto* p = ws.oscilloscope.probe(wire_id);
-        if (!p) continue;
-        Pt sp = win.viewport.world_to_screen(p->world_pos, cmin);
-        visual::osc::draw_probe_marker(draw_list, sp, p->color);
+        Pt sp = win.viewport.world_to_screen(probe.world_pos, cmin);
+        visual::osc::draw_probe_marker(draw_list, sp, probe.color);
     }
 }
 
@@ -142,26 +139,15 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
     auto hit = visual::hit_test(win.scene, mouse_world);
 
-    ui::Tooltip tip;
-
     if (auto* hp = std::get_if<visual::HitPort>(&hit)) {
         visual::Port* port = hp->port;
         std::string_view node_id = port->rootAncestorId();
         if (node_id.empty()) return;
 
         std::string_view port_name = port->name();
-        float val = doc.simulation().get_port_value(std::string(node_id), std::string(port_name));
-
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.3f", val);
-
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
-        tip.active = true;
-        tip.screen_pos = port_screen;
-        tip.label = std::string(node_id) + "." + std::string(port_name);
-        tip.value = buf;
-
-        render_hover_scope_tooltip(doc, ws, tip.label, tip.label, tip.screen_pos, doc.isSimulationRunning());
+        const std::string signal_key = std::string(node_id) + "." + std::string(port_name);
+        render_hover_scope_tooltip(doc, ws, signal_key, signal_key, port_screen, doc.isSimulationRunning());
         return;
 
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
@@ -188,11 +174,6 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
         signal_key.append(node_sv);
         signal_key.push_back('.');
         signal_key.append(port_sv);
-        float val = doc.simulation().get_wire_voltage(signal_key);
-
-        char buf[64];
-        std::snprintf(buf, sizeof(buf), "%.3f", val);
-
         // Project mouse onto wire segment for tooltip anchor
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;
@@ -210,18 +191,9 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
             }
         }
 
-        tip.active = true;
-        tip.screen_pos = win.viewport.world_to_screen(anchor, cmin);
-        tip.label = signal_key;
-        tip.value = buf;
-
-        render_hover_scope_tooltip(doc, ws, signal_key, signal_key, tip.screen_pos, doc.isSimulationRunning());
+        const Pt tip_screen = win.viewport.world_to_screen(anchor, cmin);
+        render_hover_scope_tooltip(doc, ws, signal_key, signal_key, tip_screen, doc.isSimulationRunning());
         return;
-    }
-
-    if (tip.active) {
-        auto dl = make_dl(draw_list);
-        ui::render_tooltip(dl, tip);
     }
 }
 

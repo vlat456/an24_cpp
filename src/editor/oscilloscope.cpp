@@ -138,24 +138,30 @@ const OscilloscopeProbe* OscilloscopeModel::probe(const std::string& wire_id) co
 
 void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     std::vector<std::string> to_remove;
+    std::vector<std::pair<std::string, OscilloscopeProbe>> updates;
     for (const auto& [wire_id, p] : probes_) {
         ui::InternedId wid = doc.interner().lookup(wire_id);
-        if (wid.empty() || !doc.blueprint().find_wire(wid)) {
-            to_remove.push_back(wire_id);
-            continue;
-        }
-        const bp2::Blueprint::Wire* w = doc.blueprint().find_wire(wid);
+        const bp2::Blueprint::Wire* w = wid.empty() ? nullptr : doc.blueprint().find_wire(wid);
         if (!w) {
             to_remove.push_back(wire_id);
             continue;
         }
+
         OscilloscopeProbe updated = p;
-        decode_source_key(*w, doc.arena(), doc.interner(), updated.signal_key, updated.label);
+        if (!decode_source_key(*w, doc.arena(), doc.interner(), updated.signal_key, updated.label)) {
+            to_remove.push_back(wire_id);
+            continue;
+        }
+
         if (!resolve_probe_anchor(doc, *w, p.group_id, &p.world_pos, updated.world_pos)) {
             to_remove.push_back(wire_id);
             continue;
         }
-        probes_[wire_id] = updated;
+        updates.emplace_back(wire_id, std::move(updated));
+    }
+    for (auto& [wire_id, updated] : updates) {
+        auto it = probes_.find(wire_id);
+        if (it != probes_.end()) it->second = std::move(updated);
     }
     for (const auto& id : to_remove) {
         remove_probe(id);
@@ -183,19 +189,6 @@ std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const 
         return a.probe->wire_id < b.probe->wire_id;
     });
     return out;
-}
-
-const std::deque<float>* OscilloscopeModel::samples_for_signal(const std::string& signal_key) const {
-    for (const auto& [wire_id, p] : probes_) {
-        (void)wire_id;
-        if (p.signal_key != signal_key) continue;
-        auto it = samples_.find(p.wire_id);
-        if (it == samples_.end()) continue;
-        return &it->second;
-    }
-    auto vit = virtual_samples_.find(signal_key);
-    if (vit != virtual_samples_.end()) return &vit->second;
-    return nullptr;
 }
 
 OscilloscopeModel::SampleStats OscilloscopeModel::compute_stats(const std::deque<float>& samples) {

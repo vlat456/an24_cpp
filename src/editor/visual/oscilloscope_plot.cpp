@@ -60,23 +60,6 @@ void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
     out_max_v = max_v;
 }
 
-void layout_rows_fill_height(const std::vector<OscilloscopeModel::ChannelView>& channels,
-                             const PlotStyle& style,
-                             float avail_h,
-                             std::vector<float>& out_row_heights) {
-    out_row_heights.clear();
-    const int n = static_cast<int>(channels.size());
-    if (n <= 0) return;
-
-    const float spacing = ImGui::GetStyle().ItemSpacing.y;
-    const float total_spacing = spacing * static_cast<float>(std::max(0, n - 1));
-    float row_h = (avail_h - total_spacing) / static_cast<float>(n);
-    if (row_h < style.min_row_h) row_h = style.min_row_h;
-    if (!(row_h > 0.0f)) row_h = style.default_row_h;
-
-    out_row_heights.assign(static_cast<size_t>(n), row_h);
-}
-
 void draw_probe_marker(ImDrawList* draw_list,
                        const ui::Pt& screen_pos,
                        uint32_t color,
