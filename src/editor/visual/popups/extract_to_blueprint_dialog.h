@@ -64,6 +64,11 @@ public:
             ImGui::BulletText("Internal wires: %zu", p.internal_wires);
             ImGui::BulletText("Boundary inputs: %zu", p.input_count);
             ImGui::BulletText("Boundary outputs: %zu", p.output_count);
+            if (ws.pendingExtract.allow_nonembedded_descendant_refs) {
+                ImGui::BulletText("Descendant refs remapped: %zu", p.remapped_descendant_refs);
+                ImGui::BulletText("Descendant refs passthrough: %zu", p.passthrough_descendant_refs);
+                ImGui::TextUnformatted("Remap tie-break: lowest provider node ID for matching blueprint_id.");
+            }
 
             if (!p.input_iface_names.empty()) {
                 ImGui::TextUnformatted("Input ports:");

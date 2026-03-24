@@ -3,6 +3,7 @@
 #include "editor/visual/persist.h"
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <tuple>
 #include <unordered_map>
@@ -45,10 +46,20 @@ struct ExtractionPlan {
     float center_y = 0.0f;
 };
 
+struct DescendantRemapStats {
+    size_t remapped = 0;
+    size_t passthrough = 0;
+};
+
 static bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint& source,
                                                            const std::unordered_set<ui::InternedId>& selected_set,
                                                            bool allow_nonembedded_descendant_refs,
                                                            std::string* error_out);
+
+static DescendantRemapStats collect_descendant_remap_stats(
+    const bp2::Blueprint& source,
+    const std::unordered_set<ui::InternedId>& selected_set,
+    bool allow_nonembedded_descendant_refs);
 
 static PortType port_type_for_domain(Domain d) {
     switch (d) {
@@ -417,7 +428,59 @@ static bool append_selected_embedded_nested_for_inline(
     bp2::Blueprint& inline_bp,
     const bp2::Blueprint& source,
     const std::unordered_set<ui::InternedId>& selected_set,
+    bool allow_nonembedded_descendant_refs,
     std::string* error_out) {
+    // Index embedded nested definitions by blueprint_id so guarded mode can
+    // remap non-embedded descendants into embedded inline definitions.
+    std::unordered_map<ui::InternedId, const bp2::Blueprint::Nested*> embedded_by_blueprint_id;
+    for (const auto& n : source.nested()) {
+        if (!n.embedded || !n.inline_def) continue;
+        auto it = embedded_by_blueprint_id.find(n.blueprint_id);
+        if (it == embedded_by_blueprint_id.end() || n.id.raw() < it->second->id.raw()) {
+            embedded_by_blueprint_id[n.blueprint_id] = &n;
+        }
+    }
+
+    std::function<bool(bp2::Blueprint::Nested&)> remap_descendants;
+    remap_descendants = [&](bp2::Blueprint::Nested& owner) -> bool {
+        if (!owner.inline_def) return true;
+
+        std::vector<bp2::Blueprint::Nested> remapped;
+        remapped.reserve(owner.inline_def->nested().size());
+        for (const auto& child_src : owner.inline_def->nested()) {
+            bp2::Blueprint::Nested child = child_src;
+            if (!child.embedded) {
+                auto it = embedded_by_blueprint_id.find(child.blueprint_id);
+                if (it != embedded_by_blueprint_id.end()) {
+                    const bp2::Blueprint::Nested* resolved = it->second;
+                    child.embedded = true;
+                    child.iface = resolved->iface;
+                    if (resolved->inline_def) {
+                        child.inline_def = std::make_unique<bp2::Blueprint>(*resolved->inline_def);
+                    }
+                } else if (!allow_nonembedded_descendant_refs) {
+                    if (error_out) {
+                        *error_out = "selected embedded nested contains non-embedded descendant references";
+                    }
+                    return false;
+                }
+            }
+
+            if (!remap_descendants(child)) return false;
+            remapped.push_back(std::move(child));
+        }
+
+        bp2::Blueprint rebuilt = *owner.inline_def;
+        for (const auto& existing : owner.inline_def->nested()) {
+            rebuilt = rebuilt.without_nested(existing.id);
+        }
+        for (auto& child : remapped) {
+            rebuilt = rebuilt.with_nested(std::move(child));
+        }
+        owner.inline_def = std::make_unique<bp2::Blueprint>(std::move(rebuilt));
+        return true;
+    };
+
     std::vector<const bp2::Blueprint::Nested*> selected_nested;
     selected_nested.reserve(source.nested().size());
     for (const auto& n : source.nested()) {
@@ -442,7 +505,9 @@ static bool append_selected_embedded_nested_for_inline(
             if (error_out) *error_out = "inline merge nested id collision";
             return false;
         }
-        inline_bp = inline_bp.with_nested(clone_nested(*n));
+        bp2::Blueprint::Nested copy = clone_nested(*n);
+        if (!remap_descendants(copy)) return false;
+        inline_bp = inline_bp.with_nested(std::move(copy));
     }
     return true;
 }
@@ -473,8 +538,48 @@ static bool validate_selected_embedded_nested_merge_safety(const bp2::Blueprint&
     return true;
 }
 
+static DescendantRemapStats collect_descendant_remap_stats(
+    const bp2::Blueprint& source,
+    const std::unordered_set<ui::InternedId>& selected_set,
+    bool allow_nonembedded_descendant_refs) {
+    DescendantRemapStats stats;
+
+    std::unordered_map<ui::InternedId, const bp2::Blueprint::Nested*> embedded_by_blueprint_id;
+    for (const auto& n : source.nested()) {
+        if (!n.embedded || !n.inline_def) continue;
+        auto it = embedded_by_blueprint_id.find(n.blueprint_id);
+        if (it == embedded_by_blueprint_id.end() || n.id.raw() < it->second->id.raw()) {
+            embedded_by_blueprint_id[n.blueprint_id] = &n;
+        }
+    }
+
+    std::function<void(const bp2::Blueprint::Nested&)> visit_nested;
+    visit_nested = [&](const bp2::Blueprint::Nested& owner) {
+        if (!owner.inline_def) return;
+        for (const auto& child : owner.inline_def->nested()) {
+            if (!child.embedded) {
+                if (embedded_by_blueprint_id.find(child.blueprint_id) != embedded_by_blueprint_id.end()) {
+                    ++stats.remapped;
+                } else if (allow_nonembedded_descendant_refs) {
+                    ++stats.passthrough;
+                }
+            }
+            visit_nested(child);
+        }
+    };
+
+    for (const auto& n : source.nested()) {
+        if (selected_set.find(n.id) == selected_set.end()) continue;
+        if (!n.embedded || !n.inline_def) continue;
+        visit_nested(n);
+    }
+
+    return stats;
+}
+
 static std::optional<bp2::Blueprint> build_inline_blueprint(const ExtractionPlan& plan,
                                                              const bp2::Blueprint& source,
+                                                             bool allow_nonembedded_descendant_refs,
                                                              ui::StringInterner& interner,
                                                              bp2::PathArena& arena,
                                                              ui::InternedId blueprint_id,
@@ -572,7 +677,12 @@ static std::optional<bp2::Blueprint> build_inline_blueprint(const ExtractionPlan
                                     arena,
                                     used_wire_ids);
 
-    if (!append_selected_embedded_nested_for_inline(out, source, plan.selected_set, error_out)) {
+    if (!append_selected_embedded_nested_for_inline(
+            out,
+            source,
+            plan.selected_set,
+            allow_nonembedded_descendant_refs,
+            error_out)) {
         return std::nullopt;
     }
 
@@ -585,6 +695,7 @@ static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     ui::InternedId blueprint_iid,
     const std::string& blueprint_name,
     const std::string& group_id,
+    bool allow_nonembedded_descendant_refs,
     ui::StringInterner& interner,
     bp2::PathArena& arena,
     std::string* error_out) {
@@ -633,7 +744,14 @@ static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
         out = out.with_nested(clone_nested(n));
     }
 
-    auto inline_bp_opt = build_inline_blueprint(plan, source, interner, arena, blueprint_iid, error_out);
+    auto inline_bp_opt = build_inline_blueprint(
+        plan,
+        source,
+        allow_nonembedded_descendant_refs,
+        interner,
+        arena,
+        blueprint_iid,
+        error_out);
     if (!inline_bp_opt) return std::nullopt;
     bp2::Blueprint inline_bp = std::move(*inline_bp_opt);
 
@@ -791,6 +909,7 @@ std::optional<bp2::Blueprint> build_extracted_blueprint_atomic(
         blueprint_iid,
         blueprint_name,
         group_id,
+        allow_nonembedded_descendant_refs,
         interner,
         arena,
         error_out);
@@ -836,6 +955,10 @@ std::optional<ExtractToBlueprintPreview> build_extract_to_blueprint_preview(
     out.internal_wires = plan.internal_wires.size();
     out.input_count = plan.inputs.size();
     out.output_count = plan.outputs.size();
+    const DescendantRemapStats remap_stats =
+        collect_descendant_remap_stats(source, plan.selected_set, allow_nonembedded_descendant_refs);
+    out.remapped_descendant_refs = remap_stats.remapped;
+    out.passthrough_descendant_refs = remap_stats.passthrough;
     out.input_iface_names.reserve(plan.inputs.size());
     out.output_iface_names.reserve(plan.outputs.size());
 

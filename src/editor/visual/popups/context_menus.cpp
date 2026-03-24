@@ -81,7 +81,13 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
             if (ImGui::MenuItem("Set Color...")) {
                 ws.openColorPickerForNode(ws.nodeContextMenu.node_id, ws.nodeContextMenu.group_id, *doc);
             }
-            const auto& selected = doc->input().selected_node_ids();
+            const CanvasInput* source_input = &doc->input();
+            if (!ws.nodeContextMenu.group_id.empty()) {
+                if (BlueprintWindow* win = doc->windowManager().find(ws.nodeContextMenu.group_id)) {
+                    source_input = &win->input;
+                }
+            }
+            const auto& selected = source_input->selected_node_ids();
             const bool can_extract = selected.size() >= 2;
             if (ImGui::MenuItem("Extract to Blueprint...", nullptr, false, can_extract)) {
                 ws.pendingExtract.show_dialog = true;

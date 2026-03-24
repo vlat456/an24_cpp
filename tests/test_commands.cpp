@@ -251,6 +251,68 @@ static bp2::Blueprint make_extract_with_embedded_nested_having_nonembedded_desce
     return bp;
 }
 
+static bp2::Blueprint make_extract_with_remappable_nonembedded_descendant_fixture(
+    ui::StringInterner& I,
+    bp2::PathArena& arena) {
+    bp2::Blueprint bp = make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(I, arena);
+
+    // Provide an embedded nested definition in source with matching blueprint_id
+    // so guarded mode can remap non-embedded descendant -> embedded inline copy.
+    auto provider = make_node(I, "provider_embed");
+    provider.type = I.intern("SomeLibraryBlueprint");
+    provider.expandable = true;
+    provider.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+    provider.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+    bp = bp.with_node(std::move(provider));
+
+    bp2::Blueprint::Nested provider_nested;
+    provider_nested.id = I.intern("provider_embed");
+    provider_nested.blueprint_id = I.intern("SomeLibraryBlueprint");
+    provider_nested.embedded = true;
+    provider_nested.inline_def = std::make_unique<bp2::Blueprint>();
+    *provider_nested.inline_def = provider_nested.inline_def->with_id(I.intern("SomeLibraryBlueprint"));
+    provider_nested.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+    bp = bp.with_nested(std::move(provider_nested));
+
+    return bp;
+}
+
+static bp2::Blueprint make_extract_with_two_remap_providers_fixture(
+    ui::StringInterner& I,
+    bp2::PathArena& arena) {
+    bp2::Blueprint bp = make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(I, arena);
+
+    auto add_provider = [&](const char* node_id, const char* def_id) {
+        auto provider = make_node(I, node_id);
+        provider.type = I.intern("SomeLibraryBlueprint");
+        provider.expandable = true;
+        provider.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
+        provider.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
+        bp = bp.with_node(std::move(provider));
+
+        bp2::Blueprint::Nested provider_nested;
+        provider_nested.id = I.intern(node_id);
+        provider_nested.blueprint_id = I.intern("SomeLibraryBlueprint");
+        provider_nested.embedded = true;
+        provider_nested.inline_def = std::make_unique<bp2::Blueprint>();
+        *provider_nested.inline_def = provider_nested.inline_def->with_id(I.intern(def_id));
+        provider_nested.iface = bp2::Interface({
+            {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+            {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+        });
+        bp = bp.with_nested(std::move(provider_nested));
+    };
+
+    // Intentionally insert in this order to make id.raw ordering observable.
+    add_provider("provider_b", "provider_b_def");
+    add_provider("provider_a", "provider_a_def");
+
+    return bp;
+}
+
 static bp2::Blueprint make_extract_layout_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
     bp2::Blueprint bp;
     bp = bp.with_id(I.intern("bp_extract_layout"));
@@ -1211,6 +1273,38 @@ TEST_F(CommandTest, ExtractToBlueprint_AllowsNonEmbeddedDescendantWhenGuardEnabl
     ASSERT_TRUE(updated.has_value()) << err;
 }
 
+TEST_F(CommandTest, ExtractToBlueprint_GuardModeRemapsNonEmbeddedDescendantIfEmbeddedSourceExists) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_remappable_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err,
+        true);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_FALSE(updated->nested().empty());
+    const auto* created = updated->find_nested(updated->nested().back().id);
+    ASSERT_NE(created, nullptr);
+    ASSERT_TRUE(created->inline_def != nullptr);
+
+    const auto* remapped_parent = created->inline_def->find_nested(interner.intern("sub_inst_1"));
+    ASSERT_NE(remapped_parent, nullptr);
+    ASSERT_TRUE(remapped_parent->inline_def != nullptr);
+
+    const auto* child = remapped_parent->inline_def->find_nested(interner.intern("child_nonembedded"));
+    ASSERT_NE(child, nullptr);
+    EXPECT_TRUE(child->embedded);
+    EXPECT_TRUE(child->inline_def != nullptr);
+}
+
 TEST_F(CommandTest, ExtractToBlueprint_RejectsNonEmbeddedNestedInstanceSelection) {
     bp2::PathArena arena(interner);
     bp2::Blueprint source = make_extract_with_nonembedded_nested_selection_fixture(interner, arena);
@@ -1382,6 +1476,128 @@ TEST_F(CommandTest, ExtractToBlueprint_PreviewAllowsNonEmbeddedDescendantWhenGua
         true);
 
     ASSERT_TRUE(preview.has_value()) << err;
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewGuardModeAllowsRemappableNonEmbeddedDescendant) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_remappable_nonembedded_descendant_fixture(interner, arena);
+
+    std::string err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err,
+        true);
+
+    ASSERT_TRUE(preview.has_value()) << err;
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewAllowApplyDenyMismatchFailsAtApply) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source =
+        make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+
+    std::string preview_err;
+    auto preview = editor::commands::build_extract_to_blueprint_preview(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &preview_err,
+        true);
+    ASSERT_TRUE(preview.has_value()) << preview_err;
+
+    std::string apply_err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &apply_err,
+        false);
+    EXPECT_FALSE(updated.has_value());
+    EXPECT_NE(apply_err.find("non-embedded descendant references"), std::string::npos);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreviewShowsRemapAndPassthroughCounts) {
+    bp2::PathArena arena(interner);
+
+    {
+        bp2::Blueprint source = make_extract_with_remappable_nonembedded_descendant_fixture(interner, arena);
+        std::string err;
+        auto preview = editor::commands::build_extract_to_blueprint_preview(
+            source,
+            {interner.intern("sub_inst_1"), interner.intern("b")},
+            "extracted_blueprint_1",
+            "",
+            interner,
+            arena,
+            &err,
+            true);
+        ASSERT_TRUE(preview.has_value()) << err;
+        EXPECT_EQ(preview->remapped_descendant_refs, 1u);
+        EXPECT_EQ(preview->passthrough_descendant_refs, 0u);
+    }
+
+    {
+        bp2::Blueprint source =
+            make_extract_with_embedded_nested_having_nonembedded_descendant_fixture(interner, arena);
+        std::string err;
+        auto preview = editor::commands::build_extract_to_blueprint_preview(
+            source,
+            {interner.intern("sub_inst_1"), interner.intern("b")},
+            "extracted_blueprint_1",
+            "",
+            interner,
+            arena,
+            &err,
+            true);
+        ASSERT_TRUE(preview.has_value()) << err;
+        EXPECT_EQ(preview->remapped_descendant_refs, 0u);
+        EXPECT_EQ(preview->passthrough_descendant_refs, 1u);
+    }
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_GuardModeRemapTieBreakUsesLowestProviderNodeId) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_with_two_remap_providers_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("sub_inst_1"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err,
+        true);
+    ASSERT_TRUE(updated.has_value()) << err;
+
+    const auto* created = updated->find_nested(updated->nested().back().id);
+    ASSERT_NE(created, nullptr);
+    ASSERT_TRUE(created->inline_def != nullptr);
+    const auto* remapped_parent = created->inline_def->find_nested(interner.intern("sub_inst_1"));
+    ASSERT_NE(remapped_parent, nullptr);
+    ASSERT_TRUE(remapped_parent->inline_def != nullptr);
+    const auto* child = remapped_parent->inline_def->find_nested(interner.intern("child_nonembedded"));
+    ASSERT_NE(child, nullptr);
+    ASSERT_TRUE(child->inline_def != nullptr);
+
+    const ui::InternedId provider_a = interner.intern("provider_a");
+    const ui::InternedId provider_b = interner.intern("provider_b");
+    const bool a_is_lower = provider_a.raw() < provider_b.raw();
+    const std::string expected_def = a_is_lower ? "provider_a_def" : "provider_b_def";
+    EXPECT_EQ(std::string(interner.resolve(child->inline_def->id())), expected_def);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_BridgeAutoLayoutTracksInternalY) {
