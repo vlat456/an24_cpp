@@ -28,6 +28,7 @@ If any precondition fails, the command must abort with no partial mutations.
 - Undo/redo as one checkpoint (single `replace_current`)
 - Preview API with name validation and iface conflict reporting
 - Embedded nested selection allowed only when embedded descendants are transitively embedded (non-embedded descendants are rejected)
+- Advanced guarded mode available (`allow_nonembedded_descendant_refs=true`) to bypass descendant strict rejection
 
 ### Excluded (follow-up)
 - Any inference/coercion beyond explicit wire endpoint metadata
