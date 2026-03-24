@@ -1017,6 +1017,26 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
             end_port_iid = interner_.intern("v");
         }
 
+        auto can_drive = [](PortSide s) {
+            return s == PortSide::Output || s == PortSide::InOut;
+        };
+        auto can_receive = [](PortSide s) {
+            return s == PortSide::Input || s == PortSide::InOut;
+        };
+
+        // Normalize orientation so source can drive and target can receive.
+        // This keeps connection semantics valid when the drag starts from an
+        // input or inout endpoint and is released on an output endpoint.
+        const bool forward_ok = can_drive(start_port->side()) && can_receive(end_port->side());
+        const bool reverse_ok = can_drive(end_port->side()) && can_receive(start_port->side());
+        if (!forward_ok && !reverse_ok) {
+            return result;
+        }
+        if (!forward_ok && reverse_ok) {
+            std::swap(start_node_iid, end_node_iid);
+            std::swap(start_port_iid, end_port_iid);
+        }
+
         // Allocate wire ID
         std::string wire_id_str = model_.allocate_wire_id();
         ui::InternedId wire_iid = interner_.intern(wire_id_str);

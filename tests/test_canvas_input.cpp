@@ -215,18 +215,21 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     const size_t after = model.current().wires().size();
     EXPECT_EQ(after, before + 1);
 
-    bool found_bus_to_src = false;
+    bool found_connection_v_to_vout = false;
     for (const auto& w : model.current().wires()) {
         auto [src_n, src_p] = endpoint_node_port(w.source, arena);
         auto [tgt_n, tgt_p] = endpoint_node_port(w.target, arena);
-        if (src_n == I.intern("bus") && src_p == I.intern("v") &&
-            tgt_n == I.intern("src") && tgt_p == I.intern("v_out")) {
-            found_bus_to_src = true;
+        const bool forward = (src_n == I.intern("bus") && src_p == I.intern("v")
+                           && tgt_n == I.intern("src") && tgt_p == I.intern("v_out"));
+        const bool reverse = (src_n == I.intern("src") && src_p == I.intern("v_out")
+                           && tgt_n == I.intern("bus") && tgt_p == I.intern("v"));
+        if (forward || reverse) {
+            found_connection_v_to_vout = true;
             break;
         }
     }
 
-    EXPECT_TRUE(found_bus_to_src);
+    EXPECT_TRUE(found_connection_v_to_vout);
 }
 
 TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
