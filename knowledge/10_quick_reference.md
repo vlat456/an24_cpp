@@ -40,6 +40,14 @@ cd build && ctest
 
 | Topic | File |
 |------|------|
+| Solver tuning | `knowledge/sor_optimization.md` |
+| Stable component design | `knowledge/component_authoring.md` |
+| Architecture overview | `knowledge/01_architecture.md` |
+
+## Knowledge Notes
+
+| Topic | File |
+|------|------|
 | Component internals | `knowledge/03_components.md` |
 | Blueprint/library format | `knowledge/07_library.md` |
 | Electrical-logical bridge nodes | `knowledge/11_domain_bridges.md` |
@@ -157,6 +165,53 @@ TEST(MyTest, Scenario_ExpectedResult) {
     EXPECT_NEAR(st.across[1], expected, tolerance);
 }
 ```
+
+## Solver Tuning Defaults
+
+For MSFS-style systems simulation, prefer stability over aggressive convergence.
+
+Recommended starting point:
+
+```cpp
+constexpr float OMEGA = 1.3f;      // canonical project default
+constexpr int INNER_SWEEPS = 1;    // keep 1 with current stamp-then-solve pipeline
+```
+
+Tuning guide:
+
+| Situation | Change |
+|---------|---------|
+| Solver oscillates / spikes | Let adaptive runtime `omega_` reduce from `1.3` toward `1.0` |
+| Persistent instability | Improve topology (dangling series nodes, near-shorts), then component params |
+| Stiff measurement circuit | Lower measurement conductance defaults or add realistic series resistance |
+| Need stronger damping globally | Consider lowering canonical `OMEGA` only with regression updates |
+
+Rules of thumb:
+
+- keep `INNER_SWEEPS = 1` unless solver is redesigned to re-stamp per inner iteration
+- keep persistent state updates in `post_step()`, not in `solve_*()`
+- validate dangling series devices and near-short source paths early
+- do not replace electrical SOR with push propagation
+
+## Centralized Runtime Config
+
+Single source of truth for solver and JIT/editor warning knobs:
+
+- `src/jit_solver/SOR_constants.h`
+
+Namespaces in that file:
+
+| Namespace | Purpose |
+|---------|---------|
+| `SOR` | Core relaxation constants (`OMEGA`, `INNER_SWEEPS`) |
+| `SORAdaptive` | Adaptive runtime omega thresholds/scales |
+| `JitElectricalWarnings` | JIT/editor electrical warning thresholds |
+| `DomainSchedule` | Multi-domain execution periods |
+
+Current high-current warning bands:
+
+- `JitElectricalWarnings::HIGH_CURRENT_INFO_A = 300.0f`
+- `JitElectricalWarnings::NEAR_SHORT_WARN_CURRENT_A = 1500.0f`
 
 ## Naming Conventions
 

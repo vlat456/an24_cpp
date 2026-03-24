@@ -625,6 +625,34 @@ BuildResult build_systems_dev(
 ) {
     BuildResult result;
 
+    auto is_electrical_port = [](const DeviceInstance& dev, const Port& port) {
+        bool electrical_device = false;
+        for (Domain d : dev.domains) {
+            if (has_domain(d, Domain::Electrical)) {
+                electrical_device = true;
+                break;
+            }
+        }
+        if (!electrical_device) {
+            return false;
+        }
+        return port.type == PortType::V || port.type == PortType::I;
+    };
+
+    auto requires_connection_warning = [](const DeviceInstance& dev, const std::string& port_name, const Port& port) {
+        // Generic rule: warn for unconnected electrical inputs/bidirectional ports.
+        if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
+            return true;
+        }
+
+        // Special-case series devices where output-side disconnect is usually a modeling error.
+        if (dev.classname == "CurrentSense" && (port_name == "v_in" || port_name == "v_out")) {
+            return true;
+        }
+
+        return false;
+    };
+
     // Build port list
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
@@ -660,6 +688,9 @@ BuildResult build_systems_dev(
     // Union-Find for connected ports
     UnionFind uf(all_ports.size());
 
+    // Count explicit wire degree per normalized endpoint (for loud editor warnings)
+    std::unordered_map<std::string, uint32_t> endpoint_degree;
+
     // Union connected ports
     for (const auto& [from, to] : connections) {
         std::string norm_from = normalize_endpoint(from);
@@ -669,6 +700,8 @@ BuildResult build_systems_dev(
         auto it_to = port_to_idx.find(norm_to);
         if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
             uf.unite(it_from->second, it_to->second);
+            endpoint_degree[norm_from]++;
+            endpoint_degree[norm_to]++;
         }
     }
 
@@ -756,6 +789,171 @@ BuildResult build_systems_dev(
         result.fixed_signals.end()
     );
 
+    std::unordered_map<uint32_t, std::vector<std::string>> signal_to_ports;
+    signal_to_ports.reserve(result.port_to_signal.size());
+    for (const auto& [port, sig] : result.port_to_signal) {
+        signal_to_ports[sig].push_back(port);
+    }
+
+    auto get_signal = [&](const std::string& full_port) -> std::optional<uint32_t> {
+        auto it = result.port_to_signal.find(full_port);
+        if (it == result.port_to_signal.end()) {
+            return std::nullopt;
+        }
+        return it->second;
+    };
+
+    std::unordered_set<uint32_t> grounded_signals;
+    for (const auto& dev : devices) {
+        if (dev.classname != "RefNode") {
+            continue;
+        }
+        float value = 0.0f;
+        auto it_val = dev.params.find("value");
+        if (it_val != dev.params.end()) {
+            value = locale_safe::parse_float_or(it_val->second, 0.0f);
+        }
+        if (std::abs(value) > ::JitElectricalWarnings::GROUND_REF_EPS) {
+            continue;
+        }
+        auto sig = get_signal(dev.name + ".v");
+        if (sig.has_value()) {
+            grounded_signals.insert(*sig);
+        }
+    }
+
+    // Loud JIT/editor warnings: electrical topology issues should be visible.
+    if (result.fixed_signals.empty()) {
+        spdlog::warn("[build][electrical] NO reference nodes detected (no fixed electrical signals). "
+                     "Electrical potentials may float and solver stability can degrade.");
+    }
+
+    for (const auto& dev : devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+        for (const auto& [port_name, port] : dev.ports) {
+            if (!is_electrical_port(dev, port)) {
+                continue;
+            }
+            std::string full_port = normalize_endpoint(dev.name + "." + port_name);
+            auto deg_it = endpoint_degree.find(full_port);
+            uint32_t deg = (deg_it != endpoint_degree.end()) ? deg_it->second : 0u;
+            if (deg == 0 && requires_connection_warning(dev, port_name, port)) {
+                spdlog::warn("[build][electrical] dangling electrical port: {}.{} ({}) has no wire connections.",
+                             dev.name, port_name, dev.classname);
+            }
+        }
+    }
+
+    // Loud warning for common dangerous topology: source -> high-g CurrentSense -> ground.
+    for (const auto& sensor : devices) {
+        if (sensor.classname != "CurrentSense") {
+            continue;
+        }
+
+        auto sig_in_opt = get_signal(sensor.name + ".v_in");
+        auto sig_out_opt = get_signal(sensor.name + ".v_out");
+        if (!sig_in_opt.has_value() || !sig_out_opt.has_value()) {
+            continue;
+        }
+
+        uint32_t sig_in = *sig_in_opt;
+        uint32_t sig_out = *sig_out_opt;
+        if (!grounded_signals.count(sig_out)) {
+            continue;
+        }
+
+        float g_sensor = get_float(sensor, "conductance", 1000.0f);
+        if (g_sensor <= 0.0f) {
+            continue;
+        }
+        float r_sensor = 1.0f / std::max(g_sensor, 1e-9f);
+
+        for (const auto& src : devices) {
+            if (src.classname != "ControlledVoltageSource") {
+                continue;
+            }
+
+            auto sig_pos_opt = get_signal(src.name + ".v_pos");
+            auto sig_neg_opt = get_signal(src.name + ".v_neg");
+            if (!sig_pos_opt.has_value() || !sig_neg_opt.has_value()) {
+                continue;
+            }
+
+            uint32_t sig_pos = *sig_pos_opt;
+            uint32_t sig_neg = *sig_neg_opt;
+            if (sig_pos != sig_in || !grounded_signals.count(sig_neg)) {
+                continue;
+            }
+
+            float gain = get_float(src, "gain", 1.0f);
+            float offset = get_float(src, "offset", 0.0f);
+            float min_v = get_float(src, "min_v", 0.0f);
+            float max_v = get_float(src, "max_v", 30.0f);
+            float r_src = std::max(get_float(src, "r_internal", 0.1f), 1e-6f);
+
+            bool cmd_known = false;
+            float cmd_value = 0.0f;
+            auto sig_cmd_opt = get_signal(src.name + ".cmd");
+            if (sig_cmd_opt.has_value()) {
+                auto sig_it = signal_to_ports.find(*sig_cmd_opt);
+                if (sig_it != signal_to_ports.end()) {
+                    for (const auto& p : sig_it->second) {
+                        auto dot = p.find('.');
+                        if (dot == std::string::npos) {
+                            continue;
+                        }
+                        std::string dev_name = p.substr(0, dot);
+                        std::string port_name = p.substr(dot + 1);
+                        if (port_name != "v") {
+                            continue;
+                        }
+                        auto it_dev = std::find_if(devices.begin(), devices.end(),
+                            [&](const DeviceInstance& d) { return d.name == dev_name && d.classname == "RefNode"; });
+                        if (it_dev == devices.end()) {
+                            continue;
+                        }
+                        auto it_val = it_dev->params.find("value");
+                        cmd_value = (it_val != it_dev->params.end())
+                            ? locale_safe::parse_float_or(it_val->second, 0.0f)
+                            : 0.0f;
+                        cmd_known = true;
+                        break;
+                    }
+                }
+            }
+
+            float v_source = max_v;
+            if (cmd_known) {
+                v_source = std::clamp(cmd_value * gain + offset, min_v, max_v);
+            }
+
+            float i_est = v_source / (r_src + r_sensor);
+            if (i_est > ::JitElectricalWarnings::NEAR_SHORT_WARN_CURRENT_A) {
+                if (cmd_known) {
+                    spdlog::warn("[build][electrical] potential near-short: {} -> {} -> ground. "
+                                 "Estimated current ~{:.1f} A (cmd={:.2f}, Vsrc={:.2f} V, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
+                                 src.name, sensor.name, i_est, cmd_value, v_source, r_src, r_sensor);
+                } else {
+                    spdlog::warn("[build][electrical] potential near-short: {} -> {} -> ground. "
+                                 "Estimated current up to ~{:.1f} A (using max_v={:.2f}, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
+                                 src.name, sensor.name, i_est, v_source, r_src, r_sensor);
+                }
+            } else if (i_est > ::JitElectricalWarnings::HIGH_CURRENT_INFO_A) {
+                if (cmd_known) {
+                    spdlog::info("[build][electrical] high current path detected: {} -> {} -> ground. "
+                                 "Estimated current ~{:.1f} A (cmd={:.2f}, Vsrc={:.2f} V, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
+                                 src.name, sensor.name, i_est, cmd_value, v_source, r_src, r_sensor);
+                } else {
+                    spdlog::info("[build][electrical] high current path detected: {} -> {} -> ground. "
+                                 "Estimated current up to ~{:.1f} A (using max_v={:.2f}, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
+                                 src.name, sensor.name, i_est, v_source, r_src, r_sensor);
+                }
+            }
+        }
+    }
+
     // =========================================================================
     // BUG-1 FIX: Remap signals so dynamic signals occupy [0..N_dyn) and
     // fixed signals occupy [N_dyn..N_total). This guarantees the SOR solver
@@ -840,7 +1038,7 @@ BuildResult build_systems_dev(
         }
     }
 
-    spdlog::warn("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",
+    spdlog::info("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",
         result.devices.size(),
         result.domain_components.electrical.size(),
         result.domain_components.logical.size(),

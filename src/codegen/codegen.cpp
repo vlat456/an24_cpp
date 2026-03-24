@@ -589,10 +589,12 @@ std::string CodeGen::generate_source(
             }
         }
 
-        // SOR solver - single iteration per step (real-time approximation)
-        // precompute sets inv_g=0 for fixed signals, so SOR loop is branchless
+        // SOR solver - multiple cheap sweeps per step for improved stability
+        // Only iterate dynamic signals [0..dynamic_signals_count) — matches JIT path.
         oss << "    st->precompute_inv_conductance();\n";
-        oss << "    solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT, SOR::OMEGA);\n";
+        oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
+        oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
+        oss << "    }\n";
 
         // Post-step: update device state after SOR convergence
         // Must run before logical so logical components see updated state

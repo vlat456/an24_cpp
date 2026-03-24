@@ -16,6 +16,8 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     , time_(other.time_)
     , step_count_(other.step_count_)
     , omega_(other.omega_)
+    , prev_convergence_error_(other.prev_convergence_error_)
+    , adaptive_omega_enabled_(other.adaptive_omega_enabled_)
     , accumulator_mechanical_(other.accumulator_mechanical_)
     , accumulator_hydraulic_(other.accumulator_hydraulic_)
     , accumulator_thermal_(other.accumulator_thermal_)
@@ -23,6 +25,8 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     other.running_ = false;
     other.time_ = 0.0f;
     other.step_count_ = 0;
+    other.omega_ = SOR::OMEGA;
+    other.prev_convergence_error_ = 0.0f;
     other.accumulator_mechanical_ = 0.0f;
     other.accumulator_hydraulic_ = 0.0f;
     other.accumulator_thermal_ = 0.0f;
@@ -39,6 +43,8 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         time_ = other.time_;
         step_count_ = other.step_count_;
         omega_ = other.omega_;
+        prev_convergence_error_ = other.prev_convergence_error_;
+        adaptive_omega_enabled_ = other.adaptive_omega_enabled_;
         accumulator_mechanical_ = other.accumulator_mechanical_;
         accumulator_hydraulic_ = other.accumulator_hydraulic_;
         accumulator_thermal_ = other.accumulator_thermal_;
@@ -46,6 +52,8 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         other.running_ = false;
         other.time_ = 0.0f;
         other.step_count_ = 0;
+        other.omega_ = SOR::OMEGA;
+        other.prev_convergence_error_ = 0.0f;
         other.accumulator_mechanical_ = 0.0f;
         other.accumulator_hydraulic_ = 0.0f;
         other.accumulator_thermal_ = 0.0f;
@@ -102,6 +110,8 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     // Reset time, step count, and accumulators
     time_ = 0.0f;
     step_count_ = 0;
+    omega_ = SOR::OMEGA;
+    prev_convergence_error_ = 0.0f;
     accumulator_mechanical_ = 0.0f;
     accumulator_hydraulic_ = 0.0f;
     accumulator_thermal_ = 0.0f;
@@ -122,6 +132,8 @@ void Simulator<SolverTag>::stop() {
     // Reset time
     time_ = 0.0f;
     step_count_ = 0;
+    omega_ = SOR::OMEGA;
+    prev_convergence_error_ = 0.0f;
     accumulator_mechanical_ = 0.0f;
     accumulator_hydraulic_ = 0.0f;
     accumulator_thermal_ = 0.0f;
@@ -189,17 +201,30 @@ void Simulator<SolverTag>::step(float dt) {
         accumulator_thermal_ = 0.0f;
     }
 
-    // SOR solver - single iteration per step (real-time approximation)
+    // SOR solver - multiple cheap sweeps per step for improved stability
     state_.precompute_inv_conductance();
     state_.save_convergence_state();
 
-    solve_sor_iteration(
-        state_.across.data(),
-        state_.through.data(),
-        state_.inv_conductance.data(),
-        state_.dynamic_signals_count,
-        omega_
-    );
+    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {
+        solve_sor_iteration(
+            state_.across.data(),
+            state_.through.data(),
+            state_.inv_conductance.data(),
+            state_.dynamic_signals_count,
+            omega_
+        );
+    }
+
+    // Optional adaptive omega: reduce fast on worsening, recover slowly on improvement
+    float err = state_.get_max_change();
+    if (adaptive_omega_enabled_ && prev_convergence_error_ > 0.0f) {
+        if (err > prev_convergence_error_ * ::SORAdaptive::ERROR_WORSE_FACTOR) {
+            omega_ = std::max(::SORAdaptive::OMEGA_MIN, omega_ * ::SORAdaptive::OMEGA_DOWNSCALE);
+        } else if (err < prev_convergence_error_ * ::SORAdaptive::ERROR_BETTER_FACTOR) {
+            omega_ = std::min(SOR::OMEGA, omega_ * ::SORAdaptive::OMEGA_UPSCALE);
+        }
+    }
+    prev_convergence_error_ = err;
 
     // post_step for components that need it
     for (auto& [name, variant] : build_result_->devices) {

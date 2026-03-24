@@ -1,5 +1,13 @@
 # An-24 Flight Simulation - Agent Guidelines
 
+## Knowledge Base
+
+Before recrawling the repository, check:
+
+- `knowledge/index.md` - entry point for project knowledge
+- `knowledge/10_quick_reference.md` - fast paths and tuning defaults
+- `knowledge/errors_TODO.md` - known issues and follow-up items
+
 ## Build System
 
 ### CMake Configuration

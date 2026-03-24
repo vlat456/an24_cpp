@@ -1075,6 +1075,22 @@ target_link_libraries(codegen_accumulator_tests PRIVATE
 )
 gtest_discover_tests(codegen_accumulator_tests)
 
+# SOR regression tests — adaptive constants, fixed-signal safety, schedule consistency
+add_executable(sor_regression_tests
+    test_sor_regression.cpp
+)
+target_include_directories(sor_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(sor_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(sor_regression_tests)
+
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
 add_executable(aot_composite_tests
     test_aot_composite.cpp

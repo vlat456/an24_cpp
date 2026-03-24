@@ -119,3 +119,8 @@ For each frame (60 Hz):
 | Type Registry | `src/blueprint_v2/registry/type_registry.h` |
 | Code Generator | `src/codegen/codegen.h` |
 | JSON Parser | `src/json_parser/json_parser.h` |
+
+## Related Knowledge Notes
+
+- `knowledge/sor_optimization.md` - practical solver tuning guidance
+- `knowledge/component_authoring.md` - rules for writing stable components

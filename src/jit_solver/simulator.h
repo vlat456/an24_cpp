@@ -52,6 +52,9 @@ public:
     /// Get max convergence error across all dynamic signals (for diagnostics/UI)
     float get_max_convergence_error() const { return state_.get_max_change(); }
 
+    /// Get current adaptive omega (for diagnostics/tests)
+    float get_omega() const { return omega_; }
+
     /// Get voltage at a port (e.g., "battery.v_out")
     float get_wire_voltage(const std::string& port_name) const;
 
@@ -88,6 +91,10 @@ private:
 
     /// SOR over-relaxation factor
     float omega_ = SOR::OMEGA;
+
+    /// Adaptive omega diagnostics/control state
+    float prev_convergence_error_ = 0.0f;
+    bool adaptive_omega_enabled_ = ::SORAdaptive::ENABLED;
 
     /// Time accumulators for sub-rate domains (FPS-independent physics)
     float accumulator_mechanical_ = 0.0f;

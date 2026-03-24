@@ -263,3 +263,34 @@ TEST(DtRegression, Comparator_HysteresisCorrectBehavior) {
 
     sim.stop();
 }
+
+// =============================================================================
+// Regression: simulator move preserves adaptive-omega runtime state
+// =============================================================================
+
+TEST(DtRegression, SimulatorMove_PreservesAdaptiveState) {
+    Blueprint bp = make_battery_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    // Build convergence history and allow adaptive omega to react.
+    for (int i = 0; i < 120; ++i) {
+        sim.step(1.0f / 60.0f);
+    }
+
+    float time_before = sim.get_time();
+    uint64_t steps_before = sim.get_step_count();
+    float omega_before = sim.get_omega();
+
+    Simulator<JIT_Solver> moved = std::move(sim);
+
+    EXPECT_TRUE(moved.is_running());
+    EXPECT_NEAR(moved.get_time(), time_before, 1e-6f);
+    EXPECT_EQ(moved.get_step_count(), steps_before);
+    EXPECT_NEAR(moved.get_omega(), omega_before, 1e-6f);
+
+    // Source must become inert after move.
+    EXPECT_FALSE(sim.is_running());
+    EXPECT_NEAR(sim.get_time(), 0.0f, 1e-9f);
+    EXPECT_EQ(sim.get_step_count(), 0u);
+}
