@@ -1,5 +1,10 @@
 # Extract To Blueprint (Atomic MVP)
 
+## Status
+
+- Phase status: **Closed** (implemented, hardened, and verified)
+- Last validation: full test suite green (`1516/1516`)
+
 ## Goal
 
 Implement a strict, atomic MVP of **Extract to Blueprint** with predictable behavior and no implicit inference.

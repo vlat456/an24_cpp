@@ -1,5 +1,9 @@
 # Blueprint V3 Hardening Plan
 
+## Workstream Status
+
+- Extract-to-Blueprint workstream (`knowledge/14_extract_to_blueprint.md`): **Closed**
+
 ## Goal
 
 Make Blueprint V3 robust against data corruption, stale references, migration drift, and editor/runtime divergence while keeping workflows fast and diffs readable.
