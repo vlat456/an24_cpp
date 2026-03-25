@@ -323,7 +323,9 @@ void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) 
     //   V_primary_reflected = V_secondary / ratio
     //   Norton residual: (V_secondary/ratio - V_primary) * g_primary
     float g_primary = g_secondary * ratio * ratio;
-    float v_primary_reflected = v_secondary / std::max(std::abs(ratio), 1e-6f);
+    // Safe division preserving sign: floor |ratio| then restore original sign
+    float safe_ratio = (ratio >= 0.0f ? 1.0f : -1.0f) * std::max(std::abs(ratio), 1e-6f);
+    float v_primary_reflected = v_secondary / safe_ratio;
     st.conductance[provider.get(PortNames::primary)] += g_primary;
     st.through[provider.get(PortNames::primary)] += (v_primary_reflected - v_primary) * g_primary;
 }

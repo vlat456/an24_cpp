@@ -1722,3 +1722,21 @@ target_link_libraries(current_sense_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(current_sense_tests)
+
+# Bug-hunt regression tests — AotProvider sentinel, convergence overrun, codegen completeness
+add_executable(bug_hunt_regression_tests
+    test_bug_hunt_regression.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+)
+target_include_directories(bug_hunt_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bug_hunt_regression_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+    spdlog::spdlog
+)
+gtest_discover_tests(bug_hunt_regression_tests)

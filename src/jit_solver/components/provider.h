@@ -23,8 +23,9 @@ struct Binding {
 template <typename... Bindings>
 struct AotProvider {
     /// Compile-time constexpr lookup - compiler optimizes to constant!
+    /// Returns UINT32_MAX if port is not in the binding list (same sentinel as JitProvider).
     static constexpr uint32_t get(PortNames p) {
-        uint32_t result = 0;
+        uint32_t result = UINT32_MAX;
         // Fold expression: try each binding until match found
         // Compiler fully optimizes to single constant at compile-time
         ((p == Bindings::key ? (result = Bindings::value, void()) : void()), ...);

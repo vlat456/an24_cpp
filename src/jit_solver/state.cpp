@@ -58,12 +58,19 @@ void SimulationState::precompute_inv_conductance() {
 }
 
 void SimulationState::save_convergence_state() {
-    std::memcpy(convergence_buffer.data(), across.data(), across.size() * sizeof(float));
+    // Only copy dynamic_signals_count elements — that's the range get_max_change()
+    // and has_converged() iterate. This also prevents overrunning convergence_buffer
+    // if across.size() grew after resize_buffers() was called.
+    size_t count = std::min(static_cast<size_t>(dynamic_signals_count), convergence_buffer.size());
+    std::memcpy(convergence_buffer.data(), across.data(), count * sizeof(float));
 }
 
 float SimulationState::get_max_change() const {
+    // Guard: only compare up to the lesser of dynamic_signals_count and
+    // convergence_buffer.size() so we never read OOB if the buffer is smaller.
+    size_t count = std::min(static_cast<size_t>(dynamic_signals_count), convergence_buffer.size());
     float max_change = 0.0f;
-    for (size_t i = 0; i < dynamic_signals_count; ++i) {
+    for (size_t i = 0; i < count; ++i) {
         float change = std::abs(across[i] - convergence_buffer[i]);
         if (change > max_change) {
             max_change = change;
@@ -73,7 +80,10 @@ float SimulationState::get_max_change() const {
 }
 
 bool SimulationState::has_converged(float tolerance) const {
-    for (uint32_t i = 0; i < dynamic_signals_count; ++i) {
+    // Guard: only compare up to the lesser of dynamic_signals_count and
+    // convergence_buffer.size() so we never read OOB if the buffer is smaller.
+    size_t count = std::min(static_cast<size_t>(dynamic_signals_count), convergence_buffer.size());
+    for (size_t i = 0; i < count; ++i) {
         float delta = std::abs(across[i] - convergence_buffer[i]);
         if (delta > tolerance) {
             return false;

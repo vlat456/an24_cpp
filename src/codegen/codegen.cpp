@@ -546,9 +546,8 @@ std::string CodeGen::generate_source(
                     [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
                 if (dev_it == devices.end()) continue;
 
-                // Call component method (compiler will inline with -O3 -ffast-math)
-                // Bus/RefNode are no-ops, others have solve_electrical()
-                if (dev_it->classname == "Bus" || dev_it->classname == "RefNode" || dev_it->classname == "Voltmeter") {
+                // Bus/Voltmeter are no-ops; RefNode now stamps Norton residual (BUG-RefNode fix)
+                if (dev_it->classname == "Bus" || dev_it->classname == "Voltmeter") {
                     oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
                 } else {
                     oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
@@ -602,7 +601,7 @@ std::string CodeGen::generate_source(
         {
             static const std::unordered_set<std::string> has_post_step = {
                 "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-                "PID", "PD", "PI", "P", "AZS"
+                "PID", "PD", "PI", "P", "AZS", "GidroAccumulator", "FuelTank", "RUG82"
             };
             for (const auto& dev : devices) {
                 if (has_post_step.count(dev.classname)) {
