@@ -2,28 +2,43 @@
 
 > Issues discovered during codebase analysis. Prioritize and address as needed.
 
-## High Priority
+## Resolved
 
-### 1. Silent Out-of-Bounds in Release Builds
-**File:** `src/jit_solver/components/provider.h:47-53`
+### ~~1. Silent Out-of-Bounds in Release Builds~~ ✓ FIXED
+**Commit:** `2cad5e8` (AotProvider sentinel), this session (JitProvider release log)
 
-```cpp
-uint32_t get(PortNames p) const {
-    auto it = indices.find(p);
-    if (it != indices.end()) return it->second;
-    assert(false && "unmapped port");  // Only fires in debug!
-    return UNMAPPED;  // UINT32_MAX - silently causes OOB array access in release
-}
-```
-
-**Problem:** In release builds, unmapped ports return `UINT32_MAX`, causing silent out-of-bounds array access.
-
-**Fix Options:**
-- Add `[[unlikely]]` branch that throws or logs in release
-- Return `std::optional<uint32_t>` and force caller to handle missing case
-- Add runtime check: `if (it == indices.end()) { /* handle error */ }`
+**What was done:**
+- AotProvider now returns `UINT32_MAX` sentinel consistently (fold expression fix)
+- JitProvider::get() now logs to `stderr` on the `[[unlikely]]` path in release builds
+  instead of silently returning sentinel after compiled-out assert
+- Component solve methods use `provider.has()` to guard optional ports
 
 ---
+
+### ~~4. Magic Numbers in Domain Scheduling~~ ✓ FIXED
+**Commit:** `1a0dcee`
+
+All scheduling constants centralized in `SOR_constants.h` under `DomainSchedule` namespace.
+`systems.h` bucket array sizes now reference `DomainSchedule::*_PERIOD` instead of literals.
+
+---
+
+### ~~8. Memory Layout of SimulationState~~ ✓ FIXED (partial)
+**Commit:** this session
+
+**What was done:**
+- Added debug asserts in `allocate_signal()`: SoA size consistency, `dynamic_signals_count <= across.size()`
+- Added debug asserts in `precompute_inv_conductance()`: bounds and size mismatch checks
+- Convergence methods already had `std::min` guards (from `2cad5e8`)
+
+**Remaining:** Sentinel signal is allocated as dynamic but sits after fixed signals,
+causing `dynamic_signals_count` to include the fixed signal range. This is functionally
+harmless (fixed signals get parasitic G which doesn't change their value) but is
+architecturally imprecise. Consider making the sentinel a fixed signal.
+
+---
+
+## High Priority
 
 ### 2. Dual Blueprint Systems (Incomplete Migration)
 **Files:** 
@@ -59,30 +74,6 @@ uint32_t get(PortNames p) const {
 
 ---
 
-### 4. Magic Numbers in Domain Scheduling
-**Files:** `src/jit_solver/scheduling.h`, simulation loops
-
-```cpp
-if (step % 3 == 0)   // 20 Hz - why 3?
-if (step % 12 == 0)  // 5 Hz - why 12?
-if (step % 60 == 0)  // 1 Hz - why 60?
-```
-
-**Problem:** Division factors are magic numbers scattered across code.
-
-**Fix:**
-```cpp
-// In scheduling.h or constants.h
-namespace Scheduling {
-    constexpr int BASE_HZ = 60;
-    constexpr int MECHANICAL_DIV = 3;   // 60/20 = 3
-    constexpr int HYDRAULIC_DIV = 12;   // 60/5 = 12  
-    constexpr int THERMAL_DIV = 60;     // 60/1 = 60
-}
-```
-
----
-
 ### 5. Deep ComponentVariant Compile Time
 **File:** `src/jit_solver/jit_solver.h`
 
@@ -95,6 +86,24 @@ namespace Scheduling {
 - Group variants by domain: `ElectricalVariant`, `LogicalVariant`, etc.
 - Use type erasure with small buffer optimization
 - Consider `std::any` with custom RTTI
+
+---
+
+### 10. Sentinel Signal Ordering (NEW)
+**File:** `src/jit_solver/jit_solver.cpp:957-994`, `src/jit_solver/simulator.cpp:80-86`
+
+**Problem:** The signal remap places fixed signals at `[N_dyn..N_total-1)` and sentinel
+at `[N_total-1]`. But the simulator allocates signals sequentially and marks sentinel as
+dynamic (not in `fixed_signals`), causing `dynamic_signals_count` to advance past fixed
+signals. The SOR then iterates over fixed signals with parasitic conductance — harmless
+for RefNodes at constant voltage, but architecturally imprecise.
+
+**Fix Options:**
+- Add sentinel index to `fixed_signals` in the build result
+- Or have the simulator allocate sentinel as `is_fixed = true`
+- Or remap sentinel to be the LAST dynamic signal (before fixed range)
+
+**Impact:** Low (functionally correct, just wasteful SOR work on fixed nodes)
 
 ---
 
@@ -128,18 +137,6 @@ alignas(64) std::vector<float> through;
 
 ---
 
-## Investigation Needed
-
-### 8. Memory Layout of SimulationState
-The SoA design is good for cache locality, but:
-- Are vectors resized together?
-- Is `dynamic_signals_count` always <= `across.size()`?
-- What happens if `allocate_signal` is called after simulation starts?
-
-**TODO:** Add invariant checks in debug builds.
-
----
-
 ### 9. Blueprint V2 Validation Coverage
 **File:** `src/blueprint_v2/validation/`
 
@@ -154,14 +151,15 @@ The SoA design is good for cache locality, but:
 
 ## Summary Table
 
-| # | Issue | Priority | Effort | Impact |
+| # | Issue | Priority | Effort | Status |
 |---|-------|----------|--------|--------|
-| 1 | Silent OOB in release | High | Low | Stability |
-| 2 | Dual blueprint systems | High | High | Maintainability |
-| 3 | PORTS macro bloat | Medium | Medium | Code quality |
-| 4 | Magic scheduling numbers | Medium | Low | Readability |
-| 5 | ComponentVariant compile time | Medium | High | Build time |
-| 6 | Alignment verification | Low | Medium | Performance |
-| 7 | Thread safety audit | Low | High | Stability |
-| 8 | SimulationState invariants | Low | Low | Debugging |
-| 9 | Validation coverage | Low | Medium | Correctness |
+| 1 | Silent OOB in release | ~~High~~ | Low | **FIXED** |
+| 2 | Dual blueprint systems | High | High | Open |
+| 3 | PORTS macro bloat | Medium | Medium | Open |
+| 4 | Magic scheduling numbers | ~~Medium~~ | Low | **FIXED** |
+| 5 | ComponentVariant compile time | Medium | High | Open |
+| 6 | Alignment verification | Low | Medium | Open |
+| 7 | Thread safety audit | Low | High | Open |
+| 8 | SimulationState invariants | ~~Low~~ | Low | **FIXED** (partial) |
+| 9 | Validation coverage | Low | Medium | Open |
+| 10 | Sentinel signal ordering | Medium | Low | **NEW** |

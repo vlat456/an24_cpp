@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <cstdint>
 #include <cassert>
+#include <cstdio>
 #include <vector>
 
 // Forward declarations (PortNames defined in port_registry.h)
@@ -44,13 +45,21 @@ struct JitProvider {
     std::unordered_map<PortNames, uint32_t> indices;
 
     /// Runtime lookup from map populated during JSON parsing.
-    /// Returns UNMAPPED (UINT32_MAX) if port is not mapped — debug assert catches misuse.
+    /// Returns UNMAPPED (UINT32_MAX) if port is not mapped.
+    /// Debug builds: assert fires immediately.
+    /// Release builds: logs once to stderr so the issue is diagnosable.
     uint32_t get(PortNames p) const {
         auto it = indices.find(p);
         if (it != indices.end()) {
             return it->second;
         }
         assert(false && "JitProvider::get() called with unmapped port");
+        // Release-mode fallback: log to stderr so the problem is visible
+        // even when asserts are compiled out. This path is cold.
+        [[maybe_unused]] static bool warned = [] {
+            std::fprintf(stderr, "[JitProvider] ERROR: get() called with unmapped port — returning sentinel\n");
+            return true;
+        }();
         return UNMAPPED;
     }
 

@@ -210,6 +210,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/properties_window_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/dt_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/codegen_accumulator_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/sor_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/aot_composite_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bake_in_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/asym_slew_rate_tests.dir/DependInfo.cmake"
@@ -248,4 +249,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/bp2_bake_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_validation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/current_sense_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/bug_hunt_regression_tests.dir/DependInfo.cmake"
   )

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "component.h"
+#include "SOR_constants.h"
 #include <array>
 #include <vector>
 #include <memory>
@@ -17,14 +18,14 @@ public:
     /// Logical components (60 Hz) - boolean logic operations
     std::vector<Component*> logical;
 
-    /// Hydraulic components (5 Hz) - 12 buckets of pointers
-    std::array<std::vector<Component*>, 12> hydraulic;
+    /// Hydraulic components (5 Hz) - bucketed by step phase
+    std::array<std::vector<Component*>, DomainSchedule::HYDRAULIC_PERIOD> hydraulic;
 
-    /// Mechanical components (20 Hz) - 3 buckets of pointers
-    std::array<std::vector<Component*>, 3> mechanical;
+    /// Mechanical components (20 Hz) - bucketed by step phase
+    std::array<std::vector<Component*>, DomainSchedule::MECHANICAL_PERIOD> mechanical;
 
-    /// Thermal components (1 Hz) - 60 buckets of pointers
-    std::array<std::vector<Component*>, 60> thermal;
+    /// Thermal components (1 Hz) - bucketed by step phase
+    std::array<std::vector<Component*>, DomainSchedule::THERMAL_PERIOD> thermal;
 
     /// Time accumulators for each domain (ensures FPS-independent physics)
     float accumulator_mechanical = 0.0f;   // accumulated dt for 20 Hz updates

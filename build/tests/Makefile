@@ -956,6 +956,20 @@ codegen_accumulator_tests/fast:
 .PHONY : codegen_accumulator_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/sor_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/sor_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/sor_regression_tests.dir/rule
+
+# Convenience name for target.
+sor_regression_tests: tests/CMakeFiles/sor_regression_tests.dir/rule
+.PHONY : sor_regression_tests
+
+# fast build rule for target.
+sor_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sor_regression_tests.dir/build.make tests/CMakeFiles/sor_regression_tests.dir/build
+.PHONY : sor_regression_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/aot_composite_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/aot_composite_tests.dir/rule
 .PHONY : tests/CMakeFiles/aot_composite_tests.dir/rule
@@ -1487,6 +1501,20 @@ current_sense_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
 .PHONY : current_sense_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/bug_hunt_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+
+# Convenience name for target.
+bug_hunt_regression_tests: tests/CMakeFiles/bug_hunt_regression_tests.dir/rule
+.PHONY : bug_hunt_regression_tests
+
+# fast build rule for target.
+bug_hunt_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/build
+.PHONY : bug_hunt_regression_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -1496,6 +1524,7 @@ __/src/codegen/codegen.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.cpp.o
 
 __/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
@@ -1507,6 +1536,7 @@ __/src/codegen/codegen.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.i
 .PHONY : __/src/codegen/codegen.cpp.i
 
 __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
@@ -1518,6 +1548,7 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
 
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
@@ -2933,6 +2964,30 @@ test_blueprint_ports.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/blueprint_ports_tests.dir/build.make tests/CMakeFiles/blueprint_ports_tests.dir/test_blueprint_ports.cpp.s
 .PHONY : test_blueprint_ports.cpp.s
 
+test_bug_hunt_regression.o: test_bug_hunt_regression.cpp.o
+.PHONY : test_bug_hunt_regression.o
+
+# target to build an object file
+test_bug_hunt_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.o
+.PHONY : test_bug_hunt_regression.cpp.o
+
+test_bug_hunt_regression.i: test_bug_hunt_regression.cpp.i
+.PHONY : test_bug_hunt_regression.i
+
+# target to preprocess a source file
+test_bug_hunt_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.i
+.PHONY : test_bug_hunt_regression.cpp.i
+
+test_bug_hunt_regression.s: test_bug_hunt_regression.cpp.s
+.PHONY : test_bug_hunt_regression.s
+
+# target to generate assembly for a file
+test_bug_hunt_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/test_bug_hunt_regression.cpp.s
+.PHONY : test_bug_hunt_regression.cpp.s
+
 test_canvas_input.o: test_canvas_input.cpp.o
 .PHONY : test_canvas_input.o
 
@@ -3893,6 +3948,30 @@ test_solenoid_valve_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/solenoid_valve_regression_tests.dir/build.make tests/CMakeFiles/solenoid_valve_regression_tests.dir/test_solenoid_valve_regression.cpp.s
 .PHONY : test_solenoid_valve_regression.cpp.s
 
+test_sor_regression.o: test_sor_regression.cpp.o
+.PHONY : test_sor_regression.o
+
+# target to build an object file
+test_sor_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sor_regression_tests.dir/build.make tests/CMakeFiles/sor_regression_tests.dir/test_sor_regression.cpp.o
+.PHONY : test_sor_regression.cpp.o
+
+test_sor_regression.i: test_sor_regression.cpp.i
+.PHONY : test_sor_regression.i
+
+# target to preprocess a source file
+test_sor_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sor_regression_tests.dir/build.make tests/CMakeFiles/sor_regression_tests.dir/test_sor_regression.cpp.i
+.PHONY : test_sor_regression.cpp.i
+
+test_sor_regression.s: test_sor_regression.cpp.s
+.PHONY : test_sor_regression.s
+
+# target to generate assembly for a file
+test_sor_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sor_regression_tests.dir/build.make tests/CMakeFiles/sor_regression_tests.dir/test_sor_regression.cpp.s
+.PHONY : test_sor_regression.cpp.s
+
 test_specialized_node_widgets.o: test_specialized_node_widgets.cpp.o
 .PHONY : test_specialized_node_widgets.o
 
@@ -4598,6 +4677,7 @@ help:
 	@echo "... bp2_path_tests"
 	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
@@ -4645,6 +4725,7 @@ help:
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
 	@echo "... solenoid_valve_regression_tests"
+	@echo "... sor_regression_tests"
 	@echo "... specialized_node_widget_tests"
 	@echo "... spring_tests"
 	@echo "... sub_blueprint_ref_tests"
@@ -4825,6 +4906,9 @@ help:
 	@echo "... test_blueprint_ports.o"
 	@echo "... test_blueprint_ports.i"
 	@echo "... test_blueprint_ports.s"
+	@echo "... test_bug_hunt_regression.o"
+	@echo "... test_bug_hunt_regression.i"
+	@echo "... test_bug_hunt_regression.s"
 	@echo "... test_canvas_input.o"
 	@echo "... test_canvas_input.i"
 	@echo "... test_canvas_input.s"
@@ -4945,6 +5029,9 @@ help:
 	@echo "... test_solenoid_valve_regression.o"
 	@echo "... test_solenoid_valve_regression.i"
 	@echo "... test_solenoid_valve_regression.s"
+	@echo "... test_sor_regression.o"
+	@echo "... test_sor_regression.i"
+	@echo "... test_sor_regression.s"
 	@echo "... test_specialized_node_widgets.o"
 	@echo "... test_specialized_node_widgets.i"
 	@echo "... test_specialized_node_widgets.s"

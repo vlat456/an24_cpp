@@ -17,6 +17,14 @@ uint32_t SimulationState::allocate_signal(float initial_value, SignalType type) 
         dynamic_signals_count = static_cast<uint32_t>(across.size());
     }
 
+    // Invariant: all SoA arrays must stay the same size
+    assert(across.size() == through.size());
+    assert(across.size() == conductance.size());
+    assert(across.size() == inv_conductance.size());
+    assert(across.size() == signal_types.size());
+    // Invariant: dynamic_signals_count is always within bounds
+    assert(dynamic_signals_count <= across.size());
+
     return idx;
 }
 
@@ -42,6 +50,12 @@ void SimulationState::precompute_inv_conductance() {
     // total_g > 0 — no division-by-zero possible, no branch needed.
     // Floating nodes will relax toward 0 V (ground), which is physical.
     // ================================================================
+
+    // Hot-path invariant: catch SoA desync early in debug builds
+    assert(dynamic_signals_count <= conductance.size() &&
+           "dynamic_signals_count exceeds conductance array");
+    assert(conductance.size() == inv_conductance.size() &&
+           "conductance/inv_conductance size mismatch");
 
     constexpr float PARASITIC_G = 1e-7f;
 

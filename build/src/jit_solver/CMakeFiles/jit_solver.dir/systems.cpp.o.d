@@ -519,8 +519,8 @@ src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/common.h \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/tweakme.h \

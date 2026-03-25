@@ -1121,6 +1121,19 @@ codegen_accumulator_tests/fast:
 .PHONY : codegen_accumulator_tests/fast
 
 #=============================================================================
+# Target rules for targets named sor_regression_tests
+
+# Build rule for target.
+sor_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sor_regression_tests
+.PHONY : sor_regression_tests
+
+# fast build rule for target.
+sor_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sor_regression_tests.dir/build.make tests/CMakeFiles/sor_regression_tests.dir/build
+.PHONY : sor_regression_tests/fast
+
+#=============================================================================
 # Target rules for targets named aot_composite_tests
 
 # Build rule for target.
@@ -1614,6 +1627,19 @@ current_sense_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
 .PHONY : current_sense_tests/fast
 
+#=============================================================================
+# Target rules for targets named bug_hunt_regression_tests
+
+# Build rule for target.
+bug_hunt_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bug_hunt_regression_tests
+.PHONY : bug_hunt_regression_tests
+
+# fast build rule for target.
+bug_hunt_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/build
+.PHONY : bug_hunt_regression_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1653,6 +1679,7 @@ help:
 	@echo "... bp2_path_tests"
 	@echo "... bp2_registry_tests"
 	@echo "... bp2_validation_tests"
+	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
 	@echo "... codegen_accumulator_tests"
@@ -1709,6 +1736,7 @@ help:
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
 	@echo "... solenoid_valve_regression_tests"
+	@echo "... sor_regression_tests"
 	@echo "... spdlog"
 	@echo "... specialized_node_widget_tests"
 	@echo "... spring_tests"

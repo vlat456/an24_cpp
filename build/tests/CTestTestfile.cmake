@@ -60,6 +60,7 @@ include("/Users/vladimir/an24_cpp/build/tests/expand_typedef_tests[1]_include.cm
 include("/Users/vladimir/an24_cpp/build/tests/properties_window_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/dt_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/codegen_accumulator_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/sor_regression_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/aot_composite_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bake_in_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/asym_slew_rate_tests[1]_include.cmake")
@@ -98,3 +99,4 @@ include("/Users/vladimir/an24_cpp/build/tests/bp2_editor_model_tests[1]_include.
 include("/Users/vladimir/an24_cpp/build/tests/bp2_bake_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/bp2_validation_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/current_sense_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/bug_hunt_regression_tests[1]_include.cmake")

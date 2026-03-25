@@ -169,6 +169,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/sor_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/aot_composite_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bake_in_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
@@ -207,6 +208,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bake_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/bug_hunt_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir
