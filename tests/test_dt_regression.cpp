@@ -73,6 +73,43 @@ static Blueprint make_battery_circuit() {
 }
 
 // =============================================================================
+// Helper: battery + VoltageSense observer bridge
+// =============================================================================
+static Blueprint make_voltage_sense_circuit() {
+    Blueprint bp = make_battery_circuit();
+    auto& I = bp.interner();
+
+    Node vs;
+    vs.id = I.intern("vs");
+    vs.name = "VoltageSense";
+    vs.type_name = "VoltageSense";
+    vs.input(I.intern("v_in"));
+    vs.input(I.intern("v_ref"));
+    vs.output(I.intern("out"));
+    vs.params["gain"] = "1.0";
+    vs.params["offset"] = "0.0";
+    vs.at(500, 200);
+    vs.size_wh(120, 80);
+    bp.add_node(std::move(vs));
+
+    Wire w1;
+    w1.start.node_id = I.intern("bat");
+    w1.start.port_name = I.intern("v_out");
+    w1.end.node_id = I.intern("vs");
+    w1.end.port_name = I.intern("v_in");
+    bp.add_wire(std::move(w1));
+
+    Wire w2;
+    w2.start.node_id = I.intern("gnd");
+    w2.start.port_name = I.intern("v");
+    w2.end.node_id = I.intern("vs");
+    w2.end.port_name = I.intern("v_ref");
+    bp.add_wire(std::move(w2));
+
+    return bp;
+}
+
+// =============================================================================
 // Regression: SOR::OMEGA is the single source of truth
 // =============================================================================
 
@@ -293,4 +330,38 @@ TEST(DtRegression, SimulatorMove_PreservesAdaptiveState) {
     EXPECT_FALSE(sim.is_running());
     EXPECT_NEAR(sim.get_time(), 0.0f, 1e-9f);
     EXPECT_EQ(sim.get_step_count(), 0u);
+}
+
+TEST(DtRegression, PauseDtZero_DoesNotAdvanceState) {
+    Blueprint bp = make_battery_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    sim.step(1.0f / 60.0f);
+    const float time_before = sim.get_time();
+    const uint32_t steps_before = sim.get_step_count();
+    const float v_before = sim.get_port_value("bat", "v_out");
+
+    for (int i = 0; i < 20; ++i) {
+        sim.step(0.0f);
+    }
+
+    EXPECT_FLOAT_EQ(sim.get_time(), time_before);
+    EXPECT_EQ(sim.get_step_count(), steps_before);
+    EXPECT_FLOAT_EQ(sim.get_port_value("bat", "v_out"), v_before);
+    sim.stop();
+}
+
+TEST(DtRegression, VoltageSense_UpdatesOnFirstStep) {
+    Blueprint bp = make_voltage_sense_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    const float out0 = sim.get_port_value("vs", "out");
+    sim.step(1.0f / 60.0f);
+    const float out1 = sim.get_port_value("vs", "out");
+
+    EXPECT_NEAR(out0, 0.0f, 1e-4f);
+    EXPECT_GT(out1, 1.0f) << "VoltageSense should publish settled electrical value in same step";
+    sim.stop();
 }
