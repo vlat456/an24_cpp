@@ -230,3 +230,73 @@ TEST(CodegenAccumulator, SorUsesDynamicSignalCount) {
               std::string::npos)
         << "AOT solve_sor_iteration must not iterate over SIGNAL_COUNT";
 }
+
+TEST(CodegenAccumulator, ControlCommitPhaseIsEmittedBeforeSecondElectricalPass) {
+    std::vector<DeviceInstance> devices;
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    uint32_t next_sig = 0;
+
+    // HoldButton (control-commit participant)
+    {
+        DeviceInstance dev;
+        dev.name = "btn";
+        dev.classname = "HoldButton";
+        dev.params["domain"] = "Electrical";
+        dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
+        dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.ports["control"] = {PortDirection::In, PortType::V, std::nullopt};
+        dev.ports["state"] = {PortDirection::Out, PortType::I, std::nullopt};
+        port_to_signal["btn.v_in"] = next_sig++;
+        port_to_signal["btn.v_out"] = next_sig++;
+        port_to_signal["btn.control"] = next_sig++;
+        port_to_signal["btn.state"] = next_sig++;
+        devices.push_back(std::move(dev));
+    }
+
+    // ControlledVoltageSource (actuator participant)
+    {
+        DeviceInstance dev;
+        dev.name = "cvs";
+        dev.classname = "ControlledVoltageSource";
+        dev.params["domain"] = "Electrical";
+        dev.ports["cmd"] = {PortDirection::In, PortType::I, std::nullopt};
+        dev.ports["v_neg"] = {PortDirection::In, PortType::V, std::nullopt};
+        dev.ports["v_pos"] = {PortDirection::Out, PortType::V, std::nullopt};
+        port_to_signal["cvs.cmd"] = next_sig++;
+        port_to_signal["cvs.v_neg"] = next_sig++;
+        port_to_signal["cvs.v_pos"] = next_sig++;
+        devices.push_back(std::move(dev));
+    }
+
+    std::string source = CodeGen::generate_source("test.h", devices, {}, port_to_signal, next_sig);
+
+    const std::string step0_begin = "step_0(void* state, float dt)";
+    const std::string step1_begin = "step_1(void* state, float dt)";
+    size_t block_begin = source.find(step0_begin);
+    size_t block_end = source.find(step1_begin);
+    ASSERT_NE(block_begin, std::string::npos) << "Generated source must contain step_0";
+    ASSERT_NE(block_end, std::string::npos) << "Generated source must contain step_1";
+    ASSERT_LT(block_begin, block_end);
+    const std::string step0 = source.substr(block_begin, block_end - block_begin);
+
+    const std::string commit_call = "btn.commit_control(*st, dt);";
+    const std::string second_pass_label = "// Phase 6: second electrical pass (passive + actuators)";
+    const std::string phase8_label = "// Phase 8: finalize";
+    const std::string finalize_call = "btn.post_step(*st, dt);";
+
+    size_t commit_pos = step0.find(commit_call);
+    size_t second_pass_pos = step0.find(second_pass_label);
+    size_t phase8_pos = step0.find(phase8_label);
+    size_t finalize_btn_pos = step0.find(finalize_call);
+
+    ASSERT_NE(commit_pos, std::string::npos)
+        << "Generated source must call commit_control for HoldButton";
+    ASSERT_NE(second_pass_pos, std::string::npos)
+        << "Generated source must contain second electrical pass phase";
+    ASSERT_NE(phase8_pos, std::string::npos)
+        << "Generated source must contain finalize phase";
+    EXPECT_LT(commit_pos, second_pass_pos)
+        << "control_commit must run before actuator electrical pass";
+    EXPECT_EQ(finalize_btn_pos, std::string::npos)
+        << "HoldButton must not be emitted in finalize when control_commit is present";
+}

@@ -506,7 +506,7 @@ std::string CodeGen::generate_source(
             phase_thermal.push_back(dev.name);
         }
 
-        if (t.finalize || (t.legacy_post_step && !t.logical)) {
+        if (t.finalize || (t.legacy_post_step && !t.logical && !t.control_commit)) {
             phase_finalize.push_back(dev.name);
         }
     }
