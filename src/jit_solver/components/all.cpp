@@ -600,10 +600,7 @@ void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/)
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
 
-    // Compatibility during migration: keep immediate i_out write for unit tests and
-    // legacy direct component usage; observer phase will refresh with settled value.
-    float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
-    st.across[provider.get(PortNames::i_out)] = v_diff * g;
+    // i_out is produced in observe_electrical() after SOR convergence.
 }
 
 template <typename Provider>

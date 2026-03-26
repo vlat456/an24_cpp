@@ -54,7 +54,7 @@ TEST(CurrentSense, NoConductanceOnOutputPort) {
         << "i_out should not receive any conductance stamp";
 }
 
-TEST(CurrentSense, ZeroVoltage_ZeroCurrent) {
+TEST(CurrentSense, ZeroVoltage_ZeroCurrent_ObserverPhase) {
     auto comp = make_current_sense(1000.0f);
     auto st = make_state();
     // both v_in and v_out = 0 => no current
@@ -62,18 +62,20 @@ TEST(CurrentSense, ZeroVoltage_ZeroCurrent) {
     st.across[1] = 0.0f;
 
     comp.solve_electrical(st, 1.0f / 60.0f);
+    comp.observe_electrical(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[2], 0.0f)
         << "i_out should be zero when no voltage difference";
 }
 
-TEST(CurrentSense, EqualVoltage_ZeroCurrent) {
+TEST(CurrentSense, EqualVoltage_ZeroCurrent_ObserverPhase) {
     auto comp = make_current_sense(1000.0f);
     auto st = make_state();
     st.across[0] = 28.0f;  // v_in
     st.across[1] = 28.0f;  // v_out
 
     comp.solve_electrical(st, 1.0f / 60.0f);
+    comp.observe_electrical(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[2], 0.0f)
         << "i_out should be zero when v_in == v_out";
@@ -83,7 +85,7 @@ TEST(CurrentSense, EqualVoltage_ZeroCurrent) {
 // Current Measurement Tests
 // =============================================================================
 
-TEST(CurrentSense, PositiveCurrentFlow) {
+TEST(CurrentSense, PositiveCurrentFlow_ObserverPhase) {
     // v_in > v_out => positive current (conventional direction: in -> out)
     auto comp = make_current_sense(1000.0f);
     auto st = make_state();
@@ -91,13 +93,14 @@ TEST(CurrentSense, PositiveCurrentFlow) {
     st.across[1] = 27.9f;  // v_out (slight drop across ammeter)
 
     comp.solve_electrical(st, 1.0f / 60.0f);
+    comp.observe_electrical(st, 1.0f / 60.0f);
 
     float expected_i = (28.0f - 27.9f) * 1000.0f; // 100 A
     EXPECT_FLOAT_EQ(st.across[2], expected_i)
         << "i_out = (v_in - v_out) * conductance";
 }
 
-TEST(CurrentSense, NegativeCurrentFlow) {
+TEST(CurrentSense, NegativeCurrentFlow_ObserverPhase) {
     // v_out > v_in => negative current (reverse flow)
     auto comp = make_current_sense(1000.0f);
     auto st = make_state();
@@ -105,19 +108,21 @@ TEST(CurrentSense, NegativeCurrentFlow) {
     st.across[1] = 28.0f;  // v_out
 
     comp.solve_electrical(st, 1.0f / 60.0f);
+    comp.observe_electrical(st, 1.0f / 60.0f);
 
     float expected_i = (27.0f - 28.0f) * 1000.0f; // -1000 A
     EXPECT_FLOAT_EQ(st.across[2], expected_i)
         << "i_out should be negative when v_out > v_in";
 }
 
-TEST(CurrentSense, CustomConductance) {
+TEST(CurrentSense, CustomConductance_ObserverPhase) {
     auto comp = make_current_sense(500.0f);
     auto st = make_state();
     st.across[0] = 10.0f;
     st.across[1] = 9.0f;
 
     comp.solve_electrical(st, 1.0f / 60.0f);
+    comp.observe_electrical(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[2], (10.0f - 9.0f) * 500.0f)
         << "i_out should use the configured conductance";
@@ -212,7 +217,7 @@ static SimulationState run_current_sense_sor(
             st.through[1] += -st.across[1] * g_load;
         }
 
-        // CurrentSense electrical stamp (stamps v_in <-> v_out coupling + writes i_out)
+        // CurrentSense electrical stamp (stamps v_in <-> v_out coupling)
         comp.solve_electrical(st, 1.0f / 60.0f);
 
         // SOR update only over electrical nodes (exclude i_out output signal)
@@ -221,9 +226,25 @@ static SimulationState run_current_sense_sor(
         }
         solve_sor_iteration(st.across.data(), st.through.data(),
                            st.inv_conductance.data(), n_electrical, omega);
+
+        // Observer phase writes measured current from converged nodal voltages.
+        comp.observe_electrical(st, 1.0f / 60.0f);
     }
 
     return st;
+}
+
+TEST(CurrentSense, ElectricalPhaseDoesNotWriteIOut) {
+    auto comp = make_current_sense(1000.0f);
+    auto st = make_state();
+    st.across[0] = 28.0f;
+    st.across[1] = 27.0f;
+    st.across[2] = 123.0f;
+
+    comp.solve_electrical(st, 1.0f / 60.0f);
+
+    EXPECT_FLOAT_EQ(st.across[2], 123.0f)
+        << "solve_electrical should not update i_out; observer phase owns measured output";
 }
 
 TEST(CurrentSense, SOR_ConvergesWithBatteryAndLoad) {
