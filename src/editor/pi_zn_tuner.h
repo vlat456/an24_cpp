@@ -13,10 +13,10 @@ struct ZNTuneConfig {
     float run_time_sec = 16.0f;
     float settle_time_sec = 3.0f;
     float kp_lo = 0.01f;
-    float kp_hi = 40.0f;
-    int max_expand = 8;
+    float kp_hi = 80.0f;
+    int max_expand = 10;
     int binary_iters = 14;
-    int min_peaks = 6;
+    int min_peaks = 4;
 };
 
 struct ZNTuneResult {

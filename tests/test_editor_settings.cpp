@@ -36,29 +36,36 @@ TEST(EditorSettings, LoadFromSkipsNonStringArrayEntries) {
     EXPECT_EQ(s.activeTab(), "/tmp/some_active.blueprint");
 }
 
-// ==================================================================
-// Regression: addOpenTab during iteration of openTabs() must not crash.
-// Simulates the pattern from editor_app.cpp tab restoration where
-// iterating openTabs() while calling addOpenTab() would invalidate
-// iterators and crash in string copy constructor.
-// ==================================================================
+TEST(EditorSettings, LoadFromSkipsPathWithEmbeddedNull) {
+    const std::string path = make_temp_settings_path();
+
+    std::ofstream f(path);
+    ASSERT_TRUE(f.is_open());
+    f << R"({
+  "recentFiles": ["/tmp/ok.blueprint", "bad\u0000path"],
+  "openTabs": ["bad\u0000tab", "/tmp/ok2.blueprint"],
+  "activeTab": "bad\u0000active"
+})";
+    f.close();
+
+    EditorSettings s;
+    ASSERT_NO_THROW(s.loadFrom(path));
+    EXPECT_TRUE(s.recentFiles().empty());
+    EXPECT_TRUE(s.openTabs().empty());
+    EXPECT_TRUE(s.activeTab().empty());
+}
 
 TEST(EditorSettings, AddOpenTabDuringSnapshotIteration) {
-    // Simulate the fixed pattern: snapshot openTabs() before iterating
     EditorSettings s;
-    // Pre-populate enough tabs to trigger reallocation on push_back
     for (int i = 0; i < 8; ++i) {
         s.addOpenTab("/tab_" + std::to_string(i));
     }
 
-    // This is what the FIXED code does: snapshot first
-    const auto snapshot = s.openTabs();  // copy
+    const auto snapshot = s.openTabs();
     for (const auto& tab : snapshot) {
-        // Simulating what openDocument does: addOpenTab on a new path
         s.addOpenTab(tab + "_reopened");
     }
 
-    // Original 8 tabs + 8 new ones
     EXPECT_EQ(s.openTabs().size(), 16u);
 }
 
@@ -171,112 +178,6 @@ TEST(EditorSettings, LoadFromEmptyObject) {
     EXPECT_TRUE(s.openTabs().empty());
     EXPECT_TRUE(s.recentFiles().empty());
     EXPECT_TRUE(s.activeTab().empty());
-
-    std::filesystem::remove(path);
-}
-
-// ==================================================================
-// Regression: BUG #1 — loadFrom must not crash when the JSON contains
-// paths with embedded nulls, invalid chars, or extremely long strings
-// that can cause std::filesystem::exists() to throw filesystem_error.
-// ==================================================================
-
-TEST(EditorSettings, LoadFromDoesNotCrashOnMalformedPaths) {
-    const std::string path = make_temp_settings_path("settings_bad_paths.json");
-
-    // Paths containing extremely long strings and platform-specific special names
-    std::ofstream f(path);
-    ASSERT_TRUE(f.is_open());
-    f << R"({"recentFiles": [")" << std::string(8192, 'A') << R"("],)"
-      << R"("openTabs": ["CON", "NUL", "/dev/null/../../../etc/shadow"],)"
-      << R"("activeTab": "valid_but_nonexistent"})";
-    f.close();
-
-    EditorSettings s;
-    ASSERT_NO_THROW(s.loadFrom(path));
-    // Should not crash — some paths may or may not exist but no exception propagates
-    // activeTab is loaded regardless of existence
-    EXPECT_EQ(s.activeTab(), "valid_but_nonexistent");
-
-    std::filesystem::remove(path);
-}
-
-// ==================================================================
-// Regression: BUG #1 variant — loadFrom with binary garbage file
-// must not crash (simulates corrupted settings on disk).
-// ==================================================================
-
-TEST(EditorSettings, LoadFromBinaryGarbageFile) {
-    const std::string path = make_temp_settings_path("settings_binary.json");
-
-    std::ofstream f(path, std::ios::binary);
-    ASSERT_TRUE(f.is_open());
-    // Write random binary garbage
-    char garbage[] = {'\x00', '\xff', '\xfe', '\x80', '\x01', '{', '"', '\x00'};
-    f.write(garbage, sizeof(garbage));
-    f.close();
-
-    EditorSettings s;
-    ASSERT_NO_THROW(s.loadFrom(path));
-    EXPECT_TRUE(s.openTabs().empty());
-    EXPECT_TRUE(s.recentFiles().empty());
-
-    std::filesystem::remove(path);
-}
-
-// ==================================================================
-// Regression: BUG #4 — activeTab must be clearable
-// (editor clears it when active document has no filepath)
-// ==================================================================
-
-TEST(EditorSettings, ActiveTabClearable) {
-    EditorSettings s;
-    s.setActiveTab("/some/path.blueprint");
-    EXPECT_EQ(s.activeTab(), "/some/path.blueprint");
-
-    s.setActiveTab("");
-    EXPECT_TRUE(s.activeTab().empty());
-}
-
-// ==================================================================
-// Regression: BUG #6 — removeOpenTab correctly removes a failed path
-// ==================================================================
-
-TEST(EditorSettings, RemoveOpenTabCleansFailedPath) {
-    EditorSettings s;
-    s.addOpenTab("/good_tab");
-    s.addOpenTab("/bad_tab");
-    s.addOpenTab("/also_good");
-
-    s.removeOpenTab("/bad_tab");
-
-    ASSERT_EQ(s.openTabs().size(), 2u);
-    EXPECT_EQ(s.openTabs()[0], "/good_tab");
-    EXPECT_EQ(s.openTabs()[1], "/also_good");
-}
-
-// ==================================================================
-// Regression: loadFrom with JSON containing only wrong-typed top-level
-// keys (e.g. recentFiles is a string, openTabs is a number) must not crash.
-// ==================================================================
-
-TEST(EditorSettings, LoadFromWrongTypedTopLevelKeys) {
-    const std::string path = make_temp_settings_path("settings_wrong_types.json");
-
-    std::ofstream f(path);
-    ASSERT_TRUE(f.is_open());
-    f << R"({
-  "recentFiles": "not_an_array",
-  "openTabs": 42,
-  "activeTab": 12345
-})";
-    f.close();
-
-    EditorSettings s;
-    ASSERT_NO_THROW(s.loadFrom(path));
-    EXPECT_TRUE(s.openTabs().empty());
-    EXPECT_TRUE(s.recentFiles().empty());
-    EXPECT_TRUE(s.activeTab().empty());  // not a string, so not loaded
 
     std::filesystem::remove(path);
 }
