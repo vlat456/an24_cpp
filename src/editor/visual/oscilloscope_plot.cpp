@@ -70,10 +70,16 @@ void draw_probe_marker(ImDrawList* draw_list,
 
 void render_stats_row(const OscilloscopeModel::SampleStats& stats) {
     if (!stats.has_value) {
-        ImGui::TextDisabled("min --   max --   last --");
+        ImGui::TextDisabled("min --   max --   last --   Tu --");
         return;
     }
-    ImGui::Text("min %.3f   max %.3f   last %.3f", stats.min_v, stats.max_v, stats.last_v);
+    if (stats.has_tu) {
+        ImGui::Text("min %.3f   max %.3f   last %.3f   Tu %.3fs",
+                    stats.min_v, stats.max_v, stats.last_v, stats.tu_sec);
+    } else {
+        ImGui::Text("min %.3f   max %.3f   last %.3f   Tu --",
+                    stats.min_v, stats.max_v, stats.last_v);
+    }
 }
 
 } // namespace visual::osc

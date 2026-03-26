@@ -210,7 +210,7 @@ void EditorApp::update() {
         doc->updateSimulationStep(io.DeltaTime);
         doc->updateNodeContentFromSimulation();
         ws_.oscilloscope.on_blueprint_changed(*doc);
-        ws_.oscilloscope.sample(*doc, doc->isSimulationRunning());
+        ws_.oscilloscope.sample(*doc, doc->isSimulationRunning(), io.DeltaTime);
     }
 }
 

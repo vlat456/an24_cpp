@@ -168,7 +168,8 @@ void OscilloscopeModel::on_blueprint_changed(Document& doc) {
     }
 }
 
-void OscilloscopeModel::sample(Document& doc, bool simulation_running) {
+void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sample_dt_sec) {
+    if (sample_dt_sec > 0.0f) sample_period_sec_ = sample_dt_sec;
     for (auto& [wire_id, p] : probes_) {
         auto& q = samples_[wire_id];
         float v = simulation_running ? doc.simulation().get_wire_voltage(p.signal_key) : 0.0f;
@@ -189,20 +190,6 @@ std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const 
         return a.probe->wire_id < b.probe->wire_id;
     });
     return out;
-}
-
-OscilloscopeModel::SampleStats OscilloscopeModel::compute_stats(const std::deque<float>& samples) {
-    SampleStats s;
-    if (samples.empty()) return s;
-    s.has_value = true;
-    s.min_v = samples.front();
-    s.max_v = samples.front();
-    s.last_v = samples.back();
-    for (float v : samples) {
-        s.min_v = std::min(s.min_v, v);
-        s.max_v = std::max(s.max_v, v);
-    }
-    return s;
 }
 
 const std::deque<float>& OscilloscopeModel::ensure_virtual_channel(Document& doc,

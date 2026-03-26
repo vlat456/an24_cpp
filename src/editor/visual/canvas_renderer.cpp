@@ -62,7 +62,7 @@ static void render_hover_scope_tooltip(Document& doc,
         float max_v = 0.0f;
         visual::osc::compute_range(one, min_v, max_v);
         visual::osc::render_channel_plot(pseudo, samples, min_v, max_v, 72.0f, -1.0f);
-        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples));
+        visual::osc::render_stats_row(OscilloscopeModel::compute_stats(samples, ws.oscilloscope.sample_period_sec()));
     }
     ImGui::End();
 }
