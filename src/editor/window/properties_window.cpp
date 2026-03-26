@@ -10,6 +10,58 @@
 #include <sstream>
 #include <vector>
 
+static bool is_bridge_node_type(ui::StringInterner& interner, ui::InternedId type) {
+    return type == interner.intern("BlueprintInput")
+        || type == interner.intern("BlueprintOutput");
+}
+
+static const char* port_type_label(PortType t) {
+    switch (t) {
+        case PortType::V: return "Voltage (V)";
+        case PortType::I: return "Current (I)";
+        case PortType::Bool: return "Bool";
+        case PortType::RPM: return "RPM";
+        case PortType::Temperature: return "Temperature";
+        case PortType::Pressure: return "Pressure";
+        case PortType::Position: return "Position";
+        case PortType::Any: return "Any";
+    }
+    return "Any";
+}
+
+static const std::vector<PortType>& all_port_types() {
+    static const std::vector<PortType> kTypes = {
+        PortType::V,
+        PortType::I,
+        PortType::Bool,
+        PortType::RPM,
+        PortType::Temperature,
+        PortType::Pressure,
+        PortType::Position,
+        PortType::Any,
+    };
+    return kTypes;
+}
+
+static Domain domain_for_port_type(PortType t) {
+    switch (t) {
+        case PortType::V:
+        case PortType::I:
+        case PortType::Any:
+            return Domain::Electrical;
+        case PortType::Bool:
+            return Domain::Logical;
+        case PortType::RPM:
+        case PortType::Position:
+            return Domain::Mechanical;
+        case PortType::Pressure:
+            return Domain::Hydraulic;
+        case PortType::Temperature:
+            return Domain::Thermal;
+    }
+    return Domain::Electrical;
+}
+
 // Parse "k1:v1; k2:v2; ..." into parallel vectors
 static bool parse_table_entries(const std::string& str,
                                 std::vector<float>& keys,
@@ -87,6 +139,17 @@ void PropertiesWindow::open(const bp2::Blueprint::Node& node,
     // Initialize pending copies from the live node
     pending_name_ = node.name;
     pending_layout_overrides_ = node.layout_overrides;
+    snapshot_bridge_port_type_.reset();
+    pending_bridge_port_type_.reset();
+    if (is_bridge_node_type(*interner_, node.type)) {
+        if (!node.inputs.empty()) {
+            snapshot_bridge_port_type_ = node.inputs.front().type;
+            pending_bridge_port_type_ = node.inputs.front().type;
+        } else if (!node.outputs.empty()) {
+            snapshot_bridge_port_type_ = node.outputs.front().type;
+            pending_bridge_port_type_ = node.outputs.front().type;
+        }
+    }
 
     open_ = true;
 }
@@ -164,6 +227,9 @@ void PropertiesWindow::render() {
 
         // Port layout section
         render_port_layout_section(*target);
+
+        // Bridge PortType section (BlueprintInput/BlueprintOutput)
+        render_bridge_port_type_section();
 
         ImGui::Separator();
 
@@ -515,6 +581,10 @@ void PropertiesWindow::apply() {
         has_changes = true;
     }
 
+    if (pending_bridge_port_type_ != snapshot_bridge_port_type_) {
+        has_changes = true;
+    }
+
     if (has_changes) {
         // Build a single modified node, then commit all changes in one checkpoint.
         // This guarantees a single undo step regardless of how many fields changed.
@@ -535,10 +605,57 @@ void PropertiesWindow::apply() {
         // Apply layout overrides change
         updated.layout_overrides = pending_layout_overrides_;
 
+        // Apply bridge PortType change to all ports (ext/port share semantics).
+        if (pending_bridge_port_type_.has_value() && is_bridge_node_type(*interner_, updated.type)) {
+            for (auto& p : updated.inputs) p.type = *pending_bridge_port_type_;
+            for (auto& p : updated.outputs) p.type = *pending_bridge_port_type_;
+        }
+
         // Single atomic checkpoint + replace
+        bp2::Blueprint next_bp = model_->current().without_node(node_iid).with_node(std::move(updated));
+
+        // If editing an extracted bridge node (<nested_id>:<iface_name>), propagate
+        // type/domain to the parent collapsed node port and nested iface descriptor
+        // so top-level port colors/types stay consistent.
+        if (pending_bridge_port_type_.has_value()) {
+            const std::string& full_id = target_node_id_;
+            const size_t sep = full_id.find(':');
+            if (sep != std::string::npos && interner_) {
+                const std::string nested_id_str = full_id.substr(0, sep);
+                const std::string iface_name = full_id.substr(sep + 1);
+                const ui::InternedId nested_iid = interner_->lookup(nested_id_str);
+                const ui::InternedId iface_iid = interner_->lookup(iface_name);
+
+                if (!nested_iid.empty() && !iface_iid.empty()) {
+                    // Update parent collapsed node port types
+                    if (const auto* collapsed = next_bp.find_node(nested_iid)) {
+                        bp2::Blueprint::Node n = *collapsed;
+                        for (auto& p : n.inputs) {
+                            if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
+                        }
+                        for (auto& p : n.outputs) {
+                            if (p.name == iface_iid) p.type = *pending_bridge_port_type_;
+                        }
+                        next_bp = next_bp.without_node(n.id).with_node(std::move(n));
+                    }
+
+                    // Update nested iface domain for the corresponding boundary port
+                    if (const auto* nested = next_bp.find_nested(nested_iid)) {
+                        bp2::Blueprint::Nested n = *nested;
+                        std::vector<bp2::PortDescriptor> ports = n.iface.ports();
+                        const Domain d = domain_for_port_type(*pending_bridge_port_type_);
+                        for (auto& pd : ports) {
+                            if (pd.name == iface_iid) pd.domain = d;
+                        }
+                        n.iface = bp2::Interface(std::move(ports));
+                        next_bp = next_bp.without_nested(n.id).with_nested(std::move(n));
+                    }
+                }
+            }
+        }
+
         model_->push_checkpoint();
-        model_->replace_current(
-            model_->current().without_node(node_iid).with_node(std::move(updated)));
+        model_->replace_current(std::move(next_bp));
     }
 
     if (on_apply_) {
@@ -551,4 +668,37 @@ void PropertiesWindow::apply() {
 void PropertiesWindow::cancel_and_close() {
     // Shadow editing: the live node was never touched, so no revert needed.
     open_ = false;
+}
+
+void PropertiesWindow::render_bridge_port_type_section() {
+#ifndef EDITOR_TESTING
+    const bp2::Blueprint::Node* target = resolve_target();
+    if (!target || !interner_) return;
+    if (!is_bridge_node_type(*interner_, target->type)) return;
+    if (!pending_bridge_port_type_.has_value()) return;
+
+    ImGui::Separator();
+    ImGui::Text("Port Type");
+    ImGui::Separator();
+
+    const auto& types = all_port_types();
+    int current = 0;
+    for (size_t i = 0; i < types.size(); ++i) {
+        if (types[i] == *pending_bridge_port_type_) {
+            current = static_cast<int>(i);
+            break;
+        }
+    }
+
+    if (ImGui::BeginCombo("Port Type", port_type_label(types[static_cast<size_t>(current)]))) {
+        for (size_t i = 0; i < types.size(); ++i) {
+            bool selected = (static_cast<int>(i) == current);
+            if (ImGui::Selectable(port_type_label(types[i]), selected)) {
+                pending_bridge_port_type_ = types[i];
+            }
+            if (selected) ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+#endif
 }

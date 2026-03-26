@@ -4,6 +4,7 @@
 #include "blueprint_v2/editor_model/editor_model.h"
 #include "ui/core/interned_id.h"
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -65,6 +66,16 @@ public:
         pending_layout_overrides_ = overrides;
     }
 
+    /// Set pending bridge port type for BlueprintInput/BlueprintOutput nodes.
+    void set_pending_bridge_port_type(PortType t) {
+        pending_bridge_port_type_ = t;
+    }
+
+    /// Read pending bridge port type (for testing / display).
+    std::optional<PortType> pending_bridge_port_type() const {
+        return pending_bridge_port_type_;
+    }
+
     /// Read pending layout overrides (for testing).
     const std::vector<bp2::Blueprint::Node::PortLayoutOverride>&
     pending_layout_overrides() const {
@@ -102,6 +113,8 @@ private:
     std::unordered_map<std::string, std::string> snapshot_string_params_;
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> pending_layout_overrides_;
     std::vector<bp2::Blueprint::Node::PortLayoutOverride> snapshot_layout_overrides_;
+    std::optional<PortType> pending_bridge_port_type_;
+    std::optional<PortType> snapshot_bridge_port_type_;
 
     /// Resolve the target node from the blueprint. Returns nullptr if
     /// the node no longer exists (e.g. deleted by undo while open).
@@ -132,4 +145,7 @@ private:
 
     /// Render a single row in the port layout table
     void render_port_layout_row(const std::string& port_name);
+
+    /// Render PortType selector for BlueprintInput/BlueprintOutput nodes.
+    void render_bridge_port_type_section();
 };

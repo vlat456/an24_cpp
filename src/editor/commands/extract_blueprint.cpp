@@ -29,6 +29,7 @@ struct ExternalConnection {
     ui::InternedId internal_port;
     std::string iface_name;
     Domain domain = Domain::Electrical;
+    PortType port_type = PortType::Any;
     ui::InternedId original_wire_id;
 };
 
@@ -68,6 +69,36 @@ static PortType port_type_for_domain(Domain d) {
         case Domain::Mechanical: return PortType::RPM;
         case Domain::Hydraulic: return PortType::Pressure;
         case Domain::Thermal: return PortType::Temperature;
+    }
+    return PortType::Any;
+}
+
+static Domain domain_for_port_type(PortType t) {
+    switch (t) {
+        case PortType::V:
+        case PortType::I:
+        case PortType::Any:
+            return Domain::Electrical;
+        case PortType::Bool:
+            return Domain::Logical;
+        case PortType::RPM:
+        case PortType::Position:
+            return Domain::Mechanical;
+        case PortType::Pressure:
+            return Domain::Hydraulic;
+        case PortType::Temperature:
+            return Domain::Thermal;
+    }
+    return Domain::Electrical;
+}
+
+static PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_name) {
+    if (!node) return PortType::Any;
+    for (const auto& p : node->inputs) {
+        if (p.name == port_name) return p.type;
+    }
+    for (const auto& p : node->outputs) {
+        if (p.name == port_name) return p.type;
     }
     return PortType::Any;
 }
@@ -262,13 +293,22 @@ static bool create_bridge_nodes_for_side(
         }
         n.y = base_y;
 
-        const PortType pt = port_type_for_domain(ec.domain);
+        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
+        const Domain pd = domain_for_port_type(pt);
         if (p.is_input_side) {
             n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
             n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
+            n.iface = bp2::Interface({
+                {interner.intern("ext"), pd, bp2::Direction::Input},
+                {interner.intern("port"), pd, bp2::Direction::Output},
+            });
         } else {
             n.inputs.emplace_back(interner.intern("port"), PortSide::Input, pt);
             n.outputs.emplace_back(interner.intern("ext"), PortSide::Output, pt);
+            n.iface = bp2::Interface({
+                {interner.intern("ext"), pd, bp2::Direction::Output},
+                {interner.intern("port"), pd, bp2::Direction::Input},
+            });
         }
         out = out.with_node(std::move(n));
     }
@@ -377,6 +417,9 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             continue;
         }
 
+        const bp2::Blueprint::Node* src_node_ptr = bp.find_node(src_node);
+        const bp2::Blueprint::Node* tgt_node_ptr = bp.find_node(tgt_node);
+
         ExternalConnection ec;
         ec.original_wire_id = wire.id;
         ec.domain = wire.domain;
@@ -387,6 +430,7 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             ec.internal_node_id = tgt_node;
             ec.internal_port = tgt_port;
             ec.iface_name = std::string(interner.resolve(tgt_port));
+            ec.port_type = find_port_type(tgt_node_ptr, tgt_port);
             plan.inputs.push_back(std::move(ec));
         } else {
             ec.is_input = false;
@@ -395,6 +439,7 @@ static std::optional<ExtractionPlan> analyze_selection(const bp2::Blueprint& bp,
             ec.internal_node_id = src_node;
             ec.internal_port = src_port;
             ec.iface_name = std::string(interner.resolve(src_port));
+            ec.port_type = find_port_type(src_node_ptr, src_port);
             plan.outputs.push_back(std::move(ec));
         }
     }
@@ -777,13 +822,17 @@ static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     collapsed.y = plan.center_y;
     collapsed.width = 160.0f;
     collapsed.height = 64.0f;
-    for (const auto& pd : out.find_nested(nested_instance_id)->iface.ports()) {
-        const PortType pt = port_type_for_domain(pd.domain);
-        if (pd.direction == bp2::Direction::Input) {
-            collapsed.inputs.emplace_back(pd.name, PortSide::Input, pt);
-        } else if (pd.direction == bp2::Direction::Output) {
-            collapsed.outputs.emplace_back(pd.name, PortSide::Output, pt);
-        }
+    std::vector<ExternalConnection> sorted_inputs = plan.inputs;
+    std::vector<ExternalConnection> sorted_outputs = plan.outputs;
+    std::sort(sorted_inputs.begin(), sorted_inputs.end(), compare_external);
+    std::sort(sorted_outputs.begin(), sorted_outputs.end(), compare_external);
+    for (const auto& ec : sorted_inputs) {
+        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
+        collapsed.inputs.emplace_back(interner.intern(ec.iface_name), PortSide::Input, pt);
+    }
+    for (const auto& ec : sorted_outputs) {
+        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
+        collapsed.outputs.emplace_back(interner.intern(ec.iface_name), PortSide::Output, pt);
     }
     out = out.with_node(std::move(collapsed));
 

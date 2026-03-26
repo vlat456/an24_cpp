@@ -141,6 +141,7 @@ private:
     bool reconnect_detach_start_ = false;
     Pt reconnect_anchor_pos_;
     PortSide reconnect_fixed_side_ = PortSide::Input;
+    PortType reconnect_fixed_type_ = PortType::Any;
 
     // Routing-point drag — transient (pointers valid only during DraggingRoutingPoint)
     ui::InternedId rp_wire_id_;
@@ -181,7 +182,7 @@ private:
     void enter_resize_node(visual::Widget* widget, ResizeCorner corner);
     void enter_create_wire(visual::Port* port, Pt port_pos);
     void enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                              Pt anchor_pos, PortSide fixed_side);
+                              Pt anchor_pos, PortSide fixed_side, PortType fixed_type);
     void enter_marquee(Pt world_pos);
     void enter_drag_slider(visual::Widget* node_widget, Pt slider_world_pos, float slider_width);
     void leave_state();  // return to Idle (clean up transient data)
@@ -240,6 +241,7 @@ private:
         bool detach_start;
         Pt anchor_pos;
         PortSide fixed_side;
+        PortType fixed_type;
     };
     std::optional<WirePortMatch> find_wire_on_port(visual::Port* port) const;
 };

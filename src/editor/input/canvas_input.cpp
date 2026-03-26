@@ -47,6 +47,20 @@ static bool is_wire_alias_port_name(std::string_view port_name) {
     return !port_name.empty() && port_name != "v";
 }
 
+static PortType resolve_port_type_from_model(const bp2::EditorModel& model,
+                                             ui::InternedId node_id,
+                                             ui::InternedId port_name) {
+    const bp2::Blueprint::Node* node = model.current().find_node(node_id);
+    if (!node) return PortType::Any;
+    for (const auto& p : node->inputs) {
+        if (p.name == port_name) return p.type;
+    }
+    for (const auto& p : node->outputs) {
+        if (p.name == port_name) return p.type;
+    }
+    return PortType::Any;
+}
+
 static void debug_validate_command_boundary(bp2::EditorModel const& model,
                                             ui::StringInterner& interner,
                                             bp2::PathArena const& arena) {
@@ -290,12 +304,13 @@ void CanvasInput::enter_create_wire(visual::Port* port, Pt port_pos) {
 }
 
 void CanvasInput::enter_reconnect_wire(size_t wire_idx, bool detach_start,
-                                       Pt anchor_pos, PortSide fixed_side) {
+                                       Pt anchor_pos, PortSide fixed_side, PortType fixed_type) {
     state_ = InputState::ReconnectingWire;
     reconnect_wire_idx_ = wire_idx;
     reconnect_detach_start_ = detach_start;
     reconnect_anchor_pos_ = anchor_pos;
     reconnect_fixed_side_ = fixed_side;
+    reconnect_fixed_type_ = fixed_type;
 }
 
 void CanvasInput::enter_marquee(Pt world_pos) {
@@ -423,7 +438,8 @@ InputResult CanvasInput::on_mouse_down(Pt screen_pos, MouseButton btn, Pt canvas
             auto wire_match = find_wire_on_port(ph->port);
             if (wire_match) {
                 enter_reconnect_wire(wire_match->wire_index, wire_match->detach_start,
-                                     wire_match->anchor_pos, wire_match->fixed_side);
+                                     wire_match->anchor_pos, wire_match->fixed_side,
+                                     wire_match->fixed_type);
                 return result;
             }
             Pt port_center = ph->port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
@@ -994,6 +1010,11 @@ InputResult CanvasInput::finish_wire_creation(Pt screen_pos, Pt canvas_min) {
         bool compatible = visual::Port::areSidesCompatible(start_port->side(), end_port->side());
         if (!compatible) return result;
 
+        // Check type pairing
+        if (!visual::Port::areTypesCompatible(start_port->type(), end_port->type())) {
+            return result;
+        }
+
         // Find owning node IDs by walking up the widget tree
         std::string_view start_node_sv = start_port->rootAncestorId();
         std::string_view end_node_sv = end_port->rootAncestorId();
@@ -1096,6 +1117,9 @@ InputResult CanvasInput::finish_wire_reconnection(Pt screen_pos, Pt canvas_min) 
         bool same_as_fixed = (port_node_iid == fixed_node && hit_port_iid == fixed_port);
         bool compatible = !same_as_fixed &&
             visual::Port::areSidesCompatible(ph->port->side(), reconnect_fixed_side_);
+        if (compatible && !visual::Port::areTypesCompatible(ph->port->type(), reconnect_fixed_type_)) {
+            compatible = false;
+        }
 
         if (is_bus_node(model_, port_node_iid) && is_wire_alias_port_name(ph->port->name())) {
             size_t target_wire_idx = find_wire_index(hit_port_iid);
@@ -1242,34 +1266,41 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
             auto build_result = [&](bool detach_start) -> WirePortMatch {
                 Pt anchor_pos;
                 PortSide fixed_side;
+                PortType fixed_type = PortType::Any;
                 if (detach_start) {
                     fixed_side = PortSide::Input;
                     auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+                    fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
                     if (!w.routing_points.empty()) {
                         anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
                     } else {
                         auto* end_widget = scene_.find(interner_.resolve(tgt_node));
                         if (end_widget) {
                             auto* end_port = end_widget->portByName(interner_.resolve(tgt_port), interner_.resolve(w.id));
-                            if (end_port)
+                            if (end_port) {
                                 anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                                fixed_type = end_port->type();
+                            }
                         }
                     }
                 } else {
                     fixed_side = PortSide::Output;
                     auto [src_node, src_port] = path_to_node_port(w.source, arena_);
+                    fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
                     if (!w.routing_points.empty()) {
                         anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
                     } else {
                         auto* start_widget = scene_.find(interner_.resolve(src_node));
                         if (start_widget) {
                             auto* start_port = start_widget->portByName(interner_.resolve(src_port), interner_.resolve(w.id));
-                            if (start_port)
+                            if (start_port) {
                                 anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                                fixed_type = start_port->type();
+                            }
                         }
                     }
                 }
-                return WirePortMatch{wi, detach_start, anchor_pos, fixed_side};
+                return WirePortMatch{wi, detach_start, anchor_pos, fixed_side, fixed_type};
             };
 
             auto [src_node, _src_port] = path_to_node_port(w.source, arena_);
@@ -1285,9 +1316,11 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
         const auto& w = model_.current().wires()[wi];
         Pt anchor_pos;
         PortSide fixed_side;
+        PortType fixed_type = PortType::Any;
         if (detach_start) {
             fixed_side = PortSide::Input;  // fixed end is target
             auto [tgt_node, tgt_port] = path_to_node_port(w.target, arena_);
+            fixed_type = resolve_port_type_from_model(model_, tgt_node, tgt_port);
             if (!w.routing_points.empty()) {
                 anchor_pos = Pt(w.routing_points.front().first, w.routing_points.front().second);
             } else {
@@ -1295,13 +1328,16 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                 if (end_widget) {
                     auto* end_port = end_widget->portByName(interner_.resolve(tgt_port),
                                                              interner_.resolve(w.id));
-                    if (end_port)
+                    if (end_port) {
                         anchor_pos = end_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                        fixed_type = end_port->type();
+                    }
                 }
             }
         } else {
             fixed_side = PortSide::Output;  // fixed end is source
             auto [src_node, src_port] = path_to_node_port(w.source, arena_);
+            fixed_type = resolve_port_type_from_model(model_, src_node, src_port);
             if (!w.routing_points.empty()) {
                 anchor_pos = Pt(w.routing_points.back().first, w.routing_points.back().second);
             } else {
@@ -1309,12 +1345,14 @@ std::optional<CanvasInput::WirePortMatch> CanvasInput::find_wire_on_port(visual:
                 if (start_widget) {
                     auto* start_port = start_widget->portByName(interner_.resolve(src_port),
                                                                   interner_.resolve(w.id));
-                    if (start_port)
+                    if (start_port) {
                         anchor_pos = start_port->worldPos() + Pt(visual::PortConstants::RADIUS, visual::PortConstants::RADIUS);
+                        fixed_type = start_port->type();
+                    }
                 }
             }
         }
-        return WirePortMatch{wi, detach_start, anchor_pos, fixed_side};
+        return WirePortMatch{wi, detach_start, anchor_pos, fixed_side, fixed_type};
     };
 
     // Scan all wires looking for one that connects to (port_node_iid, port_name_iid)

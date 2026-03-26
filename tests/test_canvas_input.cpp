@@ -232,6 +232,90 @@ TEST(CanvasInputBus, BasePortStartsCreateWireAndUsesCanonicalBusPort) {
     EXPECT_TRUE(found_connection_v_to_vout);
 }
 
+TEST(CanvasInputValidation, RejectsIncompatiblePortTypesOnWireCreate) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::I));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
+    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
+    auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
+    ASSERT_NE(src_w, nullptr);
+    ASSERT_NE(sink_w, nullptr);
+    auto* src_out = src_w->portByName("out");
+    auto* sink_in = sink_w->portByName("in");
+    ASSERT_NE(src_out, nullptr);
+    ASSERT_NE(sink_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
+
+    EXPECT_EQ(model.current().wires().size(), 0u);
+}
+
+TEST(CanvasInputValidation, RejectsCrossDomainWireCreate) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::RPM));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Mechanical, bp2::Direction::Output},
+    });
+
+    auto sink = make_node(I, "sink", "TypeSink", 260.0f, 120.0f);
+    sink.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* src_w = dynamic_cast<visual::Widget*>(scene.find("src"));
+    auto* sink_w = dynamic_cast<visual::Widget*>(scene.find("sink"));
+    ASSERT_NE(src_w, nullptr);
+    ASSERT_NE(sink_w, nullptr);
+    auto* src_out = src_w->portByName("out");
+    auto* sink_in = sink_w->portByName("in");
+    ASSERT_NE(src_out, nullptr);
+    ASSERT_NE(sink_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+    input.on_mouse_down(port_center(src_out), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_in), canvas_min);
+
+    EXPECT_EQ(model.current().wires().size(), 0u);
+}
+
 TEST(CanvasInputReconnect, ReconnectUpdatesSelectedWireEndpoint) {
     ui::StringInterner I;
     bp2::PathArena arena(I);
@@ -326,6 +410,68 @@ TEST(CanvasInputReconnect, ReconnectDropOnEmptyRemovesWire) {
     input.on_mouse_up(MouseButton::Left, ui::Pt(900.0f, 900.0f), canvas_min);
 
     EXPECT_TRUE(model.current().wires().empty());
+}
+
+TEST(CanvasInputReconnect, ReconnectWithRoutingPointsStillChecksTypeCompatibility) {
+    ui::StringInterner I;
+    bp2::PathArena arena(I);
+
+    auto src = make_node(I, "src", "TypeSrc", 40.0f, 120.0f);
+    src.outputs.push_back(EditorPort(I.intern("out"), PortSide::Output, PortType::V));
+    src.iface = bp2::Interface({
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto sink_ok = make_node(I, "sink_ok", "TypeSink", 420.0f, 120.0f);
+    sink_ok.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::V));
+    sink_ok.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    auto sink_bad = make_node(I, "sink_bad", "TypeSink", 420.0f, 220.0f);
+    sink_bad.inputs.push_back(EditorPort(I.intern("in"), PortSide::Input, PortType::I));
+    sink_bad.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp2::Blueprint bp;
+    bp = bp.with_node(std::move(src));
+    bp = bp.with_node(std::move(sink_ok));
+    bp = bp.with_node(std::move(sink_bad));
+    auto w = make_wire(I, arena, "wire_0", "src", "out", "sink_ok", "in");
+    w.domain = Domain::Electrical;
+    w.routing_points.push_back({200.0f, 120.0f});
+    bp = bp.with_wire(std::move(w));
+
+    bp2::EditorModel model(bp);
+    visual::Scene scene;
+    visual::mutations::rebuild(scene, model.current(), I, arena, "");
+
+    auto* sink_ok_w = dynamic_cast<visual::Widget*>(scene.find("sink_ok"));
+    auto* sink_bad_w = dynamic_cast<visual::Widget*>(scene.find("sink_bad"));
+    ASSERT_NE(sink_ok_w, nullptr);
+    ASSERT_NE(sink_bad_w, nullptr);
+    auto* sink_ok_in = sink_ok_w->portByName("in");
+    auto* sink_bad_in = sink_bad_w->portByName("in");
+    ASSERT_NE(sink_ok_in, nullptr);
+    ASSERT_NE(sink_bad_in, nullptr);
+
+    Viewport vp;
+    CanvasInput input(scene, vp, model, I, arena, "");
+    const ui::Pt canvas_min(0.0f, 0.0f);
+
+    // Try reconnecting target to incompatible type (V -> I). Must be rejected.
+    input.on_mouse_down(port_center(sink_ok_in), MouseButton::Left, canvas_min);
+    input.on_mouse_up(MouseButton::Left, port_center(sink_bad_in), canvas_min);
+
+    const auto* wire_after = model.current().find_wire(I.intern("wire_0"));
+    if (wire_after) {
+        auto [tgt_n, _tgt_p] = endpoint_node_port(wire_after->target, arena);
+        EXPECT_NE(tgt_n, I.intern("sink_bad"));
+    } else {
+        // Current reconnection semantics remove the wire when drop is invalid.
+        EXPECT_TRUE(model.current().wires().empty());
+    }
 }
 
 TEST(CanvasInputBus, DeleteNodeRemovesConnectedWiresBeforeRecreate) {

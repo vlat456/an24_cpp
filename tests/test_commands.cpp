@@ -43,7 +43,7 @@ static bp2::Blueprint make_extract_fixture(ui::StringInterner& I, bp2::PathArena
     bp = bp.with_display_name("ExtractFixture");
 
     auto ext_in = make_node(I, "ext_in");
-    ext_in.type = I.intern("Source");
+    ext_in.type = I.intern("NodeExtIn");
     ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
 
     auto a = make_node(I, "a");
@@ -57,7 +57,7 @@ static bp2::Blueprint make_extract_fixture(ui::StringInterner& I, bp2::PathArena
     b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::V);
 
     auto ext_out = make_node(I, "ext_out");
-    ext_out.type = I.intern("Sink");
+    ext_out.type = I.intern("NodeExtOut");
     ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::V);
 
     bp = bp.with_node(std::move(ext_in));
@@ -391,6 +391,61 @@ static bp2::Blueprint make_extract_with_bridge_node_fixture(ui::StringInterner& 
     w1.domain = Domain::Electrical;
     bp = bp.with_wire(std::move(w0));
     bp = bp.with_wire(std::move(w1));
+
+    return bp;
+}
+
+static bp2::Blueprint make_extract_typed_boundary_fixture(ui::StringInterner& I, bp2::PathArena& arena) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(I.intern("bp_extract_typed_boundary"));
+    bp = bp.with_display_name("ExtractTypedBoundary");
+
+    auto ext_in = make_node(I, "ext_in");
+    ext_in.type = I.intern("TypedExtIn");
+    ext_in.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
+    ext_in.iface = bp2::Interface({
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto a = make_node(I, "a");
+    a.type = I.intern("TypedA");
+    a.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
+    a.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
+    a.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto b = make_node(I, "b");
+    b.type = I.intern("TypedB");
+    b.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
+    b.outputs.emplace_back(I.intern("out"), PortSide::Output, PortType::I);
+    b.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+        {I.intern("out"), Domain::Electrical, bp2::Direction::Output},
+    });
+
+    auto ext_out = make_node(I, "ext_out");
+    ext_out.type = I.intern("TypedExtOut");
+    ext_out.inputs.emplace_back(I.intern("in"), PortSide::Input, PortType::I);
+    ext_out.iface = bp2::Interface({
+        {I.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp = bp.with_node(std::move(ext_in));
+    bp = bp.with_node(std::move(a));
+    bp = bp.with_node(std::move(b));
+    bp = bp.with_node(std::move(ext_out));
+
+    auto w0 = make_wire(I, arena, "w0", "ext_in", "out", "a", "in");
+    w0.domain = Domain::Electrical;
+    auto w1 = make_wire(I, arena, "w1", "a", "out", "b", "in");
+    w1.domain = Domain::Electrical;
+    auto w2 = make_wire(I, arena, "w2", "b", "out", "ext_out", "in");
+    w2.domain = Domain::Electrical;
+    bp = bp.with_wire(std::move(w0));
+    bp = bp.with_wire(std::move(w1));
+    bp = bp.with_wire(std::move(w2));
 
     return bp;
 }
@@ -1777,6 +1832,46 @@ TEST_F(CommandTest, ExtractToBlueprint_InlineBlueprintStructure) {
     // Inline blueprint must contain internal nodes a and b.
     EXPECT_NE(inner.find_node(interner.intern("a")), nullptr);
     EXPECT_NE(inner.find_node(interner.intern("b")), nullptr);
+}
+
+TEST_F(CommandTest, ExtractToBlueprint_PreservesBoundaryPortTypesOnBridgeNodes) {
+    bp2::PathArena arena(interner);
+    bp2::Blueprint source = make_extract_typed_boundary_fixture(interner, arena);
+
+    std::string err;
+    auto updated = editor::commands::build_extracted_blueprint_atomic(
+        source,
+        {interner.intern("a"), interner.intern("b")},
+        "extracted_blueprint_1",
+        "",
+        interner,
+        arena,
+        &err);
+
+    ASSERT_TRUE(updated.has_value()) << err;
+    ASSERT_EQ(updated->nested().size(), 1u);
+    const auto nested_id = updated->nested()[0].id;
+    const std::string nested_sid(interner.resolve(nested_id));
+
+    const auto* in_bridge = updated->find_node(interner.intern(nested_sid + ":in"));
+    const auto* out_bridge = updated->find_node(interner.intern(nested_sid + ":out"));
+    ASSERT_NE(in_bridge, nullptr);
+    ASSERT_NE(out_bridge, nullptr);
+    ASSERT_EQ(in_bridge->inputs.size(), 1u);
+    ASSERT_EQ(in_bridge->outputs.size(), 1u);
+    ASSERT_EQ(out_bridge->inputs.size(), 1u);
+    ASSERT_EQ(out_bridge->outputs.size(), 1u);
+    EXPECT_EQ(in_bridge->inputs[0].type, PortType::I);
+    EXPECT_EQ(in_bridge->outputs[0].type, PortType::I);
+    EXPECT_EQ(out_bridge->inputs[0].type, PortType::I);
+    EXPECT_EQ(out_bridge->outputs[0].type, PortType::I);
+
+    const auto* collapsed = updated->find_node(nested_id);
+    ASSERT_NE(collapsed, nullptr);
+    ASSERT_EQ(collapsed->inputs.size(), 1u);
+    ASSERT_EQ(collapsed->outputs.size(), 1u);
+    EXPECT_EQ(collapsed->inputs[0].type, PortType::I);
+    EXPECT_EQ(collapsed->outputs[0].type, PortType::I);
 }
 
 TEST_F(CommandTest, ExtractToBlueprint_SubgroupBridgeWiring) {

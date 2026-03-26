@@ -29,6 +29,24 @@ static bp2::Blueprint::Node make_node(ui::StringInterner& I,
     return n;
 }
 
+static bp2::Blueprint::Node make_bridge_node(ui::StringInterner& I,
+                                             const char* id,
+                                             bool input_bridge,
+                                             PortType t) {
+    bp2::Blueprint::Node n;
+    n.id = I.intern(id);
+    n.type = I.intern(input_bridge ? "BlueprintInput" : "BlueprintOutput");
+    n.name = id;
+    if (input_bridge) {
+        n.inputs.emplace_back(I.intern("ext"), PortSide::Input, t);
+        n.outputs.emplace_back(I.intern("port"), PortSide::Output, t);
+    } else {
+        n.inputs.emplace_back(I.intern("port"), PortSide::Input, t);
+        n.outputs.emplace_back(I.intern("ext"), PortSide::Output, t);
+    }
+    return n;
+}
+
 // =============================================================================
 // Test fixture: EditorModel + StringInterner pre-built
 // =============================================================================
@@ -70,6 +88,19 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingState) {
     EXPECT_EQ(win.pending_name(), "bat1");
     EXPECT_FLOAT_EQ(win.pending_params().at("v"), 28.0f);
     EXPECT_FLOAT_EQ(win.pending_params().at("r"), 0.01f);
+}
+
+TEST_F(PropertiesWindowTest, OpenInitializesPendingBridgePortType) {
+    model.add_node(make_bridge_node(interner, "bp_in_1", true, PortType::V));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bp_in_1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bp_in_1", model, interner, [](const std::string&) {});
+
+    ASSERT_TRUE(win.pending_bridge_port_type().has_value());
+    EXPECT_EQ(*win.pending_bridge_port_type(), PortType::V);
 }
 
 TEST_F(PropertiesWindowTest, CancelDoesNotMutateLiveNode) {
@@ -202,6 +233,78 @@ TEST_F(PropertiesWindowTest, ApplyEmitsCmdSetParam) {
     EXPECT_FLOAT_EQ(v_it->second, 14.0f) << "Applied value must persist";
     EXPECT_FLOAT_EQ(r_it->second, 0.01f) << "Untouched param preserved";
     EXPECT_TRUE(model.can_undo()) << "Undo stack must have an entry";
+}
+
+TEST_F(PropertiesWindowTest, ApplyBridgePortTypeUpdatesBothPortsAndUndoRestores) {
+    model.add_node(make_bridge_node(interner, "bp_in_1", true, PortType::V));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("bp_in_1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "bp_in_1", model, interner, [](const std::string&) {});
+    win.set_pending_bridge_port_type(PortType::RPM);
+    win.apply();
+
+    node_ptr = model.current().find_node(interner.intern("bp_in_1"));
+    ASSERT_NE(node_ptr, nullptr);
+    ASSERT_EQ(node_ptr->inputs.size(), 1u);
+    ASSERT_EQ(node_ptr->outputs.size(), 1u);
+    EXPECT_EQ(node_ptr->inputs[0].type, PortType::RPM);
+    EXPECT_EQ(node_ptr->outputs[0].type, PortType::RPM);
+
+    ASSERT_TRUE(model.can_undo());
+    model.undo();
+    node_ptr = model.current().find_node(interner.intern("bp_in_1"));
+    ASSERT_NE(node_ptr, nullptr);
+    EXPECT_EQ(node_ptr->inputs[0].type, PortType::V);
+    EXPECT_EQ(node_ptr->outputs[0].type, PortType::V);
+}
+
+TEST_F(PropertiesWindowTest, ApplyBridgePortTypePropagatesToCollapsedNodeAndNestedIface) {
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("bp"));
+
+    bp2::Blueprint::Node bridge = make_bridge_node(interner, "inst1:in", true, PortType::V);
+    bridge.group_id = "inst1";
+
+    bp2::Blueprint::Node collapsed;
+    collapsed.id = interner.intern("inst1");
+    collapsed.type = interner.intern("bp_type");
+    collapsed.name = "inst1";
+    collapsed.inputs.emplace_back(interner.intern("in"), PortSide::Input, PortType::V);
+
+    bp2::Blueprint::Nested nested;
+    nested.id = interner.intern("inst1");
+    nested.blueprint_id = interner.intern("bp_type");
+    nested.embedded = true;
+    nested.iface = bp2::Interface({
+        {interner.intern("in"), Domain::Electrical, bp2::Direction::Input},
+    });
+
+    bp = bp.with_node(std::move(bridge));
+    bp = bp.with_node(std::move(collapsed));
+    bp = bp.with_nested(std::move(nested));
+    model.replace_current(std::move(bp));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("inst1:in"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "inst1:in", model, interner, [](const std::string&) {});
+    win.set_pending_bridge_port_type(PortType::RPM);
+    win.apply();
+
+    const auto* collapsed_after = model.current().find_node(interner.intern("inst1"));
+    ASSERT_NE(collapsed_after, nullptr);
+    ASSERT_EQ(collapsed_after->inputs.size(), 1u);
+    EXPECT_EQ(collapsed_after->inputs[0].type, PortType::RPM);
+
+    const auto* nested_after = model.current().find_nested(interner.intern("inst1"));
+    ASSERT_NE(nested_after, nullptr);
+    auto pd = nested_after->iface.find(interner.intern("in"));
+    ASSERT_TRUE(pd.has_value());
+    EXPECT_EQ(pd->domain, Domain::Mechanical);
 }
 
 TEST_F(PropertiesWindowTest, ApplyThenUndoRevertsParam) {
