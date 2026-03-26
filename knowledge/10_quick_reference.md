@@ -42,6 +42,7 @@ cd build && ctest
 |------|------|
 | Solver tuning | `knowledge/sor_optimization.md` |
 | Stable component design | `knowledge/component_authoring.md` |
+| Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` |
 | Architecture overview | `knowledge/01_architecture.md` |
 
 ## Knowledge Notes

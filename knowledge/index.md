@@ -24,6 +24,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Solver tuning | `knowledge/sor_optimization.md` | Practical SOR tuning guidance and safe defaults |
 | Stable component design | `knowledge/component_authoring.md` | Rules for writing numerically stable components |
 | Known issues / TODO | `knowledge/errors_TODO.md` | Architecture smells, bugs, and follow-up items |
+| Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` | Detailed JIT/AOT plan for removing control-loop latency |
 
 ## Suggested Reading Order
 
@@ -39,7 +40,8 @@ Use this file as the entry point before crawling the rest of the repo.
 1. `knowledge/02_simulation.md`
 2. `knowledge/sor_optimization.md`
 3. `knowledge/component_authoring.md`
-4. `knowledge/errors_TODO.md`
+4. `knowledge/13_scheduler_refactor_plan.md`
+5. `knowledge/errors_TODO.md`
 
 ### For editor work
 
@@ -61,6 +63,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | How does the solver work? | `knowledge/02_simulation.md` |
 | How should I tune SOR? | `knowledge/sor_optimization.md` |
 | How do I write a stable component? | `knowledge/component_authoring.md` |
+| How should runtime/codegen phases be refactored? | `knowledge/13_scheduler_refactor_plan.md` |
 | Where is the blueprint model? | `knowledge/04_blueprint_v2.md` |
 | How is the editor structured? | `knowledge/05_editor.md` |
 | What tests should I add? | `knowledge/08_testing.md` |

@@ -1,9 +1,9 @@
 {
-  "display_name": "GS_24_CLEAN",
+  "display_name": "GS_24_Corrected",
   "grid_step": 16.0,
   "id": "GS24_1",
   "interface": [],
-  "name": "GS_24_CLEAN",
+  "name": "GS_24",
   "nested": [],
   "nodes": [
     {
@@ -16,8 +16,8 @@
         }
       },
       "position": {
-        "x": 512.0,
-        "y": -128.0
+        "x": 1072.0,
+        "y": -576.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -35,8 +35,8 @@
         }
       },
       "position": {
-        "x": 704.0,
-        "y": 32.0
+        "x": 784.0,
+        "y": -96.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -48,8 +48,8 @@
       "id": "clamp_1",
       "name": "clamp_1",
       "params": {
-        "max": 10000.0,
-        "min": 0.25
+        "max": 1.0,
+        "min": 0.10000000149011612
       },
       "ports": {
         "in": {
@@ -62,8 +62,8 @@
         }
       },
       "position": {
-        "x": 224.0,
-        "y": 112.0
+        "x": 752.0,
+        "y": -512.0
       },
       "type": "Clamp"
     },
@@ -72,7 +72,7 @@
       "id": "controlled_v_source",
       "name": "ExcitationSource",
       "params": {
-        "gain": 5.0,
+        "gain": 50.0,
         "max_v": 40.0,
         "min_v": 0.0,
         "offset": 0.0,
@@ -93,8 +93,8 @@
         }
       },
       "position": {
-        "x": 352.0,
-        "y": -272.0
+        "x": 864.0,
+        "y": -528.0
       },
       "type": "ControlledVoltageSource",
       "width": 112.0
@@ -111,7 +111,7 @@
       "id": "currentsense_1",
       "name": "currentsense_1",
       "params": {
-        "conductance": 100.0
+        "conductance": 50.0
       },
       "ports": {
         "i_out": {
@@ -128,18 +128,18 @@
         }
       },
       "position": {
-        "x": 1312.0,
-        "y": -208.0
+        "x": 848.0,
+        "y": -240.0
       },
       "type": "CurrentSense"
     },
     {
       "height": 64.0,
       "id": "fasttmo_1",
-      "name": "Inductance",
+      "name": "VoltageFilter",
       "params": {
-        "deadzone": 0.10000000149011612,
-        "tau": 0.4000000059604645
+        "deadzone": 0.0,
+        "tau": 0.05000000074505806
       },
       "ports": {
         "in": {
@@ -152,18 +152,19 @@
         }
       },
       "position": {
-        "x": 608.0,
-        "y": -336.0
+        "x": 1088.0,
+        "y": -352.0
       },
       "type": "FastTMO",
       "width": 64.0
     },
     {
+      "height": 64.0,
       "id": "fasttmo_i_exc",
-      "name": "IexcDamping",
+      "name": "IexcFilter",
       "params": {
-        "deadzone": 0.019999999552965164,
-        "tau": 0.20000000298023224
+        "deadzone": 0.0,
+        "tau": 0.10000000149011612
       },
       "ports": {
         "in": {
@@ -176,17 +177,18 @@
         }
       },
       "position": {
-        "x": 64.0,
-        "y": 112.0
+        "x": 1136.0,
+        "y": -144.0
       },
-      "type": "FastTMO"
+      "type": "FastTMO",
+      "width": 64.0
     },
     {
       "id": "highpowerload_1",
       "name": "highpowerload_1",
       "params": {
         "min_voltage_diff": 0.009999999776482582,
-        "power_draw": 10.0
+        "power_draw": 100.0
       },
       "ports": {
         "v_in": {
@@ -199,8 +201,8 @@
         }
       },
       "position": {
-        "x": 1088.0,
-        "y": 0.0
+        "x": 1104.0,
+        "y": -240.0
       },
       "type": "HighPowerLoad"
     },
@@ -218,17 +220,17 @@
         }
       },
       "position": {
-        "x": 928.0,
-        "y": -256.0
+        "x": 496.0,
+        "y": -512.0
       },
       "string_params": {
-        "table": "0.0:90.0; 0.2:25.0; 0.5:8.0; 0.8:1.5; 1.0:0.5"
+        "table": "0.0:0.3; 0.25:0.4; 0.5:0.56; 0.75:0.65; 1.0:0.8"
       },
       "type": "LUT"
     },
     {
       "id": "merger_1",
-      "name": "merger_1",
+      "name": "ExcitationMerge",
       "ports": {
         "i1": {
           "direction": "In",
@@ -244,8 +246,8 @@
         }
       },
       "position": {
-        "x": 144.0,
-        "y": -144.0
+        "x": 640.0,
+        "y": -512.0
       },
       "type": "Merger"
     },
@@ -268,8 +270,33 @@
         }
       },
       "position": {
-        "x": 272.0,
-        "y": -304.0
+        "x": 768.0,
+        "y": -528.0
+      },
+      "type": "Multiply",
+      "width": 48.0
+    },
+    {
+      "height": 64.0,
+      "id": "multiply_i_exc",
+      "name": "ScaleIexc",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1232.0,
+        "y": -144.0
       },
       "type": "Multiply",
       "width": 48.0
@@ -278,9 +305,9 @@
       "id": "pi_1",
       "name": "pi_1",
       "params": {
-        "Ki": 0.003291062545031309,
-        "Kp": 0.0022016598377376795,
-        "output_max": 30.0,
+        "Ki": 0.5,
+        "Kp": 0.5,
+        "output_max": 1.0,
         "output_min": 0.0
       },
       "ports": {
@@ -298,10 +325,29 @@
         }
       },
       "position": {
-        "x": 768.0,
-        "y": -304.0
+        "x": 304.0,
+        "y": -512.0
       },
       "type": "PI"
+    },
+    {
+      "id": "ref_elec_gnd",
+      "name": "ElecGND",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 816.0,
+        "y": 16.0
+      },
+      "render_hint": "ref",
+      "type": "RefNode"
     },
     {
       "id": "refnode_1",
@@ -322,27 +368,8 @@
         }
       },
       "position": {
-        "x": 144.0,
-        "y": -208.0
-      },
-      "render_hint": "ref",
-      "type": "RefNode"
-    },
-    {
-      "id": "refnode_2",
-      "name": "refnode_2",
-      "params": {
-        "value": 0.0
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": 48.0,
-        "y": 64.0
+        "x": 688.0,
+        "y": -592.0
       },
       "render_hint": "ref",
       "type": "RefNode"
@@ -360,17 +387,17 @@
         }
       },
       "position": {
-        "x": 640.0,
-        "y": -192.0
+        "x": 176.0,
+        "y": -464.0
       },
       "render_hint": "ref",
       "type": "RefNode"
     },
     {
-      "id": "refnode_5",
-      "name": "refnode_5",
+      "id": "refnode_i_exc_scale",
+      "name": "IexcScale",
       "params": {
-        "value": 0.0
+        "value": 0.009999999776482582
       },
       "ports": {
         "v": {
@@ -379,38 +406,34 @@
         }
       },
       "position": {
-        "x": 320.0,
-        "y": -80.0
+        "x": 1232.0,
+        "y": -64.0
       },
       "render_hint": "ref",
       "type": "RefNode"
     },
     {
-      "id": "variableconductance_1",
-      "name": "variableconductance_1",
-      "params": {
-        "g_max": 10.0,
-        "g_min": 0.0010000000474974513
-      },
+      "id": "splitter_2",
+      "name": "splitter_2",
       "ports": {
-        "cmd": {
+        "i": {
           "direction": "In",
           "type": 7
         },
-        "v_in": {
-          "direction": "In",
-          "type": 0
-        },
-        "v_out": {
+        "o1": {
           "direction": "Out",
-          "type": 0
+          "type": 7
+        },
+        "o2": {
+          "direction": "Out",
+          "type": 7
         }
       },
       "position": {
-        "x": 1088.0,
-        "y": -240.0
+        "x": 1200.0,
+        "y": -352.0
       },
-      "type": "VariableConductance"
+      "type": "Splitter"
     },
     {
       "content_label": "V",
@@ -420,7 +443,7 @@
       "content_tripped": false,
       "content_type": 1,
       "content_unit": "V",
-      "content_value": 0.13060763478279114,
+      "content_value": 0.0,
       "height": 176.0,
       "id": "voltmeter_1",
       "layout_overrides": [
@@ -440,21 +463,26 @@
         }
       },
       "position": {
-        "x": 896.0,
-        "y": -560.0
+        "x": 1296.0,
+        "y": -640.0
       },
       "type": "Voltmeter",
       "width": 96.0
     }
   ],
-  "pan_x": -136.95999145507813,
-  "pan_y": -592.9492797851563,
+  "pan_x": 711.9386596679688,
+  "pan_y": -570.8165283203125,
   "version": "3.0",
   "wires": [
     {
       "id": "wire_20",
       "source": "/bus_ret:v",
       "target": "/controlled_v_source:v_neg"
+    },
+    {
+      "id": "wire_22",
+      "source": "/fasttmo_1:out",
+      "target": "/splitter_2:i"
     },
     {
       "id": "wire_23",
@@ -477,16 +505,6 @@
       "target": "/bus_1:v"
     },
     {
-      "id": "wire_42",
-      "source": "/lut_carbon:output",
-      "target": "/variableconductance_1:cmd"
-    },
-    {
-      "id": "wire_43",
-      "source": "/variableconductance_1:v_out",
-      "target": "/currentsense_1:v_in"
-    },
-    {
       "id": "wire_46",
       "source": "/bus_1:v",
       "target": "/fasttmo_1:in"
@@ -495,6 +513,17 @@
       "id": "wire_47",
       "source": "/clamp_1:out",
       "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_48",
+      "routing_points": [
+        [
+          1168.0,
+          -464.0
+        ]
+      ],
+      "source": "/splitter_2:o2",
+      "target": "/pi_1:feedback"
     },
     {
       "id": "wire_50",
@@ -507,19 +536,14 @@
       "target": "/bus_ret:v"
     },
     {
-      "id": "wire_52",
-      "source": "/bus_1:v",
-      "target": "/variableconductance_1:v_in"
-    },
-    {
       "id": "wire_65",
       "source": "/currentsense_1:i_out",
       "target": "/fasttmo_i_exc:in"
     },
     {
-      "id": "wire_68",
-      "source": "/fasttmo_i_exc:out",
-      "target": "/clamp_1:in"
+      "id": "wire_67",
+      "source": "/ref_elec_gnd:v",
+      "target": "/bus_ret:v"
     },
     {
       "id": "wire_70",
@@ -528,9 +552,57 @@
     },
     {
       "id": "wire_71",
-      "source": "/fasttmo_1:out",
-      "target": "/pi_1:feedback"
+      "source": "/lut_carbon:output",
+      "target": "/merger_1:i1"
+    },
+    {
+      "id": "wire_72",
+      "source": "/bus_1:v",
+      "target": "/currentsense_1:v_in"
+    },
+    {
+      "id": "wire_73",
+      "source": "/bus_1:v",
+      "target": "/voltmeter_1:v_in"
+    },
+    {
+      "id": "wire_74",
+      "source": "/merger_1:o",
+      "target": "/clamp_1:in"
+    },
+    {
+      "id": "wire_75",
+      "source": "/fasttmo_i_exc:out",
+      "target": "/multiply_i_exc:A"
+    },
+    {
+      "id": "wire_76",
+      "routing_points": [
+        [
+          1280.0,
+          -288.0
+        ],
+        [
+          1280.0,
+          -400.0
+        ],
+        [
+          560.0,
+          -400.0
+        ],
+        [
+          560.0,
+          -496.0
+        ]
+      ],
+      "source": "/multiply_i_exc:o",
+      "target": "/merger_1:i2"
+    },
+    {
+      "id": "wire_77",
+      "source": "/refnode_i_exc_scale:v",
+      "target": "/multiply_i_exc:B"
     }
   ],
-  "zoom": 0.7653508186340332
+  "zoom": 1.1484105587005615
 }
