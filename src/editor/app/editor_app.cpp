@@ -2,6 +2,7 @@
 
 #include "editor/gl_setup.h"
 #include "editor/imgui_theme.h"
+#include "editor/pi_zn_tuner.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
@@ -220,6 +221,74 @@ void EditorApp::render() {
     auto menu_result = main_menu_.render(ws_);
     if (menu_result.exit_requested) {
         running_ = false;
+    }
+
+    if (ws_.znTune.show_result_popup) {
+        ImGui::OpenPopup("ZN PI Tune Result");
+        ws_.znTune.show_result_popup = false;
+    }
+    if (ImGui::BeginPopupModal("ZN PI Tune Result", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        if (ws_.znTune.last_ok) {
+            ImGui::Text("Ku: %.6f", ws_.znTune.Ku);
+            ImGui::Text("Tu: %.6f s", ws_.znTune.Tu);
+            ImGui::Separator();
+            ImGui::Text("PI tuned:");
+            ImGui::Text("Kp: %.6f", ws_.znTune.Kp);
+            ImGui::Text("Ki: %.6f", ws_.znTune.Ki);
+        } else {
+            ImGui::TextWrapped("ZN tune failed: %s", ws_.znTune.error);
+        }
+        if (ws_.znTune.last_ok && ws_.znTune.last_was_preview) {
+            ImGui::Separator();
+            if (ImGui::Button("Apply")) {
+                if (Document* doc = ws_.activeDocument()) {
+                    std::string err;
+                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
+                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
+                    if (!ok) {
+                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
+                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
+                        ws_.znTune.last_ok = false;
+                    } else {
+                        ws_.znTune.last_was_preview = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Apply + Restart Sim")) {
+                if (Document* doc = ws_.activeDocument()) {
+                    std::string err;
+                    bool ok = apply_pi_params(*doc, ws_.znTune.last_cfg.pi_node,
+                                              ws_.znTune.Kp, ws_.znTune.Ki, &err);
+                    if (!ok) {
+                        std::memset(ws_.znTune.error, 0, sizeof(ws_.znTune.error));
+                        std::strncpy(ws_.znTune.error, err.c_str(), sizeof(ws_.znTune.error) - 1);
+                        ws_.znTune.last_ok = false;
+                    } else {
+                        doc->stopSimulation();
+                        doc->startSimulation();
+                        ws_.znTune.last_was_preview = false;
+                    }
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Copy values")) {
+                char buf[256];
+                std::snprintf(buf, sizeof(buf), "Ku=%.6f Tu=%.6f Kp=%.6f Ki=%.6f",
+                              ws_.znTune.Ku, ws_.znTune.Tu, ws_.znTune.Kp, ws_.znTune.Ki);
+                ImGui::SetClipboardText(buf);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("OK")) {
+                ImGui::CloseCurrentPopup();
+            }
+        } else {
+            ImGui::Separator();
+            if (ImGui::Button("OK")) {
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::EndPopup();
     }
     
     float menu_height = ImGui::GetFrameHeight();

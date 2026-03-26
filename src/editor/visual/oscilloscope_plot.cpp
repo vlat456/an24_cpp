@@ -10,21 +10,26 @@ void render_channel_plot(const OscilloscopeProbe& probe,
                          float max_v,
                          float row_h,
                          float width) {
-    constexpr int kScopeWindowSamples = 300;
     const std::string title = "##" + probe.wire_id;
     ImGui::PushStyleColor(ImGuiCol_PlotLines, probe.color);
     ImGui::TextUnformatted(probe.label.c_str());
     if (samples.empty()) {
-        std::vector<float> vals(static_cast<size_t>(kScopeWindowSamples), 0.0f);
-        ImGui::PlotLines(title.c_str(), vals.data(), kScopeWindowSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
+        std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
+        ImGui::PlotLines(title.c_str(), vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     } else {
-        std::vector<float> vals(static_cast<size_t>(kScopeWindowSamples), 0.0f);
-        const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kScopeWindowSamples));
+        std::vector<float> vals(static_cast<size_t>(kVisibleSamples), 0.0f);
+        const size_t copy_n = std::min(samples.size(), static_cast<size_t>(kVisibleSamples));
         auto src_begin = samples.end() - static_cast<std::ptrdiff_t>(copy_n);
         std::copy(src_begin, samples.end(), vals.end() - static_cast<std::ptrdiff_t>(copy_n));
-        ImGui::PlotLines(title.c_str(), vals.data(), kScopeWindowSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
+        ImGui::PlotLines(title.c_str(), vals.data(), kVisibleSamples, 0, "", min_v, max_v, ImVec2(width, row_h));
     }
     ImGui::PopStyleColor();
+}
+
+std::deque<float> visible_tail(const std::deque<float>& samples) {
+    if (samples.size() <= static_cast<size_t>(kVisibleSamples)) return samples;
+    const auto from = samples.end() - static_cast<std::ptrdiff_t>(kVisibleSamples);
+    return std::deque<float>(from, samples.end());
 }
 
 void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
@@ -35,7 +40,8 @@ void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
     float max_v = 0.0f;
     for (const auto& ch : channels) {
         if (!ch.samples || ch.samples->empty()) continue;
-        for (float v : *ch.samples) {
+        const std::deque<float> tail = visible_tail(*ch.samples);
+        for (float v : tail) {
             if (!has_val) {
                 min_v = max_v = v;
                 has_val = true;

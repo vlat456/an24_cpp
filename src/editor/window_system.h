@@ -6,6 +6,7 @@
 #include "window/properties_window.h"
 #include "json_parser/json_parser.h"
 #include "commands/extract_blueprint.h"
+#include "pi_zn_tuner.h"
 #include "oscilloscope.h"
 #include <cstring>
 #include <memory>
@@ -119,6 +120,20 @@ public:
             preview_allow_nonembedded_descendant_refs = false;
         }
     } pendingExtract;
+
+    struct ZNTuneState {
+        bool show_result_popup = false;
+        bool last_ok = false;
+        bool last_was_preview = false;
+        char pi_node[128] = "pi_1";
+        char feedback_signal[128] = "bus_1.v";
+        float Ku = 0.0f;
+        float Tu = 0.0f;
+        float Kp = 0.0f;
+        float Ki = 0.0f;
+        char error[256] = {};
+        ZNTuneConfig last_cfg{};
+    } znTune;
 
     bool showInspector = true;
     bool showOscilloscope = true;

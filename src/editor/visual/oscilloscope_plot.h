@@ -7,6 +7,8 @@
 
 namespace visual::osc {
 
+inline constexpr int kVisibleSamples = 300;
+
 void render_channel_plot(const OscilloscopeProbe& probe,
                          const std::deque<float>& samples,
                          float min_v,
@@ -17,6 +19,8 @@ void render_channel_plot(const OscilloscopeProbe& probe,
 void compute_range(const std::vector<OscilloscopeModel::ChannelView>& channels,
                    float& out_min_v,
                    float& out_max_v);
+
+std::deque<float> visible_tail(const std::deque<float>& samples);
 
 void draw_probe_marker(ImDrawList* draw_list,
                        const ui::Pt& screen_pos,

@@ -16,8 +16,8 @@ public:
 private:
     void renderFileMenu(WindowSystem& ws, Result& result);
     void renderBlueprintMenu(WindowSystem& ws);
+    void renderToolsMenu(WindowSystem& ws);
     void renderViewMenu(WindowSystem& ws);
     void renderEditMenu(WindowSystem& ws);
     void renderRecentFilesMenu(WindowSystem& ws);
 };
-

@@ -391,6 +391,18 @@ target_link_libraries(oscilloscope_stats_tests PRIVATE
 )
 gtest_discover_tests(oscilloscope_stats_tests)
 
+add_executable(pi_zn_tuner_tests
+    test_pi_zn_tuner.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/pi_zn_math.cpp
+)
+target_include_directories(pi_zn_tuner_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(pi_zn_tuner_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(pi_zn_tuner_tests)
+
 # Port registry tests (TDD for codegen)
 add_executable(port_registry_tests
     port_registry_test.cpp

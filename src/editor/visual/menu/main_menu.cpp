@@ -1,5 +1,6 @@
 #include "main_menu.h"
 #include "editor/visual/dialogs/file_dialogs.h"
+#include "editor/pi_zn_tuner.h"
 #include <imgui.h>
 #include <filesystem>
 #include <cstring>
@@ -22,6 +23,7 @@ MainMenu::Result MainMenu::render(WindowSystem& ws) {
 
     renderFileMenu(ws, result);
     renderBlueprintMenu(ws);
+    renderToolsMenu(ws);
     renderEditMenu(ws);
     renderViewMenu(ws);
 
@@ -194,6 +196,48 @@ void MainMenu::renderBlueprintMenu(WindowSystem& ws) {
             }
         }
     }
+
+    ImGui::EndMenu();
+}
+
+void MainMenu::renderToolsMenu(WindowSystem& ws) {
+    if (!ImGui::BeginMenu("Tools")) return;
+
+    Document* active_doc = ws.activeDocument();
+    auto run_zn = [&](bool apply_result) {
+        if (!active_doc) return;
+        ZNTuneConfig cfg;
+        cfg.pi_node = ws.znTune.pi_node;
+        cfg.feedback_signal = ws.znTune.feedback_signal;
+        if (!active_doc->isSimulationRunning()) {
+            active_doc->startSimulation();
+        }
+
+        ZNTuneResult r = tune_pi_ziegler_nichols(*active_doc, cfg, apply_result);
+        ws.znTune.last_ok = r.ok;
+        ws.znTune.last_was_preview = !apply_result;
+        ws.znTune.last_cfg = cfg;
+        ws.znTune.Ku = r.Ku;
+        ws.znTune.Tu = r.Tu;
+        ws.znTune.Kp = r.Kp;
+        ws.znTune.Ki = r.Ki;
+        std::memset(ws.znTune.error, 0, sizeof(ws.znTune.error));
+        if (!r.ok) {
+            std::strncpy(ws.znTune.error, r.error.c_str(), sizeof(ws.znTune.error) - 1);
+        }
+        ws.znTune.show_result_popup = true;
+    };
+
+    if (ImGui::MenuItem("Auto Tune PI (ZN)", nullptr, false, active_doc != nullptr)) {
+        run_zn(true);
+    }
+    if (ImGui::MenuItem("Auto Tune PI (ZN) [Preview]", nullptr, false, active_doc != nullptr)) {
+        run_zn(false);
+    }
+
+    ImGui::Separator();
+    ImGui::InputText("PI node", ws.znTune.pi_node, sizeof(ws.znTune.pi_node));
+    ImGui::InputText("Feedback", ws.znTune.feedback_signal, sizeof(ws.znTune.feedback_signal));
 
     ImGui::EndMenu();
 }
