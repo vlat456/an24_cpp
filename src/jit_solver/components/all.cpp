@@ -314,6 +314,11 @@ void GS24<Provider>::post_step(SimulationState& st, float dt) {
     }
 }
 
+template <typename Provider>
+void GS24<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // Transformer
 // =============================================================================
@@ -920,6 +925,11 @@ void GidroAccumulator<Provider>::post_step(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
+void GidroAccumulator<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
+template <typename Provider>
 void GidroAccumulator<Provider>::pre_load() {
     gas_volume = std::clamp(gas_volume, 0.1f, volume);
 }
@@ -953,6 +963,11 @@ void FuelTank<Provider>::post_step(SimulationState& st, float dt) {
     float flow = st.through[provider.get(PortNames::flow_out)];
     float consumption = std::max(flow, 0.0f) * dt;
     level = std::max(level - consumption, 0.0f);
+}
+
+template <typename Provider>
+void FuelTank<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 template <typename Provider>
@@ -1419,6 +1434,11 @@ void AZS<Provider>::post_step(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
     st.across[provider.get(PortNames::temp)] = temp;
     st.across[provider.get(PortNames::tripped)] = tripped ? 1.0f : 0.0f;
+}
+
+template <typename Provider>
+void AZS<Provider>::commit_control(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // =============================================================================

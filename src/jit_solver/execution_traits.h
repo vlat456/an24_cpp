@@ -79,11 +79,13 @@ inline ExecutionTraits get_strict_execution_traits(const std::string& classname,
         t.logical = true;
     }
 
-    if (classname == "DMR400" || classname == "RU19A" || classname == "GS24" || classname == "RUG82") {
+    if (classname == "DMR400" || classname == "RU19A" || classname == "GS24" ||
+        classname == "RUG82" || classname == "GidroAccumulator" ||
+        classname == "FuelTank" || classname == "LerpNode") {
         t.finalize = true;
     }
 
-    if (classname == "HoldButton" || classname == "Switch" || classname == "Relay") {
+    if (classname == "HoldButton" || classname == "Switch" || classname == "Relay" || classname == "AZS") {
         t.control_commit = true;
     }
 

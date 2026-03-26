@@ -244,6 +244,7 @@ public:
     GS24() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load();
 };
@@ -672,6 +673,7 @@ public:
     GidroAccumulator() = default;
 
     void solve_hydraulic(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load();
 };
@@ -693,6 +695,7 @@ public:
     FuelTank() = default;
 
     void solve_hydraulic(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load();
 };
@@ -897,6 +900,7 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void solve_thermal(SimulationState& st, float dt);
+    void commit_control(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load();
 };
