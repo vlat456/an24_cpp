@@ -127,6 +127,14 @@ public:
         bool last_was_preview = false;
         char pi_node[128] = "pi_1";
         char feedback_signal[128] = "bus_1.v";
+        float cfg_dt_sec = 1.0f / 60.0f;
+        float cfg_run_time_sec = 16.0f;
+        float cfg_settle_time_sec = 3.0f;
+        float cfg_kp_lo = 0.01f;
+        float cfg_kp_hi = 80.0f;
+        int cfg_max_expand = 10;
+        int cfg_binary_iters = 14;
+        int cfg_min_peaks = 4;
         float Ku = 0.0f;
         float Tu = 0.0f;
         float Kp = 0.0f;
