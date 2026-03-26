@@ -474,6 +474,20 @@ target_link_libraries(editor_data_tests PRIVATE
 )
 gtest_discover_tests(editor_data_tests)
 
+add_executable(editor_settings_tests
+    test_editor_settings.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
+)
+target_include_directories(editor_settings_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(editor_settings_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(editor_settings_tests)
+
 # Editor data interning tests (InternedId migration)
 add_executable(editor_data_interning_tests
     test_data_interning.cpp

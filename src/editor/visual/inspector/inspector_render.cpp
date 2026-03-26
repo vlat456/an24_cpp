@@ -16,11 +16,10 @@ void Inspector::render() {
     ImGui::Text("Component Tree (%zu nodes)", display_tree_.size());
 
     // Search bar (two-way bind with search_ string)
-    static char buf[256];
-    if (search_.size() < sizeof(buf)) {
-        std::copy(search_.begin(), search_.end(), buf);
-        buf[search_.size()] = '\0';
-    }
+    char buf[256];
+    std::size_t len = std::min(search_.size(), sizeof(buf) - 1);
+    std::copy(search_.begin(), search_.begin() + static_cast<std::ptrdiff_t>(len), buf);
+    buf[len] = '\0';
     if (ImGui::InputText("Search", buf, sizeof(buf))) {
         setSearch(buf);
     }

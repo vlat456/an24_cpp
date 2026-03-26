@@ -26,6 +26,11 @@ public:
     int run();
     
 private:
+    struct PendingOpenError {
+        bool show = false;
+        std::string message;
+    } pending_open_error_;
+
     bool initSDL();
     bool initImGui();
     void shutdown();

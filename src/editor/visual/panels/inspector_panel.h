@@ -28,4 +28,3 @@ private:
     float splitter_thickness_ = 4.0f;
     std::unique_ptr<PanelSplitter> splitter_;
 };
-

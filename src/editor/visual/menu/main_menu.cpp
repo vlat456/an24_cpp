@@ -85,13 +85,16 @@ void MainMenu::renderFileMenu(WindowSystem& ws, Result& result) {
 void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
     if (!ImGui::BeginMenu("Recent Files", !ws.settings.recentFiles().empty())) return;
 
-    for (size_t i = 0; i < ws.settings.recentFiles().size(); i++) {
-        const std::string& recent_path = ws.settings.recentFiles()[i];
+    // Snapshot: openDocument() mutates recentFiles() via addRecentFile (erase+insert).
+    const auto recent_snapshot = ws.settings.recentFiles();
+    std::string deferred_open;
+
+    for (size_t i = 0; i < recent_snapshot.size(); i++) {
+        const std::string& recent_path = recent_snapshot[i];
         std::string name = std::filesystem::path(recent_path).filename().string();
         
         if (ImGui::MenuItem(name.c_str())) {
-            std::string path_copy = recent_path;
-            ws.openDocument(path_copy);
+            deferred_open = recent_path;
         }
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", recent_path.c_str());
@@ -104,6 +107,11 @@ void MainMenu::renderRecentFilesMenu(WindowSystem& ws) {
     }
 
     ImGui::EndMenu();
+
+    // Open after menu rendering is complete to avoid mutating during iteration
+    if (!deferred_open.empty()) {
+        ws.openDocument(deferred_open);
+    }
 }
 
 void MainMenu::renderEditMenu(WindowSystem& ws) {
@@ -209,6 +217,14 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
         ZNTuneConfig cfg;
         cfg.pi_node = ws.znTune.pi_node;
         cfg.feedback_signal = ws.znTune.feedback_signal;
+        cfg.dt_sec = ws.znTune.cfg_dt_sec;
+        cfg.run_time_sec = ws.znTune.cfg_run_time_sec;
+        cfg.settle_time_sec = ws.znTune.cfg_settle_time_sec;
+        cfg.kp_lo = ws.znTune.cfg_kp_lo;
+        cfg.kp_hi = ws.znTune.cfg_kp_hi;
+        cfg.max_expand = ws.znTune.cfg_max_expand;
+        cfg.binary_iters = ws.znTune.cfg_binary_iters;
+        cfg.min_peaks = ws.znTune.cfg_min_peaks;
         if (!active_doc->isSimulationRunning()) {
             active_doc->startSimulation();
         }
@@ -238,6 +254,26 @@ void MainMenu::renderToolsMenu(WindowSystem& ws) {
     ImGui::Separator();
     ImGui::InputText("PI node", ws.znTune.pi_node, sizeof(ws.znTune.pi_node));
     ImGui::InputText("Feedback", ws.znTune.feedback_signal, sizeof(ws.znTune.feedback_signal));
+    ImGui::InputFloat("dt (s)", &ws.znTune.cfg_dt_sec, 0.0f, 0.0f, "%.5f");
+    ImGui::InputFloat("run time (s)", &ws.znTune.cfg_run_time_sec, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("settle (s)", &ws.znTune.cfg_settle_time_sec, 0.0f, 0.0f, "%.2f");
+    ImGui::InputFloat("Kp low", &ws.znTune.cfg_kp_lo, 0.0f, 0.0f, "%.4f");
+    ImGui::InputFloat("Kp high", &ws.znTune.cfg_kp_hi, 0.0f, 0.0f, "%.4f");
+    ImGui::InputInt("max expand", &ws.znTune.cfg_max_expand);
+    ImGui::InputInt("binary iters", &ws.znTune.cfg_binary_iters);
+    ImGui::InputInt("min peaks", &ws.znTune.cfg_min_peaks);
+
+    ws.znTune.cfg_dt_sec = std::max(1e-4f, ws.znTune.cfg_dt_sec);
+    ws.znTune.cfg_run_time_sec = std::max(1.0f, ws.znTune.cfg_run_time_sec);
+    ws.znTune.cfg_settle_time_sec = std::max(0.0f, ws.znTune.cfg_settle_time_sec);
+    if (ws.znTune.cfg_settle_time_sec >= ws.znTune.cfg_run_time_sec) {
+        ws.znTune.cfg_settle_time_sec = ws.znTune.cfg_run_time_sec * 0.5f;
+    }
+    ws.znTune.cfg_kp_lo = std::max(1e-6f, ws.znTune.cfg_kp_lo);
+    ws.znTune.cfg_kp_hi = std::max(ws.znTune.cfg_kp_lo * 1.1f, ws.znTune.cfg_kp_hi);
+    ws.znTune.cfg_max_expand = std::max(0, ws.znTune.cfg_max_expand);
+    ws.znTune.cfg_binary_iters = std::max(1, ws.znTune.cfg_binary_iters);
+    ws.znTune.cfg_min_peaks = std::max(2, ws.znTune.cfg_min_peaks);
 
     ImGui::EndMenu();
 }

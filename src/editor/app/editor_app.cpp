@@ -140,8 +140,24 @@ int EditorApp::run() {
     
     // Restore open tabs from previous session
     if (ws_.settings.hasOpenTabs()) {
-        for (const auto& path : ws_.settings.openTabs()) {
-            ws_.openDocument(path);
+        // IMPORTANT: snapshot the list before iterating.
+        // openDocument() calls settings.addOpenTab() which mutates the same
+        // vector returned by openTabs(), invalidating range-for iterators.
+        const auto saved_tabs = ws_.settings.openTabs();  // copy
+        bool had_failures = false;
+        std::string failed_list;
+        for (const auto& path : saved_tabs) {
+            if (!ws_.openDocument(path)) {
+                had_failures = true;
+                if (!failed_list.empty()) failed_list += "\n";
+                failed_list += path;
+                // Remove from persisted tabs so we don't retry on every launch
+                ws_.settings.removeOpenTab(path);
+            }
+        }
+        if (had_failures) {
+            pending_open_error_.show = true;
+            pending_open_error_.message = "Failed to open one or more tabs:\n" + failed_list;
         }
         // Restore active tab focus
         if (!ws_.settings.activeTab().empty()) {
@@ -158,11 +174,15 @@ int EditorApp::run() {
         update();
         render();
         
-        // Save active tab before rendering
+        // Track active tab for session restore
         if (Document* doc = ws_.activeDocument()) {
             if (!doc->filepath().empty()) {
                 ws_.settings.setActiveTab(doc->filepath());
+            } else {
+                ws_.settings.setActiveTab("");
             }
+        } else {
+            ws_.settings.setActiveTab("");
         }
     }
     
@@ -227,6 +247,22 @@ void EditorApp::render() {
         ImGui::OpenPopup("ZN PI Tune Result");
         ws_.znTune.show_result_popup = false;
     }
+
+    if (pending_open_error_.show) {
+        ImGui::OpenPopup("Open Tabs Error");
+        pending_open_error_.show = false;
+    }
+    ImGui::SetNextWindowSize(ImVec2(680.0f, 0.0f), ImGuiCond_Appearing);
+    if (ImGui::BeginPopupModal("Open Tabs Error", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextWrapped("%s", pending_open_error_.message.c_str());
+        if (ImGui::Button("OK")) {
+            ImGui::CloseCurrentPopup();
+            pending_open_error_.message.clear();
+        }
+        ImGui::EndPopup();
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(560.0f, 0.0f), ImGuiCond_Appearing);
     if (ImGui::BeginPopupModal("ZN PI Tune Result", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
         if (ws_.znTune.last_ok) {
             ImGui::Text("Ku: %.6f", ws_.znTune.Ku);
@@ -237,6 +273,8 @@ void EditorApp::render() {
             ImGui::Text("Ki: %.6f", ws_.znTune.Ki);
         } else {
             ImGui::TextWrapped("ZN tune failed: %s", ws_.znTune.error);
+            ImGui::Spacing();
+            ImGui::TextDisabled("Try: increase run time, lower settle time, or start with higher Kp range.");
         }
         if (ws_.znTune.last_ok && ws_.znTune.last_was_preview) {
             ImGui::Separator();
