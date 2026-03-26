@@ -62,6 +62,11 @@ void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
 }
 
+template <typename Provider>
+void Switch<Provider>::commit_control(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // Relay
 // =============================================================================
@@ -91,6 +96,11 @@ void Relay<Provider>::post_step(SimulationState& st, float /*dt*/) {
         downstream_I = 0.0f;
         st.across[provider.get(PortNames::v_out)] = 0.0f;
     }
+}
+
+template <typename Provider>
+void Relay<Provider>::commit_control(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // =============================================================================
@@ -396,6 +406,11 @@ void LerpNode<Provider>::post_step(SimulationState& st, float dt) {
     float new_output = current_value + factor * diff * dz_mask;
     current_value = new_output;
     st.across[provider.get(PortNames::output)] = new_output;
+}
+
+template <typename Provider>
+void LerpNode<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // =============================================================================
@@ -1080,6 +1095,11 @@ void RUG82<Provider>::post_step(SimulationState& st, float dt) {
     st.across[provider.get(PortNames::k_mod)] = k_mod;
 }
 
+template <typename Provider>
+void RUG82<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // DMR400
 // =============================================================================
@@ -1117,6 +1137,11 @@ void DMR400<Provider>::post_step(SimulationState& st, float dt) {
     }
 
     st.across[provider.get(PortNames::lamp)] = is_closed ? 0.0f : 1.0f;
+}
+
+template <typename Provider>
+void DMR400<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // =============================================================================
@@ -1292,6 +1317,11 @@ void RU19A<Provider>::post_step(SimulationState& st, float dt) {
     float rpm_percent = current_rpm * inv_target_rpm;
     st.across[provider.get(PortNames::rpm_out)] = rpm_percent * 100.0f;
     st.across[provider.get(PortNames::t4_out)] = t4;
+}
+
+template <typename Provider>
+void RU19A<Provider>::finalize_step(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // RU19A pre_load: precompute inverse target RPM

@@ -187,8 +187,10 @@ TEST(BugCodegenPostStep, SwitchPostStepStillEmitted) {
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(source.find("sw1.post_step"), std::string::npos)
-        << "Existing components with post_step must still be emitted";
+    // After control-commit migration, Switch should be emitted in commit phase
+    // and must not rely on finalize post_step emission.
+    EXPECT_NE(source.find("sw1.commit_control"), std::string::npos)
+        << "Switch must be emitted in control-commit phase";
 }
 
 // =============================================================================

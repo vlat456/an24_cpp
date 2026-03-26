@@ -55,6 +55,7 @@ public:
     Switch() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void commit_control(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -75,6 +76,7 @@ public:
     Relay() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void commit_control(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -292,6 +294,7 @@ public:
     LerpNode() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -788,6 +791,7 @@ public:
     RUG82() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -808,6 +812,7 @@ public:
     DMR400() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -847,6 +852,7 @@ public:
     void solve_electrical(SimulationState& st, float dt);
     void solve_mechanical(SimulationState& st, float dt);
     void solve_thermal(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load();
 };

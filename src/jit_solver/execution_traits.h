@@ -83,7 +83,7 @@ inline ExecutionTraits get_strict_execution_traits(const std::string& classname,
         t.finalize = true;
     }
 
-    if (classname == "HoldButton") {
+    if (classname == "HoldButton" || classname == "Switch" || classname == "Relay") {
         t.control_commit = true;
     }
 

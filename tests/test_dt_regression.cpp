@@ -176,6 +176,140 @@ static Blueprint make_hold_button_control_circuit() {
     return bp;
 }
 
+static Blueprint make_switch_control_commit_circuit() {
+    Blueprint bp;
+    auto& I = bp.interner();
+
+    Node gnd;
+    gnd.id = I.intern("gnd");
+    gnd.name = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.output(I.intern("v"));
+    gnd.params["value"] = "0.0";
+    bp.add_node(std::move(gnd));
+
+    Node bat;
+    bat.id = I.intern("bat");
+    bat.name = "bat";
+    bat.type_name = "Battery";
+    bat.input(I.intern("v_in"));
+    bat.output(I.intern("v_out"));
+    bat.params["v_nominal"] = "28.0";
+    bat.params["internal_r"] = "0.01";
+    bp.add_node(std::move(bat));
+
+    Node ctrl;
+    ctrl.id = I.intern("ctrl");
+    ctrl.name = "ctrl";
+    ctrl.type_name = "RefNode";
+    ctrl.output(I.intern("v"));
+    ctrl.params["value"] = "1.0";
+    bp.add_node(std::move(ctrl));
+
+    Node sw;
+    sw.id = I.intern("sw");
+    sw.name = "sw";
+    sw.type_name = "Switch";
+    sw.input(I.intern("v_in"));
+    sw.input(I.intern("control"));
+    sw.output(I.intern("v_out"));
+    sw.output(I.intern("state"));
+    bp.add_node(std::move(sw));
+
+    Node load;
+    load.id = I.intern("load");
+    load.name = "load";
+    load.type_name = "Resistor";
+    load.input(I.intern("v_in"));
+    load.output(I.intern("v_out"));
+    load.params["conductance"] = "0.1";
+    bp.add_node(std::move(load));
+
+    auto add_wire = [&](const char* a_node, const char* a_port, const char* b_node, const char* b_port) {
+        Wire w;
+        w.start.node_id = I.intern(a_node);
+        w.start.port_name = I.intern(a_port);
+        w.end.node_id = I.intern(b_node);
+        w.end.port_name = I.intern(b_port);
+        bp.add_wire(std::move(w));
+    };
+
+    add_wire("bat", "v_out", "sw", "v_in");
+    add_wire("sw", "v_out", "load", "v_in");
+    add_wire("load", "v_out", "gnd", "v");
+    add_wire("bat", "v_in", "gnd", "v");
+    add_wire("ctrl", "v", "sw", "control");
+
+    return bp;
+}
+
+static Blueprint make_relay_control_commit_circuit() {
+    Blueprint bp;
+    auto& I = bp.interner();
+
+    Node gnd;
+    gnd.id = I.intern("gnd");
+    gnd.name = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.output(I.intern("v"));
+    gnd.params["value"] = "0.0";
+    bp.add_node(std::move(gnd));
+
+    Node bat;
+    bat.id = I.intern("bat");
+    bat.name = "bat";
+    bat.type_name = "Battery";
+    bat.input(I.intern("v_in"));
+    bat.output(I.intern("v_out"));
+    bat.params["v_nominal"] = "28.0";
+    bat.params["internal_r"] = "0.01";
+    bp.add_node(std::move(bat));
+
+    Node ctrl;
+    ctrl.id = I.intern("ctrl");
+    ctrl.name = "ctrl";
+    ctrl.type_name = "RefNode";
+    ctrl.output(I.intern("v"));
+    ctrl.params["value"] = "1.0";
+    bp.add_node(std::move(ctrl));
+
+    Node relay;
+    relay.id = I.intern("relay");
+    relay.name = "relay";
+    relay.type_name = "Relay";
+    relay.input(I.intern("v_in"));
+    relay.input(I.intern("control"));
+    relay.output(I.intern("v_out"));
+    relay.params["hold_threshold"] = "0.5";
+    bp.add_node(std::move(relay));
+
+    Node load;
+    load.id = I.intern("load");
+    load.name = "load";
+    load.type_name = "Resistor";
+    load.input(I.intern("v_in"));
+    load.output(I.intern("v_out"));
+    load.params["conductance"] = "0.1";
+    bp.add_node(std::move(load));
+
+    auto add_wire = [&](const char* a_node, const char* a_port, const char* b_node, const char* b_port) {
+        Wire w;
+        w.start.node_id = I.intern(a_node);
+        w.start.port_name = I.intern(a_port);
+        w.end.node_id = I.intern(b_node);
+        w.end.port_name = I.intern(b_port);
+        bp.add_wire(std::move(w));
+    };
+
+    add_wire("bat", "v_out", "relay", "v_in");
+    add_wire("relay", "v_out", "load", "v_in");
+    add_wire("load", "v_out", "gnd", "v");
+    add_wire("bat", "v_in", "gnd", "v");
+    add_wire("ctrl", "v", "relay", "control");
+
+    return bp;
+}
+
 // =============================================================================
 // Regression: SOR::OMEGA is the single source of truth
 // =============================================================================
@@ -444,5 +578,35 @@ TEST(DtRegression, HoldButton_ControlCommit_AppliesOnFirstStep) {
 
     EXPECT_NEAR(s0, 0.0f, 0.1f);
     EXPECT_GT(s1, 0.5f) << "HoldButton press command should be committed in same simulation step";
+    sim.stop();
+}
+
+TEST(DtRegression, Switch_ControlCommit_AppliesOnFirstStep) {
+    Blueprint bp = make_switch_control_commit_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    const float s0 = sim.get_port_value("sw", "state");
+    sim.step(1.0f / 60.0f);
+    const float s1 = sim.get_port_value("sw", "state");
+
+    EXPECT_NEAR(s0, 0.0f, 0.1f);
+    EXPECT_GT(s1, 0.5f) << "Switch should toggle closed on first control edge step";
+    sim.stop();
+}
+
+TEST(DtRegression, Relay_ControlCommit_AppliesOnFirstStep) {
+    Blueprint bp = make_relay_control_commit_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    const float v0 = sim.get_port_value("relay", "v_out");
+    sim.step(1.0f / 60.0f);
+    const float v1 = sim.get_port_value("relay", "v_out");
+    const float load_v1 = sim.get_port_value("load", "v_in");
+
+    EXPECT_NEAR(v0, 0.0f, 0.5f);
+    EXPECT_GT(v1, -20.0f) << "Relay output should move away from fully-open zero state on first committed control step";
+    EXPECT_GT(load_v1, -20.0f) << "Downstream node should reflect first-step relay commit";
     sim.stop();
 }

@@ -56,6 +56,29 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ## Medium Priority
 
+### 11. Execution Traits Source-of-Truth in JSON (NEW)
+**Files:**
+- `library/*.json` (component definitions)
+- `src/jit_solver/execution_traits.h`
+- `src/codegen/codegen.cpp`
+
+**Problem:** Execution-phase traits are currently mapped in C++ by class name.
+This is strict mapping (not heuristic), but it is still duplicated knowledge
+outside component JSON definitions.
+
+**Target:** Move execution-phase traits into component type JSON schema so JIT
+and AOT consume declarative metadata from the same source as ports/domains.
+
+**Fix Plan:**
+- Extend type schema with explicit execution fields (e.g. passive/observer/actuator/commit/finalize)
+- Validate schema in parser
+- Generate/consume typed traits from parsed `TypeDefinition` instead of class-name switch lists
+- Keep temporary fallback for legacy JSON during migration, then remove fallback
+
+**Impact:** Medium (prevents future JIT/AOT drift and removes hardcoded class mapping)
+
+---
+
 ### 3. PORTS Macro Bloat
 **File:** `src/jit_solver/component.h:61-262`
 
