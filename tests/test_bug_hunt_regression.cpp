@@ -160,8 +160,8 @@ TEST(BugCodegenPostStep, GidroAccumulatorPostStepEmitted) {
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(source.find("ga1.post_step"), std::string::npos)
-        << "AOT codegen must emit post_step for GidroAccumulator (gas volume update)";
+    EXPECT_NE(source.find("ga1.finalize_step"), std::string::npos)
+        << "AOT codegen must emit finalize_step for GidroAccumulator (gas volume update)";
 }
 
 TEST(BugCodegenPostStep, FuelTankPostStepEmitted) {
@@ -169,8 +169,8 @@ TEST(BugCodegenPostStep, FuelTankPostStepEmitted) {
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(source.find("ft1.post_step"), std::string::npos)
-        << "AOT codegen must emit post_step for FuelTank (fuel consumption)";
+    EXPECT_NE(source.find("ft1.finalize_step"), std::string::npos)
+        << "AOT codegen must emit finalize_step for FuelTank (fuel consumption)";
 }
 
 TEST(BugCodegenPostStep, RUG82PostStepEmitted) {
@@ -178,8 +178,8 @@ TEST(BugCodegenPostStep, RUG82PostStepEmitted) {
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(source.find("rug1.post_step"), std::string::npos)
-        << "AOT codegen must emit post_step for RUG82 (voltage regulator integration)";
+    EXPECT_NE(source.find("rug1.finalize_step"), std::string::npos)
+        << "AOT codegen must emit finalize_step for RUG82 (voltage regulator integration)";
 }
 
 TEST(BugCodegenPostStep, SwitchPostStepStillEmitted) {

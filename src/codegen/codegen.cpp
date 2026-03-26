@@ -506,7 +506,7 @@ std::string CodeGen::generate_source(
             phase_thermal.push_back(dev.name);
         }
 
-        if (t.finalize || (t.legacy_post_step && !t.logical && !t.control_commit)) {
+        if (t.finalize) {
             phase_finalize.push_back(dev.name);
         }
     }
@@ -621,7 +621,7 @@ std::string CodeGen::generate_source(
 
         oss << "    // Phase 8: finalize\n";
         for (const auto& dev_name : phase_finalize) {
-            oss << "    " << sanitize_name(dev_name) << ".post_step(*st, dt);\n";
+            oss << "    " << sanitize_name(dev_name) << ".finalize_step(*st, dt);\n";
         }
 
         oss << "}\n\n";

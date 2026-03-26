@@ -342,8 +342,6 @@ void Simulator<SolverTag>::step(float dt) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.finalize_step(state_, dt); }) {
                 comp.finalize_step(state_, dt);
-            } else if constexpr (requires { comp.post_step(state_, dt); }) {
-                comp.post_step(state_, dt);
             }
         }, *variant);
     }

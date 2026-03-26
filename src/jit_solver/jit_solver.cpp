@@ -1076,14 +1076,6 @@ BuildResult build_systems_dev(
             result.phase_components.thermal.push_back(ptr);
         }
 
-        // Migration compatibility: keep finalize sweep for legacy post_step-based components,
-        // but avoid double-running logic that already moved into explicit logical phase.
-        bool has_legacy_post_step = std::visit([](auto& comp) {
-            return requires (SimulationState& s, float d) { comp.post_step(s, d); };
-        }, *ptr);
-        if (!exec_traits.finalize && has_legacy_post_step && !exec_traits.logical && !exec_traits.control_commit) {
-            result.phase_components.finalize.push_back(ptr);
-        }
     }
 
     spdlog::info("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",

@@ -14,7 +14,6 @@ struct ExecutionTraits {
     bool hydraulic = false;
     bool thermal = false;
     bool electrical_noop = false;
-    bool legacy_post_step = false;
 };
 
 inline Domain get_device_domain_mask(const DeviceInstance& dev) {
@@ -89,14 +88,6 @@ inline ExecutionTraits get_strict_execution_traits(const std::string& classname,
         t.control_commit = true;
     }
 
-    if (classname == "Switch" || classname == "Relay" || classname == "HoldButton" ||
-        classname == "GS24" || classname == "LerpNode" || classname == "DMR400" ||
-        classname == "RU19A" || classname == "PID" || classname == "PD" ||
-        classname == "PI" || classname == "P" || classname == "AZS" ||
-        classname == "GidroAccumulator" || classname == "FuelTank" || classname == "RUG82") {
-        t.legacy_post_step = true;
-    }
-
     return t;
 }
 
@@ -117,7 +108,6 @@ inline std::string get_execution_traits_string(const ExecutionTraits& t) {
     if (t.hydraulic) result += "Hydraulic ";
     if (t.thermal) result += "Thermal ";
     if (t.electrical_noop) result += "ElecNoop ";
-    if (t.legacy_post_step) result += "LegacyPostStep ";
     if (result.empty()) return "None";
     if (result.back() == ' ') result.pop_back();
     return result;
