@@ -379,6 +379,18 @@ target_link_libraries(canvas_input_tests PRIVATE
 )
 gtest_discover_tests(canvas_input_tests)
 
+add_executable(oscilloscope_stats_tests
+    test_oscilloscope_stats.cpp
+)
+target_include_directories(oscilloscope_stats_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+)
+target_link_libraries(oscilloscope_stats_tests PRIVATE
+    GTest::gtest_main
+)
+gtest_discover_tests(oscilloscope_stats_tests)
+
 # Port registry tests (TDD for codegen)
 add_executable(port_registry_tests
     port_registry_test.cpp

@@ -42,7 +42,6 @@ static bool resolve_probe_anchor(Document& doc,
     if (poly.size() < 2) return false;
     if (!preferred_world) {
         size_t mid = poly.size() / 2;
-        if (mid >= poly.size()) mid = poly.size() - 1;
         out_world = poly[mid];
         return true;
     }
@@ -176,6 +175,14 @@ void OscilloscopeModel::sample(Document& doc, bool simulation_running, float sam
         q.push_back(v);
         while (q.size() > max_samples_) q.pop_front();
     }
+
+    if (!hover_signal_key_.empty()) {
+        const float v = simulation_running ? doc.simulation().get_wire_voltage(hover_signal_key_) : 0.0f;
+        hover_samples_.push_back(v);
+        while (hover_samples_.size() > max_samples_) hover_samples_.pop_front();
+    } else {
+        hover_samples_.clear();
+    }
 }
 
 std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const {
@@ -190,14 +197,4 @@ std::vector<OscilloscopeModel::ChannelView> OscilloscopeModel::channels() const 
         return a.probe->wire_id < b.probe->wire_id;
     });
     return out;
-}
-
-const std::deque<float>& OscilloscopeModel::ensure_virtual_channel(Document& doc,
-                                                                    const std::string& signal_key,
-                                                                    bool simulation_running) {
-    auto& q = virtual_samples_[signal_key];
-    const float v = simulation_running ? doc.simulation().get_wire_voltage(signal_key) : 0.0f;
-    q.push_back(v);
-    while (q.size() > max_samples_) q.pop_front();
-    return q;
 }

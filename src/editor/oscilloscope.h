@@ -34,6 +34,10 @@ public:
 
     void on_blueprint_changed(Document& doc);
     void sample(Document& doc, bool simulation_running, float sample_dt_sec);
+    void set_hover_signal(std::string signal_key) { hover_signal_key_ = std::move(signal_key); }
+    void clear_hover_signal() { hover_signal_key_.clear(); }
+    const std::deque<float>& hover_samples() const { return hover_samples_; }
+    const std::string& hover_signal_key() const { return hover_signal_key_; }
 
     size_t max_samples() const { return max_samples_; }
     float sample_period_sec() const { return sample_period_sec_; }
@@ -63,18 +67,20 @@ public:
             s.max_v = std::max(s.max_v, v);
         }
 
-        if (sample_dt_sec <= 0.0f || samples.size() < 8) return s;
+        if (sample_dt_sec <= 0.0f || samples.size() < 6) return s;
 
         const float range = s.max_v - s.min_v;
-        const float prom = std::max(1e-4f, range * 0.05f);
+        if (range <= 1e-4f) return s;
+        const float mid = 0.5f * (s.max_v + s.min_v);
+        const float amp_gate = range * 0.20f;
         std::vector<size_t> peaks;
         peaks.reserve(samples.size() / 4);
         for (size_t i = 1; i + 1 < samples.size(); ++i) {
             const float a = samples[i - 1];
             const float b = samples[i];
             const float c = samples[i + 1];
-            if (!(b > a && b >= c)) continue;
-            if ((b - std::max(a, c)) < prom) continue;
+            if (!(b >= a && b > c)) continue;
+            if ((b - mid) < amp_gate) continue;
             if (!peaks.empty() && (i - peaks.back()) < 3) continue;
             peaks.push_back(i);
         }
@@ -93,15 +99,13 @@ public:
         return s;
     }
 
-    const std::deque<float>& ensure_virtual_channel(Document& doc,
-                                                    const std::string& signal_key,
-                                                    bool simulation_running);
 private:
     size_t max_samples_ = 1200;
     float sample_period_sec_ = 0.0f;
     std::unordered_map<std::string, OscilloscopeProbe> probes_;
     std::unordered_map<std::string, std::deque<float>> samples_;
-    std::unordered_map<std::string, std::deque<float>> virtual_samples_;
+    std::string hover_signal_key_;
+    std::deque<float> hover_samples_;
 
     static uint32_t color_for_index(size_t i);
 };
