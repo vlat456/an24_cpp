@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "jit_solver/SOR_constants.h"
+#include "jit_solver/execution_traits.h"
 #include "../parse_number.h"
 #include <fstream>
 #include <sstream>
@@ -78,89 +79,6 @@ std::string format_value(const std::string& value, const std::string& type) {
     } else {
         return "\"" + value + "\"";
     }
-}
-
-// Get domain from device
-std::string get_device_domain(const DeviceInstance& dev) {
-    // Build domain string from the parsed domains vector (populated from JSON "domains")
-    if (!dev.domains.empty()) {
-        std::string result;
-        for (auto d : dev.domains) {
-            if (!result.empty()) result += "|";
-            switch (d) {
-                case Domain::Electrical: result += "Electrical"; break;
-                case Domain::Logical:    result += "Logical"; break;
-                case Domain::Mechanical: result += "Mechanical"; break;
-                case Domain::Hydraulic:  result += "Hydraulic"; break;
-                case Domain::Thermal:    result += "Thermal"; break;
-                default: break;
-            }
-        }
-        if (!result.empty()) return result;
-    }
-    // Fallback to params["domain"] for backward compat
-    auto it = dev.params.find("domain");
-    if (it != dev.params.end()) {
-        return it->second;
-    }
-    return "Electrical";  // default
-}
-
-// Check if device has specific domain
-bool has_domain(const DeviceInstance& dev, const std::string& domain) {
-    std::string dev_domain = get_device_domain(dev);
-    return dev_domain.find(domain) != std::string::npos;
-}
-
-struct CodegenPhaseTraits {
-    bool electrical_passive = false;
-    bool electrical_observer = false;
-    bool logical = false;
-    bool control_commit = false;
-    bool electrical_actuator = false;
-    bool finalize = false;
-    bool mechanical = false;
-    bool hydraulic = false;
-    bool thermal = false;
-    bool electrical_noop = false;
-};
-
-CodegenPhaseTraits infer_codegen_phase_traits(const DeviceInstance& dev) {
-    CodegenPhaseTraits t{};
-
-    std::string domain = get_device_domain(dev);
-    bool has_electrical = domain.find("Electrical") != std::string::npos;
-    bool has_logical = domain.find("Logical") != std::string::npos;
-
-    t.mechanical = domain.find("Mechanical") != std::string::npos;
-    t.hydraulic = domain.find("Hydraulic") != std::string::npos;
-    t.thermal = domain.find("Thermal") != std::string::npos;
-
-    t.electrical_noop = (dev.classname == "Bus" || dev.classname == "Voltmeter");
-    t.electrical_observer = (dev.classname == "VoltageSense" || dev.classname == "CurrentSense");
-    t.electrical_actuator = (dev.classname == "ControlledVoltageSource" ||
-                             dev.classname == "ControlledCurrentSource" ||
-                             dev.classname == "VariableConductance");
-
-    bool is_controller = (dev.classname == "PID" || dev.classname == "PD" ||
-                          dev.classname == "PI" || dev.classname == "P");
-    t.logical = has_logical || is_controller;
-
-    t.electrical_passive = has_electrical && !t.electrical_noop &&
-                           !t.electrical_observer && !t.electrical_actuator && !is_controller;
-
-    // CurrentSense is mixed-role: it must stamp passive conductance and also observe current.
-    if (dev.classname == "CurrentSense") {
-        t.electrical_passive = true;
-    }
-
-    const std::unordered_set<std::string> has_post_step = {
-        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-        "PID", "PD", "PI", "P", "AZS", "GidroAccumulator", "FuelTank", "RUG82"
-    };
-    t.finalize = has_post_step.count(dev.classname) > 0 && !t.logical;
-
-    return t;
 }
 
 // Generate AotProvider<Binding<...>, ...> type string for a device
@@ -556,7 +474,8 @@ std::string CodeGen::generate_source(
     std::vector<std::string> phase_thermal;
 
     for (const auto& dev : devices) {
-        CodegenPhaseTraits t = infer_codegen_phase_traits(dev);
+        Domain domain_mask = get_device_domain_mask(dev);
+        ExecutionTraits t = get_strict_execution_traits(dev.classname, domain_mask);
 
         if (t.electrical_passive) {
             phase_electrical_passive.push_back(dev.name);
@@ -583,7 +502,7 @@ std::string CodeGen::generate_source(
             phase_thermal.push_back(dev.name);
         }
 
-        if (t.finalize) {
+        if (t.finalize || (t.legacy_post_step && !t.logical)) {
             phase_finalize.push_back(dev.name);
         }
     }

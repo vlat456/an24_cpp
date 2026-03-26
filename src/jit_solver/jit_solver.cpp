@@ -1,4 +1,5 @@
 #include "jit_solver.h"
+#include "execution_traits.h"
 #include "scheduling.h"
 #include "state.h"
 #include "../parse_number.h"
@@ -8,7 +9,6 @@
 #include <algorithm>
 #include <map>
 #include <optional>
-#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -64,67 +64,6 @@ auto get_string = [](const DeviceInstance& dev, const std::string& key, const st
     }
     return default_val;
 };
-
-template <typename CompType>
-ExecutionTraits infer_execution_traits_for_type() {
-    ExecutionTraits t{};
-
-    Domain d = CompType::domain;
-    if (has_domain(d, Domain::Electrical)) t.electrical_passive = true;
-    if (has_domain(d, Domain::Logical)) t.logical = true;
-    if (has_domain(d, Domain::Mechanical)) t.mechanical = true;
-    if (has_domain(d, Domain::Hydraulic)) t.hydraulic = true;
-    if (has_domain(d, Domain::Thermal)) t.thermal = true;
-
-    // Stage 1 explicit intent overrides (metadata only, no scheduling effect yet).
-    if constexpr (std::is_same_v<CompType, VoltageSense<JitProvider>>) {
-        t.electrical_passive = false;
-        t.electrical_observer = true;
-    }
-    if constexpr (std::is_same_v<CompType, Voltmeter<JitProvider>>) {
-        t.electrical_passive = false;
-        t.electrical_observer = true;
-    }
-    if constexpr (std::is_same_v<CompType, CurrentSense<JitProvider>>) {
-        t.electrical_passive = true;
-        t.electrical_observer = true;
-    }
-
-    if constexpr (std::is_same_v<CompType, Bus<JitProvider>>) {
-        t.electrical_passive = false;
-    }
-
-    if constexpr (std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
-                  std::is_same_v<CompType, ControlledCurrentSource<JitProvider>> ||
-                  std::is_same_v<CompType, VariableConductance<JitProvider>>) {
-        t.electrical_passive = false;
-        t.electrical_actuator = true;
-    }
-
-    if constexpr (std::is_same_v<CompType, PID<JitProvider>> ||
-                  std::is_same_v<CompType, PD<JitProvider>> ||
-                  std::is_same_v<CompType, PI<JitProvider>> ||
-                  std::is_same_v<CompType, P<JitProvider>>) {
-        // Controllers participate in both phases during migration:
-        // passive electrical stamp (tiny conductance for conditioning)
-        // and logical solve (control output update).
-        t.electrical_passive = true;
-        t.logical = true;
-    }
-
-    if constexpr (std::is_same_v<CompType, DMR400<JitProvider>> ||
-                  std::is_same_v<CompType, RU19A<JitProvider>> ||
-                  std::is_same_v<CompType, GS24<JitProvider>> ||
-                  std::is_same_v<CompType, RUG82<JitProvider>>) {
-        t.finalize = true;
-    }
-
-    if constexpr (std::is_same_v<CompType, HoldButton<JitProvider>>) {
-        t.control_commit = true;
-    }
-
-    return t;
-}
 
 /// Factory function - creates a ComponentVariant from DeviceInstance
 ComponentVariant create_component_variant(
@@ -647,27 +586,9 @@ ComponentVariant create_component_variant(
 
 } // anonymous namespace
 
-ExecutionTraits get_component_execution_traits(const ComponentVariant& variant) {
-    return std::visit([](auto& comp) -> ExecutionTraits {
-        using CompType = std::decay_t<decltype(comp)>;
-        return infer_execution_traits_for_type<CompType>();
-    }, variant);
-}
-
-std::string get_execution_traits_string(const ExecutionTraits& t) {
-    std::string result;
-    if (t.electrical_passive) result += "ElecPassive ";
-    if (t.electrical_observer) result += "ElecObserver ";
-    if (t.logical) result += "Logical ";
-    if (t.control_commit) result += "ControlCommit ";
-    if (t.electrical_actuator) result += "ElecActuator ";
-    if (t.finalize) result += "Finalize ";
-    if (t.mechanical) result += "Mechanical ";
-    if (t.hydraulic) result += "Hydraulic ";
-    if (t.thermal) result += "Thermal ";
-    if (result.empty()) return "None";
-    if (result.back() == ' ') result.pop_back();
-    return result;
+ExecutionTraits get_component_execution_traits(const ComponentVariant& variant, std::string_view classname) {
+    Domain domain_mask = get_component_domain_mask(variant);
+    return get_strict_execution_traits(std::string(classname), domain_mask);
 }
 
 
@@ -1086,6 +1007,7 @@ BuildResult build_systems_dev(
     // We must NOT take pointers during insertion because unordered_map
     // rehashing invalidates all existing pointers/references.
     std::vector<std::string> device_names_ordered;
+    std::unordered_map<std::string, std::string> device_class_by_name;
     for (const auto& dev : devices) {
         // Skip visual-only devices (no simulation behavior, e.g. Group)
         if (dev.visual_only) continue;
@@ -1093,6 +1015,7 @@ BuildResult build_systems_dev(
         ComponentVariant variant = create_component_variant(dev, result);
         result.devices[dev.name] = std::move(variant);
         device_names_ordered.push_back(dev.name);
+        device_class_by_name[dev.name] = dev.classname;
     }
 
     // Phase 2: Now that all insertions are done (no more rehashing),
@@ -1100,7 +1023,7 @@ BuildResult build_systems_dev(
     for (const auto& name : device_names_ordered) {
         ComponentVariant* ptr = &result.devices[name];
         Domain domain_mask = get_component_domain_mask(*ptr);
-        ExecutionTraits exec_traits = get_component_execution_traits(*ptr);
+        ExecutionTraits exec_traits = get_component_execution_traits(*ptr, device_class_by_name[name]);
 
         // Log domain assignment for debugging
         spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
@@ -1184,7 +1107,7 @@ BuildResult build_systems_dev(
 
     for (const auto& [dev_name, variant] : result.devices) {
         (void)dev_name;
-        ExecutionTraits t = get_component_execution_traits(variant);
+        ExecutionTraits t = get_component_execution_traits(variant, device_class_by_name[dev_name]);
         phase_elec_passive += t.electrical_passive ? 1u : 0u;
         phase_elec_observer += t.electrical_observer ? 1u : 0u;
         phase_logical += t.logical ? 1u : 0u;

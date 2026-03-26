@@ -1,8 +1,10 @@
 #pragma once
 
 #include "components/port_registry.h"
+#include "execution_traits.h"
 #include "scheduling.h"
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <memory>
 #include <vector>
@@ -41,27 +43,8 @@ struct PhaseComponents {
     std::vector<ComponentVariant*> thermal;
 };
 
-/// Execution-phase capabilities (Stage 1 scaffolding).
-///
-/// These traits are metadata-only for now and do not affect scheduler behavior yet.
-/// They are used to make phase intent explicit and to prepare JIT/AOT refactor work.
-struct ExecutionTraits {
-    bool electrical_passive = false;
-    bool electrical_observer = false;
-    bool logical = false;
-    bool control_commit = false;
-    bool electrical_actuator = false;
-    bool finalize = false;
-    bool mechanical = false;
-    bool hydraulic = false;
-    bool thermal = false;
-};
-
 /// Derive execution-phase metadata from component type (Stage 1, diagnostics only).
-ExecutionTraits get_component_execution_traits(const ComponentVariant& variant);
-
-/// Format execution traits for logging.
-std::string get_execution_traits_string(const ExecutionTraits& t);
+ExecutionTraits get_component_execution_traits(const ComponentVariant& variant, std::string_view classname);
 
 /// Get domain bitmask from component (reads static constexpr Domain field)
 inline Domain get_component_domain_mask(const ComponentVariant& variant) {
