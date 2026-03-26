@@ -1081,7 +1081,7 @@ BuildResult build_systems_dev(
         bool has_legacy_post_step = std::visit([](auto& comp) {
             return requires (SimulationState& s, float d) { comp.post_step(s, d); };
         }, *ptr);
-        if (!exec_traits.finalize && has_legacy_post_step && !exec_traits.logical) {
+        if (!exec_traits.finalize && has_legacy_post_step && !exec_traits.logical && !exec_traits.control_commit) {
             result.phase_components.finalize.push_back(ptr);
         }
     }

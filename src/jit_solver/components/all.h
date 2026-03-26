@@ -96,6 +96,7 @@ public:
     HoldButton() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void commit_control(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };

@@ -132,6 +132,11 @@ void HoldButton<Provider>::post_step(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::state)] = is_pressed ? 1.0f : 0.0f;
 }
 
+template <typename Provider>
+void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // Resistor
 // =============================================================================
