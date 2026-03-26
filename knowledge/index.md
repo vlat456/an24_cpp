@@ -25,6 +25,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Stable component design | `knowledge/component_authoring.md` | Rules for writing numerically stable components |
 | Known issues / TODO | `knowledge/errors_TODO.md` | Architecture smells, bugs, and follow-up items |
 | Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` | Detailed JIT/AOT plan for removing control-loop latency |
+| Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` | Staged implementation checklist for coding agents |
 
 ## Suggested Reading Order
 
@@ -64,6 +65,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | How should I tune SOR? | `knowledge/sor_optimization.md` |
 | How do I write a stable component? | `knowledge/component_authoring.md` |
 | How should runtime/codegen phases be refactored? | `knowledge/13_scheduler_refactor_plan.md` |
+| What is the staged implementation roadmap? | `knowledge/14_scheduler_refactor_epic.md` |
 | Where is the blueprint model? | `knowledge/04_blueprint_v2.md` |
 | How is the editor structured? | `knowledge/05_editor.md` |
 | What tests should I add? | `knowledge/08_testing.md` |

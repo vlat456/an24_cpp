@@ -1095,6 +1095,26 @@ target_link_libraries(dt_regression_tests PRIVATE
 )
 gtest_discover_tests(dt_regression_tests)
 
+# Closed-loop latency regression tests — ensure same-step observer/control/actuator response
+add_executable(closed_loop_latency_regression_tests
+    test_closed_loop_latency_regression.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(closed_loop_latency_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(closed_loop_latency_regression_tests PRIVATE
+    blueprint_v2
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(closed_loop_latency_regression_tests)
+
 # Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
 add_executable(codegen_accumulator_tests
     test_codegen_accumulator.cpp

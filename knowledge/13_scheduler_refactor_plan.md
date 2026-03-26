@@ -274,6 +274,85 @@ Mixed fast/slow components must be audited carefully because they often hide cou
 
 These components may need to be split across multiple explicit hooks rather than moved wholesale into a single phase.
 
+## Legacy Multi-Model Validation Strategy
+
+`GS24` and `RUG82` should be treated as legacy validation models during the refactor, not as target architecture.
+
+They are still useful because they combine:
+
+- controller behavior
+- electrical coupling
+- internal state
+- legacy timing assumptions
+
+That makes them good migration sandboxes for proving the new scheduler on difficult real components before they are removed.
+
+### Intended role of `GS24` / `RUG82`
+
+Use them as:
+
+- compatibility fixtures
+- multi-model comparison baselines
+- stress tests for explicit phase hooks
+- temporary validation targets for JIT/AOT parity
+
+Do not use them as:
+
+- the reason to keep legacy scheduler behavior
+- a source of special-case phase ordering rules
+- the long-term canonical implementation of generator/regulator logic
+
+### Three-model comparison pattern
+
+During migration, it is useful to compare three representations of the same conceptual system:
+
+1. legacy monolithic component (`GS24` / `RUG82` as they exist today)
+2. refactored explicit-hook legacy component
+3. bridge-based blueprint implementation
+
+This gives a controlled path for validating the new runtime:
+
+- old behavior is still measurable
+- new scheduler behavior can be characterized
+- final blueprint replacement can be compared against both
+
+### Rules for using legacy models safely
+
+1. no scheduler exceptions just for `GS24` or `RUG82`
+2. no hardcoded phase-order hacks to preserve monolith quirks
+3. if they need adaptation, adapt the component to the new hooks
+4. if behavior differs, capture it in tests and decide intentionally whether the new behavior is a fix or a regression
+
+### Recommended validation workflow
+
+For both `GS24` and `RUG82`:
+
+1. capture baseline behavior under fixed and variable `dt`
+2. run the same scenario through JIT legacy path
+3. run the same scenario through refactored explicit-hook path
+4. run the same scenario through AOT generated path
+5. eventually run the same scenario through blueprint bridge version
+
+Compare:
+
+- latency in steps and seconds
+- steady-state voltage/current
+- pause/resume behavior
+- large-`dt` recovery
+- slow-domain coupling behavior
+
+### Exit strategy
+
+The final scheduler must not depend on `GS24` or `RUG82` remaining in the tree.
+
+Success means:
+
+- they helped validate the migration
+- they no longer require special runtime rules
+- they can be deleted without changing scheduler semantics
+
+This should be the expected end state for the refactor.
+
 ## New Execution Metadata
 
 Add explicit execution-phase metadata instead of inferring order from `Domain` alone.
@@ -630,6 +709,8 @@ Candidates:
 
 These should either become explicit-phase components or be replaced by blueprint implementations using the bridge architecture.
 
+During migration they may remain as multi-model validation fixtures, but the scheduler must not depend on their legacy assumptions.
+
 ## Risks
 
 ### 1. Double-SOR cost
@@ -679,6 +760,7 @@ The refactor is complete when:
 - behavior remains stable for variable caller `dt`, not just `1/60`
 - slow domains use documented latch/catch-up semantics and observe final same-step plant state
 - pause/resume does not create phantom accumulated time from wall-clock delay
+- `GS24` / `RUG82` require no scheduler special-casing and can be removed in the final cleanup
 
 ## Recommended First Deliverable
 

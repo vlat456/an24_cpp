@@ -435,6 +435,11 @@ void PID<Provider>::post_step(SimulationState& st, float dt) {
     last_error = error;
 }
 
+template <typename Provider>
+void PID<Provider>::solve_logical(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // PD - Proportional-Derivative controller
 // =============================================================================
@@ -473,6 +478,11 @@ void PD<Provider>::post_step(SimulationState& st, float dt) {
     last_error = error;
 }
 
+template <typename Provider>
+void PD<Provider>::solve_logical(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // PI - Proportional-Integral controller
 // =============================================================================
@@ -508,6 +518,11 @@ void PI<Provider>::post_step(SimulationState& st, float dt) {
     st.across[provider.get(PortNames::output)] = output;
 }
 
+template <typename Provider>
+void PI<Provider>::solve_logical(SimulationState& st, float dt) {
+    post_step(st, dt);
+}
+
 // =============================================================================
 // P - Proportional controller
 // =============================================================================
@@ -534,6 +549,11 @@ void P<Provider>::post_step(SimulationState& st, float /*dt*/) {
     float output = std::clamp(p_term, output_min, output_max);
 
     st.across[provider.get(PortNames::output)] = output;
+}
+
+template <typename Provider>
+void P<Provider>::solve_logical(SimulationState& st, float dt) {
+    post_step(st, dt);
 }
 
 // =============================================================================
@@ -580,6 +600,15 @@ void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/)
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
 
+    // Compatibility during migration: keep immediate i_out write for unit tests and
+    // legacy direct component usage; observer phase will refresh with settled value.
+    float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
+    st.across[provider.get(PortNames::i_out)] = v_diff * g;
+}
+
+template <typename Provider>
+void CurrentSense<Provider>::observe_electrical(SimulationState& st, float /*dt*/) {
+    float g = conductance;
     // Measured current: I = (v_in - v_out) * G
     float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
     st.across[provider.get(PortNames::i_out)] = v_diff * g;
@@ -658,6 +687,12 @@ void VoltageSense<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::out)] = (v - vref) * gain + offset;
 }
 
+template <typename Provider>
+void VoltageSense<Provider>::observe_electrical(SimulationState& st, float dt) {
+    // Stage 2 compatibility shim: preserve behavior by delegating to existing logical implementation.
+    solve_logical(st, dt);
+}
+
 // ControlledVoltageSource ------------------------------------------------
 template <typename Provider>
 void ControlledVoltageSource<Provider>::pre_load() {
@@ -683,6 +718,12 @@ void ControlledVoltageSource<Provider>::solve_electrical(SimulationState& st, fl
     st.through[provider.get(PortNames::v_neg)] -= i;
 }
 
+template <typename Provider>
+void ControlledVoltageSource<Provider>::stamp_electrical_actuator(SimulationState& st, float dt) {
+    // Stage 2 compatibility shim: preserve behavior by delegating to legacy electrical stamp.
+    solve_electrical(st, dt);
+}
+
 // ControlledCurrentSource ------------------------------------------------
 template <typename Provider>
 void ControlledCurrentSource<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
@@ -698,6 +739,12 @@ void ControlledCurrentSource<Provider>::solve_electrical(SimulationState& st, fl
     st.through[provider.get(PortNames::v_neg)] -= i_source;
 }
 
+template <typename Provider>
+void ControlledCurrentSource<Provider>::stamp_electrical_actuator(SimulationState& st, float dt) {
+    // Stage 2 compatibility shim: preserve behavior by delegating to legacy electrical stamp.
+    solve_electrical(st, dt);
+}
+
 // VariableConductance ----------------------------------------------------
 template <typename Provider>
 void VariableConductance<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
@@ -707,6 +754,12 @@ void VariableConductance<Provider>::solve_electrical(SimulationState& st, float 
 
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
                    provider.get(PortNames::v_in), provider.get(PortNames::v_out), g);
+}
+
+template <typename Provider>
+void VariableConductance<Provider>::stamp_electrical_actuator(SimulationState& st, float dt) {
+    // Stage 2 compatibility shim: preserve behavior by delegating to legacy electrical stamp.
+    solve_electrical(st, dt);
 }
 
 // =============================================================================

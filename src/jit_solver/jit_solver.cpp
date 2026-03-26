@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <map>
 #include <optional>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -63,6 +64,67 @@ auto get_string = [](const DeviceInstance& dev, const std::string& key, const st
     }
     return default_val;
 };
+
+template <typename CompType>
+ExecutionTraits infer_execution_traits_for_type() {
+    ExecutionTraits t{};
+
+    Domain d = CompType::domain;
+    if (has_domain(d, Domain::Electrical)) t.electrical_passive = true;
+    if (has_domain(d, Domain::Logical)) t.logical = true;
+    if (has_domain(d, Domain::Mechanical)) t.mechanical = true;
+    if (has_domain(d, Domain::Hydraulic)) t.hydraulic = true;
+    if (has_domain(d, Domain::Thermal)) t.thermal = true;
+
+    // Stage 1 explicit intent overrides (metadata only, no scheduling effect yet).
+    if constexpr (std::is_same_v<CompType, VoltageSense<JitProvider>>) {
+        t.electrical_passive = false;
+        t.electrical_observer = true;
+    }
+    if constexpr (std::is_same_v<CompType, Voltmeter<JitProvider>>) {
+        t.electrical_passive = false;
+        t.electrical_observer = true;
+    }
+    if constexpr (std::is_same_v<CompType, CurrentSense<JitProvider>>) {
+        t.electrical_passive = true;
+        t.electrical_observer = true;
+    }
+
+    if constexpr (std::is_same_v<CompType, Bus<JitProvider>>) {
+        t.electrical_passive = false;
+    }
+
+    if constexpr (std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
+                  std::is_same_v<CompType, ControlledCurrentSource<JitProvider>> ||
+                  std::is_same_v<CompType, VariableConductance<JitProvider>>) {
+        t.electrical_passive = false;
+        t.electrical_actuator = true;
+    }
+
+    if constexpr (std::is_same_v<CompType, PID<JitProvider>> ||
+                  std::is_same_v<CompType, PD<JitProvider>> ||
+                  std::is_same_v<CompType, PI<JitProvider>> ||
+                  std::is_same_v<CompType, P<JitProvider>>) {
+        // Controllers participate in both phases during migration:
+        // passive electrical stamp (tiny conductance for conditioning)
+        // and logical solve (control output update).
+        t.electrical_passive = true;
+        t.logical = true;
+    }
+
+    if constexpr (std::is_same_v<CompType, DMR400<JitProvider>> ||
+                  std::is_same_v<CompType, RU19A<JitProvider>> ||
+                  std::is_same_v<CompType, GS24<JitProvider>> ||
+                  std::is_same_v<CompType, RUG82<JitProvider>>) {
+        t.finalize = true;
+    }
+
+    if constexpr (std::is_same_v<CompType, HoldButton<JitProvider>>) {
+        t.control_commit = true;
+    }
+
+    return t;
+}
 
 /// Factory function - creates a ComponentVariant from DeviceInstance
 ComponentVariant create_component_variant(
@@ -585,6 +647,29 @@ ComponentVariant create_component_variant(
 
 } // anonymous namespace
 
+ExecutionTraits get_component_execution_traits(const ComponentVariant& variant) {
+    return std::visit([](auto& comp) -> ExecutionTraits {
+        using CompType = std::decay_t<decltype(comp)>;
+        return infer_execution_traits_for_type<CompType>();
+    }, variant);
+}
+
+std::string get_execution_traits_string(const ExecutionTraits& t) {
+    std::string result;
+    if (t.electrical_passive) result += "ElecPassive ";
+    if (t.electrical_observer) result += "ElecObserver ";
+    if (t.logical) result += "Logical ";
+    if (t.control_commit) result += "ControlCommit ";
+    if (t.electrical_actuator) result += "ElecActuator ";
+    if (t.finalize) result += "Finalize ";
+    if (t.mechanical) result += "Mechanical ";
+    if (t.hydraulic) result += "Hydraulic ";
+    if (t.thermal) result += "Thermal ";
+    if (result.empty()) return "None";
+    if (result.back() == ' ') result.pop_back();
+    return result;
+}
+
 
 
 // Union-Find for port connections
@@ -1015,9 +1100,11 @@ BuildResult build_systems_dev(
     for (const auto& name : device_names_ordered) {
         ComponentVariant* ptr = &result.devices[name];
         Domain domain_mask = get_component_domain_mask(*ptr);
+        ExecutionTraits exec_traits = get_component_execution_traits(*ptr);
 
         // Log domain assignment for debugging
         spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
+        spdlog::debug("[build] {} -> [{}] exec_traits", name, get_execution_traits_string(exec_traits));
 
         // Add component to each domain it belongs to
         if (has_domain(domain_mask, Domain::Electrical)) {
@@ -1036,6 +1123,44 @@ BuildResult build_systems_dev(
             result.domain_components.thermal.push_back(ptr);
             spdlog::info("[build] {} -> THERMAL domain", name);
         }
+
+        // Stage 4 scaffolding: populate explicit phase buckets.
+        if (exec_traits.electrical_passive) {
+            result.phase_components.electrical_passive.push_back(ptr);
+        }
+        if (exec_traits.electrical_observer) {
+            result.phase_components.electrical_observer.push_back(ptr);
+        }
+        if (exec_traits.logical) {
+            result.phase_components.logical.push_back(ptr);
+        }
+        if (exec_traits.control_commit) {
+            result.phase_components.control_commit.push_back(ptr);
+        }
+        if (exec_traits.electrical_actuator) {
+            result.phase_components.electrical_actuator.push_back(ptr);
+        }
+        if (exec_traits.finalize) {
+            result.phase_components.finalize.push_back(ptr);
+        }
+        if (exec_traits.mechanical) {
+            result.phase_components.mechanical.push_back(ptr);
+        }
+        if (exec_traits.hydraulic) {
+            result.phase_components.hydraulic.push_back(ptr);
+        }
+        if (exec_traits.thermal) {
+            result.phase_components.thermal.push_back(ptr);
+        }
+
+        // Migration compatibility: keep finalize sweep for legacy post_step-based components,
+        // but avoid double-running logic that already moved into explicit logical phase.
+        bool has_legacy_post_step = std::visit([](auto& comp) {
+            return requires (SimulationState& s, float d) { comp.post_step(s, d); };
+        }, *ptr);
+        if (!exec_traits.finalize && has_legacy_post_step && !exec_traits.logical) {
+            result.phase_components.finalize.push_back(ptr);
+        }
     }
 
     spdlog::info("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",
@@ -1045,6 +1170,53 @@ BuildResult build_systems_dev(
         result.domain_components.mechanical.size(),
         result.domain_components.hydraulic.size(),
         result.domain_components.thermal.size());
+
+    // Stage 1 diagnostics: summarize future phase capabilities without affecting runtime scheduling.
+    uint32_t phase_elec_passive = 0;
+    uint32_t phase_elec_observer = 0;
+    uint32_t phase_logical = 0;
+    uint32_t phase_control_commit = 0;
+    uint32_t phase_elec_actuator = 0;
+    uint32_t phase_finalize = 0;
+    uint32_t phase_mech = 0;
+    uint32_t phase_hyd = 0;
+    uint32_t phase_therm = 0;
+
+    for (const auto& [dev_name, variant] : result.devices) {
+        (void)dev_name;
+        ExecutionTraits t = get_component_execution_traits(variant);
+        phase_elec_passive += t.electrical_passive ? 1u : 0u;
+        phase_elec_observer += t.electrical_observer ? 1u : 0u;
+        phase_logical += t.logical ? 1u : 0u;
+        phase_control_commit += t.control_commit ? 1u : 0u;
+        phase_elec_actuator += t.electrical_actuator ? 1u : 0u;
+        phase_finalize += t.finalize ? 1u : 0u;
+        phase_mech += t.mechanical ? 1u : 0u;
+        phase_hyd += t.hydraulic ? 1u : 0u;
+        phase_therm += t.thermal ? 1u : 0u;
+    }
+
+    spdlog::info("[build][stage1] exec traits summary: passive={}, observer={}, logical={}, commit={}, actuator={}, finalize={}, mech={}, hyd={}, therm={}",
+                 phase_elec_passive,
+                 phase_elec_observer,
+                 phase_logical,
+                 phase_control_commit,
+                 phase_elec_actuator,
+                 phase_finalize,
+                 phase_mech,
+                 phase_hyd,
+                 phase_therm);
+
+    spdlog::info("[build][stage4] phase buckets: passive={}, observer={}, logical={}, commit={}, actuator={}, finalize={}, mech={}, hyd={}, therm={}",
+                 result.phase_components.electrical_passive.size(),
+                 result.phase_components.electrical_observer.size(),
+                 result.phase_components.logical.size(),
+                 result.phase_components.control_commit.size(),
+                 result.phase_components.electrical_actuator.size(),
+                 result.phase_components.finalize.size(),
+                 result.phase_components.mechanical.size(),
+                 result.phase_components.hydraulic.size(),
+                 result.phase_components.thermal.size());
 
     return result;
 }

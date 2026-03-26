@@ -317,6 +317,7 @@ public:
     PID() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -341,6 +342,7 @@ public:
     PD() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -363,6 +365,7 @@ public:
     PI() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -383,6 +386,7 @@ public:
     P() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void solve_logical(SimulationState& st, float dt);
     void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
@@ -435,6 +439,7 @@ public:
     CurrentSense() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void observe_electrical(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -510,6 +515,7 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);  // no-op stamp, output written here
     void solve_logical(SimulationState& st, float dt);     // writes out = (v_in - v_ref) * gain + offset
+    void observe_electrical(SimulationState& st, float dt); // Stage 2 hook shim
     void pre_load() {}
 };
 
@@ -532,6 +538,7 @@ public:
     ControlledVoltageSource() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void stamp_electrical_actuator(SimulationState& st, float dt); // Stage 2 hook shim
     void pre_load();
 };
 
@@ -552,6 +559,7 @@ public:
     ControlledCurrentSource() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void stamp_electrical_actuator(SimulationState& st, float dt); // Stage 2 hook shim
     void pre_load() {}
 };
 
@@ -570,6 +578,7 @@ public:
     VariableConductance() = default;
 
     void solve_electrical(SimulationState& st, float dt);
+    void stamp_electrical_actuator(SimulationState& st, float dt); // Stage 2 hook shim
     void pre_load() {}
 };
 

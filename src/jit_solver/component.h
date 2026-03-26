@@ -32,6 +32,27 @@ public:
     /// Solve logical domain (every step, dt = frame delta)
     virtual void solve_logical(SimulationState& state, float dt) {}
 
+    /// Stage 2: explicit phase hook - passive electrical stamping path
+    /// Compatibility default delegates to legacy solve_electrical().
+    virtual void stamp_electrical_passive(SimulationState& state, float dt) {
+        solve_electrical(state, dt);
+    }
+
+    /// Stage 2: explicit phase hook - post-SOR electrical observation path
+    virtual void observe_electrical(SimulationState& state, float dt) {}
+
+    /// Stage 2: explicit phase hook - control edge/state commit path
+    virtual void commit_control(SimulationState& state, float dt) {}
+
+    /// Stage 2: explicit phase hook - actuator electrical stamping path
+    virtual void stamp_electrical_actuator(SimulationState& state, float dt) {}
+
+    /// Stage 2: explicit phase hook - end-of-step finalize path
+    /// Compatibility default delegates to legacy post_step().
+    virtual void finalize_step(SimulationState& state, float dt) {
+        post_step(state, dt);
+    }
+
     /// Post-step update (once per frame, after SOR iteration)
     virtual void post_step(SimulationState& state, float dt) {}
 

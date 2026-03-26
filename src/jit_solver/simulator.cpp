@@ -146,65 +146,31 @@ template<typename SolverTag>
 void Simulator<SolverTag>::step(float dt) {
     if (!running_ || !build_result_.has_value()) return;
 
-    state_.clear_through();
+    // Pause-safe: no simulation-time advancement or accumulator growth.
+    if (dt <= 0.0f) {
+        return;
+    }
 
-    // Accumulate dt for sub-rate domains (FPS-independent physics)
+    // Accumulate simulation dt for sub-rate domains.
     accumulator_mechanical_ += dt;
     accumulator_hydraulic_ += dt;
     accumulator_thermal_ += dt;
 
-    // Data-oriented multi-domain solving with zero branching
-    // Components are pre-sorted by domain, so we just iterate the relevant vectors
-
-    // Electrical: every step
-    for (auto* variant : build_result_->domain_components.electrical) {
+    // == Phase 1: passive electrical stamp ==
+    state_.clear_through();
+    for (auto* variant : build_result_->phase_components.electrical_passive) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_electrical(state_, dt); }) {
+            if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
+                comp.stamp_electrical_passive(state_, dt);
+            } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
                 comp.solve_electrical(state_, dt);
             }
         }, *variant);
     }
 
-    // Mechanical: every 3rd step — use accumulated dt, then reset
-    if ((step_count_ % DomainSchedule::MECHANICAL_PERIOD) == 0) {
-        for (auto* variant : build_result_->domain_components.mechanical) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_mechanical(state_, accumulator_mechanical_); }) {
-                    comp.solve_mechanical(state_, accumulator_mechanical_);
-                }
-            }, *variant);
-        }
-        accumulator_mechanical_ = 0.0f;
-    }
-
-    // Hydraulic: every 12th step — use accumulated dt, then reset
-    if ((step_count_ % DomainSchedule::HYDRAULIC_PERIOD) == 0) {
-        for (auto* variant : build_result_->domain_components.hydraulic) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_hydraulic(state_, accumulator_hydraulic_); }) {
-                    comp.solve_hydraulic(state_, accumulator_hydraulic_);
-                }
-            }, *variant);
-        }
-        accumulator_hydraulic_ = 0.0f;
-    }
-
-    // Thermal: every 60th step — use accumulated dt, then reset
-    if ((step_count_ % DomainSchedule::THERMAL_PERIOD) == 0) {
-        for (auto* variant : build_result_->domain_components.thermal) {
-            std::visit([&](auto& comp) {
-                if constexpr (requires { comp.solve_thermal(state_, accumulator_thermal_); }) {
-                    comp.solve_thermal(state_, accumulator_thermal_);
-                }
-            }, *variant);
-        }
-        accumulator_thermal_ = 0.0f;
-    }
-
-    // SOR solver - multiple cheap sweeps per step for improved stability
+    // == Phase 2: first SOR pass ==
     state_.precompute_inv_conductance();
     state_.save_convergence_state();
-
     for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {
         solve_sor_iteration(
             state_.across.data(),
@@ -215,7 +181,64 @@ void Simulator<SolverTag>::step(float dt) {
         );
     }
 
-    // Optional adaptive omega: reduce fast on worsening, recover slowly on improvement
+    // == Phase 3: electrical observers ==
+    for (auto* variant : build_result_->phase_components.electrical_observer) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.observe_electrical(state_, dt); }) {
+                comp.observe_electrical(state_, dt);
+            }
+        }, *variant);
+    }
+
+    // == Phase 4: logical solve (legacy logical bucket for now) ==
+    for (auto* variant : build_result_->phase_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state_, dt); }) {
+                comp.solve_logical(state_, dt);
+            }
+        }, *variant);
+    }
+
+    // == Phase 5: control commit ==
+    for (auto* variant : build_result_->phase_components.control_commit) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.commit_control(state_, dt); }) {
+                comp.commit_control(state_, dt);
+            }
+        }, *variant);
+    }
+
+    // == Phase 6: actuator electrical stamp + second SOR ==
+    state_.clear_through();
+    for (auto* variant : build_result_->phase_components.electrical_passive) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
+                comp.stamp_electrical_passive(state_, dt);
+            } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
+                comp.solve_electrical(state_, dt);
+            }
+        }, *variant);
+    }
+    for (auto* variant : build_result_->phase_components.electrical_actuator) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.stamp_electrical_actuator(state_, dt); }) {
+                comp.stamp_electrical_actuator(state_, dt);
+            }
+        }, *variant);
+    }
+    state_.precompute_inv_conductance();
+    state_.save_convergence_state();
+    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {
+        solve_sor_iteration(
+            state_.across.data(),
+            state_.through.data(),
+            state_.inv_conductance.data(),
+            state_.dynamic_signals_count,
+            omega_
+        );
+    }
+
+    // Optional adaptive omega: reduce fast on worsening, recover slowly on improvement.
     float err = state_.get_max_change();
     if (adaptive_omega_enabled_ && prev_convergence_error_ > 0.0f) {
         if (err > prev_convergence_error_ * ::SORAdaptive::ERROR_WORSE_FACTOR) {
@@ -226,26 +249,105 @@ void Simulator<SolverTag>::step(float dt) {
     }
     prev_convergence_error_ = err;
 
-    // post_step for components that need it
-    for (auto& [name, variant] : build_result_->devices) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.post_step(state_, dt); }) {
-                comp.post_step(state_, dt);
-            }
-        }, variant);
+    // == Phase 7: sub-rate domains (accumulated simulation dt, period buckets) ==
+    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;
+    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;
+    constexpr float kThermalPeriodSec = 1.0f;
+    constexpr int kMaxCatchUpTicks = 8;
+    const bool first_sim_step = (step_count_ == 0);
+
+    int mech_ticks = 0;
+    if (first_sim_step && accumulator_mechanical_ > 0.0f) {
+        for (auto* variant : build_result_->phase_components.mechanical) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_mechanical(state_, accumulator_mechanical_); }) {
+                    comp.solve_mechanical(state_, accumulator_mechanical_);
+                }
+            }, *variant);
+        }
+        accumulator_mechanical_ = 0.0f;
+        ++mech_ticks;
+    }
+    while (accumulator_mechanical_ >= kMechanicalPeriodSec && mech_ticks < kMaxCatchUpTicks) {
+        for (auto* variant : build_result_->phase_components.mechanical) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_mechanical(state_, kMechanicalPeriodSec); }) {
+                    comp.solve_mechanical(state_, kMechanicalPeriodSec);
+                }
+            }, *variant);
+        }
+        accumulator_mechanical_ -= kMechanicalPeriodSec;
+        ++mech_ticks;
+    }
+    if (mech_ticks == kMaxCatchUpTicks && accumulator_mechanical_ >= kMechanicalPeriodSec) {
+        spdlog::warn("[sim] mechanical catch-up capped (accum={:.6f}s)", accumulator_mechanical_);
     }
 
-    // Logical: after SOR+post_step so logical components read converged
-    // electrical values and their outputs are final (SOR does not touch them)
-    for (auto* variant : build_result_->domain_components.logical) {
+    int hyd_ticks = 0;
+    if (first_sim_step && accumulator_hydraulic_ > 0.0f) {
+        for (auto* variant : build_result_->phase_components.hydraulic) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_hydraulic(state_, accumulator_hydraulic_); }) {
+                    comp.solve_hydraulic(state_, accumulator_hydraulic_);
+                }
+            }, *variant);
+        }
+        accumulator_hydraulic_ = 0.0f;
+        ++hyd_ticks;
+    }
+    while (accumulator_hydraulic_ >= kHydraulicPeriodSec && hyd_ticks < kMaxCatchUpTicks) {
+        for (auto* variant : build_result_->phase_components.hydraulic) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_hydraulic(state_, kHydraulicPeriodSec); }) {
+                    comp.solve_hydraulic(state_, kHydraulicPeriodSec);
+                }
+            }, *variant);
+        }
+        accumulator_hydraulic_ -= kHydraulicPeriodSec;
+        ++hyd_ticks;
+    }
+    if (hyd_ticks == kMaxCatchUpTicks && accumulator_hydraulic_ >= kHydraulicPeriodSec) {
+        spdlog::warn("[sim] hydraulic catch-up capped (accum={:.6f}s)", accumulator_hydraulic_);
+    }
+
+    int therm_ticks = 0;
+    if (first_sim_step && accumulator_thermal_ > 0.0f) {
+        for (auto* variant : build_result_->phase_components.thermal) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_thermal(state_, accumulator_thermal_); }) {
+                    comp.solve_thermal(state_, accumulator_thermal_);
+                }
+            }, *variant);
+        }
+        accumulator_thermal_ = 0.0f;
+        ++therm_ticks;
+    }
+    while (accumulator_thermal_ >= kThermalPeriodSec && therm_ticks < kMaxCatchUpTicks) {
+        for (auto* variant : build_result_->phase_components.thermal) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.solve_thermal(state_, kThermalPeriodSec); }) {
+                    comp.solve_thermal(state_, kThermalPeriodSec);
+                }
+            }, *variant);
+        }
+        accumulator_thermal_ -= kThermalPeriodSec;
+        ++therm_ticks;
+    }
+    if (therm_ticks == kMaxCatchUpTicks && accumulator_thermal_ >= kThermalPeriodSec) {
+        spdlog::warn("[sim] thermal catch-up capped (accum={:.6f}s)", accumulator_thermal_);
+    }
+
+    // == Phase 8: finalize ==
+    for (auto* variant : build_result_->phase_components.finalize) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_logical(state_, dt); }) {
-                comp.solve_logical(state_, dt);
+            if constexpr (requires { comp.finalize_step(state_, dt); }) {
+                comp.finalize_step(state_, dt);
+            } else if constexpr (requires { comp.post_step(state_, dt); }) {
+                comp.post_step(state_, dt);
             }
         }, *variant);
     }
 
-    // DEBUG: Log every 60 steps
     time_ += dt;
     step_count_++;
 }

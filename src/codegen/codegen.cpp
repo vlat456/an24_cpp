@@ -112,6 +112,57 @@ bool has_domain(const DeviceInstance& dev, const std::string& domain) {
     return dev_domain.find(domain) != std::string::npos;
 }
 
+struct CodegenPhaseTraits {
+    bool electrical_passive = false;
+    bool electrical_observer = false;
+    bool logical = false;
+    bool control_commit = false;
+    bool electrical_actuator = false;
+    bool finalize = false;
+    bool mechanical = false;
+    bool hydraulic = false;
+    bool thermal = false;
+    bool electrical_noop = false;
+};
+
+CodegenPhaseTraits infer_codegen_phase_traits(const DeviceInstance& dev) {
+    CodegenPhaseTraits t{};
+
+    std::string domain = get_device_domain(dev);
+    bool has_electrical = domain.find("Electrical") != std::string::npos;
+    bool has_logical = domain.find("Logical") != std::string::npos;
+
+    t.mechanical = domain.find("Mechanical") != std::string::npos;
+    t.hydraulic = domain.find("Hydraulic") != std::string::npos;
+    t.thermal = domain.find("Thermal") != std::string::npos;
+
+    t.electrical_noop = (dev.classname == "Bus" || dev.classname == "Voltmeter");
+    t.electrical_observer = (dev.classname == "VoltageSense" || dev.classname == "CurrentSense");
+    t.electrical_actuator = (dev.classname == "ControlledVoltageSource" ||
+                             dev.classname == "ControlledCurrentSource" ||
+                             dev.classname == "VariableConductance");
+
+    bool is_controller = (dev.classname == "PID" || dev.classname == "PD" ||
+                          dev.classname == "PI" || dev.classname == "P");
+    t.logical = has_logical || is_controller;
+
+    t.electrical_passive = has_electrical && !t.electrical_noop &&
+                           !t.electrical_observer && !t.electrical_actuator && !is_controller;
+
+    // CurrentSense is mixed-role: it must stamp passive conductance and also observe current.
+    if (dev.classname == "CurrentSense") {
+        t.electrical_passive = true;
+    }
+
+    const std::unordered_set<std::string> has_post_step = {
+        "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
+        "PID", "PD", "PI", "P", "AZS", "GidroAccumulator", "FuelTank", "RUG82"
+    };
+    t.finalize = has_post_step.count(dev.classname) > 0 && !t.logical;
+
+    return t;
+}
+
 // Generate AotProvider<Binding<...>, ...> type string for a device
 std::string generate_aot_provider_type(
     const DeviceInstance& dev,
@@ -287,6 +338,9 @@ std::string CodeGen::generate_header(
     oss << "    float acc_hydraulic_  = 0.0f;\n";
     oss << "    float acc_thermal_    = 0.0f;\n\n";
 
+    // Global simulation step counter (not modulo cycle index)
+    oss << "    uint32_t step_counter_ = 0;\n\n";
+
     // Pre-allocated convergence buffer pointer (set at init)
     oss << "    float* convergence_buffer = nullptr;\n\n";
 
@@ -460,6 +514,7 @@ std::string CodeGen::generate_source(
 
     // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
     oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
+    oss << "    if (dt <= 0.0f) return;\n";
     oss << "    // Accumulate dt for sub-rate domain scheduling\n";
     oss << "    acc_mechanical_ += dt;\n";
     oss << "    acc_hydraulic_  += dt;\n";
@@ -476,58 +531,60 @@ std::string CodeGen::generate_source(
     for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
         oss << "    step_" << i << ":\n";
         oss << "        step_" << i << "(state, dt);\n";
+        oss << "        ++step_counter_;\n";
         oss << "        return;\n\n";
     }
     oss << "#else\n";
     oss << "    // MSVC fallback: switch-based dispatch\n";
     oss << "    switch (step % " << DomainSchedule::CYCLE_LENGTH << ") {\n";
     for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
-        oss << "        case " << i << ": step_" << i << "(state, dt); return;\n";
+        oss << "        case " << i << ": step_" << i << "(state, dt); ++step_counter_; return;\n";
     }
     oss << "    }\n";
     oss << "#endif\n";
     oss << "}\n\n";
 
-    // Generate CYCLE_LENGTH step methods with domain scheduling
-    // Group devices by domain and step
-    std::map<std::pair<int, std::string>, std::vector<std::string>> step_devices;
+    // Build explicit phase buckets for generated runtime, aligned with JIT scheduler.
+    std::vector<std::string> phase_electrical_passive;
+    std::vector<std::string> phase_electrical_noop;
+    std::vector<std::string> phase_electrical_observer;
+    std::vector<std::string> phase_logical;
+    std::vector<std::string> phase_electrical_actuator;
+    std::vector<std::string> phase_finalize;
+    std::vector<std::string> phase_mechanical;
+    std::vector<std::string> phase_hydraulic;
+    std::vector<std::string> phase_thermal;
 
     for (const auto& dev : devices) {
-        std::string domain = get_device_domain(dev);
+        CodegenPhaseTraits t = infer_codegen_phase_traits(dev);
 
-        // Electrical: every step (0, 1, 2, ...)
-        if (domain.find("Electrical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-                step_devices[{step, "electrical"}].push_back(dev.name);
-            }
+        if (t.electrical_passive) {
+            phase_electrical_passive.push_back(dev.name);
+        }
+        if (t.electrical_noop) {
+            phase_electrical_noop.push_back(dev.name);
+        }
+        if (t.electrical_observer) {
+            phase_electrical_observer.push_back(dev.name);
+        }
+        if (t.logical) {
+            phase_logical.push_back(dev.name);
+        }
+        if (t.electrical_actuator) {
+            phase_electrical_actuator.push_back(dev.name);
+        }
+        if (t.mechanical) {
+            phase_mechanical.push_back(dev.name);
+        }
+        if (t.hydraulic) {
+            phase_hydraulic.push_back(dev.name);
+        }
+        if (t.thermal) {
+            phase_thermal.push_back(dev.name);
         }
 
-        // Mechanical: step (0, 3, 6, ...)
-        if (domain.find("Mechanical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::MECHANICAL_PERIOD) {
-                step_devices[{step, "mechanical"}].push_back(dev.name);
-            }
-        }
-
-        // Hydraulic: every 12th step (0, 12, 24, ...)
-        if (domain.find("Hydraulic") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::HYDRAULIC_PERIOD) {
-                step_devices[{step, "hydraulic"}].push_back(dev.name);
-            }
-        }
-
-        // Thermal: every THERMAL_PERIOD-th step (only step 0 when period == cycle length)
-        if (domain.find("Thermal") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; step += DomainSchedule::THERMAL_PERIOD) {
-                step_devices[{step, "thermal"}].push_back(dev.name);
-            }
-        }
-
-        // Logical: every step (0, 1, 2, ...) - 60Hz boolean logic
-        if (domain.find("Logical") != std::string::npos) {
-            for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
-                step_devices[{step, "logical"}].push_back(dev.name);
-            }
+        if (t.finalize) {
+            phase_finalize.push_back(dev.name);
         }
     }
 
@@ -535,98 +592,115 @@ std::string CodeGen::generate_source(
     for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
+        oss << "    // Phase 1: passive electrical stamp\n";
         oss << "    st->clear_through();\n";
-
-        // Electrical (every step) - DATA-ORIENTED: direct index access
-        auto elec_it = step_devices.find({step, "electrical"});
-        if (elec_it != step_devices.end()) {
-            for (const auto& dev_name : elec_it->second) {
-                // Find device
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-
-                // Bus/Voltmeter are no-ops; RefNode now stamps Norton residual (BUG-RefNode fix)
-                if (dev_it->classname == "Bus" || dev_it->classname == "Voltmeter") {
-                    oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
-                } else {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
-                }
-            }
+        for (const auto& dev_name : phase_electrical_noop) {
+            oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
+        }
+        for (const auto& dev_name : phase_electrical_passive) {
+            oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
         }
 
-        // Mechanical (every MECHANICAL_PERIOD-th)
-        if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
-            auto mech_it = step_devices.find({step, "mechanical"});
-            if (mech_it != step_devices.end()) {
-                for (const auto& dev_name : mech_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
-                }
-                oss << "    acc_mechanical_ = 0.0f;\n";
-            }
-        }
-
-        // Hydraulic (every HYDRAULIC_PERIOD-th)
-        if (step % DomainSchedule::HYDRAULIC_PERIOD == 0) {
-            auto hyd_it = step_devices.find({step, "hydraulic"});
-            if (hyd_it != step_devices.end()) {
-                for (const auto& dev_name : hyd_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
-                }
-                oss << "    acc_hydraulic_ = 0.0f;\n";
-            }
-        }
-
-        // Thermal (every THERMAL_PERIOD-th)
-        if (step % DomainSchedule::THERMAL_PERIOD == 0) {
-            auto therm_it = step_devices.find({step, "thermal"});
-            if (therm_it != step_devices.end()) {
-                for (const auto& dev_name : therm_it->second) {
-                    oss << "    " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
-                }
-                oss << "    acc_thermal_ = 0.0f;\n";
-            }
-        }
-
-        // SOR solver - multiple cheap sweeps per step for improved stability
-        // Only iterate dynamic signals [0..dynamic_signals_count) — matches JIT path.
+        oss << "    // Phase 2: first SOR pass\n";
         oss << "    st->precompute_inv_conductance();\n";
+        oss << "    st->save_convergence_state();\n";
         oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
         oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
         oss << "    }\n";
 
-        // Post-step: update device state after SOR convergence
-        // Must run before logical so logical components see updated state
-        // (e.g., HoldButton.state is set in post_step, read by AND gate)
-        {
-            static const std::unordered_set<std::string> has_post_step = {
-                "Switch", "Relay", "HoldButton", "GS24", "LerpNode", "DMR400", "RU19A",
-                "PID", "PD", "PI", "P", "AZS", "GidroAccumulator", "FuelTank", "RUG82"
-            };
-            for (const auto& dev : devices) {
-                if (has_post_step.count(dev.classname)) {
-                    oss << "    " << sanitize_name(dev.name) << ".post_step(*st, dt);\n";
-                }
-            }
+        oss << "    // Phase 3: electrical observers\n";
+        for (const auto& dev_name : phase_electrical_observer) {
+            // Currently only VoltageSense has explicit observer hook.
+            oss << "    " << sanitize_name(dev_name) << ".observe_electrical(*st, dt);\n";
         }
 
-        // Logical: AFTER SOR + post_step so logical gates read converged values
-        // and their outputs are final (SOR does not overwrite them)
-        auto log_it = step_devices.find({step, "logical"});
-        if (log_it != step_devices.end()) {
-            for (const auto& dev_name : log_it->second) {
-                auto dev_it = std::find_if(devices.begin(), devices.end(),
-                    [&dev_name](const DeviceInstance& d) { return d.name == dev_name; });
-                if (dev_it == devices.end()) continue;
-                oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
-            }
+        oss << "    // Phase 4: logical solve\n";
+        for (const auto& dev_name : phase_logical) {
+            oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
+        }
+
+        oss << "    // Phase 5: second electrical pass (passive + actuators)\n";
+        oss << "    st->clear_through();\n";
+        for (const auto& dev_name : phase_electrical_noop) {
+            oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
+        }
+        for (const auto& dev_name : phase_electrical_passive) {
+            oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
+        }
+        for (const auto& dev_name : phase_electrical_actuator) {
+            oss << "    " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
+        }
+        oss << "    st->precompute_inv_conductance();\n";
+        oss << "    st->save_convergence_state();\n";
+        oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
+        oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
+        oss << "    }\n";
+
+        oss << "    // Phase 6: sub-rate domains (accumulated simulation dt)\n";
+        oss << "    const bool first_sim_step = (step_counter_ == 0u);\n";
+        oss << "    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;\n";
+        oss << "    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;\n";
+        oss << "    constexpr float kThermalPeriodSec = 1.0f;\n";
+        oss << "    constexpr int kMaxCatchUpTicks = 8;\n";
+
+        oss << "    int mech_ticks = 0;\n";
+        oss << "    if (first_sim_step && acc_mechanical_ > 0.0f) {\n";
+        for (const auto& dev_name : phase_mechanical) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
+        }
+        oss << "        acc_mechanical_ = 0.0f;\n";
+        oss << "        ++mech_ticks;\n";
+        oss << "    }\n";
+        oss << "    while (acc_mechanical_ >= kMechanicalPeriodSec && mech_ticks < kMaxCatchUpTicks) {\n";
+        for (const auto& dev_name : phase_mechanical) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_mechanical(*st, kMechanicalPeriodSec);\n";
+        }
+        oss << "        acc_mechanical_ -= kMechanicalPeriodSec;\n";
+        oss << "        ++mech_ticks;\n";
+        oss << "    }\n";
+
+        oss << "    int hyd_ticks = 0;\n";
+        oss << "    if (first_sim_step && acc_hydraulic_ > 0.0f) {\n";
+        for (const auto& dev_name : phase_hydraulic) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
+        }
+        oss << "        acc_hydraulic_ = 0.0f;\n";
+        oss << "        ++hyd_ticks;\n";
+        oss << "    }\n";
+        oss << "    while (acc_hydraulic_ >= kHydraulicPeriodSec && hyd_ticks < kMaxCatchUpTicks) {\n";
+        for (const auto& dev_name : phase_hydraulic) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_hydraulic(*st, kHydraulicPeriodSec);\n";
+        }
+        oss << "        acc_hydraulic_ -= kHydraulicPeriodSec;\n";
+        oss << "        ++hyd_ticks;\n";
+        oss << "    }\n";
+
+        oss << "    int therm_ticks = 0;\n";
+        oss << "    if (first_sim_step && acc_thermal_ > 0.0f) {\n";
+        for (const auto& dev_name : phase_thermal) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
+        }
+        oss << "        acc_thermal_ = 0.0f;\n";
+        oss << "        ++therm_ticks;\n";
+        oss << "    }\n";
+        oss << "    while (acc_thermal_ >= kThermalPeriodSec && therm_ticks < kMaxCatchUpTicks) {\n";
+        for (const auto& dev_name : phase_thermal) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_thermal(*st, kThermalPeriodSec);\n";
+        }
+        oss << "        acc_thermal_ -= kThermalPeriodSec;\n";
+        oss << "        ++therm_ticks;\n";
+        oss << "    }\n";
+
+        oss << "    // Phase 7: finalize\n";
+        for (const auto& dev_name : phase_finalize) {
+            oss << "    " << sanitize_name(dev_name) << ".post_step(*st, dt);\n";
         }
 
         oss << "}\n\n";
     }
 
     // Post-step is now integrated into each step_N() method
-    // (runs after SOR, before logical — correct execution order)
+    // (runs in explicit finalize phase).
     // This method is kept empty for current test harnesses
     oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
     oss << "    // No-op: post_step is now inlined into step_N() functions\n";
