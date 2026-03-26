@@ -467,6 +467,7 @@ std::string CodeGen::generate_source(
     std::vector<std::string> phase_electrical_noop;
     std::vector<std::string> phase_electrical_observer;
     std::vector<std::string> phase_logical;
+    std::vector<std::string> phase_control_commit;
     std::vector<std::string> phase_electrical_actuator;
     std::vector<std::string> phase_finalize;
     std::vector<std::string> phase_mechanical;
@@ -488,6 +489,9 @@ std::string CodeGen::generate_source(
         }
         if (t.logical) {
             phase_logical.push_back(dev.name);
+        }
+        if (t.control_commit) {
+            phase_control_commit.push_back(dev.name);
         }
         if (t.electrical_actuator) {
             phase_electrical_actuator.push_back(dev.name);
@@ -538,7 +542,12 @@ std::string CodeGen::generate_source(
             oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
         }
 
-        oss << "    // Phase 5: second electrical pass (passive + actuators)\n";
+        oss << "    // Phase 5: control commit\n";
+        for (const auto& dev_name : phase_control_commit) {
+            oss << "    " << sanitize_name(dev_name) << ".commit_control(*st, dt);\n";
+        }
+
+        oss << "    // Phase 6: second electrical pass (passive + actuators)\n";
         oss << "    st->clear_through();\n";
         for (const auto& dev_name : phase_electrical_noop) {
             oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
@@ -555,7 +564,7 @@ std::string CodeGen::generate_source(
         oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
         oss << "    }\n";
 
-        oss << "    // Phase 6: sub-rate domains (accumulated simulation dt)\n";
+        oss << "    // Phase 7: sub-rate domains (accumulated simulation dt)\n";
         oss << "    const bool first_sim_step = (step_counter_ == 0u);\n";
         oss << "    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;\n";
         oss << "    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;\n";
@@ -610,7 +619,7 @@ std::string CodeGen::generate_source(
         oss << "        ++therm_ticks;\n";
         oss << "    }\n";
 
-        oss << "    // Phase 7: finalize\n";
+        oss << "    // Phase 8: finalize\n";
         for (const auto& dev_name : phase_finalize) {
             oss << "    " << sanitize_name(dev_name) << ".post_step(*st, dt);\n";
         }
