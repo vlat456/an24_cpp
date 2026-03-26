@@ -1,5 +1,6 @@
 #include "extract_blueprint.h"
 
+#include "editor/common/port_type_utils.h"
 #include "editor/visual/persist.h"
 #include <algorithm>
 #include <cmath>
@@ -61,36 +62,6 @@ static DescendantRemapStats collect_descendant_remap_stats(
     const bp2::Blueprint& source,
     const std::unordered_set<ui::InternedId>& selected_set,
     bool allow_nonembedded_descendant_refs);
-
-static PortType port_type_for_domain(Domain d) {
-    switch (d) {
-        case Domain::Electrical: return PortType::V;
-        case Domain::Logical: return PortType::Bool;
-        case Domain::Mechanical: return PortType::RPM;
-        case Domain::Hydraulic: return PortType::Pressure;
-        case Domain::Thermal: return PortType::Temperature;
-    }
-    return PortType::Any;
-}
-
-static Domain domain_for_port_type(PortType t) {
-    switch (t) {
-        case PortType::V:
-        case PortType::I:
-        case PortType::Any:
-            return Domain::Electrical;
-        case PortType::Bool:
-            return Domain::Logical;
-        case PortType::RPM:
-        case PortType::Position:
-            return Domain::Mechanical;
-        case PortType::Pressure:
-            return Domain::Hydraulic;
-        case PortType::Temperature:
-            return Domain::Thermal;
-    }
-    return Domain::Electrical;
-}
 
 static PortType find_port_type(const bp2::Blueprint::Node* node, ui::InternedId port_name) {
     if (!node) return PortType::Any;
@@ -293,8 +264,10 @@ static bool create_bridge_nodes_for_side(
         }
         n.y = base_y;
 
-        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
-        const Domain pd = domain_for_port_type(pt);
+        const PortType pt = (ec.port_type == PortType::Any)
+            ? editor::common::port_type_for_domain(ec.domain)
+            : ec.port_type;
+        const Domain pd = editor::common::domain_for_port_type(pt);
         if (p.is_input_side) {
             n.inputs.emplace_back(interner.intern("ext"), PortSide::Input, pt);
             n.outputs.emplace_back(interner.intern("port"), PortSide::Output, pt);
@@ -827,11 +800,15 @@ static std::optional<bp2::Blueprint> build_parent_blueprint_from_plan(
     std::sort(sorted_inputs.begin(), sorted_inputs.end(), compare_external);
     std::sort(sorted_outputs.begin(), sorted_outputs.end(), compare_external);
     for (const auto& ec : sorted_inputs) {
-        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
+        const PortType pt = (ec.port_type == PortType::Any)
+            ? editor::common::port_type_for_domain(ec.domain)
+            : ec.port_type;
         collapsed.inputs.emplace_back(interner.intern(ec.iface_name), PortSide::Input, pt);
     }
     for (const auto& ec : sorted_outputs) {
-        const PortType pt = (ec.port_type == PortType::Any) ? port_type_for_domain(ec.domain) : ec.port_type;
+        const PortType pt = (ec.port_type == PortType::Any)
+            ? editor::common::port_type_for_domain(ec.domain)
+            : ec.port_type;
         collapsed.outputs.emplace_back(interner.intern(ec.iface_name), PortSide::Output, pt);
     }
     out = out.with_node(std::move(collapsed));

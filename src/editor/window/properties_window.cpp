@@ -1,4 +1,5 @@
 #include "properties_window.h"
+#include "editor/common/port_type_utils.h"
 #include "parse_number.h"
 
 #ifndef EDITOR_TESTING
@@ -41,25 +42,6 @@ static const std::vector<PortType>& all_port_types() {
         PortType::Any,
     };
     return kTypes;
-}
-
-static Domain domain_for_port_type(PortType t) {
-    switch (t) {
-        case PortType::V:
-        case PortType::I:
-        case PortType::Any:
-            return Domain::Electrical;
-        case PortType::Bool:
-            return Domain::Logical;
-        case PortType::RPM:
-        case PortType::Position:
-            return Domain::Mechanical;
-        case PortType::Pressure:
-            return Domain::Hydraulic;
-        case PortType::Temperature:
-            return Domain::Thermal;
-    }
-    return Domain::Electrical;
 }
 
 // Parse "k1:v1; k2:v2; ..." into parallel vectors
@@ -643,7 +625,7 @@ void PropertiesWindow::apply() {
                     if (const auto* nested = next_bp.find_nested(nested_iid)) {
                         bp2::Blueprint::Nested n = *nested;
                         std::vector<bp2::PortDescriptor> ports = n.iface.ports();
-                        const Domain d = domain_for_port_type(*pending_bridge_port_type_);
+                        const Domain d = editor::common::domain_for_port_type(*pending_bridge_port_type_);
                         for (auto& pd : ports) {
                             if (pd.name == iface_iid) pd.domain = d;
                         }

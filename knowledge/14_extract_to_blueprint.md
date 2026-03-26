@@ -35,6 +35,9 @@ If any precondition fails, the command must abort with no partial mutations.
 - Embedded nested selection allowed only when embedded descendants are transitively embedded (non-embedded descendants are rejected)
 - Advanced guarded mode available (`allow_nonembedded_descendant_refs=true`) to bypass descendant strict rejection
 - In guarded mode, non-embedded descendants are remapped to embedded inline defs when a matching embedded source nested exists by `blueprint_id`
+- Bridge PortType editing propagates to parent collapsed node + nested iface domain
+- Extraction preserves boundary PortType on generated BlueprintInput/BlueprintOutput bridge nodes
+- Wire creation/reconnection enforces type compatibility (`PortType`) in addition to side checks
 
 ### Excluded (follow-up)
 - Any inference/coercion beyond explicit wire endpoint metadata
