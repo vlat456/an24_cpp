@@ -526,6 +526,38 @@ TEST(DtRegression, Simulator_SteadyStateIsDtIndependent) {
         << "60Hz=" << v60 << "V, 144Hz=" << v144 << "V";
 }
 
+TEST(DtRegression, MixedRenderCadence_EquivalentSteadyState) {
+    auto run_for_time = [](const std::vector<float>& dts, float total_time) {
+        Blueprint bp = make_battery_circuit();
+        Simulator<JIT_Solver> sim;
+        sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+        float t = 0.0f;
+        size_t i = 0;
+        while (t < total_time) {
+            const float dt_nominal = dts[i % dts.size()];
+            const float dt = std::min(dt_nominal, total_time - t);
+            sim.step(dt);
+            t += dt;
+            ++i;
+        }
+
+        const float v = sim.get_wire_voltage("bat.v_out");
+        sim.stop();
+        return v;
+    };
+
+    const float total_time = 3.0f;
+    const float v_50 = run_for_time({1.0f / 50.0f}, total_time);
+    const float v_200 = run_for_time({1.0f / 200.0f}, total_time);
+    const float v_mixed = run_for_time({1.0f / 144.0f, 1.0f / 50.0f, 1.0f / 200.0f, 1.0f / 75.0f}, total_time);
+
+    EXPECT_NEAR(v_50, v_200, 0.5f)
+        << "Steady state must be monitor-agnostic for different fixed cadences";
+    EXPECT_NEAR(v_50, v_mixed, 0.5f)
+        << "Steady state must be monitor-agnostic for mixed render cadence";
+}
+
 // =============================================================================
 // Regression: Step counter resets on start/stop
 // =============================================================================

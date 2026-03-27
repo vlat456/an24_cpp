@@ -103,9 +103,9 @@ Runtime executes explicit phases in one outer `step(dt)`:
 
 `dt <= 0` is pause/no-advance: no phase advances simulation state.
 
-### Sub-rate Domains
+### Sub-rate Domains (period-based, monitor-agnostic)
 
-Slow domains use accumulated simulation time, not frame counters:
+Slow domains use accumulated simulation time, not frame counters or display refresh:
 
 - mechanical period: `1/20` s
 - hydraulic period: `1/5` s
@@ -113,6 +113,9 @@ Slow domains use accumulated simulation time, not frame counters:
 
 Each domain uses bounded catch-up loops for large `dt` with optional cap logging.
 Outputs are latched between ticks and slow domains read final post-actuator electrical state.
+
+These are simulation periods, not monitor frame rates. Calling `step(dt)` at 50/60/144/200 Hz
+or variable cadence yields equivalent behavior over equal simulated time.
 
 ## BuildResult
 

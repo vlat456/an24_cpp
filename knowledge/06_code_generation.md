@@ -164,6 +164,8 @@ int main() {
 Notes:
 - `step(dt)` is fully `dt`-driven and pause-safe (`dt <= 0` does not advance).
 - AOT and JIT now share phase semantics from execution metadata declared in `library/*.blueprint`.
+- Sub-rate domain periods are simulation-time periods, not display-refresh constraints.
+  Runtime is monitor-agnostic and should behave consistently for fixed or variable caller cadence.
 
 ## Signal Allocation
 
