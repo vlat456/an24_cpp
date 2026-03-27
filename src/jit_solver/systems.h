@@ -51,6 +51,9 @@ public:
     [[nodiscard]] size_t component_count() const;
 
     /// Run one solver step (all domains except logical)
+    ///
+    /// NOTE: `step` is legacy and no longer used for scheduling.
+    /// Scheduling is accumulated-dt based.
     void solve_step(SimulationState& state, size_t step, float dt);
 
     /// Solve logical domain - must be called AFTER SOR + finalize/control phases

@@ -298,7 +298,7 @@ public:
 template <typename Provider = JitProvider>
 class PID {
 public:
-    static constexpr Domain domain = Domain::Electrical;
+    static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
     float Kp = 1.0f;
@@ -324,7 +324,7 @@ public:
 template <typename Provider = JitProvider>
 class PD {
 public:
-    static constexpr Domain domain = Domain::Electrical;
+    static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
     float Kp = 1.0f;
@@ -348,7 +348,7 @@ public:
 template <typename Provider = JitProvider>
 class PI {
 public:
-    static constexpr Domain domain = Domain::Electrical;
+    static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
     float Kp = 1.0f;
@@ -370,7 +370,7 @@ public:
 template <typename Provider = JitProvider>
 class P {
 public:
-    static constexpr Domain domain = Domain::Electrical;
+    static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
     float Kp = 1.0f;

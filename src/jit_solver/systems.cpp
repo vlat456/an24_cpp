@@ -61,11 +61,16 @@ size_t Systems::component_count() const {
 }
 
 void Systems::solve_step(SimulationState& state, size_t step, float dt) {
+    (void)step;
+
+    if (dt <= 0.0f) {
+        return;
+    }
+
     // Pause-safe and lag-spike protection: clamp dt once for all domains
     // This prevents numerical explosions and ensures components don't need individual clamps
-    constexpr float DT_MIN = 1e-6f;  // Prevent div-by-zero
     constexpr float DT_MAX = 0.1f;   // Prevent instability on lag spikes
-    float safe_dt = std::max(DT_MIN, std::min(dt, DT_MAX));
+    float safe_dt = std::min(dt, DT_MAX);
 
     // Accumulate dt for each domain (FPS-independent physics)
     accumulator_mechanical += safe_dt;
@@ -77,32 +82,54 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
         comp->solve_electrical(state, safe_dt);
     }
 
-    // Mechanical: every 3rd step - use accumulated time, then reset
-    if (step % DomainSchedule::MECHANICAL_PERIOD == 0) {
-        size_t bucket = (step / DomainSchedule::MECHANICAL_PERIOD) % DomainSchedule::MECHANICAL_PERIOD;
-        for (auto& comp : mechanical[bucket]) {
-            comp->solve_mechanical(state, accumulator_mechanical);
-        }
-        accumulator_mechanical = 0.0f;  // Reset after use
-    }
+    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;
+    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;
+    constexpr float kThermalPeriodSec = 1.0f;
+    constexpr int kMaxCatchUpTicks = 8;
 
-    // Hydraulic: every 12th step - use accumulated time, then reset
-    if (step % DomainSchedule::HYDRAULIC_PERIOD == 0) {
-        size_t bucket = (step / DomainSchedule::HYDRAULIC_PERIOD) % DomainSchedule::HYDRAULIC_PERIOD;
-        for (auto& comp : hydraulic[bucket]) {
-            comp->solve_hydraulic(state, accumulator_hydraulic);
-        }
-        accumulator_hydraulic = 0.0f;  // Reset after use
-    }
-
-    // Thermal: every 60th step - use accumulated time, then reset
-    if (step % DomainSchedule::THERMAL_PERIOD == 0) {
-        for (auto& bucket : thermal) {
+    // Mechanical: accumulated-dt catch-up at 20 Hz
+    int mech_ticks = 0;
+    while (accumulator_mechanical >= kMechanicalPeriodSec && mech_ticks < kMaxCatchUpTicks) {
+        for (auto& bucket : mechanical) {
             for (auto& comp : bucket) {
-                comp->solve_thermal(state, accumulator_thermal);
+                comp->solve_mechanical(state, kMechanicalPeriodSec);
             }
         }
-        accumulator_thermal = 0.0f;  // Reset after use
+        accumulator_mechanical -= kMechanicalPeriodSec;
+        ++mech_ticks;
+    }
+    if (mech_ticks == kMaxCatchUpTicks && accumulator_mechanical >= kMechanicalPeriodSec) {
+        spdlog::warn("[Systems] Mechanical catch-up capped (remaining {:.4f}s)", accumulator_mechanical);
+    }
+
+    // Hydraulic: accumulated-dt catch-up at 5 Hz
+    int hyd_ticks = 0;
+    while (accumulator_hydraulic >= kHydraulicPeriodSec && hyd_ticks < kMaxCatchUpTicks) {
+        for (auto& bucket : hydraulic) {
+            for (auto& comp : bucket) {
+                comp->solve_hydraulic(state, kHydraulicPeriodSec);
+            }
+        }
+        accumulator_hydraulic -= kHydraulicPeriodSec;
+        ++hyd_ticks;
+    }
+    if (hyd_ticks == kMaxCatchUpTicks && accumulator_hydraulic >= kHydraulicPeriodSec) {
+        spdlog::warn("[Systems] Hydraulic catch-up capped (remaining {:.4f}s)", accumulator_hydraulic);
+    }
+
+    // Thermal: accumulated-dt catch-up at 1 Hz
+    int therm_ticks = 0;
+    while (accumulator_thermal >= kThermalPeriodSec && therm_ticks < kMaxCatchUpTicks) {
+        for (auto& bucket : thermal) {
+            for (auto& comp : bucket) {
+                comp->solve_thermal(state, kThermalPeriodSec);
+            }
+        }
+        accumulator_thermal -= kThermalPeriodSec;
+        ++therm_ticks;
+    }
+    if (therm_ticks == kMaxCatchUpTicks && accumulator_thermal >= kThermalPeriodSec) {
+        spdlog::warn("[Systems] Thermal catch-up capped (remaining {:.4f}s)", accumulator_thermal);
     }
 
     // NOTE: Logical domain is NOT run here. Callers must invoke solve_logical()

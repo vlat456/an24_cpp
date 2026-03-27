@@ -195,14 +195,14 @@ Critical note:
 
 - [x] Remove compatibility shim from hot path
 - [ ] Remove old scheduler assumptions from runtime comments/docs
-- [ ] Remove controller `Domain::Electrical` abuse
-- [ ] Remove legacy domain-only scheduling logic
+- [x] Remove controller `Domain::Electrical` abuse
+- [x] Remove legacy domain-only scheduling logic
 - [ ] Simplify/remove obsolete `Systems` APIs if no longer needed
 
 Notes:
 
 - Scheduling no longer depends on `Domain` classification (execution metadata is source of truth).
-- Remaining cleanup: controller `Domain` declarations and legacy `Systems` modulo scheduler API.
+- Remaining cleanup is API-level simplification/deprecation of `Systems` if no longer needed.
 
 ## Stage 9 - Use `GS24` / `RUG82` as multi-model validation, then retire
 
@@ -232,7 +232,7 @@ Important:
 
 - [x] Closed-loop regulator no longer exhibits artificial 2-frame latency
 - [x] `VoltageSense` and `CurrentSense` are same-step fresh
-- [ ] Controllers are no longer classified as electrical just to be scheduled
+- [x] Controllers are no longer classified as electrical just to be scheduled
 - [x] All runtime timing semantics are based on simulation `dt`, not wall-clock gaps
 - [x] `dt = 0` pause does not advance state or accumulate hidden debt
 - [x] Slow domains use explicit latch/catch-up semantics

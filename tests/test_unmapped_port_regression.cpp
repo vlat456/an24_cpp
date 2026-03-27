@@ -101,3 +101,15 @@ TEST(DomainDispatchRegression, ElectricPump_IncludesElectricalAndHydraulic) {
     EXPECT_TRUE((d & static_cast<uint32_t>(Domain::Hydraulic)) != 0)
         << "ElectricPump must include Hydraulic domain";
 }
+
+TEST(DomainDispatchRegression, Controllers_AreLogicalDomain) {
+    using PIDComp = PID<JitProvider>;
+    using PIComp = PI<JitProvider>;
+    using PDComp = PD<JitProvider>;
+    using PComp = P<JitProvider>;
+
+    EXPECT_EQ(PIDComp::domain, Domain::Logical);
+    EXPECT_EQ(PIComp::domain, Domain::Logical);
+    EXPECT_EQ(PDComp::domain, Domain::Logical);
+    EXPECT_EQ(PComp::domain, Domain::Logical);
+}
