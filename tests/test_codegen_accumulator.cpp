@@ -16,6 +16,9 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "gnd";
         dev.classname = "RefNode";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        dev.execution = phases;
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -26,6 +29,9 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "bat";
         dev.classname = "Battery";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical";
         dev.params["emf"] = "28";
         dev.params["internal_r"] = "0.05";
@@ -41,6 +47,10 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "rad";
         dev.classname = "Radiator";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        phases.thermal = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical,Thermal";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
@@ -54,6 +64,11 @@ static auto make_multi_domain_devices() {
         DeviceInstance dev;
         dev.name = "pump";
         dev.classname = "ElectricPump";
+        ExecutionPhases phases;
+        phases.electrical_passive = true;
+        phases.mechanical = true;
+        phases.hydraulic = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical,Mechanical,Hydraulic";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
@@ -241,6 +256,9 @@ TEST(CodegenAccumulator, ControlCommitPhaseIsEmittedBeforeSecondElectricalPass) 
         DeviceInstance dev;
         dev.name = "btn";
         dev.classname = "HoldButton";
+        ExecutionPhases phases;
+        phases.control_commit = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
@@ -258,6 +276,9 @@ TEST(CodegenAccumulator, ControlCommitPhaseIsEmittedBeforeSecondElectricalPass) 
         DeviceInstance dev;
         dev.name = "cvs";
         dev.classname = "ControlledVoltageSource";
+        ExecutionPhases phases;
+        phases.electrical_actuator = true;
+        dev.execution = phases;
         dev.params["domain"] = "Electrical";
         dev.ports["cmd"] = {PortDirection::In, PortType::I, std::nullopt};
         dev.ports["v_neg"] = {PortDirection::In, PortType::V, std::nullopt};

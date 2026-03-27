@@ -27,5 +27,16 @@
   "param_defaults": {
     "deadzone": "0.001",
     "factor": "0.05"
+  },
+  "execution": {
+    "electrical_passive": true,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": true,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
   }
 }

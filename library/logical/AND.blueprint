@@ -29,5 +29,16 @@
   "description": "Logical AND gate: output = A && B",
   "domains": [
     "Logical"
-  ]
+  ],
+  "execution": {
+    "electrical_passive": false,
+    "electrical_observer": false,
+    "logical": true,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
+  }
 }

@@ -10,6 +10,67 @@
 
 namespace {
 
+ExecutionPhases make_execution_for_class(const std::string& classname) {
+    ExecutionPhases phases;
+
+    const bool is_observer =
+        (classname == "VoltageSense") ||
+        (classname == "Voltmeter") ||
+        (classname == "CurrentSense");
+    const bool is_actuator =
+        (classname == "ControlledVoltageSource") ||
+        (classname == "ControlledCurrentSource") ||
+        (classname == "VariableConductance");
+
+    if (!is_observer && !is_actuator && classname != "Bus") {
+        phases.electrical_passive = true;
+    }
+    if (is_observer) {
+        phases.electrical_observer = true;
+    }
+    if (classname == "CurrentSense") {
+        phases.electrical_passive = true;
+    }
+    if (is_actuator) {
+        phases.electrical_actuator = true;
+    }
+
+    if (classname == "AND" || classname == "OR" || classname == "NOT" || classname == "NAND" || classname == "XOR" ||
+        classname == "Any_V_to_Bool" || classname == "Positive_V_to_Bool" ||
+        classname == "PID" || classname == "PI" || classname == "PD" || classname == "P" ||
+        classname == "Comparator" || classname == "LUT" || classname == "Monostable" || classname == "TimeDelay" ||
+        classname == "SampleHold" || classname == "GreaterEq" || classname == "LesserEq" || classname == "Greater" ||
+        classname == "Lesser" || classname == "Bus" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        phases.logical = true;
+    }
+
+    if (classname == "HoldButton" || classname == "Switch" || classname == "Relay" || classname == "AZS") {
+        phases.control_commit = true;
+    }
+
+    if (classname == "DMR400" || classname == "RU19A" || classname == "GS24" || classname == "RUG82" ||
+        classname == "GidroAccumulator" || classname == "FuelTank" || classname == "LerpNode") {
+        phases.finalize = true;
+    }
+
+    if (classname == "InertiaNode" || classname == "Spring" || classname == "RU19A" || classname == "GS24" ||
+        classname == "ElectricPump" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        phases.mechanical = true;
+    }
+
+    if (classname == "SolenoidValve" || classname == "GidroAccumulator" || classname == "FuelTank" ||
+        classname == "ElectricPump" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        phases.hydraulic = true;
+    }
+
+    if (classname == "TempSensor" || classname == "ElectricHeater" || classname == "Radiator" || classname == "RU19A" ||
+        classname == "FuelTank" || classname == "BlueprintInput" || classname == "BlueprintOutput") {
+        phases.thermal = true;
+    }
+
+    return phases;
+}
+
 /// Helper: build a single-component system via build_systems_dev.
 /// Creates a DeviceInstance with the given classname and all its registry ports,
 /// plus a ground RefNode so signal allocation succeeds.
@@ -21,6 +82,7 @@ BuildResult build_single_component(const std::string& classname,
     dev.name = "test_" + classname;
     dev.classname = classname;
     dev.params = params;
+    dev.execution = make_execution_for_class(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
     }
@@ -30,6 +92,7 @@ BuildResult build_single_component(const std::string& classname,
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params = {{"value", "0"}};
+    gnd.execution = make_execution_for_class("RefNode");
     gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
 
     std::vector<DeviceInstance> devices = {dev, gnd};
@@ -81,12 +144,14 @@ TEST(FactoryValidationTest, UnknownComponentType_Throws) {
     DeviceInstance unknown;
     unknown.name = "unknown_device";
     unknown.classname = "NonExistentComponent";
+    unknown.execution = make_execution_for_class("NonExistentComponent");
     unknown.ports["dummy"] = Port{PortDirection::InOut, PortType::Any};
 
     DeviceInstance gnd;
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params = {{"value", "0"}};
+    gnd.execution = make_execution_for_class("RefNode");
     gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
 
     std::vector<DeviceInstance> devices = {unknown, gnd};
@@ -175,6 +240,7 @@ TEST(FactoryValidationTest, UnknownPortName_Throws) {
     DeviceInstance dev;
     dev.name = "test_battery";
     dev.classname = "Battery";
+    dev.execution = make_execution_for_class("Battery");
     // "bogus_port" does not exist in Battery's port set
     dev.ports["v_in"] = Port{PortDirection::In, PortType::V};
     dev.ports["v_out"] = Port{PortDirection::Out, PortType::V};
@@ -184,6 +250,7 @@ TEST(FactoryValidationTest, UnknownPortName_Throws) {
     gnd.name = "gnd";
     gnd.classname = "RefNode";
     gnd.params = {{"value", "0"}};
+    gnd.execution = make_execution_for_class("RefNode");
     gnd.ports["v"] = Port{PortDirection::Out, PortType::V};
 
     std::vector<DeviceInstance> devices = {dev, gnd};

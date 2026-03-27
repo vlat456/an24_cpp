@@ -5,6 +5,33 @@
 #include <regex>
 #include <set>
 
+namespace {
+
+ExecutionPhases make_execution(
+    bool electrical_passive,
+    bool electrical_observer,
+    bool logical,
+    bool control_commit,
+    bool electrical_actuator,
+    bool finalize,
+    bool mechanical,
+    bool hydraulic,
+    bool thermal) {
+    ExecutionPhases phases;
+    phases.electrical_passive = electrical_passive;
+    phases.electrical_observer = electrical_observer;
+    phases.logical = logical;
+    phases.control_commit = control_commit;
+    phases.electrical_actuator = electrical_actuator;
+    phases.finalize = finalize;
+    phases.mechanical = mechanical;
+    phases.hydraulic = hydraulic;
+    phases.thermal = thermal;
+    return phases;
+}
+
+}
+
 
 // ============================================================
 // Composite Systems generation
@@ -20,12 +47,15 @@ TEST(AotComposite, GeneratesSystemsForComposite) {
     DeviceInstance d_vin;
     d_vin.name = "vin";
     d_vin.classname = "BlueprintInput";
+    d_vin.execution = make_execution(true, false, true, false, false, false, true, true, true);
     DeviceInstance d_lamp;
     d_lamp.name = "lamp";
     d_lamp.classname = "IndicatorLight";
+    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
     DeviceInstance d_vout;
     d_vout.name = "vout";
     d_vout.classname = "BlueprintOutput";
+    d_vout.execution = make_execution(true, false, true, false, false, false, true, true, true);
     lamp.devices = {d_vin, d_lamp, d_vout};
     lamp.connections = {{"vin.port", "lamp.v_in", {}}, {"lamp.v_out", "vout.port", {}}};
     registry.types["lamp_pass_through"] = lamp;
@@ -60,6 +90,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     inner.devices = {d_bat};
     registry.types["simple_battery"] = inner;
 
@@ -74,6 +105,7 @@ TEST(AotComposite, NestedComposite_ContainsSubSystems) {
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
+    d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
     outer.devices = {d_bus};
     registry.types["battery_bank"] = outer;
 
@@ -98,6 +130,7 @@ TEST(AotComposite, ThreeLevelsDeep_FullHierarchy) {
     DeviceInstance d_r;
     d_r.name = "r1";
     d_r.classname = "Resistor";
+    d_r.execution = make_execution(true, false, false, false, false, false, false, false, false);
     leaf.devices = {d_r};
     registry.types["leaf_type"] = leaf;
 
@@ -144,6 +177,7 @@ TEST(AotComposite, TopoSort_LeavesFirst) {
     DeviceInstance d;
     d.name = "d";
     d.classname = "Battery";
+    d.execution = make_execution(true, false, false, false, false, false, false, false, false);
     leaf.devices = {d};
     registry.types["leaf"] = leaf;
 
@@ -176,6 +210,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     DeviceInstance d_bat;
     d_bat.name = "bat";
     d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
     inner.devices = {d_bat};
     registry.types["inner_type"] = inner;
 
@@ -189,6 +224,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
     DeviceInstance d_bus;
     d_bus.name = "bus";
     d_bus.classname = "Bus";
+    d_bus.execution = make_execution(true, false, true, false, false, false, false, false, false);
     outer.devices = {d_bus};
     registry.types["outer_type"] = outer;
 
@@ -224,6 +260,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     bp_in.ports["port"] = Port{PortDirection::Out, PortType::Any, std::nullopt};
     bp_in.ports["ext"]  = Port{PortDirection::In, PortType::Any, std::string("port")};
     bp_in.domains = {{Domain::Electrical}};
+    bp_in.execution = make_execution(true, false, true, false, false, false, true, true, true);
     registry.types["BlueprintInput"] = bp_in;
 
     // BlueprintOutput: port (In, Any), ext (Out, Any, alias→port)
@@ -233,6 +270,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     bp_out.ports["port"] = Port{PortDirection::In, PortType::Any, std::nullopt};
     bp_out.ports["ext"]  = Port{PortDirection::Out, PortType::Any, std::string("port")};
     bp_out.domains = {{Domain::Electrical}};
+    bp_out.execution = make_execution(true, false, true, false, false, false, true, true, true);
     registry.types["BlueprintOutput"] = bp_out;
 
     // IndicatorLight: v_in (In), v_out (Out), brightness (Out)
@@ -243,6 +281,7 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     light.ports["v_out"]      = Port{PortDirection::Out, PortType::V, std::nullopt};
     light.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
     light.domains = {{Domain::Electrical}};
+    light.execution = make_execution(true, false, false, false, false, false, false, false, false);
     registry.types["IndicatorLight"] = light;
 
     // Composite: lamp_pass_through (vin→lamp→vout)

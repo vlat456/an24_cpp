@@ -27,5 +27,16 @@
   "param_defaults": {
     "min_voltage_diff": "0.01",
     "power_draw": "500.0"
+  },
+  "execution": {
+    "electrical_passive": true,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
   }
 }

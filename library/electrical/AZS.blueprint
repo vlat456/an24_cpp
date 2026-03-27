@@ -44,7 +44,7 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "Aircraft circuit breaker (Автомат Защиты Сети). Hybrid switch + thermal fuse. Manual toggle via control, auto-trips on overcurrent. Thermal model: T += (I² * r_heat - T * k_cool) * dt. Trips at T > 1.0.",
+  "description": "Aircraft circuit breaker (\u0410\u0432\u0442\u043e\u043c\u0430\u0442 \u0417\u0430\u0449\u0438\u0442\u044b \u0421\u0435\u0442\u0438). Hybrid switch + thermal fuse. Manual toggle via control, auto-trips on overcurrent. Thermal model: T += (I\u00b2 * r_heat - T * k_cool) * dt. Trips at T > 1.0.",
   "domains": [
     "Electrical",
     "Thermal"
@@ -53,5 +53,16 @@
   "param_defaults": {
     "closed": "false",
     "i_nominal": "20.0"
+  },
+  "execution": {
+    "electrical_passive": true,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": true,
+    "electrical_actuator": false,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": true
   }
 }

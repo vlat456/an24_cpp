@@ -28,5 +28,16 @@
     "capacity": "1000.0",
     "density": "0.78",
     "level": "1000.0"
+  },
+  "execution": {
+    "electrical_passive": false,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": true,
+    "mechanical": false,
+    "hydraulic": true,
+    "thermal": false
   }
 }

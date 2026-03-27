@@ -27,5 +27,16 @@
   "param_defaults": {
     "efficiency": "0.95",
     "frequency": "400.0"
+  },
+  "execution": {
+    "electrical_passive": true,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
   }
 }

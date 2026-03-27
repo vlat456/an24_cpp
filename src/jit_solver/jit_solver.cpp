@@ -586,9 +586,8 @@ ComponentVariant create_component_variant(
 
 } // anonymous namespace
 
-ExecutionTraits get_component_execution_traits(const ComponentVariant& variant, std::string_view classname) {
-    Domain domain_mask = get_component_domain_mask(variant);
-    return get_strict_execution_traits(std::string(classname), domain_mask);
+ExecutionTraits get_component_execution_traits(const DeviceInstance& dev) {
+    return get_execution_traits(dev);
 }
 
 
@@ -1007,7 +1006,7 @@ BuildResult build_systems_dev(
     // We must NOT take pointers during insertion because unordered_map
     // rehashing invalidates all existing pointers/references.
     std::vector<std::string> device_names_ordered;
-    std::unordered_map<std::string, std::string> device_class_by_name;
+    std::unordered_map<std::string, DeviceInstance> device_def_by_name;
     for (const auto& dev : devices) {
         // Skip visual-only devices (no simulation behavior, e.g. Group)
         if (dev.visual_only) continue;
@@ -1015,7 +1014,7 @@ BuildResult build_systems_dev(
         ComponentVariant variant = create_component_variant(dev, result);
         result.devices[dev.name] = std::move(variant);
         device_names_ordered.push_back(dev.name);
-        device_class_by_name[dev.name] = dev.classname;
+        device_def_by_name[dev.name] = dev;
     }
 
     // Phase 2: Now that all insertions are done (no more rehashing),
@@ -1023,7 +1022,8 @@ BuildResult build_systems_dev(
     for (const auto& name : device_names_ordered) {
         ComponentVariant* ptr = &result.devices[name];
         Domain domain_mask = get_component_domain_mask(*ptr);
-        ExecutionTraits exec_traits = get_component_execution_traits(*ptr, device_class_by_name[name]);
+        const DeviceInstance& dev_def = device_def_by_name.at(name);
+        ExecutionTraits exec_traits = get_component_execution_traits(dev_def);
 
         // Log domain assignment for debugging
         spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
@@ -1076,7 +1076,8 @@ BuildResult build_systems_dev(
 
     for (const auto& [dev_name, variant] : result.devices) {
         (void)dev_name;
-        ExecutionTraits t = get_component_execution_traits(variant, device_class_by_name[dev_name]);
+        const DeviceInstance& dev_def = device_def_by_name.at(dev_name);
+        ExecutionTraits t = get_component_execution_traits(dev_def);
         phase_elec_passive += t.electrical_passive ? 1u : 0u;
         phase_elec_observer += t.electrical_observer ? 1u : 0u;
         phase_logical += t.logical ? 1u : 0u;

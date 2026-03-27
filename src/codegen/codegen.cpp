@@ -460,7 +460,6 @@ std::string CodeGen::generate_source(
 
     // Build explicit phase buckets for generated runtime, aligned with JIT scheduler.
     std::vector<std::string> phase_electrical_passive;
-    std::vector<std::string> phase_electrical_noop;
     std::vector<std::string> phase_electrical_observer;
     std::vector<std::string> phase_logical;
     std::vector<std::string> phase_control_commit;
@@ -471,14 +470,10 @@ std::string CodeGen::generate_source(
     std::vector<std::string> phase_thermal;
 
     for (const auto& dev : devices) {
-        Domain domain_mask = get_device_domain_mask(dev);
-        ExecutionTraits t = get_strict_execution_traits(dev.classname, domain_mask);
+        ExecutionTraits t = get_execution_traits(dev);
 
         if (t.electrical_passive) {
             phase_electrical_passive.push_back(dev.name);
-        }
-        if (t.electrical_noop) {
-            phase_electrical_noop.push_back(dev.name);
         }
         if (t.electrical_observer) {
             phase_electrical_observer.push_back(dev.name);
@@ -513,9 +508,6 @@ std::string CodeGen::generate_source(
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         oss << "    // Phase 1: passive electrical stamp\n";
         oss << "    st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_noop) {
-            oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
-        }
         for (const auto& dev_name : phase_electrical_passive) {
             oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
         }
@@ -545,9 +537,6 @@ std::string CodeGen::generate_source(
 
         oss << "    // Phase 6: second electrical pass (passive + actuators)\n";
         oss << "    st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_noop) {
-            oss << "    // " << sanitize_name(dev_name) << " (no-op)\n";
-        }
         for (const auto& dev_name : phase_electrical_passive) {
             oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
         }

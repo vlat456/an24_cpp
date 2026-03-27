@@ -27,5 +27,16 @@
   "priority": "high",
   "param_defaults": {
     "v_target": "28.5"
+  },
+  "execution": {
+    "electrical_passive": true,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": true,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
   }
 }

@@ -80,6 +80,19 @@ struct SubBlueprintRef {
     std::map<std::string, std::string> params_override;
 };
 
+/// Explicit execution-phase participation metadata loaded from component JSON.
+struct ExecutionPhases {
+    bool electrical_passive = false;
+    bool electrical_observer = false;
+    bool logical = false;
+    bool control_commit = false;
+    bool electrical_actuator = false;
+    bool finalize = false;
+    bool mechanical = false;
+    bool hydraulic = false;
+    bool thermal = false;
+};
+
 /// Type definition (ports, params, domains for a component class or blueprint)
 struct TypeDefinition {
     std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
@@ -94,6 +107,7 @@ struct TypeDefinition {
     std::string render_hint;  // Visual hint for editor rendering ("bus", "ref", or empty)
     bool visual_only = false;  // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
+    std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
@@ -163,6 +177,7 @@ struct DeviceInstance {
     bool visual_only = false;      // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
+    std::optional<ExecutionPhases> execution;    // Copied from type definition
 
     // Default constructor
     DeviceInstance() = default;

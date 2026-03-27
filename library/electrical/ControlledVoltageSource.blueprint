@@ -36,5 +36,16 @@
     "min_v": "0.0",
     "max_v": "30.0",
     "r_internal": "0.1"
+  },
+  "execution": {
+    "electrical_passive": false,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": true,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": false
   }
 }

@@ -31,8 +31,8 @@ struct PhaseComponents {
     std::vector<ComponentVariant*> thermal;
 };
 
-/// Derive execution-phase metadata from component type (Stage 1, diagnostics only).
-ExecutionTraits get_component_execution_traits(const ComponentVariant& variant, std::string_view classname);
+/// Read execution-phase metadata from parsed component definitions.
+ExecutionTraits get_component_execution_traits(const DeviceInstance& dev);
 
 /// Get domain bitmask from component (reads static constexpr Domain field)
 inline Domain get_component_domain_mask(const ComponentVariant& variant) {
