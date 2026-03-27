@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <cstddef>
 
 /// Empty tag type for JIT solver specialization
 struct JIT_Solver {};
@@ -54,6 +55,16 @@ public:
     /// Get current adaptive omega (for diagnostics/tests)
     float get_omega() const { return omega_; }
 
+    /// Number of finite/clamp corrections applied by runtime guardrails.
+    size_t get_sanitizer_event_count() const { return sanitizer_events_; }
+
+    /// Guardrail corrections applied in the most recent step.
+    size_t get_last_step_sanitizer_events() const { return sanitizer_events_last_step_; }
+
+    /// Last-pass convergence deltas (JIT telemetry only).
+    float get_last_pass1_error() const { return last_pass1_error_; }
+    float get_last_pass2_error() const { return last_pass2_error_; }
+
     /// Get voltage at a port (e.g., "battery.v_out")
     float get_wire_voltage(const std::string& port_name) const;
 
@@ -99,6 +110,17 @@ private:
     float accumulator_mechanical_ = 0.0f;
     float accumulator_hydraulic_ = 0.0f;
     float accumulator_thermal_ = 0.0f;
+
+    /// Guardrail diagnostics: count of corrected non-finite/out-of-range values.
+    size_t sanitizer_events_ = 0;
+    size_t sanitizer_events_last_step_ = 0;
+
+    /// Per-step SOR telemetry (JIT only).
+    float last_pass1_error_ = 0.0f;
+    float last_pass2_error_ = 0.0f;
+
+    /// Clamp non-finite/out-of-range dynamic signals to bounded values.
+    void sanitize_dynamic_signals();
 };
 
 using JIT_Simulator = Simulator<JIT_Solver>;

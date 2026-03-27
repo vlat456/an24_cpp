@@ -336,16 +336,16 @@ TextHitTest.ContainsPoint_TopBorder_Hit 19 0.000472866
 TextHitTest.ContainsPoint_BottomBorder_Hit 19 0.000473759
 TextHitTest.ContainsPoint_Interior_Hit 19 0.000464136
 TextHitTest.ContainsPoint_Outside_Miss 19 0.000475884
-JsonParserTest.ParseEmptyContext 22 0.000286112
-JsonParserTest.ParseErrorOnInvalidJson 22 0.000164587
+JsonParserTest.ParseEmptyContext 23 0.000345188
+JsonParserTest.ParseErrorOnInvalidJson 23 0.000224924
 JsonParserTest.ParseAndSerializeRoundTrip 18 0
-JsonParserTest.RoundTripWithTemplates 22 0.000142343
+JsonParserTest.RoundTripWithTemplates 23 0.000209574
 JsonParserTest.ParseMultipleDomains 18 0
 JsonParserTest.ParseDevicesWithAllFields 18 0
-JsonParserTest.ParseConnectionFormats 22 0.000162193
+JsonParserTest.ParseConnectionFormats 23 0.000199895
 JsonParserTest.SerializePreservesData 18 0
 JsonParserTest.InOutPortDirection_Roundtrip_g7h8 18 0
-JsonParserTest.InOutEnumExists_g7h8 22 0.000117523
+JsonParserTest.InOutEnumExists_g7h8 23 0.000174
 JsonParserTest.ParsePortType_FromJson 18 0
 JsonParserTest.ParsePortType_RPM_FromJson 18 0
 JsonParserTest.ValidateConnection_MismatchedTypes_ShouldFail 18 0
@@ -360,13 +360,13 @@ JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid 18 0
 JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid 18 0
 JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires 18 0
 JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires 18 0
-TypeRegistry.LoadRecursive_SubdirSetsCategory 22 0.000159665
-TypeRegistry.LoadRecursive_DeepNesting 22 0.000163953
-TypeRegistry.BuildMenuTree_FlatLibrary 22 0.000130356
-TypeRegistry.BuildMenuTree_WithSubdirs 22 0.000119551
-TypeRegistry.BuildMenuTree_EntriesAreSorted 22 0.000121184
-TypeRegistry.BuildMenuTree_BlueprintsInSameTree 22 0.000122087
-TypeRegistry.ListClassnames_IncludesAllCategorized 22 0.000112066
+TypeRegistry.LoadRecursive_SubdirSetsCategory 23 0.000223111
+TypeRegistry.LoadRecursive_DeepNesting 24 0.000200151
+TypeRegistry.BuildMenuTree_FlatLibrary 23 0.000159987
+TypeRegistry.BuildMenuTree_WithSubdirs 23 0.000185645
+TypeRegistry.BuildMenuTree_EntriesAreSorted 23 0.000172998
+TypeRegistry.BuildMenuTree_BlueprintsInSameTree 23 0.000159495
+TypeRegistry.ListClassnames_IncludesAllCategorized 23 0.000159447
 RouterTest.GridConversion 19 0.000792307
 RouterTest.GridConversionNegative 19 0.000451064
 RouterTest.GridConversionZero 19 0.000456252
@@ -942,8 +942,8 @@ ExpandTypeDef.WireEndpoints_Correct 21 0.000217738
 ExpandTypeDef.Positions_PreservedFromDevices 21 0.000220413
 ExpandTypeDef.Size_FallbackToRegistry 21 0.000254681
 ExpandTypeDef.RoutingPoints_Preserved 21 0.000215923
-ExpandTypeDef.ParseTypeDefinition_WiresFormat 21 0.000267147
-ExpandTypeDef.ParseTypeDefinition_DevicePosSize 21 0.000231952
+ExpandTypeDef.ParseTypeDefinition_WiresFormat 22 0.000369563
+ExpandTypeDef.ParseTypeDefinition_DevicePosSize 22 0.000230525
 ExpandTypeDef.InlinePorts_PreferredOverRegistry 21 0.000231036
 ExpandTypeDef.RealLibrary_SimpleBattery 18 0
 ContextMenu.RightClickOnNode_SetsNodeContextMenu 19 0.000782018
@@ -1313,3 +1313,4 @@ JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid
 JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid
 JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires
 JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires
+BlueprintLoading.ExpandBlueprintFromTypeRegistry

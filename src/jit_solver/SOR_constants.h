@@ -9,10 +9,10 @@ namespace SOR {
 /// Canonical project default (kept for regression compatibility).
 constexpr float OMEGA = 1.3f;
 
-/// Number of relaxation sweeps per outer simulation step.
-/// Keep at 1 with the current stamp-then-solve pipeline.
-/// Increasing this without re-stamping between sweeps changes physics.
-constexpr int INNER_SWEEPS = 1;
+/// Number of re-stamp + sweep iterations per SOR pass.
+/// Each iteration: clear -> stamp all components -> precompute inv_g -> sweep.
+/// Improves convergence for coupled series circuits.
+constexpr int INNER_SWEEPS = 4;
 
 } // namespace SOR
 
@@ -28,6 +28,15 @@ constexpr float OMEGA_DOWNSCALE = 0.90f;
 constexpr float OMEGA_UPSCALE = 1.01f;
 
 } // namespace SORAdaptive
+
+/// Runtime numerical guardrails (JIT + AOT).
+/// These keep game simulation bounded when bad topologies/params produce spikes.
+namespace SORGuardrails {
+
+constexpr bool ENABLE_SANITIZER = true;
+constexpr float MAX_ABS_SIGNAL = 1e6f;
+
+} // namespace SORGuardrails
 
 /// JIT/editor build-time electrical warning thresholds.
 /// These are diagnostics only (do not affect solver math).

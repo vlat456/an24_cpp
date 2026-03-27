@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <unordered_map>
+#include <cmath>
 
 template<typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
@@ -21,6 +22,10 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     , accumulator_mechanical_(other.accumulator_mechanical_)
     , accumulator_hydraulic_(other.accumulator_hydraulic_)
     , accumulator_thermal_(other.accumulator_thermal_)
+    , sanitizer_events_(other.sanitizer_events_)
+    , sanitizer_events_last_step_(other.sanitizer_events_last_step_)
+    , last_pass1_error_(other.last_pass1_error_)
+    , last_pass2_error_(other.last_pass2_error_)
 {
     other.running_ = false;
     other.time_ = 0.0f;
@@ -30,6 +35,10 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     other.accumulator_mechanical_ = 0.0f;
     other.accumulator_hydraulic_ = 0.0f;
     other.accumulator_thermal_ = 0.0f;
+    other.sanitizer_events_ = 0;
+    other.sanitizer_events_last_step_ = 0;
+    other.last_pass1_error_ = 0.0f;
+    other.last_pass2_error_ = 0.0f;
 }
 
 template<typename SolverTag>
@@ -48,6 +57,10 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         accumulator_mechanical_ = other.accumulator_mechanical_;
         accumulator_hydraulic_ = other.accumulator_hydraulic_;
         accumulator_thermal_ = other.accumulator_thermal_;
+        sanitizer_events_ = other.sanitizer_events_;
+        sanitizer_events_last_step_ = other.sanitizer_events_last_step_;
+        last_pass1_error_ = other.last_pass1_error_;
+        last_pass2_error_ = other.last_pass2_error_;
 
         other.running_ = false;
         other.time_ = 0.0f;
@@ -57,6 +70,10 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         other.accumulator_mechanical_ = 0.0f;
         other.accumulator_hydraulic_ = 0.0f;
         other.accumulator_thermal_ = 0.0f;
+        other.sanitizer_events_ = 0;
+        other.sanitizer_events_last_step_ = 0;
+        other.last_pass1_error_ = 0.0f;
+        other.last_pass2_error_ = 0.0f;
     }
     return *this;
 }
@@ -115,6 +132,10 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     accumulator_mechanical_ = 0.0f;
     accumulator_hydraulic_ = 0.0f;
     accumulator_thermal_ = 0.0f;
+    sanitizer_events_ = 0;
+    sanitizer_events_last_step_ = 0;
+    last_pass1_error_ = 0.0f;
+    last_pass2_error_ = 0.0f;
 
     // Mark as running
     running_ = true;
@@ -154,23 +175,29 @@ void Simulator<SolverTag>::step(float dt) {
     accumulator_mechanical_ += dt;
     accumulator_hydraulic_ += dt;
     accumulator_thermal_ += dt;
+    sanitizer_events_last_step_ = 0;
 
-    // == Phase 1: passive electrical stamp ==
-    state_.clear_through();
-    for (auto* variant : build_result_->phase_components.electrical_passive) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
-                comp.stamp_electrical_passive(state_, dt);
-            } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
-                comp.solve_electrical(state_, dt);
-            }
-        }, *variant);
-    }
-
-    // == Phase 2: first SOR pass ==
-    state_.precompute_inv_conductance();
+    // == Phase 1+2: passive + actuator stamp + first SOR pass ==
     state_.save_convergence_state();
     for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {
+        state_.clear_through();
+        for (auto* variant : build_result_->phase_components.electrical_passive) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
+                    comp.stamp_electrical_passive(state_, dt);
+                } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
+                    comp.solve_electrical(state_, dt);
+                }
+            }, *variant);
+        }
+        for (auto* variant : build_result_->phase_components.electrical_actuator) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.stamp_electrical_actuator(state_, dt); }) {
+                    comp.stamp_electrical_actuator(state_, dt);
+                }
+            }, *variant);
+        }
+        state_.precompute_inv_conductance();
         solve_sor_iteration(
             state_.across.data(),
             state_.through.data(),
@@ -178,7 +205,9 @@ void Simulator<SolverTag>::step(float dt) {
             state_.dynamic_signals_count,
             omega_
         );
+        sanitize_dynamic_signals();
     }
+    last_pass1_error_ = state_.get_max_change();
 
     // == Phase 3: electrical observers ==
     for (auto* variant : build_result_->phase_components.electrical_observer) {
@@ -189,7 +218,7 @@ void Simulator<SolverTag>::step(float dt) {
         }, *variant);
     }
 
-    // == Phase 4: logical solve (legacy logical bucket for now) ==
+    // == Phase 4: logical solve pass 1 (feeds actuator cmd inputs) ==
     for (auto* variant : build_result_->phase_components.logical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_logical(state_, dt); }) {
@@ -207,27 +236,27 @@ void Simulator<SolverTag>::step(float dt) {
         }, *variant);
     }
 
-    // == Phase 6: actuator electrical stamp + second SOR ==
-    state_.clear_through();
-    for (auto* variant : build_result_->phase_components.electrical_passive) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
-                comp.stamp_electrical_passive(state_, dt);
-            } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
-                comp.solve_electrical(state_, dt);
-            }
-        }, *variant);
-    }
-    for (auto* variant : build_result_->phase_components.electrical_actuator) {
-        std::visit([&](auto& comp) {
-            if constexpr (requires { comp.stamp_electrical_actuator(state_, dt); }) {
-                comp.stamp_electrical_actuator(state_, dt);
-            }
-        }, *variant);
-    }
-    state_.precompute_inv_conductance();
+    // == Phase 6: passive + actuator stamp + second SOR ==
     state_.save_convergence_state();
     for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {
+        state_.clear_through();
+        for (auto* variant : build_result_->phase_components.electrical_passive) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.stamp_electrical_passive(state_, dt); }) {
+                    comp.stamp_electrical_passive(state_, dt);
+                } else if constexpr (requires { comp.solve_electrical(state_, dt); }) {
+                    comp.solve_electrical(state_, dt);
+                }
+            }, *variant);
+        }
+        for (auto* variant : build_result_->phase_components.electrical_actuator) {
+            std::visit([&](auto& comp) {
+                if constexpr (requires { comp.stamp_electrical_actuator(state_, dt); }) {
+                    comp.stamp_electrical_actuator(state_, dt);
+                }
+            }, *variant);
+        }
+        state_.precompute_inv_conductance();
         solve_sor_iteration(
             state_.across.data(),
             state_.through.data(),
@@ -235,7 +264,9 @@ void Simulator<SolverTag>::step(float dt) {
             state_.dynamic_signals_count,
             omega_
         );
+        sanitize_dynamic_signals();
     }
+    last_pass2_error_ = state_.get_max_change();
 
     // Optional adaptive omega: reduce fast on worsening, recover slowly on improvement.
     float err = state_.get_max_change();
@@ -248,7 +279,16 @@ void Simulator<SolverTag>::step(float dt) {
     }
     prev_convergence_error_ = err;
 
-    // == Phase 7: sub-rate domains (accumulated simulation dt, period buckets) ==
+    // == Phase 7: logical solve pass 2 (reads converged actuator outputs) ==
+    for (auto* variant : build_result_->phase_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state_, dt); }) {
+                comp.solve_logical(state_, dt);
+            }
+        }, *variant);
+    }
+
+    // == Phase 8: sub-rate domains (accumulated simulation dt, period buckets) ==
     constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;
     constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;
     constexpr float kThermalPeriodSec = 1.0f;
@@ -336,7 +376,7 @@ void Simulator<SolverTag>::step(float dt) {
         spdlog::warn("[sim] thermal catch-up capped (accum={:.6f}s)", accumulator_thermal_);
     }
 
-    // == Phase 8: finalize ==
+    // == Phase 9: finalize ==
     for (auto* variant : build_result_->phase_components.finalize) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.finalize_step(state_, dt); }) {
@@ -347,6 +387,44 @@ void Simulator<SolverTag>::step(float dt) {
 
     time_ += dt;
     step_count_++;
+}
+
+template<typename SolverTag>
+void Simulator<SolverTag>::sanitize_dynamic_signals() {
+    if (!::SORGuardrails::ENABLE_SANITIZER) {
+        return;
+    }
+
+    const float max_abs = ::SORGuardrails::MAX_ABS_SIGNAL;
+    bool had_event = false;
+
+    for (uint32_t i = 0; i < state_.dynamic_signals_count; ++i) {
+        float& v = state_.across[i];
+        if (!std::isfinite(v)) {
+            v = 0.0f;
+            ++sanitizer_events_;
+            ++sanitizer_events_last_step_;
+            had_event = true;
+            continue;
+        }
+        if (v > max_abs) {
+            v = max_abs;
+            ++sanitizer_events_;
+            ++sanitizer_events_last_step_;
+            had_event = true;
+            continue;
+        }
+        if (v < -max_abs) {
+            v = -max_abs;
+            ++sanitizer_events_;
+            ++sanitizer_events_last_step_;
+            had_event = true;
+        }
+    }
+
+    if (had_event) {
+        omega_ = std::max(::SORAdaptive::OMEGA_MIN, omega_ * ::SORAdaptive::OMEGA_DOWNSCALE);
+    }
 }
 
 template<typename SolverTag>

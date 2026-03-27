@@ -182,6 +182,11 @@ target_link_libraries(an24_editor PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+# Headless blueprint simulator with signal probing
+add_executable(sim_debug sim_debug.cpp)
+target_include_directories(sim_debug PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(sim_debug PRIVATE json_parser jit_solver blueprint_v2 spdlog::spdlog nlohmann_json::nlohmann_json)
+
 # Benchmark JIT vs AOT
 add_executable(benchmark_jit_vs_aot benchmark_jit_vs_aot.cpp)
 target_include_directories(benchmark_jit_vs_aot PRIVATE ${CMAKE_SOURCE_DIR}/src)

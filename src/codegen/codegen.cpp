@@ -506,17 +506,30 @@ std::string CodeGen::generate_source(
     for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-        oss << "    // Phase 1: passive electrical stamp\n";
-        oss << "    st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_passive) {
-            oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
-        }
-
-        oss << "    // Phase 2: first SOR pass\n";
-        oss << "    st->precompute_inv_conductance();\n";
+        oss << "    // Phase 1+2: first electrical pass (passive + actuators)\n";
         oss << "    st->save_convergence_state();\n";
         oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
+        oss << "        st->clear_through();\n";
+        for (const auto& dev_name : phase_electrical_passive) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
+        }
+        for (const auto& dev_name : phase_electrical_actuator) {
+            oss << "        " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
+        }
+        oss << "        st->precompute_inv_conductance();\n";
         oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
+        oss << "        if (SORGuardrails::ENABLE_SANITIZER) {\n";
+        oss << "            for (size_t i = 0; i < st->dynamic_signals_count; ++i) {\n";
+        oss << "                float& v = st->across[i];\n";
+        oss << "                if (!std::isfinite(v)) {\n";
+        oss << "                    v = 0.0f;\n";
+        oss << "                } else if (v > SORGuardrails::MAX_ABS_SIGNAL) {\n";
+        oss << "                    v = SORGuardrails::MAX_ABS_SIGNAL;\n";
+        oss << "                } else if (v < -SORGuardrails::MAX_ABS_SIGNAL) {\n";
+        oss << "                    v = -SORGuardrails::MAX_ABS_SIGNAL;\n";
+        oss << "                }\n";
+        oss << "            }\n";
+        oss << "        }\n";
         oss << "    }\n";
 
         oss << "    // Phase 3: electrical observers\n";
@@ -536,20 +549,37 @@ std::string CodeGen::generate_source(
         }
 
         oss << "    // Phase 6: second electrical pass (passive + actuators)\n";
-        oss << "    st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_passive) {
-            oss << "    " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
-        }
-        for (const auto& dev_name : phase_electrical_actuator) {
-            oss << "    " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
-        }
-        oss << "    st->precompute_inv_conductance();\n";
         oss << "    st->save_convergence_state();\n";
         oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
+        oss << "        st->clear_through();\n";
+        for (const auto& dev_name : phase_electrical_passive) {
+            oss << "        " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
+        }
+        for (const auto& dev_name : phase_electrical_actuator) {
+            oss << "        " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
+        }
+        oss << "        st->precompute_inv_conductance();\n";
         oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
+        oss << "        if (SORGuardrails::ENABLE_SANITIZER) {\n";
+        oss << "            for (size_t i = 0; i < st->dynamic_signals_count; ++i) {\n";
+        oss << "                float& v = st->across[i];\n";
+        oss << "                if (!std::isfinite(v)) {\n";
+        oss << "                    v = 0.0f;\n";
+        oss << "                } else if (v > SORGuardrails::MAX_ABS_SIGNAL) {\n";
+        oss << "                    v = SORGuardrails::MAX_ABS_SIGNAL;\n";
+        oss << "                } else if (v < -SORGuardrails::MAX_ABS_SIGNAL) {\n";
+        oss << "                    v = -SORGuardrails::MAX_ABS_SIGNAL;\n";
+        oss << "                }\n";
+        oss << "            }\n";
+        oss << "        }\n";
         oss << "    }\n";
 
-        oss << "    // Phase 7: sub-rate domains (accumulated simulation dt)\n";
+        oss << "    // Phase 7: logical solve pass 2 (reads converged actuator outputs)\n";
+        for (const auto& dev_name : phase_logical) {
+            oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
+        }
+
+        oss << "    // Phase 8: sub-rate domains (accumulated simulation dt)\n";
         oss << "    const bool first_sim_step = (step_counter_ == 0u);\n";
         oss << "    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;\n";
         oss << "    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;\n";
@@ -604,7 +634,7 @@ std::string CodeGen::generate_source(
         oss << "        ++therm_ticks;\n";
         oss << "    }\n";
 
-        oss << "    // Phase 8: finalize\n";
+        oss << "    // Phase 9: finalize\n";
         for (const auto& dev_name : phase_finalize) {
             oss << "    " << sanitize_name(dev_name) << ".finalize_step(*st, dt);\n";
         }

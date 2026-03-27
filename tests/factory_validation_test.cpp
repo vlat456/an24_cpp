@@ -258,3 +258,17 @@ TEST(FactoryValidationTest, UnknownPortName_Throws) {
 
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
 }
+
+TEST(FactoryValidationTest, MissingReferenceNode_WarnsButBuilds) {
+    DeviceInstance bat;
+    bat.name = "bat";
+    bat.classname = "Battery";
+    bat.execution = make_execution_for_class("Battery");
+    bat.ports["v_in"] = Port{PortDirection::In, PortType::V};
+    bat.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+
+    std::vector<DeviceInstance> devices = {bat};
+    std::vector<std::pair<std::string, std::string>> connections;
+
+    EXPECT_NO_THROW(build_systems_dev(devices, connections));
+}

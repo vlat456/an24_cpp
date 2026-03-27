@@ -17,3 +17,4 @@
 94:JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid
 95:JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires
 96:JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires
+169:BlueprintLoading.ExpandBlueprintFromTypeRegistry

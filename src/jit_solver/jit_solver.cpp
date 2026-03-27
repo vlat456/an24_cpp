@@ -65,6 +65,7 @@ auto get_string = [](const DeviceInstance& dev, const std::string& key, const st
     return default_val;
 };
 
+
 /// Factory function - creates a ComponentVariant from DeviceInstance
 ComponentVariant create_component_variant(
     const DeviceInstance& dev,
@@ -827,8 +828,25 @@ BuildResult build_systems_dev(
         }
     }
 
-    // Loud JIT/editor warnings: electrical topology issues should be visible.
-    if (result.fixed_signals.empty()) {
+    bool has_electrical_components = false;
+    for (const auto& dev : devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+        for (Domain d : dev.domains) {
+            if (has_domain(d, Domain::Electrical)) {
+                has_electrical_components = true;
+                break;
+            }
+        }
+        if (has_electrical_components) {
+            break;
+        }
+    }
+
+    // Pure-logical systems are allowed. Electrical systems without references
+    // are warned here (editor/JIT), but not hard-failed at build stage.
+    if (has_electrical_components && result.fixed_signals.empty()) {
         spdlog::warn("[build][electrical] NO reference nodes detected (no fixed electrical signals). "
                      "Electrical potentials may float and solver stability can degrade.");
     }

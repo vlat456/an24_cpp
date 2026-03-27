@@ -34,7 +34,8 @@
   "cpp_class": true,
   "description": "Manual switch (toggle button). Toggles state on rising edge of control signal. Used for user-controlled switches in editor.",
   "domains": [
-    "Electrical"
+    "Electrical",
+    "Logical"
   ],
   "content_type": "Switch",
   "param_defaults": {

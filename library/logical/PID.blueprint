@@ -28,7 +28,8 @@
   "cpp_class": true,
   "description": "PID controller with proportional, integral, and derivative terms",
   "domains": [
-    "Electrical"
+    "Electrical",
+    "Logical"
   ],
   "param_defaults": {
     "Kd": "0.0",

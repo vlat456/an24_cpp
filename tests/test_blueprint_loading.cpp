@@ -463,6 +463,19 @@ TEST(BlueprintExtension, RegistryIgnoresJsonFiles) {
             "version": "3.0",
             "id": "TestComp",
             "display_name": "TestComp",
+            "cpp_class": true,
+            "domains": ["Electrical"],
+            "execution": {
+                "electrical_passive": true,
+                "electrical_observer": false,
+                "logical": false,
+                "control_commit": false,
+                "electrical_actuator": false,
+                "finalize": false,
+                "mechanical": false,
+                "hydraulic": false,
+                "thermal": false
+            },
             "interface": [
                 {"name": "v_out", "domain": 1, "direction": 1, "type": "V"}
             ],

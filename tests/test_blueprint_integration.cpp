@@ -5,6 +5,7 @@
 #include "jit_solver/components/all.h"
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
+#include "test_execution_phases.h"
 
 
 // =============================================================================
@@ -23,6 +24,7 @@ static DeviceInstance make_device(
     dev.ports = std::move(ports);
     dev.priority = "med";
     dev.critical = false;
+    dev.execution = test_exec::for_class(classname);
     return dev;
 }
 

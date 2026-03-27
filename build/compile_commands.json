@@ -511,6 +511,12 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/examples",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/sim_debug.dir/sim_debug.cpp.o -c /Users/vladimir/an24_cpp/examples/sim_debug.cpp",
+  "file": "/Users/vladimir/an24_cpp/examples/sim_debug.cpp",
+  "output": "examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/examples",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -g -std=gnu++20 -arch arm64 -o CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o -c /Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
   "file": "/Users/vladimir/an24_cpp/examples/benchmark_jit_vs_aot.cpp",
   "output": "examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.o"

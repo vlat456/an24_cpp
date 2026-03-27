@@ -290,6 +290,18 @@ TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
         "id": "WireTest",
         "display_name": "WireTest",
         "cpp_class": false,
+        "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": false,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
+        },
         "interface": [],
         "nodes": [
             {"id": "a", "type": "Battery"},
@@ -335,9 +347,20 @@ TEST(ExpandTypeDef, ParseTypeDefinition_WiresFormat) {
 TEST(ExpandTypeDef, ParseTypeDefinition_DevicePosSize) {
     std::string json_str = R"({
         "version": "3.0",
-        "meta": {
-            "name": "LayoutTest",
-            "cpp_class": false
+        "id": "LayoutTest",
+        "display_name": "LayoutTest",
+        "cpp_class": false,
+        "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": false,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
         },
         "interface": [],
         "nodes": [

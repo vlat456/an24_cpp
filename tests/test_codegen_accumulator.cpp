@@ -301,19 +301,19 @@ TEST(CodegenAccumulator, ControlCommitPhaseIsEmittedBeforeSecondElectricalPass) 
     const std::string step0 = source.substr(block_begin, block_end - block_begin);
 
     const std::string commit_call = "btn.commit_control(*st, dt);";
-    const std::string second_pass_label = "// Phase 6: second electrical pass (passive + actuators)";
+    const std::string second_pass_anchor = "cvs.stamp_electrical_actuator(*st, dt);";
     const std::string phase8_label = "// Phase 8: finalize";
     const std::string finalize_call = "btn.finalize_step(*st, dt);";
 
     size_t commit_pos = step0.find(commit_call);
-    size_t second_pass_pos = step0.find(second_pass_label);
+    size_t second_pass_pos = step0.find(second_pass_anchor, commit_pos == std::string::npos ? 0 : commit_pos);
     size_t phase8_pos = step0.find(phase8_label);
     size_t finalize_btn_pos = step0.find(finalize_call);
 
     ASSERT_NE(commit_pos, std::string::npos)
         << "Generated source must call commit_control for HoldButton";
     ASSERT_NE(second_pass_pos, std::string::npos)
-        << "Generated source must contain second electrical pass phase";
+        << "Generated source must contain actuator stamp in second electrical pass";
     ASSERT_NE(phase8_pos, std::string::npos)
         << "Generated source must contain finalize phase";
     EXPECT_LT(commit_pos, second_pass_pos)

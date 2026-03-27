@@ -2,6 +2,47 @@
 
 > Issues discovered during codebase analysis. Prioritize and address as needed.
 
+### ~~13. Logical Phase Ordering Bug (Subtract/Splitter)~~ ✓ FIXED
+**Commit:** this session
+
+**Problem:** Logical components (Subtract, Add, etc.) ran only once, before the
+actuator SOR pass (Phase 4). When a logical node read a signal produced by a
+`ControlledVoltageSource` (electrical_actuator, stamped in Phase 6), it saw 0V
+instead of the converged voltage. This caused `Subtract.B = 0` in the GSC blueprint
+when `sub.B` was wired through a Splitter to `cvs.v_pos`.
+
+**Root cause:** The Splitter aliases all its ports (`i`, `o1`, `o2`) to one signal
+via union-find. When this signal is also the CVS `v_pos` node, it participates in
+the electrical passive SOR (Phase 2) where parasitic conductance drains it to ~0.
+The CVS only stamps its value in Phase 6 (actuator), but logical ran in Phase 4 —
+too early to see the converged value.
+
+**Fix:** Run the logical bucket **twice per step**:
+- **Pass 1 (Phase 4):** Before actuator SOR — feeds actuator `cmd` inputs
+  (e.g., Multiply → CVS.cmd). Maintains zero-latency closed-loop control.
+- **Pass 2 (Phase 7):** After actuator SOR — reads converged actuator outputs
+  (e.g., Subtract reads CVS.v_pos through Splitter). Fixes the Subtract bug.
+
+**Pipeline (9 phases):**
+1. Passive electrical stamp
+2. SOR #1
+3. Electrical observers
+4. **Logical pass 1** (feeds actuators)
+5. Control commit
+6. Actuator stamp + SOR #2
+7. **Logical pass 2** (reads converged actuator outputs)
+8. Sub-rate domains (mechanical/hydraulic/thermal)
+9. Finalize
+
+**Files changed:**
+- `src/jit_solver/simulator.cpp` — added dual logical passes
+- `tests/test_port_map_regression.cpp` — updated `run_step()` helper
+- `tests/test_and_gate_debug.cpp` — updated `run_step()` helper
+
+**Regression test:** `PortMapRegression.Subtract_GSC_Topology_SignalIndices`
+
+---
+
 ## Resolved
 
 ### ~~12. Scheduler Refactor - Next Execution Plan~~ ✓ COMPLETED
@@ -188,3 +229,4 @@ alignas(64) std::vector<float> through;
 | 8 | SimulationState invariants | ~~Low~~ | Low | **FIXED** (partial) |
 | 9 | Validation coverage | Low | Medium | Open |
 | 10 | Sentinel signal ordering | Medium | Low | **NEW** |
+| 13 | Logical phase ordering (Subtract/Splitter) | ~~High~~ | Medium | **FIXED** |

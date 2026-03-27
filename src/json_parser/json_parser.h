@@ -93,6 +93,20 @@ struct ExecutionPhases {
     bool thermal = false;
 };
 
+enum class ParamSchemaType {
+    Float,
+    Int,
+    Bool,
+    String,
+};
+
+struct ParamSchemaEntry {
+    ParamSchemaType type = ParamSchemaType::String;
+    std::optional<double> min;
+    std::optional<double> max;
+    bool required = false;
+};
+
 /// Type definition (ports, params, domains for a component class or blueprint)
 struct TypeDefinition {
     std::string classname;                    // C++ class name or blueprint classname (e.g., "Battery", "SimpleBattery")
@@ -100,6 +114,7 @@ struct TypeDefinition {
     bool cpp_class = true;                    // true = C++ component, false = blueprint
     std::unordered_map<std::string, Port> ports;  // Port definitions
     std::unordered_map<std::string, std::string> params;  // Default parameter values
+    std::unordered_map<std::string, ParamSchemaEntry> param_schema;  // Explicit typed parameter schema
     std::optional<std::vector<Domain>> domains;    // Domains
     std::string priority = "med";     // Priority
     bool critical = false;            // Critical flag

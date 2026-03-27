@@ -28,7 +28,8 @@
   "cpp_class": true,
   "description": "P controller with proportional term only",
   "domains": [
-    "Electrical"
+    "Electrical",
+    "Logical"
   ],
   "param_defaults": {
     "Kp": "1.0",

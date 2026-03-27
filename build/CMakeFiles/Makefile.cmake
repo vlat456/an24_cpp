@@ -150,6 +150,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "examples/CMakeFiles/an24_codegen.dir/DependInfo.cmake"
   "examples/CMakeFiles/codegen_test.dir/DependInfo.cmake"
   "examples/CMakeFiles/an24_editor.dir/DependInfo.cmake"
+  "examples/CMakeFiles/sim_debug.dir/DependInfo.cmake"
   "examples/CMakeFiles/benchmark_jit_vs_aot.dir/DependInfo.cmake"
   "tools/CMakeFiles/update_port_registry.dir/DependInfo.cmake"
   "tools/CMakeFiles/regenerate_port_registry.dir/DependInfo.cmake"

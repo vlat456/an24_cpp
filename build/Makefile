@@ -341,6 +341,19 @@ an24_editor/fast:
 .PHONY : an24_editor/fast
 
 #=============================================================================
+# Target rules for targets named sim_debug
+
+# Build rule for target.
+sim_debug: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sim_debug
+.PHONY : sim_debug
+
+# fast build rule for target.
+sim_debug/fast:
+	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/build
+.PHONY : sim_debug/fast
+
+#=============================================================================
 # Target rules for targets named benchmark_jit_vs_aot
 
 # Build rule for target.
@@ -1804,6 +1817,7 @@ help:
 	@echo "... rug82_regression_tests"
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
+	@echo "... sim_debug"
 	@echo "... slew_rate_tests"
 	@echo "... solenoid_valve_regression_tests"
 	@echo "... sor_regression_tests"

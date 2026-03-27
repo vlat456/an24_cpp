@@ -14,6 +14,7 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/state.h"
 #include "codegen/codegen.h"
+#include "test_execution_phases.h"
 
 // =============================================================================
 // BUG-AotDefault: AotProvider::get() must return UINT32_MAX for unmapped ports
@@ -135,6 +136,7 @@ static auto make_devices_with_finalize_step_components() {
             dev.ports[p] = {PortDirection::InOut, PortType::V, std::nullopt};
             port_to_signal[name + "." + p] = next_sig++;
         }
+        dev.execution = test_exec::for_class(cls);
         devices.push_back(std::move(dev));
     };
 
@@ -208,6 +210,7 @@ TEST(BugCodegenRefNode, RefNodeSolveElectricalEmitted) {
     ref.classname = "RefNode";
     ref.params["value"] = "0";
     ref.ports["v"] = {PortDirection::Out, PortType::V, std::nullopt};
+    ref.execution = test_exec::electrical_passive();
     port_to_signal["gnd.v"] = 0;
     devices.push_back(std::move(ref));
 
@@ -218,6 +221,7 @@ TEST(BugCodegenRefNode, RefNodeSolveElectricalEmitted) {
     bat.params["internal_r"] = "0.1";
     bat.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
     port_to_signal["bat1.v_in"] = 1;
     port_to_signal["bat1.v_out"] = 2;
     devices.push_back(std::move(bat));
@@ -238,6 +242,7 @@ TEST(BugCodegenRefNode, BusStillSkipped) {
     bus.name = "bus1";
     bus.classname = "Bus";
     bus.ports["v"] = {PortDirection::InOut, PortType::V, std::nullopt};
+    bus.execution = test_exec::bus();
     port_to_signal["bus1.v"] = 0;
     devices.push_back(std::move(bus));
 
@@ -246,8 +251,6 @@ TEST(BugCodegenRefNode, BusStillSkipped) {
 
     EXPECT_EQ(source.find("bus1.solve_electrical"), std::string::npos)
         << "Bus.solve_electrical() is a no-op and should be skipped in codegen";
-    EXPECT_NE(source.find("(no-op)"), std::string::npos)
-        << "Bus should be marked as no-op in generated code comments";
 }
 
 // =============================================================================

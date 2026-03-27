@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "codegen/codegen.h"
 #include "json_parser/json_parser.h"
+#include "test_execution_phases.h"
 
 
 // =============================================================================
@@ -14,6 +15,7 @@ static auto make_lut_device(const std::string& name, const std::string& table) {
     dev.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
     dev.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
     dev.params["table"] = table;
+    dev.execution = test_exec::lut();
     return dev;
 }
 
@@ -22,6 +24,7 @@ static auto make_ref_node() {
     dev.name = "gnd";
     dev.classname = "RefNode";
     dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    dev.execution = test_exec::electrical_passive();
     return dev;
 }
 
@@ -124,6 +127,7 @@ TEST(LUTCodegen, NoLUTs_NoArenaCode) {
     bat.params["internal_r"] = "0.1";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
 
     auto setup = make_setup({std::move(bat)});
 
@@ -200,6 +204,7 @@ TEST(LUTCodegen, GenericParamLoop_SkippedForLUT) {
     lut.ports["input"]  = {PortDirection::In,  PortType::Any, std::nullopt};
     lut.ports["output"] = {PortDirection::Out, PortType::Any, std::nullopt};
     lut.params["table"] = "0:0; 100:100";
+    lut.execution = test_exec::lut();
 
     auto setup = make_setup({std::move(lut)});
 
@@ -232,6 +237,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -272,6 +278,7 @@ TEST(AOTCodegen, VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -314,6 +321,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromHeader) {
     bat.classname = "Battery";
     bat.ports["v_in"]  = {PortDirection::In,  PortType::V, std::nullopt};
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));
@@ -356,6 +364,7 @@ TEST(AOTCodegen, Text_VisualOnly_FilteredFromSource) {
     bat.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
     bat.params["emf"] = "24.0";
     bat.params["internal_r"] = "0.05";
+    bat.execution = test_exec::electrical_passive();
     s.port_to_signal["bat.v_in"]  = next_sig++;
     s.port_to_signal["bat.v_out"] = next_sig++;
     s.devices.push_back(std::move(bat));

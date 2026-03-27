@@ -38,3 +38,7 @@ TEST(SorRegression, DomainScheduleCycleIsConsistent) {
     EXPECT_EQ(DomainSchedule::CYCLE_LENGTH % DomainSchedule::HYDRAULIC_PERIOD, 0);
     EXPECT_EQ(DomainSchedule::CYCLE_LENGTH % DomainSchedule::THERMAL_PERIOD, 0);
 }
+
+TEST(SorRegression, GuardrailConstantsAreSane) {
+    EXPECT_GT(SORGuardrails::MAX_ABS_SIGNAL, 0.0f);
+}

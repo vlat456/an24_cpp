@@ -152,7 +152,7 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.priority, "high");
     EXPECT_EQ(dev.bucket.value(), 2);
     EXPECT_TRUE(dev.critical);
-    EXPECT_EQ(dev.domains.size(), 1);
+    EXPECT_EQ(dev.domains.size(), 2);
     EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
     EXPECT_EQ(dev.ports.size(), 3);
@@ -612,9 +612,9 @@ TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
 
 static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
-    static char buf[1024];
+    static char buf[1400];
     snprintf(buf, sizeof(buf),
-        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
         classname, classname);
     return buf;
 }
@@ -684,7 +684,7 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     fs::remove_all(tmp);
 }
 
-TEST(TypeRegistry, LoadRecursive_MissingExecutionForCppClass_SkipsEntry) {
+TEST(TypeRegistry, LoadRecursive_MissingExecutionForComponent_Throws) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_lib_missing_execution";
     fs::remove_all(tmp);
@@ -699,14 +699,12 @@ TEST(TypeRegistry, LoadRecursive_MissingExecutionForCppClass_SkipsEntry) {
         "interface": []
     })";
 
-    auto registry = load_type_registry(tmp.string());
-    EXPECT_TRUE(registry.has("Valid"));
-    EXPECT_FALSE(registry.has("Broken"));
+    EXPECT_THROW(load_type_registry(tmp.string()), std::runtime_error);
 
     fs::remove_all(tmp);
 }
 
-TEST(TypeRegistry, LoadRecursive_VisualOnlyCppClass_ExecutionOptional) {
+TEST(TypeRegistry, LoadRecursive_VisualOnlyCppClass_StillRequiresExecution) {
     namespace fs = std::filesystem;
     auto tmp = fs::temp_directory_path() / "test_lib_visual_only_execution";
     fs::remove_all(tmp);
@@ -721,10 +719,98 @@ TEST(TypeRegistry, LoadRecursive_VisualOnlyCppClass_ExecutionOptional) {
         "interface": []
     })";
 
-    auto registry = load_type_registry(tmp.string());
-    EXPECT_TRUE(registry.has("Group"));
+    EXPECT_THROW(load_type_registry(tmp.string()), std::runtime_error);
 
     fs::remove_all(tmp);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_MissingExecutionThrows) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "Group",
+        "cpp_class": true,
+        "ports": {"v": {"direction": "Out", "type": "V"}}
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionMustBeObjectThrows) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "Group",
+        "cpp_class": true,
+        "execution": true,
+        "ports": {"v": {"direction": "Out", "type": "V"}}
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionDomainMismatchThrows) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "BadComp",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": false,
+            "electrical_observer": false,
+            "logical": true,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
+        },
+        "ports": {"v": {"direction": "Out", "type": "V"}}
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ParamSchemaParsed) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "SchemaComp",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
+        },
+        "param_schema": {
+            "r_internal": {"type": "float", "min": 0.000001, "required": true}
+        },
+        "ports": {"v": {"direction": "Out", "type": "V"}}
+    })");
+
+    TypeDefinition def = parse_type_definition(j);
+    ASSERT_TRUE(def.param_schema.count("r_internal") > 0);
+    EXPECT_EQ(def.param_schema.at("r_internal").type, ParamSchemaType::Float);
+    EXPECT_TRUE(def.param_schema.at("r_internal").required);
+}
+
+TEST(JsonParserTest, MergeDeviceInstance_ParamSchemaRejectsInvalidValue) {
+    TypeDefinition def;
+    def.classname = "Battery";
+    def.cpp_class = true;
+    def.domains = std::vector<Domain>{Domain::Electrical};
+    def.execution = ExecutionPhases{true, false, false, false, false, false, false, false, false};
+    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    def.params["r_internal"] = "0.1";
+    def.param_schema["r_internal"] = ParamSchemaEntry{ParamSchemaType::Float, 0.000001, std::nullopt, true};
+
+    DeviceInstance inst;
+    inst.name = "bat";
+    inst.classname = "Battery";
+    inst.params["r_internal"] = "-0.5";
+
+    EXPECT_THROW(merge_device_instance(inst, def), std::runtime_error);
 }
 
 TEST(TypeRegistry, LoadRecursive_DeepNesting) {

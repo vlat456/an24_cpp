@@ -28,7 +28,8 @@
   "cpp_class": true,
   "description": "PD controller with proportional and derivative terms (no integral)",
   "domains": [
-    "Electrical"
+    "Electrical",
+    "Logical"
   ],
   "param_defaults": {
     "Kd": "0.0",

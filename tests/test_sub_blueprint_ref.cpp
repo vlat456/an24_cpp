@@ -3,6 +3,7 @@
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include "ui/core/interned_id.h"
+#include "test_execution_phases.h"
 
 // Allow gtest to print InternedId values on assertion failure
 namespace ui {
@@ -21,6 +22,17 @@ TEST(SubBlueprintParse, ParseSubBlueprintsArray) {
         "classname": "my_circuit",
         "cpp_class": false,
         "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
+        },
         "sub_blueprints": [
             {
                 "id": "lamp_1",
@@ -58,6 +70,18 @@ TEST(SubBlueprintParse, NoSubBlueprintsField_EmptyVector) {
     std::string json_str = R"({
         "classname": "Battery",
         "cpp_class": true,
+        "domains": ["Electrical"],
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false
+        },
         "ports": {"v_in": {"direction": "In", "type": "V"}}
     })";
 
@@ -354,6 +378,7 @@ TEST(HierarchicalCodegen, SubBlueprintInstances_CodegenGeneratesCode) {
         dev.name = "gnd";
         dev.classname = "RefNode";
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
     }
@@ -366,6 +391,7 @@ TEST(HierarchicalCodegen, SubBlueprintInstances_CodegenGeneratesCode) {
         dev.params["emf"] = "28";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["bat.v_in"] = next_sig++;
         port_to_signal["bat.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -379,6 +405,7 @@ TEST(HierarchicalCodegen, SubBlueprintInstances_CodegenGeneratesCode) {
         dev.params["color"] = "green";
         dev.ports["vin"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["vout"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["lamp_1.lamp.vin"] = next_sig++;
         port_to_signal["lamp_1.lamp.vout"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -412,6 +439,7 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
         dev.name = "gnd";
         dev.classname = "RefNode";
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["gnd.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
     }
@@ -424,6 +452,7 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
         dev.params["emf"] = "28";
         dev.ports["v_in"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["v_out"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["bat.v_in"] = next_sig++;
         port_to_signal["bat.v_out"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -436,6 +465,7 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
         dev.classname = "Lamp";
         dev.ports["vin"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["vout"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["lamp_A.lamp.vin"] = next_sig++;
         port_to_signal["lamp_A.lamp.vout"] = next_sig++;
         devices.push_back(std::move(dev));
@@ -448,6 +478,7 @@ TEST(HierarchicalCodegen, MultipleSubBlueprints_CodegenHandlesAll) {
         dev.classname = "Lamp";
         dev.ports["vin"] = {PortDirection::In, PortType::V, std::nullopt};
         dev.ports["vout"] = {PortDirection::Out, PortType::V, std::nullopt};
+        dev.execution = test_exec::electrical_passive();
         port_to_signal["lamp_B.lamp.vin"] = next_sig++;
         port_to_signal["lamp_B.lamp.vout"] = next_sig++;
         devices.push_back(std::move(dev));

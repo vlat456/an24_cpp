@@ -21,40 +21,82 @@ protected:
     }
 };
 
-/// Helper: run the full simulation step (same order as editor simulation.cpp)
+/// Helper: run the full simulation step (mirrors Simulator::step() phase ordering)
 static void run_step(BuildResult& result, SimulationState& state, float dt, float omega) {
+    // Phase 1: passive electrical stamp
     state.clear_through();
-
-    // 1. Electrical
     for (auto* variant : result.phase_components.electrical_passive) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_electrical(state, dt); }) {
+            if constexpr (requires { comp.stamp_electrical_passive(state, dt); })
+                comp.stamp_electrical_passive(state, dt);
+            else if constexpr (requires { comp.solve_electrical(state, dt); })
                 comp.solve_electrical(state, dt);
-            }
         }, *variant);
     }
 
-    // 2. SOR
+    // Phase 2: first SOR
     state.precompute_inv_conductance();
     solve_sor_iteration(state.across.data(), state.through.data(),
-        state.inv_conductance.data(), state.across.size(), SOR::OMEGA);
+        state.inv_conductance.data(), state.dynamic_signals_count, SOR::OMEGA);
 
-    // 3. Post-step
-    for (auto& [name, variant] : result.devices) {
+    // Phase 3: observers
+    for (auto* variant : result.phase_components.electrical_observer) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.finalize_step(state, dt); }) {
-                comp.finalize_step(state, dt);
-            }
-        }, variant);
+            if constexpr (requires { comp.observe_electrical(state, dt); })
+                comp.observe_electrical(state, dt);
+        }, *variant);
     }
 
-    // 4. Logical (after SOR + finalize_step)
+    // Phase 4: logical pass 1 (feeds actuator cmd inputs)
     for (auto* variant : result.phase_components.logical) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.solve_logical(state, dt); }) {
+            if constexpr (requires { comp.solve_logical(state, dt); })
                 comp.solve_logical(state, dt);
-            }
         }, *variant);
+    }
+
+    // Phase 5: control commit
+    for (auto* variant : result.phase_components.control_commit) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.commit_control(state, dt); })
+                comp.commit_control(state, dt);
+        }, *variant);
+    }
+
+    // Phase 5: actuator electrical stamp + second SOR
+    state.clear_through();
+    for (auto* variant : result.phase_components.electrical_passive) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.stamp_electrical_passive(state, dt); })
+                comp.stamp_electrical_passive(state, dt);
+            else if constexpr (requires { comp.solve_electrical(state, dt); })
+                comp.solve_electrical(state, dt);
+        }, *variant);
+    }
+    for (auto* variant : result.phase_components.electrical_actuator) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.stamp_electrical_actuator(state, dt); })
+                comp.stamp_electrical_actuator(state, dt);
+        }, *variant);
+    }
+    state.precompute_inv_conductance();
+    solve_sor_iteration(state.across.data(), state.through.data(),
+        state.inv_conductance.data(), state.dynamic_signals_count, SOR::OMEGA);
+
+    // Phase 7: logical pass 2 (reads converged actuator outputs)
+    for (auto* variant : result.phase_components.logical) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.solve_logical(state, dt); })
+                comp.solve_logical(state, dt);
+        }, *variant);
+    }
+
+    // Phase 9: finalize
+    for (auto& [name, variant] : result.devices) {
+        std::visit([&](auto& comp) {
+            if constexpr (requires { comp.finalize_step(state, dt); })
+                comp.finalize_step(state, dt);
+        }, variant);
     }
 }
 

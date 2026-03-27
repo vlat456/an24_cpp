@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include "../parse_number.h"
 
 using json = nlohmann::json;
 
@@ -75,6 +76,146 @@ static ExecutionPhases parse_execution_phases(const json& j) {
     return ep;
 }
 
+static ParamSchemaType parse_param_schema_type(const std::string& s) {
+    if (s == "float") return ParamSchemaType::Float;
+    if (s == "int") return ParamSchemaType::Int;
+    if (s == "bool") return ParamSchemaType::Bool;
+    if (s == "string") return ParamSchemaType::String;
+    throw std::runtime_error("Unknown param schema type: " + s);
+}
+
+static std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(const json& j) {
+    std::unordered_map<std::string, ParamSchemaEntry> out;
+    if (!j.is_object()) {
+        throw std::runtime_error("'param_schema' must be an object");
+    }
+    for (const auto& [name, entry] : j.items()) {
+        if (!entry.is_object()) {
+            throw std::runtime_error("param_schema entry '" + name + "' must be object");
+        }
+        if (!entry.contains("type") || !entry["type"].is_string()) {
+            throw std::runtime_error("param_schema entry '" + name + "' missing string 'type'");
+        }
+        ParamSchemaEntry e;
+        e.type = parse_param_schema_type(entry["type"].get<std::string>());
+        if (entry.contains("required")) {
+            if (!entry["required"].is_boolean()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'required' must be bool");
+            }
+            e.required = entry["required"].get<bool>();
+        }
+        if (entry.contains("min")) {
+            if (!entry["min"].is_number()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'min' must be number");
+            }
+            e.min = entry["min"].get<double>();
+        }
+        if (entry.contains("max")) {
+            if (!entry["max"].is_number()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'max' must be number");
+            }
+            e.max = entry["max"].get<double>();
+        }
+        if (e.min.has_value() && e.max.has_value() && *e.min > *e.max) {
+            throw std::runtime_error("param_schema entry '" + name + "' has min > max");
+        }
+        out[name] = e;
+    }
+    return out;
+}
+
+static void validate_params_against_schema(
+    const std::unordered_map<std::string, std::string>& params,
+    const std::unordered_map<std::string, ParamSchemaEntry>& schema,
+    const std::string& dev_name,
+    const std::string& classname
+) {
+    for (const auto& [name, entry] : schema) {
+        auto it = params.find(name);
+        if (it == params.end()) {
+            if (entry.required) {
+                throw std::runtime_error("Missing required parameter '" + name + "' on device '" + dev_name + "' (" + classname + ")");
+            }
+            continue;
+        }
+        const std::string& value = it->second;
+        switch (entry.type) {
+            case ParamSchemaType::Float: {
+                float v = 0.0f;
+                if (!locale_safe::parse_float(value, v)) {
+                    throw std::runtime_error("Parameter '" + name + "' must be float on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::Int: {
+                long long v = 0;
+                if (!locale_safe::parse_int64(value, v)) {
+                    throw std::runtime_error("Parameter '" + name + "' must be int on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.min.has_value() && static_cast<double>(v) < *entry.min) {
+                    throw std::runtime_error("Parameter '" + name + "' below min on device '" + dev_name + "' (" + classname + ")");
+                }
+                if (entry.max.has_value() && static_cast<double>(v) > *entry.max) {
+                    throw std::runtime_error("Parameter '" + name + "' above max on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::Bool: {
+                if (!(value == "true" || value == "false" || value == "1" || value == "0")) {
+                    throw std::runtime_error("Parameter '" + name + "' must be bool on device '" + dev_name + "' (" + classname + ")");
+                }
+                break;
+            }
+            case ParamSchemaType::String:
+                break;
+        }
+    }
+}
+
+static bool has_domain_in(const std::vector<Domain>& domains, Domain target) {
+    for (Domain d : domains) {
+        if (has_domain(d, target)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static void validate_execution_domains_consistency(
+    const std::string& classname,
+    const std::vector<Domain>& domains,
+    const ExecutionPhases& execution
+) {
+    if ((execution.electrical_passive || execution.electrical_observer || execution.electrical_actuator) &&
+        !has_domain_in(domains, Domain::Electrical)) {
+        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
+                                 "': electrical execution requires Electrical domain");
+    }
+    if ((execution.logical || execution.control_commit) &&
+        !has_domain_in(domains, Domain::Logical)) {
+        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
+                                 "': logical/control_commit execution requires Logical domain");
+    }
+    if (execution.mechanical && !has_domain_in(domains, Domain::Mechanical)) {
+        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
+                                 "': mechanical execution requires Mechanical domain");
+    }
+    if (execution.hydraulic && !has_domain_in(domains, Domain::Hydraulic)) {
+        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
+                                 "': hydraulic execution requires Hydraulic domain");
+    }
+    if (execution.thermal && !has_domain_in(domains, Domain::Thermal)) {
+        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
+                                 "': thermal execution requires Thermal domain");
+    }
+}
+
 // Helper: convert string to PortDirection
 static PortDirection parse_port_direction(const std::string& s) {
     if (s == "in" || s == "input" || s == "i" || s == "In") return PortDirection::In;
@@ -87,6 +228,8 @@ static PortDirection parse_port_direction(const std::string& s) {
 static PortType parse_port_type(const std::string& s) {
     if (s == "V") return PortType::V;
     if (s == "I") return PortType::I;
+    if (s == "Signal") return PortType::Any;
+    if (s == "Fraction") return PortType::Any;
     if (s == "Bool") return PortType::Bool;
     if (s == "RPM") return PortType::RPM;
     if (s == "Temperature") return PortType::Temperature;
@@ -718,17 +861,22 @@ TypeDefinition parse_type_definition(const json& j) {
             }
         }
     }
-
-    // Parse domains
-    if (j.contains("domains") && j["domains"].is_array()) {
-        std::vector<Domain> domains;
-        for (const auto& d : j["domains"]) {
-            domains.push_back(parse_domain(d.get<std::string>()));
-        }
-        if (!domains.empty()) {
-            def.domains = domains;
-        }
+    if (j.contains("param_schema")) {
+        def.param_schema = parse_param_schema(j["param_schema"]);
     }
+
+    // Parse domains (mandatory, no fallback)
+    if (!j.contains("domains") || !j["domains"].is_array()) {
+        throw std::runtime_error("Type definition missing required 'domains' array for component '" + def.classname + "'");
+    }
+    std::vector<Domain> domains;
+    for (const auto& d : j["domains"]) {
+        domains.push_back(parse_domain(d.get<std::string>()));
+    }
+    if (domains.empty()) {
+        throw std::runtime_error("Type definition has empty 'domains' array for component '" + def.classname + "'");
+    }
+    def.domains = std::move(domains);
 
     // Parse priority
     if (j.contains("priority")) {
@@ -765,10 +913,15 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    // Parse explicit execution-phase metadata
-    if (j.contains("execution") && j["execution"].is_object()) {
-        def.execution = parse_execution_phases(j["execution"]);
+    // Parse explicit execution-phase metadata (mandatory, no fallback)
+    if (!j.contains("execution")) {
+        throw std::runtime_error("Type definition missing required 'execution' object for component '" + def.classname + "'");
     }
+    if (!j["execution"].is_object()) {
+        throw std::runtime_error("Type definition 'execution' must be an object for component '" + def.classname + "'");
+    }
+    def.execution = parse_execution_phases(j["execution"]);
+    validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
 
     // For blueprints: parse devices and connections
     if (j.contains("devices") && j["devices"].is_array()) {
@@ -861,17 +1014,14 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 json j = json::parse(content);
                 if (!j.contains("version") || !j["version"].is_string()
                     || j["version"].get<std::string>() != "3.0") {
-                    spdlog::error("[json_parser] Rejecting non-v3 blueprint '{}'",
-                                  entry.path().string());
-                    continue;
+                    throw std::runtime_error("Invalid or unsupported 'version' in '" + entry.path().string() + "'");
                 }
 
                 TypeDefinition def;
-                if (j.contains("id") && j["id"].is_string()) {
-                    def.classname = j["id"].get<std::string>();
-                } else {
-                    def.classname = entry.path().stem().string();
+                if (!j.contains("id") || !j["id"].is_string() || j["id"].get<std::string>().empty()) {
+                    throw std::runtime_error("Missing required non-empty 'id' in '" + entry.path().string() + "'");
                 }
+                def.classname = j["id"].get<std::string>();
 
                 if (j.contains("display_name") && j["display_name"].is_string()) {
                     def.description = j["display_name"].get<std::string>();
@@ -879,11 +1029,10 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     def.description = j["description"].get<std::string>();
                 }
 
-                if (j.contains("cpp_class") && j["cpp_class"].is_boolean()) {
-                    def.cpp_class = j["cpp_class"].get<bool>();
-                } else {
-                    def.cpp_class = true;
+                if (!j.contains("cpp_class") || !j["cpp_class"].is_boolean()) {
+                    throw std::runtime_error("Missing required boolean 'cpp_class' for component '" + def.classname + "'");
                 }
+                def.cpp_class = j["cpp_class"].get<bool>();
 
                 if (j.contains("priority") && j["priority"].is_string()) {
                     def.priority = j["priority"].get<std::string>();
@@ -901,51 +1050,62 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     def.visual_only = j["visual_only"].get<bool>();
                 }
 
-                if (j.contains("domains") && j["domains"].is_array()) {
+                // Parse domains (mandatory, no fallback)
+                if (!j.contains("domains") || !j["domains"].is_array()) {
+                    throw std::runtime_error("Missing required 'domains' array for component '" + def.classname + "'");
+                }
+                {
                     std::vector<Domain> domains;
                     for (const auto& d : j["domains"]) {
-                        if (d.is_string()) {
-                            domains.push_back(parse_domain(d.get<std::string>()));
+                        if (!d.is_string()) {
+                            throw std::runtime_error("Invalid domain entry for component '" + def.classname + "': must be string");
                         }
+                        domains.push_back(parse_domain(d.get<std::string>()));
                     }
-                    if (!domains.empty()) {
-                        def.domains = std::move(domains);
+                    if (domains.empty()) {
+                        throw std::runtime_error("Empty 'domains' array for component '" + def.classname + "'");
                     }
+                    def.domains = std::move(domains);
                 }
 
-                if (j.contains("execution") && j["execution"].is_object()) {
-                    def.execution = parse_execution_phases(j["execution"]);
+                // Parse explicit execution-phase metadata (mandatory for all types)
+                if (!j.contains("execution")) {
+                    throw std::runtime_error("Missing required 'execution' object for component '" + def.classname + "'");
                 }
-
-                if (def.cpp_class && !def.visual_only) {
-                    if (!j.contains("execution")) {
-                        throw std::runtime_error("Missing required 'execution' object for cpp_class component '" + def.classname + "'");
-                    }
-                    if (!def.execution.has_value()) {
-                        throw std::runtime_error("Invalid 'execution' metadata for cpp_class component '" + def.classname + "'");
-                    }
+                if (!j["execution"].is_object()) {
+                    throw std::runtime_error("Invalid 'execution' metadata for component '" + def.classname + "': must be object");
                 }
+                def.execution = parse_execution_phases(j["execution"]);
+                validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
 
-                if (j.contains("interface") && j["interface"].is_array()) {
-                    for (const auto& p : j["interface"]) {
-                        if (!p.is_object() || !p.contains("name") || !p["name"].is_string()) {
-                            continue;
-                        }
-                        Port port;
-                        int dir = p.value("direction", 1);
-                        if (dir == 0) port.direction = PortDirection::In;
-                        else if (dir == 2) port.direction = PortDirection::InOut;
-                        else port.direction = PortDirection::Out;
-
-                        std::string type_s = p.value("type", std::string("Any"));
-                        try {
-                            port.type = parse_port_type(type_s);
-                        } catch (...) {
-                            port.type = PortType::Any;
-                        }
-
-                        def.ports[p["name"].get<std::string>()] = port;
+                if (!j.contains("interface") || !j["interface"].is_array()) {
+                    throw std::runtime_error("Missing required 'interface' array for component '" + def.classname + "'");
+                }
+                for (const auto& p : j["interface"]) {
+                    if (!p.is_object()) {
+                        throw std::runtime_error("Invalid interface entry for component '" + def.classname + "': must be object");
                     }
+                    if (!p.contains("name") || !p["name"].is_string() || p["name"].get<std::string>().empty()) {
+                        throw std::runtime_error("Interface entry missing required non-empty 'name' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("direction") || !p["direction"].is_number_integer()) {
+                        throw std::runtime_error("Interface entry missing required integer 'direction' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("type") || !p["type"].is_string()) {
+                        throw std::runtime_error("Interface entry missing required string 'type' for component '" + def.classname + "'");
+                    }
+
+                    Port port;
+                    int dir = p["direction"].get<int>();
+                    if (dir == 0) port.direction = PortDirection::In;
+                    else if (dir == 1) port.direction = PortDirection::Out;
+                    else if (dir == 2) port.direction = PortDirection::InOut;
+                    else {
+                        throw std::runtime_error("Invalid interface direction value for component '" + def.classname + "'");
+                    }
+                    port.type = parse_port_type(p["type"].get<std::string>());
+
+                    def.ports[p["name"].get<std::string>()] = port;
                 }
 
                 if (j.contains("param_defaults") && j["param_defaults"].is_object()) {
@@ -956,6 +1116,9 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                             def.params[k] = std::to_string(v.get<double>());
                         }
                     }
+                }
+                if (j.contains("param_schema")) {
+                    def.param_schema = parse_param_schema(j["param_schema"]);
                 }
 
                 auto parse_endpoint = [](std::string const& s) -> std::optional<std::pair<std::string, std::string>> {
@@ -971,12 +1134,18 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
 
                 if (j.contains("nodes") && j["nodes"].is_array()) {
                     for (auto const& n : j["nodes"]) {
-                        if (!n.is_object() || !n.contains("id") || !n["id"].is_string()) {
-                            continue;
+                        if (!n.is_object()) {
+                            throw std::runtime_error("Invalid node entry in component '" + def.classname + "': must be object");
+                        }
+                        if (!n.contains("id") || !n["id"].is_string() || n["id"].get<std::string>().empty()) {
+                            throw std::runtime_error("Node missing required non-empty 'id' in component '" + def.classname + "'");
+                        }
+                        if (!n.contains("type") || !n["type"].is_string() || n["type"].get<std::string>().empty()) {
+                            throw std::runtime_error("Node missing required non-empty 'type' in component '" + def.classname + "'");
                         }
                         DeviceInstance dev;
                         dev.name = n["id"].get<std::string>();
-                        dev.classname = n.value("type", std::string());
+                        dev.classname = n["type"].get<std::string>();
                         if (n.contains("name") && n["name"].is_string()) {
                             dev.display_name = n["name"].get<std::string>();
                         }
@@ -1004,11 +1173,13 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     for (auto const& w : j["wires"]) {
                         if (!w.is_object() || !w.contains("source") || !w.contains("target")
                             || !w["source"].is_string() || !w["target"].is_string()) {
-                            continue;
+                            throw std::runtime_error("Invalid wire entry in component '" + def.classname + "': require string source/target");
                         }
                         auto src = parse_endpoint(w["source"].get<std::string>());
                         auto tgt = parse_endpoint(w["target"].get<std::string>());
-                        if (!src || !tgt) continue;
+                        if (!src || !tgt) {
+                            throw std::runtime_error("Invalid wire endpoint format in component '" + def.classname + "'");
+                        }
                         Connection c;
                         c.from = src->first + "." + src->second;
                         c.to = tgt->first + "." + tgt->second;
@@ -1018,9 +1189,15 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
 
                 if (j.contains("nested") && j["nested"].is_array()) {
                     for (auto const& n : j["nested"]) {
-                        if (!n.is_object()) continue;
-                        if (!n.contains("id") || !n["id"].is_string()) continue;
-                        if (!n.contains("blueprint") || !n["blueprint"].is_string()) continue;
+                        if (!n.is_object()) {
+                            throw std::runtime_error("Invalid nested entry in component '" + def.classname + "': must be object");
+                        }
+                        if (!n.contains("id") || !n["id"].is_string() || n["id"].get<std::string>().empty()) {
+                            throw std::runtime_error("Nested entry missing required non-empty 'id' in component '" + def.classname + "'");
+                        }
+                        if (!n.contains("blueprint") || !n["blueprint"].is_string() || n["blueprint"].get<std::string>().empty()) {
+                            throw std::runtime_error("Nested entry missing required non-empty 'blueprint' in component '" + def.classname + "'");
+                        }
                         SubBlueprintRef ref;
                         ref.id = n["id"].get<std::string>();
                         ref.type_name = n["blueprint"].get<std::string>();
@@ -1029,18 +1206,9 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     }
                 }
 
-                // Warn and derive classname from filename if empty
-                if (def.classname.empty()) {
-                    def.classname = entry.path().stem().string();
-                    spdlog::warn("[json_parser] Blueprint '{}' has empty meta.name, using filename '{}' as classname",
-                                 entry.path().string(), def.classname);
-                }
-
                 // Check for duplicate classnames
                 if (registry.has(def.classname)) {
-                    spdlog::error("[json_parser] Duplicate classname '{}' in '{}', skipping",
-                                  def.classname, entry.path().string());
-                    continue;
+                    throw std::runtime_error("Duplicate classname '" + def.classname + "' in '" + entry.path().string() + "'");
                 }
 
                 // Compute category from relative directory path
@@ -1060,8 +1228,10 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                              category.empty() ? "root" : category);
             }
             catch (const std::exception& e) {
+                const std::string err = e.what();
                 spdlog::error("[json_parser] Failed to parse type definition '{}': {}",
-                             entry.path().string(), e.what());
+                             entry.path().string(), err);
+                throw;
             }
         }
     }
@@ -1102,12 +1272,12 @@ DeviceInstance merge_device_instance(
         }
     }
 
-    // Copy domains from type definition (NOT user-configurable)
-    if (definition.domains.has_value()) {
-        merged.domains = *definition.domains;
-    } else {
-        merged.domains = {Domain::Electrical};  // Default fallback
+    // Copy domains from type definition (mandatory, no fallback)
+    if (!definition.domains.has_value() || definition.domains->empty()) {
+        throw std::runtime_error(
+            "Missing domains metadata in type definition for component '" + definition.classname + "'");
     }
+    merged.domains = *definition.domains;
 
     // Merge priority: instance overrides default (only if instance has default priority)
     if (merged.priority == "med" && definition.priority != "med") {
@@ -1124,8 +1294,16 @@ DeviceInstance merge_device_instance(
         merged.visual_only = true;
     }
 
-    // Propagate explicit execution-phase metadata from definition
+    // Propagate explicit execution-phase metadata from definition (mandatory, no fallback)
+    if (!definition.execution.has_value()) {
+        throw std::runtime_error(
+            "Missing execution metadata in type definition for component '" + definition.classname + "'");
+    }
     merged.execution = definition.execution;
+
+    if (!definition.param_schema.empty()) {
+        validate_params_against_schema(merged.params, definition.param_schema, merged.name, merged.classname);
+    }
 
     return merged;
 }

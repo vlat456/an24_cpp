@@ -228,6 +228,20 @@ an24_editor/fast:
 .PHONY : an24_editor/fast
 
 # Convenience name for target.
+examples/CMakeFiles/sim_debug.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/sim_debug.dir/rule
+.PHONY : examples/CMakeFiles/sim_debug.dir/rule
+
+# Convenience name for target.
+sim_debug: examples/CMakeFiles/sim_debug.dir/rule
+.PHONY : sim_debug
+
+# fast build rule for target.
+sim_debug/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/build
+.PHONY : sim_debug/fast
+
+# Convenience name for target.
 examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule
 .PHONY : examples/CMakeFiles/benchmark_jit_vs_aot.dir/rule
@@ -1585,6 +1599,30 @@ main.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/hello_world.dir/build.make examples/CMakeFiles/hello_world.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+sim_debug.o: sim_debug.cpp.o
+.PHONY : sim_debug.o
+
+# target to build an object file
+sim_debug.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.o
+.PHONY : sim_debug.cpp.o
+
+sim_debug.i: sim_debug.cpp.i
+.PHONY : sim_debug.i
+
+# target to preprocess a source file
+sim_debug.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.i
+.PHONY : sim_debug.cpp.i
+
+sim_debug.s: sim_debug.cpp.s
+.PHONY : sim_debug.s
+
+# target to generate assembly for a file
+sim_debug.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/sim_debug.dir/build.make examples/CMakeFiles/sim_debug.dir/sim_debug.cpp.s
+.PHONY : sim_debug.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1603,6 +1641,7 @@ help:
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... codegen_test"
 	@echo "... hello_world"
+	@echo "... sim_debug"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.o"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.i"
 	@echo "... __/_deps/imgui-src/backends/imgui_impl_opengl3.s"
@@ -1771,6 +1810,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... sim_debug.o"
+	@echo "... sim_debug.i"
+	@echo "... sim_debug.s"
 .PHONY : help
 
 

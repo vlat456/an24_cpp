@@ -28,7 +28,8 @@
   "cpp_class": true,
   "description": "PI controller with proportional and integral terms (no derivative)",
   "domains": [
-    "Electrical"
+    "Electrical",
+    "Logical"
   ],
   "param_defaults": {
     "Ki": "0.0",
