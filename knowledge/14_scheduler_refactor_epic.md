@@ -206,11 +206,11 @@ Notes:
 
 ## Stage 9 - Use `GS24` / `RUG82` as multi-model validation, then retire
 
-- [ ] Capture baseline behavior for `GS24` and `RUG82` under fixed and variable `dt`
+- [x] Capture baseline behavior for `GS24` and `RUG82` under fixed and variable `dt`
 - [ ] Compare legacy monolith vs explicit-hook migration version
-- [ ] Compare JIT vs AOT for these cases
+- [x] Compare JIT vs AOT for these cases
 - [ ] Compare against bridge-based blueprint version where available
-- [ ] Confirm no scheduler special-casing is required
+- [x] Confirm no scheduler special-casing is required
 - [ ] Remove them in final cleanup or demote them to legacy-only fixtures
 
 Important:

@@ -150,3 +150,32 @@ TEST(RUG82Regression, Deterministic_IndependentOfIterationCount) {
     EXPECT_FLOAT_EQ(comp5.k_mod, comp50.k_mod)
         << "k_mod must be identical regardless of SOR iteration count";
 }
+
+TEST(RUG82Regression, FixedVsVariableDt_BaselineEquivalentAfterSameSimTime) {
+    auto run_for_time = [](const std::vector<float>& dts, float total_time) {
+        auto comp = make_rug82();
+        auto st = make_state();
+
+        float t = 0.0f;
+        size_t i = 0;
+        while (t < total_time) {
+            const float dt_nominal = dts[i % dts.size()];
+            const float dt = std::min(dt_nominal, total_time - t);
+
+            st.across[0] = 25.0f;
+            comp.solve_electrical(st, dt);
+            comp.finalize_step(st, dt);
+
+            t += dt;
+            ++i;
+        }
+        return comp.k_mod;
+    };
+
+    const float total_time = 2.0f;
+    const float k_fixed = run_for_time({1.0f / 60.0f}, total_time);
+    const float k_var = run_for_time({1.0f / 144.0f, 1.0f / 50.0f, 1.0f / 200.0f, 1.0f / 75.0f}, total_time);
+
+    EXPECT_NEAR(k_fixed, k_var, 1e-4f)
+        << "RUG82 integration should depend on simulated time, not caller cadence";
+}

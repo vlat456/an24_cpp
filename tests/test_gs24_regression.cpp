@@ -103,3 +103,36 @@ TEST(GS24Regression, DeterministicRegardlessOfElectricalIterationCount) {
     EXPECT_EQ(mode3, mode30);
     EXPECT_NEAR(rpm3, rpm30, 1e-4f);
 }
+
+TEST(GS24Regression, FixedVsVariableDt_BaselineEquivalentAfterSameSimTime) {
+    auto run_for_time = [](const std::vector<float>& dts, float total_time) {
+        auto gs = make_gs24();
+        auto st = make_state();
+
+        float t = 0.0f;
+        size_t i = 0;
+        while (t < total_time) {
+            const float dt_nominal = dts[i % dts.size()];
+            const float dt = std::min(dt_nominal, total_time - t);
+
+            st.through.assign(st.through.size(), 0.0f);
+            st.conductance.assign(st.conductance.size(), 0.0f);
+            gs.solve_electrical(st, dt);
+            gs.finalize_step(st, dt);
+
+            t += dt;
+            ++i;
+        }
+
+        return std::pair{gs.mode, gs.current_rpm};
+    };
+
+    const float total_time = 24.0f;
+    auto [mode_fixed, rpm_fixed] = run_for_time({1.0f / 60.0f}, total_time);
+    auto [mode_var, rpm_var] = run_for_time({1.0f / 144.0f, 1.0f / 50.0f, 1.0f / 200.0f, 1.0f / 75.0f}, total_time);
+
+    EXPECT_EQ(mode_fixed, mode_var)
+        << "GS24 mode progression should depend on simulated time, not caller cadence";
+    EXPECT_NEAR(rpm_fixed, rpm_var, 10.0f)
+        << "GS24 RPM should be cadence-agnostic for equal simulated time";
+}
