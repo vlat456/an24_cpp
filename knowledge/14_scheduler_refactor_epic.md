@@ -86,7 +86,7 @@ Implementation notes:
 
 ## Stage 2 - Add explicit hooks with compatibility shim
 
-- [ ] Add optional hooks:
+- [x] Add optional hooks:
   - `stamp_electrical_passive`
   - `observe_electrical`
   - `solve_logical`
@@ -94,8 +94,8 @@ Implementation notes:
   - `stamp_electrical_actuator`
   - `finalize_step`
   - existing slow-domain hooks stay
-- [ ] Add temporary compatibility mapping from legacy hooks
-- [ ] Keep build green without changing full scheduler yet
+- [x] Add temporary compatibility mapping from legacy hooks
+- [x] Keep build green without changing full scheduler yet
 
 Implementation notes:
 
@@ -106,16 +106,16 @@ Implementation notes:
 
 ## Stage 3 - Migrate bridge/control components first
 
-- [ ] Migrate `VoltageSense`
-- [ ] Migrate `ControlledVoltageSource`
-- [ ] Migrate `ControlledCurrentSource`
-- [ ] Migrate `VariableConductance`
-- [ ] Migrate `P`
-- [ ] Migrate `PI`
-- [ ] Migrate `PD`
-- [ ] Migrate `PID`
-- [ ] Migrate `CurrentSense`
-- [ ] Migrate `Voltmeter`
+- [x] Migrate `VoltageSense`
+- [x] Migrate `ControlledVoltageSource`
+- [x] Migrate `ControlledCurrentSource`
+- [x] Migrate `VariableConductance`
+- [x] Migrate `P`
+- [x] Migrate `PI`
+- [x] Migrate `PD`
+- [x] Migrate `PID`
+- [x] Migrate `CurrentSense`
+- [x] Migrate `Voltmeter`
 
 Expected outcome:
 
@@ -149,7 +149,7 @@ Expected outcome:
 - [x] Make all timing depend only on simulation `dt`
 - [x] Ensure `dt <= 0` causes no simulation advance
 - [x] Ensure slow domains tick only after second electrical solve
-- [ ] Ensure slow domains read final settled state
+- [x] Ensure slow domains read final settled state
 - [x] Ensure slow-domain outputs are latched between ticks
 
 Implementation notes:
@@ -185,7 +185,7 @@ Special review targets:
 - [x] Generate two electrical solve sections per outer step
 - [x] Generate slow-domain tick/catch-up semantics identical to JIT
 - [x] Keep pause/`dt=0` semantics identical to JIT
-- [ ] Re-run JIT vs AOT equivalence tests
+- [x] Re-run JIT vs AOT equivalence tests
 
 Critical note:
 
