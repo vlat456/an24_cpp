@@ -10,10 +10,12 @@
 /// and solve_electrical() only writes the current k_mod output.
 
 #include <gtest/gtest.h>
+#include "jit_solver/simulator.h"
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/all.cpp"
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/SOR_constants.h"
+#include <nlohmann/json.hpp>
 #include <cmath>
 
 // =============================================================================
@@ -178,4 +180,73 @@ TEST(RUG82Regression, FixedVsVariableDt_BaselineEquivalentAfterSameSimTime) {
 
     EXPECT_NEAR(k_fixed, k_var, 1e-4f)
         << "RUG82 integration should depend on simulated time, not caller cadence";
+}
+
+TEST(RUG82Regression, CppAndBridgeVariants_AreCadenceStable) {
+    auto make_regulator_json = [](const char* class_name,
+                                  const char* in_port,
+                                  const char* out_port) {
+        nlohmann::json j;
+        j["templates"] = nlohmann::json::object();
+        j["devices"] = nlohmann::json::array({
+            {
+                {"name", "vin"},
+                {"classname", "RefNode"},
+                {"ports", {{"v", {{"direction", "Out"}, {"type", "V"}}}}},
+                {"params", {{"value", "25.0"}}}
+            },
+            {
+                {"name", "reg"},
+                {"classname", class_name},
+                {"ports", {
+                    {in_port, {{"direction", "In"}, {"type", "V"}}},
+                    {out_port, {{"direction", "Out"}, {"type", "V"}}}
+                }}
+            }
+        });
+        j["connections"] = nlohmann::json::array({
+            {{"from", "vin.v"}, {"to", std::string("reg.") + in_port}}
+        });
+        return j.dump(2);
+    };
+
+    auto run_for_time = [](const std::string& sim_json, const std::vector<float>& dts, float total_time, const char* out_port) {
+        Simulator<JIT_Solver> sim;
+        sim.start_from_json(sim_json);
+
+        float t = 0.0f;
+        size_t i = 0;
+        while (t < total_time) {
+            float dt_nominal = dts[i % dts.size()];
+            float dt = std::min(dt_nominal, total_time - t);
+            sim.step(dt);
+            t += dt;
+            ++i;
+        }
+
+        float out = sim.get_port_value("reg", out_port);
+        sim.stop();
+        return out;
+    };
+
+    const std::string cpp_json = make_regulator_json("RUG82", "v_gen", "k_mod");
+    const std::string bridge_json = make_regulator_json("RUG_82_1", "v", "Comp");
+
+    const std::vector<float> fixed_dt(120, 1.0f / 60.0f);
+    const std::vector<float> mixed_dt = {1.0f / 144.0f, 1.0f / 50.0f, 1.0f / 200.0f, 1.0f / 75.0f};
+
+    const float cpp_fixed = run_for_time(cpp_json, fixed_dt, 2.0f, "k_mod");
+    const float cpp_mixed = run_for_time(cpp_json, mixed_dt, 2.0f, "k_mod");
+    const float bridge_fixed = run_for_time(bridge_json, fixed_dt, 2.0f, "Comp");
+    const float bridge_mixed = run_for_time(bridge_json, mixed_dt, 2.0f, "Comp");
+
+    EXPECT_TRUE(std::isfinite(cpp_fixed));
+    EXPECT_TRUE(std::isfinite(cpp_mixed));
+    EXPECT_TRUE(std::isfinite(bridge_fixed));
+    EXPECT_TRUE(std::isfinite(bridge_mixed));
+
+    EXPECT_NEAR(cpp_fixed, cpp_mixed, 5e-3f)
+        << "RUG82 cpp variant should be cadence-stable";
+    EXPECT_NEAR(bridge_fixed, bridge_mixed, 5e-3f)
+        << "RUG_82_1 bridge variant should be cadence-stable";
 }

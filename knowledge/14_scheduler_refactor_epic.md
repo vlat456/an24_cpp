@@ -209,9 +209,14 @@ Notes:
 - [x] Capture baseline behavior for `GS24` and `RUG82` under fixed and variable `dt`
 - [ ] Compare legacy monolith vs explicit-hook migration version
 - [x] Compare JIT vs AOT for these cases
-- [ ] Compare against bridge-based blueprint version where available
+- [x] Compare against bridge-based blueprint version where available
 - [x] Confirm no scheduler special-casing is required
 - [ ] Remove them in final cleanup or demote them to legacy-only fixtures
+
+Notes:
+
+- Bridge comparison currently validated for RUG path using `RUG82` vs `RUG_82_1` cadence-stability harness.
+- GS24 bridge replacement path is tracked via `knowledge/12_gsc_bridge_plan.md` and top-level `GSC.blueprint` migration.
 
 Important:
 

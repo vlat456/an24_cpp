@@ -18,18 +18,17 @@ Relevant code:
 
 ## Current solver model (important)
 
-The runtime step is:
+The runtime step is explicit phase-based and uses two electrical solves per outer step:
 
-1. clear accumulators
-2. stamp components (`solve_electrical`, etc.)
-3. precompute inverse conductance
-4. run relaxation update
-5. `finalize_step()`
-6. logical solve
+1. passive electrical stamp
+2. first SOR pass
+3. observers + logical + control commit
+4. actuator electrical stamp
+5. second SOR pass
+6. sub-rate domains (accumulated simulation `dt`)
+7. `finalize_step()`
 
-With current pipeline, we do **one stamp pass per frame**.
-
-Because of that, increasing relaxation sweeps without re-stamping changes effective physics and breaks tests. Keep:
+SOR uses one relaxation sweep per electrical pass. Keep:
 
 ```cpp
 constexpr int INNER_SWEEPS = 1;
@@ -89,9 +88,10 @@ There is already small diagonal conditioning in `state.cpp` (`PARASITIC_G`).
 
 Use topology/component fixes first.
 
-### 3. Do not increase inner sweeps in current pipeline
+### 3. Do not increase inner sweeps without re-baselining
 
-Without re-stamping between sweeps, behavior drifts and regressions appear.
+Current tests and tuning are calibrated for one sweep per electrical pass.
+Changing `INNER_SWEEPS` requires re-baselining regressions and component tuning.
 
 ## Component-side rules that matter most
 
