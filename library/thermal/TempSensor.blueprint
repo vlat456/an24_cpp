@@ -7,7 +7,7 @@
       "name": "temp_in",
       "domain": 1,
       "direction": 0,
-      "type": "I"
+      "type": "Temperature"
     },
     {
       "name": "temp_out",
@@ -26,5 +26,16 @@
   ],
   "param_defaults": {
     "sensitivity": "1.0"
+  },
+  "execution": {
+    "electrical_passive": false,
+    "electrical_observer": false,
+    "logical": false,
+    "control_commit": false,
+    "electrical_actuator": false,
+    "finalize": false,
+    "mechanical": false,
+    "hydraulic": false,
+    "thermal": true
   }
 }

@@ -438,8 +438,8 @@ static ParserContext parse_json_impl(const std::string& json_text,
     // When a blueprint "lamp_bp" is expanded, its exposed ports become "lamp_bp:vin.port"
     // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
     // But we must NOT rewrite internal connections that already have the prefix
-    // Skip this for recursive blueprint loading (only process at top level)
-    if (ctx.devices.empty() || ctx.devices[0].name.find(':') == std::string::npos || true) {  // TODO: better detection
+    // Skip this for recursive blueprint loading (only process at top level).
+    if (expanding.empty()) {
         std::set<std::string> expanded_blueprint_names;
         // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
         // These have names like "lamp_bp:vin" and "lamp_bp:vout"

@@ -310,6 +310,114 @@ static Blueprint make_relay_control_commit_circuit() {
     return bp;
 }
 
+static Blueprint make_thermal_post_actuator_circuit() {
+    Blueprint bp;
+    auto& I = bp.interner();
+
+    Node gnd;
+    gnd.id = I.intern("gnd");
+    gnd.name = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.output(I.intern("v"));
+    gnd.params["value"] = "0.0";
+    bp.add_node(std::move(gnd));
+
+    Node cmd_input;
+    cmd_input.id = I.intern("cmd_input");
+    cmd_input.name = "cmd_input";
+    cmd_input.type_name = "RefNode";
+    cmd_input.output(I.intern("v"));
+    cmd_input.params["value"] = "1.0";
+    bp.add_node(std::move(cmd_input));
+
+    Node cmd_scale;
+    cmd_scale.id = I.intern("cmd_scale");
+    cmd_scale.name = "cmd_scale";
+    cmd_scale.type_name = "RefNode";
+    cmd_scale.output(I.intern("v"));
+    cmd_scale.params["value"] = "25.0";
+    bp.add_node(std::move(cmd_scale));
+
+    Node mul;
+    mul.id = I.intern("mul");
+    mul.name = "mul";
+    mul.type_name = "Multiply";
+    mul.input(I.intern("A"));
+    mul.input(I.intern("B"));
+    mul.output(I.intern("o"));
+    bp.add_node(std::move(mul));
+
+    Node cvs;
+    cvs.id = I.intern("cvs");
+    cvs.name = "cvs";
+    cvs.type_name = "ControlledVoltageSource";
+    cvs.input(I.intern("cmd"));
+    cvs.input(I.intern("v_neg"));
+    cvs.output(I.intern("v_pos"));
+    cvs.params["gain"] = "1.0";
+    cvs.params["offset"] = "0.0";
+    cvs.params["min_v"] = "0.0";
+    cvs.params["max_v"] = "40.0";
+    cvs.params["r_internal"] = "0.1";
+    bp.add_node(std::move(cvs));
+
+    Node load;
+    load.id = I.intern("load");
+    load.name = "load";
+    load.type_name = "Resistor";
+    load.input(I.intern("v_in"));
+    load.output(I.intern("v_out"));
+    load.params["conductance"] = "0.1";
+    bp.add_node(std::move(load));
+
+    Node ts;
+    ts.id = I.intern("ts");
+    ts.name = "ts";
+    ts.type_name = "TempSensor";
+    ts.input(I.intern("temp_in"));
+    ts.output(I.intern("temp_out"));
+    bp.add_node(std::move(ts));
+
+    auto add_wire = [&](const char* a_node, const char* a_port, const char* b_node, const char* b_port) {
+        Wire w;
+        w.start.node_id = I.intern(a_node);
+        w.start.port_name = I.intern(a_port);
+        w.end.node_id = I.intern(b_node);
+        w.end.port_name = I.intern(b_port);
+        bp.add_wire(std::move(w));
+    };
+
+    add_wire("gnd", "v", "cvs", "v_neg");
+    add_wire("cvs", "v_pos", "load", "v_in");
+    add_wire("load", "v_out", "gnd", "v");
+
+    add_wire("cmd_input", "v", "mul", "A");
+    add_wire("cmd_scale", "v", "mul", "B");
+    add_wire("mul", "o", "cvs", "cmd");
+
+    add_wire("cvs", "v_pos", "ts", "temp_in");
+
+    return bp;
+}
+
+static Blueprint make_ru19a_catchup_circuit() {
+    Blueprint bp;
+    auto& I = bp.interner();
+
+    Node apu;
+    apu.id = I.intern("apu");
+    apu.name = "apu";
+    apu.type_name = "RU19A";
+    apu.input(I.intern("k_mod"));
+    apu.input(I.intern("v_start"));
+    apu.output(I.intern("v_bus"));
+    apu.output(I.intern("rpm_out"));
+    apu.output(I.intern("t4_out"));
+    bp.add_node(std::move(apu));
+
+    return bp;
+}
+
 // =============================================================================
 // Regression: SOR::OMEGA is the single source of truth
 // =============================================================================
@@ -609,4 +717,47 @@ TEST(DtRegression, Relay_ControlCommit_AppliesOnFirstStep) {
     EXPECT_GT(v1, -20.0f) << "Relay output should move away from fully-open zero state on first committed control step";
     EXPECT_GT(load_v1, -20.0f) << "Downstream node should reflect first-step relay commit";
     sim.stop();
+}
+
+TEST(DtRegression, ThermalDomainReadsPostActuatorElectricalState) {
+    Blueprint bp = make_thermal_post_actuator_circuit();
+    Simulator<JIT_Solver> sim;
+    sim.start_from_json(sim_test_json::from_blueprint(bp));
+
+    const float t0 = sim.get_port_value("ts", "temp_out");
+    sim.step(1.0f); // triggers thermal tick this step
+    const float t1 = sim.get_port_value("ts", "temp_out");
+
+    EXPECT_NEAR(t0, 0.0f, 0.1f);
+    EXPECT_GT(t1, 1.0f)
+        << "Thermal tick must read final post-actuator electrical state in the same outer step";
+
+    sim.stop();
+}
+
+TEST(DtRegression, LargeDtMechanicalCatchUpIsCapped) {
+    Blueprint bp = make_ru19a_catchup_circuit();
+
+    auto run_with_dts = [&](const std::vector<float>& dts) {
+        Simulator<JIT_Solver> sim;
+        sim.start_from_json(sim_test_json::from_blueprint(bp));
+        sim.apply_overrides({{"apu.v_start", 28.0f}, {"apu.v_bus", 28.0f}});
+        for (float dt : dts) {
+            sim.step(dt);
+        }
+        const float rpm = sim.get_port_value("apu", "rpm_out");
+        sim.stop();
+        return rpm;
+    };
+
+    // Warm-up step moves RU19A from OFF -> CRANKING via finalize_step.
+    const float rpm_large_dt = run_with_dts({1.0f / 60.0f, 5.0f});
+
+    // Reference: explicit 8 mechanical ticks at 20 Hz period (8 * 0.05 s = 0.4 s).
+    std::vector<float> capped_reference{1.0f / 60.0f};
+    capped_reference.insert(capped_reference.end(), 8, 1.0f / 20.0f);
+    const float rpm_capped_ref = run_with_dts(capped_reference);
+
+    EXPECT_NEAR(rpm_large_dt, rpm_capped_ref, 5.0f)
+        << "Large dt must honor kMaxCatchUpTicks cap for mechanical domain";
 }

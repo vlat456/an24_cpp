@@ -1167,6 +1167,24 @@ target_link_libraries(aot_composite_tests PRIVATE
 )
 gtest_discover_tests(aot_composite_tests)
 
+# Minimal bridge-based JIT vs AOT equivalence regression
+add_executable(jit_aot_bridge_equivalence_tests
+    test_jit_aot_bridge_equivalence.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+)
+target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(jit_aot_bridge_equivalence_tests PRIVATE
+    json_parser
+    jit_solver
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(jit_aot_bridge_equivalence_tests)
+
 # Bake-in tests (Phase 4: bake-in conversion, params flatten)
 add_executable(bake_in_tests
     test_bake_in.cpp

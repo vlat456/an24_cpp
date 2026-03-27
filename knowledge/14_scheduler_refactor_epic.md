@@ -63,9 +63,9 @@
 - [x] Add variable-`dt` regulator stability test
 - [x] Add pause/resume test with `dt = 0`
 - [x] Add slow-domain latch behavior test
-- [ ] Add slow-domain final-state-read test
-- [ ] Add large-`dt` catch-up policy test
-- [ ] Add JIT vs AOT equivalence test on a minimal bridge-based regulator graph
+- [x] Add slow-domain final-state-read test
+- [x] Add large-`dt` catch-up policy test
+- [x] Add JIT vs AOT equivalence test on a minimal bridge-based regulator graph
 
 Notes:
 
