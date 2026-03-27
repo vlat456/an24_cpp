@@ -336,16 +336,16 @@ TextHitTest.ContainsPoint_TopBorder_Hit 19 0.000472866
 TextHitTest.ContainsPoint_BottomBorder_Hit 19 0.000473759
 TextHitTest.ContainsPoint_Interior_Hit 19 0.000464136
 TextHitTest.ContainsPoint_Outside_Miss 19 0.000475884
-JsonParserTest.ParseEmptyContext 21 0.000382688
-JsonParserTest.ParseErrorOnInvalidJson 21 0.000220075
+JsonParserTest.ParseEmptyContext 22 0.000286112
+JsonParserTest.ParseErrorOnInvalidJson 22 0.000164587
 JsonParserTest.ParseAndSerializeRoundTrip 18 0
-JsonParserTest.RoundTripWithTemplates 21 0.000222494
+JsonParserTest.RoundTripWithTemplates 22 0.000142343
 JsonParserTest.ParseMultipleDomains 18 0
 JsonParserTest.ParseDevicesWithAllFields 18 0
-JsonParserTest.ParseConnectionFormats 21 0.000257097
+JsonParserTest.ParseConnectionFormats 22 0.000162193
 JsonParserTest.SerializePreservesData 18 0
 JsonParserTest.InOutPortDirection_Roundtrip_g7h8 18 0
-JsonParserTest.InOutEnumExists_g7h8 21 0.000185323
+JsonParserTest.InOutEnumExists_g7h8 22 0.000117523
 JsonParserTest.ParsePortType_FromJson 18 0
 JsonParserTest.ParsePortType_RPM_FromJson 18 0
 JsonParserTest.ValidateConnection_MismatchedTypes_ShouldFail 18 0
@@ -360,13 +360,13 @@ JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid 18 0
 JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid 18 0
 JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires 18 0
 JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires 18 0
-TypeRegistry.LoadRecursive_SubdirSetsCategory 21 0.000297056
-TypeRegistry.LoadRecursive_DeepNesting 21 0.000271087
-TypeRegistry.BuildMenuTree_FlatLibrary 21 0.000181325
-TypeRegistry.BuildMenuTree_WithSubdirs 21 0.000193611
-TypeRegistry.BuildMenuTree_EntriesAreSorted 21 0.000186917
-TypeRegistry.BuildMenuTree_BlueprintsInSameTree 21 0.000183806
-TypeRegistry.ListClassnames_IncludesAllCategorized 21 0.000173978
+TypeRegistry.LoadRecursive_SubdirSetsCategory 22 0.000159665
+TypeRegistry.LoadRecursive_DeepNesting 22 0.000163953
+TypeRegistry.BuildMenuTree_FlatLibrary 22 0.000130356
+TypeRegistry.BuildMenuTree_WithSubdirs 22 0.000119551
+TypeRegistry.BuildMenuTree_EntriesAreSorted 22 0.000121184
+TypeRegistry.BuildMenuTree_BlueprintsInSameTree 22 0.000122087
+TypeRegistry.ListClassnames_IncludesAllCategorized 22 0.000112066
 RouterTest.GridConversion 19 0.000792307
 RouterTest.GridConversionNegative 19 0.000451064
 RouterTest.GridConversionZero 19 0.000456252
@@ -495,30 +495,30 @@ SimulatorTest.StopDestroysComponents 18 0
 SimulatorTest.MultipleStartStopCycles 18 0
 SimulatorTest.AfterStopGetVoltageReturnsZero 18 0
 SimulatorTest.StepDoesNothingIfNotRunning 21 0.00044878
-AZSTestFixture.HasElectricalAndThermalDomains 21 0.000260288
-AZSTestFixture.StartsOff 21 0.00016905
-AZSTestFixture.OpenCircuitWhenOff 21 0.000150391
-AZSTestFixture.StampsConductanceWhenClosed 21 0.000164774
-AZSTestFixture.PassesVoltageWhenClosed 21 0.000150694
-AZSTestFixture.ZerosVoltageWhenOpen 21 0.000151367
-AZSTestFixture.TogglesOnControlEdge 21 0.000156649
-AZSTestFixture.TogglesOffOnSecondEdge 21 0.000156883
-AZSTestFixture.NoToggleWithoutEdge 21 0.000155218
-AZSTestFixture.OutputsStateOn 21 0.000148786
-AZSTestFixture.OutputsStateOff 21 0.000160597
-AZSTestFixture.HeatsUpWithCurrent 21 0.000173978
-AZSTestFixture.CoolsDownWhenNoCurrent 21 0.000161716
-AZSTestFixture.TempNeverGoesNegative 21 0.000159613
-AZSTestFixture.OutputsTempPort 21 0.000152242
-AZSTestFixture.TripsWhenOverheated 21 0.000156292
-AZSTestFixture.DoesNotTripBelowThreshold 21 0.000152262
-AZSTestFixture.TrippedStaysOpenUntilManualReset 21 0.000161202
-AZSTestFixture.CanReenableAfterCooldown 21 0.000154157
-AZSTestFixture.RetripsIfStillHot 21 0.000150808
-AZSTestFixture.NominalCurrentReachesSteadyStateAtOne 21 0.000172335
-AZSTestFixture.DoubleNominalTripsQuickly 21 0.000151744
-AZSTestFixture.ThermalWorksWithVariableDt 21 0.000152069
-AZSTestFixture.RheatFromNominal 21 0.00016678
+AZSTestFixture.HasElectricalAndThermalDomains 23 0.000154402
+AZSTestFixture.StartsOff 23 9.79783e-05
+AZSTestFixture.OpenCircuitWhenOff 23 9.7009e-05
+AZSTestFixture.StampsConductanceWhenClosed 23 0.000115024
+AZSTestFixture.PassesVoltageWhenClosed 23 0.000102891
+AZSTestFixture.ZerosVoltageWhenOpen 23 9.42192e-05
+AZSTestFixture.TogglesOnControlEdge 23 9.24348e-05
+AZSTestFixture.TogglesOffOnSecondEdge 23 9.00036e-05
+AZSTestFixture.NoToggleWithoutEdge 23 0.000104428
+AZSTestFixture.OutputsStateOn 23 8.98478e-05
+AZSTestFixture.OutputsStateOff 23 0.000102397
+AZSTestFixture.HeatsUpWithCurrent 23 0.000102861
+AZSTestFixture.CoolsDownWhenNoCurrent 23 9.11866e-05
+AZSTestFixture.TempNeverGoesNegative 23 9.18986e-05
+AZSTestFixture.OutputsTempPort 23 8.85018e-05
+AZSTestFixture.TripsWhenOverheated 23 9.58768e-05
+AZSTestFixture.DoesNotTripBelowThreshold 23 0.000106879
+AZSTestFixture.TrippedStaysOpenUntilManualReset 23 9.4587e-05
+AZSTestFixture.CanReenableAfterCooldown 23 8.36902e-05
+AZSTestFixture.RetripsIfStillHot 23 9.90072e-05
+AZSTestFixture.NominalCurrentReachesSteadyStateAtOne 23 9.53098e-05
+AZSTestFixture.DoubleNominalTripsQuickly 23 8.77427e-05
+AZSTestFixture.ThermalWorksWithVariableDt 23 0.000103467
+AZSTestFixture.RheatFromNominal 23 0.000100482
 LogicalSolverTest.LogicalDomain_ExistsInEnum 21 0.000830228
 LogicalSolverTest.LogicalDomain_ParsesFromString 18 0
 LogicalSolverTest.Comparator_TypeDefinitionExists 18 0
@@ -573,8 +573,8 @@ PIDTest.AntiWindupIntegralClamped 21 0.000159659
 PIDTest.SolveElectricalStampsConductance 21 0.000156817
 PIDTest.ZeroErrorProducesZeroPAndD 21 0.000150659
 PIDTest.AllGainsZero 21 0.000171389
-PIDTest.ExtremeDt_ClampedToMax 20 0.000192777
-PIDTest.TinyDt_ClampedToMin 20 0.000164083
+PIDTest.ExtremeDt_ClampedToMax 21 0.000197696
+PIDTest.TinyDt_ClampedToMin 21 0.000115296
 PIDTest.FilterAlphaZero_NoFiltering 21 0.000158071
 PIDTest.FilterAlphaOne_InstantTracking 21 0.000197333
 PIDTest.VeryLargeKd_WithSmallDt_Stability 21 0.000158841
@@ -615,7 +615,7 @@ PDTest.OutputSaturation_AsymmetricLimits 21 0.000149363
 PDTest.OutputSaturation_WithDerivativeKick 21 0.000146681
 PDTest.TimeInvariance_DifferentDtSameOutput 21 0.000153393
 PDTest.ZeroGains_ZeroOutput 21 0.000166089
-PDTest.ExtremeDt_ClampedToMax 20 0.000187019
+PDTest.ExtremeDt_ClampedToMax 21 0.000177099
 PDTest.TinyDt_ClampedToMin 21 0.000155464
 PDTest.FilterAlphaZero_NoFiltering 21 0.00015819
 PDTest.FilterAlphaOne_InstantTracking 21 0.000150165
@@ -764,8 +764,8 @@ PITest.IntegralTimeInvariance 2 0.00174646
 PITest.AntiWindupCapsOutput 21 0.000177754
 PITest.AntiWindupIntegralClamped 21 0.00015346
 PITest.ZeroGains_ZeroOutput 21 0.000148391
-PITest.ExtremeDt_ClampedToMax 20 0.000155152
-PITest.TinyDt_ClampedToMin 20 0.000168698
+PITest.ExtremeDt_ClampedToMax 21 0.000176657
+PITest.TinyDt_ClampedToMin 21 0.000103937
 PITest.OutputSaturation_PositiveClamp 21 0.00016899
 PITest.OutputSaturation_NegativeClamp 21 0.000147627
 PITest.MultipleInstances_IndependentState 21 0.000144325
@@ -960,7 +960,7 @@ PropertiesWindow.CancelRevertsParams 21 0.0001532
 PropertiesWindow.CancelRevertsAddedParam 21 0.000193032
 PropertiesWindow.OpenTwiceOverwritesSnapshot 21 0.000168353
 PropertiesWindow.ClosedWindowIsNotOpen 21 0.00017553
-DtRegression.SOR_OmegaIsCanonical 21 0.000741677
+DtRegression.SOR_OmegaIsCanonical 23 0.000456505
 DtRegression.Simulator_TimeAccumulatesVariableDt 18 0
 DtRegression.SimController_TimeAccumulatesVariableDt 18 0
 DtRegression.Simulator_ElectricalSolvesEveryStep 18 0
@@ -968,14 +968,14 @@ DtRegression.Simulator_SteadyStateIsDtIndependent 18 0
 DtRegression.Simulator_StepCounterResetsOnStart 18 0
 DtRegression.Simulator_UsesDtParameterNotConstant 18 0
 DtRegression.Comparator_HysteresisCorrectBehavior 18 0
-CodegenAccumulator.HeaderContainsAccumulatorFields 21 0.000250611
-CodegenAccumulator.SolveStepAccumulatesDt 21 0.000191875
-CodegenAccumulator.NoDtMultiplyPatternInGenerated 21 0.000172274
-CodegenAccumulator.MechanicalUsesAccumulatorAndResets 21 0.00017821
-CodegenAccumulator.HydraulicUsesAccumulatorAndResets 21 0.000188542
-CodegenAccumulator.ThermalUsesAccumulatorAndResets 21 0.000175438
-CodegenAccumulator.DomainScheduleConstantsAreCanonical 21 0.0001558
-CodegenAccumulator.DispatchTableSizeMatchesCycleLength 21 0.000206139
+CodegenAccumulator.HeaderContainsAccumulatorFields 24 0.000152938
+CodegenAccumulator.SolveStepAccumulatesDt 24 0.000116434
+CodegenAccumulator.NoDtMultiplyPatternInGenerated 24 0.000110844
+CodegenAccumulator.MechanicalUsesAccumulatorAndResets 24 0.000109017
+CodegenAccumulator.HydraulicUsesAccumulatorAndResets 24 0.00010149
+CodegenAccumulator.ThermalUsesAccumulatorAndResets 24 9.79271e-05
+CodegenAccumulator.DomainScheduleConstantsAreCanonical 24 9.18628e-05
+CodegenAccumulator.DispatchTableSizeMatchesCycleLength 24 0.000121398
 NodeColor.DefaultColor_IsNullopt 19 0.000796094
 NodeColor.SetColor 19 0.000458996
 NodeColor.ToUint32_ABGR 19 0.000451386
@@ -1294,3 +1294,22 @@ rug82_regression_tests_NOT_BUILT 0 0
 solenoid_valve_regression_tests_NOT_BUILT 0 0
 current_sense_tests_NOT_BUILT 0 0
 ---
+JsonParserTest.ParseAndSerializeRoundTrip
+JsonParserTest.ParseMultipleDomains
+JsonParserTest.ParseDevicesWithAllFields
+JsonParserTest.SerializePreservesData
+JsonParserTest.InOutPortDirection_Roundtrip_g7h8
+JsonParserTest.ParsePortType_FromJson
+JsonParserTest.ParsePortType_RPM_FromJson
+JsonParserTest.ValidateConnection_MismatchedTypes_ShouldFail
+JsonParserTest.ValidateConnection_MatchingTypes_ShouldPass
+JsonParserTest.ValidateConnection_BoolToV_ShouldFail
+JsonParserTest.ValidateConnection_AnyType_ShouldPass
+JsonParserTest.PortTypeSerialization_RoundTrip
+JsonParserTest.Regression_PortTypeMerge_TypeDefinitionTypesCopied
+JsonParserTest.Regression_PortTypeMerge_InlinePortWithType
+JsonParserTest.Regression_LerpNodeAnyType_CanConnectToAnything
+JsonParserTest.OneToOne_MultipleWiresToSamePort_IsValid
+JsonParserTest.OneToOne_MultipleWiresFromSamePort_IsValid
+JsonParserTest.OneToOne_BusAliasPorts_CanHaveMultipleWires
+JsonParserTest.OneToOne_RefNode_CanHaveMultipleWires

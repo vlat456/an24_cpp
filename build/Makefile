@@ -328,19 +328,6 @@ codegen_test/fast:
 .PHONY : codegen_test/fast
 
 #=============================================================================
-# Target rules for targets named bench_vsu_aot
-
-# Build rule for target.
-bench_vsu_aot: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 bench_vsu_aot
-.PHONY : bench_vsu_aot
-
-# fast build rule for target.
-bench_vsu_aot/fast:
-	$(MAKE) $(MAKESILENT) -f examples/CMakeFiles/bench_vsu_aot.dir/build.make examples/CMakeFiles/bench_vsu_aot.dir/build
-.PHONY : bench_vsu_aot/fast
-
-#=============================================================================
 # Target rules for targets named an24_editor
 
 # Build rule for target.
@@ -653,6 +640,32 @@ canvas_input_tests/fast:
 .PHONY : canvas_input_tests/fast
 
 #=============================================================================
+# Target rules for targets named oscilloscope_stats_tests
+
+# Build rule for target.
+oscilloscope_stats_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 oscilloscope_stats_tests
+.PHONY : oscilloscope_stats_tests
+
+# fast build rule for target.
+oscilloscope_stats_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/build
+.PHONY : oscilloscope_stats_tests/fast
+
+#=============================================================================
+# Target rules for targets named pi_zn_tuner_tests
+
+# Build rule for target.
+pi_zn_tuner_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 pi_zn_tuner_tests
+.PHONY : pi_zn_tuner_tests
+
+# fast build rule for target.
+pi_zn_tuner_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/build
+.PHONY : pi_zn_tuner_tests/fast
+
+#=============================================================================
 # Target rules for targets named port_registry_tests
 
 # Build rule for target.
@@ -703,6 +716,19 @@ editor_data_tests: cmake_check_build_system
 editor_data_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/build
 .PHONY : editor_data_tests/fast
+
+#=============================================================================
+# Target rules for targets named editor_settings_tests
+
+# Build rule for target.
+editor_settings_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 editor_settings_tests
+.PHONY : editor_settings_tests
+
+# fast build rule for target.
+editor_settings_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/build
+.PHONY : editor_settings_tests/fast
 
 #=============================================================================
 # Target rules for targets named editor_data_interning_tests
@@ -1108,6 +1134,19 @@ dt_regression_tests/fast:
 .PHONY : dt_regression_tests/fast
 
 #=============================================================================
+# Target rules for targets named closed_loop_latency_regression_tests
+
+# Build rule for target.
+closed_loop_latency_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 closed_loop_latency_regression_tests
+.PHONY : closed_loop_latency_regression_tests
+
+# fast build rule for target.
+closed_loop_latency_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build
+.PHONY : closed_loop_latency_regression_tests/fast
+
+#=============================================================================
 # Target rules for targets named codegen_accumulator_tests
 
 # Build rule for target.
@@ -1145,6 +1184,19 @@ aot_composite_tests: cmake_check_build_system
 aot_composite_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/build
 .PHONY : aot_composite_tests/fast
+
+#=============================================================================
+# Target rules for targets named jit_aot_bridge_equivalence_tests
+
+# Build rule for target.
+jit_aot_bridge_equivalence_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 jit_aot_bridge_equivalence_tests
+.PHONY : jit_aot_bridge_equivalence_tests
+
+# fast build rule for target.
+jit_aot_bridge_equivalence_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build
+.PHONY : jit_aot_bridge_equivalence_tests/fast
 
 #=============================================================================
 # Target rules for targets named bake_in_tests
@@ -1353,6 +1405,19 @@ apu_mechanical_tests: cmake_check_build_system
 apu_mechanical_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
 .PHONY : apu_mechanical_tests/fast
+
+#=============================================================================
+# Target rules for targets named gs24_regression_tests
+
+# Build rule for target.
+gs24_regression_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 gs24_regression_tests
+.PHONY : gs24_regression_tests
+
+# fast build rule for target.
+gs24_regression_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gs24_regression_tests.dir/build.make tests/CMakeFiles/gs24_regression_tests.dir/build
+.PHONY : gs24_regression_tests/fast
 
 #=============================================================================
 # Target rules for targets named radiator_regression_tests
@@ -1664,7 +1729,6 @@ help:
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
 	@echo "... bake_in_tests"
-	@echo "... bench_vsu_aot"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
@@ -1682,6 +1746,7 @@ help:
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
+	@echo "... closed_loop_latency_regression_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... codegen_test"
@@ -1692,6 +1757,7 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_interning_tests"
 	@echo "... editor_data_tests"
+	@echo "... editor_settings_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... electric_heater_regression_tests"
@@ -1703,12 +1769,14 @@ help:
 	@echo "... gidro_accumulator_regression_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
+	@echo "... gs24_regression_tests"
 	@echo "... gtest"
 	@echo "... gtest_main"
 	@echo "... hello_world"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
 	@echo "... inverter_regression_tests"
+	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... jit_solver"
 	@echo "... json_parser"
 	@echo "... json_parser_tests"
@@ -1720,8 +1788,10 @@ help:
 	@echo "... monostable_tests"
 	@echo "... multi_domain_tests"
 	@echo "... nfd"
+	@echo "... oscilloscope_stats_tests"
 	@echo "... pd_tests"
 	@echo "... pi_p_tests"
+	@echo "... pi_zn_tuner_tests"
 	@echo "... pid_tests"
 	@echo "... port_layout_resolver_tests"
 	@echo "... port_macro_tests"

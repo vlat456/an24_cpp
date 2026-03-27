@@ -7,84 +7,31 @@
   "nested": [],
   "nodes": [
     {
-      "content_label": "",
-      "content_max": 1.0,
-      "content_min": 0.0,
-      "content_state": false,
-      "content_tripped": false,
-      "content_type": 3,
-      "content_unit": "",
-      "content_value": 0.0,
-      "id": "azs_1",
-      "name": "azs_1",
-      "params": {
-        "i_nominal": 20.0
-      },
+      "id": "add_1",
+      "name": "add_1",
       "ports": {
-        "control": {
+        "A": {
           "direction": "In",
-          "type": 4
+          "type": 7
         },
-        "state": {
-          "direction": "Out",
-          "type": 2
-        },
-        "temp": {
-          "direction": "Out",
-          "type": 4
-        },
-        "tripped": {
-          "direction": "Out",
-          "type": 2
-        },
-        "v_in": {
+        "B": {
           "direction": "In",
-          "type": 0
+          "type": 7
         },
-        "v_out": {
+        "o": {
           "direction": "Out",
-          "type": 0
+          "type": 7
         }
       },
       "position": {
-        "x": 80.0,
-        "y": -384.0
+        "x": 128.0,
+        "y": -400.0
       },
-      "string_params": {
-        "closed": "false"
-      },
-      "type": "AZS"
-    },
-    {
-      "id": "battery_1",
-      "name": "battery_1",
-      "params": {
-        "capacity": 1000.0,
-        "charge": 1000.0,
-        "internal_r": 0.009999999776482582,
-        "inv_capacity": 0.0010000000474974513,
-        "inv_internal_r": 100.0,
-        "v_nominal": 28.0
-      },
-      "ports": {
-        "v_in": {
-          "direction": "In",
-          "type": 0
-        },
-        "v_out": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": -48.0,
-        "y": -208.0
-      },
-      "type": "Battery"
+      "type": "Add"
     },
     {
       "id": "bus_1",
-      "name": "bus_1",
+      "name": "BUS_GND",
       "ports": {
         "v": {
           "direction": "InOut",
@@ -92,8 +39,8 @@
         }
       },
       "position": {
-        "x": 512.0,
-        "y": -128.0
+        "x": 608.0,
+        "y": -80.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -111,8 +58,8 @@
         }
       },
       "position": {
-        "x": 704.0,
-        "y": 32.0
+        "x": 832.0,
+        "y": 144.0
       },
       "render_hint": "bus",
       "string_params": {
@@ -121,38 +68,15 @@
       "type": "Bus"
     },
     {
-      "id": "clamp_1",
-      "name": "clamp_1",
-      "params": {
-        "max": 10000.0,
-        "min": 0.25
-      },
-      "ports": {
-        "in": {
-          "direction": "In",
-          "type": 7
-        },
-        "out": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 224.0,
-        "y": 112.0
-      },
-      "type": "Clamp"
-    },
-    {
       "height": 80.0,
-      "id": "controlled_v_source",
-      "name": "ExcitationSource",
+      "id": "controlledvoltagesource_1",
+      "name": "controlledvoltagesource_1",
       "params": {
-        "gain": 50.0,
-        "max_v": 40.0,
+        "gain": 1.0,
+        "max_v": 35.0,
         "min_v": 0.0,
         "offset": 0.0,
-        "r_internal": 0.10000000149011612
+        "r_internal": 0.05000000074505806
       },
       "ports": {
         "cmd": {
@@ -169,11 +93,11 @@
         }
       },
       "position": {
-        "x": 352.0,
-        "y": -208.0
+        "x": 464.0,
+        "y": -400.0
       },
       "type": "ControlledVoltageSource",
-      "width": 112.0
+      "width": 128.0
     },
     {
       "content_label": "OFF",
@@ -187,7 +111,7 @@
       "id": "currentsense_1",
       "name": "currentsense_1",
       "params": {
-        "conductance": 50.0
+        "conductance": 1000.0
       },
       "ports": {
         "i_out": {
@@ -210,61 +134,24 @@
       "type": "CurrentSense"
     },
     {
-      "height": 64.0,
-      "id": "fasttmo_1",
-      "name": "Inductance",
+      "content_label": "OFF",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 5,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "currentsense_2",
+      "name": "currentsense_2",
       "params": {
-        "deadzone": 0.10000000149011612,
-        "tau": 0.4000000059604645
+        "conductance": 1000.0
       },
       "ports": {
-        "in": {
-          "direction": "In",
-          "type": 7
-        },
-        "out": {
+        "i_out": {
           "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 528.0,
-        "y": -368.0
-      },
-      "type": "FastTMO",
-      "width": 64.0
-    },
-    {
-      "id": "fasttmo_i_exc",
-      "name": "IexcDamping",
-      "params": {
-        "deadzone": 0.019999999552965164,
-        "tau": 0.699999988079071
-      },
-      "ports": {
-        "in": {
-          "direction": "In",
-          "type": 7
+          "type": 1
         },
-        "out": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 64.0,
-        "y": 112.0
-      },
-      "type": "FastTMO"
-    },
-    {
-      "id": "highpowerload_1",
-      "name": "highpowerload_1",
-      "params": {
-        "min_voltage_diff": 0.009999999776482582,
-        "power_draw": 100.0
-      },
-      "ports": {
         "v_in": {
           "direction": "In",
           "type": 0
@@ -275,10 +162,69 @@
         }
       },
       "position": {
-        "x": 1088.0,
-        "y": 0.0
+        "x": 752.0,
+        "y": -400.0
       },
-      "type": "HighPowerLoad"
+      "type": "CurrentSense"
+    },
+    {
+      "height": 64.0,
+      "id": "fasttmo_1",
+      "name": "Inductance",
+      "params": {
+        "deadzone": 0.10000000149011612,
+        "tau": 0.10000000149011612
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": 7
+        },
+        "out": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 16.0,
+        "y": -400.0
+      },
+      "type": "FastTMO",
+      "width": 64.0
+    },
+    {
+      "color_a": 1.0,
+      "color_b": 0.5650224089622498,
+      "color_g": 0.3597900867462158,
+      "color_r": 0.35979005694389343,
+      "has_color": true,
+      "height": 208.0,
+      "id": "group_1",
+      "name": "Рассчет ЭДС",
+      "position": {
+        "x": -80.0,
+        "y": -432.0
+      },
+      "render_hint": "group",
+      "type": "Group",
+      "width": 496.0
+    },
+    {
+      "color_a": 1.0,
+      "color_b": 0.2139759063720703,
+      "color_g": 0.12757143378257751,
+      "color_r": 0.273542582988739,
+      "has_color": true,
+      "height": 208.0,
+      "id": "group_2",
+      "name": "Петля ОС",
+      "position": {
+        "x": 416.0,
+        "y": -432.0
+      },
+      "render_hint": "group",
+      "type": "Group",
+      "width": 544.0
     },
     {
       "id": "lut_carbon",
@@ -294,36 +240,13 @@
         }
       },
       "position": {
-        "x": 912.0,
-        "y": -240.0
+        "x": 1008.0,
+        "y": -144.0
       },
       "string_params": {
         "table": "0.0:90.0; 0.2:25.0; 0.5:8.0; 0.8:1.5; 1.0:0.5"
       },
       "type": "LUT"
-    },
-    {
-      "id": "merger_1",
-      "name": "merger_1",
-      "ports": {
-        "i1": {
-          "direction": "In",
-          "type": 7
-        },
-        "i2": {
-          "direction": "In",
-          "type": 7
-        },
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 144.0,
-        "y": -144.0
-      },
-      "type": "Merger"
     },
     {
       "height": 64.0,
@@ -344,18 +267,41 @@
         }
       },
       "position": {
-        "x": 272.0,
-        "y": -304.0
+        "x": 224.0,
+        "y": -400.0
       },
       "type": "Multiply",
       "width": 48.0
     },
     {
+      "id": "multiply_2",
+      "name": "Gain",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 304.0,
+        "y": -400.0
+      },
+      "type": "Multiply"
+    },
+    {
       "id": "pi_1",
       "name": "pi_1",
       "params": {
-        "Ki": 0.05000000074505806,
-        "Kp": 1.0,
+        "Ki": 0.0,
+        "Kp": 0.019999999552965164,
         "output_max": 30.0,
         "output_min": 0.0
       },
@@ -374,29 +320,10 @@
         }
       },
       "position": {
-        "x": 704.0,
-        "y": -240.0
+        "x": 928.0,
+        "y": -32.0
       },
       "type": "PI"
-    },
-    {
-      "id": "ref_elec_gnd",
-      "name": "ElecGND",
-      "params": {
-        "value": 0.0
-      },
-      "ports": {
-        "v": {
-          "direction": "Out",
-          "type": 0
-        }
-      },
-      "position": {
-        "x": -96.0,
-        "y": 0.0
-      },
-      "render_hint": "ref",
-      "type": "RefNode"
     },
     {
       "id": "refnode_1",
@@ -417,17 +344,17 @@
         }
       },
       "position": {
-        "x": 144.0,
-        "y": -208.0
+        "x": 176.0,
+        "y": -288.0
       },
       "render_hint": "ref",
       "type": "RefNode"
     },
     {
       "id": "refnode_2",
-      "name": "refnode_2",
+      "name": "Самовозб",
       "params": {
-        "value": 0.0
+        "value": 0.05000000074505806
       },
       "ports": {
         "v": {
@@ -436,8 +363,8 @@
         }
       },
       "position": {
-        "x": 48.0,
-        "y": 64.0
+        "x": 80.0,
+        "y": -288.0
       },
       "render_hint": "ref",
       "type": "RefNode"
@@ -455,15 +382,34 @@
         }
       },
       "position": {
-        "x": 608.0,
-        "y": 0.0
+        "x": 896.0,
+        "y": 64.0
+      },
+      "render_hint": "ref",
+      "type": "RefNode"
+    },
+    {
+      "id": "refnode_4",
+      "name": "GainVal",
+      "params": {
+        "value": 20.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 256.0,
+        "y": -288.0
       },
       "render_hint": "ref",
       "type": "RefNode"
     },
     {
       "id": "refnode_5",
-      "name": "refnode_5",
+      "name": "GND",
       "params": {
         "value": 0.0
       },
@@ -474,34 +420,65 @@
         }
       },
       "position": {
-        "x": 320.0,
-        "y": -80.0
+        "x": 624.0,
+        "y": 16.0
       },
       "render_hint": "ref",
       "type": "RefNode"
     },
     {
-      "id": "splitter_2",
-      "name": "splitter_2",
+      "id": "resistor_1",
+      "name": "resistor_1",
+      "params": {
+        "conductance": 0.10000000149011612
+      },
       "ports": {
-        "i": {
+        "v_in": {
           "direction": "In",
-          "type": 7
+          "type": 0
         },
-        "o1": {
+        "v_out": {
           "direction": "Out",
-          "type": 7
-        },
-        "o2": {
-          "direction": "Out",
-          "type": 7
+          "type": 0
         }
       },
       "position": {
         "x": 624.0,
-        "y": -384.0
+        "y": -400.0
       },
-      "type": "Splitter"
+      "type": "Resistor"
+    },
+    {
+      "height": 32.0,
+      "id": "text_1",
+      "name": "text_1",
+      "position": {
+        "x": -64.0,
+        "y": -400.0
+      },
+      "render_hint": "text",
+      "string_params": {
+        "font_size": "large",
+        "text": "Iexc in"
+      },
+      "type": "Text",
+      "width": 64.0
+    },
+    {
+      "height": 32.0,
+      "id": "text_3",
+      "name": "text_3",
+      "position": {
+        "x": 864.0,
+        "y": -400.0
+      },
+      "render_hint": "text",
+      "string_params": {
+        "font_size": "large",
+        "text": "I_exc_RAW"
+      },
+      "type": "Text",
+      "width": 128.0
     },
     {
       "id": "variableconductance_1",
@@ -558,46 +535,21 @@
         }
       },
       "position": {
-        "x": 896.0,
+        "x": 1104.0,
         "y": -560.0
       },
       "type": "Voltmeter",
       "width": 96.0
     }
   ],
-  "pan_x": 88.54078674316406,
-  "pan_y": -450.08355712890625,
+  "pan_x": -15.161514282226563,
+  "pan_y": -671.6993408203125,
   "version": "3.0",
   "wires": [
-    {
-      "id": "wire_20",
-      "source": "/bus_ret:v",
-      "target": "/controlled_v_source:v_neg"
-    },
-    {
-      "id": "wire_22",
-      "source": "/fasttmo_1:out",
-      "target": "/splitter_2:i"
-    },
-    {
-      "id": "wire_23",
-      "source": "/multiply_1:o",
-      "target": "/controlled_v_source:cmd"
-    },
-    {
-      "id": "wire_27",
-      "source": "/refnode_1:v",
-      "target": "/multiply_1:A"
-    },
     {
       "id": "wire_33",
       "source": "/refnode_3:v",
       "target": "/pi_1:setpoint"
-    },
-    {
-      "id": "wire_40",
-      "source": "/controlled_v_source:v_pos",
-      "target": "/bus_1:v"
     },
     {
       "id": "wire_42",
@@ -610,65 +562,126 @@
       "target": "/currentsense_1:v_in"
     },
     {
-      "id": "wire_46",
-      "source": "/bus_1:v",
-      "target": "/fasttmo_1:in"
-    },
-    {
-      "id": "wire_47",
-      "source": "/clamp_1:out",
-      "target": "/multiply_1:B"
-    },
-    {
-      "id": "wire_48",
-      "source": "/splitter_2:o2",
-      "target": "/pi_1:feedback"
-    },
-    {
-      "id": "wire_50",
-      "source": "/currentsense_1:v_out",
-      "target": "/highpowerload_1:v_in"
-    },
-    {
-      "id": "wire_51",
-      "source": "/highpowerload_1:v_out",
-      "target": "/bus_ret:v"
-    },
-    {
-      "id": "wire_52",
-      "source": "/bus_1:v",
-      "target": "/variableconductance_1:v_in"
-    },
-    {
-      "id": "wire_53",
-      "source": "/ref_elec_gnd:v",
-      "target": "/battery_1:v_in"
-    },
-    {
-      "id": "wire_63",
-      "source": "/battery_1:v_out",
-      "target": "/azs_1:v_in"
-    },
-    {
-      "id": "wire_65",
-      "source": "/currentsense_1:i_out",
-      "target": "/fasttmo_i_exc:in"
-    },
-    {
-      "id": "wire_67",
-      "source": "/ref_elec_gnd:v",
-      "target": "/bus_ret:v"
-    },
-    {
-      "id": "wire_68",
-      "source": "/fasttmo_i_exc:out",
-      "target": "/clamp_1:in"
-    },
-    {
       "id": "wire_70",
       "source": "/pi_1:output",
       "target": "/lut_carbon:input"
+    },
+    {
+      "id": "wire_71",
+      "source": "/currentsense_1:v_out",
+      "target": "/bus_ret:v"
+    },
+    {
+      "id": "wire_84",
+      "source": "/fasttmo_1:out",
+      "target": "/add_1:A"
+    },
+    {
+      "id": "wire_85",
+      "source": "/refnode_2:v",
+      "target": "/add_1:B"
+    },
+    {
+      "id": "wire_86",
+      "source": "/add_1:o",
+      "target": "/multiply_1:A"
+    },
+    {
+      "id": "wire_87",
+      "source": "/refnode_1:v",
+      "target": "/multiply_1:B"
+    },
+    {
+      "id": "wire_88",
+      "source": "/multiply_1:o",
+      "target": "/multiply_2:A"
+    },
+    {
+      "id": "wire_89",
+      "source": "/refnode_4:v",
+      "target": "/multiply_2:B"
+    },
+    {
+      "id": "wire_92",
+      "source": "/refnode_5:v",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_93",
+      "routing_points": [
+        [
+          624.0,
+          0.0
+        ],
+        [
+          432.0,
+          0.0
+        ],
+        [
+          432.0,
+          -352.0
+        ]
+      ],
+      "source": "/bus_1:v",
+      "target": "/controlledvoltagesource_1:v_neg"
+    },
+    {
+      "id": "wire_95",
+      "source": "/controlledvoltagesource_1:v_pos",
+      "target": "/resistor_1:v_in"
+    },
+    {
+      "id": "wire_96",
+      "source": "/resistor_1:v_out",
+      "target": "/currentsense_2:v_in"
+    },
+    {
+      "id": "wire_97",
+      "routing_points": [
+        [
+          880.0,
+          -352.0
+        ],
+        [
+          880.0,
+          0.0
+        ],
+        [
+          656.0,
+          0.0
+        ]
+      ],
+      "source": "/currentsense_2:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_98",
+      "source": "/multiply_2:o",
+      "target": "/controlledvoltagesource_1:cmd"
+    },
+    {
+      "id": "wire_99",
+      "routing_points": [
+        [
+          928.0,
+          -368.0
+        ],
+        [
+          928.0,
+          -128.0
+        ],
+        [
+          -176.0,
+          -128.0
+        ],
+        [
+          -176.0,
+          -368.0
+        ]
+      ],
+      "source": "/currentsense_2:i_out",
+      "target": "/fasttmo_1:in"
     }
   ],
-  "zoom": 1.2276116609573364
+  "zoom": 0.812336802482605
 }

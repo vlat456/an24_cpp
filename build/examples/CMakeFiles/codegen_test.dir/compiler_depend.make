@@ -539,6 +539,7 @@ examples/CMakeFiles/codegen_test.dir/codegen_test.cpp.o: /Users/vladimir/an24_cp
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/execution_traits.h \
   /Users/vladimir/an24_cpp/src/jit_solver/jit_solver.h \
   /Users/vladimir/an24_cpp/src/jit_solver/scheduling.h \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
@@ -1459,6 +1460,8 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/execution_traits.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h:
 

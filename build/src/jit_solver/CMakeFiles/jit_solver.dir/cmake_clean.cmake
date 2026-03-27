@@ -9,8 +9,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/jit_solver.dir/simulator.cpp.o.d"
   "CMakeFiles/jit_solver.dir/state.cpp.o"
   "CMakeFiles/jit_solver.dir/state.cpp.o.d"
-  "CMakeFiles/jit_solver.dir/systems.cpp.o"
-  "CMakeFiles/jit_solver.dir/systems.cpp.o.d"
   "libjit_solver.a"
   "libjit_solver.pdb"
 )

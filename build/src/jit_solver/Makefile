@@ -305,30 +305,6 @@ state.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.s
 .PHONY : state.cpp.s
 
-systems.o: systems.cpp.o
-.PHONY : systems.o
-
-# target to build an object file
-systems.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.o
-.PHONY : systems.cpp.o
-
-systems.i: systems.cpp.i
-.PHONY : systems.i
-
-# target to preprocess a source file
-systems.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.i
-.PHONY : systems.cpp.i
-
-systems.s: systems.cpp.s
-.PHONY : systems.s
-
-# target to generate assembly for a file
-systems.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/systems.cpp.s
-.PHONY : systems.cpp.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -358,9 +334,6 @@ help:
 	@echo "... state.o"
 	@echo "... state.i"
 	@echo "... state.s"
-	@echo "... systems.o"
-	@echo "... systems.i"
-	@echo "... systems.s"
 .PHONY : help
 
 

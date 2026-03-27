@@ -523,8 +523,9 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
-  /Users/vladimir/an24_cpp/src/jit_solver/scheduling.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/execution_traits.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/scheduling.h \
   /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../parse_number.h \

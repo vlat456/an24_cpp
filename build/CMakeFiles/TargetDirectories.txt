@@ -94,7 +94,6 @@
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/hello_world.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_codegen.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/codegen_test.dir
-/Users/vladimir/an24_cpp/build/examples/CMakeFiles/bench_vsu_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/an24_editor.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/benchmark_jit_vs_aot.dir
 /Users/vladimir/an24_cpp/build/examples/CMakeFiles/test.dir
@@ -133,10 +132,13 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/specialized_node_widget_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/scene_mutations_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/canvas_input_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/oscilloscope_stats_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/pi_zn_tuner_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_registry_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_macro_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_componentvariant_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_settings_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_data_interning_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/port_layout_resolver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/editor_viewport_tests.dir
@@ -168,9 +170,11 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/expand_typedef_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/properties_window_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/dt_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/closed_loop_latency_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/sor_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/aot_composite_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bake_in_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/time_delay_tests.dir
@@ -187,6 +191,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/transformer_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/generator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/apu_mechanical_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/gs24_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/radiator_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/inverter_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/unmapped_port_regression_tests.dir

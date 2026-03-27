@@ -452,6 +452,34 @@ canvas_input_tests/fast:
 .PHONY : canvas_input_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/oscilloscope_stats_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+.PHONY : tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+
+# Convenience name for target.
+oscilloscope_stats_tests: tests/CMakeFiles/oscilloscope_stats_tests.dir/rule
+.PHONY : oscilloscope_stats_tests
+
+# fast build rule for target.
+oscilloscope_stats_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/build
+.PHONY : oscilloscope_stats_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/pi_zn_tuner_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+.PHONY : tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+
+# Convenience name for target.
+pi_zn_tuner_tests: tests/CMakeFiles/pi_zn_tuner_tests.dir/rule
+.PHONY : pi_zn_tuner_tests
+
+# fast build rule for target.
+pi_zn_tuner_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/build
+.PHONY : pi_zn_tuner_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/port_registry_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/port_registry_tests.dir/rule
 .PHONY : tests/CMakeFiles/port_registry_tests.dir/rule
@@ -506,6 +534,20 @@ editor_data_tests: tests/CMakeFiles/editor_data_tests.dir/rule
 editor_data_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_data_tests.dir/build.make tests/CMakeFiles/editor_data_tests.dir/build
 .PHONY : editor_data_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/editor_settings_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/editor_settings_tests.dir/rule
+.PHONY : tests/CMakeFiles/editor_settings_tests.dir/rule
+
+# Convenience name for target.
+editor_settings_tests: tests/CMakeFiles/editor_settings_tests.dir/rule
+.PHONY : editor_settings_tests
+
+# fast build rule for target.
+editor_settings_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/build
+.PHONY : editor_settings_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/editor_data_interning_tests.dir/rule:
@@ -942,6 +984,20 @@ dt_regression_tests/fast:
 .PHONY : dt_regression_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/closed_loop_latency_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/closed_loop_latency_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/closed_loop_latency_regression_tests.dir/rule
+
+# Convenience name for target.
+closed_loop_latency_regression_tests: tests/CMakeFiles/closed_loop_latency_regression_tests.dir/rule
+.PHONY : closed_loop_latency_regression_tests
+
+# fast build rule for target.
+closed_loop_latency_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build
+.PHONY : closed_loop_latency_regression_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/codegen_accumulator_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/codegen_accumulator_tests.dir/rule
 .PHONY : tests/CMakeFiles/codegen_accumulator_tests.dir/rule
@@ -982,6 +1038,20 @@ aot_composite_tests: tests/CMakeFiles/aot_composite_tests.dir/rule
 aot_composite_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/build
 .PHONY : aot_composite_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
+.PHONY : tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
+
+# Convenience name for target.
+jit_aot_bridge_equivalence_tests: tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/rule
+.PHONY : jit_aot_bridge_equivalence_tests
+
+# fast build rule for target.
+jit_aot_bridge_equivalence_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build
+.PHONY : jit_aot_bridge_equivalence_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/bake_in_tests.dir/rule:
@@ -1206,6 +1276,20 @@ apu_mechanical_tests: tests/CMakeFiles/apu_mechanical_tests.dir/rule
 apu_mechanical_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/apu_mechanical_tests.dir/build.make tests/CMakeFiles/apu_mechanical_tests.dir/build
 .PHONY : apu_mechanical_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/gs24_regression_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/gs24_regression_tests.dir/rule
+.PHONY : tests/CMakeFiles/gs24_regression_tests.dir/rule
+
+# Convenience name for target.
+gs24_regression_tests: tests/CMakeFiles/gs24_regression_tests.dir/rule
+.PHONY : gs24_regression_tests
+
+# fast build rule for target.
+gs24_regression_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gs24_regression_tests.dir/build.make tests/CMakeFiles/gs24_regression_tests.dir/build
+.PHONY : gs24_regression_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/radiator_regression_tests.dir/rule:
@@ -1523,6 +1607,7 @@ __/src/codegen/codegen.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.cpp.o
@@ -1535,6 +1620,7 @@ __/src/codegen/codegen.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.i
 .PHONY : __/src/codegen/codegen.cpp.i
@@ -1547,6 +1633,7 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bug_hunt_regression_tests.dir/build.make tests/CMakeFiles/bug_hunt_regression_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
@@ -1616,6 +1703,7 @@ __/src/editor/data/blueprint.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.o
@@ -1632,6 +1720,7 @@ __/src/editor/data/blueprint.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.i
@@ -1648,10 +1737,35 @@ __/src/editor/data/blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/expand_typedef_tests.dir/build.make tests/CMakeFiles/expand_typedef_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bake_in_tests.dir/build.make tests/CMakeFiles/bake_in_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/sub_blueprint_ref_tests.dir/build.make tests/CMakeFiles/sub_blueprint_ref_tests.dir/__/src/editor/data/blueprint.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/data/blueprint.cpp.s
 .PHONY : __/src/editor/data/blueprint.cpp.s
+
+__/src/editor/editor_settings.o: __/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.o
+
+# target to build an object file
+__/src/editor/editor_settings.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.o
+.PHONY : __/src/editor/editor_settings.cpp.o
+
+__/src/editor/editor_settings.i: __/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.i
+
+# target to preprocess a source file
+__/src/editor/editor_settings.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.i
+.PHONY : __/src/editor/editor_settings.cpp.i
+
+__/src/editor/editor_settings.s: __/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.s
+
+# target to generate assembly for a file
+__/src/editor/editor_settings.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/__/src/editor/editor_settings.cpp.s
+.PHONY : __/src/editor/editor_settings.cpp.s
 
 __/src/editor/input/canvas_input.o: __/src/editor/input/canvas_input.cpp.o
 .PHONY : __/src/editor/input/canvas_input.o
@@ -1676,6 +1790,30 @@ __/src/editor/input/canvas_input.s: __/src/editor/input/canvas_input.cpp.s
 __/src/editor/input/canvas_input.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/canvas_input_tests.dir/build.make tests/CMakeFiles/canvas_input_tests.dir/__/src/editor/input/canvas_input.cpp.s
 .PHONY : __/src/editor/input/canvas_input.cpp.s
+
+__/src/editor/pi_zn_math.o: __/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.o
+
+# target to build an object file
+__/src/editor/pi_zn_math.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.o
+.PHONY : __/src/editor/pi_zn_math.cpp.o
+
+__/src/editor/pi_zn_math.i: __/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.i
+
+# target to preprocess a source file
+__/src/editor/pi_zn_math.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.i
+.PHONY : __/src/editor/pi_zn_math.cpp.i
+
+__/src/editor/pi_zn_math.s: __/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.s
+
+# target to generate assembly for a file
+__/src/editor/pi_zn_math.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/__/src/editor/pi_zn_math.cpp.s
+.PHONY : __/src/editor/pi_zn_math.cpp.s
 
 __/src/editor/viewport/viewport.o: __/src/editor/viewport/viewport.cpp.o
 .PHONY : __/src/editor/viewport/viewport.o
@@ -1898,6 +2036,7 @@ __/src/editor/visual/persist.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.o
@@ -1914,6 +2053,7 @@ __/src/editor/visual/persist.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.i
@@ -1930,6 +2070,7 @@ __/src/editor/visual/persist.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/logical_solver_tests.dir/build.make tests/CMakeFiles/logical_solver_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inspector_tests.dir/build.make tests/CMakeFiles/inspector_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/__/src/editor/visual/persist.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/command_tests.dir/build.make tests/CMakeFiles/command_tests.dir/__/src/editor/visual/persist.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.s
@@ -3036,6 +3177,30 @@ test_clamp_normalize.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/clamp_normalize_tests.dir/build.make tests/CMakeFiles/clamp_normalize_tests.dir/test_clamp_normalize.cpp.s
 .PHONY : test_clamp_normalize.cpp.s
 
+test_closed_loop_latency_regression.o: test_closed_loop_latency_regression.cpp.o
+.PHONY : test_closed_loop_latency_regression.o
+
+# target to build an object file
+test_closed_loop_latency_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/test_closed_loop_latency_regression.cpp.o
+.PHONY : test_closed_loop_latency_regression.cpp.o
+
+test_closed_loop_latency_regression.i: test_closed_loop_latency_regression.cpp.i
+.PHONY : test_closed_loop_latency_regression.i
+
+# target to preprocess a source file
+test_closed_loop_latency_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/test_closed_loop_latency_regression.cpp.i
+.PHONY : test_closed_loop_latency_regression.cpp.i
+
+test_closed_loop_latency_regression.s: test_closed_loop_latency_regression.cpp.s
+.PHONY : test_closed_loop_latency_regression.s
+
+# target to generate assembly for a file
+test_closed_loop_latency_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/closed_loop_latency_regression_tests.dir/build.make tests/CMakeFiles/closed_loop_latency_regression_tests.dir/test_closed_loop_latency_regression.cpp.s
+.PHONY : test_closed_loop_latency_regression.cpp.s
+
 test_codegen_accumulator.o: test_codegen_accumulator.cpp.o
 .PHONY : test_codegen_accumulator.o
 
@@ -3228,6 +3393,30 @@ test_dt_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/dt_regression_tests.dir/build.make tests/CMakeFiles/dt_regression_tests.dir/test_dt_regression.cpp.s
 .PHONY : test_dt_regression.cpp.s
 
+test_editor_settings.o: test_editor_settings.cpp.o
+.PHONY : test_editor_settings.o
+
+# target to build an object file
+test_editor_settings.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.o
+.PHONY : test_editor_settings.cpp.o
+
+test_editor_settings.i: test_editor_settings.cpp.i
+.PHONY : test_editor_settings.i
+
+# target to preprocess a source file
+test_editor_settings.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.i
+.PHONY : test_editor_settings.cpp.i
+
+test_editor_settings.s: test_editor_settings.cpp.s
+.PHONY : test_editor_settings.s
+
+# target to generate assembly for a file
+test_editor_settings.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/editor_settings_tests.dir/build.make tests/CMakeFiles/editor_settings_tests.dir/test_editor_settings.cpp.s
+.PHONY : test_editor_settings.cpp.s
+
 test_electric_heater_regression.o: test_electric_heater_regression.cpp.o
 .PHONY : test_electric_heater_regression.o
 
@@ -3372,6 +3561,30 @@ test_gidro_accumulator_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gidro_accumulator_regression_tests.dir/build.make tests/CMakeFiles/gidro_accumulator_regression_tests.dir/test_gidro_accumulator_regression.cpp.s
 .PHONY : test_gidro_accumulator_regression.cpp.s
 
+test_gs24_regression.o: test_gs24_regression.cpp.o
+.PHONY : test_gs24_regression.o
+
+# target to build an object file
+test_gs24_regression.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gs24_regression_tests.dir/build.make tests/CMakeFiles/gs24_regression_tests.dir/test_gs24_regression.cpp.o
+.PHONY : test_gs24_regression.cpp.o
+
+test_gs24_regression.i: test_gs24_regression.cpp.i
+.PHONY : test_gs24_regression.i
+
+# target to preprocess a source file
+test_gs24_regression.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gs24_regression_tests.dir/build.make tests/CMakeFiles/gs24_regression_tests.dir/test_gs24_regression.cpp.i
+.PHONY : test_gs24_regression.cpp.i
+
+test_gs24_regression.s: test_gs24_regression.cpp.s
+.PHONY : test_gs24_regression.s
+
+# target to generate assembly for a file
+test_gs24_regression.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/gs24_regression_tests.dir/build.make tests/CMakeFiles/gs24_regression_tests.dir/test_gs24_regression.cpp.s
+.PHONY : test_gs24_regression.cpp.s
+
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
 
@@ -3443,6 +3656,30 @@ test_inverter_regression.s: test_inverter_regression.cpp.s
 test_inverter_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/inverter_regression_tests.dir/build.make tests/CMakeFiles/inverter_regression_tests.dir/test_inverter_regression.cpp.s
 .PHONY : test_inverter_regression.cpp.s
+
+test_jit_aot_bridge_equivalence.o: test_jit_aot_bridge_equivalence.cpp.o
+.PHONY : test_jit_aot_bridge_equivalence.o
+
+# target to build an object file
+test_jit_aot_bridge_equivalence.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.o
+.PHONY : test_jit_aot_bridge_equivalence.cpp.o
+
+test_jit_aot_bridge_equivalence.i: test_jit_aot_bridge_equivalence.cpp.i
+.PHONY : test_jit_aot_bridge_equivalence.i
+
+# target to preprocess a source file
+test_jit_aot_bridge_equivalence.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.i
+.PHONY : test_jit_aot_bridge_equivalence.cpp.i
+
+test_jit_aot_bridge_equivalence.s: test_jit_aot_bridge_equivalence.cpp.s
+.PHONY : test_jit_aot_bridge_equivalence.s
+
+# target to generate assembly for a file
+test_jit_aot_bridge_equivalence.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/test_jit_aot_bridge_equivalence.cpp.s
+.PHONY : test_jit_aot_bridge_equivalence.cpp.s
 
 test_lamp_passthrough_jit.o: test_lamp_passthrough_jit.cpp.o
 .PHONY : test_lamp_passthrough_jit.o
@@ -3612,6 +3849,30 @@ test_multi_domain.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/multi_domain_tests.dir/build.make tests/CMakeFiles/multi_domain_tests.dir/test_multi_domain.cpp.s
 .PHONY : test_multi_domain.cpp.s
 
+test_oscilloscope_stats.o: test_oscilloscope_stats.cpp.o
+.PHONY : test_oscilloscope_stats.o
+
+# target to build an object file
+test_oscilloscope_stats.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.o
+.PHONY : test_oscilloscope_stats.cpp.o
+
+test_oscilloscope_stats.i: test_oscilloscope_stats.cpp.i
+.PHONY : test_oscilloscope_stats.i
+
+# target to preprocess a source file
+test_oscilloscope_stats.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.i
+.PHONY : test_oscilloscope_stats.cpp.i
+
+test_oscilloscope_stats.s: test_oscilloscope_stats.cpp.s
+.PHONY : test_oscilloscope_stats.s
+
+# target to generate assembly for a file
+test_oscilloscope_stats.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/oscilloscope_stats_tests.dir/build.make tests/CMakeFiles/oscilloscope_stats_tests.dir/test_oscilloscope_stats.cpp.s
+.PHONY : test_oscilloscope_stats.cpp.s
+
 test_pd.o: test_pd.cpp.o
 .PHONY : test_pd.o
 
@@ -3659,6 +3920,30 @@ test_pi_p.s: test_pi_p.cpp.s
 test_pi_p.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_p_tests.dir/build.make tests/CMakeFiles/pi_p_tests.dir/test_pi_p.cpp.s
 .PHONY : test_pi_p.cpp.s
+
+test_pi_zn_tuner.o: test_pi_zn_tuner.cpp.o
+.PHONY : test_pi_zn_tuner.o
+
+# target to build an object file
+test_pi_zn_tuner.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.o
+.PHONY : test_pi_zn_tuner.cpp.o
+
+test_pi_zn_tuner.i: test_pi_zn_tuner.cpp.i
+.PHONY : test_pi_zn_tuner.i
+
+# target to preprocess a source file
+test_pi_zn_tuner.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.i
+.PHONY : test_pi_zn_tuner.cpp.i
+
+test_pi_zn_tuner.s: test_pi_zn_tuner.cpp.s
+.PHONY : test_pi_zn_tuner.s
+
+# target to generate assembly for a file
+test_pi_zn_tuner.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/pi_zn_tuner_tests.dir/build.make tests/CMakeFiles/pi_zn_tuner_tests.dir/test_pi_zn_tuner.cpp.s
+.PHONY : test_pi_zn_tuner.cpp.s
 
 test_pid.o: test_pid.cpp.o
 .PHONY : test_pid.o
@@ -4680,6 +4965,7 @@ help:
 	@echo "... bug_hunt_regression_tests"
 	@echo "... canvas_input_tests"
 	@echo "... clamp_normalize_tests"
+	@echo "... closed_loop_latency_regression_tests"
 	@echo "... codegen_accumulator_tests"
 	@echo "... codegen_sanitize_tests"
 	@echo "... command_tests"
@@ -4689,6 +4975,7 @@ help:
 	@echo "... editor_componentvariant_tests"
 	@echo "... editor_data_interning_tests"
 	@echo "... editor_data_tests"
+	@echo "... editor_settings_tests"
 	@echo "... editor_simulation_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... electric_heater_regression_tests"
@@ -4698,9 +4985,11 @@ help:
 	@echo "... fuel_tank_regression_tests"
 	@echo "... generator_tests"
 	@echo "... gidro_accumulator_regression_tests"
+	@echo "... gs24_regression_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
 	@echo "... inverter_regression_tests"
+	@echo "... jit_aot_bridge_equivalence_tests"
 	@echo "... json_parser_tests"
 	@echo "... lamp_passthrough_jit_test"
 	@echo "... logic_gates_tests"
@@ -4709,8 +4998,10 @@ help:
 	@echo "... lut_tests"
 	@echo "... monostable_tests"
 	@echo "... multi_domain_tests"
+	@echo "... oscilloscope_stats_tests"
 	@echo "... pd_tests"
 	@echo "... pi_p_tests"
+	@echo "... pi_zn_tuner_tests"
 	@echo "... pid_tests"
 	@echo "... port_layout_resolver_tests"
 	@echo "... port_macro_tests"
@@ -4765,9 +5056,15 @@ help:
 	@echo "... __/src/editor/data/blueprint.o"
 	@echo "... __/src/editor/data/blueprint.i"
 	@echo "... __/src/editor/data/blueprint.s"
+	@echo "... __/src/editor/editor_settings.o"
+	@echo "... __/src/editor/editor_settings.i"
+	@echo "... __/src/editor/editor_settings.s"
 	@echo "... __/src/editor/input/canvas_input.o"
 	@echo "... __/src/editor/input/canvas_input.i"
 	@echo "... __/src/editor/input/canvas_input.s"
+	@echo "... __/src/editor/pi_zn_math.o"
+	@echo "... __/src/editor/pi_zn_math.i"
+	@echo "... __/src/editor/pi_zn_math.s"
 	@echo "... __/src/editor/viewport/viewport.o"
 	@echo "... __/src/editor/viewport/viewport.i"
 	@echo "... __/src/editor/viewport/viewport.s"
@@ -4915,6 +5212,9 @@ help:
 	@echo "... test_clamp_normalize.o"
 	@echo "... test_clamp_normalize.i"
 	@echo "... test_clamp_normalize.s"
+	@echo "... test_closed_loop_latency_regression.o"
+	@echo "... test_closed_loop_latency_regression.i"
+	@echo "... test_closed_loop_latency_regression.s"
 	@echo "... test_codegen_accumulator.o"
 	@echo "... test_codegen_accumulator.i"
 	@echo "... test_codegen_accumulator.s"
@@ -4939,6 +5239,9 @@ help:
 	@echo "... test_dt_regression.o"
 	@echo "... test_dt_regression.i"
 	@echo "... test_dt_regression.s"
+	@echo "... test_editor_settings.o"
+	@echo "... test_editor_settings.i"
+	@echo "... test_editor_settings.s"
 	@echo "... test_electric_heater_regression.o"
 	@echo "... test_electric_heater_regression.i"
 	@echo "... test_electric_heater_regression.s"
@@ -4957,6 +5260,9 @@ help:
 	@echo "... test_gidro_accumulator_regression.o"
 	@echo "... test_gidro_accumulator_regression.i"
 	@echo "... test_gidro_accumulator_regression.s"
+	@echo "... test_gs24_regression.o"
+	@echo "... test_gs24_regression.i"
+	@echo "... test_gs24_regression.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
@@ -4966,6 +5272,9 @@ help:
 	@echo "... test_inverter_regression.o"
 	@echo "... test_inverter_regression.i"
 	@echo "... test_inverter_regression.s"
+	@echo "... test_jit_aot_bridge_equivalence.o"
+	@echo "... test_jit_aot_bridge_equivalence.i"
+	@echo "... test_jit_aot_bridge_equivalence.s"
 	@echo "... test_lamp_passthrough_jit.o"
 	@echo "... test_lamp_passthrough_jit.i"
 	@echo "... test_lamp_passthrough_jit.s"
@@ -4987,12 +5296,18 @@ help:
 	@echo "... test_multi_domain.o"
 	@echo "... test_multi_domain.i"
 	@echo "... test_multi_domain.s"
+	@echo "... test_oscilloscope_stats.o"
+	@echo "... test_oscilloscope_stats.i"
+	@echo "... test_oscilloscope_stats.s"
 	@echo "... test_pd.o"
 	@echo "... test_pd.i"
 	@echo "... test_pd.s"
 	@echo "... test_pi_p.o"
 	@echo "... test_pi_p.i"
 	@echo "... test_pi_p.s"
+	@echo "... test_pi_zn_tuner.o"
+	@echo "... test_pi_zn_tuner.i"
+	@echo "... test_pi_zn_tuner.s"
 	@echo "... test_pid.o"
 	@echo "... test_pid.i"
 	@echo "... test_pid.s"
