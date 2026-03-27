@@ -110,8 +110,8 @@ struct HydraulicLoop {
         }
     }
 
-    void run_post_step(float dt = 1.0f / 5.0f) {
-        accum.post_step(st, dt);
+    void run_finalize_step(float dt = 1.0f / 5.0f) {
+        accum.finalize_step(st, dt);
     }
 };
 
@@ -176,7 +176,7 @@ TEST(HydraulicLoopRegression, Accumulator_BuffersPressure) {
 
     // Phase 1: Charge the system (valve open, pump running)
     loop.run_sor_steps(300, 28.0f, 28.0f);
-    loop.run_post_step();
+    loop.run_finalize_step();
 
     float p_accum_charged = loop.st.across[SIG_P_ACCUM_OUT];
     EXPECT_GT(p_accum_charged, 40.0f)

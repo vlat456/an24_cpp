@@ -1029,24 +1029,6 @@ BuildResult build_systems_dev(
         spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
         spdlog::debug("[build] {} -> [{}] exec_traits", name, get_execution_traits_string(exec_traits));
 
-        // Add component to each domain it belongs to
-        if (has_domain(domain_mask, Domain::Electrical)) {
-            result.domain_components.electrical.push_back(ptr);
-        }
-        if (has_domain(domain_mask, Domain::Logical)) {
-            result.domain_components.logical.push_back(ptr);
-        }
-        if (has_domain(domain_mask, Domain::Mechanical)) {
-            result.domain_components.mechanical.push_back(ptr);
-        }
-        if (has_domain(domain_mask, Domain::Hydraulic)) {
-            result.domain_components.hydraulic.push_back(ptr);
-        }
-        if (has_domain(domain_mask, Domain::Thermal)) {
-            result.domain_components.thermal.push_back(ptr);
-            spdlog::info("[build] {} -> THERMAL domain", name);
-        }
-
         // Stage 4 scaffolding: populate explicit phase buckets.
         if (exec_traits.electrical_passive) {
             result.phase_components.electrical_passive.push_back(ptr);
@@ -1078,13 +1060,8 @@ BuildResult build_systems_dev(
 
     }
 
-    spdlog::info("[build] created {} components (elec={}, logic={}, mech={}, hyd={}, therm={})",
-        result.devices.size(),
-        result.domain_components.electrical.size(),
-        result.domain_components.logical.size(),
-        result.domain_components.mechanical.size(),
-        result.domain_components.hydraulic.size(),
-        result.domain_components.thermal.size());
+    spdlog::info("[build] created {} components",
+        result.devices.size());
 
     // Stage 1 diagnostics: summarize future phase capabilities without affecting runtime scheduling.
     uint32_t phase_elec_passive = 0;

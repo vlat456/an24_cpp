@@ -41,7 +41,8 @@ void Switch<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
+void Switch<Provider>::commit_control(SimulationState& st, float dt) {
+    (void)dt;
     float current_control = st.across[provider.get(PortNames::control)];
 
     if (std::abs(current_control - last_control) > 0.1f) {
@@ -62,11 +63,6 @@ void Switch<Provider>::post_step(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
 }
 
-template <typename Provider>
-void Switch<Provider>::commit_control(SimulationState& st, float dt) {
-    post_step(st, dt);
-}
-
 // =============================================================================
 // Relay
 // =============================================================================
@@ -83,9 +79,10 @@ void Relay<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Relay<Provider>::post_step(SimulationState& st, float /*dt*/) {
-    float control_voltage = st.across[provider.get(PortNames::control)];
-    closed = (control_voltage > hold_threshold);
+void Relay<Provider>::commit_control(SimulationState& st, float dt) {
+    (void)dt;
+    float control = st.across[provider.get(PortNames::control)];
+    closed = control > hold_threshold;
 
     if (closed) {
         downstream_g = st.conductance[provider.get(PortNames::v_out)];
@@ -96,11 +93,6 @@ void Relay<Provider>::post_step(SimulationState& st, float /*dt*/) {
         downstream_I = 0.0f;
         st.across[provider.get(PortNames::v_out)] = 0.0f;
     }
-}
-
-template <typename Provider>
-void Relay<Provider>::commit_control(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -119,15 +111,11 @@ void HoldButton<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void HoldButton<Provider>::post_step(SimulationState& st, float /*dt*/) {
-    float current = st.across[provider.get(PortNames::control)];
-
-    if (std::abs(current - 1.0f) < 0.1f && std::abs(last_control - 1.0f) >= 0.1f) {
-        is_pressed = true;
-    } else if (std::abs(current - 2.0f) < 0.1f && std::abs(last_control - 2.0f) >= 0.1f) {
-        is_pressed = false;
-    }
-    last_control = current;
+void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
+    (void)dt;
+    float current_control = st.across[provider.get(PortNames::control)];
+    bool active = std::abs(current_control - idle) > 0.1f;
+    is_pressed = active;
 
     if (is_pressed) {
         downstream_g = st.conductance[provider.get(PortNames::v_out)];
@@ -140,11 +128,6 @@ void HoldButton<Provider>::post_step(SimulationState& st, float /*dt*/) {
     }
 
     st.across[provider.get(PortNames::state)] = is_pressed ? 1.0f : 0.0f;
-}
-
-template <typename Provider>
-void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -274,7 +257,7 @@ void GS24<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void GS24<Provider>::post_step(SimulationState& st, float dt) {
+void GS24<Provider>::finalize_step(SimulationState& st, float dt) {
     (void)st;
 
     float rpm_percent = current_rpm * inv_target_rpm;
@@ -312,11 +295,6 @@ void GS24<Provider>::post_step(SimulationState& st, float dt) {
         default:
             break;
     }
-}
-
-template <typename Provider>
-void GS24<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -395,27 +373,19 @@ void LerpNode<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void LerpNode<Provider>::post_step(SimulationState& st, float dt) {
+void LerpNode<Provider>::finalize_step(SimulationState& st, float dt) {
     (void)dt;
     float v_input = st.across[provider.get(PortNames::input)];
 
-    // 1. Branchless cold start
     current_value += (v_input - current_value) * first_frame_mask;
     first_frame_mask = 0.0f;
 
-    // 2. Compute difference with deadzone
     float diff = v_input - current_value;
     float dz_mask = (std::abs(diff) >= deadzone) ? 1.0f : 0.0f;
 
-    // 3. Apply interpolation with deadzone
     float new_output = current_value + factor * diff * dz_mask;
     current_value = new_output;
     st.across[provider.get(PortNames::output)] = new_output;
-}
-
-template <typename Provider>
-void LerpNode<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -424,45 +394,38 @@ void LerpNode<Provider>::finalize_step(SimulationState& st, float dt) {
 
 template <typename Provider>
 void PID<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // High-impedance output: the PID drives the output directly in post_step
+    // High-impedance output: the PID drives the output directly in solve_logical
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PID<Provider>::post_step(SimulationState& st, float dt) {
-    float setpoint = st.across[provider.get(PortNames::setpoint)];
-    float feedback = st.across[provider.get(PortNames::feedback)];
+void PID<Provider>::solve_logical(SimulationState& st, float dt) {
+    constexpr float kDtMin = 1e-6f;
+    constexpr float kDtMax = 0.1f;
+    const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
 
-    // Self-contained dt clamping for testability (core also clamps, defense in depth)
-    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
-    float inv_dt = 1.0f / safe_dt;
+    float sp = st.across[provider.get(PortNames::setpoint)];
+    float fb = st.across[provider.get(PortNames::feedback)];
+    float error = sp - fb;
 
-    // Error
-    float error = setpoint - feedback;
-
-    // P term
-    float p_term = Kp * error;
-
-    // I term with clamping anti-windup
     integral += error * safe_dt;
-    float i_term = std::clamp(Ki * integral, output_min - p_term, output_max - p_term);
 
-    // D term: first-order low-pass filter on raw derivative
-    float d_raw = (error - last_error) * inv_dt;
-    d_filtered  += filter_alpha * (d_raw - d_filtered);
-    float d_term  = Kd * d_filtered;
+    float derivative = (error - last_error) / safe_dt;
+    d_filtered += filter_alpha * (derivative - d_filtered);
 
-    // Output saturation
-    float output = std::clamp(p_term + i_term + d_term, output_min, output_max);
+    float output = Kp * error + Ki * integral + Kd * d_filtered;
+    output = std::clamp(output, output_min, output_max);
+
+    if (std::abs(Ki) > 1e-9f) {
+        float i_lo = output_min / Ki;
+        float i_hi = output_max / Ki;
+        if (i_lo > i_hi) std::swap(i_lo, i_hi);
+        integral = std::clamp(integral, i_lo, i_hi);
+    }
 
     st.across[provider.get(PortNames::output)] = output;
     last_error = error;
-}
-
-template <typename Provider>
-void PID<Provider>::solve_logical(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -471,41 +434,29 @@ void PID<Provider>::solve_logical(SimulationState& st, float dt) {
 
 template <typename Provider>
 void PD<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // High-impedance output: the PD drives the output directly in post_step
+    // High-impedance output: the PD drives the output directly in solve_logical
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PD<Provider>::post_step(SimulationState& st, float dt) {
-    float setpoint = st.across[provider.get(PortNames::setpoint)];
-    float feedback = st.across[provider.get(PortNames::feedback)];
+void PD<Provider>::solve_logical(SimulationState& st, float dt) {
+    constexpr float kDtMin = 1e-6f;
+    constexpr float kDtMax = 0.1f;
+    const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
 
-    // Self-contained dt clamping for testability (core also clamps, defense in depth)
-    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
-    float inv_dt = 1.0f / safe_dt;
+    float sp = st.across[provider.get(PortNames::setpoint)];
+    float fb = st.across[provider.get(PortNames::feedback)];
+    float error = sp - fb;
 
-    // Error
-    float error = setpoint - feedback;
+    float derivative = (error - last_error) / safe_dt;
+    d_filtered += filter_alpha * (derivative - d_filtered);
 
-    // P term
-    float p_term = Kp * error;
-
-    // D term: first-order low-pass filter on raw derivative
-    float d_raw = (error - last_error) * inv_dt;
-    d_filtered  += filter_alpha * (d_raw - d_filtered);
-    float d_term  = Kd * d_filtered;
-
-    // Output saturation (no integral windup concern)
-    float output = std::clamp(p_term + d_term, output_min, output_max);
+    float output = Kp * error + Kd * d_filtered;
+    output = std::clamp(output, output_min, output_max);
 
     st.across[provider.get(PortNames::output)] = output;
     last_error = error;
-}
-
-template <typename Provider>
-void PD<Provider>::solve_logical(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -514,38 +465,34 @@ void PD<Provider>::solve_logical(SimulationState& st, float dt) {
 
 template <typename Provider>
 void PI<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // High-impedance output: the PI drives the output directly in post_step
+    // High-impedance output: the PI drives the output directly in solve_logical
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void PI<Provider>::post_step(SimulationState& st, float dt) {
-    float setpoint = st.across[provider.get(PortNames::setpoint)];
-    float feedback = st.across[provider.get(PortNames::feedback)];
+void PI<Provider>::solve_logical(SimulationState& st, float dt) {
+    constexpr float kDtMin = 1e-6f;
+    constexpr float kDtMax = 0.1f;
+    const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
 
-    // Self-contained dt clamping for testability (core also clamps, defense in depth)
-    float safe_dt = std::max(1e-6f, std::min(dt, 0.1f));
+    float sp = st.across[provider.get(PortNames::setpoint)];
+    float fb = st.across[provider.get(PortNames::feedback)];
+    float error = sp - fb;
 
-    // Error
-    float error = setpoint - feedback;
-
-    // P term
-    float p_term = Kp * error;
-
-    // I term with clamping anti-windup
     integral += error * safe_dt;
-    float i_term = std::clamp(Ki * integral, output_min - p_term, output_max - p_term);
 
-    // Output saturation
-    float output = std::clamp(p_term + i_term, output_min, output_max);
+    float output = Kp * error + Ki * integral;
+    output = std::clamp(output, output_min, output_max);
+
+    if (std::abs(Ki) > 1e-9f) {
+        float i_lo = output_min / Ki;
+        float i_hi = output_max / Ki;
+        if (i_lo > i_hi) std::swap(i_lo, i_hi);
+        integral = std::clamp(integral, i_lo, i_hi);
+    }
 
     st.across[provider.get(PortNames::output)] = output;
-}
-
-template <typename Provider>
-void PI<Provider>::solve_logical(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -554,31 +501,20 @@ void PI<Provider>::solve_logical(SimulationState& st, float dt) {
 
 template <typename Provider>
 void P<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // High-impedance output: the P controller drives the output directly in post_step
+    // High-impedance output: the P controller drives the output directly in solve_logical
     // Small conductance keeps the node well-conditioned in the MNA matrix
     st.conductance[provider.get(PortNames::output)] += 1e-6f;
 }
 
 template <typename Provider>
-void P<Provider>::post_step(SimulationState& st, float /*dt*/) {
-    float setpoint = st.across[provider.get(PortNames::setpoint)];
-    float feedback = st.across[provider.get(PortNames::feedback)];
-
-    // Error
-    float error = setpoint - feedback;
-
-    // P term (no integral, no derivative)
-    float p_term = Kp * error;
-
-    // Output saturation
-    float output = std::clamp(p_term, output_min, output_max);
-
-    st.across[provider.get(PortNames::output)] = output;
-}
-
-template <typename Provider>
 void P<Provider>::solve_logical(SimulationState& st, float dt) {
-    post_step(st, dt);
+    (void)dt;
+    float sp = st.across[provider.get(PortNames::setpoint)];
+    float fb = st.across[provider.get(PortNames::feedback)];
+    float error = sp - fb;
+    float output = Kp * error;
+    output = std::clamp(output, output_min, output_max);
+    st.across[provider.get(PortNames::output)] = output;
 }
 
 // =============================================================================
@@ -908,25 +844,12 @@ void GidroAccumulator<Provider>::solve_hydraulic(SimulationState& st, float /*dt
 }
 
 template <typename Provider>
-void GidroAccumulator<Provider>::post_step(SimulationState& st, float dt) {
-    // [BUG-GidroAccumulator] Fixed: moved gas_volume mutation from solve_hydraulic
-    // to post_step. Mutating state inside the SOR iteration loop caused convergence
-    // issues because gas_volume would change on every iteration, shifting the target
-    // pressure during convergence.
+void GidroAccumulator<Provider>::finalize_step(SimulationState& st, float dt) {
     float p_in = st.across[provider.get(PortNames::p_in)];
     float p_gas = precharge_pressure * volume / std::max(gas_volume, 0.01f);
-
-    // Update gas volume based on pressure differential
-    // When p_in > p_gas, fluid enters (gas_volume decreases)
-    // When p_in < p_gas, fluid exits (gas_volume increases)
     float dp = p_in - p_gas;
-    float flow_rate = dp * 0.001f;  // Small flow coefficient
+    float flow_rate = dp * 0.001f;
     gas_volume = std::clamp(gas_volume - flow_rate * dt, 0.1f, volume);
-}
-
-template <typename Provider>
-void GidroAccumulator<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 template <typename Provider>
@@ -957,17 +880,10 @@ void FuelTank<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void FuelTank<Provider>::post_step(SimulationState& st, float dt) {
-    // Consume fuel based on flow drawn from tank
-    // flow = through[flow_out] represents flow rate out of the tank
+void FuelTank<Provider>::finalize_step(SimulationState& st, float dt) {
     float flow = st.through[provider.get(PortNames::flow_out)];
     float consumption = std::max(flow, 0.0f) * dt;
     level = std::max(level - consumption, 0.0f);
-}
-
-template <typename Provider>
-void FuelTank<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 template <typename Provider>
@@ -1092,7 +1008,7 @@ void ElectricHeater<Provider>::solve_thermal(SimulationState& st, float /*dt*/) 
 
 template <typename Provider>
 void RUG82<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // [BUG-RUG82] Fixed: moved integration to post_step.
+    // [BUG-RUG82] Fixed: moved integration to finalize_step.
     // Previously, k_mod += kp * error * dt ran inside solve_electrical, which
     // executes on every SOR iteration. This caused N-times-higher effective gain
     // (where N = number of SOR iterations), making regulator behavior non-deterministic.
@@ -1101,18 +1017,12 @@ void RUG82<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void RUG82<Provider>::post_step(SimulationState& st, float dt) {
-    // Integration runs once per frame (after solver converges)
+void RUG82<Provider>::finalize_step(SimulationState& st, float dt) {
     float v_gen = st.across[provider.get(PortNames::v_gen)];
     float error = v_target - v_gen;
     k_mod += kp * error * dt;
     k_mod = std::clamp(k_mod, 0.0f, 1.0f);
     st.across[provider.get(PortNames::k_mod)] = k_mod;
-}
-
-template <typename Provider>
-void RUG82<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -1132,7 +1042,7 @@ void DMR400<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void DMR400<Provider>::post_step(SimulationState& st, float dt) {
+void DMR400<Provider>::finalize_step(SimulationState& st, float dt) {
     float v_gen = st.across[provider.get(PortNames::v_gen_ref)];
     float v_bus = st.across[provider.get(PortNames::v_in)];
 
@@ -1152,11 +1062,6 @@ void DMR400<Provider>::post_step(SimulationState& st, float dt) {
     }
 
     st.across[provider.get(PortNames::lamp)] = is_closed ? 0.0f : 1.0f;
-}
-
-template <typename Provider>
-void DMR400<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================
@@ -1248,7 +1153,7 @@ void RU19A<Provider>::solve_mechanical(SimulationState& st, float dt) {
     // Branchless clamp
     current_rpm = std::clamp(current_rpm, 0.0f, target_rpm);
 
-    // rpm_out canonical value is set by post_step (percentage 0-100).
+    // rpm_out canonical value is set by finalize_step (percentage 0-100).
     // No write here to avoid mid-step inconsistency.
 }
 
@@ -1280,7 +1185,7 @@ void RU19A<Provider>::solve_thermal(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RU19A<Provider>::post_step(SimulationState& st, float dt) {
+void RU19A<Provider>::finalize_step(SimulationState& st, float dt) {
     float v_start = st.across[provider.get(PortNames::v_start)];
     float v_bus = st.across[provider.get(PortNames::v_bus)];
     timer += dt;
@@ -1334,11 +1239,6 @@ void RU19A<Provider>::post_step(SimulationState& st, float dt) {
     st.across[provider.get(PortNames::t4_out)] = t4;
 }
 
-template <typename Provider>
-void RU19A<Provider>::finalize_step(SimulationState& st, float dt) {
-    post_step(st, dt);
-}
-
 // RU19A pre_load: precompute inverse target RPM
 template <typename Provider>
 void RU19A<Provider>::pre_load() {
@@ -1383,7 +1283,7 @@ void AZS<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 
 template <typename Provider>
 void AZS<Provider>::solve_thermal(SimulationState& st, float dt) {
-    // Use current computed in post_step (post-SOR, before v_out merge)
+    // Use current computed in commit_control (post-SOR, before v_out merge)
     float I = current;
     // T += (I² * r_heat - T * k_cool) * dt — vectorizable, no sqrt
     temp += (I * I * r_heat - temp * k_cool) * dt;
@@ -1392,24 +1292,20 @@ void AZS<Provider>::solve_thermal(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void AZS<Provider>::post_step(SimulationState& st, float /*dt*/) {
-    // 1. Manual toggle via control edge detection (same pattern as Switch)
+void AZS<Provider>::commit_control(SimulationState& st, float dt) {
+    (void)dt;
     float current_control = st.across[provider.get(PortNames::control)];
     if (std::abs(current_control - last_control) > 0.1f) {
-        if (!closed) tripped = false; // OFF→ON: clear tripped flag
+        if (!closed) tripped = false;
         closed = !closed;
     }
     last_control = current_control;
 
-    // 2. Thermal trip: if temp > 1.0, force open
     if (closed && temp > 1.0f) {
         closed = false;
         tripped = true;
     }
 
-    // 3. Compute current through AZS (post-SOR, BEFORE voltage merge)
-    // Since solve_electrical stamps downstream_g on v_in, SOR drives v_in ≈ v_out.
-    // The actual current = what downstream load draws = conductance * voltage at v_out.
     if (closed) {
         float v_out = st.across[provider.get(PortNames::v_out)];
         float g_out = st.conductance[provider.get(PortNames::v_out)];
@@ -1418,7 +1314,6 @@ void AZS<Provider>::post_step(SimulationState& st, float /*dt*/) {
         current = 0.0f;
     }
 
-    // 4. Voltage merge (same pattern as Relay)
     if (closed) {
         downstream_g = st.conductance[provider.get(PortNames::v_out)];
         downstream_I = st.through[provider.get(PortNames::v_out)] + v_out_old * st.conductance[provider.get(PortNames::v_out)];
@@ -1430,15 +1325,9 @@ void AZS<Provider>::post_step(SimulationState& st, float /*dt*/) {
         st.across[provider.get(PortNames::v_out)] = 0.0f;
     }
 
-    // 5. Output ports
     st.across[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
     st.across[provider.get(PortNames::temp)] = temp;
     st.across[provider.get(PortNames::tripped)] = tripped ? 1.0f : 0.0f;
-}
-
-template <typename Provider>
-void AZS<Provider>::commit_control(SimulationState& st, float dt) {
-    post_step(st, dt);
 }
 
 // =============================================================================

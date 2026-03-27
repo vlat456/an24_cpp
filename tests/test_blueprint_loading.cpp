@@ -87,8 +87,8 @@ static SimulationState run_simulation(
     for (int step = 0; step < steps; ++step) {
         state.clear_through();
 
-        // Solve electrical domain using domain_components
-        for (auto* variant : result.domain_components.electrical) {
+        // Solve electrical passive phase
+        for (auto* variant : result.phase_components.electrical_passive) {
             std::visit([&](auto& comp) {
                 if constexpr (requires { comp.solve_electrical(state, 0.0f); }) {
                     comp.solve_electrical(state, 1.0f / 60.0f);

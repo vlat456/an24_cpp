@@ -6,7 +6,7 @@
 /// integral gain was N * kp (where N = iteration count), making the
 /// regulator non-deterministic.
 ///
-/// The fix moves integration to post_step() (runs once per frame),
+/// The fix moves integration to finalize_step() (runs once per frame),
 /// and solve_electrical() only writes the current k_mod output.
 
 #include <gtest/gtest.h>
@@ -40,7 +40,7 @@ static SimulationState make_state(size_t n = 4) {
 }
 
 // =============================================================================
-// Core Regression: Integration in post_step, not solve_electrical
+// Core Regression: Integration in finalize_step, not solve_electrical
 // =============================================================================
 
 TEST(RUG82Regression, SolveElectrical_DoesNotIntegrate) {
@@ -60,7 +60,7 @@ TEST(RUG82Regression, SolveElectrical_DoesNotIntegrate) {
         << "k_mod should NOT change during solve_electrical (was the old bug)";
 }
 
-TEST(RUG82Regression, PostStep_IntegratesOnce) {
+TEST(RUG82Regression, FinalizePhase_IntegratesOnce) {
     auto comp = make_rug82(28.5f, 2.0f);
     auto st = make_state();
     st.across[0] = 25.0f;  // v_gen = 25V, error = 3.5V
@@ -68,16 +68,16 @@ TEST(RUG82Regression, PostStep_IntegratesOnce) {
 
     float initial_k_mod = comp.k_mod;
 
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
 
     float expected = initial_k_mod + 2.0f * 3.5f * dt;
     expected = std::clamp(expected, 0.0f, 1.0f);
 
     EXPECT_FLOAT_EQ(comp.k_mod, expected)
-        << "k_mod should integrate error once in post_step";
+        << "k_mod should integrate error once in finalize_step";
 }
 
-TEST(RUG82Regression, PostStep_MultipleCallsAccumulate) {
+TEST(RUG82Regression, FinalizePhase_MultipleCallsAccumulate) {
     auto comp = make_rug82(28.5f, 2.0f);
     auto st = make_state();
     st.across[0] = 27.0f;  // error = 1.5
@@ -85,10 +85,10 @@ TEST(RUG82Regression, PostStep_MultipleCallsAccumulate) {
 
     float k0 = comp.k_mod;
 
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
     float k1 = comp.k_mod;
 
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
     float k2 = comp.k_mod;
 
     float delta1 = k1 - k0;
@@ -96,7 +96,7 @@ TEST(RUG82Regression, PostStep_MultipleCallsAccumulate) {
 
     // Each call should integrate the same amount (same error, same dt)
     EXPECT_NEAR(delta1, delta2, 1e-6f)
-        << "Each post_step call should integrate the same delta";
+        << "Each finalize_step call should integrate the same delta";
 }
 
 TEST(RUG82Regression, SolveElectrical_WritesKmod) {
@@ -111,14 +111,14 @@ TEST(RUG82Regression, SolveElectrical_WritesKmod) {
         << "solve_electrical should write current k_mod to output";
 }
 
-TEST(RUG82Regression, PostStep_ClampsKmod) {
+TEST(RUG82Regression, FinalizePhase_ClampsKmod) {
     // k_mod should be clamped to [0, 1]
     auto comp = make_rug82(28.5f, 100.0f);  // huge gain
     auto st = make_state();
     st.across[0] = 0.0f;  // huge error
     float dt = 1.0f;
 
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
 
     EXPECT_LE(comp.k_mod, 1.0f) << "k_mod should be clamped to 1.0 max";
     EXPECT_GE(comp.k_mod, 0.0f) << "k_mod should be clamped to 0.0 min";
@@ -133,19 +133,19 @@ TEST(RUG82Regression, Deterministic_IndependentOfIterationCount) {
     // more integration steps, making k_mod non-deterministic.
     float dt = 1.0f / 60.0f;
 
-    // Run with 5 "SOR iterations" + 1 post_step
+    // Run with 5 "SOR iterations" + 1 finalize_step
     auto comp5 = make_rug82();
     auto st5 = make_state();
     st5.across[0] = 25.0f;
     for (int i = 0; i < 5; ++i) comp5.solve_electrical(st5, dt);
-    comp5.post_step(st5, dt);
+    comp5.finalize_step(st5, dt);
 
-    // Run with 50 "SOR iterations" + 1 post_step
+    // Run with 50 "SOR iterations" + 1 finalize_step
     auto comp50 = make_rug82();
     auto st50 = make_state();
     st50.across[0] = 25.0f;
     for (int i = 0; i < 50; ++i) comp50.solve_electrical(st50, dt);
-    comp50.post_step(st50, dt);
+    comp50.finalize_step(st50, dt);
 
     EXPECT_FLOAT_EQ(comp5.k_mod, comp50.k_mod)
         << "k_mod must be identical regardless of SOR iteration count";

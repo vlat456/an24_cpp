@@ -24,7 +24,7 @@ The runtime step is:
 2. stamp components (`solve_electrical`, etc.)
 3. precompute inverse conductance
 4. run relaxation update
-5. `post_step()`
+5. `finalize_step()`
 6. logical solve
 
 With current pipeline, we do **one stamp pass per frame**.
@@ -96,7 +96,7 @@ Without re-stamping between sweeps, behavior drifts and regressions appear.
 ## Component-side rules that matter most
 
 1. `solve_*()` should stamp/read only
-2. persistent state updates go to `post_step()`
+2. persistent state updates go to `finalize_step()`
 3. through devices must use `stamp_two_port(...)`
 4. avoid extreme defaults (`conductance`, near-zero resistances)
 

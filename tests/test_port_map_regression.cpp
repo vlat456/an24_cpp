@@ -51,7 +51,7 @@ TEST(PortMapRegression, AllComponentPortsAreInStringToPortName) {
 static void run_step(BuildResult& result, SimulationState& state, float dt) {
     state.clear_through();
 
-    for (auto* v : result.domain_components.electrical) {
+    for (auto* v : result.phase_components.electrical_passive) {
         std::visit([&](auto& c) {
             if constexpr (requires { c.solve_electrical(state, dt); })
                 c.solve_electrical(state, dt);
@@ -64,12 +64,12 @@ static void run_step(BuildResult& result, SimulationState& state, float dt) {
 
     for (auto& [name, v] : result.devices) {
         std::visit([&](auto& c) {
-            if constexpr (requires { c.post_step(state, dt); })
-                c.post_step(state, dt);
+            if constexpr (requires { c.finalize_step(state, dt); })
+                c.finalize_step(state, dt);
         }, v);
     }
 
-    for (auto* v : result.domain_components.logical) {
+    for (auto* v : result.phase_components.logical) {
         std::visit([&](auto& c) {
             if constexpr (requires { c.solve_logical(state, dt); })
                 c.solve_logical(state, dt);

@@ -69,17 +69,21 @@ void stamp_current_source(conductance, through, idx, g, i_source);
 // Stamps: conductance[idx] += g, through[idx] += i_source
 ```
 
-## Domain Scheduling
+## Phase Scheduling
 
-Components are sorted by domain at build time for branchless iteration:
+Components are sorted by explicit execution phase at build time:
 
 ```cpp
-struct DomainComponents {
-    std::vector<ComponentVariant> electrical;  // 60 Hz
-    std::vector<ComponentVariant> logical;     // 60 Hz
-    std::vector<ComponentVariant> mechanical;  // 20 Hz
-    std::vector<ComponentVariant> hydraulic;   // 5 Hz
-    std::vector<ComponentVariant> thermal;     // 1 Hz
+struct PhaseComponents {
+    std::vector<ComponentVariant*> electrical_passive;
+    std::vector<ComponentVariant*> electrical_observer;
+    std::vector<ComponentVariant*> logical;
+    std::vector<ComponentVariant*> control_commit;
+    std::vector<ComponentVariant*> electrical_actuator;
+    std::vector<ComponentVariant*> finalize;
+    std::vector<ComponentVariant*> mechanical;
+    std::vector<ComponentVariant*> hydraulic;
+    std::vector<ComponentVariant*> thermal;
 };
 ```
 
@@ -101,7 +105,7 @@ struct BuildResult {
     std::vector<Connection> connections;
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t signal_count;
-    DomainComponents components;  // Sorted by domain
+    PhaseComponents phase_components;
     SimulationState state;
 };
 ```

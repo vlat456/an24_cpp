@@ -104,7 +104,7 @@ For each frame (60 Hz):
   5. If step % 12 == 0: solve_hydraulic() (5 Hz)
   6. If step % 60 == 0: solve_thermal() (1 Hz)
   7. SOR iteration: across += through * inv_conductance * omega
-  8. For each component: post_step()
+  8. For each component: finalize_step()
 ```
 
 ## Key Files Quick Reference

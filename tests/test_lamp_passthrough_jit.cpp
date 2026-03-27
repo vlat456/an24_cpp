@@ -90,7 +90,7 @@ TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
     for (int step = 0; step < 100; ++step) {
         state.clear_through();
 
-        for (auto* variant : result.domain_components.electrical) {
+        for (auto* variant : result.phase_components.electrical_passive) {
             std::visit([&](auto& comp) {
                 if constexpr (requires { comp.solve_electrical(state, dt); }) {
                     comp.solve_electrical(state, dt);
@@ -107,11 +107,11 @@ TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
             }
         }
 
-        // post_step
+        // finalize_step
         for (auto& [name, variant] : result.devices) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.post_step(state, dt); }) {
-                    comp.post_step(state, dt);
+                if constexpr (requires { comp.finalize_step(state, dt); }) {
+                    comp.finalize_step(state, dt);
                 }
             }, variant);
         }

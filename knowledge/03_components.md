@@ -19,7 +19,7 @@ public:
     void solve_electrical(SimulationState& st, float dt);
     
     // Optional lifecycle hooks
-    void post_step(SimulationState& st, float dt);  // State machine
+    void finalize_step(SimulationState& st, float dt);  // State machine
     void pre_load();  // Initialization
 };
 ```

@@ -53,7 +53,7 @@ public:
     Switch<MyComposite_Provider> sw;
     
     void solve_electrical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
 };
 ```
 
@@ -67,9 +67,9 @@ void MyComposite::solve_electrical(SimulationState& st, float dt) {
     sw.solve_electrical(st, dt);
 }
 
-void MyComposite::post_step(SimulationState& st, float dt) {
-    battery.post_step(st, dt);
-    sw.post_step(st, dt);
+void MyComposite::finalize_step(SimulationState& st, float dt) {
+    battery.finalize_step(st, dt);
+    sw.finalize_step(st, dt);
 }
 ```
 
@@ -159,7 +159,7 @@ int main() {
         st.precompute_inv_conductance();
         solve_sor_iteration(st.across.data(), st.through.data(), 
                            st.inv_conductance.data(), st.dynamic_signals_count, 1.3f);
-        system.post_step(st, 1.0f/60.0f);
+        system.finalize_step(st, 1.0f/60.0f);
     }
 }
 ```

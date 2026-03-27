@@ -102,7 +102,7 @@ TEST(APUMechanicalTest, AutoStart_TriggeredByVoltage) {
     auto st = make_state();
     st.across[0] = 24.0f;  // v_start = 24V (above 10V threshold)
 
-    apu.post_step(st, 1.0f / 60.0f);
+    apu.finalize_step(st, 1.0f / 60.0f);
 
     EXPECT_EQ(apu.state, APUState::CRANKING);
 }
@@ -113,7 +113,7 @@ TEST(APUMechanicalTest, AutoStart_NotTriggeredBelowThreshold) {
     auto st = make_state();
     st.across[0] = 5.0f;  // v_start = 5V (below 10V threshold)
 
-    apu.post_step(st, 1.0f / 60.0f);
+    apu.finalize_step(st, 1.0f / 60.0f);
 
     EXPECT_EQ(apu.state, APUState::OFF);
 }
@@ -133,14 +133,14 @@ TEST(APUMechanicalTest, Cranking_TransitionsToIgnition_AfterCrankTime) {
     // Run for less than crank_time (2s)
     for (int i = 0; i < 100; ++i) {  // 100 * 1/60 = 1.67s
         apu.solve_mechanical(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
     }
     EXPECT_EQ(apu.state, APUState::CRANKING);
 
     // Run until past crank_time
     for (int i = 0; i < 30; ++i) {  // +0.5s = 2.17s total
         apu.solve_mechanical(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
     }
     EXPECT_EQ(apu.state, APUState::IGNITION);
 }
@@ -160,14 +160,14 @@ TEST(APUMechanicalTest, Ignition_TransitionsToRunning_AfterIgnitionTime) {
     // Run for less than ignition_time (3s)
     for (int i = 0; i < 150; ++i) {  // 150 * 1/60 = 2.5s
         apu.solve_mechanical(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
     }
     EXPECT_EQ(apu.state, APUState::IGNITION);
 
     // Run until past ignition_time
     for (int i = 0; i < 60; ++i) {  // +1.0s = 3.5s total
         apu.solve_mechanical(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
     }
     EXPECT_EQ(apu.state, APUState::RUNNING);
 }
@@ -252,7 +252,7 @@ TEST(APUMechanicalTest, Stopping_TransitionsToOFF_WhenRPMZero) {
     // ~115s (~6900 steps). Allow enough budget for full spindown.
     for (int i = 0; i < 8000; ++i) {
         apu.solve_mechanical(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
         if (apu.state == APUState::OFF) break;
     }
 
@@ -270,7 +270,7 @@ TEST(APUMechanicalTest, RPMOut_IsPercentage) {
     apu.current_rpm = 8000.0f;  // 50% of 16000
     auto st = make_state();
 
-    apu.post_step(st, 1.0f / 60.0f);
+    apu.finalize_step(st, 1.0f / 60.0f);
 
     EXPECT_NEAR(st.across[2], 50.0f, 0.1f);  // rpm_out = 50%
 }
@@ -281,7 +281,7 @@ TEST(APUMechanicalTest, RPMOut_AtFullSpeed) {
     apu.current_rpm = 16000.0f;  // 100% of target
     auto st = make_state();
 
-    apu.post_step(st, 1.0f / 60.0f);
+    apu.finalize_step(st, 1.0f / 60.0f);
 
     EXPECT_NEAR(st.across[2], 100.0f, 0.1f);  // rpm_out = 100%
 }
@@ -425,7 +425,7 @@ TEST(APUMechanicalTest, FullStartupSequence) {
         apu.solve_electrical(st, dt);
         apu.solve_mechanical(st, dt);
         apu.solve_thermal(st, dt);
-        apu.post_step(st, dt);
+        apu.finalize_step(st, dt);
 
         if (apu.state == APUState::RUNNING) {
             reached_running = true;

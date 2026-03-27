@@ -149,7 +149,7 @@ TEST(GidroAccumulatorRegression, GasVolume_CompressesWhenHighPressure) {
     float dt = 1.0f / 5.0f;
 
     comp.solve_hydraulic(st, dt);
-    comp.post_step(st, dt);  // gas_volume update moved to post_step
+    comp.finalize_step(st, dt);  // gas_volume update moved to finalize_step
 
     EXPECT_LT(comp.gas_volume, initial_gas_vol)
         << "Gas should compress (volume decreases) when system pressure > precharge";
@@ -165,7 +165,7 @@ TEST(GidroAccumulatorRegression, GasVolume_ExpandsWhenLowPressure) {
     float dt = 1.0f / 5.0f;
 
     comp.solve_hydraulic(st, dt);
-    comp.post_step(st, dt);  // gas_volume update moved to post_step
+    comp.finalize_step(st, dt);  // gas_volume update moved to finalize_step
 
     EXPECT_GT(comp.gas_volume, initial_gas_vol)
         << "Gas should expand (volume increases) when system pressure < gas pressure";
@@ -179,7 +179,7 @@ TEST(GidroAccumulatorRegression, GasVolume_ClampedToValidRange) {
     float dt = 100.0f;     // huge timestep
 
     comp.solve_hydraulic(st, dt);
-    comp.post_step(st, dt);  // gas_volume update moved to post_step
+    comp.finalize_step(st, dt);  // gas_volume update moved to finalize_step
 
     EXPECT_GE(comp.gas_volume, 0.1f)
         << "Gas volume should be clamped to minimum 0.1";

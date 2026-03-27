@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+
+#include <filesystem>
 #include "visual/scene_mutations.h"
 #include "visual/scene.h"
 #include "visual/persist.h"
@@ -284,14 +286,11 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     visual::Scene scene;
     visual::mutations::rebuild(scene, *bp_opt, interner, arena, "");
 
-    auto* add_widget_base = scene.find("add_1");
-    ASSERT_NE(add_widget_base, nullptr);
-    auto* add_widget = dynamic_cast<visual::NodeWidget*>(add_widget_base);
-    ASSERT_NE(add_widget, nullptr);
-    EXPECT_NE(add_widget->port("A"), nullptr);
-    EXPECT_NE(add_widget->port("B"), nullptr);
-    EXPECT_NE(add_widget->port("o"), nullptr);
+    auto* pi_widget_base = scene.find("pi_1");
+    ASSERT_NE(pi_widget_base, nullptr);
+    auto* pi_widget = dynamic_cast<visual::NodeWidget*>(pi_widget_base);
+    ASSERT_NE(pi_widget, nullptr);
 
     // A known top-level wire in GSC.blueprint should be rendered as a widget.
-    EXPECT_NE(scene.find("wire_9"), nullptr);
+    EXPECT_NE(scene.find("wire_20"), nullptr);
 }

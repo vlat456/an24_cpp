@@ -6,7 +6,7 @@
 /// instead of the correct two-port Norton stamp:
 ///   through[v_in] += downstream_I - v_in * g
 ///
-/// Additionally, post_step() was not capturing downstream_I, so even if
+/// Additionally, finalize_step() was not capturing downstream_I, so even if
 /// solve_electrical used it, the value would always be zero.
 ///
 /// When a load (e.g., a lamp or motor) is connected downstream of a Switch,
@@ -99,11 +99,11 @@ TEST(SwitchRegression, OpenSwitch_ZeroContribution) {
 }
 
 // =============================================================================
-// post_step: downstream_I capture
+// finalize_step: downstream_I capture
 // =============================================================================
 
-TEST(SwitchRegression, PostStep_CapturesDownstreamI) {
-    // After the solver step, post_step should capture the downstream
+TEST(SwitchRegression, FinalizePhase_CapturesDownstreamI) {
+    // After the solver step, finalize_step should capture the downstream
     // through + v_out_old * conductance as downstream_I for the next step.
     auto comp = make_switch();
     comp.closed = true;
@@ -117,17 +117,17 @@ TEST(SwitchRegression, PostStep_CapturesDownstreamI) {
     st.through[3] = 1.5f;  // downstream load's through contribution
     st.conductance[3] = 0.5f;
 
-    comp.post_step(st, 1.0f / 60.0f);
+    comp.commit_control(st, 1.0f / 60.0f);
 
     // downstream_I = through[v_out] + v_out_old * conductance[v_out]
     float expected_I = 1.5f + 26.0f * 0.5f;  // 14.5
     EXPECT_FLOAT_EQ(comp.downstream_I, expected_I)
-        << "post_step must capture downstream_I = through[v_out] + v_out_old * g";
+        << "finalize_step must capture downstream_I = through[v_out] + v_out_old * g";
     EXPECT_FLOAT_EQ(comp.downstream_g, 0.5f)
-        << "post_step must capture downstream_g from conductance[v_out]";
+        << "finalize_step must capture downstream_g from conductance[v_out]";
 }
 
-TEST(SwitchRegression, PostStep_OpenSwitch_ZerosDownstreamI) {
+TEST(SwitchRegression, FinalizePhase_OpenSwitch_ZerosDownstreamI) {
     auto comp = make_switch();
     comp.closed = true;
     comp.downstream_I = 10.0f;  // leftover from previous step
@@ -136,7 +136,7 @@ TEST(SwitchRegression, PostStep_OpenSwitch_ZerosDownstreamI) {
     st.across[0] = 0.0f;  // control = 0
     comp.last_control = 1.0f;  // was 1 → toggled to open
 
-    comp.post_step(st, 1.0f / 60.0f);
+    comp.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FALSE(comp.closed);
     EXPECT_FLOAT_EQ(comp.downstream_I, 0.0f)
@@ -190,8 +190,8 @@ TEST(SwitchRegression, SOR_ConvergesWithLoad) {
         solve_sor_iteration(st.across.data(), st.through.data(),
                            st.inv_conductance.data(), 4, omega);
 
-        // post_step: capture downstream for next iteration
-        comp.post_step(st, 1.0f / 60.0f);
+        // finalize_step: capture downstream for next iteration
+        comp.commit_control(st, 1.0f / 60.0f);
     }
 
     // v_in and v_out should both converge to ~28V (switch is ideal conductor)
@@ -212,7 +212,7 @@ TEST(SwitchRegression, SOR_ConvergesWithLoad) {
 
 TEST(SwitchRegression, SolveElectrical_CapturesVOutOld) {
     // solve_electrical must snapshot v_out_old before the SOR update
-    // so post_step can compute downstream_I correctly.
+    // so finalize_step can compute downstream_I correctly.
     auto comp = make_switch();
     comp.closed = true;
     comp.downstream_g = 0.1f;

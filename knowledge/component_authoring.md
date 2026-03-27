@@ -35,7 +35,7 @@ public:
     float param = 1.0f;
 
     void solve_electrical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
+    void finalize_step(SimulationState& st, float dt);
     void pre_load();
 };
 ```
@@ -62,7 +62,7 @@ void solve_electrical(SimulationState& st, float /*dt*/) {
     st.across[provider.get(PortNames::out)] = integrator_state;
 }
 
-void post_step(SimulationState& st, float dt) {
+void finalize_step(SimulationState& st, float dt) {
     integrator_state += error * dt;
 }
 ```
@@ -71,7 +71,7 @@ Why:
 
 - `solve_*()` participates in the relaxation process
 - changing hidden state there makes behavior depend on solver iteration behavior
-- `post_step()` runs once per frame and is the right place for memory/state transitions
+- `finalize_step()` runs once per frame and is the right place for memory/state transitions
 
 ### 2. Two-port physics must use two-port stamps
 
@@ -184,7 +184,7 @@ void MyPassThrough<Provider>::solve_electrical(SimulationState& st, float /*dt*/
 }
 ```
 
-### Step 2. Add state only in `post_step()`
+### Step 2. Add state only in `finalize_step()`
 
 Example relay-like behavior:
 
@@ -203,7 +203,7 @@ void MyRelay<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void MyRelay<Provider>::post_step(SimulationState& st, float /*dt*/) {
+void MyRelay<Provider>::finalize_step(SimulationState& st, float /*dt*/) {
     float ctrl = st.across[provider.get(PortNames::ctrl)];
     closed = ctrl > threshold;
 }
@@ -251,7 +251,7 @@ Example cases:
 
 - use helper stamps where possible
 - keep `solve_*()` stateless except for stamping/reading
-- move memory/state transitions to `post_step()`
+- move memory/state transitions to `finalize_step()`
 - clamp dangerous math
 - choose moderate defaults
 - test disconnected and shorted topologies

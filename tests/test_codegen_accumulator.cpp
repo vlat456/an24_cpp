@@ -282,7 +282,7 @@ TEST(CodegenAccumulator, ControlCommitPhaseIsEmittedBeforeSecondElectricalPass) 
     const std::string commit_call = "btn.commit_control(*st, dt);";
     const std::string second_pass_label = "// Phase 6: second electrical pass (passive + actuators)";
     const std::string phase8_label = "// Phase 8: finalize";
-    const std::string finalize_call = "btn.post_step(*st, dt);";
+    const std::string finalize_call = "btn.finalize_step(*st, dt);";
 
     size_t commit_pos = step0.find(commit_call);
     size_t second_pass_pos = step0.find(second_pass_label);

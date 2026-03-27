@@ -283,10 +283,6 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
-    // Post-step updates
-    oss << "    /// Post-step updates (state tracking, etc.)\n";
-    oss << "    void post_step(void* state, float dt);\n\n";
-
     oss << "    /// Convergence check (sparse sampling)\n";
     oss << "    AOT_INLINE bool check_convergence(void* state, float tolerance) const;\n\n";
 
@@ -627,15 +623,6 @@ std::string CodeGen::generate_source(
         oss << "}\n\n";
     }
 
-    // Post-step is now integrated into each step_N() method
-    // (runs in explicit finalize phase).
-    // This method is kept empty for current test harnesses
-    oss << "void " << class_name << "::post_step(void* state, float dt) {\n";
-    oss << "    // No-op: post_step is now inlined into step_N() functions\n";
-    oss << "    // for correct execution order (electrical -> SOR -> post_step -> logical)\n";
-    oss << "    (void)state; (void)dt;\n";
-    oss << "}\n\n";
-
     // Convergence check - optimized with sparse sampling
     oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
     oss << "    auto* st = static_cast<SimulationState*>(state);\n";
@@ -872,13 +859,6 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "// Helper visitor to call solve_electrical on any component\n";
     oss << "inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {\n";
     oss << "    component.solve_electrical(st, dt);\n";
-    oss << "};\n\n";
-
-    oss << "// Helper visitor to call post_step on any component (optional)\n";
-    oss << "inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {\n";
-    oss << "    if constexpr (requires { component.post_step(st, dt); }) {\n";
-    oss << "        component.post_step(st, dt);\n";
-    oss << "    }\n";
     oss << "};\n\n";
 
     // Compile-time guard: ComponentType enum and ComponentVariant must stay in sync

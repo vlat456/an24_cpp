@@ -91,11 +91,6 @@ inline ExecutionTraits get_strict_execution_traits(const std::string& classname,
     return t;
 }
 
-// Backward-compatible alias during migration.
-inline ExecutionTraits infer_execution_traits(const std::string& classname, Domain domain_mask) {
-    return get_strict_execution_traits(classname, domain_mask);
-}
-
 inline std::string get_execution_traits_string(const ExecutionTraits& t) {
     std::string result;
     if (t.electrical_passive) result += "ElecPassive ";

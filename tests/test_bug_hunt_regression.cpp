@@ -3,7 +3,7 @@
 /// BUG-AotDefault: AotProvider::get() returned 0 for unmapped ports (should be UINT32_MAX)
 /// BUG-ConvergenceOverrun: save_convergence_state() could overrun convergence_buffer
 /// BUG-ConvergenceReadOOB: get_max_change()/has_converged() read OOB convergence_buffer
-/// BUG-CodegenPostStep: AOT codegen missing post_step for GidroAccumulator/FuelTank/RUG82
+/// BUG-CodegenFinalizePhase: AOT codegen missing finalize_step for GidroAccumulator/FuelTank/RUG82
 /// BUG-CodegenRefNode: AOT codegen skipped RefNode.solve_electrical() (no longer a no-op)
 /// BUG-TransformerSignLoss: Transformer reflected voltage lost sign for negative ratio
 
@@ -116,10 +116,10 @@ TEST(BugConvergenceOverrun, GetMaxChangeUsesOnlyDynamicRange) {
 }
 
 // =============================================================================
-// BUG-CodegenPostStep: AOT codegen must emit post_step for ALL components
+// BUG-CodegenFinalizePhase: AOT codegen must emit finalize_step for ALL components
 // =============================================================================
 
-static auto make_devices_with_post_step_components() {
+static auto make_devices_with_finalize_step_components() {
     std::vector<DeviceInstance> devices;
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t next_sig = 0;
@@ -138,7 +138,7 @@ static auto make_devices_with_post_step_components() {
         devices.push_back(std::move(dev));
     };
 
-    // Components that were missing from codegen's has_post_step set
+    // Components that were missing from codegen's has_finalize_step set
     add_device("ga1", "GidroAccumulator", "Hydraulic", {"p_in", "p_out"});
     add_device("ft1", "FuelTank", "Hydraulic", {"flow_out", "level_out"});
     add_device("rug1", "RUG82", "Electrical", {"v_gen", "k_mod"});
@@ -155,8 +155,8 @@ static auto make_devices_with_post_step_components() {
     return Result{std::move(devices), {}, std::move(port_to_signal), next_sig};
 }
 
-TEST(BugCodegenPostStep, GidroAccumulatorPostStepEmitted) {
-    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_post_step_components();
+TEST(BugCodegenFinalizePhase, GidroAccumulatorFinalizePhaseEmitted) {
+    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_finalize_step_components();
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
@@ -164,8 +164,8 @@ TEST(BugCodegenPostStep, GidroAccumulatorPostStepEmitted) {
         << "AOT codegen must emit finalize_step for GidroAccumulator (gas volume update)";
 }
 
-TEST(BugCodegenPostStep, FuelTankPostStepEmitted) {
-    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_post_step_components();
+TEST(BugCodegenFinalizePhase, FuelTankFinalizePhaseEmitted) {
+    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_finalize_step_components();
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
@@ -173,8 +173,8 @@ TEST(BugCodegenPostStep, FuelTankPostStepEmitted) {
         << "AOT codegen must emit finalize_step for FuelTank (fuel consumption)";
 }
 
-TEST(BugCodegenPostStep, RUG82PostStepEmitted) {
-    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_post_step_components();
+TEST(BugCodegenFinalizePhase, RUG82FinalizePhaseEmitted) {
+    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_finalize_step_components();
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
@@ -182,13 +182,13 @@ TEST(BugCodegenPostStep, RUG82PostStepEmitted) {
         << "AOT codegen must emit finalize_step for RUG82 (voltage regulator integration)";
 }
 
-TEST(BugCodegenPostStep, SwitchPostStepStillEmitted) {
-    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_post_step_components();
+TEST(BugCodegenFinalizePhase, SwitchFinalizePhaseStillEmitted) {
+    auto [devices, connections, port_to_signal, signal_count] = make_devices_with_finalize_step_components();
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
     // After control-commit migration, Switch should be emitted in commit phase
-    // and must not rely on finalize post_step emission.
+    // and must not rely on finalize finalize_step emission.
     EXPECT_NE(source.find("sw1.commit_control"), std::string::npos)
         << "Switch must be emitted in control-commit phase";
 }

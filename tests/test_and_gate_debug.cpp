@@ -26,7 +26,7 @@ static void run_step(BuildResult& result, SimulationState& state, float dt, floa
     state.clear_through();
 
     // 1. Electrical
-    for (auto* variant : result.domain_components.electrical) {
+    for (auto* variant : result.phase_components.electrical_passive) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_electrical(state, dt); }) {
                 comp.solve_electrical(state, dt);
@@ -42,14 +42,14 @@ static void run_step(BuildResult& result, SimulationState& state, float dt, floa
     // 3. Post-step
     for (auto& [name, variant] : result.devices) {
         std::visit([&](auto& comp) {
-            if constexpr (requires { comp.post_step(state, dt); }) {
-                comp.post_step(state, dt);
+            if constexpr (requires { comp.finalize_step(state, dt); }) {
+                comp.finalize_step(state, dt);
             }
         }, variant);
     }
 
-    // 4. Logical (after SOR + post_step)
-    for (auto* variant : result.domain_components.logical) {
+    // 4. Logical (after SOR + finalize_step)
+    for (auto* variant : result.phase_components.logical) {
         std::visit([&](auto& comp) {
             if constexpr (requires { comp.solve_logical(state, dt); }) {
                 comp.solve_logical(state, dt);
@@ -125,10 +125,10 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
         printf("  %-30s -> signal[%u]\n", port.c_str(), sig);
     }
 
-    // Print domain component counts
-    printf("\n=== DOMAIN COMPONENTS ===\n");
-    printf("  electrical: %zu\n", result.domain_components.electrical.size());
-    printf("  logical:    %zu\n", result.domain_components.logical.size());
+    // Print phase component counts
+    printf("\n=== PHASE COMPONENTS ===\n");
+    printf("  electrical_passive: %zu\n", result.phase_components.electrical_passive.size());
+    printf("  logical:            %zu\n", result.phase_components.logical.size());
 
     // Get signal indices for the signals we care about
     auto get_sig = [&](const std::string& port) -> uint32_t {
@@ -169,7 +169,7 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
                step, state.across[sig_v2b_o], state.across[sig_hb_state], state.across[sig_and_o]);
 
         // 1. Electrical
-        for (auto* variant : result.domain_components.electrical) {
+        for (auto* variant : result.phase_components.electrical_passive) {
             std::visit([&](auto& comp) {
                 if constexpr (requires { comp.solve_electrical(state, dt); }) {
                     comp.solve_electrical(state, dt);
@@ -193,8 +193,8 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
         // 3. Post-step
         for (auto& [name, variant] : result.devices) {
             std::visit([&](auto& comp) {
-                if constexpr (requires { comp.post_step(state, dt); }) {
-                    comp.post_step(state, dt);
+                if constexpr (requires { comp.finalize_step(state, dt); }) {
+                    comp.finalize_step(state, dt);
                 }
             }, variant);
         }
@@ -202,8 +202,8 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
                step, state.across[sig_v2b_o], state.across[sig_hb_state]);
 
         // 4. Logical
-        for (size_t li = 0; li < result.domain_components.logical.size(); ++li) {
-            auto* variant = result.domain_components.logical[li];
+        for (size_t li = 0; li < result.phase_components.logical.size(); ++li) {
+            auto* variant = result.phase_components.logical[li];
             std::visit([&](auto& comp) {
                 using T = std::decay_t<decltype(comp)>;
                 if constexpr (requires { comp.solve_logical(state, dt); }) {

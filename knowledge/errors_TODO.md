@@ -40,6 +40,23 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ## High Priority
 
+### 12. Scheduler Refactor - Next Execution Plan (NEW)
+**Status:** Ready to execute after strict review gate
+
+**Immediate next steps:**
+1. Stabilize regression harness path resolution (fix `DtRegression` cwd/resource fragility so `library/` loads reliably regardless of invocation directory).
+2. Move execution traits source-of-truth to JSON component metadata (replace class-name-based C++ mapping).
+3. Make both JIT and AOT consume the same parsed execution-phase metadata.
+4. Add strict validation for missing/invalid phase metadata (fail fast).
+5. Keep temporary migration compatibility only if required, then remove it.
+6. Re-run parity and regression suites, then sync docs to final phase terminology.
+
+**Review gate (mandatory before step 1):**
+- Run strict `@review` on current workspace changes and this plan.
+- Do not proceed with implementation until review findings are addressed or explicitly accepted.
+
+---
+
 ### 2. Dual Blueprint Systems (Incomplete Migration)
 **Files:** 
 - `src/editor/data/blueprint.h` (legacy)

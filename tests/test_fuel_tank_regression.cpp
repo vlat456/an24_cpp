@@ -4,7 +4,7 @@
 /// - Gravity head pressure computation (P = rho * g * level_frac)
 /// - Norton self-correction on flow_out (prevents SOR divergence)
 /// - level_out signal outputs fuel level fraction [0..1]
-/// - Fuel consumption in post_step (level decreases with flow)
+/// - Fuel consumption in finalize_step (level decreases with flow)
 /// - pre_load() clamping and inv_capacity computation
 /// - SOR convergence
 
@@ -148,17 +148,17 @@ TEST(FuelTankRegression, LevelOut_EmptyTank) {
 }
 
 // =============================================================================
-// Fuel Consumption (post_step)
+// Fuel Consumption (finalize_step)
 // =============================================================================
 
-TEST(FuelTankRegression, PostStep_ConsumesFuel) {
+TEST(FuelTankRegression, FinalizePhase_ConsumesFuel) {
     auto comp = make_tank(1000.0f, 1000.0f);
     auto st = make_state();
     st.through[0] = 10.0f;  // positive flow out of tank
     float dt = 1.0f;
 
     float initial_level = comp.level;
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
 
     EXPECT_LT(comp.level, initial_level)
         << "Fuel level should decrease when flow is positive";
@@ -166,26 +166,26 @@ TEST(FuelTankRegression, PostStep_ConsumesFuel) {
         << "Level should decrease by flow * dt";
 }
 
-TEST(FuelTankRegression, PostStep_NegativeFlow_NoConsumption) {
+TEST(FuelTankRegression, FinalizePhase_NegativeFlow_NoConsumption) {
     auto comp = make_tank(1000.0f, 1000.0f);
     auto st = make_state();
     st.through[0] = -5.0f;  // negative flow (shouldn't consume fuel)
     float dt = 1.0f;
 
     float initial_level = comp.level;
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
 
     EXPECT_FLOAT_EQ(comp.level, initial_level)
         << "Negative flow should not consume fuel";
 }
 
-TEST(FuelTankRegression, PostStep_NeverGoesBelowZero) {
+TEST(FuelTankRegression, FinalizePhase_NeverGoesBelowZero) {
     auto comp = make_tank(1000.0f, 1.0f);  // nearly empty
     auto st = make_state();
     st.through[0] = 100.0f;  // huge consumption
     float dt = 1.0f;
 
-    comp.post_step(st, dt);
+    comp.finalize_step(st, dt);
 
     EXPECT_GE(comp.level, 0.0f)
         << "Fuel level should never go below zero";

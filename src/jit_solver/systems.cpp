@@ -106,38 +106,12 @@ void Systems::solve_step(SimulationState& state, size_t step, float dt) {
     }
 
     // NOTE: Logical domain is NOT run here. Callers must invoke solve_logical()
-    // AFTER SOR + post_step so logical gates read converged values.
-    // See Simulator::step() for the correct ordering:
-    //   electrical -> mechanical -> hydraulic -> thermal -> SOR -> post_step -> logical
+    // after SOR and explicit phase updates in Simulator::step().
 }
 
 void Systems::solve_logical(SimulationState& state, float dt) {
     for (auto& comp : logical) {
         comp->solve_logical(state, dt);
-    }
-}
-
-void Systems::post_step(SimulationState& state, float dt) {
-    for (auto& comp : electrical) {
-        comp->post_step(state, dt);
-    }
-    for (auto& comp : logical) {
-        comp->post_step(state, dt);
-    }
-    for (auto& bucket : hydraulic) {
-        for (auto& comp : bucket) {
-            comp->post_step(state, dt);
-        }
-    }
-    for (auto& bucket : mechanical) {
-        for (auto& comp : bucket) {
-            comp->post_step(state, dt);
-        }
-    }
-    for (auto& bucket : thermal) {
-        for (auto& comp : bucket) {
-            comp->post_step(state, dt);
-        }
     }
 }
 

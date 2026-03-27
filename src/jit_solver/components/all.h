@@ -56,7 +56,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -77,7 +76,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -89,7 +87,6 @@ public:
 
     Provider provider;
     float idle = 0.0f;
-    float last_control = 0.0f;
     bool is_pressed = false;
     float downstream_g = 0.0f;
     float downstream_I = 0.0f;
@@ -99,7 +96,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -245,7 +241,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -296,7 +291,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -323,7 +317,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void solve_logical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -348,7 +341,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void solve_logical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -371,7 +363,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void solve_logical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -392,7 +383,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void solve_logical(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -674,7 +664,6 @@ public:
 
     void solve_hydraulic(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -696,7 +685,6 @@ public:
 
     void solve_hydraulic(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -795,7 +783,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -816,7 +803,6 @@ public:
 
     void solve_electrical(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load() {}
 };
 
@@ -856,7 +842,6 @@ public:
     void solve_mechanical(SimulationState& st, float dt);
     void solve_thermal(SimulationState& st, float dt);
     void finalize_step(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 
@@ -901,7 +886,6 @@ public:
     void solve_electrical(SimulationState& st, float dt);
     void solve_thermal(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
-    void post_step(SimulationState& st, float dt);
     void pre_load();
 };
 

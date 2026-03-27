@@ -104,23 +104,23 @@ TEST_F(AZSTestFixture, StampsConductanceWhenClosed) {
 }
 
 TEST_F(AZSTestFixture, PassesVoltageWhenClosed) {
-    // post_step should copy v_in to v_out when closed
+    // finalize_step should copy v_in to v_out when closed
     azs.closed = true;
     st.across[IDX_V_IN] = 28.0f;
     st.conductance[IDX_V_OUT] = 0.1f; // simulate downstream load
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[IDX_V_OUT], 28.0f);
 }
 
 TEST_F(AZSTestFixture, ZerosVoltageWhenOpen) {
-    // post_step should zero v_out when open
+    // finalize_step should zero v_out when open
     azs.closed = false;
     st.across[IDX_V_IN] = 28.0f;
     st.across[IDX_V_OUT] = 28.0f; // leftover from previous step
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[IDX_V_OUT], 0.0f);
 }
@@ -135,7 +135,7 @@ TEST_F(AZSTestFixture, TogglesOnControlEdge) {
     azs.last_control = 0.0f;
     st.across[IDX_CONTROL] = 1.0f; // rising edge
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_TRUE(azs.closed);
 }
@@ -146,7 +146,7 @@ TEST_F(AZSTestFixture, TogglesOffOnSecondEdge) {
     azs.last_control = 0.0f;
     st.across[IDX_CONTROL] = 1.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FALSE(azs.closed);
 }
@@ -157,7 +157,7 @@ TEST_F(AZSTestFixture, NoToggleWithoutEdge) {
     azs.last_control = 1.0f;
     st.across[IDX_CONTROL] = 1.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_TRUE(azs.closed); // unchanged
 }
@@ -171,7 +171,7 @@ TEST_F(AZSTestFixture, OutputsStateOn) {
     st.across[IDX_CONTROL] = 0.0f; // no toggle
     azs.last_control = 0.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[IDX_STATE], 1.0f);
 }
@@ -181,7 +181,7 @@ TEST_F(AZSTestFixture, OutputsStateOff) {
     st.across[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[IDX_STATE], 0.0f);
 }
@@ -191,7 +191,7 @@ TEST_F(AZSTestFixture, OutputsStateOff) {
 // =============================================================================
 
 TEST_F(AZSTestFixture, HeatsUpWithCurrent) {
-    // current is computed in post_step and stored; solve_thermal uses stored value
+    // current is computed in finalize_step and stored; solve_thermal uses stored value
     azs.closed = true;
     azs.temp = 0.0f;
     azs.current = 28.0f; // 28A flowing through AZS
@@ -234,7 +234,7 @@ TEST_F(AZSTestFixture, OutputsTempPort) {
     st.across[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.across[IDX_TEMP], 0.42f);
 }
@@ -244,13 +244,13 @@ TEST_F(AZSTestFixture, OutputsTempPort) {
 // =============================================================================
 
 TEST_F(AZSTestFixture, TripsWhenOverheated) {
-    // When temp > 1.0 in post_step, AZS should open (branchless)
+    // When temp > 1.0 in finalize_step, AZS should open (branchless)
     azs.closed = true;
     azs.temp = 1.1f; // above threshold
     st.across[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.across[IDX_STATE], 0.0f);
@@ -263,7 +263,7 @@ TEST_F(AZSTestFixture, DoesNotTripBelowThreshold) {
     st.across[IDX_CONTROL] = 0.0f;
     azs.last_control = 0.0f;
 
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_TRUE(azs.closed);
     EXPECT_FLOAT_EQ(st.across[IDX_TRIPPED], 0.0f);
@@ -278,13 +278,13 @@ TEST_F(AZSTestFixture, TrippedStaysOpenUntilManualReset) {
     st.across[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.across[IDX_TRIPPED], 1.0f);
 
     // Cool down — tripped stays true
     azs.temp = 0.3f;
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
     EXPECT_FALSE(azs.closed);
     EXPECT_FLOAT_EQ(st.across[IDX_TRIPPED], 1.0f);
 }
@@ -297,7 +297,7 @@ TEST_F(AZSTestFixture, CanReenableAfterCooldown) {
     st.across[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
     EXPECT_FALSE(azs.closed);
 
     // Cool down
@@ -305,7 +305,7 @@ TEST_F(AZSTestFixture, CanReenableAfterCooldown) {
 
     // Manual toggle: rising edge on control
     st.across[IDX_CONTROL] = 1.0f;
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     EXPECT_TRUE(azs.closed);
     EXPECT_FLOAT_EQ(st.across[IDX_TRIPPED], 0.0f);
@@ -319,12 +319,12 @@ TEST_F(AZSTestFixture, RetripsIfStillHot) {
     st.across[IDX_CONTROL] = 0.0f;
 
     // Trip
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
     EXPECT_FALSE(azs.closed);
 
     // User tries to re-enable immediately (temp still hot)
     st.across[IDX_CONTROL] = 1.0f;
-    azs.post_step(st, 1.0f / 60.0f);
+    azs.commit_control(st, 1.0f / 60.0f);
 
     // Toggle fires → closed = true, but then trip fires → closed = false
     // Net result: still open

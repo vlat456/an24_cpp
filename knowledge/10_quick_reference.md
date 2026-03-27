@@ -100,7 +100,7 @@ public:
         st.across[provider.get(PortNames::v_out)] = in * param;
     }
     
-    void post_step(SimulationState& st, float dt) {}  // Optional
+    void finalize_step(SimulationState& st, float dt) {}  // Optional
     void pre_load() {}  // Optional
 };
 ```
@@ -131,7 +131,7 @@ for (int step = 0; step < total_steps; ++step) {
     solve_sor_iteration(st.across.data(), st.through.data(),
                        st.inv_conductance.data(), st.dynamic_signals_count, omega);
     
-    for (auto& c : all) std::visit([&](auto& x) { x.post_step(st, dt); }, c);
+    for (auto& c : all) std::visit([&](auto& x) { x.finalize_step(st, dt); }, c);
 }
 ```
 
@@ -191,7 +191,7 @@ Tuning guide:
 Rules of thumb:
 
 - keep `INNER_SWEEPS = 1` unless solver is redesigned to re-stamp per inner iteration
-- keep persistent state updates in `post_step()`, not in `solve_*()`
+- keep persistent state updates in `finalize_step()`, not in `solve_*()`
 - validate dangling series devices and near-short source paths early
 - do not replace electrical SOR with push propagation
 

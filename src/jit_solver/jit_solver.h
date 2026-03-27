@@ -18,19 +18,7 @@ struct SimulationState;
 /// Port-to-signal mapping
 using PortToSignal = std::unordered_map<std::string, uint32_t>;
 
-/// Component pointers sorted by domain for zero-branch iteration
-struct DomainComponents {
-    std::vector<ComponentVariant*> electrical;  // 60 Hz (every step)
-    std::vector<ComponentVariant*> logical;     // 60 Hz (every step)
-    std::vector<ComponentVariant*> mechanical;  // 20 Hz (every 3rd step)
-    std::vector<ComponentVariant*> hydraulic;   // 5 Hz (every 12th step)
-    std::vector<ComponentVariant*> thermal;     // 1 Hz (every 60th step)
-};
-
 /// Components grouped by explicit execution intent (Stage 4+).
-///
-/// Note: during migration this exists in parallel with DomainComponents.
-/// Runtime may gradually switch from domain scheduling to phase scheduling.
 struct PhaseComponents {
     std::vector<ComponentVariant*> electrical_passive;
     std::vector<ComponentVariant*> electrical_observer;
@@ -64,11 +52,6 @@ struct BuildResult {
     /// Dynamic components for JIT mode (Editor)
     /// Map: device name -> ComponentVariant (type-safe dynamic container)
     std::unordered_map<std::string, ComponentVariant> devices;
-
-    /// Components sorted by domain for data-oriented iteration
-    /// This enables zero-branch scheduling: just iterate the right domain's vector
-    /// Components with multiple solve methods appear in multiple domain vectors
-    DomainComponents domain_components;
 
     /// Components sorted by execution phase intent (Stage 4 migration scaffold).
     PhaseComponents phase_components;

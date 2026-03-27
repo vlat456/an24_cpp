@@ -822,16 +822,8 @@ inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, 
     component.solve_electrical(st, dt);
 };
 
-// Helper visitor to call post_step on any component (optional)
-inline auto post_step_visitor = [](auto& component, SimulationState& st, float dt) {
-    if constexpr (requires { component.post_step(st, dt); }) {
-        component.post_step(st, dt);
-    }
-};
-
 // Compile-time guard: ComponentType and ComponentVariant must stay in sync
 static_assert(
     std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),
     "ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h"
 );
-

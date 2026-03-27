@@ -42,7 +42,7 @@
 **File**: `tests/jit_solver_test.cpp`
 **Status**: Disabled - uses old `Systems` API
 **Required Changes**:
-- Replace `build_result->systems` with `build_result->domain_components`
+- Replace `build_result->systems` with `build_result->phase_components`
 - Update to use ComponentVariant instead of Systems struct
 - Update solve method calls to use std::visit pattern
 **Estimated Effort**: 2-3 hours
@@ -102,13 +102,13 @@ All components now use `std::variant<Component1, Component2, ...>` with:
 ### Multi-Domain Execution
 ```cpp
 // Electrical/Logical: every step (60 Hz)
-for (auto* variant : domain_components.electrical) {
+for (auto* variant : phase_components.electrical_passive) {
     std::visit([&](auto& comp) { comp.solve_electrical(state, dt); }, *variant);
 }
 
 // Mechanical: every 3rd step (20 Hz)
 if ((step_count % 3) == 0) {
-    for (auto* variant : domain_components.mechanical) {
+    for (auto* variant : phase_components.mechanical) {
         std::visit([&](auto& comp) { comp.solve_mechanical(state, dt); }, *variant);
     }
 }

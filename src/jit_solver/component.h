@@ -48,13 +48,7 @@ public:
     virtual void stamp_electrical_actuator(SimulationState& state, float dt) {}
 
     /// Stage 2: explicit phase hook - end-of-step finalize path
-    /// Compatibility default delegates to legacy post_step().
-    virtual void finalize_step(SimulationState& state, float dt) {
-        post_step(state, dt);
-    }
-
-    /// Post-step update (once per frame, after SOR iteration)
-    virtual void post_step(SimulationState& state, float dt) {}
+    virtual void finalize_step(SimulationState& state, float dt) {}
 
     /// Pre-load initialization
     virtual void pre_load() {}

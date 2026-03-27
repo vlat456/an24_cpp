@@ -53,12 +53,9 @@ public:
     /// Run one solver step (all domains except logical)
     void solve_step(SimulationState& state, size_t step, float dt);
 
-    /// Solve logical domain - must be called AFTER SOR + post_step
+    /// Solve logical domain - must be called AFTER SOR + finalize/control phases
     /// so logical gates read converged electrical values
     void solve_logical(SimulationState& state, float dt);
-
-    /// Post-step updates
-    void post_step(SimulationState& state, float dt);
 
     /// Pre-load initialization
     void pre_load();

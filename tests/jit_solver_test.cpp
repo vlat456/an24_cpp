@@ -77,9 +77,9 @@ static SimulationState run_sor(
         }
 
         // Post-step: relay switches copy voltage after SOR update
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
 
-        // Logical: after SOR + post_step so gates read converged values
+        // Logical: after SOR + finalize_step so gates read converged values
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
@@ -634,7 +634,7 @@ TEST(IntegrationTest, SORConvergence) {
 // =============================================================================
 // These tests verify the fixes for the unstable SOR solver issue where:
 // 1. DC buses were incorrectly modeled as RefNode with fixed voltages
-// 2. Relay had conflicting behavior (conductance + post_step voltage copy)
+// 2. Relay had conflicting behavior (conductance + finalize_step voltage copy)
 // 3. Multiple voltage sources with different values caused NaN explosion
 
 TEST(RegressionTest, BusTypeNotRefNode) {
@@ -688,16 +688,16 @@ TEST(RegressionTest, BusTypeNotRefNode) {
     EXPECT_NE(bus2_sig, gnd_sig);
 
     // Note: bus1 and bus2 are connected through relay component, not directly.
-    // The relay will equalize their voltages during simulation via post_step(),
+    // The relay will equalize their voltages during simulation via finalize_step(),
     // but they remain separate signals in the build phase.
     // This is correct behavior - relay is a switch, not a wire.
 }
 
 TEST(RegressionTest, ClosedRelayNoConductance) {
-    // BUG: Relay::solve_electrical() added conductance=1e6 S while post_step()
+    // BUG: Relay::solve_electrical() added conductance=1e6 S while finalize_step()
     // also copied voltage directly. This dual behavior caused SOR instability.
     //
-    // FIX: Closed relay is handled ONLY in post_step() by direct voltage copy.
+    // FIX: Closed relay is handled ONLY in finalize_step() by direct voltage copy.
     // solve_electrical() should NOT add conductance for closed relay.
 
     auto gnd = make_device("gnd", "RefNode",
@@ -942,7 +942,7 @@ TEST(SwitchTest, ToggleOnControlEdge) {
 
 TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
     // BUG: Switch turned off visually but v_out kept old voltage.
-    // FIX: post_step forces v_out = 0 when open.
+    // FIX: finalize_step forces v_out = 0 when open.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
@@ -977,7 +977,7 @@ TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
@@ -987,7 +987,7 @@ TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
 
 TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
     // BUG: Relay opened but v_out kept old voltage.
-    // FIX: post_step forces v_out = 0 when open.
+    // FIX: finalize_step forces v_out = 0 when open.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
@@ -1020,7 +1020,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         state.across[ctrl_idx] = 28.0f;  // maintain control
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
     float v_closed = get_voltage(state, result, "relay.v_out");
@@ -1037,7 +1037,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         state.across[ctrl_idx] = 0.0f;  // maintain control
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
@@ -1047,7 +1047,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
 
 TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     // BUG: HoldButton released but v_out kept old voltage.
-    // FIX: post_step forces v_out = 0 when released.
+    // FIX: finalize_step forces v_out = 0 when released.
     auto gnd = make_device("gnd", "RefNode", {{"value", "0.0"}}, {{"v", PortDirection::Out}});
     auto bat = make_device("bat", "Battery", {{"v_nominal", "28.0"}, {"internal_r", "0.01"}},
         {{"v_in", PortDirection::In}, {"v_out", PortDirection::Out}});
@@ -1083,7 +1083,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
@@ -1100,7 +1100,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 
@@ -1113,7 +1113,7 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
 // =============================================================================
 
 TEST(RegressionTest, BatterySagThroughClosedSwitch) {
-    // BUG: post_step voltage forcing (v_out=v_in) made battery invisible to
+    // BUG: finalize_step voltage forcing (v_out=v_in) made battery invisible to
     // downstream loads. Battery always read 28V, no sag during 400-700A loads.
     // FIX: downstream conductance mirroring — switch captures downstream
     // Norton equivalent and stamps it on v_in.
@@ -1215,7 +1215,7 @@ TEST(RegressionTest, BatterySagThroughPressedHoldButton) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
-        result.systems.post_step(state, 1.0f / 60.0f);
+        
         result.systems.solve_logical(state, 1.0f / 60.0f);
     }
 

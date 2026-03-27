@@ -8,7 +8,7 @@ Primary target:
 
 - no extra 2-frame delay for `electrical -> control -> actuator -> electrical`
 - no stale measurement signals from electrical sensors feeding logical control
-- no hidden dependence on the vague catch-all `post_step()` phase
+- no hidden dependence on the vague catch-all `finalize_step()` phase
 - identical execution semantics between JIT runtime and AOT generated code
 
 ## Why This Refactor Is Needed
@@ -17,21 +17,21 @@ Current JIT order in `src/jit_solver/simulator.cpp` is:
 
 1. stamp electrical/mechanical/hydraulic/thermal
 2. run SOR
-3. run `post_step()`
+3. run `finalize_step()`
 4. run logical
 
 Current AOT codegen in `src/codegen/codegen.cpp` emits the same order:
 
 1. electrical and sub-rate domains
 2. SOR
-3. `post_step()`
+3. `finalize_step()`
 4. logical
 
 That ordering creates pipeline latency in closed control loops:
 
 - electrical bus settles in SOR
 - electrical observers are read later
-- controllers often update in `post_step()`
+- controllers often update in `finalize_step()`
 - actuator bridges use the new command only on the next electrical pass
 
 For `bus -> PI/PID -> LUT/filter -> ControlledVoltageSource -> bus`, that becomes a two-frame delay.
@@ -58,7 +58,7 @@ That works for simple devices, but breaks mixed-role components:
 2. Make phase order explicit and shared by JIT and AOT.
 3. Allow one component to participate in more than one phase.
 4. Keep electrical SOR semantics intact: stamp first, solve second.
-5. Remove control-state updates from generic `post_step()` where phase-specific hooks are clearer.
+5. Remove control-state updates from generic `finalize_step()` where phase-specific hooks are clearer.
 6. Prefer a single shared execution-plan builder over duplicated JIT/AOT scheduling logic.
 7. Make the runtime `dt`-driven; do not encode gameplay behavior around an assumed 60 Hz frame cadence.
 
@@ -409,7 +409,7 @@ Notes:
 
 - not every component needs every hook
 - one component may implement more than one hook
-- `post_step()` should become a temporary compatibility shim, then be deleted
+- `finalize_step()` should become a temporary compatibility shim, then be deleted
 
 ## Component Migration Map
 
@@ -490,7 +490,7 @@ Long-term goal: legacy monolithic controller components (`GS24`, `RUG82`) should
 
 ### 1. Build explicit phase buckets
 
-Replace or extend `BuildResult::domain_components` with phase buckets such as:
+`BuildResult` now uses phase buckets:
 
 ```cpp
 struct PhaseComponents {
@@ -533,7 +533,7 @@ Preferred first implementation: two explicit passes with re-stamp, because it is
 
 ### 3. Remove scheduler ambiguity
 
-Delete comments and assumptions that say logical must always run after `post_step()`.
+Delete comments and assumptions that say logical must always run after `finalize_step()`.
 
 Update:
 
@@ -564,10 +564,10 @@ This is not optional. If JIT changes and AOT keeps the old order, the project wi
 - electrical
 - sub-rate domains
 - SOR
-- `post_step`
+- `finalize_step`
 - logical
 
-and hardcodes a `has_post_step` classname set.
+and hardcodes a `has_finalize_step` classname set.
 
 That must be replaced with generated explicit phase sections built from the same shared execution traits used by JIT.
 
@@ -599,7 +599,7 @@ Generated `step_N()` methods should follow the same structure as JIT:
 
 Generated code must also preserve the same accumulator and latch semantics as JIT for arbitrary caller `dt`.
 
-### 4. Remove the generated `has_post_step` classname allowlist
+### 4. Remove the generated `has_finalize_step` classname allowlist
 
 It is brittle and will become wrong as soon as hooks move.
 
@@ -665,7 +665,7 @@ No behavior change yet. Build metadata only.
 Temporarily support:
 
 - old `solve_electrical`
-- old `post_step`
+- old `finalize_step`
 - new explicit phase hooks
 
 Map old hooks into default phases during migration.
@@ -696,7 +696,7 @@ Generated composites must become behaviorally identical to JIT.
 Delete:
 
 - old assumptions in `Systems`
-- classname-based `has_post_step` codegen logic
+- classname-based `has_finalize_step` codegen logic
 - controller `Domain::Electrical` abuse
 - compatibility shims no longer needed
 
@@ -723,7 +723,7 @@ Mitigation:
 - profile JIT and AOT on representative systems
 - optimize later only after correctness is locked
 
-### 2. Hidden dependencies on `post_step()` order
+### 2. Hidden dependencies on `finalize_step()` order
 
 Some components may accidentally rely on the old sequencing.
 
@@ -754,7 +754,7 @@ The refactor is complete when:
 - `VoltageSense` and `CurrentSense` outputs are same-frame fresh
 - `PI/PID/PD/P` are not classified as electrical just to get scheduled
 - JIT and AOT use the same explicit phase model
-- codegen no longer hardcodes a classname `post_step` allowlist
+- codegen no longer hardcodes a classname `finalize_step` allowlist
 - old scheduler comments and legacy assumptions are removed
 - bridge-based blueprints behave predictably and match the documented model
 - behavior remains stable for variable caller `dt`, not just `1/60`
