@@ -195,9 +195,14 @@ Critical note:
 
 - [x] Remove compatibility shim from hot path
 - [ ] Remove old scheduler assumptions from runtime comments/docs
-- [x] Remove controller `Domain::Electrical` abuse
-- [x] Remove legacy domain-only scheduling logic
+- [ ] Remove controller `Domain::Electrical` abuse
+- [ ] Remove legacy domain-only scheduling logic
 - [ ] Simplify/remove obsolete `Systems` APIs if no longer needed
+
+Notes:
+
+- Scheduling no longer depends on `Domain` classification (execution metadata is source of truth).
+- Remaining cleanup: controller `Domain` declarations and legacy `Systems` modulo scheduler API.
 
 ## Stage 9 - Use `GS24` / `RUG82` as multi-model validation, then retire
 
@@ -225,16 +230,16 @@ Important:
 
 ## Acceptance Criteria
 
-- [ ] Closed-loop regulator no longer exhibits artificial 2-frame latency
-- [ ] `VoltageSense` and `CurrentSense` are same-step fresh
+- [x] Closed-loop regulator no longer exhibits artificial 2-frame latency
+- [x] `VoltageSense` and `CurrentSense` are same-step fresh
 - [ ] Controllers are no longer classified as electrical just to be scheduled
-- [ ] All runtime timing semantics are based on simulation `dt`, not wall-clock gaps
-- [ ] `dt = 0` pause does not advance state or accumulate hidden debt
-- [ ] Slow domains use explicit latch/catch-up semantics
-- [ ] Slow domains read final same-step plant state
-- [ ] JIT and AOT execute equivalent phase ordering
-- [ ] Codegen no longer hardcodes classname-based `finalize_step` scheduling
-- [ ] `GS24` / `RUG82` require no scheduler special-casing
+- [x] All runtime timing semantics are based on simulation `dt`, not wall-clock gaps
+- [x] `dt = 0` pause does not advance state or accumulate hidden debt
+- [x] Slow domains use explicit latch/catch-up semantics
+- [x] Slow domains read final same-step plant state
+- [x] JIT and AOT execute equivalent phase ordering
+- [x] Codegen no longer hardcodes classname-based `finalize_step` scheduling
+- [x] `GS24` / `RUG82` require no scheduler special-casing
 - [ ] Legacy components can be deleted without changing scheduler semantics
 
 ## Suggested PR Split
