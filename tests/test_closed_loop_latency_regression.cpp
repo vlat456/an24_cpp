@@ -125,3 +125,48 @@ TEST(ClosedLoopLatency, LogicalCommandAffectsBusOnFirstStep) {
 
     sim.stop();
 }
+
+TEST(ClosedLoopLatency, RegulatorSteadyStateStableAcrossVariableDt) {
+    Blueprint bp = make_logical_to_actuator_blueprint();
+
+    auto run_sequence = [&](const std::vector<float>& dts) {
+        Simulator<JIT_Solver> sim;
+        sim.start_from_json(sim_test_json::from_blueprint(bp));
+        for (float dt : dts) {
+            sim.step(dt);
+        }
+        const float v = sim.get_port_value("cvs", "v_pos");
+        sim.stop();
+        return v;
+    };
+
+    std::vector<float> fixed_60hz(120, 1.0f / 60.0f); // 2 seconds
+
+    std::vector<float> variable_dt;
+    variable_dt.reserve(130);
+    float t_acc = 0.0f;
+    const float target_t = 2.0f;
+    while (t_acc + (1.0f / 144.0f) < target_t) {
+        variable_dt.push_back(1.0f / 144.0f);
+        t_acc += 1.0f / 144.0f;
+
+        if (t_acc + (1.0f / 30.0f) < target_t) {
+            variable_dt.push_back(1.0f / 30.0f);
+            t_acc += 1.0f / 30.0f;
+        }
+
+        if (t_acc + (1.0f / 75.0f) < target_t) {
+            variable_dt.push_back(1.0f / 75.0f);
+            t_acc += 1.0f / 75.0f;
+        }
+    }
+    if (t_acc < target_t) {
+        variable_dt.push_back(target_t - t_acc);
+    }
+
+    const float v_60hz = run_sequence(fixed_60hz);
+    const float v_var = run_sequence(variable_dt);
+
+    EXPECT_NEAR(v_60hz, v_var, 1.5f)
+        << "Closed-loop regulator should converge to similar steady state under variable dt";
+}

@@ -612,11 +612,53 @@ TEST(JsonParserTest, OneToOne_RefNode_CanHaveMultipleWires) {
 
 static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
-    static char buf[512];
+    static char buf[1024];
     snprintf(buf, sizeof(buf),
-        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": []})",
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
         classname, classname);
     return buf;
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionMissingKeyThrows) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "Battery",
+        "cpp_class": true,
+        "ports": {"v_out": {"direction": "Out", "type": "V"}},
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false
+        }
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
+}
+
+TEST(JsonParserTest, ParseTypeDefinition_ExecutionUnknownKeyThrows) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "Battery",
+        "cpp_class": true,
+        "ports": {"v_out": {"direction": "Out", "type": "V"}},
+        "execution": {
+            "electrical_passive": true,
+            "electrical_observer": false,
+            "logical": false,
+            "control_commit": false,
+            "electrical_actuator": false,
+            "finalize": false,
+            "mechanical": false,
+            "hydraulic": false,
+            "thermal": false,
+            "extra": true
+        }
+    })");
+
+    EXPECT_THROW(parse_type_definition(j), std::runtime_error);
 }
 
 TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
@@ -638,6 +680,49 @@ TEST(TypeRegistry, LoadRecursive_SubdirSetsCategory) {
     // Subdir file gets category from directory path
     ASSERT_EQ(registry.categories.count("Resistor"), 1u);
     EXPECT_EQ(registry.categories.at("Resistor"), "electrical");
+
+    fs::remove_all(tmp);
+}
+
+TEST(TypeRegistry, LoadRecursive_MissingExecutionForCppClass_SkipsEntry) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_lib_missing_execution";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    std::ofstream(tmp / "Valid.blueprint") << minimal_blueprint_v2("Valid");
+    std::ofstream(tmp / "Broken.blueprint") << R"({
+        "version": "3.0",
+        "id": "Broken",
+        "display_name": "Broken",
+        "cpp_class": true,
+        "interface": []
+    })";
+
+    auto registry = load_type_registry(tmp.string());
+    EXPECT_TRUE(registry.has("Valid"));
+    EXPECT_FALSE(registry.has("Broken"));
+
+    fs::remove_all(tmp);
+}
+
+TEST(TypeRegistry, LoadRecursive_VisualOnlyCppClass_ExecutionOptional) {
+    namespace fs = std::filesystem;
+    auto tmp = fs::temp_directory_path() / "test_lib_visual_only_execution";
+    fs::remove_all(tmp);
+    fs::create_directories(tmp);
+
+    std::ofstream(tmp / "Group.blueprint") << R"({
+        "version": "3.0",
+        "id": "Group",
+        "display_name": "Group",
+        "cpp_class": true,
+        "visual_only": true,
+        "interface": []
+    })";
+
+    auto registry = load_type_registry(tmp.string());
+    EXPECT_TRUE(registry.has("Group"));
 
     fs::remove_all(tmp);
 }

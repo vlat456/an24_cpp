@@ -57,12 +57,12 @@
 
 ## Stage 0 - Lock current and target behavior with tests
 
-- [ ] Add closed-loop regulator latency regression test
-- [ ] Add `VoltageSense` same-step freshness test
-- [ ] Add `CurrentSense.i_out` post-SOR freshness test
-- [ ] Add variable-`dt` regulator stability test
-- [ ] Add pause/resume test with `dt = 0`
-- [ ] Add slow-domain latch behavior test
+- [x] Add closed-loop regulator latency regression test
+- [x] Add `VoltageSense` same-step freshness test
+- [x] Add `CurrentSense.i_out` post-SOR freshness test
+- [x] Add variable-`dt` regulator stability test
+- [x] Add pause/resume test with `dt = 0`
+- [x] Add slow-domain latch behavior test
 - [ ] Add slow-domain final-state-read test
 - [ ] Add large-`dt` catch-up policy test
 - [ ] Add JIT vs AOT equivalence test on a minimal bridge-based regulator graph
@@ -74,10 +74,10 @@ Notes:
 
 ## Stage 1 - Introduce explicit execution metadata
 
-- [ ] Add shared `ExecutionPhase` model
-- [ ] Add shared `ExecutionTraits` model
-- [ ] Add a single source of truth for per-component phase capabilities
-- [ ] Make both JIT builder and AOT codegen consume the same metadata
+- [x] Add shared `ExecutionPhase` model
+- [x] Add shared `ExecutionTraits` model
+- [x] Add a single source of truth for per-component phase capabilities
+- [x] Make both JIT builder and AOT codegen consume the same metadata
 
 Implementation notes:
 
@@ -126,7 +126,7 @@ Expected outcome:
 ## Stage 4 - Build explicit phase buckets in JIT
 
 - [x] Replace/extend `domain_components` with phase buckets
-- [ ] Add buckets for:
+- [x] Add buckets for:
   - `electrical_passive`
   - `electrical_observer`
   - `logical`
@@ -136,7 +136,7 @@ Expected outcome:
   - `mechanical`
   - `hydraulic`
   - `thermal`
-- [ ] Ensure bucket assignment uses shared execution metadata only
+- [x] Ensure bucket assignment uses shared execution metadata only
 
 Expected outcome:
 
@@ -144,13 +144,13 @@ Expected outcome:
 
 ## Stage 5 - Rewrite JIT scheduler
 
-- [ ] Rewrite `Simulator::step(dt)` to explicit phase order
-- [ ] Use two electrical passes in one outer step
-- [ ] Make all timing depend only on simulation `dt`
-- [ ] Ensure `dt <= 0` causes no simulation advance
-- [ ] Ensure slow domains tick only after second electrical solve
+- [x] Rewrite `Simulator::step(dt)` to explicit phase order
+- [x] Use two electrical passes in one outer step
+- [x] Make all timing depend only on simulation `dt`
+- [x] Ensure `dt <= 0` causes no simulation advance
+- [x] Ensure slow domains tick only after second electrical solve
 - [ ] Ensure slow domains read final settled state
-- [ ] Ensure slow-domain outputs are latched between ticks
+- [x] Ensure slow-domain outputs are latched between ticks
 
 Implementation notes:
 
@@ -159,13 +159,13 @@ Implementation notes:
 
 ## Stage 6 - Slow-domain accumulated-`dt` cleanup
 
-- [ ] Remove frame-count-based behavior as scheduler truth
-- [ ] Implement accumulated simulation `dt` for `mechanical`
-- [ ] Implement accumulated simulation `dt` for `hydraulic`
-- [ ] Implement accumulated simulation `dt` for `thermal`
-- [ ] Define repeated-tick catch-up policy for large `dt`
-- [ ] Add optional max catch-up clamp with logging
-- [ ] Ensure pause does not accumulate wall-clock debt
+- [x] Remove frame-count-based behavior as scheduler truth
+- [x] Implement accumulated simulation `dt` for `mechanical`
+- [x] Implement accumulated simulation `dt` for `hydraulic`
+- [x] Implement accumulated simulation `dt` for `thermal`
+- [x] Define repeated-tick catch-up policy for large `dt`
+- [x] Add optional max catch-up clamp with logging
+- [x] Ensure pause does not accumulate wall-clock debt
 
 Special review targets:
 
@@ -179,12 +179,12 @@ Special review targets:
 
 ## Stage 7 - Bring AOT/codegen to parity immediately
 
-- [ ] Replace legacy generated phase order in `src/codegen/codegen.cpp`
-- [ ] Remove classname-based `has_finalize_step` allowlist
-- [ ] Generate phase-specific device lists from shared execution metadata
-- [ ] Generate two electrical solve sections per outer step
-- [ ] Generate slow-domain tick/catch-up semantics identical to JIT
-- [ ] Keep pause/`dt=0` semantics identical to JIT
+- [x] Replace legacy generated phase order in `src/codegen/codegen.cpp`
+- [x] Remove classname-based `has_finalize_step` allowlist
+- [x] Generate phase-specific device lists from shared execution metadata
+- [x] Generate two electrical solve sections per outer step
+- [x] Generate slow-domain tick/catch-up semantics identical to JIT
+- [x] Keep pause/`dt=0` semantics identical to JIT
 - [ ] Re-run JIT vs AOT equivalence tests
 
 Critical note:
@@ -193,10 +193,10 @@ Critical note:
 
 ## Stage 8 - Legacy cleanup
 
-- [ ] Remove compatibility shim from hot path
+- [x] Remove compatibility shim from hot path
 - [ ] Remove old scheduler assumptions from runtime comments/docs
-- [ ] Remove controller `Domain::Electrical` abuse
-- [ ] Remove legacy domain-only scheduling logic
+- [x] Remove controller `Domain::Electrical` abuse
+- [x] Remove legacy domain-only scheduling logic
 - [ ] Simplify/remove obsolete `Systems` APIs if no longer needed
 
 ## Stage 9 - Use `GS24` / `RUG82` as multi-model validation, then retire
