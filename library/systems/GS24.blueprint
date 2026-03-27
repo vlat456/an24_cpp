@@ -26,12 +26,13 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "GS24 Starter-Generator with dual-mode operation (motor and generator)",
+  "description": "LEGACY FIXTURE: GS24 starter-generator model retained for migration validation; not a scheduler design anchor",
   "domains": [
     "Electrical",
     "Mechanical"
   ],
-  "priority": "high",
+  "priority": "low",
+  "legacy_fixture": true,
   "content_type": "Gauge",
   "param_defaults": {
     "r_internal": "0.025",

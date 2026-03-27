@@ -138,7 +138,7 @@
       "id": "fasttmo_1",
       "name": "Inductance",
       "params": {
-        "deadzone": 0.01,
+        "deadzone": 0.009999999776482582,
         "tau": 1.0
       },
       "ports": {
@@ -216,6 +216,29 @@
       "width": 656.0
     },
     {
+      "id": "highpowerload_1",
+      "name": "highpowerload_1",
+      "params": {
+        "min_voltage_diff": 0.009999999776482582,
+        "power_draw": 500.0
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 240.0,
+        "y": -512.0
+      },
+      "type": "HighPowerLoad"
+    },
+    {
       "id": "lut_carbon",
       "name": "CarbonPileLUT",
       "ports": {
@@ -265,9 +288,9 @@
     {
       "id": "pi_1",
       "name": "pi_1",
-"params": {
-        "Ki": 0.15,
-        "Kp": 0.07,
+      "params": {
+        "Ki": 0.15000000596046448,
+        "Kp": 0.07000000029802322,
         "output_max": 0.5,
         "output_min": 0.0
       },
@@ -614,6 +637,16 @@
       "id": "wire_173",
       "source": "/refnode_1:v",
       "target": "/fasttmo_2:in"
+    },
+    {
+      "id": "wire_179",
+      "source": "/bus_2:v",
+      "target": "/highpowerload_1:v_in"
+    },
+    {
+      "id": "wire_180",
+      "source": "/highpowerload_1:v_out",
+      "target": "/bus_1:v"
     },
     {
       "id": "wire_84",

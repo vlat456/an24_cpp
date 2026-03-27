@@ -404,6 +404,14 @@ static Blueprint make_ru19a_catchup_circuit() {
     Blueprint bp;
     auto& I = bp.interner();
 
+    Node gnd;
+    gnd.id = I.intern("gnd");
+    gnd.name = "gnd";
+    gnd.type_name = "RefNode";
+    gnd.output(I.intern("v"));
+    gnd.params["value"] = "0.0";
+    bp.add_node(std::move(gnd));
+
     Node apu;
     apu.id = I.intern("apu");
     apu.name = "apu";

@@ -20,11 +20,12 @@
   "wires": [],
   "nested": [],
   "cpp_class": true,
-  "description": "RUG82 Voltage Regulator with PI controller for maintaining 28.5V on bus",
+  "description": "LEGACY FIXTURE: RUG82 regulator model retained for migration validation; prefer bridge-based regulator blueprints",
   "domains": [
     "Electrical"
   ],
-  "priority": "high",
+  "priority": "low",
+  "legacy_fixture": true,
   "param_defaults": {
     "v_target": "28.5"
   },

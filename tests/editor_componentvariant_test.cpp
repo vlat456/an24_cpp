@@ -9,6 +9,11 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
     const char* json = R"({
         "devices": [
             {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
+            {
                 "name": "bat1",
                 "classname": "Battery",
                 "priority": "high",
@@ -34,6 +39,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
             }
         ],
         "connections": [
+            {"from": "gnd.v", "to": "bat1.v_in"},
             {"from": "bat1.v_out", "to": "load1.input"}
         ]
     })";
@@ -49,7 +55,7 @@ TEST(EditorComponentVariant, BuildSimpleBatteryLoadCircuit) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Check that devices map was populated
-    EXPECT_EQ(build_result.devices.size(), 2);
+    EXPECT_EQ(build_result.devices.size(), 3);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
     EXPECT_NE(build_result.devices.find("load1"), build_result.devices.end());
 
@@ -63,6 +69,11 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
     // JSON with Electrical + Mechanical components
     const char* json = R"({
         "devices": [
+            {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
             {
                 "name": "bat1",
                 "classname": "Battery",
@@ -89,7 +100,7 @@ TEST(EditorComponentVariant, MultiDomainComponents) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Should have both components created
-    EXPECT_EQ(build_result.devices.size(), 2);
+    EXPECT_EQ(build_result.devices.size(), 3);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
     EXPECT_NE(build_result.devices.find("inertia1"), build_result.devices.end());
 }
@@ -151,6 +162,11 @@ TEST(EditorComponentVariant, AllComponentTypes) {
         std::string json = R"({
             "devices": [
                 {
+                    "name": "gnd",
+                    "classname": "RefNode",
+                    "params": {"value": "0.0"}
+                },
+                {
                     "name": "comp1",
                     "classname": ")" + std::string(type) + R"("
                 }
@@ -158,13 +174,27 @@ TEST(EditorComponentVariant, AllComponentTypes) {
             "connections": []
         })";
 
+        if (std::string(type) == "RefNode") {
+            json = R"({
+                "devices": [
+                    {
+                        "name": "comp1",
+                        "classname": "RefNode",
+                        "params": {"value": "0.0"}
+                    }
+                ],
+                "connections": []
+            })";
+        }
+
         auto ctx = parse_json(json.c_str());
         std::vector<std::pair<std::string, std::string>> connections;
 
         // Should not throw exception
         EXPECT_NO_THROW({
             auto build_result = build_systems_dev(ctx.devices, connections);
-            EXPECT_EQ(build_result.devices.size(), 1);
+            const size_t expected_devices = (std::string(type) == "RefNode") ? 1u : 2u;
+            EXPECT_EQ(build_result.devices.size(), expected_devices);
         }) << "Failed to create component: " << type;
     }
 }
@@ -174,6 +204,11 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     const char* json = R"({
         "devices": [
             {
+                "name": "gnd",
+                "classname": "RefNode",
+                "params": {"value": "0.0"}
+            },
+            {
                 "name": "bat1",
                 "classname": "Battery",
                 "ports": {
@@ -182,7 +217,9 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
                 }
             }
         ],
-        "connections": []
+        "connections": [
+            {"from": "gnd.v", "to": "bat1.v_in"}
+        ]
     })";
 
     auto ctx = parse_json(json);
@@ -191,7 +228,7 @@ TEST(EditorComponentVariant, FactoryCreatesCorrectVariant) {
     auto build_result = build_systems_dev(ctx.devices, connections);
 
     // Check that bat1 device was created
-    EXPECT_EQ(build_result.devices.size(), 1);
+    EXPECT_EQ(build_result.devices.size(), 2);
     EXPECT_NE(build_result.devices.find("bat1"), build_result.devices.end());
 
     // Check that we can access the device (this validates ComponentVariant works)

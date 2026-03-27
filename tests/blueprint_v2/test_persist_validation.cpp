@@ -128,3 +128,39 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     EXPECT_TRUE(validate_blueprint_integrity(bp, interner, arena, &err));
     EXPECT_TRUE(err.empty());
 }
+
+TEST(PersistValidation, WireDomainMismatchIsReportedWithoutThrow) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+
+    bp2::Blueprint bp;
+    bp = bp.with_id(interner.intern("integrity_wire_domain_mismatch"));
+    bp = bp.with_display_name("Wire Domain Mismatch");
+
+    bp2::Blueprint::Node a;
+    a.id = interner.intern("a");
+    a.type = interner.intern("Battery");
+    bp = bp.with_node(std::move(a));
+
+    bp2::Blueprint::Node b;
+    b.id = interner.intern("b");
+    b.type = interner.intern("Resistor");
+    bp = bp.with_node(std::move(b));
+
+    bp2::Blueprint::Wire w;
+    w.id = interner.intern("wire_1");
+    const auto root = arena.root();
+    const auto a_node = arena.make_node(root, interner.intern("a"));
+    const auto b_node = arena.make_node(root, interner.intern("b"));
+    w.source = arena.make_port(a_node, interner.intern("v_out"));
+    w.target = arena.make_port(b_node, interner.intern("v_in"));
+    w.domain = Domain::Logical; // intentional mismatch for electrical endpoints
+    bp = bp.with_wire(std::move(w));
+
+    std::string err;
+    EXPECT_NO_THROW({
+        const bool ok = validate_blueprint_integrity(bp, interner, arena, &err);
+        EXPECT_FALSE(ok);
+    });
+    EXPECT_NE(err.find("wire domain differs from endpoint domain"), std::string::npos);
+}

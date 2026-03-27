@@ -582,13 +582,18 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
     }
 
     // Execute via command system (undoable)
+    const bp2::Blueprint before_add = model_.current();
     model_.push_checkpoint();
     execute(model_, interner_, cmd_add_node(std::move(node)));
 #ifndef NDEBUG
     {
         std::string err;
         if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
-            throw std::runtime_error("bp2 integrity failure after add component: " + err);
+            // Do not crash editor on integrity failure: rollback and report.
+            model_.replace_current(before_add);
+            model_.discard_last_checkpoint();
+            spdlog::error("[editor] addComponent('{}') rolled back due to integrity failure: {}", classname, err);
+            return;
         }
     }
 #endif

@@ -52,8 +52,8 @@ TEST(JITIntegration, LampPassThrough_Blueprint_VoltageFlow) {
 
     const float gnd_v = sim.get_port_value("gnd", "v");
     const float bat_vout = sim.get_port_value("battery", "v_out");
-    const float lamp_bp_vin = sim.get_wire_voltage("lamp_bp:vin.port");
-    const float lamp_bp_vout = sim.get_wire_voltage("lamp_bp:vout.port");
+    const float lamp_bp_vin = sim.get_wire_voltage("lamp_bp:vin.ext");
+    const float lamp_bp_vout = sim.get_wire_voltage("lamp_bp:vout.ext");
 
     EXPECT_NEAR(gnd_v, 0.0f, 0.1f);
     EXPECT_GT(bat_vout, 25.0f);

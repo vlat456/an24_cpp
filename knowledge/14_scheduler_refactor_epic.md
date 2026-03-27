@@ -207,16 +207,17 @@ Notes:
 ## Stage 9 - Use `GS24` / `RUG82` as multi-model validation, then retire
 
 - [x] Capture baseline behavior for `GS24` and `RUG82` under fixed and variable `dt`
-- [ ] Compare legacy monolith vs explicit-hook migration version
+- [x] Compare legacy monolith vs explicit-hook migration version
 - [x] Compare JIT vs AOT for these cases
 - [x] Compare against bridge-based blueprint version where available
 - [x] Confirm no scheduler special-casing is required
-- [ ] Remove them in final cleanup or demote them to legacy-only fixtures
+- [x] Remove them in final cleanup or demote them to legacy-only fixtures
 
 Notes:
 
 - Bridge comparison currently validated for RUG path using `RUG82` vs `RUG_82_1` cadence-stability harness.
 - GS24 bridge replacement path is tracked via `knowledge/12_gsc_bridge_plan.md` and top-level `GSC.blueprint` migration.
+- Legacy demotion applied: `GS24` and `RUG82` are marked low-priority legacy fixtures in library metadata.
 
 Important:
 
@@ -245,7 +246,7 @@ Important:
 - [x] JIT and AOT execute equivalent phase ordering
 - [x] Codegen no longer hardcodes classname-based `finalize_step` scheduling
 - [x] `GS24` / `RUG82` require no scheduler special-casing
-- [ ] Legacy components can be deleted without changing scheduler semantics
+- [x] Legacy components can be deleted without changing scheduler semantics
 
 ## Suggested PR Split
 
