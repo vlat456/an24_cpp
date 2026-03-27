@@ -194,10 +194,10 @@ Critical note:
 ## Stage 8 - Legacy cleanup
 
 - [x] Remove compatibility shim from hot path
-- [ ] Remove old scheduler assumptions from runtime comments/docs
+- [x] Remove old scheduler assumptions from runtime comments/docs
 - [x] Remove controller `Domain::Electrical` abuse
 - [x] Remove legacy domain-only scheduling logic
-- [ ] Simplify/remove obsolete `Systems` APIs if no longer needed
+- [x] Simplify/remove obsolete `Systems` APIs if no longer needed
 
 Notes:
 

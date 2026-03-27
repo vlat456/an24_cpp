@@ -103,15 +103,27 @@ TEST(LogicalSolverTest, Comparator_InLogicalDomain) {
 // =============================================================================
 
 TEST(LogicalSolverTest, LogicalSolver_HasLogicalVector) {
-    // Systems should have a logical component vector
-    // This test will compile but we can't fully test it without
-    // actually creating a blueprint with a Comparator component
-    // For now, just verify the code compiles with Logical domain
+    // Logical-capable blueprint should build and run through Simulator.
+    // This validates logical-path plumbing without legacy Systems API.
+    Blueprint bp;
+    auto& I = bp.interner();
 
-    Systems systems;
-    (void)systems;  // Suppress unused warning
+    Node comp;
+    comp.id = I.intern("comp1");
+    comp.name = "Comparator";
+    comp.type_name = "Comparator";
+    comp.at(0, 0);
+    comp.input(I.intern("Va"));
+    comp.input(I.intern("Vb"));
+    comp.output(I.intern("o"));
+    bp.add_node(std::move(comp));
 
-    SUCCEED() << "Systems class compiles with Logical domain support";
+    Simulator<JIT_Solver> simulator;
+    simulator.start_from_json(sim_test_json::from_blueprint(bp));
+    simulator.step(0.016f);
+    simulator.stop();
+
+    SUCCEED() << "Simulator logical path compiles and executes";
 }
 
 TEST(LogicalSolverTest, Component_HasSolveLogicalMethod) {

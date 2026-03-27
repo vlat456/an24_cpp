@@ -7,6 +7,31 @@
 #include "parse_number.h"
 
 
+template <typename Fn>
+static void for_each_device_variant(BuildResult& result, Fn&& fn) {
+    for (auto& [name, variant] : result.devices) {
+        (void)name;
+        std::visit(fn, variant);
+    }
+}
+
+static void stamp_electrical_for_test(BuildResult& result, SimulationState& state, float dt) {
+    for_each_device_variant(result, [&state, dt](auto& comp) {
+        if constexpr (requires { comp.solve_electrical(state, dt); }) {
+            comp.solve_electrical(state, dt);
+        }
+    });
+}
+
+static void solve_logical_for_test(BuildResult& result, SimulationState& state, float dt) {
+    for_each_device_variant(result, [&state, dt](auto& comp) {
+        if constexpr (requires { comp.solve_logical(state, dt); }) {
+            comp.solve_logical(state, dt);
+        }
+    });
+}
+
+
 // =============================================================================
 // Helper: create DeviceInstance with common fields
 // =============================================================================
@@ -32,7 +57,7 @@ static DeviceInstance make_device(
 }
 
 // =============================================================================
-// Helper: run SOR simulation to steady state
+// Helper: run SOR simulation to steady state (dt-driven, no solve_step dependency)
 // =============================================================================
 static SimulationState run_sor(
     BuildResult& result,
@@ -41,6 +66,7 @@ static SimulationState run_sor(
     float omega = SOR::OMEGA
 ) {
     SimulationState state;
+    constexpr float dt = 1.0f / 60.0f;
 
     // Allocate signals
     for (uint32_t i = 0; i < result.signal_count; ++i) {
@@ -64,10 +90,14 @@ static SimulationState run_sor(
         }
     }
 
-    // SOR iteration
+    // SOR iteration - explicit electrical stamping without solve_step
     for (int step = 0; step < steps; ++step) {
+        (void)step;
         state.clear_through();
-        result.systems.solve_step(state, step, 1.0f / 60.0f);
+
+        // Stamp electrical: iterate over all devices and call solve_electrical if available
+        stamp_electrical_for_test(result, state, dt);
+
         state.precompute_inv_conductance();
 
         for (size_t i = 0; i < state.across.size(); ++i) {
@@ -77,10 +107,9 @@ static SimulationState run_sor(
         }
 
         // Post-step: relay switches copy voltage after SOR update
-        
 
-        // Logical: after SOR + finalize_step so gates read converged values
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        // Logical: after SOR so gates read converged values
+        solve_logical_for_test(result, state, dt);
     }
 
     return state;
@@ -193,7 +222,7 @@ TEST(BuildSystemsTest, BasicBuildSingleDevice) {
     auto result = build_systems_dev(devices, connections);
 
     EXPECT_GT(result.signal_count, 0u);
-    EXPECT_EQ(result.systems.component_count(), 1u);
+    EXPECT_EQ(result.devices.size(), 1u);
 }
 
 TEST(BuildSystemsTest, ConnectionsMergeSignals) {
@@ -969,16 +998,35 @@ TEST(RegressionTest, OpenSwitchDropsVoltageToZero) {
     // Phase 2: toggle switch open (change control signal)
     auto it_ctrl = result.port_to_signal.find("ctrl.v");
     state.across[it_ctrl->second] = 28.0f;  // trigger toggle
+    constexpr float dt = 1.0f / 60.0f;
     for (int i = 0; i < 50; ++i) {
+        (void)i;
         state.clear_through();
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        // Stamp electrical via explicit device iteration
+        for (auto& [name, variant] : result.devices) {
+            (void)name;
+            std::visit([&state, dt](auto& comp) {
+                using CompType = std::decay_t<decltype(comp)>;
+                if constexpr (requires { comp.solve_electrical(state, dt); }) {
+                    comp.solve_electrical(state, dt);
+                }
+            }, variant);
+        }
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
-        
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        // Logical phase
+        for (auto& [name, variant] : result.devices) {
+            (void)name;
+            std::visit([&state, dt](auto& comp) {
+                using CompType = std::decay_t<decltype(comp)>;
+                if constexpr (requires { comp.solve_logical(state, dt); }) {
+                    comp.solve_logical(state, dt);
+                }
+            }, variant);
+        }
     }
 
     float v_open = get_voltage(state, result, "sw.v_out");
@@ -1013,7 +1061,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
     state.across[ctrl_idx] = 28.0f;  // high control → relay closed
     for (int i = 0; i < 100; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        stamp_electrical_for_test(result, state, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1021,7 +1069,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
         }
         state.across[ctrl_idx] = 28.0f;  // maintain control
         
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        solve_logical_for_test(result, state, 1.0f / 60.0f);
     }
     float v_closed = get_voltage(state, result, "relay.v_out");
     EXPECT_GT(v_closed, 27.0f) << "Closed relay should pass voltage";
@@ -1030,7 +1078,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
     for (int i = 0; i < 50; ++i) {
         state.clear_through();
         state.across[ctrl_idx] = 0.0f;  // low control → relay open
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        stamp_electrical_for_test(result, state, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
@@ -1038,7 +1086,7 @@ TEST(RegressionTest, OpenRelayDropsVoltageToZero) {
         }
         state.across[ctrl_idx] = 0.0f;  // maintain control
         
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        solve_logical_for_test(result, state, 1.0f / 60.0f);
     }
 
     float v_open = get_voltage(state, result, "relay.v_out");
@@ -1077,14 +1125,14 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     state.signal_types[ctrl_idx].is_fixed = false;
     for (int i = 0; i < 100; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        stamp_electrical_for_test(result, state, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        solve_logical_for_test(result, state, 1.0f / 60.0f);
     }
 
     float v_pressed = get_voltage(state, result, "btn.v_out");
@@ -1094,14 +1142,14 @@ TEST(RegressionTest, ReleasedHoldButtonDropsVoltageToZero) {
     state.across[ctrl_idx] = 2.0f;
     for (int i = 0; i < 50; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        stamp_electrical_for_test(result, state, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        solve_logical_for_test(result, state, 1.0f / 60.0f);
     }
 
     float v_released = get_voltage(state, result, "btn.v_out");
@@ -1209,14 +1257,14 @@ TEST(RegressionTest, BatterySagThroughPressedHoldButton) {
     state.across[ctrl_idx] = 1.0f;
     for (int i = 0; i < 200; ++i) {
         state.clear_through();
-        result.systems.solve_step(state, i, 1.0f / 60.0f);
+        stamp_electrical_for_test(result, state, 1.0f / 60.0f);
         state.precompute_inv_conductance();
         for (size_t j = 0; j < state.across.size(); ++j) {
             if (!state.signal_types[j].is_fixed && state.inv_conductance[j] > 0.0f)
                 state.across[j] += state.through[j] * state.inv_conductance[j] * 1.5f;
         }
         
-        result.systems.solve_logical(state, 1.0f / 60.0f);
+        solve_logical_for_test(result, state, 1.0f / 60.0f);
     }
 
     float v_in = get_voltage(state, result, "btn.v_in");

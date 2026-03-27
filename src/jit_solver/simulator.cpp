@@ -123,7 +123,6 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
 template<typename SolverTag>
 void Simulator<SolverTag>::stop() {
     // Destroy components by clearing build_result
-    // Systems destructor will delete all Component pointers
     build_result_.reset();
 
     // Clear state

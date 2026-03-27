@@ -9,7 +9,7 @@ namespace SOR {
 /// Canonical project default (kept for regression compatibility).
 constexpr float OMEGA = 1.3f;
 
-/// Number of relaxation sweeps per simulation frame.
+/// Number of relaxation sweeps per outer simulation step.
 /// Keep at 1 with the current stamp-then-solve pipeline.
 /// Increasing this without re-stamping between sweeps changes physics.
 constexpr int INNER_SWEEPS = 1;
@@ -39,14 +39,14 @@ constexpr float GROUND_REF_EPS = 1e-4f;
 
 } // namespace JitElectricalWarnings
 
-/// Domain scheduling constants — single source of truth for JIT, AOT, and editor.
-/// Sub-rate domains fire every Nth step of the main loop.
-/// Solvers receive accumulated dt over those N steps (FPS-independent).
+/// Domain schedule constants for compatibility/tests and legacy helpers.
+/// Primary runtime scheduler is explicit phase + accumulated-dt driven.
+/// These values still define canonical domain periods used by tests/codegen.
 namespace DomainSchedule {
 
-constexpr int MECHANICAL_PERIOD = 3;   // every 3rd step
-constexpr int HYDRAULIC_PERIOD  = 12;  // every 12th step
-constexpr int THERMAL_PERIOD    = 60;  // every 60th step
+constexpr int MECHANICAL_PERIOD = 3;   // 20 Hz equivalent period at 60 Hz reference step
+constexpr int HYDRAULIC_PERIOD  = 12;  // 5 Hz equivalent period at 60 Hz reference step
+constexpr int THERMAL_PERIOD    = 60;  // 1 Hz equivalent period at 60 Hz reference step
 constexpr int CYCLE_LENGTH      = 60;  // LCM of all periods — one full scheduling cycle
 
 } // namespace DomainSchedule

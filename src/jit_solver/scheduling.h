@@ -16,7 +16,8 @@ inline Domain parse_domain(const std::string& domain_str) {
     return Domain::Electrical; // default
 }
 
-/// Check if component should run on given step for its domain
+/// Legacy helper: step-modulo domain dispatch for compatibility/tests.
+/// Primary runtime scheduling is phase-based and accumulated-dt driven.
 inline bool should_run_on_step(Domain domain, int step) {
     if (has_domain(domain, Domain::Electrical) || has_domain(domain, Domain::Logical)) {
         return true;  // Every step
@@ -33,7 +34,8 @@ inline bool should_run_on_step(Domain domain, int step) {
     return true;
 }
 
-/// Get step frequency for domain (in Hz) - returns highest frequency for multi-domain
+/// Legacy helper: nominal domain frequency for compatibility/tests.
+/// Does not define primary runtime scheduler semantics.
 inline int get_domain_frequency(Domain domain) {
     if (has_domain(domain, Domain::Electrical) || has_domain(domain, Domain::Logical)) {
         return 60;

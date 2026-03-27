@@ -17,19 +17,19 @@ public:
     /// Component type name (for debugging)
     [[nodiscard]] virtual std::string_view type_name() const = 0;
 
-    /// Solve electrical domain (every step, dt = frame delta)
+    /// Solve electrical phase work with scheduler-provided simulated interval `dt`.
     virtual void solve_electrical(SimulationState& state, float dt) {}
 
-    /// Solve hydraulic domain (every 12th step, dt = 12 * frame delta)
+    /// Solve hydraulic phase work with scheduler-provided simulated interval `dt`.
     virtual void solve_hydraulic(SimulationState& state, float dt) {}
 
-    /// Solve mechanical domain (every 3rd step, dt = 3 * frame delta)
+    /// Solve mechanical phase work with scheduler-provided simulated interval `dt`.
     virtual void solve_mechanical(SimulationState& state, float dt) {}
 
-    /// Solve thermal domain (every 60th step, dt = 60 * frame delta)
+    /// Solve thermal phase work with scheduler-provided simulated interval `dt`.
     virtual void solve_thermal(SimulationState& state, float dt) {}
 
-    /// Solve logical domain (every step, dt = frame delta)
+    /// Solve logical phase work with scheduler-provided simulated interval `dt`.
     virtual void solve_logical(SimulationState& state, float dt) {}
 
     /// Stage 2: explicit phase hook - passive electrical stamping path

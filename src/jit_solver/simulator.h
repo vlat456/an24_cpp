@@ -2,7 +2,6 @@
 
 #include "jit_solver.h"
 #include "state.h"
-#include "systems.h"
 #include "SOR_constants.h"
 #include <optional>
 #include <string>
@@ -19,7 +18,7 @@ public:
     Simulator() = default;
     ~Simulator() { stop(); }
 
-    // Non-copyable (owns unique Component pointers via Systems)
+    // Non-copyable (owns simulation resources)
     Simulator(const Simulator&) = delete;
     Simulator& operator=(const Simulator&) = delete;
     Simulator(Simulator&& other) noexcept;
@@ -74,7 +73,7 @@ public:
     bool get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const;
 
 private:
-    /// Build result from JIT solver (owns Component pointers!)
+    /// Build result from JIT solver (owns ComponentVariant device instances)
     std::optional<BuildResult> build_result_;
 
     /// Simulation state (voltages, currents)
