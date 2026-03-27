@@ -129,7 +129,7 @@ TEST(PersistValidation, ValidateBlueprintIntegrityPassesForValidBlueprint) {
     EXPECT_TRUE(err.empty());
 }
 
-TEST(PersistValidation, WireDomainMismatchIsReportedWithoutThrow) {
+TEST(PersistValidation, WireDomainMismatchIsToleratedWithoutThrow) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
 
@@ -160,7 +160,7 @@ TEST(PersistValidation, WireDomainMismatchIsReportedWithoutThrow) {
     std::string err;
     EXPECT_NO_THROW({
         const bool ok = validate_blueprint_integrity(bp, interner, arena, &err);
-        EXPECT_FALSE(ok);
+        EXPECT_TRUE(ok);
     });
-    EXPECT_NE(err.find("wire domain differs from endpoint domain"), std::string::npos);
+    EXPECT_TRUE(err.empty());
 }

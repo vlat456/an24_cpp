@@ -28,6 +28,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | **SOR re-stamp fix** | `knowledge/15_solver_restamp_fix.md` | **ACTIVE: fix series-circuit convergence bug** |
 | Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` | Detailed JIT/AOT plan for removing control-loop latency |
 | Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` | Staged implementation checklist for coding agents |
+| **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from SOR to push propagation (game-grade sim) |
 
 ## Suggested Reading Order
 
@@ -46,7 +47,8 @@ Use this file as the entry point before crawling the rest of the repo.
 4. `knowledge/sor_stabilization.md`
 5. `knowledge/component_authoring.md`
 6. `knowledge/13_scheduler_refactor_plan.md`
-7. `knowledge/errors_TODO.md`
+7. `knowledge/16_push_migration_plan.md` **(ALTERNATIVE: Replace SOR with push propagation)**
+8. `knowledge/errors_TODO.md`
 
 ### For editor work
 

@@ -555,19 +555,16 @@ void Merger<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
 
 template <typename Provider>
 void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+    // NOTE: CurrentSense with high conductance (100S) affects the circuit
+    // This is a limitation of SOR - ideal ammeter not possible
     float g = conductance;
-
-    // High-conductance two-port: near-zero voltage drop between v_in and v_out
     stamp_two_port(st.conductance.data(), st.through.data(), st.across.data(),
-                   provider.get(PortNames::v_out), provider.get(PortNames::v_in), g);
-
-    // i_out is produced in observe_electrical() after SOR convergence.
+                   provider.get(PortNames::v_in), provider.get(PortNames::v_out), g);
 }
 
 template <typename Provider>
 void CurrentSense<Provider>::observe_electrical(SimulationState& st, float /*dt*/) {
     float g = conductance;
-    // Measured current: I = (v_in - v_out) * G
     float v_diff = st.across[provider.get(PortNames::v_in)] - st.across[provider.get(PortNames::v_out)];
     st.across[provider.get(PortNames::i_out)] = v_diff * g;
 }
@@ -604,8 +601,9 @@ void HighPowerLoad<Provider>::solve_electrical(SimulationState& st, float /*dt*/
     float v_diff = v_in - v_out;
 
     // Branchless: use max to avoid negative division, conductance mask for threshold
-    float safe_v_diff = std::max(v_diff, min_voltage_diff);
-    float conduct_mask = (v_diff > min_voltage_diff) ? 1.0f : 0.0f;
+    float v_abs = std::max(v_diff, 0.0f);  // Only positive voltage
+    float safe_v_diff = std::max(v_abs, min_voltage_diff);
+    float conduct_mask = (v_abs > min_voltage_diff) ? 1.0f : 0.0f;
 
     // Constant-power load: P = V * I → I = P / V, G = I / V = P / V²
     float g = power_draw / (safe_v_diff * safe_v_diff) * conduct_mask;

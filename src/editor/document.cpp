@@ -583,27 +583,56 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
 
     // Execute via command system (undoable)
     const bp2::Blueprint before_add = model_.current();
-    model_.push_checkpoint();
-    execute(model_, interner_, cmd_add_node(std::move(node)));
 #ifndef NDEBUG
-    {
-        std::string err;
-        if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
-            // Do not crash editor on integrity failure: rollback and report.
-            model_.replace_current(before_add);
-            model_.discard_last_checkpoint();
-            spdlog::error("[editor] addComponent('{}') rolled back due to integrity failure: {}", classname, err);
-            return;
+    std::string before_integrity_err;
+    const bool before_integrity_ok =
+        validate_blueprint_integrity(before_add, interner_, arena_, &before_integrity_err);
+#endif
+    bool checkpoint_pushed = false;
+    try {
+        model_.push_checkpoint();
+        checkpoint_pushed = true;
+        execute(model_, interner_, cmd_add_node(std::move(node)));
+#ifndef NDEBUG
+        {
+            std::string err;
+            if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
+#ifndef NDEBUG
+                if (!before_integrity_ok) {
+                    spdlog::warn(
+                        "[editor] addComponent('{}') on pre-invalid blueprint: before='{}', after='{}'",
+                        classname,
+                        before_integrity_err,
+                        err);
+                } else
+#endif
+                {
+                // Do not crash editor on integrity failure: rollback and report.
+                model_.replace_current(before_add);
+                if (checkpoint_pushed) {
+                    model_.discard_last_checkpoint();
+                }
+                spdlog::error("[editor] addComponent('{}') rolled back due to integrity failure: {}", classname, err);
+                return;
+                }
+            }
         }
-    }
 #endif
 
-    // Rebuild scene from blueprint state
-    rebuildAllWindows();
+        // Rebuild scene from blueprint state
+        rebuildAllWindows();
 
-    spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
-           classname, unique_id, snapped_pos.x, snapped_pos.y,
-           group_id.empty() ? "root" : group_id);
+        spdlog::info("[editor] Added component: {} (id={}) at ({:.1f}, {:.1f}) group={}",
+               classname, unique_id, snapped_pos.x, snapped_pos.y,
+               group_id.empty() ? "root" : group_id);
+    } catch (const std::exception& e) {
+        model_.replace_current(before_add);
+        if (checkpoint_pushed) {
+            model_.discard_last_checkpoint();
+        }
+        spdlog::error("[editor] addComponent('{}') failed safely: {}", classname, e.what());
+        return;
+    }
 }
 
 void Document::addBlueprint(const std::string& blueprint_name, Pt /*world_pos*/,
@@ -714,12 +743,15 @@ bool Document::performUndo() {
         win->input.cancel_gesture();
     }
 
+    const bp2::Blueprint before_undo = model_.current();
     model_.undo();
 #ifndef NDEBUG
     {
         std::string err;
         if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
-            throw std::runtime_error("bp2 integrity failure after undo: " + err);
+            model_.replace_current(before_undo);
+            spdlog::error("[editor] undo rejected by integrity check: {}", err);
+            return false;
         }
     }
 #endif
@@ -744,12 +776,15 @@ bool Document::performRedo() {
         win->input.cancel_gesture();
     }
 
+    const bp2::Blueprint before_redo = model_.current();
     model_.redo();
 #ifndef NDEBUG
     {
         std::string err;
         if (!validate_blueprint_integrity(model_.current(), interner_, arena_, &err)) {
-            throw std::runtime_error("bp2 integrity failure after redo: " + err);
+            model_.replace_current(before_redo);
+            spdlog::error("[editor] redo rejected by integrity check: {}", err);
+            return false;
         }
     }
 #endif

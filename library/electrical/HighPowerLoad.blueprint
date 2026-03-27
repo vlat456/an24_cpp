@@ -28,6 +28,16 @@
     "min_voltage_diff": "0.01",
     "power_draw": "500.0"
   },
+  "param_schema": {
+    "min_voltage_diff": {
+      "type": "float",
+      "min": 0.000001
+    },
+    "power_draw": {
+      "type": "float",
+      "min": 0.0
+    }
+  },
   "execution": {
     "electrical_passive": true,
     "electrical_observer": false,

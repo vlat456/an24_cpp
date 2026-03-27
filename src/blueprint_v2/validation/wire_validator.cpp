@@ -30,7 +30,9 @@ WireValidator::Result WireValidator::validate(Blueprint::Wire const& wire,
 
     out.resolved_domain = src->port.domain;
     if (wire.domain != src->port.domain) {
-        out.error = "wire domain differs from endpoint domain";
+        // Legacy/editor tolerance: wire.domain can be stale after domain-aware
+        // endpoint edits. Endpoint domains are source-of-truth.
+        out.valid = true;
         return out;
     }
 

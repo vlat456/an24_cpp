@@ -32,7 +32,7 @@
   ],
   "content_type": "Text",
   "param_defaults": {
-    "conductance": "1000.0"
+    "conductance": "0.05"
   },
   "execution": {
     "electrical_passive": true,

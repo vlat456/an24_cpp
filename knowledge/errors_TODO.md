@@ -104,6 +104,34 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ## High Priority
 
+### 14. Zero-Fallback Metadata Cutover (MANDATORY)
+**Status:** OPEN (active phase)
+
+**Policy:** Remove all fallback/compatibility behavior and make metadata fully explicit.
+
+**Requirements:**
+- No inference logic for execution, domains, or scheduling behavior.
+- No legacy compatibility branches/shims for missing or stale metadata.
+- No silent defaults for required fields.
+- Invalid metadata must fail fast at load/build time.
+
+**Current temporary compatibility to remove:**
+- Wire-domain tolerance fallback in bp2 wire validation (`wire.domain` mismatch accepted when endpoints resolve).
+- Any parser/load path that still accepts legacy forms without explicit schema declarations.
+
+**Target end-state:**
+- `library/**/*.blueprint` metadata is fully normalized and explicit.
+- `GSC.blueprint` and other working blueprints contain no stale/legacy fields.
+- Validation runs strict-only mode with zero fallback.
+
+**Definition of done:**
+1. Audit and delete all fallback/compatibility code paths.
+2. Normalize all blueprint/type metadata to strict schema.
+3. Add regression tests that ensure invalid/legacy metadata is rejected (hard fail).
+4. Keep editor stable (no process aborts) while surfacing validation errors to user.
+
+---
+
 ### 2. Dual Blueprint Systems (Incomplete Migration)
 **Files:** 
 - `src/editor/data/blueprint.h` (legacy)

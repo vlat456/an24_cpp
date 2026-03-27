@@ -34,6 +34,11 @@
   "param_defaults": {
     "closed": "false"
   },
+  "param_schema": {
+    "closed": {
+      "type": "bool"
+    }
+  },
   "execution": {
     "electrical_passive": true,
     "electrical_observer": false,
