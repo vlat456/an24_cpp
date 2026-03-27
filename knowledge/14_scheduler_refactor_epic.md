@@ -169,13 +169,13 @@ Implementation notes:
 
 Special review targets:
 
-- [ ] `RU19A`
-- [ ] `GS24`
-- [ ] `RUG82`
-- [ ] `ElectricPump`
-- [ ] `GidroAccumulator`
-- [ ] `FuelTank`
-- [ ] `ElectricHeater`
+- [x] `RU19A`
+- [x] `GS24`
+- [x] `RUG82`
+- [x] `ElectricPump`
+- [x] `GidroAccumulator`
+- [x] `FuelTank`
+- [x] `ElectricHeater`
 
 ## Stage 7 - Bring AOT/codegen to parity immediately
 
@@ -215,13 +215,13 @@ Important:
 
 ## Stage 10 - Documentation sync
 
-- [ ] Update `knowledge/02_simulation.md`
-- [ ] Update `knowledge/06_code_generation.md`
-- [ ] Update `knowledge/11_domain_bridges.md`
-- [ ] Update `knowledge/13_scheduler_refactor_plan.md` if implementation diverged
-- [ ] Document pause-safe accumulated-`dt` contract
-- [ ] Document latch/catch-up semantics for slow domains
-- [ ] Document how new components declare execution phases
+- [x] Update `knowledge/02_simulation.md`
+- [x] Update `knowledge/06_code_generation.md`
+- [x] Update `knowledge/11_domain_bridges.md`
+- [x] Update `knowledge/13_scheduler_refactor_plan.md` if implementation diverged
+- [x] Document pause-safe accumulated-`dt` contract
+- [x] Document latch/catch-up semantics for slow domains
+- [x] Document how new components declare execution phases
 
 ## Acceptance Criteria
 

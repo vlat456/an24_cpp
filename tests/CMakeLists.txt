@@ -1480,6 +1480,22 @@ target_link_libraries(apu_mechanical_tests PRIVATE
 )
 gtest_discover_tests(apu_mechanical_tests)
 
+# GS24 regression tests (phase separation and deterministic finalize behavior)
+add_executable(gs24_regression_tests
+    test_gs24_regression.cpp
+)
+target_include_directories(gs24_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(gs24_regression_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(gs24_regression_tests)
+
 # Radiator regression tests (BUG-Radiator: inverted heat flow)
 add_executable(radiator_regression_tests
     test_radiator_regression.cpp

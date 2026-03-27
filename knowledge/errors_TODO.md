@@ -4,6 +4,29 @@
 
 ## Resolved
 
+### ~~12. Scheduler Refactor - Next Execution Plan~~ ✓ COMPLETED
+**Commits:** `e3d2a9c`, `0df46d2`, `dbdf328`, `e9a079c`
+
+**What was done:**
+- Stabilized regression execution from `build/` harness.
+- Migrated execution traits source-of-truth to blueprint metadata (`execution`).
+- Unified JIT/AOT consumption of parsed execution metadata.
+- Added strict parser/type-registry validation for missing/invalid execution metadata.
+- Completed Stage-0 regression matrix including large-`dt` catch-up and minimal bridge JIT/AOT equivalence smoke.
+- Synced scheduler epic checklist to implementation status.
+
+---
+
+### ~~11. Execution Traits Source-of-Truth in JSON~~ ✓ COMPLETED
+**Commit:** `dbdf328`
+
+**What was done:**
+- Added execution metadata parsing/propagation on type definitions and merged devices.
+- Removed class-name execution trait mapping from active scheduling/codegen paths.
+- Updated library blueprint metadata and tests to metadata-driven execution traits.
+
+---
+
 ### ~~1. Silent Out-of-Bounds in Release Builds~~ ✓ FIXED
 **Commit:** `2cad5e8` (AotProvider sentinel), this session (JitProvider release log)
 
@@ -40,23 +63,6 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ## High Priority
 
-### 12. Scheduler Refactor - Next Execution Plan (NEW)
-**Status:** Ready to execute after strict review gate
-
-**Immediate next steps:**
-1. Stabilize regression harness path resolution (fix `DtRegression` cwd/resource fragility so `library/` loads reliably regardless of invocation directory).
-2. Move execution traits source-of-truth to JSON component metadata (replace class-name-based C++ mapping).
-3. Make both JIT and AOT consume the same parsed execution-phase metadata.
-4. Add strict validation for missing/invalid phase metadata (fail fast).
-5. Keep temporary migration compatibility only if required, then remove it.
-6. Re-run parity and regression suites, then sync docs to final phase terminology.
-
-**Review gate (mandatory before step 1):**
-- Run strict `@review` on current workspace changes and this plan.
-- Do not proceed with implementation until review findings are addressed or explicitly accepted.
-
----
-
 ### 2. Dual Blueprint Systems (Incomplete Migration)
 **Files:** 
 - `src/editor/data/blueprint.h` (legacy)
@@ -73,28 +79,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ## Medium Priority
 
-### 11. Execution Traits Source-of-Truth in JSON (NEW)
-**Files:**
-- `library/*.json` (component definitions)
-- `src/jit_solver/execution_traits.h`
-- `src/codegen/codegen.cpp`
 
-**Problem:** Execution-phase traits are currently mapped in C++ by class name.
-This is strict mapping (not heuristic), but it is still duplicated knowledge
-outside component JSON definitions.
-
-**Target:** Move execution-phase traits into component type JSON schema so JIT
-and AOT consume declarative metadata from the same source as ports/domains.
-
-**Fix Plan:**
-- Extend type schema with explicit execution fields (e.g. passive/observer/actuator/commit/finalize)
-- Validate schema in parser
-- Generate/consume typed traits from parsed `TypeDefinition` instead of class-name switch lists
-- Keep temporary fallback for legacy JSON during migration, then remove fallback
-
-**Impact:** Medium (prevents future JIT/AOT drift and removes hardcoded class mapping)
-
----
 
 ### 3. PORTS Macro Bloat
 **File:** `src/jit_solver/component.h:61-262`

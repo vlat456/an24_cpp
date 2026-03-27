@@ -58,18 +58,20 @@ public:
 ```
 
 ### Source (.cpp)
+
+Generated runtime emits an explicit phase scheduler aligned with JIT:
+
 ```cpp
-#include "generated_MyComposite.h"
-
-void MyComposite::solve_electrical(SimulationState& st, float dt) {
-    // Direct calls - no virtual dispatch
-    battery.solve_electrical(st, dt);
-    sw.solve_electrical(st, dt);
-}
-
-void MyComposite::finalize_step(SimulationState& st, float dt) {
-    battery.finalize_step(st, dt);
-    sw.finalize_step(st, dt);
+void GeneratedSystems::step_0(void* state, float dt) {
+    // 1) passive electrical stamp
+    // 2) first SOR
+    // 3) observers
+    // 4) logical
+    // 5) control commit
+    // 6) electrical actuators
+    // 7) second SOR
+    // 8) sub-rate domain ticks (accumulated dt + catch-up)
+    // 9) finalize
 }
 ```
 
@@ -154,15 +156,14 @@ int main() {
     // ... configure provider bindings
     
     for (int i = 0; i < 1000; ++i) {
-        st.clear_through();
-        system.solve_electrical(st, 1.0f/60.0f);
-        st.precompute_inv_conductance();
-        solve_sor_iteration(st.across.data(), st.through.data(), 
-                           st.inv_conductance.data(), st.dynamic_signals_count, 1.3f);
-        system.finalize_step(st, 1.0f/60.0f);
+        system.step(1.0f / 60.0f);
     }
 }
 ```
+
+Notes:
+- `step(dt)` is fully `dt`-driven and pause-safe (`dt <= 0` does not advance).
+- AOT and JIT now share phase semantics from execution metadata declared in `library/*.blueprint`.
 
 ## Signal Allocation
 

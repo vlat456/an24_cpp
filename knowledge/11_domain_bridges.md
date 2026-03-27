@@ -25,6 +25,24 @@ Correct pattern:
 Electrical node -> VoltageSense -> logical control chain -> ControlledVoltageSource / ControlledCurrentSource / VariableConductance -> Electrical network
 ```
 
+## Execution-Phase Contract
+
+Bridge behavior is phase-explicit:
+
+- `VoltageSense` and `Voltmeter` run in `observe_electrical` (after first SOR).
+- Logical controllers (`P/PI/PD/PID`, math/LUT/filter blocks) run in `solve_logical`.
+- `ControlledVoltageSource`, `ControlledCurrentSource`, and `VariableConductance` stamp in `electrical_actuator`.
+
+This gives same-step closed-loop response in one outer `step(dt)`:
+
+1. electrical settles (passive SOR),
+2. measurements are observed,
+3. control is computed,
+4. actuators stamp,
+5. second SOR applies the command in the same step.
+
+Execution participation is declared in component blueprint metadata (`execution` block), consumed identically by JIT and AOT.
+
 ## Bridge Components
 
 ### `VoltageSense`

@@ -87,26 +87,45 @@ struct PhaseComponents {
 };
 ```
 
-### Step Multipliers
-| Domain | Every N steps | Effective dt |
-|--------|---------------|--------------|
-| Electrical | 1 | 1/60 sec |
-| Logical | 1 | 1/60 sec |
-| Mechanical | 3 | 3/60 = 1/20 sec |
-| Hydraulic | 12 | 12/60 = 1/5 sec |
-| Thermal | 60 | 60/60 = 1 sec |
+### Step Pipeline (dt-driven)
+
+Runtime executes explicit phases in one outer `step(dt)`:
+
+1. `stamp_electrical_passive`
+2. first electrical SOR pass
+3. `observe_electrical`
+4. `solve_logical`
+5. `commit_control`
+6. `stamp_electrical_actuator`
+7. second electrical SOR pass
+8. sub-rate domain ticks (`mechanical`, `hydraulic`, `thermal`)
+9. `finalize_step`
+
+`dt <= 0` is pause/no-advance: no phase advances simulation state.
+
+### Sub-rate Domains
+
+Slow domains use accumulated simulation time, not frame counters:
+
+- mechanical period: `1/20` s
+- hydraulic period: `1/5` s
+- thermal period: `1` s
+
+Each domain uses bounded catch-up loops for large `dt` with optional cap logging.
+Outputs are latched between ticks and slow domains read final post-actuator electrical state.
 
 ## BuildResult
 
 Result of JIT build process:
 ```cpp
 struct BuildResult {
-    std::vector<DeviceInstance> devices;
-    std::vector<Connection> connections;
-    std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t signal_count;
+    std::vector<uint32_t> fixed_signals;
+    std::unordered_map<std::string, uint32_t> port_to_signal;
+    std::unordered_map<std::string, ComponentVariant> devices;
     PhaseComponents phase_components;
-    SimulationState state;
+    std::vector<float> lut_keys;
+    std::vector<float> lut_values;
 };
 ```
 

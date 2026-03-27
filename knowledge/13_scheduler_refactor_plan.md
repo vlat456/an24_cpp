@@ -357,6 +357,9 @@ This should be the expected end state for the refactor.
 
 Add explicit execution-phase metadata instead of inferring order from `Domain` alone.
 
+Implementation note (current state): execution phase participation is now declared in
+component blueprints via an `execution` object and consumed by both JIT and AOT.
+
 Suggested shape:
 
 ```cpp
