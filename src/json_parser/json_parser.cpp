@@ -577,6 +577,19 @@ static ParserContext parse_json_impl(const std::string& json_text,
         }
     }
 
+    // Parse optional initial values map: "device.port" -> float
+    if (j.contains("initial_values")) {
+        if (!j["initial_values"].is_object()) {
+            throw std::runtime_error("'initial_values' must be an object");
+        }
+        for (const auto& [port_ref, val] : j["initial_values"].items()) {
+            if (!val.is_number()) {
+                throw std::runtime_error("initial_values entry '" + port_ref + "' must be numeric");
+            }
+            ctx.initial_values[port_ref] = val.get<float>();
+        }
+    }
+
     // Rewrite connections that point to expanded nested blueprints
     // When a blueprint "lamp_bp" is expanded, its exposed ports become "lamp_bp:vin.port"
     // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
@@ -831,6 +844,14 @@ std::string serialize_json(const ParserContext& ctx) {
         j["connections"] = connections;
     }
 
+    if (!ctx.initial_values.empty()) {
+        json initial_values;
+        for (const auto& [port_ref, value] : ctx.initial_values) {
+            initial_values[port_ref] = value;
+        }
+        j["initial_values"] = initial_values;
+    }
+
     return j.dump(2);  // Pretty print with 2-space indent
 }
 
@@ -913,15 +934,14 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    // Parse explicit execution-phase metadata (mandatory, no fallback)
-    if (!j.contains("execution")) {
-        throw std::runtime_error("Type definition missing required 'execution' object for component '" + def.classname + "'");
+    // Parse explicit execution-phase metadata (optional in push migration).
+    if (j.contains("execution")) {
+        if (!j["execution"].is_object()) {
+            throw std::runtime_error("Type definition 'execution' must be an object for component '" + def.classname + "'");
+        }
+        def.execution = parse_execution_phases(j["execution"]);
+        validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
     }
-    if (!j["execution"].is_object()) {
-        throw std::runtime_error("Type definition 'execution' must be an object for component '" + def.classname + "'");
-    }
-    def.execution = parse_execution_phases(j["execution"]);
-    validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
 
     // For blueprints: parse devices and connections
     if (j.contains("devices") && j["devices"].is_array()) {
@@ -1068,15 +1088,14 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     def.domains = std::move(domains);
                 }
 
-                // Parse explicit execution-phase metadata (mandatory for all types)
-                if (!j.contains("execution")) {
-                    throw std::runtime_error("Missing required 'execution' object for component '" + def.classname + "'");
+                // Parse explicit execution-phase metadata (optional in push migration)
+                if (j.contains("execution")) {
+                    if (!j["execution"].is_object()) {
+                        throw std::runtime_error("Invalid 'execution' metadata for component '" + def.classname + "': must be object");
+                    }
+                    def.execution = parse_execution_phases(j["execution"]);
+                    validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
                 }
-                if (!j["execution"].is_object()) {
-                    throw std::runtime_error("Invalid 'execution' metadata for component '" + def.classname + "': must be object");
-                }
-                def.execution = parse_execution_phases(j["execution"]);
-                validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
 
                 if (!j.contains("interface") || !j["interface"].is_array()) {
                     throw std::runtime_error("Missing required 'interface' array for component '" + def.classname + "'");
@@ -1294,11 +1313,7 @@ DeviceInstance merge_device_instance(
         merged.visual_only = true;
     }
 
-    // Propagate explicit execution-phase metadata from definition (mandatory, no fallback)
-    if (!definition.execution.has_value()) {
-        throw std::runtime_error(
-            "Missing execution metadata in type definition for component '" + definition.classname + "'");
-    }
+    // Propagate explicit execution-phase metadata from definition when present.
     merged.execution = definition.execution;
 
     if (!definition.param_schema.empty()) {

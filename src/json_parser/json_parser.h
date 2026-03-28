@@ -265,6 +265,7 @@ struct ParserContext {
     std::unordered_map<std::string, SystemTemplate> templates;
     std::vector<DeviceInstance> devices;
     std::vector<Connection> connections;
+    std::unordered_map<std::string, float> initial_values;
 
     /// Find device by name
     const DeviceInstance* find_device(const std::string& name) const {

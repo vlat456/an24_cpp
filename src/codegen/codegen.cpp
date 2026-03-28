@@ -1,6 +1,4 @@
 #include "codegen.h"
-#include "jit_solver/SOR_constants.h"
-#include "jit_solver/execution_traits.h"
 #include "../parse_number.h"
 #include <fstream>
 #include <sstream>
@@ -156,7 +154,7 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"jit_solver/state.h\"\n";
-    oss << "#include \"jit_solver/SOR_constants.h\"\n";
+    // SOR_constants.h removed in push-migration Phase 1
     oss << "#include \"jit_solver/components/all.h\"\n";
     oss << "#include \"jit_solver/components/port_registry.h\"\n\n";
     oss << "// Compiler hints for optimization\n";
@@ -278,7 +276,7 @@ std::string CodeGen::generate_header(
     oss << "    void solve_step(void* state, uint32_t step, float dt);\n\n";
 
     // Generate CYCLE_LENGTH step methods
-    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
+    for (int step = 0; step < 60; ++step) {
         oss << "    AOT_INLINE void step_" << step << "(void* state, float dt);\n";
     }
     oss << "\n";
@@ -435,14 +433,14 @@ std::string CodeGen::generate_source(
     oss << "    acc_thermal_    += dt;\n\n";
     oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
-    oss << "    static const void* dispatch_table[" << DomainSchedule::CYCLE_LENGTH << "] = {\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
-        oss << "        &&step_" << i << (i < DomainSchedule::CYCLE_LENGTH - 1 ? ",\n" : "\n");
+    oss << "    static const void* dispatch_table[" << 60 << "] = {\n";
+    for (int i = 0; i < 60; ++i) {
+        oss << "        &&step_" << i << (i < 60 - 1 ? ",\n" : "\n");
     }
     oss << "    };\n\n";
-    oss << "    // Direct jump - no bounds check needed (step % " << DomainSchedule::CYCLE_LENGTH << " is always 0-" << DomainSchedule::CYCLE_LENGTH - 1 << ")\n";
-    oss << "    goto *dispatch_table[step % " << DomainSchedule::CYCLE_LENGTH << "];\n\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+    oss << "    // Direct jump - no bounds check needed (step % " << 60 << " is always 0-" << 60 - 1 << ")\n";
+    oss << "    goto *dispatch_table[step % " << 60 << "];\n\n";
+    for (int i = 0; i < 60; ++i) {
         oss << "    step_" << i << ":\n";
         oss << "        step_" << i << "(state, dt);\n";
         oss << "        ++step_counter_;\n";
@@ -450,8 +448,8 @@ std::string CodeGen::generate_source(
     }
     oss << "#else\n";
     oss << "    // MSVC fallback: switch-based dispatch\n";
-    oss << "    switch (step % " << DomainSchedule::CYCLE_LENGTH << ") {\n";
-    for (int i = 0; i < DomainSchedule::CYCLE_LENGTH; ++i) {
+    oss << "    switch (step % " << 60 << ") {\n";
+    for (int i = 0; i < 60; ++i) {
         oss << "        case " << i << ": step_" << i << "(state, dt); ++step_counter_; return;\n";
     }
     oss << "    }\n";
@@ -470,40 +468,11 @@ std::string CodeGen::generate_source(
     std::vector<std::string> phase_thermal;
 
     for (const auto& dev : devices) {
-        ExecutionTraits t = get_execution_traits(dev);
-
-        if (t.electrical_passive) {
-            phase_electrical_passive.push_back(dev.name);
-        }
-        if (t.electrical_observer) {
-            phase_electrical_observer.push_back(dev.name);
-        }
-        if (t.logical) {
-            phase_logical.push_back(dev.name);
-        }
-        if (t.control_commit) {
-            phase_control_commit.push_back(dev.name);
-        }
-        if (t.electrical_actuator) {
-            phase_electrical_actuator.push_back(dev.name);
-        }
-        if (t.mechanical) {
-            phase_mechanical.push_back(dev.name);
-        }
-        if (t.hydraulic) {
-            phase_hydraulic.push_back(dev.name);
-        }
-        if (t.thermal) {
-            phase_thermal.push_back(dev.name);
-        }
-
-        if (t.finalize) {
-            phase_finalize.push_back(dev.name);
-        }
+        phase_electrical_passive.push_back(dev.name);
     }
 
     // Generate each step method
-    for (int step = 0; step < DomainSchedule::CYCLE_LENGTH; ++step) {
+    for (int step = 0; step < 60; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
         oss << "    // Phase 1+2: first electrical pass (passive + actuators)\n";
@@ -708,8 +677,8 @@ void CodeGen::write_files(
     sfile.close();
 
     std::cerr << "[codegen] Done! Generated ECS-like code with:\n";
-    std::cerr << "[codegen]   - Jump table dispatch (" << DomainSchedule::CYCLE_LENGTH << " cases)\n";
-    std::cerr << "[codegen]   - Domain scheduling (" << DomainSchedule::CYCLE_LENGTH << " step methods)\n";
+    std::cerr << "[codegen]   - Jump table dispatch (" << 60 << " cases)\n";
+    std::cerr << "[codegen]   - Domain scheduling (" << 60 << " step methods)\n";
     std::cerr << "[codegen]   - __restrict pointers (no aliasing)\n";
     std::cerr << "[codegen]   - AOT_INLINE + AOT_LIKELY/AOT_UNLIKELY\n";
     std::cerr << "[codegen]   - Sparse convergence check\n";

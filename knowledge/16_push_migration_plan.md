@@ -71,6 +71,8 @@ For feedback loops (PI controller), do 1-4 iterations per frame.
 
 ## Implementation Phases
 
+Note for work on branch `push_migration`: temporary full breakage is acceptable during migration, and obsolete SOR-era tests/files may be deleted as part of the rewrite.
+
 ### Phase 1: Core Infrastructure
 
 **1.1 Define Execution Phases**

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "components/port_registry.h"
-#include "execution_traits.h"
+#include "scheduler.h"
 #include "scheduling.h"
 #include <string>
 #include <string_view>
@@ -17,22 +17,6 @@ struct SimulationState;
 
 /// Port-to-signal mapping
 using PortToSignal = std::unordered_map<std::string, uint32_t>;
-
-/// Components grouped by explicit execution intent (Stage 4+).
-struct PhaseComponents {
-    std::vector<ComponentVariant*> electrical_passive;
-    std::vector<ComponentVariant*> electrical_observer;
-    std::vector<ComponentVariant*> logical;
-    std::vector<ComponentVariant*> control_commit;
-    std::vector<ComponentVariant*> electrical_actuator;
-    std::vector<ComponentVariant*> finalize;
-    std::vector<ComponentVariant*> mechanical;
-    std::vector<ComponentVariant*> hydraulic;
-    std::vector<ComponentVariant*> thermal;
-};
-
-/// Read execution-phase metadata from parsed component definitions.
-ExecutionTraits get_component_execution_traits(const DeviceInstance& dev);
 
 /// Get domain bitmask from component (reads static constexpr Domain field)
 inline Domain get_component_domain_mask(const ComponentVariant& variant) {
@@ -53,8 +37,8 @@ struct BuildResult {
     /// Map: device name -> ComponentVariant (type-safe dynamic container)
     std::unordered_map<std::string, ComponentVariant> devices;
 
-    /// Components sorted by execution phase intent (Stage 4 migration scaffold).
-    PhaseComponents phase_components;
+    /// Push scheduler populated at build time.
+    PushScheduler scheduler;
 
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;

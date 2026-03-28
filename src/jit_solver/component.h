@@ -7,7 +7,7 @@
 #include "../json_parser/json_parser.h"
 
 /// Forward declaration
-class SimulationState;
+struct SimulationState;
 
 /// Component interface - base class for all devices
 class Component {

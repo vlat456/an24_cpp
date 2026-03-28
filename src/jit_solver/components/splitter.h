@@ -1,0 +1,23 @@
+#pragma once
+
+#include "provider.h"
+#include "component_enums.h"
+#include "../state.h"
+
+/// Splitter - 1-to-2 signal splitter
+template <typename Provider = JitProvider>
+class Splitter {
+public:
+    static constexpr Domain domain = Domain::Logical;
+
+    Provider provider;
+
+    Splitter() = default;
+
+    void solve_electrical(SimulationState& st, float dt);
+    void execute(SimulationState& st, float dt);
+    void solve_mechanical(SimulationState& st, float dt);
+    void solve_hydraulic(SimulationState& st, float dt);
+    void solve_thermal(SimulationState& st, float dt);
+    void pre_load() {}
+};

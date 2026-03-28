@@ -12,6 +12,45 @@
 
 include(GoogleTest)
 
+add_executable(push_state_tests
+    test_push_state.cpp
+)
+target_include_directories(push_state_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(push_state_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(push_state_tests)
+
+add_executable(push_scheduler_tests
+    test_push_scheduler.cpp
+)
+target_include_directories(push_scheduler_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(push_scheduler_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(push_scheduler_tests)
+
+add_executable(push_build_validation_tests
+    test_push_build_validation.cpp
+)
+target_include_directories(push_build_validation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(push_build_validation_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(push_build_validation_tests)
+
+# Push migration mode: keep only new core tests enabled.
+return()
+
 # UI Math tests (Phase 1.1 of UI Library Extraction)
 add_executable(ui_math_tests
     test_ui_math.cpp

@@ -1,10 +1,7 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
-#include <vector>
 #include "../json_parser/json_parser.h"
-#include "SOR_constants.h"
 
 /// Convert domain string to enum
 inline Domain parse_domain(const std::string& domain_str) {
@@ -14,24 +11,6 @@ inline Domain parse_domain(const std::string& domain_str) {
     if (domain_str.find("Hydraulic") != std::string::npos) return Domain::Hydraulic;
     if (domain_str.find("Thermal") != std::string::npos) return Domain::Thermal;
     return Domain::Electrical; // default
-}
-
-/// Legacy helper: step-modulo domain dispatch for compatibility/tests.
-/// Primary runtime scheduling is phase-based and accumulated-dt driven.
-inline bool should_run_on_step(Domain domain, int step) {
-    if (has_domain(domain, Domain::Electrical) || has_domain(domain, Domain::Logical)) {
-        return true;  // Every step
-    }
-    if (has_domain(domain, Domain::Mechanical)) {
-        return (step % DomainSchedule::MECHANICAL_PERIOD) == 0;
-    }
-    if (has_domain(domain, Domain::Hydraulic)) {
-        return (step % DomainSchedule::HYDRAULIC_PERIOD) == 0;
-    }
-    if (has_domain(domain, Domain::Thermal)) {
-        return (step % DomainSchedule::THERMAL_PERIOD) == 0;
-    }
-    return true;
 }
 
 /// Legacy helper: nominal domain frequency for compatibility/tests.

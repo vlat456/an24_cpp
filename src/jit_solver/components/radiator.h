@@ -1,0 +1,21 @@
+#pragma once
+
+#include "provider.h"
+#include "component_enums.h"
+#include "../state.h"
+
+/// Radiator - heat exchanger
+template <typename Provider = JitProvider>
+class Radiator {
+public:
+    static constexpr Domain domain = Domain::Thermal;
+
+    Provider provider;
+    float cooling_capacity = 1000.0f;
+
+    Radiator() = default;
+
+    void solve_thermal(SimulationState& st, float dt);
+    void execute(SimulationState& st, float dt);
+    void pre_load() {}
+};

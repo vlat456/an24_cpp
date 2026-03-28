@@ -1,1133 +1,1427 @@
 #include "jit_solver.h"
-#include "execution_traits.h"
-#include "scheduling.h"
-#include "state.h"
-#include "../parse_number.h"
-#include "components/all.h"
-#include "components/port_registry.h"
-#include <spdlog/spdlog.h>
+
+#include "components/battery.h"
+#include "components/switch.h"
+#include "components/relay.h"
+#include "components/hold_button.h"
+#include "components/load.h"
+#include "components/ref_node.h"
+#include "components/generator.h"
+#include "components/bus.h"
+#include "components/blueprint_input.h"
+#include "components/blueprint_output.h"
+#include "components/comparator.h"
+#include "components/current_sense.h"
+#include "components/azs.h"
+#include "components/resistor.h"
+#include "components/voltmeter.h"
+#include "components/indicator_light.h"
+#include "components/add.h"
+#include "components/subtract.h"
+#include "components/multiply.h"
+#include "components/divide.h"
+#include "components/and_gate.h"
+#include "components/or_gate.h"
+#include "components/xor_gate.h"
+#include "components/not_gate.h"
+#include "components/nand_gate.h"
+#include "components/min.h"
+#include "components/max.h"
+#include "components/max_selector.h"
+#include "components/clamp.h"
+#include "components/pid.h"
+#include "components/pi.h"
+#include "components/pd.h"
+#include "components/p.h"
+#include "components/integrator.h"
+#include "components/sample_hold.h"
+#include "components/time_delay.h"
+#include "components/monostable.h"
+#include "components/slew_rate.h"
+#include "components/asym_slew_rate.h"
+#include "components/fast_tmo.h"
+#include "components/asym_tmo.h"
+#include "components/normalize.h"
+#include "components/lut.h"
+#include "components/greater.h"
+#include "components/lesser.h"
+#include "components/greater_eq.h"
+#include "components/lesser_eq.h"
+#include "components/any_v_to_bool.h"
+#include "components/positive_v_to_bool.h"
+#include "components/lerp_node.h"
+#include "components/slider.h"
+#include "components/splitter.h"
+#include "components/merger.h"
+#include "components/agk47.h"
+#include "components/dmr400.h"
+#include "components/electric_heater.h"
+#include "components/electric_pump.h"
+#include "components/fuel_tank.h"
+#include "components/gidro_accumulator.h"
+#include "components/gs24.h"
+#include "components/gyroscope.h"
+#include "components/high_power_load.h"
+#include "components/inertia_node.h"
+#include "components/inverter.h"
+#include "components/radiator.h"
+#include "components/ru19a.h"
+#include "components/rug82.h"
+#include "components/solenoid_valve.h"
+#include "components/spring.h"
+#include "components/temp_sensor.h"
+#include "components/transformer.h"
+#include "components/voltage_sense.h"
+#include "components/controlled_voltage_source.h"
+#include "components/controlled_current_source.h"
+#include "components/variable_conductance.h"
+
 #include <algorithm>
 #include <map>
-#include <optional>
+#include <queue>
 #include <unordered_set>
-#include <vector>
+#include <spdlog/spdlog.h>
+#include "../parse_number.h"
 
 namespace {
-
-// string_to_port_name is now auto-generated in port_registry.h
-// If a new component's port is missing, re-run codegen.
-
-/// Setup port indices for a component from port_to_signal mapping.
-/// Ports not in the PortNames enum are silently skipped — this allows
-/// user-defined blueprint ports (like alias ports) to work without codegen.
-template <typename T>
-void setup_component_ports(T& comp, const DeviceInstance& dev, const BuildResult& result) {
-    for (const auto& [port_name, port] : dev.ports) {
-        std::string port_key = dev.name + "." + port_name;
-        auto it = result.port_to_signal.find(port_key);
-        if (it != result.port_to_signal.end()) {
-            auto port_enum = string_to_port_name(port_name);
-            if (port_enum) {
-                comp.provider.set(*port_enum, it->second);
-            } else {
-                throw std::runtime_error(
-                    "[build] Unknown port name '" + port_name + "' on device '" + dev.name +
-                    "'. Re-run codegen to update port_registry.h, or fix the blueprint.");
-            }
-        }
-    }
+    // Port setup is handled inline via the setup_ports lambda in build_systems_dev
 }
-
-/// Helper to get float param with default (locale-independent)
-auto get_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
-    auto it = dev.params.find(key);
-    if (it != dev.params.end()) {
-        return locale_safe::parse_float_or(it->second, default_val);
-    }
-    return default_val;
-};
-
-/// Helper to get bool param with default
-auto get_bool = [](const DeviceInstance& dev, const std::string& key, bool default_val) -> bool {
-    auto it = dev.params.find(key);
-    if (it != dev.params.end()) {
-        return it->second == "true" || it->second == "1";
-    }
-    return default_val;
-};
-
-/// Helper to get string param with default
-auto get_string = [](const DeviceInstance& dev, const std::string& key, const std::string& default_val) -> std::string {
-    auto it = dev.params.find(key);
-    if (it != dev.params.end()) {
-        return it->second;
-    }
-    return default_val;
-};
-
-
-/// Factory function - creates a ComponentVariant from DeviceInstance
-ComponentVariant create_component_variant(
-    const DeviceInstance& dev,
-    BuildResult& result
-) {
-    if (dev.classname == "Battery") {
-        Battery<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.v_nominal = get_float(dev, "v_nominal", 28.0f);
-        comp.internal_r = get_float(dev, "internal_r", 0.01f);
-        comp.capacity = get_float(dev, "capacity", 1000.0f);
-        comp.charge = get_float(dev, "charge", comp.capacity);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Switch") {
-        Switch<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.closed = get_bool(dev, "initial_state", false);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "AZS") {
-        AZS<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.closed = get_bool(dev, "closed", false);
-        comp.i_nominal = get_float(dev, "i_nominal", 20.0f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Relay") {
-        Relay<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.closed = get_bool(dev, "initial_state", false);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Resistor") {
-        Resistor<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.conductance = get_float(dev, "conductance", 0.1f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Load") {
-        Load<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.conductance = get_float(dev, "conductance", 0.1f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Comparator") {
-        Comparator<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.Von = get_float(dev, "Von", 0.1f);
-        comp.Voff = get_float(dev, "Voff", -0.1f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "CurrentSense") {
-        CurrentSense<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.conductance = get_float(dev, "conductance", 1000.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "HoldButton") {
-        HoldButton<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.is_pressed = get_bool(dev, "initial_state", false);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Generator") {
-        Generator<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.v_nominal = get_float(dev, "v_nominal", 28.5f);
-        comp.internal_r = get_float(dev, "internal_r", 0.005f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "GS24") {
-        GS24<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.mode = GS24Mode::STARTER;
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Transformer") {
-        Transformer<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.ratio = get_float(dev, "ratio", 1.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Inverter") {
-        Inverter<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.efficiency = get_float(dev, "efficiency", 0.95f);
-        comp.frequency = get_float(dev, "frequency", 400.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "LerpNode") {
-        LerpNode<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.factor = get_float(dev, "factor", 1.0f);
-        comp.deadzone = get_float(dev, "deadzone", 0.001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Splitter") {
-        Splitter<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Merger") {
-        Merger<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "IndicatorLight") {
-        IndicatorLight<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.max_brightness = get_float(dev, "max_brightness", 100.0f);
-        comp.conductance = get_float(dev, "conductance", 1.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Voltmeter") {
-        Voltmeter<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.min = get_float(dev, "min", 0.0f);
-        comp.max = get_float(dev, "max", 28.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "VoltageSense") {
-        VoltageSense<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.gain   = get_float(dev, "gain",   1.0f);
-        comp.offset = get_float(dev, "offset", 0.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "ControlledVoltageSource") {
-        ControlledVoltageSource<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.gain       = get_float(dev, "gain",       1.0f);
-        comp.offset     = get_float(dev, "offset",     0.0f);
-        comp.min_v      = get_float(dev, "min_v",      0.0f);
-        comp.max_v      = get_float(dev, "max_v",     30.0f);
-        comp.r_internal = get_float(dev, "r_internal", 0.1f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "ControlledCurrentSource") {
-        ControlledCurrentSource<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.gain    = get_float(dev, "gain",    1.0f);
-        comp.min_i   = get_float(dev, "min_i",   0.0f);
-        comp.max_i   = get_float(dev, "max_i", 100.0f);
-        comp.g_shunt = get_float(dev, "g_shunt", 0.001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "VariableConductance") {
-        VariableConductance<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.g_min = get_float(dev, "g_min", 0.001f);
-        comp.g_max = get_float(dev, "g_max",  10.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "HighPowerLoad") {
-        HighPowerLoad<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.power_draw = get_float(dev, "power_draw", 500.0f);
-        comp.min_voltage_diff = get_float(dev, "min_voltage_diff", 0.01f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "ElectricPump") {
-        ElectricPump<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.max_pressure = get_float(dev, "max_pressure", 1000.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "SolenoidValve") {
-        SolenoidValve<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.normally_closed = get_bool(dev, "normally_closed", true);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "GidroAccumulator") {
-        GidroAccumulator<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.precharge_pressure = get_float(dev, "precharge_pressure", 50.0f);
-        comp.volume = get_float(dev, "volume", 10.0f);
-        comp.gas_volume = get_float(dev, "gas_volume", comp.volume);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "FuelTank") {
-        FuelTank<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.capacity = get_float(dev, "capacity", 1000.0f);
-        comp.level = get_float(dev, "level", comp.capacity);
-        comp.density = get_float(dev, "density", 0.78f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "InertiaNode") {
-        InertiaNode<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.mass = get_float(dev, "mass", 1.0f);
-        comp.damping = get_float(dev, "damping", 0.5f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Spring") {
-        Spring<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.k = get_float(dev, "k", 1000.0f);
-        comp.c = get_float(dev, "c", 10.0f);
-        comp.rest_length = get_float(dev, "rest_length", 0.1f);
-        comp.compression_only = get_bool(dev, "compression_only", true);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "TempSensor") {
-        TempSensor<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.sensitivity = get_float(dev, "sensitivity", 1.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "ElectricHeater") {
-        ElectricHeater<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.max_power = get_float(dev, "max_power", 1000.0f);
-        comp.efficiency = get_float(dev, "efficiency", 0.9f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Radiator") {
-        Radiator<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.cooling_capacity = get_float(dev, "cooling_capacity", 1000.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "DMR400") {
-        DMR400<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.connect_threshold = get_float(dev, "connect_threshold", 2.0f);
-        comp.disconnect_threshold = get_float(dev, "disconnect_threshold", 10.0f);
-        comp.min_voltage_to_close = get_float(dev, "min_voltage_to_close", 20.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "RUG82") {
-        RUG82<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.v_target = get_float(dev, "v_target", 28.5f);
-        comp.kp = get_float(dev, "kp", 2.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "RU19A") {
-        RU19A<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.target_rpm = get_float(dev, "target_rpm", 16000.0f);
-        comp.spinup_inertia = get_float(dev, "spinup_inertia", 1.0f);
-        comp.spindown_inertia = get_float(dev, "spindown_inertia", 0.02f);
-        comp.crank_time = get_float(dev, "crank_time", 2.0f);
-        comp.ignition_time = get_float(dev, "ignition_time", 3.0f);
-        comp.t4_target = get_float(dev, "t4_target", 400.0f);
-        comp.t4_max = get_float(dev, "t4_max", 750.0f);
-        comp.auto_start = get_bool(dev, "auto_start", true);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Gyroscope") {
-        Gyroscope<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.conductance = get_float(dev, "conductance", 0.001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "AGK47") {
-        AGK47<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.conductance = get_float(dev, "conductance", 0.001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Bus") {
-        Bus<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "BlueprintInput") {
-        BlueprintInput<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.exposed_type_str = get_string(dev, "exposed_type", "V");
-        comp.exposed_direction_str = get_string(dev, "exposed_direction", "In");
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "BlueprintOutput") {
-        BlueprintOutput<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.exposed_type_str = get_string(dev, "exposed_type", "V");
-        comp.exposed_direction_str = get_string(dev, "exposed_direction", "Out");
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "RefNode") {
-        RefNode<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.value = get_float(dev, "value", 0.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Subtract") {
-        Subtract<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Multiply") {
-        Multiply<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Divide") {
-        Divide<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Add") {
-        Add<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "AND") {
-        AND<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "OR") {
-        OR<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "XOR") {
-        XOR<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "NOT") {
-        NOT<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "NAND") {
-        NAND<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Any_V_to_Bool") {
-        Any_V_to_Bool<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Positive_V_to_Bool") {
-        Positive_V_to_Bool<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "PID") {
-        PID<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.Kp = get_float(dev, "Kp", 1.0f);
-        comp.Ki = get_float(dev, "Ki", 0.0f);
-        comp.Kd = get_float(dev, "Kd", 0.0f);
-        comp.output_min = get_float(dev, "output_min", -1000.0f);
-        comp.output_max = get_float(dev, "output_max", 1000.0f);
-        comp.filter_alpha = get_float(dev, "filter_alpha", 0.2f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "PI") {
-        PI<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.Kp = get_float(dev, "Kp", 1.0f);
-        comp.Ki = get_float(dev, "Ki", 0.0f);
-        comp.output_min = get_float(dev, "output_min", -1000.0f);
-        comp.output_max = get_float(dev, "output_max", 1000.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "PD") {
-        PD<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.Kp = get_float(dev, "Kp", 1.0f);
-        comp.Kd = get_float(dev, "Kd", 0.0f);
-        comp.output_min = get_float(dev, "output_min", -1000.0f);
-        comp.output_max = get_float(dev, "output_max", 1000.0f);
-        comp.filter_alpha = get_float(dev, "filter_alpha", 0.2f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "P") {
-        P<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.Kp = get_float(dev, "Kp", 1.0f);
-        comp.output_min = get_float(dev, "output_min", -1000.0f);
-        comp.output_max = get_float(dev, "output_max", 1000.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "LUT") {
-        LUT<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        std::string table_str = get_string(dev, "table", "");
-        std::vector<float> keys, values;
-        if (LUT<JitProvider>::parse_table(table_str, keys, values)) {
-            comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
-            comp.table_size   = static_cast<uint16_t>(keys.size());
-            result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
-            result.lut_values.insert(result.lut_values.end(), values.begin(), values.end());
-        }
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "FastTMO") {
-        FastTMO<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.tau = get_float(dev, "tau", 0.1f);
-        comp.deadzone = get_float(dev, "deadzone", 0.001f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "AsymTMO") {
-        AsymTMO<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.tau_up = get_float(dev, "tau_up", 0.1f);
-        comp.tau_down = get_float(dev, "tau_down", 0.5f);
-        comp.deadzone = get_float(dev, "deadzone", 0.001f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "SlewRate") {
-        SlewRate<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.max_rate = get_float(dev, "max_rate", 1.0f);
-        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "AsymSlewRate") {
-        AsymSlewRate<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.rate_up = get_float(dev, "rate_up", 1.0f);
-        comp.rate_down = get_float(dev, "rate_down", 0.5f);
-        comp.deadzone = get_float(dev, "deadzone", 0.0001f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "TimeDelay") {
-        TimeDelay<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.delay_on = get_float(dev, "delay_on", 0.5f);
-        comp.delay_off = get_float(dev, "delay_off", 0.1f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Monostable") {
-        Monostable<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.duration = get_float(dev, "duration", 30.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "SampleHold") {
-        SampleHold<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Integrator") {
-        Integrator<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.gain = get_float(dev, "gain", 1.0f);
-        comp.initial_val = get_float(dev, "initial_val", 0.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Clamp") {
-        Clamp<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        float a = get_float(dev, "min", 0.0f);
-        float b = get_float(dev, "max", 1.0f);
-        comp.min = std::min(a, b);
-        comp.max = std::max(a, b);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Normalize") {
-        Normalize<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.min = get_float(dev, "min", 0.0f);
-        comp.max = get_float(dev, "max", 100.0f);
-        comp.pre_load();
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Min") {
-        Min<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Max") {
-        Max<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Greater") {
-        Greater<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Lesser") {
-        Lesser<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "GreaterEq") {
-        GreaterEq<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "LesserEq") {
-        LesserEq<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        return ComponentVariant(std::move(comp));
-    }
-    else if (dev.classname == "Slider") {
-        Slider<JitProvider> comp;
-        setup_component_ports(comp, dev, result);
-        comp.min = get_float(dev, "min", 0.0f);
-        comp.max = get_float(dev, "max", 1.0f);
-        return ComponentVariant(std::move(comp));
-    }
-    else {
-        throw std::runtime_error("Unknown component type: " + dev.classname);
-    }
-}
-
-} // anonymous namespace
-
-ExecutionTraits get_component_execution_traits(const DeviceInstance& dev) {
-    return get_execution_traits(dev);
-}
-
-
-
-// Union-Find for port connections
-class UnionFind {
-    std::vector<uint32_t> parent_;
-    std::vector<uint32_t> rank_;
-
-public:
-    explicit UnionFind(size_t n) : parent_(n), rank_(n, 0) {
-        for (uint32_t i = 0; i < n; ++i) parent_[i] = i;
-    }
-
-    uint32_t find(uint32_t x) {
-        if (parent_[x] != x) {
-            parent_[x] = find(parent_[x]);
-        }
-        return parent_[x];
-    }
-
-    void unite(uint32_t a, uint32_t b) {
-        uint32_t ra = find(a);
-        uint32_t rb = find(b);
-        if (ra == rb) return;
-        if (rank_[ra] < rank_[rb]) {
-            parent_[ra] = rb;
-        } else if (rank_[ra] > rank_[rb]) {
-            parent_[rb] = ra;
-        } else {
-            parent_[rb] = ra;
-            rank_[ra]++;
-        }
-    }
-};
 
 BuildResult build_systems_dev(
     const std::vector<DeviceInstance>& devices,
     const std::vector<std::pair<std::string, std::string>>& connections
 ) {
-    BuildResult result;
+    BuildResult result{};
 
-    auto is_electrical_port = [](const DeviceInstance& dev, const Port& port) {
-        bool electrical_device = false;
-        for (Domain d : dev.domains) {
-            if (has_domain(d, Domain::Electrical)) {
-                electrical_device = true;
-                break;
-            }
-        }
-        if (!electrical_device) {
-            return false;
-        }
-        return port.type == PortType::V || port.type == PortType::I;
-    };
-
-    auto requires_connection_warning = [](const DeviceInstance& dev, const std::string& port_name, const Port& port) {
-        // Generic rule: warn for unconnected electrical inputs/bidirectional ports.
-        if (port.direction == PortDirection::In || port.direction == PortDirection::InOut) {
-            return true;
-        }
-
-        // Special-case series devices where output-side disconnect is usually a modeling error.
-        if (dev.classname == "CurrentSense" && (port_name == "v_in" || port_name == "v_out")) {
-            return true;
-        }
-
-        return false;
-    };
-
-    // Build port list
     std::vector<std::string> all_ports;
     std::unordered_map<std::string, uint32_t> port_to_idx;
-    std::unordered_map<std::string, std::string> device_class;
 
     for (const auto& dev : devices) {
-        device_class[dev.name] = dev.classname;
+        if (dev.visual_only) {
+            continue;
+        }
+
         for (const auto& [port_name, port] : dev.ports) {
-            std::string full_port = dev.name + "." + port_name;
-            uint32_t idx = static_cast<uint32_t>(all_ports.size());
+            (void)port;
+            const std::string full_port = dev.name + "." + port_name;
+            const uint32_t idx = static_cast<uint32_t>(all_ports.size());
             all_ports.push_back(full_port);
             port_to_idx[full_port] = idx;
         }
     }
 
-    auto normalize_endpoint = [&](const std::string& endpoint) -> std::string {
-        auto dot = endpoint.find('.');
-        if (dot == std::string::npos) return endpoint;
-        const std::string dev = endpoint.substr(0, dot);
-        const std::string port = endpoint.substr(dot + 1);
+    if (all_ports.empty()) {
+        result.signal_count = 1; // sentinel
+        return result;
+    }
 
-        auto d_it = device_class.find(dev);
-        if (d_it == device_class.end()) return endpoint;
+    struct UnionFind {
+        std::vector<uint32_t> parent;
+        std::vector<uint32_t> rank;
 
-        // Bus alias ports in editor are wire-id based (e.g. bus.wire_12).
-        // In simulation all Bus endpoints must collapse to canonical bus.v.
-        if (d_it->second == "Bus" && port != "v") {
-            return dev + ".v";
+        explicit UnionFind(size_t n) : parent(n), rank(n, 0) {
+            for (uint32_t i = 0; i < n; ++i) {
+                parent[i] = i;
+            }
         }
-        return endpoint;
+
+        uint32_t find(uint32_t x) {
+            if (parent[x] != x) {
+                parent[x] = find(parent[x]);
+            }
+            return parent[x];
+        }
+
+        void unite(uint32_t a, uint32_t b) {
+            const uint32_t ra = find(a);
+            const uint32_t rb = find(b);
+            if (ra == rb) {
+                return;
+            }
+
+            if (rank[ra] < rank[rb]) {
+                parent[ra] = rb;
+            } else if (rank[ra] > rank[rb]) {
+                parent[rb] = ra;
+            } else {
+                parent[rb] = ra;
+                rank[ra]++;
+            }
+        }
     };
 
-    // Union-Find for connected ports
     UnionFind uf(all_ports.size());
 
-    // Count explicit wire degree per normalized endpoint (for loud editor warnings)
-    std::unordered_map<std::string, uint32_t> endpoint_degree;
-
-    // Union connected ports
     for (const auto& [from, to] : connections) {
-        std::string norm_from = normalize_endpoint(from);
-        std::string norm_to = normalize_endpoint(to);
-
-        auto it_from = port_to_idx.find(norm_from);
-        auto it_to = port_to_idx.find(norm_to);
+        auto it_from = port_to_idx.find(from);
+        auto it_to = port_to_idx.find(to);
         if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
             uf.unite(it_from->second, it_to->second);
-            endpoint_degree[norm_from]++;
-            endpoint_degree[norm_to]++;
         }
     }
 
-    // Union alias ports within same device (e.g., Splitter o1/o2 -> i)
-    for (const auto& dev : devices) {
-        std::unordered_map<std::string, std::string> fallback_alias;
-        if (dev.classname == "Splitter") {
-            fallback_alias["o1"] = "i";
-            fallback_alias["o2"] = "i";
-        } else if (dev.classname == "Merger") {
-            fallback_alias["i1"] = "o";
-            fallback_alias["i2"] = "o";
-        } else if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
-            fallback_alias["ext"] = "port";
-        }
-
-        for (const auto& [port_name, port] : dev.ports) {
-            std::optional<std::string> alias = port.alias;
-            if ((!alias.has_value() || alias->empty())) {
-                auto fit = fallback_alias.find(port_name);
-                if (fit != fallback_alias.end()) alias = fit->second;
-            }
-
-            if (alias.has_value() && !alias->empty()) {
-                std::string full_port = dev.name + "." + port_name;
-                std::string full_alias = dev.name + "." + *alias;
-
-                auto it_port = port_to_idx.find(full_port);
-                auto it_alias = port_to_idx.find(full_alias);
-                if (it_port != port_to_idx.end() && it_alias != port_to_idx.end()) {
-                    uf.unite(it_port->second, it_alias->second);
-                    spdlog::debug("[build] alias: {} -> {}", full_port, full_alias);
-                }
-            }
-        }
-    }
-
-    // Map each port to its root signal
     std::map<uint32_t, uint32_t> root_to_signal;
-    for (const auto& port : all_ports) {
-        uint32_t idx = port_to_idx[port];
-        uint32_t root = uf.find(idx);
-        result.port_to_signal[port] = root;
-    }
-
-    // Get unique roots and remap to 0-based indices
-    std::vector<uint32_t> unique_roots;
-    for (const auto& [port, root] : result.port_to_signal) {
-        unique_roots.push_back(root);
-    }
-    std::sort(unique_roots.begin(), unique_roots.end());
-    unique_roots.erase(std::unique(unique_roots.begin(), unique_roots.end()), unique_roots.end());
-
-    // Create remap: old root -> new sequential index
     uint32_t next_signal = 0;
-    for (uint32_t root : unique_roots) {
-        root_to_signal[root] = next_signal++;
+    for (const auto& [port, idx] : port_to_idx) {
+        const uint32_t root = uf.find(idx);
+        auto [it, inserted] = root_to_signal.emplace(root, next_signal);
+        if (inserted) {
+            next_signal++;
+        }
+        result.port_to_signal[port] = it->second;
     }
 
-    // Apply remap to port_to_signal
-    for (auto& [port, sig] : result.port_to_signal) {
-        sig = root_to_signal[sig];
-    }
+    result.signal_count = next_signal + 1; // sentinel at end
 
-    // Count unique signals after remap
-    result.signal_count = next_signal;
+    std::vector<std::string> consumer_device_names;
 
-    // Sentinel signal for unconnected ports
-    result.signal_count++;
-
-    // Mark all RefNode signals as fixed (voltage references maintain constant potential)
-    for (const auto& dev : devices) {
-        if (dev.classname == "RefNode") {
-            std::string v = dev.name + ".v";
-            auto it = result.port_to_signal.find(v);
-            if (it != result.port_to_signal.end()) {
-                result.fixed_signals.push_back(it->second);
-                spdlog::debug("[build] fixed signal {} for {}", it->second, dev.name);
-            }
-        }
-    }
-    std::sort(result.fixed_signals.begin(), result.fixed_signals.end());
-    result.fixed_signals.erase(
-        std::unique(result.fixed_signals.begin(), result.fixed_signals.end()),
-        result.fixed_signals.end()
-    );
-
-    std::unordered_map<uint32_t, std::vector<std::string>> signal_to_ports;
-    signal_to_ports.reserve(result.port_to_signal.size());
-    for (const auto& [port, sig] : result.port_to_signal) {
-        signal_to_ports[sig].push_back(port);
-    }
-
-    auto get_signal = [&](const std::string& full_port) -> std::optional<uint32_t> {
-        auto it = result.port_to_signal.find(full_port);
-        if (it == result.port_to_signal.end()) {
-            return std::nullopt;
-        }
-        return it->second;
-    };
-
-    std::unordered_set<uint32_t> grounded_signals;
-    for (const auto& dev : devices) {
-        if (dev.classname != "RefNode") {
-            continue;
-        }
-        float value = 0.0f;
-        auto it_val = dev.params.find("value");
-        if (it_val != dev.params.end()) {
-            value = locale_safe::parse_float_or(it_val->second, 0.0f);
-        }
-        if (std::abs(value) > ::JitElectricalWarnings::GROUND_REF_EPS) {
-            continue;
-        }
-        auto sig = get_signal(dev.name + ".v");
-        if (sig.has_value()) {
-            grounded_signals.insert(*sig);
-        }
-    }
-
-    bool has_electrical_components = false;
+    // Phase 2 Slice 1: Create and register migrated components
     for (const auto& dev : devices) {
         if (dev.visual_only) {
             continue;
         }
-        for (Domain d : dev.domains) {
-            if (has_domain(d, Domain::Electrical)) {
-                has_electrical_components = true;
-                break;
-            }
-        }
-        if (has_electrical_components) {
-            break;
-        }
-    }
 
-    // Pure-logical systems are allowed. Electrical systems without references
-    // are warned here (editor/JIT), but not hard-failed at build stage.
-    if (has_electrical_components && result.fixed_signals.empty()) {
-        spdlog::warn("[build][electrical] NO reference nodes detected (no fixed electrical signals). "
-                     "Electrical potentials may float and solver stability can degrade.");
-    }
+        // Check if this is a migrated component type
+        bool is_source = false;
+        bool is_migrated = false;
+        
+        if (dev.classname == "Battery") {
+            is_migrated = true;
+            is_source = true;
+        } else if (dev.classname == "Generator") {
+            is_migrated = true;
+            is_source = true;
+        } else if (dev.classname == "RefNode") {
+            is_migrated = true;
+            is_source = true;
+        }         else if (dev.classname == "Switch" || dev.classname == "Relay" ||
+                   dev.classname == "HoldButton" || dev.classname == "Load" ||
+                   dev.classname == "Bus" || dev.classname == "BlueprintInput" ||
+                   dev.classname == "BlueprintOutput" ||
+                   dev.classname == "Comparator" || dev.classname == "CurrentSense" ||
+                   dev.classname == "AZS" || dev.classname == "Resistor" ||
+                   dev.classname == "Voltmeter" || dev.classname == "IndicatorLight" ||
+                   dev.classname == "Add" || dev.classname == "Subtract" ||
+                   dev.classname == "Multiply" || dev.classname == "Divide" ||
+                   dev.classname == "AND" || dev.classname == "OR" ||
+                   dev.classname == "XOR" || dev.classname == "NOT" ||
+                   dev.classname == "NAND" || dev.classname == "Min" ||
+                   dev.classname == "Max" || dev.classname == "MaxSelector" || dev.classname == "Clamp" ||
+                   dev.classname == "PID" || dev.classname == "PI" ||
+                   dev.classname == "PD" || dev.classname == "P" ||
+                   dev.classname == "Integrator" || dev.classname == "SampleHold" ||
+                   dev.classname == "TimeDelay" || dev.classname == "Monostable" ||
+                   dev.classname == "SlewRate" || dev.classname == "AsymSlewRate" ||
+                   dev.classname == "FastTMO" || dev.classname == "AsymTMO" ||
+                   dev.classname == "Normalize" || dev.classname == "LUT" ||
+                   dev.classname == "Greater" || dev.classname == "Lesser" ||
+                   dev.classname == "GreaterEq" || dev.classname == "LesserEq" ||
+                   dev.classname == "Any_V_to_Bool" || dev.classname == "Positive_V_to_Bool" ||
+                   dev.classname == "LerpNode" || dev.classname == "Slider" ||
+                   dev.classname == "Splitter" || dev.classname == "Merger" ||
+                   // Phase 2 Slice 6: Additional non-controlled components
+                   dev.classname == "AGK47" || dev.classname == "DMR400" ||
+                   dev.classname == "ElectricHeater" || dev.classname == "ElectricPump" ||
+                   dev.classname == "FuelTank" || dev.classname == "GidroAccumulator" ||
+                   dev.classname == "GS24" || dev.classname == "Gyroscope" ||
+                   dev.classname == "HighPowerLoad" || dev.classname == "InertiaNode" ||
+                   dev.classname == "Inverter" || dev.classname == "Radiator" ||
+                   dev.classname == "RU19A" || dev.classname == "RUG82" ||
+                   dev.classname == "SolenoidValve" || dev.classname == "Spring" ||
+                   dev.classname == "TempSensor" || dev.classname == "Transformer" ||
+                   dev.classname == "VoltageSense" ||
+                   // Phase 2 Slice 7: Controlled source / conductance components
+                   dev.classname == "ControlledVoltageSource" ||
+                   dev.classname == "ControlledCurrentSource" ||
+                   dev.classname == "VariableConductance") {
+            is_migrated = true;
+            is_source = false;
+        }
 
-    for (const auto& dev : devices) {
-        if (dev.visual_only) {
+        if (!is_migrated) {
             continue;
         }
-        for (const auto& [port_name, port] : dev.ports) {
-            if (!is_electrical_port(dev, port)) {
-                continue;
-            }
-            std::string full_port = normalize_endpoint(dev.name + "." + port_name);
-            auto deg_it = endpoint_degree.find(full_port);
-            uint32_t deg = (deg_it != endpoint_degree.end()) ? deg_it->second : 0u;
-            if (deg == 0 && requires_connection_warning(dev, port_name, port)) {
-                spdlog::warn("[build][electrical] dangling electrical port: {}.{} ({}) has no wire connections.",
-                             dev.name, port_name, dev.classname);
-            }
-        }
-    }
 
-    // Loud warning for common dangerous topology: source -> high-g CurrentSense -> ground.
-    for (const auto& sensor : devices) {
-        if (sensor.classname != "CurrentSense") {
-            continue;
+        if (!is_source) {
+            consumer_device_names.push_back(dev.name);
         }
 
-        auto sig_in_opt = get_signal(sensor.name + ".v_in");
-        auto sig_out_opt = get_signal(sensor.name + ".v_out");
-        if (!sig_in_opt.has_value() || !sig_out_opt.has_value()) {
-            continue;
-        }
-
-        uint32_t sig_in = *sig_in_opt;
-        uint32_t sig_out = *sig_out_opt;
-        if (!grounded_signals.count(sig_out)) {
-            continue;
-        }
-
-        float g_sensor = get_float(sensor, "conductance", 1000.0f);
-        if (g_sensor <= 0.0f) {
-            continue;
-        }
-        float r_sensor = 1.0f / std::max(g_sensor, 1e-9f);
-
-        for (const auto& src : devices) {
-            if (src.classname != "ControlledVoltageSource") {
-                continue;
-            }
-
-            auto sig_pos_opt = get_signal(src.name + ".v_pos");
-            auto sig_neg_opt = get_signal(src.name + ".v_neg");
-            if (!sig_pos_opt.has_value() || !sig_neg_opt.has_value()) {
-                continue;
-            }
-
-            uint32_t sig_pos = *sig_pos_opt;
-            uint32_t sig_neg = *sig_neg_opt;
-            if (sig_pos != sig_in || !grounded_signals.count(sig_neg)) {
-                continue;
-            }
-
-            float gain = get_float(src, "gain", 1.0f);
-            float offset = get_float(src, "offset", 0.0f);
-            float min_v = get_float(src, "min_v", 0.0f);
-            float max_v = get_float(src, "max_v", 30.0f);
-            float r_src = std::max(get_float(src, "r_internal", 0.1f), 1e-6f);
-
-            bool cmd_known = false;
-            float cmd_value = 0.0f;
-            auto sig_cmd_opt = get_signal(src.name + ".cmd");
-            if (sig_cmd_opt.has_value()) {
-                auto sig_it = signal_to_ports.find(*sig_cmd_opt);
-                if (sig_it != signal_to_ports.end()) {
-                    for (const auto& p : sig_it->second) {
-                        auto dot = p.find('.');
-                        if (dot == std::string::npos) {
-                            continue;
-                        }
-                        std::string dev_name = p.substr(0, dot);
-                        std::string port_name = p.substr(dot + 1);
-                        if (port_name != "v") {
-                            continue;
-                        }
-                        auto it_dev = std::find_if(devices.begin(), devices.end(),
-                            [&](const DeviceInstance& d) { return d.name == dev_name && d.classname == "RefNode"; });
-                        if (it_dev == devices.end()) {
-                            continue;
-                        }
-                        auto it_val = it_dev->params.find("value");
-                        cmd_value = (it_val != it_dev->params.end())
-                            ? locale_safe::parse_float_or(it_val->second, 0.0f)
-                            : 0.0f;
-                        cmd_known = true;
-                        break;
+        // Set up port indices for the provider
+        auto setup_ports = [&](auto& comp) {
+            for (const auto& [port_name, port] : dev.ports) {
+                const std::string full_port = dev.name + "." + port_name;
+                auto it = result.port_to_signal.find(full_port);
+                if (it != result.port_to_signal.end()) {
+                    auto port_enum = string_to_port_name(port_name);
+                    if (port_enum.has_value()) {
+                        comp.provider.set(port_enum.value(), it->second);
                     }
                 }
             }
+        };
 
-            float v_source = max_v;
-            if (cmd_known) {
-                v_source = std::clamp(cmd_value * gain + offset, min_v, max_v);
+        // Handle each component type
+        if (dev.classname == "Battery") {
+            Battery<JitProvider> comp;
+            
+            // Load parameters
+            if (auto it = dev.params.find("v_nominal"); it != dev.params.end()) {
+                comp.v_nominal = locale_safe::parse_float_or(it->second, 28.0f);
             }
-
-            float i_est = v_source / (r_src + r_sensor);
-            if (i_est > ::JitElectricalWarnings::NEAR_SHORT_WARN_CURRENT_A) {
-                if (cmd_known) {
-                    spdlog::warn("[build][electrical] potential near-short: {} -> {} -> ground. "
-                                 "Estimated current ~{:.1f} A (cmd={:.2f}, Vsrc={:.2f} V, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
-                                 src.name, sensor.name, i_est, cmd_value, v_source, r_src, r_sensor);
-                } else {
-                    spdlog::warn("[build][electrical] potential near-short: {} -> {} -> ground. "
-                                 "Estimated current up to ~{:.1f} A (using max_v={:.2f}, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
-                                 src.name, sensor.name, i_est, v_source, r_src, r_sensor);
-                }
-            } else if (i_est > ::JitElectricalWarnings::HIGH_CURRENT_INFO_A) {
-                if (cmd_known) {
-                    spdlog::info("[build][electrical] high current path detected: {} -> {} -> ground. "
-                                 "Estimated current ~{:.1f} A (cmd={:.2f}, Vsrc={:.2f} V, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
-                                 src.name, sensor.name, i_est, cmd_value, v_source, r_src, r_sensor);
-                } else {
-                    spdlog::info("[build][electrical] high current path detected: {} -> {} -> ground. "
-                                 "Estimated current up to ~{:.1f} A (using max_v={:.2f}, Rsrc={:.4f} ohm, Rsense={:.4f} ohm).",
-                                 src.name, sensor.name, i_est, v_source, r_src, r_sensor);
+            if (auto it = dev.params.find("internal_r"); it != dev.params.end()) {
+                comp.internal_r = locale_safe::parse_float_or(it->second, 0.01f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_source(&std::get<Battery<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Generator") {
+            Generator<JitProvider> comp;
+            
+            if (auto it = dev.params.find("v_nominal"); it != dev.params.end()) {
+                comp.v_nominal = locale_safe::parse_float_or(it->second, 28.5f);
+            }
+            if (auto it = dev.params.find("internal_r"); it != dev.params.end()) {
+                comp.internal_r = locale_safe::parse_float_or(it->second, 0.005f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_source(&std::get<Generator<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "RefNode") {
+            RefNode<JitProvider> comp;
+            
+            if (auto it = dev.params.find("value"); it != dev.params.end()) {
+                comp.value = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
+            
+            // Also track as fixed signal
+            const std::string key = dev.name + ".v";
+            auto it_sig = result.port_to_signal.find(key);
+            if (it_sig != result.port_to_signal.end()) {
+                result.fixed_signals.push_back(it_sig->second);
+            }
+        }
+        else if (dev.classname == "Switch") {
+            Switch<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Relay") {
+            Relay<JitProvider> comp;
+            
+            if (auto it = dev.params.find("hold_threshold"); it != dev.params.end()) {
+                comp.hold_threshold = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Relay<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "HoldButton") {
+            HoldButton<JitProvider> comp;
+            
+            if (auto it = dev.params.find("idle"); it != dev.params.end()) {
+                comp.idle = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<HoldButton<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Load") {
+            Load<JitProvider> comp;
+            
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Load<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Bus") {
+            Bus<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "BlueprintInput") {
+            BlueprintInput<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<BlueprintInput<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "BlueprintOutput") {
+            BlueprintOutput<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<BlueprintOutput<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Comparator") {
+            Comparator<JitProvider> comp;
+            
+            if (auto it = dev.params.find("Von"); it != dev.params.end()) {
+                comp.Von = locale_safe::parse_float_or(it->second, 5.0f);
+            }
+            if (auto it = dev.params.find("Voff"); it != dev.params.end()) {
+                comp.Voff = locale_safe::parse_float_or(it->second, 2.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "CurrentSense") {
+            CurrentSense<JitProvider> comp;
+            
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "AZS") {
+            AZS<JitProvider> comp;
+            
+            if (auto it = dev.params.find("closed"); it != dev.params.end()) {
+                comp.closed = (it->second == "true" || it->second == "1");
+            }
+            if (auto it = dev.params.find("i_nominal"); it != dev.params.end()) {
+                comp.i_nominal = locale_safe::parse_float_or(it->second, 20.0f);
+            }
+            if (auto it = dev.params.find("k_cool"); it != dev.params.end()) {
+                comp.k_cool = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<AZS<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Resistor") {
+            Resistor<JitProvider> comp;
+            
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Resistor<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Voltmeter") {
+            Voltmeter<JitProvider> comp;
+            
+            if (auto it = dev.params.find("min"); it != dev.params.end()) {
+                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max"); it != dev.params.end()) {
+                comp.max = locale_safe::parse_float_or(it->second, 28.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "IndicatorLight") {
+            IndicatorLight<JitProvider> comp;
+            
+            if (auto it = dev.params.find("max_brightness"); it != dev.params.end()) {
+                comp.max_brightness = locale_safe::parse_float_or(it->second, 100.0f);
+            }
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("rated_voltage"); it != dev.params.end()) {
+                comp.rated_voltage = locale_safe::parse_float_or(it->second, 28.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
+        }
+        // Phase 2 Slice 3: Logical/math components
+        else if (dev.classname == "Add") {
+            Add<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Add<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Subtract") {
+            Subtract<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Subtract<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Multiply") {
+            Multiply<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Multiply<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Divide") {
+            Divide<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Divide<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "AND") {
+            AND<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<AND<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "OR") {
+            OR<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<OR<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "XOR") {
+            XOR<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<XOR<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "NOT") {
+            NOT<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<NOT<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "NAND") {
+            NAND<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<NAND<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Min") {
+            Min<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Max" || dev.classname == "MaxSelector") {
+            Max<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Clamp") {
+            Clamp<JitProvider> comp;
+            
+            if (auto it = dev.params.find("min"); it != dev.params.end()) {
+                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max"); it != dev.params.end()) {
+                comp.max = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
+        }
+        // Phase 2 Slice 4: Control/filter components
+        else if (dev.classname == "PID") {
+            PID<JitProvider> comp;
+            
+            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
+                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("ki"); it != dev.params.end()) {
+                comp.Ki = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("kd"); it != dev.params.end()) {
+                comp.Kd = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
+                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
+            }
+            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
+                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<PID<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "PI") {
+            PI<JitProvider> comp;
+            
+            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
+                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("ki"); it != dev.params.end()) {
+                comp.Ki = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
+                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
+            }
+            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
+                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<PI<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "PD") {
+            PD<JitProvider> comp;
+            
+            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
+                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("kd"); it != dev.params.end()) {
+                comp.Kd = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
+                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
+            }
+            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
+                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<PD<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "P") {
+            P<JitProvider> comp;
+            
+            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
+                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
+                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
+            }
+            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
+                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<P<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Integrator") {
+            Integrator<JitProvider> comp;
+            
+            if (auto it = dev.params.find("k"); it != dev.params.end()) {
+                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Integrator<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "SampleHold") {
+            SampleHold<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<SampleHold<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "TimeDelay") {
+            TimeDelay<JitProvider> comp;
+            
+            if (auto it = dev.params.find("delay_on"); it != dev.params.end()) {
+                comp.delay_on = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            if (auto it = dev.params.find("delay_off"); it != dev.params.end()) {
+                comp.delay_off = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            // Fallback: single "delay" param sets both timers equally
+            if (auto it = dev.params.find("delay"); it != dev.params.end()) {
+                float d = locale_safe::parse_float_or(it->second, 0.5f);
+                if (dev.params.find("delay_on") == dev.params.end()) comp.delay_on = d;
+                if (dev.params.find("delay_off") == dev.params.end()) comp.delay_off = d;
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<TimeDelay<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Monostable") {
+            Monostable<JitProvider> comp;
+            
+            if (auto it = dev.params.find("duration"); it != dev.params.end()) {
+                comp.duration = locale_safe::parse_float_or(it->second, 30.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Monostable<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "SlewRate") {
+            SlewRate<JitProvider> comp;
+            
+            if (auto it = dev.params.find("rate"); it != dev.params.end()) {
+                comp.max_rate = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<SlewRate<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "AsymSlewRate") {
+            AsymSlewRate<JitProvider> comp;
+            
+            if (auto it = dev.params.find("up_rate"); it != dev.params.end()) {
+                comp.rate_up = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("down_rate"); it != dev.params.end()) {
+                comp.rate_down = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<AsymSlewRate<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "FastTMO") {
+            FastTMO<JitProvider> comp;
+            
+            if (auto it = dev.params.find("tau"); it != dev.params.end()) {
+                comp.tau = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<FastTMO<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "AsymTMO") {
+            AsymTMO<JitProvider> comp;
+            
+            if (auto it = dev.params.find("tau_up"); it != dev.params.end()) {
+                comp.tau_up = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            if (auto it = dev.params.find("tau_down"); it != dev.params.end()) {
+                comp.tau_down = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<AsymTMO<JitProvider>>(result.devices[dev.name]));
+        }
+        // Phase 2 Slice 5: Signal-shaping / utility logical components
+        else if (dev.classname == "Normalize") {
+            Normalize<JitProvider> comp;
+            
+            if (auto it = dev.params.find("min"); it != dev.params.end()) {
+                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max"); it != dev.params.end()) {
+                comp.max = locale_safe::parse_float_or(it->second, 100.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Normalize<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "LUT") {
+            LUT<JitProvider> comp;
+            
+            // Parse table data from "table" param into arena
+            if (auto it = dev.params.find("table"); it != dev.params.end()) {
+                std::vector<float> keys, vals;
+                if (LUT<JitProvider>::parse_table(it->second, keys, vals)) {
+                    comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
+                    comp.table_size = static_cast<uint16_t>(keys.size());
+                    result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
+                    result.lut_values.insert(result.lut_values.end(), vals.begin(), vals.end());
                 }
             }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<LUT<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Greater") {
+            Greater<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Greater<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Lesser") {
+            Lesser<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Lesser<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "GreaterEq") {
+            GreaterEq<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<GreaterEq<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "LesserEq") {
+            LesserEq<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<LesserEq<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Any_V_to_Bool") {
+            Any_V_to_Bool<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Any_V_to_Bool<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Positive_V_to_Bool") {
+            Positive_V_to_Bool<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Positive_V_to_Bool<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "LerpNode") {
+            LerpNode<JitProvider> comp;
+            
+            if (auto it = dev.params.find("factor"); it != dev.params.end()) {
+                comp.factor = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("deadzone"); it != dev.params.end()) {
+                comp.deadzone = locale_safe::parse_float_or(it->second, 0.001f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<LerpNode<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Slider") {
+            Slider<JitProvider> comp;
+            
+            if (auto it = dev.params.find("min"); it != dev.params.end()) {
+                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max"); it != dev.params.end()) {
+                comp.max = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Slider<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Splitter") {
+            Splitter<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Splitter<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Merger") {
+            Merger<JitProvider> comp;
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Merger<JitProvider>>(result.devices[dev.name]));
+        }
+        // Phase 2 Slice 6: Additional non-controlled components
+        else if (dev.classname == "AGK47") {
+            AGK47<JitProvider> comp;
+            
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 0.001f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<AGK47<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "DMR400") {
+            DMR400<JitProvider> comp;
+            
+            if (auto it = dev.params.find("connect_threshold"); it != dev.params.end()) {
+                comp.connect_threshold = locale_safe::parse_float_or(it->second, 2.0f);
+            }
+            if (auto it = dev.params.find("disconnect_threshold"); it != dev.params.end()) {
+                comp.disconnect_threshold = locale_safe::parse_float_or(it->second, 10.0f);
+            }
+            if (auto it = dev.params.find("min_voltage_to_close"); it != dev.params.end()) {
+                comp.min_voltage_to_close = locale_safe::parse_float_or(it->second, 20.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<DMR400<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "ElectricHeater") {
+            ElectricHeater<JitProvider> comp;
+            
+            if (auto it = dev.params.find("max_power"); it != dev.params.end()) {
+                comp.max_power = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            if (auto it = dev.params.find("efficiency"); it != dev.params.end()) {
+                comp.efficiency = locale_safe::parse_float_or(it->second, 0.9f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<ElectricHeater<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "ElectricPump") {
+            ElectricPump<JitProvider> comp;
+            
+            if (auto it = dev.params.find("max_pressure"); it != dev.params.end()) {
+                comp.max_pressure = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<ElectricPump<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "FuelTank") {
+            FuelTank<JitProvider> comp;
+            
+            if (auto it = dev.params.find("capacity"); it != dev.params.end()) {
+                comp.capacity = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            if (auto it = dev.params.find("level"); it != dev.params.end()) {
+                comp.level = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            if (auto it = dev.params.find("density"); it != dev.params.end()) {
+                comp.density = locale_safe::parse_float_or(it->second, 0.78f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<FuelTank<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "GidroAccumulator") {
+            GidroAccumulator<JitProvider> comp;
+            
+            if (auto it = dev.params.find("precharge_pressure"); it != dev.params.end()) {
+                comp.precharge_pressure = locale_safe::parse_float_or(it->second, 50.0f);
+            }
+            if (auto it = dev.params.find("volume"); it != dev.params.end()) {
+                comp.volume = locale_safe::parse_float_or(it->second, 10.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<GidroAccumulator<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "GS24") {
+            GS24<JitProvider> comp;
+            
+            if (auto it = dev.params.find("target_rpm"); it != dev.params.end()) {
+                comp.target_rpm = locale_safe::parse_float_or(it->second, 15000.0f);
+            }
+            if (auto it = dev.params.find("r_internal"); it != dev.params.end()) {
+                comp.r_internal = locale_safe::parse_float_or(it->second, 0.025f);
+            }
+            if (auto it = dev.params.find("r_norton"); it != dev.params.end()) {
+                comp.r_norton = locale_safe::parse_float_or(it->second, 0.08f);
+            }
+            if (auto it = dev.params.find("k_motor"); it != dev.params.end()) {
+                comp.k_motor = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<GS24<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Gyroscope") {
+            Gyroscope<JitProvider> comp;
+            
+            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
+                comp.conductance = locale_safe::parse_float_or(it->second, 0.001f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Gyroscope<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "HighPowerLoad") {
+            HighPowerLoad<JitProvider> comp;
+            
+            if (auto it = dev.params.find("power_draw"); it != dev.params.end()) {
+                comp.power_draw = locale_safe::parse_float_or(it->second, 500.0f);
+            }
+            if (auto it = dev.params.find("min_voltage_diff"); it != dev.params.end()) {
+                comp.min_voltage_diff = locale_safe::parse_float_or(it->second, 0.01f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<HighPowerLoad<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "InertiaNode") {
+            InertiaNode<JitProvider> comp;
+            
+            if (auto it = dev.params.find("mass"); it != dev.params.end()) {
+                comp.mass = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("damping"); it != dev.params.end()) {
+                comp.damping = locale_safe::parse_float_or(it->second, 0.5f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<InertiaNode<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Inverter") {
+            Inverter<JitProvider> comp;
+            
+            if (auto it = dev.params.find("efficiency"); it != dev.params.end()) {
+                comp.efficiency = locale_safe::parse_float_or(it->second, 0.95f);
+            }
+            if (auto it = dev.params.find("frequency"); it != dev.params.end()) {
+                comp.frequency = locale_safe::parse_float_or(it->second, 400.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Inverter<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Radiator") {
+            Radiator<JitProvider> comp;
+            
+            if (auto it = dev.params.find("cooling_capacity"); it != dev.params.end()) {
+                comp.cooling_capacity = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Radiator<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "RU19A") {
+            RU19A<JitProvider> comp;
+            
+            if (auto it = dev.params.find("target_rpm"); it != dev.params.end()) {
+                comp.target_rpm = locale_safe::parse_float_or(it->second, 16000.0f);
+            }
+            if (auto it = dev.params.find("auto_start"); it != dev.params.end()) {
+                comp.auto_start = (it->second == "true" || it->second == "1");
+            }
+            if (auto it = dev.params.find("t4_target"); it != dev.params.end()) {
+                comp.t4_target = locale_safe::parse_float_or(it->second, 400.0f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<RU19A<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "RUG82") {
+            RUG82<JitProvider> comp;
+            
+            if (auto it = dev.params.find("v_target"); it != dev.params.end()) {
+                comp.v_target = locale_safe::parse_float_or(it->second, 28.5f);
+            }
+            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
+                comp.kp = locale_safe::parse_float_or(it->second, 2.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<RUG82<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "SolenoidValve") {
+            SolenoidValve<JitProvider> comp;
+            
+            if (auto it = dev.params.find("normally_closed"); it != dev.params.end()) {
+                comp.normally_closed = (it->second == "true" || it->second == "1");
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<SolenoidValve<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Spring") {
+            Spring<JitProvider> comp;
+            
+            if (auto it = dev.params.find("k"); it != dev.params.end()) {
+                comp.k = locale_safe::parse_float_or(it->second, 1000.0f);
+            }
+            if (auto it = dev.params.find("c"); it != dev.params.end()) {
+                comp.c = locale_safe::parse_float_or(it->second, 10.0f);
+            }
+            if (auto it = dev.params.find("rest_length"); it != dev.params.end()) {
+                comp.rest_length = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            if (auto it = dev.params.find("compression_only"); it != dev.params.end()) {
+                comp.compression_only = (it->second == "true" || it->second == "1");
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Spring<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "TempSensor") {
+            TempSensor<JitProvider> comp;
+            
+            if (auto it = dev.params.find("sensitivity"); it != dev.params.end()) {
+                comp.sensitivity = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<TempSensor<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Transformer") {
+            Transformer<JitProvider> comp;
+            
+            if (auto it = dev.params.find("ratio"); it != dev.params.end()) {
+                comp.ratio = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Transformer<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "VoltageSense") {
+            VoltageSense<JitProvider> comp;
+            
+            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
+                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("offset"); it != dev.params.end()) {
+                comp.offset = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<VoltageSense<JitProvider>>(result.devices[dev.name]));
+        }
+        // Phase 2 Slice 7: Controlled source / conductance components
+        else if (dev.classname == "ControlledVoltageSource") {
+            ControlledVoltageSource<JitProvider> comp;
+            
+            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
+                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("offset"); it != dev.params.end()) {
+                comp.offset = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("min_v"); it != dev.params.end()) {
+                comp.min_v = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max_v"); it != dev.params.end()) {
+                comp.max_v = locale_safe::parse_float_or(it->second, 30.0f);
+            }
+            if (auto it = dev.params.find("r_internal"); it != dev.params.end()) {
+                comp.r_internal = locale_safe::parse_float_or(it->second, 0.1f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<ControlledVoltageSource<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "ControlledCurrentSource") {
+            ControlledCurrentSource<JitProvider> comp;
+            
+            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
+                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
+            }
+            if (auto it = dev.params.find("min_i"); it != dev.params.end()) {
+                comp.min_i = locale_safe::parse_float_or(it->second, 0.0f);
+            }
+            if (auto it = dev.params.find("max_i"); it != dev.params.end()) {
+                comp.max_i = locale_safe::parse_float_or(it->second, 100.0f);
+            }
+            if (auto it = dev.params.find("g_shunt"); it != dev.params.end()) {
+                comp.g_shunt = locale_safe::parse_float_or(it->second, 0.001f);
+            }
+            comp.pre_load();
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "VariableConductance") {
+            VariableConductance<JitProvider> comp;
+            
+            if (auto it = dev.params.find("g_min"); it != dev.params.end()) {
+                comp.g_min = locale_safe::parse_float_or(it->second, 0.001f);
+            }
+            if (auto it = dev.params.find("g_max"); it != dev.params.end()) {
+                comp.g_max = locale_safe::parse_float_or(it->second, 10.0f);
+            }
+            setup_ports(comp);
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<VariableConductance<JitProvider>>(result.devices[dev.name]));
         }
     }
 
-    // =========================================================================
-    // BUG-1 FIX: Remap signals so dynamic signals occupy [0..N_dyn) and
-    // fixed signals occupy [N_dyn..N_total). This guarantees the SOR solver
-    // can branchlessly iterate [0..dynamic_signals_count) without hitting
-    // fixed signals. The sentinel signal remains at the very end.
-    // =========================================================================
-    {
-        std::unordered_set<uint32_t> fixed_set(result.fixed_signals.begin(),
-                                                result.fixed_signals.end());
-        // Build remapping table: old_index -> new_index
-        // Sentinel signal (last index) stays at the end.
-        uint32_t sentinel_idx = result.signal_count - 1;
-        std::vector<uint32_t> remap(result.signal_count);
+    // Deduplicate fixed_signals (RefNode may have been added above and in the loop above)
+    std::sort(result.fixed_signals.begin(), result.fixed_signals.end());
+    result.fixed_signals.erase(
+        std::unique(result.fixed_signals.begin(), result.fixed_signals.end()),
+        result.fixed_signals.end());
 
-        uint32_t dyn_slot = 0;
-        uint32_t fix_slot = result.signal_count - 1 - static_cast<uint32_t>(result.fixed_signals.size());
-
-        for (uint32_t i = 0; i < result.signal_count; ++i) {
-            if (i == sentinel_idx) {
-                remap[i] = result.signal_count - 1; // sentinel stays last
-            } else if (fixed_set.count(i)) {
-                remap[i] = fix_slot++;
-            } else {
-                remap[i] = dyn_slot++;
+    // Phase 3.1: One-source-per-wire validation
+    // Check that each electrical signal has at most one active voltage source writing to it.
+    // Active source components (these conflict with each other):
+    // - Battery: v_out
+    // - Generator: v_out
+    // - GS24: v_out
+    // - RU19A: v_bus (and v_start for starting circuit)
+    // - ControlledVoltageSource: v_pos
+    // - ControlledCurrentSource: v_pos
+    // 
+    // RefNode (ground/reference) is NOT considered an active source for this check
+    // as it defines the reference point (0V) rather than actively driving voltage.
+    
+    struct WriterPort {
+        std::string component_name;
+        std::string port_name;
+    };
+    
+    // Map signal index -> first writer found (for conflict detection)
+    std::unordered_map<uint32_t, WriterPort> signal_writers;
+    
+    // Helper to check and register a writer port
+    auto register_writer = [&](const std::string& comp_name, const std::string& port_name) {
+        const std::string full_port = comp_name + "." + port_name;
+        auto it_signal = result.port_to_signal.find(full_port);
+        if (it_signal != result.port_to_signal.end()) {
+            const uint32_t signal_idx = it_signal->second;
+            auto it_writer = signal_writers.find(signal_idx);
+            if (it_writer != signal_writers.end()) {
+                // Conflict! Two different active sources on same signal
+                std::string msg = "Multiple voltage sources on same wire: ";
+                msg += it_writer->second.component_name + "." + it_writer->second.port_name;
+                msg += " and " + comp_name + "." + port_name;
+                msg += " both write to signal " + std::to_string(signal_idx);
+                throw std::runtime_error(msg);
             }
+            signal_writers[signal_idx] = {comp_name, port_name};
         }
-
-        // Apply remap to port_to_signal
-        for (auto& [port, sig] : result.port_to_signal) {
-            sig = remap[sig];
-        }
-
-        // Remap fixed_signals list
-        for (auto& fs : result.fixed_signals) {
-            fs = remap[fs];
-        }
-        std::sort(result.fixed_signals.begin(), result.fixed_signals.end());
-    }
-
-    spdlog::info("[build] signal map: {} roots -> {} signals, {} fixed",
-        unique_roots.size(), result.signal_count, result.fixed_signals.size());
-
-    // Create components dynamically using factory
-    // Phase 1: Insert ALL components into the map first.
-    // We must NOT take pointers during insertion because unordered_map
-    // rehashing invalidates all existing pointers/references.
-    std::vector<std::string> device_names_ordered;
-    std::unordered_map<std::string, DeviceInstance> device_def_by_name;
+    };
+    
+    // Check all migrated active source components (excluding RefNode)
     for (const auto& dev : devices) {
-        // Skip visual-only devices (no simulation behavior, e.g. Group)
-        if (dev.visual_only) continue;
-
-        ComponentVariant variant = create_component_variant(dev, result);
-        result.devices[dev.name] = std::move(variant);
-        device_names_ordered.push_back(dev.name);
-        device_def_by_name[dev.name] = dev;
+        if (dev.visual_only) {
+            continue;
+        }
+        
+        // Active voltage sources - these CANNOT share a wire
+        if (dev.classname == "Battery") {
+            register_writer(dev.name, "v_out");
+        }
+        else if (dev.classname == "Generator") {
+            register_writer(dev.name, "v_out");
+        }
+        else if (dev.classname == "GS24") {
+            register_writer(dev.name, "v_out");
+        }
+        else if (dev.classname == "RU19A") {
+            register_writer(dev.name, "v_bus");
+            // v_start is also a writer output in the starting circuit
+            register_writer(dev.name, "v_start");
+        }
+        else if (dev.classname == "ControlledVoltageSource") {
+            register_writer(dev.name, "v_pos");
+        }
+        else if (dev.classname == "ControlledCurrentSource") {
+            register_writer(dev.name, "v_pos");
+        }
+        // Note: RefNode is intentionally NOT registered as an active source
+        // because it defines the reference (0V) rather than driving voltage
     }
 
-    // Phase 2: Now that all insertions are done (no more rehashing),
-    // collect stable pointers for domain-specific iteration vectors.
-    for (const auto& name : device_names_ordered) {
-        ComponentVariant* ptr = &result.devices[name];
-        Domain domain_mask = get_component_domain_mask(*ptr);
-        const DeviceInstance& dev_def = device_def_by_name.at(name);
-        ExecutionTraits exec_traits = get_component_execution_traits(dev_def);
+    // Phase 3.2: Topological ordering of consumers (writer -> reader)
+    // Sources already run before consumers. Here we order only consumer bucket.
+    if (!consumer_device_names.empty()) {
+        auto output_ports_for = [](const std::string& classname) -> std::unordered_set<std::string> {
+            if (classname == "Battery") return {"v_out"};
+            if (classname == "Generator") return {"v_out"};
+            if (classname == "RefNode") return {"v"};
+            if (classname == "GS24") return {"v_out"};
+            if (classname == "RU19A") return {"v_bus", "v_start"};
+            if (classname == "ControlledVoltageSource") return {"v_pos", "v_neg"};
+            if (classname == "ControlledCurrentSource") return {"v_pos", "v_neg"};
 
-        // Log domain assignment for debugging
-        spdlog::debug("[build] {} -> [{}] domains", name, get_domain_mask_string(domain_mask));
-        spdlog::debug("[build] {} -> [{}] exec_traits", name, get_execution_traits_string(exec_traits));
+            if (classname == "Switch" || classname == "Relay" || classname == "HoldButton" ||
+                classname == "Resistor" || classname == "Bus" || classname == "BlueprintInput" ||
+                classname == "BlueprintOutput" || classname == "AGK47" || classname == "DMR400" ||
+                classname == "InertiaNode" || classname == "Spring" || classname == "TempSensor" ||
+                classname == "Radiator" || classname == "SolenoidValve" || classname == "ElectricHeater" ||
+                classname == "ElectricPump" || classname == "Transformer" || classname == "Inverter" ||
+                classname == "VoltageSense" || classname == "VariableConductance") {
+                return {"v_out", "out", "output", "state", "tripped", "temp",
+                        "heat_out", "pressure_out", "rpm_out", "t4_out", "ac_out",
+                        "secondary", "i_out", "force_out", "flow_out", "level_out"};
+            }
 
-        // Stage 4 scaffolding: populate explicit phase buckets.
-        if (exec_traits.electrical_passive) {
-            result.phase_components.electrical_passive.push_back(ptr);
-        }
-        if (exec_traits.electrical_observer) {
-            result.phase_components.electrical_observer.push_back(ptr);
-        }
-        if (exec_traits.logical) {
-            result.phase_components.logical.push_back(ptr);
-        }
-        if (exec_traits.control_commit) {
-            result.phase_components.control_commit.push_back(ptr);
-        }
-        if (exec_traits.electrical_actuator) {
-            result.phase_components.electrical_actuator.push_back(ptr);
-        }
-        if (exec_traits.finalize) {
-            result.phase_components.finalize.push_back(ptr);
-        }
-        if (exec_traits.mechanical) {
-            result.phase_components.mechanical.push_back(ptr);
-        }
-        if (exec_traits.hydraulic) {
-            result.phase_components.hydraulic.push_back(ptr);
-        }
-        if (exec_traits.thermal) {
-            result.phase_components.thermal.push_back(ptr);
+            return {"o", "out", "output", "brightness", "state", "rpm_out",
+                    "t4_out", "k_mod", "heat_out", "pressure_out", "fuel_out",
+                    "i_out", "temp_out", "level_out", "force_out", "flow_out"};
+        };
+
+        std::unordered_map<std::string, const DeviceInstance*> device_by_name;
+        device_by_name.reserve(devices.size());
+        for (const auto& dev : devices) {
+            device_by_name[dev.name] = &dev;
         }
 
+        struct IOSet {
+            std::unordered_set<uint32_t> reads;
+            std::unordered_set<uint32_t> writes;
+        };
+        std::unordered_map<std::string, IOSet> io_by_consumer;
+        io_by_consumer.reserve(consumer_device_names.size());
+
+        for (const auto& name : consumer_device_names) {
+            auto it_dev = device_by_name.find(name);
+            if (it_dev == device_by_name.end() || it_dev->second == nullptr) {
+                continue;
+            }
+
+            const DeviceInstance& dev = *it_dev->second;
+            const auto output_ports = output_ports_for(dev.classname);
+            auto& io = io_by_consumer[name];
+
+            for (const auto& [port_name, port] : dev.ports) {
+                (void)port;
+                const std::string full_port = dev.name + "." + port_name;
+                auto it_sig = result.port_to_signal.find(full_port);
+                if (it_sig == result.port_to_signal.end()) {
+                    continue;
+                }
+
+                if (output_ports.find(port_name) != output_ports.end()) {
+                    io.writes.insert(it_sig->second);
+                }
+                else {
+                    io.reads.insert(it_sig->second);
+                }
+            }
+        }
+
+        std::unordered_map<std::string, std::vector<std::string>> adj;
+        std::unordered_map<std::string, uint32_t> indegree;
+        adj.reserve(consumer_device_names.size());
+        indegree.reserve(consumer_device_names.size());
+
+        for (const auto& name : consumer_device_names) {
+            indegree[name] = 0;
+        }
+
+        std::unordered_map<uint32_t, std::vector<std::string>> writers_by_signal;
+        writers_by_signal.reserve(result.signal_count);
+        for (const auto& name : consumer_device_names) {
+            auto it_io = io_by_consumer.find(name);
+            if (it_io == io_by_consumer.end()) {
+                continue;
+            }
+            for (uint32_t sig : it_io->second.writes) {
+                writers_by_signal[sig].push_back(name);
+            }
+        }
+
+        std::unordered_set<std::string> seen_edges;
+        for (const auto& reader_name : consumer_device_names) {
+            auto it_io = io_by_consumer.find(reader_name);
+            if (it_io == io_by_consumer.end()) {
+                continue;
+            }
+            for (uint32_t sig : it_io->second.reads) {
+                auto it_writers = writers_by_signal.find(sig);
+                if (it_writers == writers_by_signal.end()) {
+                    continue;
+                }
+                for (const auto& writer_name : it_writers->second) {
+                    if (writer_name == reader_name) {
+                        continue;
+                    }
+                    const std::string edge = writer_name + "->" + reader_name;
+                    if (seen_edges.insert(edge).second) {
+                        adj[writer_name].push_back(reader_name);
+                        indegree[reader_name]++;
+                    }
+                }
+            }
+        }
+
+        std::queue<std::string> ready;
+        for (const auto& name : consumer_device_names) {
+            if (indegree[name] == 0) {
+                ready.push(name);
+            }
+        }
+
+        std::vector<std::string> sorted;
+        sorted.reserve(consumer_device_names.size());
+        while (!ready.empty()) {
+            const std::string current = ready.front();
+            ready.pop();
+            sorted.push_back(current);
+
+            auto it_adj = adj.find(current);
+            if (it_adj == adj.end()) {
+                continue;
+            }
+            for (const auto& next : it_adj->second) {
+                if (--indegree[next] == 0) {
+                    ready.push(next);
+                }
+            }
+        }
+
+        if (sorted.size() < consumer_device_names.size()) {
+            spdlog::warn("[build] Consumer dependency cycle detected; falling back to one-frame delay ordering for cycle edges");
+            std::unordered_set<std::string> in_sorted(sorted.begin(), sorted.end());
+            for (const auto& name : consumer_device_names) {
+                if (in_sorted.find(name) == in_sorted.end()) {
+                    sorted.push_back(name);
+                }
+            }
+        }
+
+        result.scheduler.clear_consumers();
+        for (const auto& name : sorted) {
+            auto it_var = result.devices.find(name);
+            if (it_var == result.devices.end()) {
+                continue;
+            }
+            std::visit([&](auto& comp) {
+                result.scheduler.add_consumer(&comp);
+            }, it_var->second);
+        }
     }
-
-    spdlog::info("[build] created {} components",
-        result.devices.size());
-
-    // Stage 1 diagnostics: summarize future phase capabilities without affecting runtime scheduling.
-    uint32_t phase_elec_passive = 0;
-    uint32_t phase_elec_observer = 0;
-    uint32_t phase_logical = 0;
-    uint32_t phase_control_commit = 0;
-    uint32_t phase_elec_actuator = 0;
-    uint32_t phase_finalize = 0;
-    uint32_t phase_mech = 0;
-    uint32_t phase_hyd = 0;
-    uint32_t phase_therm = 0;
-
-    for (const auto& [dev_name, variant] : result.devices) {
-        (void)dev_name;
-        const DeviceInstance& dev_def = device_def_by_name.at(dev_name);
-        ExecutionTraits t = get_component_execution_traits(dev_def);
-        phase_elec_passive += t.electrical_passive ? 1u : 0u;
-        phase_elec_observer += t.electrical_observer ? 1u : 0u;
-        phase_logical += t.logical ? 1u : 0u;
-        phase_control_commit += t.control_commit ? 1u : 0u;
-        phase_elec_actuator += t.electrical_actuator ? 1u : 0u;
-        phase_finalize += t.finalize ? 1u : 0u;
-        phase_mech += t.mechanical ? 1u : 0u;
-        phase_hyd += t.hydraulic ? 1u : 0u;
-        phase_therm += t.thermal ? 1u : 0u;
-    }
-
-    spdlog::info("[build][stage1] exec traits summary: passive={}, observer={}, logical={}, commit={}, actuator={}, finalize={}, mech={}, hyd={}, therm={}",
-                 phase_elec_passive,
-                 phase_elec_observer,
-                 phase_logical,
-                 phase_control_commit,
-                 phase_elec_actuator,
-                 phase_finalize,
-                 phase_mech,
-                 phase_hyd,
-                 phase_therm);
-
-    spdlog::info("[build][stage4] phase buckets: passive={}, observer={}, logical={}, commit={}, actuator={}, finalize={}, mech={}, hyd={}, therm={}",
-                 result.phase_components.electrical_passive.size(),
-                 result.phase_components.electrical_observer.size(),
-                 result.phase_components.logical.size(),
-                 result.phase_components.control_commit.size(),
-                 result.phase_components.electrical_actuator.size(),
-                 result.phase_components.finalize.size(),
-                 result.phase_components.mechanical.size(),
-                 result.phase_components.hydraulic.size(),
-                 result.phase_components.thermal.size());
 
     return result;
 }
