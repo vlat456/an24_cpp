@@ -48,6 +48,18 @@ target_link_libraries(push_build_validation_tests PRIVATE
 )
 gtest_discover_tests(push_build_validation_tests)
 
+add_executable(push_runtime_regression_tests
+    test_push_runtime_regression.cpp
+)
+target_include_directories(push_runtime_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(push_runtime_regression_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(push_runtime_regression_tests)
+
 # Push migration mode: keep only new core tests enabled.
 return()
 
