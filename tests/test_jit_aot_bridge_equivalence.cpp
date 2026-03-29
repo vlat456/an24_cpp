@@ -35,7 +35,7 @@ ExecutionPhases make_execution(
 // In push model, codegen may use different method names or execution ordering,
 // causing these string searches to fail. This test validates codegen output
 // format rather than functional equivalence.
-TEST(JitAotBridgeEquivalence, DISABLED_MinimalBridgeTopologyAndCodegenSmoke) {
+TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
     TypeRegistry registry;
 
     TypeDefinition gnd;
@@ -152,7 +152,7 @@ TEST(JitAotBridgeEquivalence, DISABLED_MinimalBridgeTopologyAndCodegenSmoke) {
     EXPECT_EQ(signal_of("gnd.v"), signal_of("src.v_neg"));
     EXPECT_EQ(signal_of("src.v_pos"), signal_of("meter.v_in"));
 
-    EXPECT_NE(aot_source.find("cmd_logic.solve_logical"), std::string::npos);
-    EXPECT_NE(aot_source.find("src.stamp_electrical_actuator"), std::string::npos);
-    EXPECT_NE(aot_source.find("meter.observe_electrical"), std::string::npos);
+    EXPECT_NE(aot_source.find("cmd_logic.execute"), std::string::npos);
+    EXPECT_NE(aot_source.find("src.execute"), std::string::npos);
+    EXPECT_NE(aot_source.find("meter.execute"), std::string::npos);
 }

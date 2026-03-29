@@ -41,7 +41,6 @@ cd build && ctest
 | File/Path | Notes |
 |------|------|
 | `src/jit_solver/components/port_registry.h` | Auto-generated from library blueprints (`update_port_registry`) |
-| `src/jit_solver/components/provider_components.h` | Treat as generated provider-pattern artifact |
 | `generated/*.cpp, generated/*.h` | AOT-generated outputs |
 | `build*/`, `Testing/Temporary/*`, `.cache/clangd/*` | Build/cache artifacts, never hand-edit/commit |
 
