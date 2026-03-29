@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "json_parser/json_parser.h"
 #include "jit_solver/simulator.h"
+#include "jit_solver/component.h"
 #include "editor/data/blueprint.h"
 #include "editor/data/node.h"
 #include "editor/visual/persist.h"

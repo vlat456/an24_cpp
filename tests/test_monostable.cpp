@@ -20,11 +20,9 @@ static Monostable<JitProvider> make_monostable(float duration = 30.0f)
 static SimulationState make_state(float input_val)
 {
     SimulationState st;
-    st.across.resize(2, 0.0f);
-    st.through.resize(2, 0.0f);
-    st.conductance.resize(2, 0.0f);
-    st.across[0] = input_val;
-    st.across[1] = 0.0f;
+    st.values.resize(2, 0.0f);
+    st.values[0] = input_val;
+    st.values[1] = 0.0f;
     return st;
 }
 
@@ -40,7 +38,7 @@ TEST(MonostableTest, InitiallyOff)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Initially output should be off
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
 
@@ -52,12 +50,12 @@ TEST(MonostableTest, RisingEdge_TriggersPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Rising edge
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Timer should be set to duration, output should be on
     EXPECT_FLOAT_EQ(comp.timer, 30.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, Pulse_ExpiresAfterDuration)
@@ -68,10 +66,10 @@ TEST(MonostableTest, Pulse_ExpiresAfterDuration)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Run for 0.9 seconds
     for (int i = 0; i < 54; ++i) {  // 54 frames ≈ 0.9s
@@ -79,7 +77,7 @@ TEST(MonostableTest, Pulse_ExpiresAfterDuration)
     }
 
     // Should still be on
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Run past expiration (+1 frame for fp rounding safety)
     for (int i = 0; i < 7; ++i) {
@@ -87,7 +85,7 @@ TEST(MonostableTest, Pulse_ExpiresAfterDuration)
     }
 
     // Should now be off
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
 
@@ -99,15 +97,15 @@ TEST(MonostableTest, FallingEdge_DoesNotRetrigger)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First frame with input=1.0 triggers the timer
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Input goes low (this is a falling edge, should not retrigger)
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Timer should still be active (not reset by falling edge)
     EXPECT_GT(comp.timer, 0.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, HighInput_DoesNotRetrigger)
@@ -118,7 +116,7 @@ TEST(MonostableTest, HighInput_DoesNotRetrigger)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First rising edge
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     float timer_after_first = comp.timer;
@@ -129,7 +127,7 @@ TEST(MonostableTest, HighInput_DoesNotRetrigger)
 
     // Timer should not be reset
     EXPECT_LT(comp.timer, timer_after_first);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, RetriggerOnNewPulse)
@@ -140,7 +138,7 @@ TEST(MonostableTest, RetriggerOnNewPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Let timer decay partially
@@ -152,15 +150,15 @@ TEST(MonostableTest, RetriggerOnNewPulse)
     EXPECT_GT(comp.timer, 0.0f);
 
     // Bring input low, then high again
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Timer should be reset to full duration
     EXPECT_FLOAT_EQ(comp.timer, 1.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, VariableDt_TimerTicksCorrectly)
@@ -171,7 +169,7 @@ TEST(MonostableTest, VariableDt_TimerTicksCorrectly)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Large dt
@@ -179,14 +177,14 @@ TEST(MonostableTest, VariableDt_TimerTicksCorrectly)
 
     // Timer should have decreased by 0.5
     EXPECT_NEAR(comp.timer, 0.5f, 0.001f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Another large dt
     comp.solve_logical(st, 0.5f);
 
     // Timer should now be 0
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(MonostableTest, ZeroDt_PausesTimer)
@@ -197,7 +195,7 @@ TEST(MonostableTest, ZeroDt_PausesTimer)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     float timer_before_pause = comp.timer;
@@ -209,7 +207,7 @@ TEST(MonostableTest, ZeroDt_PausesTimer)
 
     // Timer should not have changed
     EXPECT_FLOAT_EQ(comp.timer, timer_before_pause);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, ShortPulse)
@@ -220,10 +218,10 @@ TEST(MonostableTest, ShortPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Run for 0.1 seconds (6 frames)
     for (int i = 0; i < 6; ++i) {
@@ -231,13 +229,13 @@ TEST(MonostableTest, ShortPulse)
     }
 
     // Should still be on (timer just about to expire)
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // One more frame to actually expire
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Should now be off
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(MonostableTest, LongPulse)
@@ -248,7 +246,7 @@ TEST(MonostableTest, LongPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Run for 1 second
@@ -257,7 +255,7 @@ TEST(MonostableTest, LongPulse)
     }
 
     // Should still be on
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
     EXPECT_GT(comp.timer, 58.0f);
 }
 
@@ -269,15 +267,15 @@ TEST(MonostableTest, BooleanThreshold_0_5)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Input below threshold (not a trigger)
-    st.across[0] = 0.4f;
+    st.values[0] = 0.4f;
     comp.solve_logical(st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 
     // Rising edge through threshold (trigger)
-    st.across[0] = 0.6f;
+    st.values[0] = 0.6f;
     comp.solve_logical(st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(comp.timer, 30.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, NegativeInput_Ignored)
@@ -288,11 +286,11 @@ TEST(MonostableTest, NegativeInput_Ignored)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Negative input (not a trigger)
-    st.across[0] = -1.0f;
+    st.values[0] = -1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(MonostableTest, MultiplePulses_Sequential)
@@ -303,22 +301,22 @@ TEST(MonostableTest, MultiplePulses_Sequential)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First pulse
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Wait for expiration (13 frames for 0.2s due to floating point)
     for (int i = 0; i < 13; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_NEAR(st.across[1], 0.0f, 0.01f);
+    EXPECT_NEAR(st.values[1], 0.0f, 0.01f);
 
     // Second pulse (need to go low first)
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(MonostableTest, RapidRetrigger_ExtendsPulse)
@@ -329,7 +327,7 @@ TEST(MonostableTest, RapidRetrigger_ExtendsPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Let decay partially
@@ -340,9 +338,9 @@ TEST(MonostableTest, RapidRetrigger_ExtendsPulse)
     EXPECT_LT(comp.timer, 1.0f);
 
     // Retrigger
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Timer should be back to full duration
@@ -357,11 +355,11 @@ TEST(MonostableTest, ZeroDuration_InstantPulse)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // With zero duration, output turns on but immediately expires
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
 
@@ -373,7 +371,7 @@ TEST(MonostableTest, TimerClampedAtZero)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Run past expiration
@@ -383,7 +381,7 @@ TEST(MonostableTest, TimerClampedAtZero)
 
     // Timer should be exactly zero (not negative)
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(MonostableTest, InputHighDuringPulse_NoEffect)
@@ -394,7 +392,7 @@ TEST(MonostableTest, InputHighDuringPulse_NoEffect)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Trigger
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     float timer_after_trigger = comp.timer;
@@ -418,10 +416,10 @@ TEST(MonostableTest, EngineStartCycle_RealisticUseCase)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Press start button
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Simulate 10 seconds of cranking
     for (int i = 0; i < 600; ++i) {
@@ -429,15 +427,15 @@ TEST(MonostableTest, EngineStartCycle_RealisticUseCase)
     }
 
     // Should still be cranking
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
     EXPECT_GT(comp.timer, 19.0f);
 
     // Release start button (goes low)
-    st.across[0] = 0.0f;
+    st.values[0] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Cranking continues automatically
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Simulate another 20 seconds
     for (int i = 0; i < 1200; ++i) {
@@ -445,5 +443,5 @@ TEST(MonostableTest, EngineStartCycle_RealisticUseCase)
     }
 
     // Should now stop
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }

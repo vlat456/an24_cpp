@@ -33,11 +33,9 @@ static Normalize<JitProvider> make_normalize(float min_val = 0.0f, float max_val
 static SimulationState make_state(float input_val)
 {
     SimulationState st;
-    st.across.resize(2, 0.0f);
-    st.through.resize(2, 0.0f);
-    st.conductance.resize(2, 0.0f);
-    st.across[0] = input_val;
-    st.across[1] = 0.0f;
+    st.values.resize(2, 0.0f);
+    st.values[0] = input_val;
+    st.values[1] = 0.0f;
     return st;
 }
 
@@ -52,7 +50,7 @@ TEST(ClampTest, WithinRange_PassesThrough)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 5.0f);
 }
 
 TEST(ClampTest, BelowMinimum_ClampsToMin)
@@ -62,7 +60,7 @@ TEST(ClampTest, BelowMinimum_ClampsToMin)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(ClampTest, AboveMaximum_ClampsToMax)
@@ -72,7 +70,7 @@ TEST(ClampTest, AboveMaximum_ClampsToMax)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 10.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 10.0f);
 }
 
 TEST(ClampTest, AtBoundary_Min)
@@ -82,7 +80,7 @@ TEST(ClampTest, AtBoundary_Min)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(ClampTest, AtBoundary_Max)
@@ -92,7 +90,7 @@ TEST(ClampTest, AtBoundary_Max)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 10.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 10.0f);
 }
 
 TEST(ClampTest, NegativeRange)
@@ -102,7 +100,7 @@ TEST(ClampTest, NegativeRange)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], -7.0f);
+    EXPECT_FLOAT_EQ(st.values[1], -7.0f);
 }
 
 TEST(ClampTest, NegativeRange_ClampsBelow)
@@ -112,7 +110,7 @@ TEST(ClampTest, NegativeRange_ClampsBelow)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], -10.0f);
+    EXPECT_FLOAT_EQ(st.values[1], -10.0f);
 }
 
 TEST(ClampTest, NegativeRange_ClampsAbove)
@@ -122,7 +120,7 @@ TEST(ClampTest, NegativeRange_ClampsAbove)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], -5.0f);
+    EXPECT_FLOAT_EQ(st.values[1], -5.0f);
 }
 
 TEST(ClampTest, ZeroRange_ClampsToSingleValue)
@@ -132,7 +130,7 @@ TEST(ClampTest, ZeroRange_ClampsToSingleValue)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 5.0f);
 }
 
 TEST(ClampTest, SymmetricRange_Positive)
@@ -142,7 +140,7 @@ TEST(ClampTest, SymmetricRange_Positive)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(ClampTest, SymmetricRange_Negative)
@@ -152,7 +150,7 @@ TEST(ClampTest, SymmetricRange_Negative)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], -0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], -0.5f);
 }
 
 TEST(ClampTest, LargeValues)
@@ -162,7 +160,7 @@ TEST(ClampTest, LargeValues)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 5000.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 5000.0f);
 }
 
 // =============================================================================
@@ -176,7 +174,7 @@ TEST(NormalizeTest, MidRange_MapsToZeroPointFive)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(NormalizeTest, AtMin_MapsToZero)
@@ -186,7 +184,7 @@ TEST(NormalizeTest, AtMin_MapsToZero)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(NormalizeTest, AtMax_MapsToOne)
@@ -196,7 +194,7 @@ TEST(NormalizeTest, AtMax_MapsToOne)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(NormalizeTest, BelowMin_ClampsToZero)
@@ -206,7 +204,7 @@ TEST(NormalizeTest, BelowMin_ClampsToZero)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(NormalizeTest, AboveMax_ClampsToOne)
@@ -216,7 +214,7 @@ TEST(NormalizeTest, AboveMax_ClampsToOne)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(NormalizeTest, OffsetRange)
@@ -226,7 +224,7 @@ TEST(NormalizeTest, OffsetRange)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(NormalizeTest, NegativeRange)
@@ -236,7 +234,7 @@ TEST(NormalizeTest, NegativeRange)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(NormalizeTest, NegativeRange_Min)
@@ -246,7 +244,7 @@ TEST(NormalizeTest, NegativeRange_Min)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(NormalizeTest, NegativeRange_Max)
@@ -256,7 +254,7 @@ TEST(NormalizeTest, NegativeRange_Max)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
 TEST(NormalizeTest, SmallRange_PressureSensor)
@@ -267,7 +265,7 @@ TEST(NormalizeTest, SmallRange_PressureSensor)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.75f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.75f);
 }
 
 TEST(NormalizeTest, TemperatureRange_Celsius)
@@ -278,7 +276,7 @@ TEST(NormalizeTest, TemperatureRange_Celsius)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(NormalizeTest, VoltageRange_Aircraft)
@@ -289,7 +287,7 @@ TEST(NormalizeTest, VoltageRange_Aircraft)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_NEAR(st.across[1], 0.85f, 0.01f);
+    EXPECT_NEAR(st.values[1], 0.85f, 0.01f);
 }
 
 TEST(NormalizeTest, ZeroRange_DefaultsToZero)
@@ -301,7 +299,7 @@ TEST(NormalizeTest, ZeroRange_DefaultsToZero)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Should clamp to 0 since inv_range = 0
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
 TEST(NormalizeTest, PreLoad_ComputesInvRange)
@@ -347,7 +345,7 @@ TEST(NormalizeTest, RealWorld_OilPressureWarning)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Should be 0.15 (below 0.2 threshold)
-    EXPECT_NEAR(st.across[1], 0.15f, 0.01f);
+    EXPECT_NEAR(st.values[1], 0.15f, 0.01f);
 }
 
 TEST(NormalizeTest, RealWorld_FuelQuantityGauge)
@@ -358,7 +356,7 @@ TEST(NormalizeTest, RealWorld_FuelQuantityGauge)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.7f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.7f);
 }
 
 TEST(NormalizeTest, VariableInput_UpdatesCorrectly)
@@ -367,11 +365,11 @@ TEST(NormalizeTest, VariableInput_UpdatesCorrectly)
     auto st = make_state(25.0f);
 
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 0.25f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.25f);
 
-    st.across[0] = 75.0f;
+    st.values[0] = 75.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 0.75f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.75f);
 }
 
 // =============================================================================
@@ -392,15 +390,15 @@ TEST(ClampTest, Regression_InvertedRange_NoCrash)
 
     auto st = make_state(7.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[1], 7.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 7.0f);
 
     auto st2 = make_state(3.0f);
     comp.solve_logical(st2, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st2.across[1], 5.0f);
+    EXPECT_FLOAT_EQ(st2.values[1], 5.0f);
 
     auto st3 = make_state(12.0f);
     comp.solve_logical(st3, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st3.across[1], 10.0f);
+    EXPECT_FLOAT_EQ(st3.values[1], 10.0f);
 }
 
 TEST(NormalizeTest, Regression_InvertedRange_SafeOutput)
@@ -412,7 +410,7 @@ TEST(NormalizeTest, Regression_InvertedRange_SafeOutput)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(NormalizeTest, Regression_VerySmallRange)
@@ -423,7 +421,7 @@ TEST(NormalizeTest, Regression_VerySmallRange)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.5f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
 
 TEST(ClampTest, Regression_ZeroInput)
@@ -433,5 +431,5 @@ TEST(ClampTest, Regression_ZeroInput)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[1], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }

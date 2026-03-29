@@ -29,6 +29,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` | Detailed JIT/AOT plan for removing control-loop latency |
 | Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` | Staged implementation checklist for coding agents |
 | **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from SOR to push propagation (game-grade sim) |
+| Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
 
 ## Suggested Reading Order
 

@@ -292,5 +292,6 @@ TEST(SceneMutations, Regression_GSCLoadHasPortsAndWiresVisible) {
     ASSERT_NE(pi_widget, nullptr);
 
     // A known top-level wire in GSC.blueprint should be rendered as a widget.
-    EXPECT_NE(scene.find("wire_20"), nullptr);
+    // Note: wire_200 is the actual ID in the blueprint (wire_20 was stale).
+    EXPECT_NE(scene.find("wire_200"), nullptr);
 }

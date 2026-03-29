@@ -60,8 +60,247 @@ target_link_libraries(push_runtime_regression_tests PRIVATE
 )
 gtest_discover_tests(push_runtime_regression_tests)
 
-# Push migration mode: keep only new core tests enabled.
-return()
+# Migrated tests - now using push-state API (SimulationState.values)
+add_executable(pid_tests
+    test_pid.cpp
+)
+target_include_directories(pid_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(pid_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(pid_tests)
+
+add_executable(pd_tests
+    test_pd.cpp
+)
+target_include_directories(pd_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(pd_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(pd_tests)
+
+add_executable(subtract_tests
+    test_subtract.cpp
+)
+target_include_directories(subtract_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(subtract_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(subtract_tests)
+
+add_executable(logic_gates_tests
+    test_logic_gates.cpp
+)
+target_include_directories(logic_gates_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(logic_gates_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(logic_gates_tests)
+
+add_executable(arithmetic_tests
+    test_arithmetic.cpp
+)
+target_include_directories(arithmetic_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(arithmetic_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(arithmetic_tests)
+
+# AZS (Circuit Breaker) component tests
+add_executable(azs_tests
+    test_azs.cpp
+)
+target_include_directories(azs_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(azs_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(azs_tests)
+
+# Logical solver tests (TDD - Comparator component)
+add_executable(logical_solver_tests
+    test_logical_solver.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
+    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
+)
+target_include_directories(logical_solver_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(logical_solver_tests PRIVATE
+    jit_solver
+    json_parser
+    blueprint_v2
+    GTest::gtest_main
+)
+gtest_discover_tests(logical_solver_tests)
+
+# Blueprint ports tests (TDD - BlueprintInput/BlueprintOutput for hierarchical blueprints)
+add_executable(blueprint_ports_tests
+    test_blueprint_ports.cpp
+)
+target_include_directories(blueprint_ports_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/jit_solver
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(blueprint_ports_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(blueprint_ports_tests)
+
+# CurrentSense (ammeter) component tests
+add_executable(current_sense_tests
+    test_current_sense.cpp
+)
+target_include_directories(current_sense_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(current_sense_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(current_sense_tests)
+
+# Bug-hunt regression tests — AotProvider sentinel, transformer physics
+add_executable(bug_hunt_regression_tests
+    test_bug_hunt_regression.cpp
+)
+target_include_directories(bug_hunt_regression_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(bug_hunt_regression_tests PRIVATE
+    json_parser
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(bug_hunt_regression_tests)
+
+# Migrated tests - now using push-state API (SimulationState.values)
+add_executable(slew_rate_tests
+    test_slew_rate.cpp
+)
+target_include_directories(slew_rate_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(slew_rate_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(slew_rate_tests)
+
+add_executable(lut_tests
+    test_lut.cpp
+)
+target_include_directories(lut_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(lut_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(lut_tests)
+
+add_executable(time_delay_tests
+    test_time_delay.cpp
+)
+target_include_directories(time_delay_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(time_delay_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(time_delay_tests)
+
+add_executable(monostable_tests
+    test_monostable.cpp
+)
+target_include_directories(monostable_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(monostable_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(monostable_tests)
+
+add_executable(sample_hold_tests
+    test_sample_hold.cpp
+)
+target_include_directories(sample_hold_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(sample_hold_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(sample_hold_tests)
+
+# Push migration mode: keep only new core tests enabled unless PUSH_MIGRATION_TESTS_ONLY is OFF.
+option(PUSH_MIGRATION_TESTS_ONLY "Build only push migration tests" ON)
+if(PUSH_MIGRATION_TESTS_ONLY)
+  return()
+endif()
 
 # UI Math tests (Phase 1.1 of UI Library Extraction)
 add_executable(ui_math_tests
@@ -689,21 +928,6 @@ target_link_libraries(editor_simulation_tests PRIVATE
 )
 gtest_discover_tests(editor_simulation_tests)
 
-# AZS (Circuit Breaker) component tests
-add_executable(azs_tests
-    test_azs.cpp
-)
-target_include_directories(azs_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(azs_tests PRIVATE
-    jit_solver
-    GTest::gtest_main
-)
-gtest_discover_tests(azs_tests)
-
 # Factory validation tests
 add_executable(factory_validation_tests
     factory_validation_test.cpp
@@ -719,43 +943,6 @@ target_link_libraries(factory_validation_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(factory_validation_tests)
-
-# Logical solver tests (TDD - Comparator component)
-add_executable(logical_solver_tests
-    test_logical_solver.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(logical_solver_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(logical_solver_tests PRIVATE
-    jit_solver
-    json_parser
-    blueprint_v2
-    GTest::gtest_main
-)
-gtest_discover_tests(logical_solver_tests)
-
-# Blueprint ports tests (TDD - BlueprintInput/BlueprintOutput for hierarchical blueprints)
-add_executable(blueprint_ports_tests
-    test_blueprint_ports.cpp
-)
-target_include_directories(blueprint_ports_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/jit_solver
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(blueprint_ports_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(blueprint_ports_tests)
 
 # Blueprint integration tests (TDD - BlueprintInput/BlueprintOutput pass-through)
 add_executable(blueprint_integration_tests
@@ -807,54 +994,6 @@ target_link_libraries(provider_pattern_tests PRIVATE
 )
 gtest_discover_tests(provider_pattern_tests)
 
-# PID controller unit tests
-add_executable(pid_tests
-    test_pid.cpp
-)
-target_include_directories(pid_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(pid_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(pid_tests)
-
-# PD controller tests
-add_executable(pd_tests
-    test_pd.cpp
-)
-target_include_directories(pd_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(pd_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(pd_tests)
-
-# Subtract tests
-add_executable(subtract_tests
-    test_subtract.cpp
-)
-target_include_directories(subtract_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(subtract_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(subtract_tests)
-
 # AsymTMO and FastTMO tests
 add_executable(asym_tmo_tests
     test_asym_tmo.cpp
@@ -870,54 +1009,6 @@ target_link_libraries(asym_tmo_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(asym_tmo_tests)
-
-# SlewRate tests
-add_executable(slew_rate_tests
-    test_slew_rate.cpp
-)
-target_include_directories(slew_rate_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(slew_rate_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(slew_rate_tests)
-
-# Logic gates tests
-add_executable(logic_gates_tests
-    test_logic_gates.cpp
-)
-target_include_directories(logic_gates_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(logic_gates_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(logic_gates_tests)
-
-# LUT (Lookup Table) tests
-add_executable(lut_tests
-    test_lut.cpp
-)
-target_include_directories(lut_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(lut_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(lut_tests)
 
 # LUT codegen tests (AOT code generation for LUT arena)
 add_executable(lut_codegen_tests
@@ -1001,22 +1092,6 @@ target_link_libraries(v_to_bool_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(v_to_bool_tests)
-
-# Arithmetic operations tests
-add_executable(arithmetic_tests
-    test_arithmetic.cpp
-)
-target_include_directories(arithmetic_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(arithmetic_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(arithmetic_tests)
 
 # PI and P controller tests
 add_executable(pi_p_tests
@@ -1184,21 +1259,21 @@ target_link_libraries(codegen_accumulator_tests PRIVATE
 )
 gtest_discover_tests(codegen_accumulator_tests)
 
-# SOR regression tests — adaptive constants, fixed-signal safety, schedule consistency
-add_executable(sor_regression_tests
-    test_sor_regression.cpp
-)
-target_include_directories(sor_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(sor_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(sor_regression_tests)
+# SOR regression tests — OBSOLETE in push migration (SOR internals removed)
+# add_executable(sor_regression_tests
+#     test_sor_regression.cpp
+# )
+# target_include_directories(sor_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(sor_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(sor_regression_tests)
 
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
 add_executable(aot_composite_tests
@@ -1278,54 +1353,6 @@ target_link_libraries(asym_slew_rate_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(asym_slew_rate_tests)
-
-# TimeDelay component tests
-add_executable(time_delay_tests
-    test_time_delay.cpp
-)
-target_include_directories(time_delay_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(time_delay_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(time_delay_tests)
-
-# Monostable component tests
-add_executable(monostable_tests
-    test_monostable.cpp
-)
-target_include_directories(monostable_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(monostable_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(monostable_tests)
-
-# SampleHold component tests
-add_executable(sample_hold_tests
-    test_sample_hold.cpp
-)
-target_include_directories(sample_hold_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(sample_hold_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(sample_hold_tests)
 
 # Integrator component tests
 add_executable(integrator_tests
@@ -1483,69 +1510,67 @@ target_link_libraries(command_tests PRIVATE
 )
 gtest_discover_tests(command_tests)
 
-# Transformer physics tests
-add_executable(transformer_tests
-    test_transformer.cpp
-)
-target_include_directories(transformer_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(transformer_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(transformer_tests)
-
-# Generator physics tests (Norton stamp regression)
-add_executable(generator_tests
-    test_generator.cpp
-)
-target_include_directories(generator_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-)
-target_link_libraries(generator_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(generator_tests)
-
-# APU mechanical tests (RU19A state machine, RPM scaling, thermal protection)
-add_executable(apu_mechanical_tests
-    test_apu_mechanical.cpp
-)
-target_include_directories(apu_mechanical_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(apu_mechanical_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(apu_mechanical_tests)
-
-# GS24 regression tests (phase separation and deterministic finalize behavior)
-add_executable(gs24_regression_tests
-    test_gs24_regression.cpp
-)
-target_include_directories(gs24_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(gs24_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(gs24_regression_tests)
+# Obsolete in push migration: these suites are SOR-internal and rely on removed
+# state arrays/stamping paths. Push equivalents live in push_runtime_regression.
+# add_executable(transformer_tests
+#     test_transformer.cpp
+# )
+# target_include_directories(transformer_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(transformer_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(transformer_tests)
+#
+# add_executable(generator_tests
+#     test_generator.cpp
+# )
+# target_include_directories(generator_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
+# )
+# target_link_libraries(generator_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(generator_tests)
+#
+# add_executable(apu_mechanical_tests
+#     test_apu_mechanical.cpp
+# )
+# target_include_directories(apu_mechanical_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(apu_mechanical_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(apu_mechanical_tests)
+#
+# add_executable(gs24_regression_tests
+#     test_gs24_regression.cpp
+# )
+# target_include_directories(gs24_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(gs24_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(gs24_regression_tests)
 
 # Radiator regression tests (BUG-Radiator: inverted heat flow)
 add_executable(radiator_regression_tests
@@ -1611,117 +1636,124 @@ target_link_libraries(electric_pump_regression_tests PRIVATE
 )
 gtest_discover_tests(electric_pump_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # ElectricHeater regression tests (BUG-23: unbounded thermal power)
-add_executable(electric_heater_regression_tests
-    test_electric_heater_regression.cpp
-)
-target_include_directories(electric_heater_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(electric_heater_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(electric_heater_regression_tests)
+# add_executable(electric_heater_regression_tests
+#     test_electric_heater_regression.cpp
+# )
+# target_include_directories(electric_heater_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(electric_heater_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(electric_heater_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # Switch regression tests (BUG-24: missing downstream_I forwarding)
-add_executable(switch_regression_tests
-    test_switch_regression.cpp
-)
-target_include_directories(switch_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(switch_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(switch_regression_tests)
+# add_executable(switch_regression_tests
+#     test_switch_regression.cpp
+# )
+# target_include_directories(switch_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(switch_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(switch_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # GidroAccumulator regression tests (gas-charged hydraulic accumulator)
-add_executable(gidro_accumulator_regression_tests
-    test_gidro_accumulator_regression.cpp
-)
-target_include_directories(gidro_accumulator_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(gidro_accumulator_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(gidro_accumulator_regression_tests)
+# add_executable(gidro_accumulator_regression_tests
+#     test_gidro_accumulator_regression.cpp
+# )
+# target_include_directories(gidro_accumulator_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(gidro_accumulator_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(gidro_accumulator_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # FuelTank regression tests (aircraft fuel reservoir with gravity head)
-add_executable(fuel_tank_regression_tests
-    test_fuel_tank_regression.cpp
-)
-target_include_directories(fuel_tank_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(fuel_tank_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(fuel_tank_regression_tests)
+# add_executable(fuel_tank_regression_tests
+#     test_fuel_tank_regression.cpp
+# )
+# target_include_directories(fuel_tank_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(fuel_tank_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(fuel_tank_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # RefNode regression tests (Norton residual self-correction)
-add_executable(refnode_regression_tests
-    test_refnode_regression.cpp
-)
-target_include_directories(refnode_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(refnode_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(refnode_regression_tests)
+# add_executable(refnode_regression_tests
+#     test_refnode_regression.cpp
+# )
+# target_include_directories(refnode_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(refnode_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(refnode_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # RUG82 regression tests (integration per SOR iteration fix)
-add_executable(rug82_regression_tests
-    test_rug82_regression.cpp
-)
-target_include_directories(rug82_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(rug82_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(rug82_regression_tests)
+# add_executable(rug82_regression_tests
+#     test_rug82_regression.cpp
+# )
+# target_include_directories(rug82_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(rug82_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(rug82_regression_tests)
 
+# Obsolete in push migration: relies on removed SOR internals
 # SolenoidValve regression tests (two-port coupling fix)
-add_executable(solenoid_valve_regression_tests
-    test_solenoid_valve_regression.cpp
-)
-target_include_directories(solenoid_valve_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(solenoid_valve_regression_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(solenoid_valve_regression_tests)
+# add_executable(solenoid_valve_regression_tests
+#     test_solenoid_valve_regression.cpp
+# )
+# target_include_directories(solenoid_valve_regression_tests PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/src/json_parser
+#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
+# )
+# target_link_libraries(solenoid_valve_regression_tests PRIVATE
+#     jit_solver
+#     json_parser
+#     GTest::gtest_main
+# )
+# gtest_discover_tests(solenoid_valve_regression_tests)
 
 # Blueprint v2 tests (Phase 0-4: Path, Interface, Blueprint, TypeRegistry, Codec)
 add_executable(bp2_path_tests
@@ -1849,37 +1881,3 @@ target_link_libraries(bp2_validation_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_validation_tests)
-
-# CurrentSense (ammeter) component tests
-add_executable(current_sense_tests
-    test_current_sense.cpp
-)
-target_include_directories(current_sense_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(current_sense_tests PRIVATE
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(current_sense_tests)
-
-# Bug-hunt regression tests — AotProvider sentinel, convergence overrun, codegen completeness
-add_executable(bug_hunt_regression_tests
-    test_bug_hunt_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-)
-target_include_directories(bug_hunt_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(bug_hunt_regression_tests PRIVATE
-    json_parser
-    jit_solver
-    GTest::gtest_main
-    spdlog::spdlog
-)
-gtest_discover_tests(bug_hunt_regression_tests)

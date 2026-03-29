@@ -11,12 +11,10 @@
 static SimulationState make_state_2in(float A_val, float B_val)
 {
     SimulationState st;
-    st.across.resize(3, 0.0f);
-    st.through.resize(3, 0.0f);
-    st.conductance.resize(3, 0.0f);
-    st.across[0] = A_val;
-    st.across[1] = B_val;
-    st.across[2] = 0.0f;
+    st.values.resize(3, 0.0f);
+    st.values[0] = A_val;
+    st.values[1] = B_val;
+    st.values[2] = 0.0f;
     return st;
 }
 
@@ -34,7 +32,7 @@ TEST(MinTest, APicksSmaller)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(MinTest, BPicksSmaller)
@@ -47,7 +45,7 @@ TEST(MinTest, BPicksSmaller)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(MinTest, EqualValues_ReturnsEither)
@@ -60,7 +58,7 @@ TEST(MinTest, EqualValues_ReturnsEither)
     auto st = make_state_2in(7.0f, 7.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 7.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
 
 TEST(MinTest, NegativeValues)
@@ -73,7 +71,7 @@ TEST(MinTest, NegativeValues)
     auto st = make_state_2in(-10.0f, -5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], -10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -10.0f);
 }
 
 TEST(MinTest, MixedSign)
@@ -86,7 +84,7 @@ TEST(MinTest, MixedSign)
     auto st = make_state_2in(-5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], -5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
 
 // =============================================================================
@@ -103,7 +101,7 @@ TEST(MaxTest, APicksLarger)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 }
 
 TEST(MaxTest, BPicksLarger)
@@ -116,7 +114,7 @@ TEST(MaxTest, BPicksLarger)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 10.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 }
 
 TEST(MaxTest, EqualValues_ReturnsEither)
@@ -129,7 +127,7 @@ TEST(MaxTest, EqualValues_ReturnsEither)
     auto st = make_state_2in(7.0f, 7.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 7.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
 
 TEST(MaxTest, NegativeValues)
@@ -142,7 +140,7 @@ TEST(MaxTest, NegativeValues)
     auto st = make_state_2in(-10.0f, -5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], -5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], -5.0f);
 }
 
 TEST(MaxTest, MixedSign)
@@ -155,7 +153,7 @@ TEST(MaxTest, MixedSign)
     auto st = make_state_2in(-5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 // =============================================================================
@@ -172,7 +170,7 @@ TEST(GreaterTest, AGreaterThanB_ReturnsOne)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(GreaterTest, ALessThanB_ReturnsZero)
@@ -185,7 +183,7 @@ TEST(GreaterTest, ALessThanB_ReturnsZero)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(GreaterTest, Equal_ReturnsZero)
@@ -198,7 +196,7 @@ TEST(GreaterTest, Equal_ReturnsZero)
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 // =============================================================================
@@ -215,7 +213,7 @@ TEST(LesserTest, ALessThanB_ReturnsOne)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(LesserTest, AGreaterThanB_ReturnsZero)
@@ -228,7 +226,7 @@ TEST(LesserTest, AGreaterThanB_ReturnsZero)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(LesserTest, Equal_ReturnsZero)
@@ -241,7 +239,7 @@ TEST(LesserTest, Equal_ReturnsZero)
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 // =============================================================================
@@ -258,7 +256,7 @@ TEST(GreaterEqTest, AGreaterThanB_ReturnsOne)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(GreaterEqTest, Equal_ReturnsOne)
@@ -271,7 +269,7 @@ TEST(GreaterEqTest, Equal_ReturnsOne)
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(GreaterEqTest, ALessThanB_ReturnsZero)
@@ -284,7 +282,7 @@ TEST(GreaterEqTest, ALessThanB_ReturnsZero)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 // =============================================================================
@@ -301,7 +299,7 @@ TEST(LesserEqTest, ALessThanB_ReturnsOne)
     auto st = make_state_2in(5.0f, 10.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(LesserEqTest, Equal_ReturnsOne)
@@ -314,7 +312,7 @@ TEST(LesserEqTest, Equal_ReturnsOne)
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(LesserEqTest, AGreaterThanB_ReturnsZero)
@@ -327,7 +325,7 @@ TEST(LesserEqTest, AGreaterThanB_ReturnsZero)
     auto st = make_state_2in(10.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 // =============================================================================
@@ -346,7 +344,7 @@ TEST(ComparisonComponents, PowerSupplySelection_OR)
     auto st = make_state_2in(24.0f, 26.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 26.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 26.0f);
 }
 
 TEST(ComparisonComponents, SafetyMonitoring_LowLimit)
@@ -362,7 +360,7 @@ TEST(ComparisonComponents, SafetyMonitoring_LowLimit)
     auto st = make_state_2in(1.5f, 2.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(ComparisonComponents, SafetyMonitoring_HighLimit)
@@ -378,7 +376,7 @@ TEST(ComparisonComponents, SafetyMonitoring_HighLimit)
     auto st = make_state_2in(120.0f, 100.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);
 }
 
 TEST(ComparisonComponents, Hysteresis_LesserEq)
@@ -393,7 +391,7 @@ TEST(ComparisonComponents, Hysteresis_LesserEq)
     auto st = make_state_2in(75.0f, 75.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);  // Turn off condition met
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // Turn off condition met
 }
 
 TEST(ComparisonComponents, Hysteresis_GreaterEq)
@@ -408,7 +406,7 @@ TEST(ComparisonComponents, Hysteresis_GreaterEq)
     auto st = make_state_2in(80.0f, 80.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);  // Turn on condition met
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // Turn on condition met
 }
 
 TEST(ComparisonComponents, Min_ProtectsAgainstLowVoltage)
@@ -423,7 +421,7 @@ TEST(ComparisonComponents, Min_ProtectsAgainstLowVoltage)
     auto st = make_state_2in(18.0f, 20.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 18.0f);  // Actually picks the smaller (unsafe)
+    EXPECT_FLOAT_EQ(st.values[2], 18.0f);  // Actually picks the smaller (unsafe)
 }
 
 TEST(ComparisonComponents, Min_LimitsMaximum)
@@ -438,7 +436,7 @@ TEST(ComparisonComponents, Min_LimitsMaximum)
     auto st = make_state_2in(35.0f, 30.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.across[2], 30.0f);  // Limited to max
+    EXPECT_FLOAT_EQ(st.values[2], 30.0f);  // Limited to max
 }
 
 // =============================================================================
@@ -454,7 +452,7 @@ TEST(ComparisonComponents, Regression_Greater_EqualValues)
 
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);  // 5 > 5 is false
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);  // 5 > 5 is false
 }
 
 TEST(ComparisonComponents, Regression_Lesser_EqualValues)
@@ -466,7 +464,7 @@ TEST(ComparisonComponents, Regression_Lesser_EqualValues)
 
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);  // 5 < 5 is false
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);  // 5 < 5 is false
 }
 
 TEST(ComparisonComponents, Regression_GreaterEq_EqualValues)
@@ -478,7 +476,7 @@ TEST(ComparisonComponents, Regression_GreaterEq_EqualValues)
 
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);  // 5 >= 5 is true
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // 5 >= 5 is true
 }
 
 TEST(ComparisonComponents, Regression_LesserEq_EqualValues)
@@ -490,7 +488,7 @@ TEST(ComparisonComponents, Regression_LesserEq_EqualValues)
 
     auto st = make_state_2in(5.0f, 5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);  // 5 <= 5 is true
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // 5 <= 5 is true
 }
 
 TEST(ComparisonComponents, Regression_NegativeValues)
@@ -502,7 +500,7 @@ TEST(ComparisonComponents, Regression_NegativeValues)
 
     auto st = make_state_2in(-3.0f, -5.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 1.0f);  // -3 > -5 is true
+    EXPECT_FLOAT_EQ(st.values[2], 1.0f);  // -3 > -5 is true
 }
 
 TEST(ComparisonComponents, Regression_Min_EqualValues)
@@ -514,7 +512,7 @@ TEST(ComparisonComponents, Regression_Min_EqualValues)
 
     auto st = make_state_2in(7.0f, 7.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 7.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }
 
 TEST(ComparisonComponents, Regression_Max_EqualValues)
@@ -526,5 +524,5 @@ TEST(ComparisonComponents, Regression_Max_EqualValues)
 
     auto st = make_state_2in(7.0f, 7.0f);
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 7.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 7.0f);
 }

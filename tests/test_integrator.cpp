@@ -22,12 +22,10 @@ static Integrator<JitProvider> make_integrator(float gain = 1.0f, float initial_
 static SimulationState make_state(float input_val, float reset_val)
 {
     SimulationState st;
-    st.across.resize(3, 0.0f);
-    st.through.resize(3, 0.0f);
-    st.conductance.resize(3, 0.0f);
-    st.across[0] = input_val;
-    st.across[1] = reset_val;
-    st.across[2] = 0.0f;
+    st.values.resize(3, 0.0f);
+    st.values[0] = input_val;
+    st.values[1] = reset_val;
+    st.values[2] = 0.0f;
     return st;
 }
 
@@ -43,7 +41,7 @@ TEST(IntegratorTest, ColdStart_StartsAtInitialValue)
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // First frame should initialize to initial_val
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
     EXPECT_FLOAT_EQ(comp.accumulator, 5.0f);
     EXPECT_FLOAT_EQ(comp.first_frame_mask, 0.0f);
 }
@@ -61,7 +59,7 @@ TEST(IntegratorTest, Integration_AccumulatesPositiveInput)
     }
 
     // Should be approximately 10.0 (10 * 1.0)
-    EXPECT_NEAR(st.across[2], 10.0f, 0.1f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.1f);
 }
 
 TEST(IntegratorTest, Integration_AccumulatesNegativeInput)
@@ -77,7 +75,7 @@ TEST(IntegratorTest, Integration_AccumulatesNegativeInput)
     }
 
     // Should be approximately 90.0 (100 + (-5 * 2.0))
-    EXPECT_NEAR(st.across[2], 90.0f, 0.1f);
+    EXPECT_NEAR(st.values[2], 90.0f, 0.1f);
 }
 
 TEST(IntegratorTest, Reset_ZerosAccumulator)
@@ -92,14 +90,14 @@ TEST(IntegratorTest, Reset_ZerosAccumulator)
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    EXPECT_GT(st.across[2], 5.0f);
+    EXPECT_GT(st.values[2], 5.0f);
 
     // Reset
-    st.across[1] = 1.0f;
+    st.values[1] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Should be zero
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
     EXPECT_FLOAT_EQ(comp.accumulator, 0.0f);
 }
 
@@ -115,7 +113,7 @@ TEST(IntegratorTest, ResetWhileHigh_StaysZero)
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(IntegratorTest, ResetReleased_ResumesIntegration)
@@ -129,10 +127,10 @@ TEST(IntegratorTest, ResetReleased_ResumesIntegration)
     for (int i = 0; i < 30; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 
     // Release reset
-    st.across[1] = 0.0f;
+    st.values[1] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Now should accumulate (59 more frames after reset release)
@@ -140,7 +138,7 @@ TEST(IntegratorTest, ResetReleased_ResumesIntegration)
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    EXPECT_NEAR(st.across[2], 10.0f, 0.1f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.1f);
 }
 
 TEST(IntegratorTest, Gain_ScalesIntegration)
@@ -156,7 +154,7 @@ TEST(IntegratorTest, Gain_ScalesIntegration)
     }
 
     // Should be approximately 20.0 (10 * 2 * 1.0)
-    EXPECT_NEAR(st.across[2], 20.0f, 0.1f);
+    EXPECT_NEAR(st.values[2], 20.0f, 0.1f);
 }
 
 TEST(IntegratorTest, NegativeGain_InvertsIntegration)
@@ -172,7 +170,7 @@ TEST(IntegratorTest, NegativeGain_InvertsIntegration)
     }
 
     // Should be approximately 90.0 (100 + (10 * -1 * 1.0))
-    EXPECT_NEAR(st.across[2], 90.0f, 0.1f);
+    EXPECT_NEAR(st.values[2], 90.0f, 0.1f);
 }
 
 TEST(IntegratorTest, ZeroGain_NoAccumulation)
@@ -188,7 +186,7 @@ TEST(IntegratorTest, ZeroGain_NoAccumulation)
     }
 
     // Should stay at initial value
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(IntegratorTest, VariableDt_AdaptsIntegration)
@@ -202,7 +200,7 @@ TEST(IntegratorTest, VariableDt_AdaptsIntegration)
     comp.solve_logical(st, 0.5f);
 
     // Should accumulate 10 * 0.5 = 5.0 (plus tiny bit from cold start frame)
-    EXPECT_NEAR(st.across[2], 5.0f, 0.2f);
+    EXPECT_NEAR(st.values[2], 5.0f, 0.2f);
 }
 
 TEST(IntegratorTest, ZeroDt_NoAccumulation)
@@ -212,7 +210,7 @@ TEST(IntegratorTest, ZeroDt_NoAccumulation)
 
     comp.solve_logical(st, 1.0f / 60.0f);
 
-    float before_pause = st.across[2];
+    float before_pause = st.values[2];
 
     // Pause
     for (int i = 0; i < 10; ++i) {
@@ -220,7 +218,7 @@ TEST(IntegratorTest, ZeroDt_NoAccumulation)
     }
 
     // Should not have changed
-    EXPECT_FLOAT_EQ(st.across[2], before_pause);
+    EXPECT_FLOAT_EQ(st.values[2], before_pause);
 }
 
 TEST(IntegratorTest, ZeroInput_NoAccumulation)
@@ -236,7 +234,7 @@ TEST(IntegratorTest, ZeroInput_NoAccumulation)
     }
 
     // Should stay at initial value
-    EXPECT_FLOAT_EQ(st.across[2], 5.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
 
 TEST(IntegratorTest, Precision_MaintainedOverTime)
@@ -252,7 +250,7 @@ TEST(IntegratorTest, Precision_MaintainedOverTime)
     }
 
     // Should be 60.0 (1000 * 0.001 * 60)
-    EXPECT_NEAR(st.across[2], 60.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 60.0f, 0.5f);
 }
 
 TEST(IntegratorTest, FuelConsumption_RealisticUseCase)
@@ -272,16 +270,16 @@ TEST(IntegratorTest, FuelConsumption_RealisticUseCase)
     }
 
     // Should be approximately 95.0L (100 + (-0.5) * 10)
-    EXPECT_NEAR(st.across[2], 95.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 95.0f, 0.5f);
 
     // Increase consumption to 1.0 L/sec (599 more frames)
-    st.across[0] = -1.0f;
+    st.values[0] = -1.0f;
     for (int i = 0; i < 599; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
     // Should be approximately 85.0L (95 + (-1.0) * 10)
-    EXPECT_NEAR(st.across[2], 85.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 85.0f, 0.5f);
 }
 
 TEST(IntegratorTest, BatteryCharge_RealisticUseCase)
@@ -302,7 +300,7 @@ TEST(IntegratorTest, BatteryCharge_RealisticUseCase)
     }
 
     // Should be approximately 600 A-sec (10A * 60sec)
-    EXPECT_NEAR(st.across[2], 600.0f, 1.0f);
+    EXPECT_NEAR(st.values[2], 600.0f, 1.0f);
 }
 
 TEST(IntegratorTest, WearAccumulation_RealisticUseCase)
@@ -322,7 +320,7 @@ TEST(IntegratorTest, WearAccumulation_RealisticUseCase)
     }
 
     // Should be approximately 48 seconds of wear (0.8 * 60sec)
-    EXPECT_NEAR(st.across[2], 48.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 48.0f, 0.5f);
 }
 
 TEST(IntegratorTest, BooleanThreshold_Reset)
@@ -337,17 +335,17 @@ TEST(IntegratorTest, BooleanThreshold_Reset)
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
-    EXPECT_GT(st.across[2], 5.0f);
+    EXPECT_GT(st.values[2], 5.0f);
 
     // Below threshold (no reset)
-    st.across[1] = 0.4f;
+    st.values[1] = 0.4f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_GT(st.across[2], 5.0f);
+    EXPECT_GT(st.values[2], 5.0f);
 
     // Above threshold (reset)
-    st.across[1] = 0.6f;
+    st.values[1] = 0.6f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(IntegratorTest, LargeDt_Clip)
@@ -361,7 +359,7 @@ TEST(IntegratorTest, LargeDt_Clip)
     comp.solve_logical(st, 10.0f);
 
     // Should handle gracefully
-    EXPECT_NEAR(st.across[2], 10.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 }
 
 TEST(IntegratorTest, MultipleResets)
@@ -375,29 +373,29 @@ TEST(IntegratorTest, MultipleResets)
     for (int i = 0; i < 30; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    float acc1 = st.across[2];
+    float acc1 = st.values[2];
     EXPECT_GT(acc1, 0.0f);
 
     // First reset
-    st.across[1] = 1.0f;
+    st.values[1] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 
     // Release reset
-    st.across[1] = 0.0f;
+    st.values[1] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
 
     // Second accumulation
     for (int i = 0; i < 30; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    float acc2 = st.across[2];
+    float acc2 = st.values[2];
     EXPECT_NEAR(acc2, acc1, 0.01f);
 
     // Second reset
-    st.across[1] = 1.0f;
+    st.values[1] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(IntegratorTest, NegativeInputCrossesZero)
@@ -413,8 +411,8 @@ TEST(IntegratorTest, NegativeInputCrossesZero)
     }
 
     // Should cross zero and go negative
-    EXPECT_LT(st.across[2], 0.0f);
-    EXPECT_NEAR(st.across[2], -10.0f, 0.5f);
+    EXPECT_LT(st.values[2], 0.0f);
+    EXPECT_NEAR(st.values[2], -10.0f, 0.5f);
 }
 
 TEST(IntegratorTest, AlternatingInput_CorrectIntegration)
@@ -428,21 +426,21 @@ TEST(IntegratorTest, AlternatingInput_CorrectIntegration)
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_NEAR(st.across[2], 10.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 
     // Negative for 1 second
-    st.across[0] = -10.0f;
+    st.values[0] = -10.0f;
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_NEAR(st.across[2], 0.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 0.0f, 0.5f);
 
     // Positive again for 1 second
-    st.across[0] = 10.0f;
+    st.values[0] = 10.0f;
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_NEAR(st.across[2], 10.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 }
 
 TEST(IntegratorTest, ResetDoesNotAffectFirstFrameMask)
@@ -459,7 +457,7 @@ TEST(IntegratorTest, ResetDoesNotAffectFirstFrameMask)
     for (int i = 0; i < 10; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
 
 TEST(IntegratorTest, IntegrationContinuesAfterReset)
@@ -473,20 +471,20 @@ TEST(IntegratorTest, IntegrationContinuesAfterReset)
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
-    EXPECT_NEAR(st.across[2], 10.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 
     // Reset
-    st.across[1] = 1.0f;
+    st.values[1] = 1.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
-    EXPECT_FLOAT_EQ(st.across[2], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 
     // Release reset and continue
-    st.across[1] = 0.0f;
+    st.values[1] = 0.0f;
     comp.solve_logical(st, 1.0f / 60.0f);
     for (int i = 0; i < 60; ++i) {
         comp.solve_logical(st, 1.0f / 60.0f);
     }
 
     // Should have accumulated again
-    EXPECT_NEAR(st.across[2], 10.0f, 0.5f);
+    EXPECT_NEAR(st.values[2], 10.0f, 0.5f);
 }
