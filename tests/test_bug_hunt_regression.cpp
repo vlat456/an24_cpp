@@ -4,7 +4,7 @@
 /// BUG-TransformerSignLoss: Transformer reflected voltage lost sign for negative ratio
 ///
 /// NOTE: BUG-CodegenFinalizePhase and BUG-CodegenRefNode tests removed - they test
-/// AOT codegen behavior which still uses the legacy SOR model. These will be restored
+/// AOT codegen behavior which still uses the legacy iterative model. These will be restored
 /// once the codegen is migrated to the push model.
 
 #include <gtest/gtest.h>

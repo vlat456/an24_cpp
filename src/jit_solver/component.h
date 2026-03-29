@@ -38,7 +38,7 @@ public:
         solve_electrical(state, dt);
     }
 
-    /// Stage 2: explicit phase hook - post-SOR electrical observation path
+    /// Stage 2: explicit phase hook - push electrical observation path
     virtual void observe_electrical(SimulationState& state, float dt) {}
 
     /// Stage 2: explicit phase hook - control edge/state commit path

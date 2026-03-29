@@ -14,7 +14,7 @@ enum class PortNames : uint32_t;
 // =============================================================================
 
 /// AOT Provider - compile-time constexpr port index lookup
-/// Generates direct array access: state.across[0] instead of state.across[this->v_in_idx]
+/// Generates direct array access: state.values[0] instead of state.values[this->v_in_idx]
 template <PortNames P, uint32_t Idx>
 struct Binding {
     static constexpr PortNames key = P;

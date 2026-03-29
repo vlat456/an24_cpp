@@ -31,7 +31,7 @@ ExecutionPhases make_execution(
 
 } // namespace
 
-// DISABLED: AOT codegen smoke test checking for SOR-specific method names.
+// DISABLED: AOT codegen smoke test checking for legacy solver-specific method names.
 // In push model, codegen may use different method names or execution ordering,
 // causing these string searches to fail. This test validates codegen output
 // format rather than functional equivalence.

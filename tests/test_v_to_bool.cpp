@@ -231,7 +231,7 @@ TEST(V_to_BoolComparisonTest, AnyVsPositiveOnZeroVoltage) {
 // NaN/Inf Robustness Tests — Any_V_to_Bool
 // =============================================================================
 // These verify the std::isfinite guard: NaN and Inf must be treated as FALSE
-// to prevent SOR-produced non-finite values from collapsing the logic tree.
+// to prevent legacy solver-produced non-finite values from collapsing the logic tree.
 
 TEST(Any_V_to_BoolTest, NaN_TreatedAsFalse) {
     auto comp = make_any_v_to_bool();

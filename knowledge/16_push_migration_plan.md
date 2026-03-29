@@ -2,7 +2,7 @@
 
 ## Context
 
-Current SOR solver has fundamental limitations for game-scale simulation:
+Current legacy iterative solver has fundamental limitations for game-scale simulation:
 - Conducts ~15000 iterations/frame (60Hz) to converge
 - CurrentSense conductance must balance circuit influence vs node coupling
 - Ideal ammeter/impedance measurements are impossible
@@ -13,7 +13,7 @@ For MSFS/FlightGear grade simulation, accuracy target is 0.1V — much lower tha
 ## Target Architecture
 
 ### What Changes
-- Remove SOR solver entirely
+- Remove legacy iterative solver entirely
 - Components execute in topological/explicit order
 - No matrix assembly, no iterations per frame
 - Simple frame-by-frame propagation
@@ -71,7 +71,7 @@ For feedback loops (PI controller), do 1-4 iterations per frame.
 
 ## Implementation Phases
 
-Note for work on branch `push_migration`: temporary full breakage is acceptable during migration, and obsolete SOR-era tests/files may be deleted as part of the rewrite.
+Note for work on branch `push_migration`: temporary full breakage is acceptable during migration, and obsolete legacy iterative-era tests/files may be deleted as part of the rewrite.
 
 ### Phase 1: Core Infrastructure
 
@@ -87,7 +87,7 @@ enum class ExecPhase {
 };
 ```
 
-**1.2 Remove SOR from SimulationState**
+**1.2 Remove legacy solver from SimulationState**
 
 ```cpp
 struct SimulationState {
@@ -95,7 +95,7 @@ struct SimulationState {
     std::vector<float> through; // Flows (I, Q, H) - write by loads
     
     // REMOVE: conductance, inv_conductance
-    // REMOVE: SOR iteration functions
+    // REMOVE: iteration functions
 };
 ```
 
@@ -281,26 +281,26 @@ TEST(GSC, Stabilization) {
 ```
 
 **Performance baseline:**
-- Current: 900k SOR iterations/sec
+- Current: 900k iterations/sec
 - Target: <10k component executions/sec (60Hz × 100 components × 2 iterations)
 
-## Comparison: SOR vs Push
+## Comparison: Legacy Solver vs Push
 
-| Aspect | SOR | Push |
+| Aspect | Legacy Iterative | Push |
 |--------|-----|------|
 | Convergence | Iterative (15000 iter/frame) | Direct |
 | Accuracy | Scientific | Game-grade (0.1V) |
 | Circuit effects | Accurate (requires tuning) | Approximate |
 | CurrentSense | Balances conductance | Reads through[] |
 | Setup complexity | Matrix assembly | Component phases |
-| Debugging | SOR convergence issues | Execution order issues |
+| Debugging | Convergence issues | Execution order issues |
 | Parallelization | Limited | Embarrassingly parallel |
 
 ## Migration Risks
 
 ### Risk 1: Feedback Loop Instability
 
-**Problem:** Without SOR iterations, feedback loops may not converge.
+**Problem:** Without iterative convergence, feedback loops may not settle.
 
 **Mitigation:**
 - Run 2-4 iterations per frame
@@ -318,16 +318,16 @@ TEST(GSC, Stabilization) {
 
 ### Risk 3: Breaking AOT Codegen
 
-**Problem:** AOT generates direct C++ calls, assumes SOR.
+**Problem:** AOT generates direct C++ calls, assumes iterative solver.
 
 **Mitigation:**
 - Update codegen templates
 - Test JIT/AOT parity with new scheduler
-- AOT actually simpler without SOR — direct function calls
+- AOT actually simpler without iteration — direct function calls
 
 ### Risk 4: Missing Features
 
-**Problem:** Some behaviors relied on SOR (e.g., voltage division through multiple nodes).
+**Problem:** Some behaviors relied on iterative solver (e.g., voltage division through multiple nodes).
 
 **Mitigation:**
 - Identify during testing
@@ -338,7 +338,7 @@ TEST(GSC, Stabilization) {
 
 ### Core Changes
 
-1. `src/jit_solver/state.h` - Remove SOR, simplify
+1. `src/jit_solver/state.h` - Remove iteration, simplify
 2. `src/jit_solver/scheduler.h` - New PushScheduler
 3. `src/jit_solver/jit_solver.h` - Use PushScheduler
 
@@ -359,8 +359,8 @@ TEST(GSC, Stabilization) {
 
 ### Remove
 
-10. `src/jit_solver/sor.cpp` - Delete
-11. `src/jit_solver/SOR_constants.h` - Delete
+10. `src/jit_solver/sor.cpp` - Delete (if exists)
+11. `src/jit_solver/SOR_constants.h` - Does not exist
 
 ## Implementation Order
 
@@ -372,7 +372,7 @@ TEST(GSC, Stabilization) {
 6. Migrate controllers
 7. Implement feedback loop iterations
 8. Full GSC integration test
-9. Remove SOR code
+9. Remove iteration code
 10. Performance verification
 
 ## Success Criteria
@@ -381,7 +381,7 @@ TEST(GSC, Stabilization) {
 - Accuracy within 0.1V
 - CurrentSense reads correct current
 - Load connection/disconnection works
-- 10x faster than SOR (target: <100μs/frame)
+- 10x faster than legacy solver (target: <100μs/frame)
 - All existing tests pass
 - JIT/AOT parity maintained
 

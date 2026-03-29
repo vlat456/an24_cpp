@@ -40,7 +40,7 @@ Blueprint V2 uses copy-on-write semantics:
 SimulationState stores physics data in separate arrays:
 - `across[]` - potentials (voltage, pressure, temperature)
 - `through[]` - flows (current, flow rate, heat flux)
-- `conductance[]` - accumulated conductances for SOR solver
+- `conductance[]` - accumulated conductances for circuit solver
 
 ### 4. Domain-Based Scheduling
 Components run at different frequencies based on physics domain:
@@ -103,7 +103,7 @@ For each frame (60 Hz):
   4. If step % 3 == 0: solve_mechanical() (20 Hz)
   5. If step % 12 == 0: solve_hydraulic() (5 Hz)
   6. If step % 60 == 0: solve_thermal() (1 Hz)
-  7. SOR iteration: across += through * inv_conductance * omega
+  7. Push update: across += through * inv_conductance
   8. For each component: finalize_step()
 ```
 
@@ -122,5 +122,5 @@ For each frame (60 Hz):
 
 ## Related Knowledge Notes
 
-- `knowledge/sor_optimization.md` - practical solver tuning guidance
+
 - `knowledge/component_authoring.md` - rules for writing stable components

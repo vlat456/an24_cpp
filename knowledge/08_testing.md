@@ -147,11 +147,8 @@ static void run_steps(SimulationState& st, std::vector<ComponentVariant>& comps,
     for (int i = 0; i < n; ++i) {
         st.clear_through();
         for (auto& c : comps) {
-            std::visit([&](auto& comp) { comp.solve_electrical(st, 1.0f/60.0f); }, c);
+            std::visit([&](auto& comp) { comp.execute(st, 1.0f/60.0f); }, c);
         }
-        st.precompute_inv_conductance();
-        solve_sor_iteration(st.across.data(), st.through.data(),
-                           st.inv_conductance.data(), st.dynamic_signals_count, 1.3f);
     }
 }
 ```

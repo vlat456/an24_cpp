@@ -31,7 +31,7 @@ int main() {
 
     std::cout << "\n╔════════════════════════════════════════════════════════╗\n";
     std::cout << "║  ✅ AotProvider generates compile-time constants!    ║\n";
-    std::cout << "║  This means: st->across[0] instead of indirect!      ║\n";
+    std::cout << "║  This means: st->values[0] instead of indirect!      ║\n";
     std::cout << "╚════════════════════════════════════════════════════════╝\n";
 
     return 0;

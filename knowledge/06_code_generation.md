@@ -63,15 +63,13 @@ Generated runtime emits an explicit phase scheduler aligned with JIT:
 
 ```cpp
 void GeneratedSystems::step_0(void* state, float dt) {
-    // 1) passive electrical stamp
-    // 2) first SOR
-    // 3) observers
-    // 4) logical
-    // 5) control commit
-    // 6) electrical actuators
-    // 7) second SOR
-    // 8) sub-rate domain ticks (accumulated dt + catch-up)
-    // 9) finalize
+    // 1) passive electrical execute
+    // 2) observers
+    // 3) logical
+    // 4) control commit
+    // 5) electrical actuators
+    // 6) sub-rate domain ticks (accumulated dt + catch-up)
+    // 7) finalize
 }
 ```
 

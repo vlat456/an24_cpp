@@ -249,7 +249,7 @@ TEST(SimulationTest, BatteryVoltageConverges) {
     Simulator<JIT_Solver> sim;
     sim.start_from_json(sim_test_json::from_blueprint(bp));
 
-    // Run enough steps for SOR convergence
+    // Run enough steps for convergence
     for (int i = 0; i < 200; i++) sim.step(0.016f);
 
     float v_bat = sim.get_wire_voltage("bat.v_out");
@@ -258,7 +258,7 @@ TEST(SimulationTest, BatteryVoltageConverges) {
     EXPECT_LT(v_bat, 50.0f) << "Voltage should be reasonable";
 }
 
-// DISABLED: SOR-specific test expecting RefNode to force voltage to 0V.
+// DISABLED: legacy solver-specific test expecting RefNode to force voltage to 0V.
 // In push model, RefNode broadcasts but does not force; ground may float
 // based on source/consumer ordering without iteration.
 TEST(SimulationTest, DISABLED_GroundRemainsZero) {
@@ -296,7 +296,7 @@ TEST(SimulationTest, GetPortValue_UnknownReturnsZero) {
 }
 
 // ─── Wire energized detection ───
-// DISABLED: SOR-specific test expecting ground wire to read 0V.
+// DISABLED: legacy solver-specific test expecting ground wire to read 0V.
 // In push model without iteration, ground may float to 28V because
 // RefNode broadcasts (not forces) and battery drives the circuit.
 TEST(SimulationTest, DISABLED_WireIsEnergized_ActiveCircuit) {
@@ -507,7 +507,7 @@ TEST(SimulationTest, Merger_AllPortsSameSignal) {
     EXPECT_NEAR(v_i2, v_o, 1e-6f) << "Merger i2 and o must be same signal";
 }
 
-// DISABLED: SOR-specific test for Splitter alias passthrough behavior.
+// DISABLED: legacy solver-specific test for Splitter alias passthrough behavior.
 // In push model, Splitter outputs o1/o2 do not automatically mirror input i
 // because push uses explicit signal propagation rather than union-find aliases.
 TEST(SimulationTest, DISABLED_Splitter_DefaultPortsDoNotOutputZero) {
@@ -569,7 +569,7 @@ TEST(SimulationTest, DISABLED_Splitter_DefaultPortsDoNotOutputZero) {
 }
 
 // =============================================================================
-// NaN regression: floating chain endpoint diverges with SOR omega=1.8
+// NaN regression: floating chain endpoint diverges with omega=1.8
 // =============================================================================
 
 TEST(SimulationTest, NaN_Regression_FloatingChainDoesNotExplode) {

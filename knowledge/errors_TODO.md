@@ -6,30 +6,30 @@
 **Commit:** this session
 
 **Problem:** Logical components (Subtract, Add, etc.) ran only once, before the
-actuator SOR pass (Phase 4). When a logical node read a signal produced by a
+actuator pass (Phase 4). When a logical node read a signal produced by a
 `ControlledVoltageSource` (electrical_actuator, stamped in Phase 6), it saw 0V
 instead of the converged voltage. This caused `Subtract.B = 0` in the GSC blueprint
 when `sub.B` was wired through a Splitter to `cvs.v_pos`.
 
 **Root cause:** The Splitter aliases all its ports (`i`, `o1`, `o2`) to one signal
 via union-find. When this signal is also the CVS `v_pos` node, it participates in
-the electrical passive SOR (Phase 2) where parasitic conductance drains it to ~0.
+the electrical passive pass (Phase 2) where parasitic conductance drains it to ~0.
 The CVS only stamps its value in Phase 6 (actuator), but logical ran in Phase 4 —
 too early to see the converged value.
 
 **Fix:** Run the logical bucket **twice per step**:
-- **Pass 1 (Phase 4):** Before actuator SOR — feeds actuator `cmd` inputs
+- **Pass 1 (Phase 4):** Before actuator pass — feeds actuator `cmd` inputs
   (e.g., Multiply → CVS.cmd). Maintains zero-latency closed-loop control.
-- **Pass 2 (Phase 7):** After actuator SOR — reads converged actuator outputs
+- **Pass 2 (Phase 7):** After actuator pass — reads converged actuator outputs
   (e.g., Subtract reads CVS.v_pos through Splitter). Fixes the Subtract bug.
 
 **Pipeline (9 phases):**
 1. Passive electrical stamp
-2. SOR #1
+2. First electrical pass
 3. Electrical observers
 4. **Logical pass 1** (feeds actuators)
 5. Control commit
-6. Actuator stamp + SOR #2
+6. Actuator stamp + second electrical pass
 7. **Logical pass 2** (reads converged actuator outputs)
 8. Sub-rate domains (mechanical/hydraulic/thermal)
 9. Finalize
@@ -44,6 +44,36 @@ too early to see the converged value.
 ---
 
 ## Resolved
+
+### ~~15. Full Test Suite Migration to Push Runtime~~ ✓ COMPLETED (with explicit deprecations)
+
+**Status:** Full OFF-mode suite builds and runs.
+
+- `build_fulltests` with `-DPUSH_MIGRATION_TESTS_ONLY=OFF`: **1445/1445 passed**
+- Push safety suite (`PushRuntime|PushBuildValidation|push_state|push_scheduler`): **35/35 passed**
+
+#### Explicitly deprecated legacy solver-internal suites (disabled in `tests/CMakeLists.txt`)
+
+These suites validate legacy solver internals or removed state arrays/stamping paths and are not meaningful in push architecture:
+
+| Suite | Reason |
+|---|---|
+| `transformer_tests` | legacy iterative-era per-iteration/stamp assumptions |
+| `generator_tests` | legacy solver residual/stamp behavior |
+| `apu_mechanical_tests` | legacy iterative-era state-array coupling assumptions |
+| `gs24_regression_tests` | legacy iterative-era state-array coupling assumptions |
+| `electric_heater_regression_tests` | Removed `across/through/conductance` internals |
+| `switch_regression_tests` | Removed legacy solver downstream passback internals |
+| `gidro_accumulator_regression_tests` | Removed legacy solver matrix/stamp assumptions |
+| `fuel_tank_regression_tests` | Removed legacy solver matrix/stamp assumptions |
+| `refnode_regression_tests` | Removed legacy solver residual assumptions |
+| `rug82_regression_tests` | Removed legacy solver iteration semantics |
+| `solenoid_valve_regression_tests` | Removed two-port legacy solver coupling semantics |
+| `legacy_regression_tests` | Entirely legacy solver-specific by design |
+
+Push-era equivalents are covered by `push_runtime_regression_tests` and migration-specific validation suites.
+
+---
 
 ### ~~12. Scheduler Refactor - Next Execution Plan~~ ✓ COMPLETED
 **Commits:** `e3d2a9c`, `0df46d2`, `dbdf328`, `e9a079c`
@@ -82,7 +112,7 @@ too early to see the converged value.
 ### ~~4. Magic Numbers in Domain Scheduling~~ ✓ FIXED
 **Commit:** `1a0dcee`
 
-All scheduling constants centralized in `SOR_constants.h` under `DomainSchedule` namespace.
+All scheduling constants centralized in codegen under `DomainSchedule` namespace.
 `systems.h` bucket array sizes now reference `DomainSchedule::*_PERIOD` instead of literals.
 
 ---
@@ -189,7 +219,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 **Problem:** The signal remap places fixed signals at `[N_dyn..N_total-1)` and sentinel
 at `[N_total-1]`. But the simulator allocates signals sequentially and marks sentinel as
 dynamic (not in `fixed_signals`), causing `dynamic_signals_count` to advance past fixed
-signals. The SOR then iterates over fixed signals with parasitic conductance — harmless
+signals. The legacy solver then iterates over fixed signals with parasitic conductance — harmless
 for RefNodes at constant voltage, but architecturally imprecise.
 
 **Fix Options:**
@@ -197,7 +227,7 @@ for RefNodes at constant voltage, but architecturally imprecise.
 - Or have the simulator allocate sentinel as `is_fixed = true`
 - Or remap sentinel to be the LAST dynamic signal (before fixed range)
 
-**Impact:** Low (functionally correct, just wasteful SOR work on fixed nodes)
+**Impact:** Low (functionally correct in push model)
 
 ---
 

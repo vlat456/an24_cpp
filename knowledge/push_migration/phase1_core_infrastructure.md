@@ -9,16 +9,16 @@ Every step in this phase follows red-green TDD:
 
 No implementation code is written before its test exists and fails.
 
-On branch `push_migration`, temporary full breakage is acceptable while migrating core infrastructure, and obsolete SOR-era tests/files may be deleted during the rewrite.
+On branch `push_migration`, temporary full breakage is acceptable while migrating core infrastructure, and obsolete legacy iterative-era tests/files may be deleted during the rewrite.
 
 ## Prerequisites
 
 - New git branch `push-propagation` created from current HEAD
-- This is a **clean rewrite** - no SOR fallbacks, no compatibility shims, no `if (use_push)` switches
+- This is a **clean rewrite** - no legacy solver fallbacks, no compatibility shims, no `if (use_push)` switches
 
 ## Overview
 
-Replace the SOR-based simulation core with push propagation infrastructure:
+Replace the iterative solver-based simulation core with push propagation infrastructure:
 - Simplify `SimulationState` to a single `values[]` array
 - Create `PushScheduler` with two-bucket execution
 - Update `build_systems_dev()` to produce push-compatible output
@@ -170,13 +170,13 @@ uint32_t SimulationState::allocate_signal(float initial_value, SignalType type) 
 - `void save_convergence_state()` -> DELETE
 - `bool has_converged(float)` -> DELETE
 - `float get_max_change()` -> DELETE
-- `AOT_ALWAYS_INLINE void solve_sor_iteration(...)` -> DELETE
+- `AOT_ALWAYS_INLINE void solve_iterative_relaxation(...)` -> DELETE
 - `AOT_ALWAYS_INLINE void stamp_two_port(...)` -> DELETE
 - `AOT_ALWAYS_INLINE void stamp_one_port_ground(...)` -> DELETE
 - `AOT_ALWAYS_INLINE void stamp_current_source(...)` -> DELETE
 - `AOT_ALWAYS_INLINE void stamp_voltage_source(...)` -> DELETE
 
-All stamping helpers are SOR-only and must be deleted, not kept "just in case".
+All stamping helpers are legacy solver-only and must be deleted, not kept "just in case".
 
 ### Verify
 
@@ -383,23 +383,23 @@ cd build && ctest -R push_scheduler --output-on-failure
 
 ---
 
-## Step 1.3: Delete SOR Infrastructure
+## Step 1.3: Delete Legacy Solver Infrastructure
 
 ### Test First (RED)
 
-Create test file: `tests/test_no_sor.cpp`
+Create test file: `tests/test_no_legacy_solver.cpp`
 
 ```cpp
 #include <gtest/gtest.h>
 #include <fstream>
 #include <filesystem>
 
-TEST(NoSOR, SORConstantsFileDeleted) {
-    EXPECT_FALSE(std::filesystem::exists("../src/jit_solver/SOR_constants.h"))
-        << "SOR_constants.h must be deleted";
+TEST(NoLegacySolver, LegacySolverConstantsFileDeleted) {
+    EXPECT_FALSE(std::filesystem::exists("../src/jit_solver/legacy_solver_constants"))
+        << "SOR_constants.h must not exist";
 }
 
-TEST(NoSOR, NoSORReferencesInState) {
+TEST(NoLegacySolver, NoLegacySolverReferencesInState) {
     // If state.h compiles without SOR_constants.h, this test passes implicitly
     // The build system validates this.
     SUCCEED();
@@ -412,7 +412,7 @@ TEST(NoSOR, NoSORReferencesInState) {
 - `src/jit_solver/SOR_constants.h`
 
 **Delete these structs/classes/functions from their files:**
-- From `execution_traits.h`: DELETE entire file (9-phase traits are SOR-specific)
+- From `execution_traits.h`: DELETE entire file (9-phase traits are legacy solver-specific)
 - From `scheduling.h`: Remove `should_run_on_step()` and `DomainSchedule` references. Keep `parse_domain()`, `get_domain_frequency()`, `get_domain_name()`, `get_domain_mask_string()`.
 - From `jit_solver.h`: Remove `PhaseComponents` struct entirely. Remove `phase_components` field from `BuildResult`.
 
@@ -522,12 +522,10 @@ TEST(PushSimulator, BatteryOutputsVoltage) {
     EXPECT_NEAR(v, 24.0f, 0.5f);
 }
 
-TEST(PushSimulator, NoPhasesNoSOR) {
-    // Verify step() does NOT call any SOR functions
-    // This is validated by the fact that SOR_constants.h is deleted
-    // and the code compiles and runs.
-    JIT_Simulator sim;
-    // No crash = no SOR dependency
+TEST(PushSimulator, NoPhasesNoLegacySolver) {
+    // Verify step() does NOT call any legacy solver functions
+    // This is validated by the fact that SOR_constants.h does not exist
+    // No crash = no legacy solver dependency
     SUCCEED();
 }
 ```
@@ -552,7 +550,7 @@ Remove these fields:
 - `float get_last_pass1_error()`
 - `float get_last_pass2_error()`
 
-Remove `#include "SOR_constants.h"`.
+Remove `#include "SOR_constants.h"` (file does not exist).
 
 Keep:
 - `accumulator_mechanical_`, `accumulator_hydraulic_`, `accumulator_thermal_` (sub-rate domains stay)
@@ -603,7 +601,7 @@ cmake --build build -j$(nproc)
 cd build && ctest -R "push_" --output-on-failure
 ```
 
-All push tests pass. Build succeeds with no SOR references.
+All push tests pass. Build succeeds with no legacy solver references.
 
 ---
 
@@ -688,14 +686,14 @@ cd build && ctest -R push_ --output-on-failure
 
 | File | Action |
 |------|--------|
-| `src/jit_solver/state.h` | Rewrite: single `values[]`, delete SOR arrays and helpers |
+| `src/jit_solver/state.h` | Rewrite: single `values[]`, delete legacy arrays and helpers |
 | `src/jit_solver/state.cpp` | Rewrite: simple allocate_signal only |
 | `src/jit_solver/scheduler.h` | NEW: PushScheduler with two buckets |
-| `src/jit_solver/simulator.h` | Simplify: remove SOR fields, remove SOR_constants include |
-| `src/jit_solver/simulator.cpp` | Rewrite step(): single-pass push, no SOR |
+| `src/jit_solver/simulator.h` | Simplify: remove iteration fields, remove constants include |
+| `src/jit_solver/simulator.cpp` | Rewrite step(): single-pass push |
 | `src/jit_solver/jit_solver.h` | Remove PhaseComponents, add scheduler to BuildResult |
 | `src/jit_solver/jit_solver.cpp` | Populate scheduler in build_systems_dev() |
-| `src/jit_solver/SOR_constants.h` | DELETE |
+| `src/jit_solver/SOR_constants.h` | DELETE (done in Phase 1) |
 | `src/jit_solver/execution_traits.h` | DELETE |
 | `tests/test_push_state.cpp` | NEW |
 | `tests/test_push_scheduler.cpp` | NEW |
@@ -708,7 +706,7 @@ cd build && ctest -R push_ --output-on-failure
 - [ ] `ctest -R push_state` passes
 - [ ] `ctest -R push_scheduler` passes
 - [ ] `ctest -R push_simulator` passes
-- [ ] `SOR_constants.h` deleted
+- [ ] `SOR_constants.h` does not exist
 - [ ] `execution_traits.h` deleted
-- [ ] No reference to `SOR::`, `stamp_two_port`, `solve_sor_iteration`, `conductance`, `through` in any source file
+- [ ] No reference to legacy solver internals in any source file
 - [ ] `cd build && ctest` reports 0 failures across ALL tests (existing tests updated as needed)

@@ -1201,7 +1201,7 @@ target_link_libraries(properties_window_tests PRIVATE
 )
 gtest_discover_tests(properties_window_tests)
 
-# DT regression tests — FPS-independent physics, SOR constants, accumulator correctness
+# DT regression tests — FPS-independent physics, legacy solver constants, accumulator correctness
 add_executable(dt_regression_tests
     test_dt_regression.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
@@ -1258,22 +1258,6 @@ target_link_libraries(codegen_accumulator_tests PRIVATE
     spdlog::spdlog
 )
 gtest_discover_tests(codegen_accumulator_tests)
-
-# SOR regression tests — OBSOLETE in push migration (SOR internals removed)
-# add_executable(sor_regression_tests
-#     test_sor_regression.cpp
-# )
-# target_include_directories(sor_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(sor_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(sor_regression_tests)
 
 # AOT Composite codegen tests (Phase 7: hierarchical AOT codegen)
 add_executable(aot_composite_tests
@@ -1510,68 +1494,6 @@ target_link_libraries(command_tests PRIVATE
 )
 gtest_discover_tests(command_tests)
 
-# Obsolete in push migration: these suites are SOR-internal and rely on removed
-# state arrays/stamping paths. Push equivalents live in push_runtime_regression.
-# add_executable(transformer_tests
-#     test_transformer.cpp
-# )
-# target_include_directories(transformer_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(transformer_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(transformer_tests)
-#
-# add_executable(generator_tests
-#     test_generator.cpp
-# )
-# target_include_directories(generator_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_SOURCE_DIR}/build/_deps/json-src/include
-# )
-# target_link_libraries(generator_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(generator_tests)
-#
-# add_executable(apu_mechanical_tests
-#     test_apu_mechanical.cpp
-# )
-# target_include_directories(apu_mechanical_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(apu_mechanical_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(apu_mechanical_tests)
-#
-# add_executable(gs24_regression_tests
-#     test_gs24_regression.cpp
-# )
-# target_include_directories(gs24_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(gs24_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(gs24_regression_tests)
-
 # Radiator regression tests (BUG-Radiator: inverted heat flow)
 add_executable(radiator_regression_tests
     test_radiator_regression.cpp
@@ -1635,125 +1557,6 @@ target_link_libraries(electric_pump_regression_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(electric_pump_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# ElectricHeater regression tests (BUG-23: unbounded thermal power)
-# add_executable(electric_heater_regression_tests
-#     test_electric_heater_regression.cpp
-# )
-# target_include_directories(electric_heater_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(electric_heater_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(electric_heater_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# Switch regression tests (BUG-24: missing downstream_I forwarding)
-# add_executable(switch_regression_tests
-#     test_switch_regression.cpp
-# )
-# target_include_directories(switch_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(switch_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(switch_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# GidroAccumulator regression tests (gas-charged hydraulic accumulator)
-# add_executable(gidro_accumulator_regression_tests
-#     test_gidro_accumulator_regression.cpp
-# )
-# target_include_directories(gidro_accumulator_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(gidro_accumulator_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(gidro_accumulator_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# FuelTank regression tests (aircraft fuel reservoir with gravity head)
-# add_executable(fuel_tank_regression_tests
-#     test_fuel_tank_regression.cpp
-# )
-# target_include_directories(fuel_tank_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(fuel_tank_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(fuel_tank_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# RefNode regression tests (Norton residual self-correction)
-# add_executable(refnode_regression_tests
-#     test_refnode_regression.cpp
-# )
-# target_include_directories(refnode_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(refnode_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(refnode_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# RUG82 regression tests (integration per SOR iteration fix)
-# add_executable(rug82_regression_tests
-#     test_rug82_regression.cpp
-# )
-# target_include_directories(rug82_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(rug82_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(rug82_regression_tests)
-
-# Obsolete in push migration: relies on removed SOR internals
-# SolenoidValve regression tests (two-port coupling fix)
-# add_executable(solenoid_valve_regression_tests
-#     test_solenoid_valve_regression.cpp
-# )
-# target_include_directories(solenoid_valve_regression_tests PRIVATE
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/src/json_parser
-#     ${CMAKE_BINARY_DIR}/_deps/json-src/include
-# )
-# target_link_libraries(solenoid_valve_regression_tests PRIVATE
-#     jit_solver
-#     json_parser
-#     GTest::gtest_main
-# )
-# gtest_discover_tests(solenoid_valve_regression_tests)
 
 # Blueprint v2 tests (Phase 0-4: Path, Interface, Blueprint, TypeRegistry, Codec)
 add_executable(bp2_path_tests

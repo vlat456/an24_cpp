@@ -51,7 +51,6 @@ See also: `knowledge/17_generated_files.md`.
 
 | Topic | File |
 |------|------|
-| Solver tuning | `knowledge/sor_optimization.md` |
 | Stable component design | `knowledge/component_authoring.md` |
 | Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` |
 | Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` |
@@ -139,8 +138,7 @@ for (int step = 0; step < total_steps; ++step) {
         for (auto& c : thermal) std::visit([&](auto& x) { x.solve_thermal(st, dt*60); }, c);
     
     st.precompute_inv_conductance();
-    solve_sor_iteration(st.across.data(), st.through.data(),
-                       st.inv_conductance.data(), st.dynamic_signals_count, omega);
+    // Push model: single-pass execution, no iterative solve
     
     for (auto& c : all) std::visit([&](auto& x) { x.finalize_step(st, dt); }, c);
 }
@@ -181,43 +179,25 @@ TEST(MyTest, Scenario_ExpectedResult) {
 
 ## Solver Tuning Defaults
 
-For MSFS-style systems simulation, prefer stability over aggressive convergence.
+For MSFS-style systems simulation, prefer stability.
 
-Recommended starting point:
-
-```cpp
-constexpr float OMEGA = 1.3f;      // canonical project default
-constexpr int INNER_SWEEPS = 1;    // keep 1 with current stamp-then-solve pipeline
-```
-
-Tuning guide:
-
-| Situation | Change |
-|---------|---------|
-| Solver oscillates / spikes | Let adaptive runtime `omega_` reduce from `1.3` toward `1.0` |
-| Persistent instability | Improve topology (dangling series nodes, near-shorts), then component params |
-| Stiff measurement circuit | Lower measurement conductance defaults or add realistic series resistance |
-| Need stronger damping globally | Consider lowering canonical `OMEGA` only with regression updates |
+In push propagation model, solver tuning is minimal since there's no iterative relaxation.
 
 Rules of thumb:
 
-- keep `INNER_SWEEPS = 1` unless solver is redesigned to re-stamp per inner iteration
 - keep persistent state updates in `finalize_step()`, not in `solve_*()`
 - validate dangling series devices and near-short source paths early
-- do not replace electrical SOR with push propagation
 
 ## Centralized Runtime Config
 
 Single source of truth for solver and JIT/editor warning knobs:
 
-- `src/jit_solver/SOR_constants.h`
+- `src/jit_solver/jit_solver.h` (runtime configuration)
 
 Namespaces in that file:
 
 | Namespace | Purpose |
 |---------|---------|
-| `SOR` | Core relaxation constants (`OMEGA`, `INNER_SWEEPS`) |
-| `SORAdaptive` | Adaptive runtime omega thresholds/scales |
 | `JitElectricalWarnings` | JIT/editor electrical warning thresholds |
 | `DomainSchedule` | Multi-domain execution periods |
 

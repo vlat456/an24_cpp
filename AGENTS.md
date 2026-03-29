@@ -84,8 +84,9 @@ ctest -R "editor_data" --output-on-failure
 ### Component Development
 Components must define:
 - `static constexpr Domain domain` - Simulation domain (Electrical, Mechanical, etc.)
-- `solve_*domain*()` method - Physics solver (optional per domain)
-- `post_step()` method - State machine updates, optional
+- `execute()` method - Main per-frame computation (reads inputs, writes outputs)
+- `commit_control()` method - State machine updates (Switch, AZS, HoldButton), optional
+- `finalize_step()` method - End-of-step integration (GidroAccumulator, FuelTank), optional
 - `pre_load()` method - Initialization, optional
 - `Provider provider` member - Port access via `provider.get(PortNames::port_name)`
 
@@ -136,25 +137,25 @@ generated/            # AOT-generated C++ code
 
 ### Component Port Access (JIT)
 ```cpp
-float v_bus = st.across[provider.get(PortNames::v_bus)];
-st.across[provider.get(PortNames::rpm_out)] = rpm_value;
+float v_bus = st.values[provider.get(PortNames::v_bus)];
+st.values[provider.get(PortNames::rpm_out)] = rpm_value;
 ```
 
 ### Domain-Specific Update
 ```cpp
 template <typename Provider>
 void MyComponent<Provider>::solve_thermal(SimulationState& st, float dt) {
-    float temp_in = st.across[provider.get(PortNames::temp_in)];
-    st.across[provider.get(PortNames::temp_out)] = temp_out;
+    float temp_in = st.values[provider.get(PortNames::temp_in)];
+    st.values[provider.get(PortNames::temp_out)] = temp_out;
 }
 ```
 
-### State Machine in post_step()
+### State Machine in commit_control()
 ```cpp
-void MyComponent::post_step(SimulationState& st, float dt) {
+void MyComponent::commit_control(SimulationState& st, float dt) {
     switch (state) {
         case OFF:
-            if (st.across[provider.get(PortNames::control)] > threshold)
+            if (st.values[provider.get(PortNames::control)] > threshold)
                 state = RUNNING;
             break;
         case RUNNING:

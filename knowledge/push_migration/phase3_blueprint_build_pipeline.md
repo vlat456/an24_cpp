@@ -417,7 +417,7 @@ TEST(PushComponents, MaxSelectorWithOneSourceZero) {
 Add to `all.h`:
 ```cpp
 /// MaxSelector - selects the highest voltage from two sources
-/// Used for multi-source bus arbitration (replaces implicit SOR bus coupling)
+/// Used for multi-source bus arbitration (replaces implicit legacy bus coupling)
 template <typename Provider = JitProvider>
 class MaxSelector {
 public:

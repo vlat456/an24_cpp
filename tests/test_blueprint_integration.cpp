@@ -80,7 +80,7 @@ static float get_voltage(const SimulationState& state, const BuildResult& result
 // Integration Tests - BlueprintInput/BlueprintOutput
 // =============================================================================
 
-// DISABLED: SOR-specific test expecting ground reference to force v_in=0V.
+// DISABLED: legacy solver-specific test expecting ground reference to force v_in=0V.
 // In push model without iteration, ground may float to 28V because RefNode
 // broadcasts (not forces) and battery drives the circuit.
 TEST(BlueprintPorts, DISABLED_BasicBatteryCircuit) {

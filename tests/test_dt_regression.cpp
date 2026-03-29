@@ -7,7 +7,7 @@
 #include "ui/core/interned_id.h"
 #include "sim_test_json.h"
 
-// Local constant matching the historical SOR::OMEGA value for regression test
+// Local constant matching the historical legacy solver OMEGA value for regression test
 constexpr float OMEGA = 1.3f;
 
 namespace ui {
@@ -429,10 +429,10 @@ static Blueprint make_ru19a_catchup_circuit() {
 }
 
 // =============================================================================
-// Regression: SOR::OMEGA is the single source of truth
+// Regression: legacy solver OMEGA is the single source of truth
 // =============================================================================
 
-TEST(DtRegression, SOR_OmegaIsCanonical) {
+TEST(DtRegression, Legacy_OmegaIsCanonical) {
     // OMEGA must be in the stable range [1.0, 1.5]
     EXPECT_GE(OMEGA, 1.0f);
     EXPECT_LE(OMEGA, 1.5f);
@@ -701,7 +701,7 @@ TEST(DtRegression, PauseDtZero_DoesNotAdvanceState) {
     sim.stop();
 }
 
-// DISABLED: SOR-specific test expecting VoltageSense to update output on first step.
+// DISABLED: legacy solver-specific test expecting VoltageSense to update output on first step.
 // In push model, observer components may have different timing due to
 // source/consumer ordering in the single-pass scheduler. The circuit topology
 // also has a one-to-one violation (bat.v_out -> res.v_in AND vs.v_in).

@@ -423,7 +423,7 @@ TEST(HierarchicalCodegen, SubBlueprintInstances_CodegenGeneratesCode) {
     EXPECT_FALSE(source.empty());
 
     EXPECT_TRUE(header.find("test_hierarchical") != std::string::npos);
-    EXPECT_TRUE(source.find("solve_electrical") != std::string::npos);
+    EXPECT_TRUE(source.find("execute") != std::string::npos);
     EXPECT_TRUE(source.find("bat") != std::string::npos);
     EXPECT_TRUE(source.find("lamp_1") != std::string::npos);
 }

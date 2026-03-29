@@ -121,8 +121,8 @@ TEST(CodegenSanitize, DeviceNamesWithColonsAreValidIdentifiers) {
         << "Sanitized name bp_1_load_DOT_1 not found in header (dot should become _DOT_)";
 
     // Verify source also uses sanitized names in method bodies
-    EXPECT_NE(source.find("bp_1_bat.solve_electrical"), std::string::npos)
-        << "Source should use sanitized name in solve_electrical call";
+    EXPECT_NE(source.find("bp_1_bat.execute"), std::string::npos)
+        << "Source should use sanitized name in execute call";
     EXPECT_NE(source.find("bp_1_bat.pre_load"), std::string::npos)
         << "Source should use sanitized name in pre_load";
 }

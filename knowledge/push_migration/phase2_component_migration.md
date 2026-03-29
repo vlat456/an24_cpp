@@ -9,7 +9,7 @@ Every component migration follows red-green TDD:
 
 ## Overview
 
-Migrate all 65+ components from SOR stamp-based methods to self-contained `execute()` methods.
+Migrate all 65+ components from legacy stamp-based methods to self-contained `execute()` methods.
 
 **Key rules:**
 - Keep existing method names (`solve_electrical`, `solve_mechanical`, etc.) but change internals
@@ -559,7 +559,7 @@ void VoltageSense<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 // DELETE: solve_electrical() - no longer needed (no MNA stamping)
-// DELETE: observe_electrical() - no longer needed (no SOR phases)
+// DELETE: observe_electrical() - no longer needed (no legacy phases)
 ```
 
 ---
@@ -667,7 +667,7 @@ Mechanical and thermal `solve_*()` methods: same logic as before but `st.across`
 
 ## Step 2.7: Splitter, Merger, Bus, BlueprintInput, BlueprintOutput
 
-These are all no-ops in both SOR and push. Just rename:
+These are all no-ops in push architecture. Just rename:
 
 ```cpp
 template <typename Provider>
@@ -683,12 +683,12 @@ After migration, these methods no longer exist on any component:
 
 | Method | Reason |
 |--------|--------|
-| `stamp_electrical_passive()` | SOR stamping |
-| `stamp_electrical_actuator()` | SOR stamping |
-| `observe_electrical()` | SOR post-solve observation |
-| `commit_control()` | SOR control commit phase - merge into `execute()` or `post_step()` |
+| `stamp_electrical_passive()` | legacy stamping |
+| `stamp_electrical_actuator()` | legacy stamping |
+| `observe_electrical()` | legacy post-solve observation |
+| `commit_control()` | legacy control commit phase - merge into `execute()` or `post_step()` |
 
-The `commit_control()` logic for Switch/Relay/HoldButton/AZS moves into their `solve_electrical()` method since there's no SOR phase separation anymore.
+The `commit_control()` logic for Switch/Relay/HoldButton/AZS moves into their `solve_electrical()` method since there's no legacy phase separation anymore.
 
 Remove from `all.h` declarations and `all.cpp` implementations.
 
@@ -715,7 +715,7 @@ Also update:
 
 | File | Action |
 |------|--------|
-| `src/jit_solver/components/all.h` | Remove SOR-specific methods, update field types |
+| `src/jit_solver/components/all.h` | Remove legacy-specific methods, update field types |
 | `src/jit_solver/components/all.cpp` | Rewrite all solve methods for push, delete stamp methods |
 | `src/jit_solver/state.h` | Already done in Phase 1 |
 | `tests/test_push_components.cpp` | NEW: component-level push tests |

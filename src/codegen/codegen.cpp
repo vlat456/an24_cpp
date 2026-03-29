@@ -154,7 +154,6 @@ std::string CodeGen::generate_header(
     oss << "#include <vector>\n";
     oss << "#include <cmath>\n";
     oss << "#include \"jit_solver/state.h\"\n";
-    // SOR_constants.h removed in push-migration Phase 1
     oss << "#include \"jit_solver/components/all.h\"\n";
     oss << "#include \"jit_solver/components/port_registry.h\"\n\n";
     oss << "// Compiler hints for optimization\n";
@@ -257,9 +256,6 @@ std::string CodeGen::generate_header(
     // Global simulation step counter (not modulo cycle index)
     oss << "    uint32_t step_counter_ = 0;\n\n";
 
-    // Pre-allocated convergence buffer pointer (set at init)
-    oss << "    float* convergence_buffer = nullptr;\n\n";
-
     // Constructor / Destructor
     oss << "    " << class_name << "();\n";
     oss << "    ~" << class_name << "();\n\n";
@@ -325,11 +321,9 @@ std::string CodeGen::generate_source(
     }
     oss << "\n";
 
-    // Constructor - only initialize component parameters (port indices are compile-time constants)
+    // Constructor - initialize component parameters (port indices are compile-time constants)
     oss << class_name << "::" << class_name << "()\n";
     oss << "{\n";
-    oss << "    // Pre-allocate convergence buffer (instance-owned, no sharing)\n";
-    oss << "    convergence_buffer = new (std::align_val_t(64)) float[SIGNAL_COUNT]{};\n\n";
 
     // Port indices are now static constexpr - no runtime initialization needed!
 
@@ -385,10 +379,8 @@ std::string CodeGen::generate_source(
     }
     oss << "}\n\n";
 
-    // Destructor — release instance-owned convergence buffer
-    oss << class_name << "::~" << class_name << "() {\n";
-    oss << "    ::operator delete[](convergence_buffer, std::align_val_t(64));\n";
-    oss << "}\n\n";
+    // Destructor
+    oss << class_name << "::~" << class_name << "() {}\n\n";
 
     // Pre-load: call pre_load() on components that have it, then LUT arena init
     oss << "void " << class_name << "::pre_load() {\n";
@@ -456,173 +448,21 @@ std::string CodeGen::generate_source(
     oss << "#endif\n";
     oss << "}\n\n";
 
-    // Build explicit phase buckets for generated runtime, aligned with JIT scheduler.
-    std::vector<std::string> phase_electrical_passive;
-    std::vector<std::string> phase_electrical_observer;
-    std::vector<std::string> phase_logical;
-    std::vector<std::string> phase_control_commit;
-    std::vector<std::string> phase_electrical_actuator;
-    std::vector<std::string> phase_finalize;
-    std::vector<std::string> phase_mechanical;
-    std::vector<std::string> phase_hydraulic;
-    std::vector<std::string> phase_thermal;
-
-    for (const auto& dev : devices) {
-        phase_electrical_passive.push_back(dev.name);
-    }
-
-    // Generate each step method
+    // Push model: single-pass per frame, sources/consumers already encoded in
+    // component execute() behavior and device ordering generated from blueprint.
     for (int step = 0; step < 60; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-        oss << "    // Phase 1+2: first electrical pass (passive + actuators)\n";
-        oss << "    st->save_convergence_state();\n";
-        oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
-        oss << "        st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_passive) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
+        for (const auto& dev : devices) {
+            oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
         }
-        for (const auto& dev_name : phase_electrical_actuator) {
-            oss << "        " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
-        }
-        oss << "        st->precompute_inv_conductance();\n";
-        oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
-        oss << "        if (SORGuardrails::ENABLE_SANITIZER) {\n";
-        oss << "            for (size_t i = 0; i < st->dynamic_signals_count; ++i) {\n";
-        oss << "                float& v = st->across[i];\n";
-        oss << "                if (!std::isfinite(v)) {\n";
-        oss << "                    v = 0.0f;\n";
-        oss << "                } else if (v > SORGuardrails::MAX_ABS_SIGNAL) {\n";
-        oss << "                    v = SORGuardrails::MAX_ABS_SIGNAL;\n";
-        oss << "                } else if (v < -SORGuardrails::MAX_ABS_SIGNAL) {\n";
-        oss << "                    v = -SORGuardrails::MAX_ABS_SIGNAL;\n";
-        oss << "                }\n";
-        oss << "            }\n";
-        oss << "        }\n";
-        oss << "    }\n";
-
-        oss << "    // Phase 3: electrical observers\n";
-        for (const auto& dev_name : phase_electrical_observer) {
-            // Currently only VoltageSense has explicit observer hook.
-            oss << "    " << sanitize_name(dev_name) << ".observe_electrical(*st, dt);\n";
-        }
-
-        oss << "    // Phase 4: logical solve\n";
-        for (const auto& dev_name : phase_logical) {
-            oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
-        }
-
-        oss << "    // Phase 5: control commit\n";
-        for (const auto& dev_name : phase_control_commit) {
-            oss << "    " << sanitize_name(dev_name) << ".commit_control(*st, dt);\n";
-        }
-
-        oss << "    // Phase 6: second electrical pass (passive + actuators)\n";
-        oss << "    st->save_convergence_state();\n";
-        oss << "    for (int iter = 0; iter < SOR::INNER_SWEEPS; ++iter) {\n";
-        oss << "        st->clear_through();\n";
-        for (const auto& dev_name : phase_electrical_passive) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_electrical(*st, dt);\n";
-        }
-        for (const auto& dev_name : phase_electrical_actuator) {
-            oss << "        " << sanitize_name(dev_name) << ".stamp_electrical_actuator(*st, dt);\n";
-        }
-        oss << "        st->precompute_inv_conductance();\n";
-        oss << "        solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), st->dynamic_signals_count, SOR::OMEGA);\n";
-        oss << "        if (SORGuardrails::ENABLE_SANITIZER) {\n";
-        oss << "            for (size_t i = 0; i < st->dynamic_signals_count; ++i) {\n";
-        oss << "                float& v = st->across[i];\n";
-        oss << "                if (!std::isfinite(v)) {\n";
-        oss << "                    v = 0.0f;\n";
-        oss << "                } else if (v > SORGuardrails::MAX_ABS_SIGNAL) {\n";
-        oss << "                    v = SORGuardrails::MAX_ABS_SIGNAL;\n";
-        oss << "                } else if (v < -SORGuardrails::MAX_ABS_SIGNAL) {\n";
-        oss << "                    v = -SORGuardrails::MAX_ABS_SIGNAL;\n";
-        oss << "                }\n";
-        oss << "            }\n";
-        oss << "        }\n";
-        oss << "    }\n";
-
-        oss << "    // Phase 7: logical solve pass 2 (reads converged actuator outputs)\n";
-        for (const auto& dev_name : phase_logical) {
-            oss << "    " << sanitize_name(dev_name) << ".solve_logical(*st, dt);\n";
-        }
-
-        oss << "    // Phase 8: sub-rate domains (accumulated simulation dt)\n";
-        oss << "    const bool first_sim_step = (step_counter_ == 0u);\n";
-        oss << "    constexpr float kMechanicalPeriodSec = 1.0f / 20.0f;\n";
-        oss << "    constexpr float kHydraulicPeriodSec = 1.0f / 5.0f;\n";
-        oss << "    constexpr float kThermalPeriodSec = 1.0f;\n";
-        oss << "    constexpr int kMaxCatchUpTicks = 8;\n";
-
-        oss << "    int mech_ticks = 0;\n";
-        oss << "    if (first_sim_step && acc_mechanical_ > 0.0f) {\n";
-        for (const auto& dev_name : phase_mechanical) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_mechanical(*st, acc_mechanical_);\n";
-        }
-        oss << "        acc_mechanical_ = 0.0f;\n";
-        oss << "        ++mech_ticks;\n";
-        oss << "    }\n";
-        oss << "    while (acc_mechanical_ >= kMechanicalPeriodSec && mech_ticks < kMaxCatchUpTicks) {\n";
-        for (const auto& dev_name : phase_mechanical) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_mechanical(*st, kMechanicalPeriodSec);\n";
-        }
-        oss << "        acc_mechanical_ -= kMechanicalPeriodSec;\n";
-        oss << "        ++mech_ticks;\n";
-        oss << "    }\n";
-
-        oss << "    int hyd_ticks = 0;\n";
-        oss << "    if (first_sim_step && acc_hydraulic_ > 0.0f) {\n";
-        for (const auto& dev_name : phase_hydraulic) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_hydraulic(*st, acc_hydraulic_);\n";
-        }
-        oss << "        acc_hydraulic_ = 0.0f;\n";
-        oss << "        ++hyd_ticks;\n";
-        oss << "    }\n";
-        oss << "    while (acc_hydraulic_ >= kHydraulicPeriodSec && hyd_ticks < kMaxCatchUpTicks) {\n";
-        for (const auto& dev_name : phase_hydraulic) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_hydraulic(*st, kHydraulicPeriodSec);\n";
-        }
-        oss << "        acc_hydraulic_ -= kHydraulicPeriodSec;\n";
-        oss << "        ++hyd_ticks;\n";
-        oss << "    }\n";
-
-        oss << "    int therm_ticks = 0;\n";
-        oss << "    if (first_sim_step && acc_thermal_ > 0.0f) {\n";
-        for (const auto& dev_name : phase_thermal) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_thermal(*st, acc_thermal_);\n";
-        }
-        oss << "        acc_thermal_ = 0.0f;\n";
-        oss << "        ++therm_ticks;\n";
-        oss << "    }\n";
-        oss << "    while (acc_thermal_ >= kThermalPeriodSec && therm_ticks < kMaxCatchUpTicks) {\n";
-        for (const auto& dev_name : phase_thermal) {
-            oss << "        " << sanitize_name(dev_name) << ".solve_thermal(*st, kThermalPeriodSec);\n";
-        }
-        oss << "        acc_thermal_ -= kThermalPeriodSec;\n";
-        oss << "        ++therm_ticks;\n";
-        oss << "    }\n";
-
-        oss << "    // Phase 9: finalize\n";
-        for (const auto& dev_name : phase_finalize) {
-            oss << "    " << sanitize_name(dev_name) << ".finalize_step(*st, dt);\n";
-        }
-
         oss << "}\n\n";
     }
 
-    // Convergence check - optimized with sparse sampling
+    // Push model single-pass has no iterative convergence stage.
     oss << "AOT_INLINE bool " << class_name << "::check_convergence(void* state, float tolerance) const {\n";
-    oss << "    auto* st = static_cast<SimulationState*>(state);\n";
-    oss << "    const float* __restrict across = st->across.data();\n";
-    oss << "    const float* __restrict buf = convergence_buffer;\n";
-    oss << "    const uint32_t count = st->dynamic_signals_count;\n";
-    oss << "\n";
-    oss << "    // Sparse check: every 4th signal - cache friendly\n";
-    oss << "    for (uint32_t i = 0; i < count; i += 4) {\n";
-    oss << "        float delta = std::abs(across[i] - buf[i]);\n";
-    oss << "        if (AOT_UNLIKELY(delta > tolerance)) return false;\n";
-    oss << "    }\n";
+    oss << "    (void)state;\n";
+    oss << "    (void)tolerance;\n";
     oss << "    return true;\n";
     oss << "}\n\n";
 
@@ -681,7 +521,7 @@ void CodeGen::write_files(
     std::cerr << "[codegen]   - Domain scheduling (" << 60 << " step methods)\n";
     std::cerr << "[codegen]   - __restrict pointers (no aliasing)\n";
     std::cerr << "[codegen]   - AOT_INLINE + AOT_LIKELY/AOT_UNLIKELY\n";
-    std::cerr << "[codegen]   - Sparse convergence check\n";
+    std::cerr << "[codegen]   - Push single-pass step execution\n";
 }
 
 void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {

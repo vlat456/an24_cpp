@@ -5,9 +5,9 @@
 #include <cmath>
 
 // =============================================================================
-// DISABLED: SOR-style tests using SimulationState.across/through/conductance which
+// DISABLED: legacy-style tests using SimulationState.across/through/conductance which
 // do not exist in push architecture. No push equivalent - these tests exercise
-// low-level SOR stamping behavior handled by scheduler in push model.
+// low-level legacy stamping behavior handled by scheduler in push model.
 // =============================================================================
 
 // =============================================================================
@@ -34,7 +34,7 @@ static SimulationState make_state(size_t n = 4) {
 // Basic Voltage Ratio Tests
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_Unity_Ratio_PassesVoltageThrough) {
     auto comp = make_transformer(1.0f);
     auto st = make_state();
@@ -47,7 +47,7 @@ TEST(TransformerTest, DISABLED_Unity_Ratio_PassesVoltageThrough) {
     EXPECT_GT(st.through[1], 0.0f);  // Positive current drives secondary up
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_StepDown_Ratio_HalvesVoltage) {
     auto comp = make_transformer(0.5f);
     auto st = make_state();
@@ -61,7 +61,7 @@ TEST(TransformerTest, DISABLED_StepDown_Ratio_HalvesVoltage) {
     EXPECT_FLOAT_EQ(st.through[1], expected_v_secondary_target * 1.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_StepUp_Ratio_DoublesVoltage) {
     auto comp = make_transformer(2.0f);
     auto st = make_state();
@@ -78,7 +78,7 @@ TEST(TransformerTest, DISABLED_StepUp_Ratio_DoublesVoltage) {
 // Energy Conservation Tests (the critical regression tests)
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_EnergyConservation_ReflectedConductance) {
     // For an ideal transformer: g_primary = g_secondary * ratio²
     // This is the impedance transformation law.
@@ -96,7 +96,7 @@ TEST(TransformerTest, DISABLED_EnergyConservation_ReflectedConductance) {
     EXPECT_FLOAT_EQ(st.conductance[1], g_secondary);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_EnergyConservation_PrimaryCurrentReflectsLoad) {
     // Key regression test: the old bug was that i_primary = i_secondary
     // instead of i_primary = i_secondary * ratio (from P_in = P_out).
@@ -124,7 +124,7 @@ TEST(TransformerTest, DISABLED_EnergyConservation_PrimaryCurrentReflectsLoad) {
     EXPECT_FLOAT_EQ(st.through[1], i_secondary_expected);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_EnergyConservation_StepDown) {
     // Step-down 0.5:1 transformer
     // g_primary = g_secondary * 0.5² = 0.25
@@ -144,7 +144,7 @@ TEST(TransformerTest, DISABLED_EnergyConservation_StepDown) {
     EXPECT_FLOAT_EQ(st.through[1], 14.0f);      // drives secondary
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_ZeroPrimaryVoltage_ZeroEverywhere) {
     auto comp = make_transformer(2.0f);
     auto st = make_state();
@@ -163,7 +163,7 @@ TEST(TransformerTest, DISABLED_ZeroPrimaryVoltage_ZeroEverywhere) {
 // Edge Cases
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_UnityRatio_SymmetricConductance) {
     // ratio=1 → g_primary = g_secondary * 1² = g_secondary
     auto comp = make_transformer(1.0f);
@@ -175,7 +175,7 @@ TEST(TransformerTest, DISABLED_UnityRatio_SymmetricConductance) {
     EXPECT_FLOAT_EQ(st.conductance[0], st.conductance[1]);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_VeryHighRatio_LargeReflectedConductance) {
     // High turns ratio → much larger conductance on primary
     auto comp = make_transformer(10.0f);
@@ -189,7 +189,7 @@ TEST(TransformerTest, DISABLED_VeryHighRatio_LargeReflectedConductance) {
     EXPECT_FLOAT_EQ(st.conductance[1], 1.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_VeryLowRatio_SmallReflectedConductance) {
     // Low turns ratio → smaller conductance on primary
     auto comp = make_transformer(0.1f);
@@ -207,14 +207,14 @@ TEST(TransformerTest, DISABLED_VeryLowRatio_SmallReflectedConductance) {
 // [BUG-Transformer] Regression: Norton residual self-correction
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_Regression_NortonResidualSelfCorrection) {
     // When secondary already has a voltage, through should be
     // (v_target - v_secondary) * g, NOT v_target * g.
     auto comp = make_transformer(2.0f);
     auto st = make_state();
     st.across[0] = 28.0f;  // primary
-    st.across[1] = 50.0f;  // secondary already at 50V (from prev SOR)
+    st.across[1] = 50.0f;  // secondary already at 50V (from prev legacy)
 
     comp.solve_electrical(st, 1.0f / 60.0f);
 
@@ -225,7 +225,7 @@ TEST(TransformerTest, DISABLED_Regression_NortonResidualSelfCorrection) {
         << "through[secondary] should use (v_target - v_current) * g";
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(TransformerTest, DISABLED_Regression_NortonResidualAtTarget) {
     // When secondary is already at target, through should be ~0
     auto comp = make_transformer(2.0f);
@@ -239,16 +239,16 @@ TEST(TransformerTest, DISABLED_Regression_NortonResidualAtTarget) {
         << "through should be ~0 when secondary is at target voltage";
 }
 
-// DISABLED: SOR-specific test — no push equivalent for SOR iteration loop.
-TEST(TransformerTest, DISABLED_Regression_SOR_ConvergesToTargetVoltage) {
-    // Run SOR iterations: secondary should converge to v_primary * ratio.
+// DISABLED: legacy-specific test — no push equivalent for legacy iteration loop.
+TEST(TransformerTest, DISABLED_Regression_legacy_ConvergesToTargetVoltage) {
+    // Run legacy iterations: secondary should converge to v_primary * ratio.
     // With the old bug (no self-correction), secondary would diverge.
     auto comp = make_transformer(2.0f);
     auto st = make_state(2);
     st.across[0] = 28.0f;  // fixed primary
     st.across[1] = 0.0f;   // secondary starts at 0
 
-    // OMEGA removed - SOR-specific constant has no push equivalent
+    // OMEGA removed - legacy-specific constant has no push equivalent
     float v_target = 28.0f * 2.0f;
 
     for (int step = 0; step < 100; ++step) {
@@ -264,7 +264,7 @@ TEST(TransformerTest, DISABLED_Regression_SOR_ConvergesToTargetVoltage) {
 
         comp.solve_electrical(st, 1.0f / 60.0f);
 
-        // SOR iteration has no push equivalent - disabled
+        // legacy iteration has no push equivalent - disabled
     }
 
     EXPECT_NEAR(st.across[1], v_target, 0.5f)

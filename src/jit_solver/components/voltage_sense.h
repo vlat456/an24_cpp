@@ -7,7 +7,7 @@
 /// VoltageSense - electrical-to-control bridge (observer only)
 /// Reads (v_in - v_ref) after the electrical solve, outputs a scalar control signal.
 /// Does NOT stamp conductance - purely observes, never drives the network.
-/// Domain: Electrical (to read ports after SOR) + Logical (to write output)
+/// Domain: Electrical (to read ports after solve) + Logical (to write output)
 template <typename Provider = JitProvider>
 class VoltageSense {
 public:

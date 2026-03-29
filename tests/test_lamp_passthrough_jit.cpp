@@ -1,5 +1,5 @@
 /// JIT integration test: Battery -> lamp_pass_through blueprint voltage flow.
-// DISABLED: SOR-specific test expecting BlueprintInput alias to pass voltage through.
+// DISABLED: legacy solver-specific test expecting BlueprintInput alias to pass voltage through.
 // In push model, BlueprintInput/Output don't actively stamp values; aliasing
 // semantics differ and voltage does not propagate through blueprint hierarchy.
 

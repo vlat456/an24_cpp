@@ -21,14 +21,9 @@ Use this file as the entry point before crawling the rest of the repo.
 
 | Topic | File | Purpose |
 |------|------|---------|
-| Solver tuning | `knowledge/sor_optimization.md` | Practical SOR tuning guidance and safe defaults |
-| SOR stabilization roadmap | `knowledge/sor_stabilization.md` | Scale-focused hardening plan for mixed-domain systems |
 | Stable component design | `knowledge/component_authoring.md` | Rules for writing numerically stable components |
 | Known issues / TODO | `knowledge/errors_TODO.md` | Architecture smells, bugs, and follow-up items |
-| **SOR re-stamp fix** | `knowledge/15_solver_restamp_fix.md` | **ACTIVE: fix series-circuit convergence bug** |
-| Scheduler refactor plan | `knowledge/13_scheduler_refactor_plan.md` | Detailed JIT/AOT plan for removing control-loop latency |
-| Scheduler refactor epic | `knowledge/14_scheduler_refactor_epic.md` | Staged implementation checklist for coding agents |
-| **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from SOR to push propagation (game-grade sim) |
+| **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from legacy iterative solver to push propagation (game-grade sim) |
 | Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
 
 ## Suggested Reading Order
@@ -42,14 +37,10 @@ Use this file as the entry point before crawling the rest of the repo.
 
 ### For solver work
 
-1. `knowledge/15_solver_restamp_fix.md` **(START HERE — active fix plan)**
-2. `knowledge/02_simulation.md`
-3. `knowledge/sor_optimization.md`
-4. `knowledge/sor_stabilization.md`
-5. `knowledge/component_authoring.md`
-6. `knowledge/13_scheduler_refactor_plan.md`
-7. `knowledge/16_push_migration_plan.md` **(ALTERNATIVE: Replace SOR with push propagation)**
-8. `knowledge/errors_TODO.md`
+1. `knowledge/02_simulation.md`
+2. `knowledge/16_push_migration_plan.md` **(PRIMARY: Push propagation model)**
+3. `knowledge/component_authoring.md`
+4. `knowledge/errors_TODO.md`
 
 ### For editor work
 
@@ -69,11 +60,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Question | Start Here |
 |---------|------------|
 | How does the solver work? | `knowledge/02_simulation.md` |
-| How should I tune SOR? | `knowledge/sor_optimization.md` |
-| How do we harden solver for scale? | `knowledge/sor_stabilization.md` |
 | How do I write a stable component? | `knowledge/component_authoring.md` |
-| How should runtime/codegen phases be refactored? | `knowledge/13_scheduler_refactor_plan.md` |
-| What is the staged implementation roadmap? | `knowledge/14_scheduler_refactor_epic.md` |
 | Where is the blueprint model? | `knowledge/04_blueprint_v2.md` |
 | How is the editor structured? | `knowledge/05_editor.md` |
 | What tests should I add? | `knowledge/08_testing.md` |

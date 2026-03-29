@@ -5,7 +5,7 @@
 #include <cmath>
 
 // =============================================================================
-// DISABLED: SOR-style tests using SimulationState.across/through/conductance which
+// DISABLED: legacy-style tests using SimulationState.across/through/conductance which
 // do not exist in push architecture. No push equivalent - use JIT_Simulator based
 // tests in push_runtime_regression_tests for APU/RU19A coverage.
 // =============================================================================
@@ -54,21 +54,21 @@ static SimulationState make_state(size_t n = 8) {
 // State Machine Tests
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_InitialState_IsOFF) {
     auto apu = make_apu();
     EXPECT_EQ(apu.state, APUState::OFF);
     EXPECT_FLOAT_EQ(apu.current_rpm, 0.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_ManualStart_TransitionsToCranking) {
     auto apu = make_apu();
     apu.start();
     EXPECT_EQ(apu.state, APUState::CRANKING);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_StartFromNonOFF_NoEffect) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -77,7 +77,7 @@ TEST(APUMechanicalTest, DISABLED_StartFromNonOFF_NoEffect) {
     EXPECT_EQ(apu.state, APUState::RUNNING);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Stop_TransitionsToStopping) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -85,7 +85,7 @@ TEST(APUMechanicalTest, DISABLED_Stop_TransitionsToStopping) {
     EXPECT_EQ(apu.state, APUState::STOPPING);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_IsStarterActive_TrueInCrankingAndIgnition) {
     auto apu = make_apu();
 
@@ -106,7 +106,7 @@ TEST(APUMechanicalTest, DISABLED_IsStarterActive_TrueInCrankingAndIgnition) {
 // Auto-start via v_start threshold
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_AutoStart_TriggeredByVoltage) {
     auto apu = make_apu();
     apu.auto_start = true;
@@ -118,7 +118,7 @@ TEST(APUMechanicalTest, DISABLED_AutoStart_TriggeredByVoltage) {
     EXPECT_EQ(apu.state, APUState::CRANKING);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_AutoStart_NotTriggeredBelowThreshold) {
     auto apu = make_apu();
     apu.auto_start = true;
@@ -134,7 +134,7 @@ TEST(APUMechanicalTest, DISABLED_AutoStart_NotTriggeredBelowThreshold) {
 // Cranking → Ignition transition
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Cranking_TransitionsToIgnition_AfterCrankTime) {
     auto apu = make_apu();
     apu.state = APUState::CRANKING;
@@ -162,7 +162,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_TransitionsToIgnition_AfterCrankTime) 
 // Ignition → Running transition
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Ignition_TransitionsToRunning_AfterIgnitionTime) {
     auto apu = make_apu();
     apu.state = APUState::IGNITION;
@@ -190,7 +190,7 @@ TEST(APUMechanicalTest, DISABLED_Ignition_TransitionsToRunning_AfterIgnitionTime
 // RPM behavior during cranking
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Cranking_RPMIncreases) {
     auto apu = make_apu();
     apu.state = APUState::CRANKING;
@@ -211,7 +211,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_RPMIncreases) {
     EXPECT_LE(apu.current_rpm, 2000.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Cranking_RPMScalesWithVoltage) {
     // Lower bus voltage should result in slower cranking
     auto apu_high = make_apu();
@@ -238,7 +238,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_RPMScalesWithVoltage) {
 // Stopping behavior
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Stopping_RPMDecreases) {
     auto apu = make_apu();
     apu.state = APUState::STOPPING;
@@ -256,7 +256,7 @@ TEST(APUMechanicalTest, DISABLED_Stopping_RPMDecreases) {
     EXPECT_GE(apu.current_rpm, 0.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Stopping_TransitionsToOFF_WhenRPMZero) {
     auto apu = make_apu();
     apu.state = APUState::STOPPING;
@@ -282,7 +282,7 @@ TEST(APUMechanicalTest, DISABLED_Stopping_TransitionsToOFF_WhenRPMZero) {
 // RPM output signal (percentage 0-100)
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_RPMOut_IsPercentage) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -294,7 +294,7 @@ TEST(APUMechanicalTest, DISABLED_RPMOut_IsPercentage) {
     EXPECT_NEAR(st.across[2], 50.0f, 0.1f);  // rpm_out = 50%
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_RPMOut_AtFullSpeed) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -310,7 +310,7 @@ TEST(APUMechanicalTest, DISABLED_RPMOut_AtFullSpeed) {
 // RPM clamping
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_RPM_NeverNegative) {
     auto apu = make_apu();
     apu.state = APUState::OFF;
@@ -325,7 +325,7 @@ TEST(APUMechanicalTest, DISABLED_RPM_NeverNegative) {
     EXPECT_GE(apu.current_rpm, 0.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_RPM_NeverExceedsTarget) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -344,7 +344,7 @@ TEST(APUMechanicalTest, DISABLED_RPM_NeverExceedsTarget) {
 // Electrical stamping in different states
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_OFF_NoElectricalStamping) {
     auto apu = make_apu();
     apu.state = APUState::OFF;
@@ -361,7 +361,7 @@ TEST(APUMechanicalTest, DISABLED_OFF_NoElectricalStamping) {
     EXPECT_FLOAT_EQ(st.conductance[1], 0.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Cranking_DrawsStarterCurrent) {
     auto apu = make_apu();
     apu.state = APUState::CRANKING;
@@ -377,7 +377,7 @@ TEST(APUMechanicalTest, DISABLED_Cranking_DrawsStarterCurrent) {
     EXPECT_LT(st.through[0], 0.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_Running_GeneratesCurrent) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -396,7 +396,7 @@ TEST(APUMechanicalTest, DISABLED_Running_GeneratesCurrent) {
 // Thermal protection
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_ThermalOvertemp_ForcesStop) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -414,7 +414,7 @@ TEST(APUMechanicalTest, DISABLED_ThermalOvertemp_ForcesStop) {
     EXPECT_EQ(apu.state, APUState::STOPPING);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_T4Output_ReflectsInternalTemp) {
     auto apu = make_apu();
     apu.state = APUState::RUNNING;
@@ -430,7 +430,7 @@ TEST(APUMechanicalTest, DISABLED_T4Output_ReflectsInternalTemp) {
 // Full startup sequence (integration-style)
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(APUMechanicalTest, DISABLED_FullStartupSequence) {
     auto apu = make_apu();
     auto st = make_state();

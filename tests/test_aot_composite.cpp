@@ -240,7 +240,7 @@ TEST(AotComposite, PreLoad_CallsSubComposites) {
 // ============================================================
 // JIT vs AOT equivalence for composites
 // ============================================================
-// DISABLED: SOR-specific test checking BlueprintInput/Output alias unification.
+// DISABLED: legacy solver-specific test checking BlueprintInput/Output alias unification.
 // In push model, alias semantics differ (no union-find collapsing), so JIT
 // signal counts and port-to-signal mappings differ from AOT codegen.
 

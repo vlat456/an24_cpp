@@ -9,8 +9,8 @@ Final verification follows the same TDD discipline:
 
 ## Overview
 
-Final cleanup pass to ensure all SOR artifacts are removed and the codebase is clean:
-- Delete all SOR-related files and code
+Final cleanup pass to ensure all legacy solver artifacts are removed and the codebase is clean:
+- Delete all legacy solver-related files and code
 - Delete all phase-related code
 - Update AOT codegen for push model
 - Update editor simulation
@@ -19,7 +19,7 @@ Final cleanup pass to ensure all SOR artifacts are removed and the codebase is c
 
 ---
 
-## Step 5.1: Verify Complete SOR Removal
+## Step 5.1: Verify Complete Legacy Solver Removal
 
 ### Test
 
@@ -27,9 +27,9 @@ Final cleanup pass to ensure all SOR artifacts are removed and the codebase is c
 // tests/test_push_final.cpp
 #include <gtest/gtest.h>
 
-TEST(PushFinal, NoSORReferencesInBuild) {
+TEST(PushFinal, NoLegacySolverReferencesInBuild) {
     // This test verifies at build level.
-    // If any source file still references SOR symbols, it won't compile.
+    // If any source file still references legacy solver symbols, it won't compile.
     // The test itself just confirms the binary was built successfully.
     SUCCEED();
 }
@@ -38,8 +38,8 @@ TEST(PushFinal, NoSORReferencesInBuild) {
 ### Manual Verification (run these commands)
 
 ```bash
-# Search for any remaining SOR references
-grep -rn "SOR::\|solve_sor\|stamp_two_port\|stamp_one_port\|stamp_current_source\|stamp_voltage_source" src/
+# Search for any remaining legacy solver references
+grep -rn "legacy_iterative::\|solve_iterative_relaxation\|stamp_two_port\|stamp_one_port\|stamp_current_source\|stamp_voltage_source" src/
 # Expected: 0 results
 
 # Search for old state array names
@@ -61,11 +61,11 @@ grep -rn "ExecutionTraits\|get_execution_traits\|execution_traits" src/
 
 ---
 
-## Step 5.2: Delete SOR Files
+## Step 5.2: Delete Legacy Solver Files
 
 | File | Action |
 |------|--------|
-| `src/jit_solver/SOR_constants.h` | DELETE (done in Phase 1) |
+| `src/jit_solver/SOR_constants.h` | Does not exist |
 | `src/jit_solver/execution_traits.h` | DELETE (done in Phase 1) |
 
 Verify no `#include` references to deleted files remain:
@@ -92,22 +92,22 @@ finalize_step()      # kept if component uses it for state machine updates
 
 ### Remove Obsolete Fields from Components
 
-These fields were SOR-specific and should be removed:
+These fields were legacy solver-specific and should be removed:
 
 | Component | Field to Remove | Reason |
 |-----------|----------------|--------|
-| Switch | `downstream_g` | SOR conductance passback |
-| Switch | `downstream_I` | SOR current passback |
-| Switch | `v_out_old` | SOR convergence tracking |
-| Relay | `downstream_g` | SOR conductance passback |
-| Relay | `downstream_I` | SOR current passback |
-| Relay | `v_out_old` | SOR convergence tracking |
-| HoldButton | `downstream_g` | SOR conductance passback |
-| HoldButton | `downstream_I` | SOR current passback |
-| HoldButton | `v_out_old` | SOR convergence tracking |
-| AZS | `downstream_g` | SOR conductance passback |
-| AZS | `downstream_I` | SOR current passback |
-| AZS | `v_out_old` | SOR convergence tracking |
+| Switch | `downstream_g` | conductance passback |
+| Switch | `downstream_I` | current passback |
+| Switch | `v_out_old` | convergence tracking |
+| Relay | `downstream_g` | conductance passback |
+| Relay | `downstream_I` | current passback |
+| Relay | `v_out_old` | convergence tracking |
+| HoldButton | `downstream_g` | conductance passback |
+| HoldButton | `downstream_I` | current passback |
+| HoldButton | `v_out_old` | convergence tracking |
+| AZS | `downstream_g` | conductance passback |
+| AZS | `downstream_I` | current passback |
+| AZS | `v_out_old` | convergence tracking |
 
 After removing these fields, update tests that reference them.
 
@@ -133,20 +133,20 @@ TEST(PushFinal, AOTCodegenProducesPushCode) {
 Key changes:
 1. Generated code references `st.values[...]` instead of `st.across[...]`
 2. Remove all `stamp_*()` calls from generated code
-3. Remove SOR iteration loop from generated step function
+3. Remove legacy iteration loop from generated step function
 4. Generate two-bucket execution: sources first, then consumers
 5. Remove phase-based code generation
 
 Replace the generated `step()` function template:
 
 ```cpp
-// OLD (SOR):
+// OLD (legacy iterative):
 // void step(SimulationState& st, float dt) {
 //     st.clear_through();
 //     comp1.solve_electrical(st, dt);  // stamps
 //     comp2.solve_electrical(st, dt);  // stamps
 //     st.precompute_inv_conductance();
-//     solve_sor_iteration(...);
+//     solve_iteration(...);
 // }
 
 // NEW (Push):
@@ -190,7 +190,7 @@ The editor (`src/editor/`) uses `JIT_Simulator` to run live simulation. Changes 
 
 ## Step 5.6: Update Scheduling Constants
 
-Replace `DomainSchedule` namespace (was in SOR_constants.h) with inline constants where needed:
+Replace `DomainSchedule` namespace (was in legacy solver constants) with inline constants where needed:
 
 ```cpp
 // In scheduling.h or wherever sub-rate periods are used:
@@ -215,7 +215,7 @@ TEST(PushFinal, FullAircraftPerformance) {
     // Or use the largest available test blueprint
 
     // Target metrics:
-    // - Frame time < 100us (10x faster than SOR)
+    // - Frame time < 100us (10x faster than legacy)
     // - Zero NaN/Inf over 10-minute simulation
     // - Memory: single values[] array, no flows/conductance overhead
 
@@ -233,7 +233,7 @@ TEST(PushFinal, FullAircraftPerformance) {
 # Expected output should show:
 # - Push JIT: < 100us/frame
 # - Push AOT: < 50us/frame
-# - vs old SOR JIT: ~1000-5000us/frame (for comparison)
+# - vs old legacy JIT: ~1000-5000us/frame (for comparison)
 ```
 
 ---
@@ -250,14 +250,14 @@ Add entry for push migration:
 
 ### Update `knowledge/10_quick_reference.md`
 
-Replace SOR tuning section with push architecture quick reference:
+Replace legacy solver tuning section with push architecture quick reference:
 
 ```markdown
 ## Simulation Architecture
 
 - Single `values[]` array in SimulationState
 - Two-bucket execution: sources first, consumers second
-- No SOR iterations, no conductance matrices
+- No legacy iterations, no conductance matrices
 - Domain frequencies: Electrical 60Hz, Logical 60Hz, Mechanical 20Hz, Hydraulic 5Hz, Thermal 1Hz
 - One-frame feedback delay (16.67ms at 60Hz) - acceptable for PI controllers
 ```
@@ -304,20 +304,20 @@ cmake --build build -j$(nproc) 2>&1 | grep -E "warning:|error:"
 
 | File | Action |
 |------|--------|
-| `src/jit_solver/SOR_constants.h` | Verify DELETED |
+| `src/jit_solver/SOR_constants.h` | Does not exist |
 | `src/jit_solver/execution_traits.h` | Verify DELETED |
-| `src/jit_solver/components/all.h` | Remove obsolete method declarations and SOR fields |
+| `src/jit_solver/components/all.h` | Remove obsolete method declarations and legacy solver fields |
 | `src/jit_solver/components/all.cpp` | Remove obsolete method implementations |
 | `src/codegen/codegen.cpp` | Update to generate push-style code |
-| `src/jit_solver/scheduling.h` | Keep domain frequencies, remove SOR references |
+| `src/jit_solver/scheduling.h` | Keep domain frequencies, remove iteration references |
 | `knowledge/index.md` | Update documentation index |
-| `knowledge/10_quick_reference.md` | Replace SOR tuning with push architecture |
+| `knowledge/10_quick_reference.md` | Replace iterative solver tuning with push architecture |
 | `knowledge/errors_TODO.md` | Mark resolved items |
 | `tests/test_push_final.cpp` | NEW: final verification tests |
 
 ## Completion Criteria
 
-- [ ] `grep -rn "SOR::\|solve_sor\|stamp_two_port" src/` returns 0 results
+- [ ] `grep -rn "legacy_iterative::\|solve_iterative_relaxation\|stamp_two_port" src/` returns 0 results
 - [ ] `grep -rn "\.across\[" src/` returns 0 results
 - [ ] `grep -rn "\.through\[" src/` returns 0 results
 - [ ] `grep -rn "\.conductance\[" src/` returns 0 results

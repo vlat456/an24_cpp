@@ -5,9 +5,9 @@
 #include <cmath>
 
 // =============================================================================
-// DISABLED: SOR-style tests using SimulationState.across/through/conductance which
+// DISABLED: legacy-style tests using SimulationState.across/through/conductance which
 // do not exist in push architecture. No push equivalent - these tests exercise
-// low-level SOR stamping behavior handled by scheduler in push model.
+// low-level legacy stamping behavior handled by scheduler in push model.
 // =============================================================================
 
 // =============================================================================
@@ -36,7 +36,7 @@ static SimulationState make_state(size_t n = 4) {
 // Norton Stamp Correctness — Generator must match Battery convention
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_StampMatchesBatteryConvention) {
     // Both Battery and Generator are voltage sources with internal resistance.
     // Their stamps MUST be identical for the same parameters.
@@ -73,7 +73,7 @@ TEST(GeneratorTest, DISABLED_StampMatchesBatteryConvention) {
 // Conductance Stamping
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_ConductanceStampedOnBothPorts) {
     auto gen = make_generator(28.5f, 0.005f);
     auto st = make_state();
@@ -89,7 +89,7 @@ TEST(GeneratorTest, DISABLED_ConductanceStampedOnBothPorts) {
 // Residual Current at Equilibrium
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_ZeroResidualAtNominalVoltage) {
     // When v_out = v_nominal and v_in = 0 (ground),
     // the generator is at equilibrium: no net current should flow
@@ -107,10 +107,10 @@ TEST(GeneratorTest, DISABLED_ZeroResidualAtNominalVoltage) {
     EXPECT_NEAR(st.through[1], 0.0f, 1e-3f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_PositiveResidualWhenBelowNominal) {
     // When v_out < v_nominal, through[v_out] should be positive
-    // (SOR should push voltage up toward nominal)
+    // (legacy should push voltage up toward nominal)
     auto gen = make_generator(28.5f, 0.005f);
     auto st = make_state();
     st.across[0] = 20.0f;  // v_out below nominal
@@ -121,10 +121,10 @@ TEST(GeneratorTest, DISABLED_PositiveResidualWhenBelowNominal) {
     EXPECT_GT(st.through[0], 0.0f);  // Should push v_out up
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_NegativeResidualWhenAboveNominal) {
     // When v_out > v_nominal, through[v_out] should be negative
-    // (SOR should push voltage down toward nominal)
+    // (legacy should push voltage down toward nominal)
     auto gen = make_generator(28.5f, 0.005f);
     auto st = make_state();
     st.across[0] = 35.0f;  // v_out above nominal
@@ -139,7 +139,7 @@ TEST(GeneratorTest, DISABLED_NegativeResidualWhenAboveNominal) {
 // Energy Conservation
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_EnergyConservation_CurrentSumsToZero) {
     // KCL: total current entering = total current leaving
     // For a two-port source: through[v_out] + through[v_in] = 0
@@ -153,7 +153,7 @@ TEST(GeneratorTest, DISABLED_EnergyConservation_CurrentSumsToZero) {
     EXPECT_NEAR(st.through[0] + st.through[1], 0.0f, 1e-4f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_EnergyConservation_SymmetricConductance) {
     // For a simple two-port: conductance on both nodes must be equal
     auto gen = make_generator(28.5f, 0.005f);
@@ -168,17 +168,17 @@ TEST(GeneratorTest, DISABLED_EnergyConservation_SymmetricConductance) {
 
 // =============================================================================
 // Regression: OLD bug — missing V*G drain term
-// DISABLED: SOR-specific test — no push equivalent for SOR iteration loop.
+// DISABLED: legacy-specific test — no push equivalent for legacy iteration loop.
 // =============================================================================
 
-// DISABLED: SOR-specific test — no push equivalent for SOR iteration loop.
-TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInSOR) {
+// DISABLED: legacy-specific test — no push equivalent for legacy iteration loop.
+TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInlegacy) {
     // The old Generator stamp was:
     //   i = (v_nominal + v_gnd - v_bus) * g
     //   through[v_out] += i
     //   conductance[v_out] += g
     //
-    // This is WRONG because: the SOR step applies
+    // This is WRONG because: the legacy step applies
     //   V += through * inv_conductance * omega
     // but `i` already contains the `-v_bus * g` term (which the conductance
     // term also accounts for). This double-counts the drain.
@@ -190,9 +190,9 @@ TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInSOR) {
     // When v_out = v_nominal (equilibrium), through must be zero.
     // With the old stamp: through = (v_nominal + 0 - v_nominal) * g = 0 ✓ (accidentally correct)
     // But when v_out ≠ v_nominal, the old stamp gives:
-    //   through = (v_nominal - v_bus) * g   (NOT accounting for SOR's own V*G correction)
+    //   through = (v_nominal - v_bus) * g   (NOT accounting for legacy's own V*G correction)
     // while the correct stamp gives the same residual but via a decomposed form
-    // that the SOR can properly process.
+    // that the legacy can properly process.
     //
     // The key difference shows up in multi-step convergence: the old stamp
     // converges to a different (wrong) steady-state voltage.
@@ -202,10 +202,10 @@ TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInSOR) {
     st.across[0] = 0.0f;  // Start from zero
     st.across[1] = 0.0f;
 
-    // Run multiple SOR iterations to check convergence
+    // Run multiple legacy iterations to check convergence
     st.inv_conductance.resize(4, 0.0f);
     st.signal_types.resize(4, {Domain::Electrical, false});
-    // v_in (index 1) is the ground reference — must be FIXED so SOR doesn't move it.
+    // v_in (index 1) is the ground reference — must be FIXED so legacy doesn't move it.
     // Without this, both nodes are free-floating and the system is under-determined,
     // causing v_in to diverge to -inf and v_out to diverge to +inf → NaN.
     st.signal_types[1] = {Domain::Electrical, true};
@@ -218,7 +218,7 @@ TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInSOR) {
         st.conductance[1] = 0.0f;
 
         gen.solve_electrical(st, 1.0f / 60.0f);
-        // SOR iteration and precompute_inv_conductance have no push equivalent - disabled
+        // legacy iteration and precompute_inv_conductance have no push equivalent - disabled
     }
 
     // After convergence, v_out should be at v_nominal (28.5V)
@@ -230,7 +230,7 @@ TEST(GeneratorTest, DISABLED_Regression_NoDoubleCountingInSOR) {
 // Ground Reference
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_NonZeroGroundReference) {
     // Generator with non-zero ground (v_in = 5.0V)
     // Output should converge to v_nominal + v_gnd
@@ -253,7 +253,7 @@ TEST(GeneratorTest, DISABLED_NonZeroGroundReference) {
 // pre_load()
 // =============================================================================
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_PreLoadComputesInverseResistance) {
     Generator<JitProvider> gen;
     gen.internal_r = 0.02f;
@@ -261,7 +261,7 @@ TEST(GeneratorTest, DISABLED_PreLoadComputesInverseResistance) {
     EXPECT_FLOAT_EQ(gen.inv_internal_r, 50.0f);
 }
 
-// DISABLED: Uses SOR-style SimulationState not available in push
+// DISABLED: Uses legacy-style SimulationState not available in push
 TEST(GeneratorTest, DISABLED_PreLoadZeroResistanceGivesFlooredConductance) {
     Generator<JitProvider> gen;
     gen.internal_r = 0.0f;

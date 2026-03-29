@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "codegen/codegen.h"
 
-// ==...== Domain schedule constants (formerly in SOR_constants.h) ==...==
+// ==...== Domain schedule constants (formerly in legacy solver constants) ==...==
 // These are embedded as string literals in generated AOT code and must remain consistent.
 namespace DomainSchedule {
     constexpr int MECHANICAL_PERIOD = 3;   // 20 Hz = every 3rd step at 60 Hz
@@ -240,24 +240,6 @@ TEST(CodegenAccumulator, DispatchTableSizeMatchesCycleLength) {
     std::string last_step = "step_" + std::to_string(DomainSchedule::CYCLE_LENGTH - 1);
     EXPECT_NE(source.find(last_step), std::string::npos)
         << "Last step method step_" << DomainSchedule::CYCLE_LENGTH - 1 << " must be generated";
-}
-
-// =============================================================================
-// Regression: AOT SOR must use dynamic signal count (JIT parity)
-// =============================================================================
-
-TEST(CodegenAccumulator, SorUsesDynamicSignalCount) {
-    auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
-
-    std::string source = CodeGen::generate_source(
-        "test.h", devices, connections, port_to_signal, signal_count);
-
-    EXPECT_NE(source.find("st->dynamic_signals_count"), std::string::npos)
-        << "AOT solve_sor_iteration must use st->dynamic_signals_count";
-
-    EXPECT_EQ(source.find("solve_sor_iteration(st->across.data(), st->through.data(), st->inv_conductance.data(), SIGNAL_COUNT"),
-              std::string::npos)
-        << "AOT solve_sor_iteration must not iterate over SIGNAL_COUNT";
 }
 
 // DISABLED: codegen no longer populates phase_control_commit

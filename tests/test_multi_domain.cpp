@@ -252,11 +252,11 @@ static Blueprint make_electric_heater_circuit() {
 
 // =============================================================================
 // Test: Mechanical domain runs every 3rd step
-// DISABLED: SOR-specific period-based scheduling has no push equivalent
+// DISABLED: legacy period-based scheduling has no push equivalent
 // =============================================================================
 TEST(MultiDomain, DISABLED_Mechanical_RunsEvery3rdStep) {
-    // SOR-specific period-based scheduling has no push equivalent
-    GTEST_SKIP() << "SOR-specific period-based scheduling has no push equivalent";
+    // Legacy period-based scheduling has no push equivalent
+    GTEST_SKIP() << "legacy period-based scheduling has no push equivalent";
     Blueprint bp = make_spring_circuit();
     Simulator<JIT_Solver> sim;
     sim.start_from_json(sim_test_json::from_blueprint(bp));
@@ -300,11 +300,11 @@ TEST(MultiDomain, DISABLED_Mechanical_RunsEvery3rdStep) {
 
 // =============================================================================
 // Test: Thermal domain runs every 60th step
-// DISABLED: SOR-specific period-based scheduling has no push equivalent
+// DISABLED: legacy period-based scheduling has no push equivalent
 // =============================================================================
 TEST(MultiDomain, DISABLED_Thermal_RunsEvery60thStep) {
-    // SOR-specific period-based scheduling has no push equivalent
-    GTEST_SKIP() << "SOR-specific period-based scheduling has no push equivalent";
+    // Legacy period-based scheduling has no push equivalent
+    GTEST_SKIP() << "legacy period-based scheduling has no push equivalent";
     Blueprint bp = make_temp_sensor_circuit();
     Simulator<JIT_Solver> sim;
     sim.start_from_json(sim_test_json::from_blueprint(bp));
@@ -408,7 +408,7 @@ TEST(MultiDomain, Electrical_RunsEveryStep) {
     Simulator<JIT_Solver> sim;
     sim.start_from_json(sim_test_json::from_blueprint(bp));
 
-    // Need to run simulation to get voltage (SOR needs iterations to converge)
+    // Need to run simulation to get voltage (legacy solver needs iterations to converge)
     for (int i = 0; i < 10; i++) {
         sim.step(1.0f / 60.0f);
     }
@@ -530,21 +530,21 @@ TEST(MultiDomain, MultiDomain_ElectricHeater_InBothVectors) {
 
 // =============================================================================
 // Test: Hydraulic domain runs every 12th step (5 Hz)
-// DISABLED: DomainSchedule constants are SOR-internal, not available in push migration
+// DISABLED: DomainSchedule constants are legacy solver-internal, not available in push migration
 // =============================================================================
 TEST(MultiDomain, DISABLED_Hydraulic_RunsEvery12thStep) {
     // Find a hydraulic component to test
     // Let's check what hydraulic components exist
     // For now, we'll verify the period constant is correct
     
-    // DomainSchedule constants moved to codegen and are SOR-internal
+    // DomainSchedule constants moved to codegen and are legacy solver-internal
     // In push model, components run based on explicit scheduling, not period-based
-    GTEST_SKIP() << "DomainSchedule constants are SOR-internal";
+    GTEST_SKIP() << "DomainSchedule constants are legacy solver-internal";
 }
 
 // =============================================================================
 // Test: Verify domain frequencies match constants
-// DISABLED: DomainSchedule constants are SOR-internal, not available in push migration
+// DISABLED: DomainSchedule constants are legacy solver-internal, not available in push migration
 // =============================================================================
 TEST(MultiDomain, DISABLED_DomainFrequencies_AreCorrect) {
     // At 60 Hz base rate:
@@ -554,7 +554,7 @@ TEST(MultiDomain, DISABLED_DomainFrequencies_AreCorrect) {
     // - Hydraulic: 60/12 = 5 Hz
     // - Thermal: 60/60 = 1 Hz
 
-    // DomainSchedule constants moved to codegen and are SOR-internal
+    // DomainSchedule constants moved to codegen and are legacy solver-internal
     // In push model, components run based on explicit scheduling, not period-based
-    GTEST_SKIP() << "DomainSchedule constants are SOR-internal";
+    GTEST_SKIP() << "DomainSchedule constants are legacy solver-internal";
 }

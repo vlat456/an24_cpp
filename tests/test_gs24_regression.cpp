@@ -6,7 +6,7 @@
 
 namespace {
 
-// DISABLED: SOR-style test using SimulationState.across/through/conductance which
+// DISABLED: legacy iterative-style test using SimulationState.across/through/conductance which
 // do not exist in push architecture. No push equivalent - use JIT_Simulator based
 // tests in push_runtime_regression_tests for GS24 coverage.
 
@@ -41,7 +41,7 @@ SimulationState make_state(size_t n = 4) {
 
 } // namespace
 
-// DISABLED: Uses SOR-style SimulationState (across/through/conductance) not available in push
+// DISABLED: Uses legacy iterative-style SimulationState (across/through/conductance) not available in push
 TEST(GS24Regression, DISABLED_SolveElectricalDoesNotMutateModeOrRpm) {
     auto gs = make_gs24();
     auto st = make_state();
@@ -58,7 +58,7 @@ TEST(GS24Regression, DISABLED_SolveElectricalDoesNotMutateModeOrRpm) {
     EXPECT_FLOAT_EQ(gs.current_rpm, rpm0);
 }
 
-// DISABLED: Uses SOR-style SimulationState (across/through/conductance) not available in push
+// DISABLED: Uses legacy iterative-style SimulationState (across/through/conductance) not available in push
 TEST(GS24Regression, DISABLED_FinalizeTransitionsStarterToGenerator) {
     auto gs = make_gs24();
     auto st = make_state();
@@ -84,7 +84,7 @@ TEST(GS24Regression, DISABLED_FinalizeTransitionsStarterToGenerator) {
     EXPECT_GE(gs.current_rpm, gs.target_rpm * gs.rpm_cutoff);
 }
 
-// DISABLED: Uses SOR-style SimulationState (across/through/conductance) not available in push
+// DISABLED: Uses legacy iterative-style SimulationState (across/through/conductance) not available in push
 TEST(GS24Regression, DISABLED_DeterministicRegardlessOfElectricalIterationCount) {
     auto run = [&](int electrical_calls_per_step) {
         auto gs = make_gs24();
@@ -110,7 +110,7 @@ TEST(GS24Regression, DISABLED_DeterministicRegardlessOfElectricalIterationCount)
     EXPECT_NEAR(rpm3, rpm30, 1e-4f);
 }
 
-// DISABLED: Uses SOR-style SimulationState (across/through/conductance) not available in push
+// DISABLED: Uses legacy iterative-style SimulationState (across/through/conductance) not available in push
 TEST(GS24Regression, DISABLED_FixedVsVariableDt_BaselineEquivalentAfterSameSimTime) {
     auto run_for_time = [](const std::vector<float>& dts, float total_time) {
         auto gs = make_gs24();

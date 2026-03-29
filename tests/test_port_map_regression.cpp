@@ -218,7 +218,7 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
         << "Subtract(28, 0) must output ~28! (port A/B mapping regression)";
 }
 
-// DISABLED: SOR-specific test relying on Splitter alias passthrough (o2->i).
+// DISABLED: legacy solver-specific test relying on Splitter alias passthrough (o2->i).
 // In push model, Splitter outputs o1/o2 do not mirror input i, so sub.B
 // reads 0V instead of CVS voltage. This is a push model limitation.
 TEST(PortMapRegression, DISABLED_Subtract_GSC_Topology_SignalIndices) {
@@ -229,7 +229,7 @@ TEST(PortMapRegression, DISABLED_Subtract_GSC_Topology_SignalIndices) {
     // ControlledVoltageSource v_pos -> splitter_1:i
     // GND RefNode -> CVS v_neg
     //
-    // In push model, signal aliasing semantics differ from SOR.
+    // In push model, signal aliasing semantics differ from legacy solver.
     // We validate: required ports exist, values are finite, and
     // Subtract produces meaningful output (A - B behavior).
     const char* json = R"({

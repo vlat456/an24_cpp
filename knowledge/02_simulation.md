@@ -27,21 +27,21 @@ struct SimulationState {
 
 This enables **branchless iteration** - no `is_fixed` checks needed!
 
-## SOR Solver (Successive Over-Relaxation)
+## Push Propagation Model
 
-Single iteration updates all potentials:
+Single-pass push model updates all potentials directly:
 ```cpp
-AOT_ALWAYS_INLINE void solve_sor_iteration(
-    float* across, const float* through, 
-    const float* inv_conductance, size_t count, float omega
-) {
-    for (size_t i = 0; i < count; ++i) {
-        across[i] += through[i] * inv_conductance[i] * omega;
-    }
+// Components write outputs directly to signal arrays during execute()
+template<typename Provider>
+void MyComponent<Provider>::execute(SimulationState& st, float dt) {
+    float input = st.across[provider.get(PortNames::v_in)];
+    st.across[provider.get(PortNames::v_out)] = compute_output(input);
 }
 ```
 
-## Norton Stamping Helpers
+No iterative solver - components self-contained with direct signal propagation.
+
+## Stamping Helpers (Legacy)
 
 Optimized inline functions for common circuit patterns:
 
@@ -91,15 +91,13 @@ struct PhaseComponents {
 
 Runtime executes explicit phases in one outer `step(dt)`:
 
-1. `stamp_electrical_passive`
-2. first electrical SOR pass
-3. `observe_electrical`
-4. `solve_logical`
-5. `commit_control`
-6. `stamp_electrical_actuator`
-7. second electrical SOR pass
-8. sub-rate domain ticks (`mechanical`, `hydraulic`, `thermal`)
-9. `finalize_step`
+1. `execute_electrical_passive`
+2. `execute_electrical_observer`
+3. `execute_logical`
+4. `execute_control_commit`
+5. `execute_electrical_actuator`
+6. sub-rate domain ticks (`mechanical`, `hydraulic`, `thermal`)
+7. `finalize_step`
 
 `dt <= 0` is pause/no-advance: no phase advances simulation state.
 
@@ -140,9 +138,10 @@ state.save_convergence_state();  // Copy across[] to buffer
 bool converged = state.has_converged(tolerance);  // Compare max change
 ```
 
-## SOR Constants
+## Domain Scheduling Constants
 
-Located in `src/jit_solver/SOR_constants.h`:
-- `omega` - Relaxation factor (typically 1.2-1.5)
-- `max_iterations` - Maximum SOR iterations per frame
-- `tolerance` - Convergence threshold
+Embedded in codegen for AOT and in `DomainSchedule` namespace for JIT:
+- `MECHANICAL_PERIOD = 3` - 20 Hz = every 3rd step at 60 Hz
+- `HYDRAULIC_PERIOD = 12` - 5 Hz = every 12th step at 60 Hz
+- `THERMAL_PERIOD = 60` - 1 Hz = every 60th step at 60 Hz
+- `CYCLE_LENGTH = 60` - Least common multiple of all periods

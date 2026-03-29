@@ -10,7 +10,7 @@ Every integration test follows red-green TDD:
 ## Overview
 
 Verify the complete push propagation system works end-to-end:
-- Single-pass execution (no SOR iterations)
+- Single-pass execution (no legacy iterations)
 - GSC voltage regulation loop converges
 - Multi-domain components work correctly
 - Dynamic enable/disable is stable
@@ -365,7 +365,7 @@ TEST(PushIntegration, PerformanceUnder100us) {
     // Target: < 100us per frame
     EXPECT_LT(avg_us, 100.0f) << "Average frame time: " << avg_us << "us (target < 100us)";
 
-    // For comparison: SOR does ~15000 iterations * overhead per frame
+    // For comparison: legacy solver does ~15000 iterations * overhead per frame
     // Push does ~10 component execute() calls per frame
     // Should be 10-100x faster
 }
@@ -383,15 +383,15 @@ Every existing test that references the old API must be updated:
 2. **`st.through[...]`** references -> DELETE or rework
 3. **`st.conductance[...]`** references -> DELETE
 4. **Phase-based test logic** -> Replace with single `scheduler.step()` or `sim.step()`
-5. **SOR convergence tests** -> DELETE (SOR no longer exists)
+5. **Legacy convergence tests** -> DELETE (legacy solver no longer exists)
 6. **Adaptive omega tests** -> DELETE
-7. **Sanitizer tests** -> Simplify (no SOR-specific sanitizer)
+7. **Sanitizer tests** -> Simplify (no legacy-specific sanitizer)
 
 ### Process:
 
 ```bash
 # Find all test files referencing old API
-grep -rn "st\.across\|st\.through\|st\.conductance\|SOR::\|solve_sor\|stamp_two_port" tests/
+grep -rn "st\.across\|st\.through\|st\.conductance\|legacy_iterative::\|solve_iterative_relaxation\|stamp_two_port" tests/
 ```
 
 Update each file found. The bulk of changes are simple renames (`across` -> `values`).
@@ -404,11 +404,11 @@ Update each file found. The bulk of changes are simple renames (`across` -> `val
 |------|--------|
 | `tests/test_push_integration.cpp` | NEW: end-to-end integration tests |
 | `tests/CMakeLists.txt` | Add integration test targets |
-| `tests/*.cpp` (all existing) | Update `st.across` -> `st.values`, remove SOR references |
+| `tests/*.cpp` (all existing) | Update `st.across` -> `st.values`, remove legacy references |
 
 ## Completion Criteria
 
-- [ ] Single-pass test passes (no SOR iterations)
+- [ ] Single-pass test passes (no legacy iterations)
 - [ ] GSC loop stabilizes at 28.5V +/- 0.5V within 2 seconds
 - [ ] RU19A startup sequence completes (RPM rises, EGT rises)
 - [ ] 1000 frames of random switching produces no NaN/Inf
