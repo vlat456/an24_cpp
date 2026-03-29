@@ -13,19 +13,15 @@ public:
     Provider provider;
     GS24Mode mode = GS24Mode::STARTER;
     GS24Mode next_mode = GS24Mode::STARTER;
-    float start_time = 0.0f;
     float wait_time = 0.0f;
     float next_wait_time = 0.0f;
     float r_internal = 0.025f;
-    float k_motor = 0.5f;
-    float i_max_starter = 800.0f;
     float rpm_cutoff = 0.45f;
     float v_nominal = 28.5f;
     float r_norton = 0.08f;
     float target_rpm = 16000.0f;
     float current_rpm = 0.0f;
     float next_current_rpm = 0.0f;
-    float i_max = 400.0f;
     float rpm_threshold = 0.4f;
 
     // Precomputed inverses (set in pre_load)

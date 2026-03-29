@@ -1006,7 +1006,6 @@ BuildResult build_systems_dev(
             comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
             comp.r_internal = consume_float_optional("r_internal", 0.025f);
             comp.r_norton = consume_float_optional("r_norton", 0.08f);
-            comp.k_motor = consume_float_optional("k_motor", 0.5f);
             comp.pre_load();
             setup_ports(comp);
             validate_all_params_consumed();
@@ -1072,7 +1071,7 @@ BuildResult build_systems_dev(
             RU19A<JitProvider> comp;
             
             comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
-            comp.auto_start = consume_bool_optional("auto_start", false);
+            comp.auto_start = consume_bool_optional("auto_start", true);
             comp.t4_target = consume_float_optional("t4_target", 400.0f);
             comp.pre_load();
             setup_ports(comp);
