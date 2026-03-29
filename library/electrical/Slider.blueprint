@@ -28,16 +28,5 @@
   "param_defaults": {
     "min": "0.0",
     "max": "1.0"
-  },
-  "execution": {
-    "electrical_passive": false,
-    "electrical_observer": false,
-    "logical": true,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

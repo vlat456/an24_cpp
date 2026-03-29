@@ -47,16 +47,5 @@
   "priority": "high",
   "param_defaults": {
     "target_rpm": "16000.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": true,
-    "mechanical": true,
-    "hydraulic": false,
-    "thermal": true
   }
 }

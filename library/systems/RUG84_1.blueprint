@@ -143,17 +143,6 @@
     "Electrical",
     "Logical"
   ],
-  "execution": {
-    "electrical_passive": false,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
-  },
   "pan_x": 0.0,
   "pan_y": 0.0,
   "zoom": 1.0,

@@ -41,16 +41,5 @@
     "connect_threshold": "2.0",
     "disconnect_threshold": "10.0",
     "min_voltage_to_close": "20.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": true,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

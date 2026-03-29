@@ -38,16 +38,5 @@
     "filter_alpha": "0.2",
     "output_max": "1000.0",
     "output_min": "-1000.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": true,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

@@ -30,52 +30,6 @@ static std::string domain_to_string(Domain d) {
     return "Unknown";
 }
 
-static ExecutionPhases parse_execution_phases(const json& j) {
-    if (!j.is_object()) {
-        throw std::runtime_error("'execution' must be an object");
-    }
-
-    static const std::set<std::string> allowed_keys = {
-        "electrical_passive",
-        "electrical_observer",
-        "logical",
-        "control_commit",
-        "electrical_actuator",
-        "finalize",
-        "mechanical",
-        "hydraulic",
-        "thermal",
-    };
-    for (const auto& [key, _] : j.items()) {
-        if (!allowed_keys.count(key)) {
-            throw std::runtime_error("Unknown execution phase key: '" + key + "'");
-        }
-    }
-
-    auto read_required_bool = [&](const char* key) -> bool {
-        if (!j.contains(key)) {
-            throw std::runtime_error(std::string("Missing execution phase key: '") + key + "'");
-        }
-        if (!j[key].is_boolean()) {
-            throw std::runtime_error(std::string("Execution phase key '") + key + "' must be boolean");
-        }
-        return j[key].get<bool>();
-    };
-
-    ExecutionPhases ep;
-    ep.electrical_passive = read_required_bool("electrical_passive");
-    ep.electrical_observer = read_required_bool("electrical_observer");
-    ep.logical = read_required_bool("logical");
-    ep.control_commit = read_required_bool("control_commit");
-    ep.electrical_actuator = read_required_bool("electrical_actuator");
-    ep.finalize = read_required_bool("finalize");
-    ep.mechanical = read_required_bool("mechanical");
-    ep.hydraulic = read_required_bool("hydraulic");
-    ep.thermal = read_required_bool("thermal");
-
-    return ep;
-}
-
 static ParamSchemaType parse_param_schema_type(const std::string& s) {
     if (s == "float") return ParamSchemaType::Float;
     if (s == "int") return ParamSchemaType::Int;
@@ -185,35 +139,6 @@ static bool has_domain_in(const std::vector<Domain>& domains, Domain target) {
         }
     }
     return false;
-}
-
-static void validate_execution_domains_consistency(
-    const std::string& classname,
-    const std::vector<Domain>& domains,
-    const ExecutionPhases& execution
-) {
-    if ((execution.electrical_passive || execution.electrical_observer || execution.electrical_actuator) &&
-        !has_domain_in(domains, Domain::Electrical)) {
-        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
-                                 "': electrical execution requires Electrical domain");
-    }
-    if ((execution.logical || execution.control_commit) &&
-        !has_domain_in(domains, Domain::Logical)) {
-        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
-                                 "': logical/control_commit execution requires Logical domain");
-    }
-    if (execution.mechanical && !has_domain_in(domains, Domain::Mechanical)) {
-        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
-                                 "': mechanical execution requires Mechanical domain");
-    }
-    if (execution.hydraulic && !has_domain_in(domains, Domain::Hydraulic)) {
-        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
-                                 "': hydraulic execution requires Hydraulic domain");
-    }
-    if (execution.thermal && !has_domain_in(domains, Domain::Thermal)) {
-        throw std::runtime_error("Execution/domain mismatch for component '" + classname +
-                                 "': thermal execution requires Thermal domain");
-    }
 }
 
 // Helper: convert string to PortDirection
@@ -934,15 +859,6 @@ TypeDefinition parse_type_definition(const json& j) {
         }
     }
 
-    // Parse explicit execution-phase metadata (optional in push migration).
-    if (j.contains("execution")) {
-        if (!j["execution"].is_object()) {
-            throw std::runtime_error("Type definition 'execution' must be an object for component '" + def.classname + "'");
-        }
-        def.execution = parse_execution_phases(j["execution"]);
-        validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
-    }
-
     // For blueprints: parse devices and connections
     if (j.contains("devices") && j["devices"].is_array()) {
         for (const auto& dev_j : j["devices"]) {
@@ -1086,15 +1002,6 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                         throw std::runtime_error("Empty 'domains' array for component '" + def.classname + "'");
                     }
                     def.domains = std::move(domains);
-                }
-
-                // Parse explicit execution-phase metadata (optional in push migration)
-                if (j.contains("execution")) {
-                    if (!j["execution"].is_object()) {
-                        throw std::runtime_error("Invalid 'execution' metadata for component '" + def.classname + "': must be object");
-                    }
-                    def.execution = parse_execution_phases(j["execution"]);
-                    validate_execution_domains_consistency(def.classname, *def.domains, *def.execution);
                 }
 
                 if (!j.contains("interface") || !j["interface"].is_array()) {

@@ -38,16 +38,5 @@
     "closed": {
       "type": "bool"
     }
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": true,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

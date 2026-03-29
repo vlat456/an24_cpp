@@ -40,16 +40,5 @@
   "content_type": "HoldButton",
   "param_defaults": {
     "idle": "0.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": true,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

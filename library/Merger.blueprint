@@ -33,16 +33,5 @@
     "Hydraulic",
     "Thermal"
   ],
-  "priority": "high",
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": true,
-    "hydraulic": true,
-    "thermal": true
-  }
+  "priority": "high"
 }

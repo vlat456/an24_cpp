@@ -28,16 +28,5 @@
   "param_defaults": {
     "efficiency": "0.9",
     "max_power": "1000.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": true
   }
 }

@@ -13,17 +13,6 @@
   "domains": [
     "Logical"
   ],
-  "execution": {
-    "electrical_passive": false,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
-  },
   "param_defaults": {
     "font_size": "large",
     "text": ""

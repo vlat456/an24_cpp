@@ -27,16 +27,5 @@
   "param_defaults": {
     "delay_off": "0.1",
     "delay_on": "0.5"
-  },
-  "execution": {
-    "electrical_passive": false,
-    "electrical_observer": false,
-    "logical": true,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }

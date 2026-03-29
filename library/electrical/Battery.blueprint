@@ -33,16 +33,5 @@
     "inv_capacity": "0.001",
     "inv_internal_r": "100.0",
     "v_nominal": "28.0"
-  },
-  "execution": {
-    "electrical_passive": true,
-    "electrical_observer": false,
-    "logical": false,
-    "control_commit": false,
-    "electrical_actuator": false,
-    "finalize": false,
-    "mechanical": false,
-    "hydraulic": false,
-    "thermal": false
   }
 }
