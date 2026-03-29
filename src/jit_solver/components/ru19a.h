@@ -22,7 +22,6 @@ public:
     float spindown_inertia = 0.02f;
     float crank_time = 2.0f;
     float ignition_time = 3.0f;
-    float runup_time = 8.0f;
     float start_timeout = 30.0f;
     float t4 = 0.0f;
     float next_t4 = 0.0f;

@@ -14,6 +14,12 @@
 // Test Helpers
 // =============================================================================
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 static RU19A<JitProvider> make_apu() {
     RU19A<JitProvider> apu;
     apu.target_rpm = 16000.0f;
@@ -22,7 +28,6 @@ static RU19A<JitProvider> make_apu() {
     apu.spindown_inertia = 0.02f;
     apu.crank_time = 2.0f;
     apu.ignition_time = 3.0f;
-    apu.runup_time = 8.0f;
     apu.start_timeout = 30.0f;
     apu.t4 = 20.0f;
     apu.t4_target = 400.0f;
