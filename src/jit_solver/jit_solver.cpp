@@ -93,7 +93,41 @@ BuildResult build_systems_dev(
 ) {
     BuildResult result{};
 
+    // == Strict parameter helpers - fail fast on missing required params ==
+    auto get_param_required = [&](const std::unordered_map<std::string, std::string>& params,
+                                  const std::string& key,
+                                  const DeviceInstance& dev) -> std::string {
+        auto it = params.find(key);
+        if (it == params.end()) {
+            // Build list of available keys
+            std::string available;
+            for (const auto& [k, v] : params) {
+                if (!available.empty()) available += ", ";
+                available += k;
+            }
+            throw std::runtime_error("Missing required parameter '" + key +
+                "' for component '" + dev.name + "' (classname: " + dev.classname +
+                "). Available keys: " + available);
+        }
+        return it->second;
+    };
+
+    auto parse_param_float_required = [&](const std::unordered_map<std::string, std::string>& params,
+                                         const std::string& key,
+                                         const DeviceInstance& dev) -> float {
+        std::string val = get_param_required(params, key, dev);
+        return locale_safe::parse_float_or(val, 0.0f);
+    };
+
+    auto parse_param_bool_required = [&](const std::unordered_map<std::string, std::string>& params,
+                                         const std::string& key,
+                                         const DeviceInstance& dev) -> bool {
+        std::string val = get_param_required(params, key, dev);
+        return val == "true" || val == "1";
+    };
+
     std::vector<std::string> all_ports;
+
     std::unordered_map<std::string, uint32_t> port_to_idx;
 
     for (const auto& dev : devices) {
@@ -246,6 +280,77 @@ BuildResult build_systems_dev(
             consumer_device_names.push_back(dev.name);
         }
 
+        // == Per-device consumed-key tracking for strict validation ==
+        std::unordered_set<std::string> consumed_params;
+
+        // Whitelist of known library-specified parameters that the component doesn't actually consume.
+        // These appear in library JSON but are not used by the component - they're silently consumed
+        // to maintain backward compatibility with existing blueprints.
+        std::unordered_set<std::string> known_library_unused_params = {
+            "inv_internal_r",  // Computed in Battery/Generator pre_load() as 1.0f / internal_r
+            "inv_capacity",    // Computed in Battery pre_load() as 1.0f / capacity
+            "port_edge",       // Used in Bus blueprint but not consumed by Bus component
+            "exposed_direction", // Used in BlueprintInput blueprint but not consumed
+            "exposed_type",     // Used in BlueprintInput blueprint but not consumed
+            "resistance"        // Used in Load blueprint but Load uses conductance, not resistance
+        };
+
+        // == Consume helper lambdas - mark keys as used ==
+        auto consume_float_optional = [&](const std::string& key, float default_val) -> float {
+            consumed_params.insert(key);
+            auto it = dev.params.find(key);
+            if (it != dev.params.end()) {
+                return locale_safe::parse_float_or(it->second, default_val);
+            }
+            return default_val;
+        };
+
+        auto consume_bool_optional = [&](const std::string& key, bool default_val) -> bool {
+            consumed_params.insert(key);
+            auto it = dev.params.find(key);
+            if (it != dev.params.end()) {
+                return it->second == "true" || it->second == "1";
+            }
+            return default_val;
+        };
+
+        auto consume_string_optional = [&](const std::string& key, const std::string& default_val) -> std::string {
+            consumed_params.insert(key);
+            auto it = dev.params.find(key);
+            if (it != dev.params.end()) {
+                return it->second;
+            }
+            return default_val;
+        };
+
+        // Required helpers also insert into consumed_params for strict validation
+        auto consume_float_required = [&](const std::string& key) -> float {
+            consumed_params.insert(key);
+            return parse_param_float_required(dev.params, key, dev);
+        };
+
+        auto consume_bool_required = [&](const std::string& key) -> bool {
+            consumed_params.insert(key);
+            return parse_param_bool_required(dev.params, key, dev);
+        };
+
+        // Strict validation helper: throws on any unconsumed key
+        // Internal computed params (inv_internal_r, inv_capacity) are silently consumed
+        auto validate_all_params_consumed = [&]() {
+            for (const auto& [key, val] : dev.params) {
+                (void)val;
+                if (consumed_params.find(key) == consumed_params.end()) {
+                    // Check if it's a known library-unused param
+                    if (known_library_unused_params.find(key) != known_library_unused_params.end()) {
+                        consumed_params.insert(key);  // Mark as consumed silently
+                        continue;
+                    }
+                    throw std::runtime_error("Unknown/unconsumed parameter '" + key +
+                        "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+                }
+            }
+        };
+
         // Set up port indices for the provider
         auto setup_ports = [&](auto& comp) {
             for (const auto& [port_name, port] : dev.ports) {
@@ -265,14 +370,14 @@ BuildResult build_systems_dev(
             Battery<JitProvider> comp;
             
             // Load parameters
-            if (auto it = dev.params.find("v_nominal"); it != dev.params.end()) {
-                comp.v_nominal = locale_safe::parse_float_or(it->second, 28.0f);
-            }
-            if (auto it = dev.params.find("internal_r"); it != dev.params.end()) {
-                comp.internal_r = locale_safe::parse_float_or(it->second, 0.01f);
-            }
+            comp.v_nominal = consume_float_optional("v_nominal", 28.0f);
+            comp.internal_r = consume_float_optional("internal_r", 0.01f);
+            // capacity and charge are stored but not used in current battery model
+            comp.capacity = consume_float_optional("capacity", 1000.0f);
+            comp.charge = consume_float_optional("charge", 1000.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Battery<JitProvider>>(result.devices[dev.name]));
@@ -280,14 +385,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Generator") {
             Generator<JitProvider> comp;
             
-            if (auto it = dev.params.find("v_nominal"); it != dev.params.end()) {
-                comp.v_nominal = locale_safe::parse_float_or(it->second, 28.5f);
-            }
-            if (auto it = dev.params.find("internal_r"); it != dev.params.end()) {
-                comp.internal_r = locale_safe::parse_float_or(it->second, 0.005f);
-            }
+            comp.v_nominal = consume_float_optional("v_nominal", 28.5f);
+            comp.internal_r = consume_float_optional("internal_r", 0.005f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Generator<JitProvider>>(result.devices[dev.name]));
@@ -295,10 +397,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RefNode") {
             RefNode<JitProvider> comp;
             
-            if (auto it = dev.params.find("value"); it != dev.params.end()) {
-                comp.value = locale_safe::parse_float_or(it->second, 0.0f);
-            }
+            comp.value = consume_float_optional("value", 0.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
@@ -312,7 +413,10 @@ BuildResult build_systems_dev(
         }
         else if (dev.classname == "Switch") {
             Switch<JitProvider> comp;
+            
+            comp.closed = consume_bool_optional("closed", false);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
@@ -320,10 +424,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Relay") {
             Relay<JitProvider> comp;
             
-            if (auto it = dev.params.find("hold_threshold"); it != dev.params.end()) {
-                comp.hold_threshold = locale_safe::parse_float_or(it->second, 0.5f);
-            }
+            comp.closed = consume_bool_optional("closed", false);
+            comp.hold_threshold = consume_float_optional("hold_threshold", 0.5f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Relay<JitProvider>>(result.devices[dev.name]));
@@ -331,10 +435,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "HoldButton") {
             HoldButton<JitProvider> comp;
             
-            if (auto it = dev.params.find("idle"); it != dev.params.end()) {
-                comp.idle = locale_safe::parse_float_or(it->second, 0.0f);
-            }
+            comp.idle = consume_float_optional("idle", 0.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<HoldButton<JitProvider>>(result.devices[dev.name]));
@@ -342,10 +445,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Load") {
             Load<JitProvider> comp;
             
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 0.1f);
-            }
+            comp.conductance = consume_float_optional("conductance", 0.1f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Load<JitProvider>>(result.devices[dev.name]));
@@ -353,6 +455,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Bus") {
             Bus<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
@@ -360,6 +463,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "BlueprintInput") {
             BlueprintInput<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintInput<JitProvider>>(result.devices[dev.name]));
@@ -367,6 +471,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "BlueprintOutput") {
             BlueprintOutput<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintOutput<JitProvider>>(result.devices[dev.name]));
@@ -374,13 +479,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Comparator") {
             Comparator<JitProvider> comp;
             
-            if (auto it = dev.params.find("Von"); it != dev.params.end()) {
-                comp.Von = locale_safe::parse_float_or(it->second, 5.0f);
-            }
-            if (auto it = dev.params.find("Voff"); it != dev.params.end()) {
-                comp.Voff = locale_safe::parse_float_or(it->second, 2.0f);
-            }
+            comp.Von = consume_float_optional("Von", 5.0f);
+            comp.Voff = consume_float_optional("Voff", 2.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
@@ -388,11 +490,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "CurrentSense") {
             CurrentSense<JitProvider> comp;
             
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.conductance = consume_float_optional("conductance", 1000.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
@@ -400,17 +501,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AZS") {
             AZS<JitProvider> comp;
             
-            if (auto it = dev.params.find("closed"); it != dev.params.end()) {
-                comp.closed = (it->second == "true" || it->second == "1");
-            }
-            if (auto it = dev.params.find("i_nominal"); it != dev.params.end()) {
-                comp.i_nominal = locale_safe::parse_float_or(it->second, 20.0f);
-            }
-            if (auto it = dev.params.find("k_cool"); it != dev.params.end()) {
-                comp.k_cool = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.closed = consume_bool_optional("closed", false);
+            comp.i_nominal = consume_float_optional("i_nominal", 20.0f);
+            comp.k_cool = consume_float_optional("k_cool", 1.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AZS<JitProvider>>(result.devices[dev.name]));
@@ -418,10 +514,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Resistor") {
             Resistor<JitProvider> comp;
             
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 0.1f);
-            }
+            comp.conductance = consume_float_optional("conductance", 0.1f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Resistor<JitProvider>>(result.devices[dev.name]));
@@ -429,13 +524,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Voltmeter") {
             Voltmeter<JitProvider> comp;
             
-            if (auto it = dev.params.find("min"); it != dev.params.end()) {
-                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max"); it != dev.params.end()) {
-                comp.max = locale_safe::parse_float_or(it->second, 28.0f);
-            }
+            comp.min = consume_float_optional("min", 0.0f);
+            comp.max = consume_float_optional("max", 28.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
@@ -443,17 +535,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "IndicatorLight") {
             IndicatorLight<JitProvider> comp;
             
-            if (auto it = dev.params.find("max_brightness"); it != dev.params.end()) {
-                comp.max_brightness = locale_safe::parse_float_or(it->second, 100.0f);
-            }
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("rated_voltage"); it != dev.params.end()) {
-                comp.rated_voltage = locale_safe::parse_float_or(it->second, 28.0f);
-            }
+            comp.max_brightness = consume_float_optional("max_brightness", 100.0f);
+            comp.conductance = consume_float_optional("conductance", 1.0f);
+            comp.rated_voltage = consume_float_optional("rated_voltage", 28.0f);
+            comp.color = consume_string_optional("color", "white");
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
@@ -462,6 +550,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Add") {
             Add<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Add<JitProvider>>(result.devices[dev.name]));
@@ -469,6 +558,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Subtract") {
             Subtract<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Subtract<JitProvider>>(result.devices[dev.name]));
@@ -476,6 +566,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Multiply") {
             Multiply<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Multiply<JitProvider>>(result.devices[dev.name]));
@@ -483,6 +574,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Divide") {
             Divide<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Divide<JitProvider>>(result.devices[dev.name]));
@@ -490,6 +582,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AND") {
             AND<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AND<JitProvider>>(result.devices[dev.name]));
@@ -497,6 +590,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "OR") {
             OR<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<OR<JitProvider>>(result.devices[dev.name]));
@@ -504,6 +598,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "XOR") {
             XOR<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<XOR<JitProvider>>(result.devices[dev.name]));
@@ -511,6 +606,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "NOT") {
             NOT<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<NOT<JitProvider>>(result.devices[dev.name]));
@@ -518,6 +614,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "NAND") {
             NAND<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<NAND<JitProvider>>(result.devices[dev.name]));
@@ -525,6 +622,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Min") {
             Min<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
@@ -532,6 +630,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Max" || dev.classname == "MaxSelector") {
             Max<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
@@ -539,13 +638,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Clamp") {
             Clamp<JitProvider> comp;
             
-            if (auto it = dev.params.find("min"); it != dev.params.end()) {
-                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max"); it != dev.params.end()) {
-                comp.max = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.min = consume_float_optional("min", 0.0f);
+            comp.max = consume_float_optional("max", 1.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
@@ -554,22 +650,14 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PID") {
             PID<JitProvider> comp;
             
-            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
-                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("ki"); it != dev.params.end()) {
-                comp.Ki = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("kd"); it != dev.params.end()) {
-                comp.Kd = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
-                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
-            }
-            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
-                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.Kp = consume_float_required("Kp");
+            comp.Ki = consume_float_required("Ki");
+            comp.Kd = consume_float_required("Kd");
+            comp.output_min = consume_float_required("output_min");
+            comp.output_max = consume_float_required("output_max");
+            comp.filter_alpha = consume_float_required("filter_alpha");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PID<JitProvider>>(result.devices[dev.name]));
@@ -577,19 +665,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PI") {
             PI<JitProvider> comp;
             
-            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
-                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("ki"); it != dev.params.end()) {
-                comp.Ki = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
-                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
-            }
-            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
-                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.Kp = consume_float_required("Kp");
+            comp.Ki = consume_float_required("Ki");
+            comp.output_min = consume_float_required("output_min");
+            comp.output_max = consume_float_required("output_max");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PI<JitProvider>>(result.devices[dev.name]));
@@ -597,19 +678,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PD") {
             PD<JitProvider> comp;
             
-            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
-                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("kd"); it != dev.params.end()) {
-                comp.Kd = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
-                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
-            }
-            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
-                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.Kp = consume_float_required("Kp");
+            comp.Kd = consume_float_required("Kd");
+            comp.filter_alpha = consume_float_required("filter_alpha");
+            comp.output_min = consume_float_required("output_min");
+            comp.output_max = consume_float_required("output_max");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PD<JitProvider>>(result.devices[dev.name]));
@@ -617,16 +692,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "P") {
             P<JitProvider> comp;
             
-            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
-                comp.Kp = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("out_min"); it != dev.params.end()) {
-                comp.output_min = locale_safe::parse_float_or(it->second, -1000.0f);
-            }
-            if (auto it = dev.params.find("out_max"); it != dev.params.end()) {
-                comp.output_max = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.Kp = consume_float_required("Kp");
+            comp.output_min = consume_float_required("output_min");
+            comp.output_max = consume_float_required("output_max");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<P<JitProvider>>(result.devices[dev.name]));
@@ -634,10 +704,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Integrator") {
             Integrator<JitProvider> comp;
             
-            if (auto it = dev.params.find("k"); it != dev.params.end()) {
-                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.gain = consume_float_required("gain");
+            comp.initial_val = consume_float_required("initial_val");
+            comp.accumulator = comp.initial_val;
+            comp.next_accumulator = comp.initial_val;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Integrator<JitProvider>>(result.devices[dev.name]));
@@ -645,6 +717,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SampleHold") {
             SampleHold<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SampleHold<JitProvider>>(result.devices[dev.name]));
@@ -652,19 +725,29 @@ BuildResult build_systems_dev(
         else if (dev.classname == "TimeDelay") {
             TimeDelay<JitProvider> comp;
             
-            if (auto it = dev.params.find("delay_on"); it != dev.params.end()) {
-                comp.delay_on = locale_safe::parse_float_or(it->second, 0.5f);
+            // Check if "delay" fallback is used (sets both if present)
+            bool has_delay = dev.params.find("delay") != dev.params.end();
+            bool has_delay_on = dev.params.find("delay_on") != dev.params.end();
+            bool has_delay_off = dev.params.find("delay_off") != dev.params.end();
+            
+            if (has_delay) {
+                float d = consume_float_required("delay");
+                comp.delay_on = d;
+                comp.delay_off = d;
             }
-            if (auto it = dev.params.find("delay_off"); it != dev.params.end()) {
-                comp.delay_off = locale_safe::parse_float_or(it->second, 0.1f);
+            if (has_delay_on) {
+                comp.delay_on = consume_float_required("delay_on");
             }
-            // Fallback: single "delay" param sets both timers equally
-            if (auto it = dev.params.find("delay"); it != dev.params.end()) {
-                float d = locale_safe::parse_float_or(it->second, 0.5f);
-                if (dev.params.find("delay_on") == dev.params.end()) comp.delay_on = d;
-                if (dev.params.find("delay_off") == dev.params.end()) comp.delay_off = d;
+            if (has_delay_off) {
+                comp.delay_off = consume_float_required("delay_off");
+            }
+            // Require at least one of delay/delay_on/delay_off
+            if (!has_delay && !has_delay_on && !has_delay_off) {
+                throw std::runtime_error("Missing required parameter for TimeDelay '" + dev.name +
+                    "': must have 'delay', or 'delay_on'/'delay_off'. Available keys: ");
             }
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<TimeDelay<JitProvider>>(result.devices[dev.name]));
@@ -672,10 +755,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Monostable") {
             Monostable<JitProvider> comp;
             
-            if (auto it = dev.params.find("duration"); it != dev.params.end()) {
-                comp.duration = locale_safe::parse_float_or(it->second, 30.0f);
-            }
+            comp.duration = consume_float_required("duration");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Monostable<JitProvider>>(result.devices[dev.name]));
@@ -683,10 +765,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SlewRate") {
             SlewRate<JitProvider> comp;
             
-            if (auto it = dev.params.find("rate"); it != dev.params.end()) {
-                comp.max_rate = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.max_rate = consume_float_required("max_rate");
+            comp.deadzone = consume_float_required("deadzone");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SlewRate<JitProvider>>(result.devices[dev.name]));
@@ -694,13 +776,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AsymSlewRate") {
             AsymSlewRate<JitProvider> comp;
             
-            if (auto it = dev.params.find("up_rate"); it != dev.params.end()) {
-                comp.rate_up = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("down_rate"); it != dev.params.end()) {
-                comp.rate_down = locale_safe::parse_float_or(it->second, 0.5f);
-            }
+            comp.rate_up = consume_float_required("rate_up");
+            comp.rate_down = consume_float_required("rate_down");
+            comp.deadzone = consume_float_required("deadzone");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AsymSlewRate<JitProvider>>(result.devices[dev.name]));
@@ -708,11 +788,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "FastTMO") {
             FastTMO<JitProvider> comp;
             
-            if (auto it = dev.params.find("tau"); it != dev.params.end()) {
-                comp.tau = locale_safe::parse_float_or(it->second, 0.1f);
-            }
+            comp.tau = consume_float_required("tau");
+            comp.deadzone = consume_float_optional("deadzone", 0.001f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<FastTMO<JitProvider>>(result.devices[dev.name]));
@@ -720,14 +800,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AsymTMO") {
             AsymTMO<JitProvider> comp;
             
-            if (auto it = dev.params.find("tau_up"); it != dev.params.end()) {
-                comp.tau_up = locale_safe::parse_float_or(it->second, 0.1f);
-            }
-            if (auto it = dev.params.find("tau_down"); it != dev.params.end()) {
-                comp.tau_down = locale_safe::parse_float_or(it->second, 0.5f);
-            }
+            comp.tau_up = consume_float_required("tau_up");
+            comp.tau_down = consume_float_required("tau_down");
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AsymTMO<JitProvider>>(result.devices[dev.name]));
@@ -736,14 +813,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Normalize") {
             Normalize<JitProvider> comp;
             
-            if (auto it = dev.params.find("min"); it != dev.params.end()) {
-                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max"); it != dev.params.end()) {
-                comp.max = locale_safe::parse_float_or(it->second, 100.0f);
-            }
+            comp.min = consume_float_optional("min", 0.0f);
+            comp.max = consume_float_optional("max", 100.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Normalize<JitProvider>>(result.devices[dev.name]));
@@ -753,6 +827,7 @@ BuildResult build_systems_dev(
             
             // Parse table data from "table" param into arena
             if (auto it = dev.params.find("table"); it != dev.params.end()) {
+                consumed_params.insert("table");
                 std::vector<float> keys, vals;
                 if (LUT<JitProvider>::parse_table(it->second, keys, vals)) {
                     comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
@@ -762,6 +837,7 @@ BuildResult build_systems_dev(
                 }
             }
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LUT<JitProvider>>(result.devices[dev.name]));
@@ -769,6 +845,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Greater") {
             Greater<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Greater<JitProvider>>(result.devices[dev.name]));
@@ -776,6 +853,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Lesser") {
             Lesser<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Lesser<JitProvider>>(result.devices[dev.name]));
@@ -783,6 +861,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GreaterEq") {
             GreaterEq<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GreaterEq<JitProvider>>(result.devices[dev.name]));
@@ -790,6 +869,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "LesserEq") {
             LesserEq<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LesserEq<JitProvider>>(result.devices[dev.name]));
@@ -797,6 +877,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Any_V_to_Bool") {
             Any_V_to_Bool<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Any_V_to_Bool<JitProvider>>(result.devices[dev.name]));
@@ -804,6 +885,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Positive_V_to_Bool") {
             Positive_V_to_Bool<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Positive_V_to_Bool<JitProvider>>(result.devices[dev.name]));
@@ -811,13 +893,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "LerpNode") {
             LerpNode<JitProvider> comp;
             
-            if (auto it = dev.params.find("factor"); it != dev.params.end()) {
-                comp.factor = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("deadzone"); it != dev.params.end()) {
-                comp.deadzone = locale_safe::parse_float_or(it->second, 0.001f);
-            }
+            comp.factor = consume_float_required("factor");
+            comp.deadzone = consume_float_required("deadzone");
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LerpNode<JitProvider>>(result.devices[dev.name]));
@@ -825,13 +904,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Slider") {
             Slider<JitProvider> comp;
             
-            if (auto it = dev.params.find("min"); it != dev.params.end()) {
-                comp.min = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max"); it != dev.params.end()) {
-                comp.max = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.min = consume_float_optional("min", 0.0f);
+            comp.max = consume_float_optional("max", 1.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Slider<JitProvider>>(result.devices[dev.name]));
@@ -839,6 +915,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Splitter") {
             Splitter<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Splitter<JitProvider>>(result.devices[dev.name]));
@@ -846,6 +923,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Merger") {
             Merger<JitProvider> comp;
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Merger<JitProvider>>(result.devices[dev.name]));
@@ -854,10 +932,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AGK47") {
             AGK47<JitProvider> comp;
             
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 0.001f);
-            }
+            comp.conductance = consume_float_optional("conductance", 0.001f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AGK47<JitProvider>>(result.devices[dev.name]));
@@ -865,16 +942,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "DMR400") {
             DMR400<JitProvider> comp;
             
-            if (auto it = dev.params.find("connect_threshold"); it != dev.params.end()) {
-                comp.connect_threshold = locale_safe::parse_float_or(it->second, 2.0f);
-            }
-            if (auto it = dev.params.find("disconnect_threshold"); it != dev.params.end()) {
-                comp.disconnect_threshold = locale_safe::parse_float_or(it->second, 10.0f);
-            }
-            if (auto it = dev.params.find("min_voltage_to_close"); it != dev.params.end()) {
-                comp.min_voltage_to_close = locale_safe::parse_float_or(it->second, 20.0f);
-            }
+            comp.connect_threshold = consume_float_optional("connect_threshold", 2.0f);
+            comp.disconnect_threshold = consume_float_optional("disconnect_threshold", 10.0f);
+            comp.min_voltage_to_close = consume_float_optional("min_voltage_to_close", 20.0f);
+            comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<DMR400<JitProvider>>(result.devices[dev.name]));
@@ -882,13 +955,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ElectricHeater") {
             ElectricHeater<JitProvider> comp;
             
-            if (auto it = dev.params.find("max_power"); it != dev.params.end()) {
-                comp.max_power = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
-            if (auto it = dev.params.find("efficiency"); it != dev.params.end()) {
-                comp.efficiency = locale_safe::parse_float_or(it->second, 0.9f);
-            }
+            comp.max_power = consume_float_optional("max_power", 1000.0f);
+            comp.efficiency = consume_float_optional("efficiency", 0.9f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ElectricHeater<JitProvider>>(result.devices[dev.name]));
@@ -896,10 +966,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ElectricPump") {
             ElectricPump<JitProvider> comp;
             
-            if (auto it = dev.params.find("max_pressure"); it != dev.params.end()) {
-                comp.max_pressure = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.max_pressure = consume_float_optional("max_pressure", 1000.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ElectricPump<JitProvider>>(result.devices[dev.name]));
@@ -907,17 +976,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "FuelTank") {
             FuelTank<JitProvider> comp;
             
-            if (auto it = dev.params.find("capacity"); it != dev.params.end()) {
-                comp.capacity = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
-            if (auto it = dev.params.find("level"); it != dev.params.end()) {
-                comp.level = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
-            if (auto it = dev.params.find("density"); it != dev.params.end()) {
-                comp.density = locale_safe::parse_float_or(it->second, 0.78f);
-            }
+            comp.capacity = consume_float_optional("capacity", 1000.0f);
+            comp.level = consume_float_optional("level", 1000.0f);
+            comp.density = consume_float_optional("density", 0.78f);
+            comp.consumption_rate = consume_float_optional("consumption_rate", 0.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<FuelTank<JitProvider>>(result.devices[dev.name]));
@@ -925,14 +990,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GidroAccumulator") {
             GidroAccumulator<JitProvider> comp;
             
-            if (auto it = dev.params.find("precharge_pressure"); it != dev.params.end()) {
-                comp.precharge_pressure = locale_safe::parse_float_or(it->second, 50.0f);
-            }
-            if (auto it = dev.params.find("volume"); it != dev.params.end()) {
-                comp.volume = locale_safe::parse_float_or(it->second, 10.0f);
-            }
+            comp.precharge_pressure = consume_float_optional("precharge_pressure", 50.0f);
+            comp.volume = consume_float_optional("volume", 10.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GidroAccumulator<JitProvider>>(result.devices[dev.name]));
@@ -940,20 +1002,14 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GS24") {
             GS24<JitProvider> comp;
             
-            if (auto it = dev.params.find("target_rpm"); it != dev.params.end()) {
-                comp.target_rpm = locale_safe::parse_float_or(it->second, 15000.0f);
-            }
-            if (auto it = dev.params.find("r_internal"); it != dev.params.end()) {
-                comp.r_internal = locale_safe::parse_float_or(it->second, 0.025f);
-            }
-            if (auto it = dev.params.find("r_norton"); it != dev.params.end()) {
-                comp.r_norton = locale_safe::parse_float_or(it->second, 0.08f);
-            }
-            if (auto it = dev.params.find("k_motor"); it != dev.params.end()) {
-                comp.k_motor = locale_safe::parse_float_or(it->second, 0.5f);
-            }
+            comp.v_nominal = consume_float_optional("v_nominal", 28.5f);
+            comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
+            comp.r_internal = consume_float_optional("r_internal", 0.025f);
+            comp.r_norton = consume_float_optional("r_norton", 0.08f);
+            comp.k_motor = consume_float_optional("k_motor", 0.5f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GS24<JitProvider>>(result.devices[dev.name]));
@@ -961,10 +1017,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Gyroscope") {
             Gyroscope<JitProvider> comp;
             
-            if (auto it = dev.params.find("conductance"); it != dev.params.end()) {
-                comp.conductance = locale_safe::parse_float_or(it->second, 0.001f);
-            }
+            comp.conductance = consume_float_optional("conductance", 0.001f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Gyroscope<JitProvider>>(result.devices[dev.name]));
@@ -972,13 +1027,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "HighPowerLoad") {
             HighPowerLoad<JitProvider> comp;
             
-            if (auto it = dev.params.find("power_draw"); it != dev.params.end()) {
-                comp.power_draw = locale_safe::parse_float_or(it->second, 500.0f);
-            }
-            if (auto it = dev.params.find("min_voltage_diff"); it != dev.params.end()) {
-                comp.min_voltage_diff = locale_safe::parse_float_or(it->second, 0.01f);
-            }
+            comp.power_draw = consume_float_optional("power_draw", 500.0f);
+            comp.min_voltage_diff = consume_float_optional("min_voltage_diff", 0.01f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<HighPowerLoad<JitProvider>>(result.devices[dev.name]));
@@ -986,14 +1038,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "InertiaNode") {
             InertiaNode<JitProvider> comp;
             
-            if (auto it = dev.params.find("mass"); it != dev.params.end()) {
-                comp.mass = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("damping"); it != dev.params.end()) {
-                comp.damping = locale_safe::parse_float_or(it->second, 0.5f);
-            }
+            comp.mass = consume_float_optional("mass", 1.0f);
+            comp.damping = consume_float_optional("damping", 0.5f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<InertiaNode<JitProvider>>(result.devices[dev.name]));
@@ -1001,13 +1050,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Inverter") {
             Inverter<JitProvider> comp;
             
-            if (auto it = dev.params.find("efficiency"); it != dev.params.end()) {
-                comp.efficiency = locale_safe::parse_float_or(it->second, 0.95f);
-            }
-            if (auto it = dev.params.find("frequency"); it != dev.params.end()) {
-                comp.frequency = locale_safe::parse_float_or(it->second, 400.0f);
-            }
+            comp.efficiency = consume_float_optional("efficiency", 0.95f);
+            comp.frequency = consume_float_optional("frequency", 400.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Inverter<JitProvider>>(result.devices[dev.name]));
@@ -1015,10 +1061,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Radiator") {
             Radiator<JitProvider> comp;
             
-            if (auto it = dev.params.find("cooling_capacity"); it != dev.params.end()) {
-                comp.cooling_capacity = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
+            comp.cooling_capacity = consume_float_optional("cooling_capacity", 1000.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Radiator<JitProvider>>(result.devices[dev.name]));
@@ -1026,17 +1071,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RU19A") {
             RU19A<JitProvider> comp;
             
-            if (auto it = dev.params.find("target_rpm"); it != dev.params.end()) {
-                comp.target_rpm = locale_safe::parse_float_or(it->second, 16000.0f);
-            }
-            if (auto it = dev.params.find("auto_start"); it != dev.params.end()) {
-                comp.auto_start = (it->second == "true" || it->second == "1");
-            }
-            if (auto it = dev.params.find("t4_target"); it != dev.params.end()) {
-                comp.t4_target = locale_safe::parse_float_or(it->second, 400.0f);
-            }
+            comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
+            comp.auto_start = consume_bool_optional("auto_start", false);
+            comp.t4_target = consume_float_optional("t4_target", 400.0f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<RU19A<JitProvider>>(result.devices[dev.name]));
@@ -1044,13 +1084,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RUG82") {
             RUG82<JitProvider> comp;
             
-            if (auto it = dev.params.find("v_target"); it != dev.params.end()) {
-                comp.v_target = locale_safe::parse_float_or(it->second, 28.5f);
-            }
-            if (auto it = dev.params.find("kp"); it != dev.params.end()) {
-                comp.kp = locale_safe::parse_float_or(it->second, 2.0f);
-            }
+            comp.v_target = consume_float_optional("v_target", 28.5f);
+            comp.kp = consume_float_optional("kp", 2.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<RUG82<JitProvider>>(result.devices[dev.name]));
@@ -1058,10 +1095,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SolenoidValve") {
             SolenoidValve<JitProvider> comp;
             
-            if (auto it = dev.params.find("normally_closed"); it != dev.params.end()) {
-                comp.normally_closed = (it->second == "true" || it->second == "1");
-            }
+            comp.normally_closed = consume_bool_optional("normally_closed", false);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SolenoidValve<JitProvider>>(result.devices[dev.name]));
@@ -1069,20 +1105,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Spring") {
             Spring<JitProvider> comp;
             
-            if (auto it = dev.params.find("k"); it != dev.params.end()) {
-                comp.k = locale_safe::parse_float_or(it->second, 1000.0f);
-            }
-            if (auto it = dev.params.find("c"); it != dev.params.end()) {
-                comp.c = locale_safe::parse_float_or(it->second, 10.0f);
-            }
-            if (auto it = dev.params.find("rest_length"); it != dev.params.end()) {
-                comp.rest_length = locale_safe::parse_float_or(it->second, 0.1f);
-            }
-            if (auto it = dev.params.find("compression_only"); it != dev.params.end()) {
-                comp.compression_only = (it->second == "true" || it->second == "1");
-            }
+            comp.k = consume_float_optional("k", 1000.0f);
+            comp.c = consume_float_optional("c", 10.0f);
+            comp.rest_length = consume_float_optional("rest_length", 0.1f);
+            comp.compression_only = consume_bool_optional("compression_only", false);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Spring<JitProvider>>(result.devices[dev.name]));
@@ -1090,10 +1119,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "TempSensor") {
             TempSensor<JitProvider> comp;
             
-            if (auto it = dev.params.find("sensitivity"); it != dev.params.end()) {
-                comp.sensitivity = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.sensitivity = consume_float_optional("sensitivity", 1.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<TempSensor<JitProvider>>(result.devices[dev.name]));
@@ -1101,10 +1129,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Transformer") {
             Transformer<JitProvider> comp;
             
-            if (auto it = dev.params.find("ratio"); it != dev.params.end()) {
-                comp.ratio = locale_safe::parse_float_or(it->second, 1.0f);
-            }
+            comp.ratio = consume_float_optional("ratio", 1.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Transformer<JitProvider>>(result.devices[dev.name]));
@@ -1112,13 +1139,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VoltageSense") {
             VoltageSense<JitProvider> comp;
             
-            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
-                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("offset"); it != dev.params.end()) {
-                comp.offset = locale_safe::parse_float_or(it->second, 0.0f);
-            }
+            comp.gain = consume_float_optional("gain", 1.0f);
+            comp.offset = consume_float_optional("offset", 0.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<VoltageSense<JitProvider>>(result.devices[dev.name]));
@@ -1127,23 +1151,14 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ControlledVoltageSource") {
             ControlledVoltageSource<JitProvider> comp;
             
-            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
-                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("offset"); it != dev.params.end()) {
-                comp.offset = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("min_v"); it != dev.params.end()) {
-                comp.min_v = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max_v"); it != dev.params.end()) {
-                comp.max_v = locale_safe::parse_float_or(it->second, 30.0f);
-            }
-            if (auto it = dev.params.find("r_internal"); it != dev.params.end()) {
-                comp.r_internal = locale_safe::parse_float_or(it->second, 0.1f);
-            }
+            comp.gain = consume_float_optional("gain", 1.0f);
+            comp.offset = consume_float_optional("offset", 0.0f);
+            comp.min_v = consume_float_optional("min_v", 0.0f);
+            comp.max_v = consume_float_optional("max_v", 30.0f);
+            comp.r_internal = consume_float_optional("r_internal", 0.1f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledVoltageSource<JitProvider>>(result.devices[dev.name]));
@@ -1151,20 +1166,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ControlledCurrentSource") {
             ControlledCurrentSource<JitProvider> comp;
             
-            if (auto it = dev.params.find("gain"); it != dev.params.end()) {
-                comp.gain = locale_safe::parse_float_or(it->second, 1.0f);
-            }
-            if (auto it = dev.params.find("min_i"); it != dev.params.end()) {
-                comp.min_i = locale_safe::parse_float_or(it->second, 0.0f);
-            }
-            if (auto it = dev.params.find("max_i"); it != dev.params.end()) {
-                comp.max_i = locale_safe::parse_float_or(it->second, 100.0f);
-            }
-            if (auto it = dev.params.find("g_shunt"); it != dev.params.end()) {
-                comp.g_shunt = locale_safe::parse_float_or(it->second, 0.001f);
-            }
+            comp.gain = consume_float_optional("gain", 1.0f);
+            comp.min_i = consume_float_optional("min_i", 0.0f);
+            comp.max_i = consume_float_optional("max_i", 100.0f);
+            comp.g_shunt = consume_float_optional("g_shunt", 0.001f);
             comp.pre_load();
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
@@ -1172,13 +1180,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VariableConductance") {
             VariableConductance<JitProvider> comp;
             
-            if (auto it = dev.params.find("g_min"); it != dev.params.end()) {
-                comp.g_min = locale_safe::parse_float_or(it->second, 0.001f);
-            }
-            if (auto it = dev.params.find("g_max"); it != dev.params.end()) {
-                comp.g_max = locale_safe::parse_float_or(it->second, 10.0f);
-            }
+            comp.g_min = consume_float_optional("g_min", 0.001f);
+            comp.g_max = consume_float_optional("g_max", 10.0f);
             setup_ports(comp);
+            validate_all_params_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<VariableConductance<JitProvider>>(result.devices[dev.name]));

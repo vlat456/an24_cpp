@@ -3,24 +3,18 @@
 #include <algorithm>
 
 template <typename Provider>
-void RUG82<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // Push model: output current k_mod value
+void RUG82<Provider>::execute(SimulationState& st, float dt) {
     st.values[provider.get(PortNames::k_mod)] = k_mod;
-}
 
-template <typename Provider>
-void RUG82<Provider>::finalize_step(SimulationState& st, float dt) {
     float v_gen = st.values[provider.get(PortNames::v_gen)];
     float error = v_target - v_gen;
-    k_mod += kp * error * dt;
-    k_mod = std::clamp(k_mod, 0.0f, 1.0f);
-    st.values[provider.get(PortNames::k_mod)] = k_mod;
+    next_k_mod = std::clamp(k_mod + kp * error * dt, 0.0f, 1.0f);
 }
 
 template <typename Provider>
-void RUG82<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
-    finalize_step(st, dt);
+void RUG82<Provider>::commit(SimulationState& st) {
+    (void)st;
+    k_mod = next_k_mod;
 }
 
 template class RUG82<JitProvider>;

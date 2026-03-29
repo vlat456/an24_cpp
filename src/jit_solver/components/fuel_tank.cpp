@@ -3,33 +3,27 @@
 #include <algorithm>
 
 template <typename Provider>
-void FuelTank<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
-    // Push model: output gravity head pressure based on fuel level
+void FuelTank<Provider>::execute(SimulationState& st, float dt) {
     float level_frac = level * inv_capacity;
     float gravity_pressure = density * 9.81f * level_frac;
-    // Push: set flow_out to gravity pressure
     st.values[provider.get(PortNames::flow_out)] = gravity_pressure;
-    // Output fuel level as a logical signal (0..1 fraction)
     st.values[provider.get(PortNames::level_out)] = level_frac;
+
+    float consumption = std::max(consumption_rate, 0.0f) * dt;
+    next_level = std::max(level - consumption, 0.0f);
 }
 
 template <typename Provider>
-void FuelTank<Provider>::finalize_step(SimulationState& st, float dt) {
-    float flow = st.values[provider.get(PortNames::flow_out)];
-    float consumption = std::max(flow, 0.0f) * dt;
-    level = std::max(level - consumption, 0.0f);
-}
-
-template <typename Provider>
-void FuelTank<Provider>::execute(SimulationState& st, float dt) {
-    solve_hydraulic(st, dt);
-    finalize_step(st, dt);
+void FuelTank<Provider>::commit(SimulationState& st) {
+    (void)st;
+    level = next_level;
 }
 
 template <typename Provider>
 void FuelTank<Provider>::pre_load() {
     inv_capacity = 1.0f / std::max(capacity, 1e-6f);
     level = std::clamp(level, 0.0f, capacity);
+    next_level = level;
 }
 
 template class FuelTank<JitProvider>;
