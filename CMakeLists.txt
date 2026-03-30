@@ -5,17 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Aggressive optimization flags for Release
-# NOTE: Do NOT use -ffast-math here. It implies -ffinite-math-only which makes
-# std::isfinite/std::isinf/std::isnan unreliable (always returns true/false)
-# and makes std::numeric_limits<float>::infinity() produce UB.
-# Instead, use the safe subset of fast-math optimizations:
-#   -fno-math-errno        — skip errno writes for math functions
-#   -freciprocal-math      — allow 1/x reciprocal optimizations
-#   -fassociative-math     — allow reassociation of FP operations
-#   -fno-trapping-math     — assume no FP traps
-#   -fno-signed-zeros      — treat +0.0 == -0.0
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fno-math-errno -freciprocal-math -fassociative-math -fno-trapping-math -fno-signed-zeros")
+# Aggressive optimization flags for Release.
+# - WASM/EMSCRIPTEN: keep full -ffast-math for max throughput.
+# - Native builds: keep a safe subset to preserve NaN/Inf semantics used by tests.
+if(EMSCRIPTEN)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
+else()
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fno-math-errno -freciprocal-math -fassociative-math -fno-trapping-math -fno-signed-zeros")
+endif()
 
 # Options
 option(BUILD_TESTS "Build tests" ON)
