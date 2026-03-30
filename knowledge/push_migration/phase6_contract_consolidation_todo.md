@@ -9,8 +9,8 @@
 ## Success Criteria
 - [x] No dead fields remain in RU19A or GS24 headers
 - [x] Blueprint defaults match C++ defaults for all factory-parsed params
-- [ ] All push-focused tests pass
-- [ ] Full test suite passes
+- [x] All push-focused tests pass
+- [x] Full test suite passes
 
 ## Work Items
 
@@ -31,7 +31,7 @@
 ### Testing
 - [x] Add RU19A test case: `start()` request while OFF transitions to CRANKING on next commit
 - [x] Add RU19A test case: `stop()` request while RUNNING transitions to STOPPING on next commit
-- [ ] Run push-focused tests and full tests from correct build directories
+- [x] Run push-focused tests and full tests from correct build directories
 
 ## Verification Commands
 
@@ -58,3 +58,4 @@ cd build_fulltests && ctest --output-on-failure
 - **2026-03-29**: RU19A auto_start default sync: header defaults to `true`, factory was defaulting to `false`. Fixed factory to match header (`true`).
 - **2026-03-29**: Added RU19A request semantics regression tests: `RU19AStartRequestTransitionsToCrankingNextFrame`, `RU19AStopRequestTransitionsToStoppingNextFrame`, `RU19AStartStopRequestsDoNotMutateCurrentFrameOutputs` in test_push_runtime_regression.cpp using direct component access via build_systems_dev.
 - **2026-03-29**: Removed legacy `execution` metadata from all 79 blueprints in `library/**/*.blueprint`. Removed `parse_execution_phases()` and `validate_execution_domains_consistency()` functions from json_parser.cpp along with their call sites. Parser now accepts blueprints without execution blocks. `ExecutionPhases` struct and `DeviceInstance.execution` field retained for test usage only (tests construct ExecutionPhases directly without JSON parsing).
+- **2026-03-30**: Verified pass status after Phase 7 prep changes from correct directories: push-focused subset `48/48` in `build/tests`, full suite `1463/1463` in `build_fulltests`.
