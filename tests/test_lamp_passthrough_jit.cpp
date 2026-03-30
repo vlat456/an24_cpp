@@ -21,9 +21,7 @@ TEST(JITIntegration, DISABLED_LampPassThrough_Blueprint_VoltageFlow) {
           "params": {
             "v_nominal": "28.0",
             "internal_r": "0.01",
-            "inv_internal_r": "100.0",
             "capacity": "1000.0",
-            "inv_capacity": "0.001",
             "charge": "1000.0"
           }
         },

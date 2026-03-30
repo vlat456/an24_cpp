@@ -54,8 +54,8 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
         "devices": [
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "inv_internal_r": "100.0",
-                "capacity": "1000.0", "inv_capacity": "0.001", "charge": "1000.0"
+                "v_nominal": "28.0", "internal_r": "0.01",
+                "capacity": "1000.0", "charge": "1000.0"
             }},
             {"name": "bus", "classname": "Bus"},
             {"name": "v2b", "classname": "Positive_V_to_Bool"},
@@ -127,8 +127,8 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
         "devices": [
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "inv_internal_r": "100.0",
-                "capacity": "1000.0", "inv_capacity": "0.001", "charge": "1000.0"
+                "v_nominal": "28.0", "internal_r": "0.01",
+                "capacity": "1000.0", "charge": "1000.0"
             }},
             {"name": "v2b", "classname": "Positive_V_to_Bool"},
             {"name": "not_1", "classname": "NOT"}
@@ -177,8 +177,8 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
         "devices": [
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "bat", "classname": "Battery", "params": {
-                "v_nominal": "28.0", "internal_r": "0.01", "inv_internal_r": "100.0",
-                "capacity": "1000.0", "inv_capacity": "0.001", "charge": "1000.0"
+                "v_nominal": "28.0", "internal_r": "0.01",
+                "capacity": "1000.0", "charge": "1000.0"
             }},
             {"name": "sub", "classname": "Subtract"}
         ],

@@ -53,7 +53,7 @@ static auto make_colon_circuit() {
     DeviceInstance load;
     load.name = "bp_1:load.1";  // also has a dot
     load.classname = "Load";
-    load.params = {{"resistance", "10"}};
+    load.params = {{"conductance", "0.1"}};
     load.ports["v_in"] = {PortDirection::In};
     load.ports["v_out"] = {PortDirection::Out};
     load.domains = {Domain::Electrical};
