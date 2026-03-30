@@ -23,7 +23,10 @@ Use this file as the entry point before crawling the rest of the repo.
 |------|------|---------|
 | Stable component design | `knowledge/component_authoring.md` | Rules for writing numerically stable components |
 | Known issues / TODO | `knowledge/errors_TODO.md` | Architecture smells, bugs, and follow-up items |
+| **Push improvement notes** | `knowledge/push_improvement.md` | Diagnostic analysis of closed electrical loop bugs and recommended electrical subsolver fix |
 | **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from legacy iterative solver to push propagation (game-grade sim) |
+| Mixed-domain subsolver plan | `knowledge/18_subsolver_implementation_plan.md` | Concrete implementation plan for electrical-first local domain subsolvers |
+| Subsolver step-by-step plan | `knowledge/19_subsolver_step_by_step_plan.md` | Detailed implementation sequence with file targets and verification gates |
 | Blueprint zero-legacy cutover plan | `knowledge/blueprint_migration/zero_legacy_cutover_plan.md` | Strict no-fallback blueprint/runtime cutover checklist |
 | Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
 
@@ -40,8 +43,11 @@ Use this file as the entry point before crawling the rest of the repo.
 
 1. `knowledge/02_simulation.md`
 2. `knowledge/16_push_migration_plan.md` **(PRIMARY: Push propagation model)**
-3. `knowledge/component_authoring.md`
-4. `knowledge/errors_TODO.md`
+3. `knowledge/push_improvement.md` **(PRIMARY: Electrical subsolver motivation)**
+4. `knowledge/18_subsolver_implementation_plan.md`
+5. `knowledge/19_subsolver_step_by_step_plan.md`
+6. `knowledge/component_authoring.md`
+7. `knowledge/errors_TODO.md`
 
 ### For editor work
 

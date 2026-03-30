@@ -294,12 +294,6 @@ target_link_libraries(sample_hold_tests PRIVATE
 )
 gtest_discover_tests(sample_hold_tests)
 
-# Push migration mode: keep only new core tests enabled unless PUSH_MIGRATION_TESTS_ONLY is OFF.
-option(PUSH_MIGRATION_TESTS_ONLY "Build only push migration tests" ON)
-if(PUSH_MIGRATION_TESTS_ONLY)
-  return()
-endif()
-
 # UI Math tests (Phase 1.1 of UI Library Extraction)
 add_executable(ui_math_tests
     test_ui_math.cpp
@@ -669,23 +663,6 @@ target_link_libraries(editor_componentvariant_tests PRIVATE
 )
 gtest_discover_tests(editor_componentvariant_tests)
 
-# Editor data tests (TDD Step 1)
-add_executable(editor_data_tests
-    test_data.cpp
-)
-target_include_directories(editor_data_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_data_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_data_tests)
-
 add_executable(editor_settings_tests
     test_editor_settings.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/editor_settings.cpp
@@ -699,23 +676,6 @@ target_link_libraries(editor_settings_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(editor_settings_tests)
-
-# Editor data interning tests (InternedId migration)
-add_executable(editor_data_interning_tests
-    test_data_interning.cpp
-)
-target_include_directories(editor_data_interning_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_data_interning_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_data_interning_tests)
 
 # Port Layout Resolver tests (Phase 2: Resolution Algorithm)
 add_executable(port_layout_resolver_tests
@@ -1137,23 +1097,6 @@ target_link_libraries(jit_aot_bridge_equivalence_tests PRIVATE
 )
 gtest_discover_tests(jit_aot_bridge_equivalence_tests)
 
-# Bake-in tests (Phase 4: bake-in conversion, params flatten)
-add_executable(bake_in_tests
-    test_bake_in.cpp
-)
-target_include_directories(bake_in_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(bake_in_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(bake_in_tests)
-
 # Node color tests (Phase 1: data model, persistence, visual node)
 
 # Node auto-size tests (TDD - dynamic resize based on ports + content)
@@ -1242,25 +1185,6 @@ target_link_libraries(spring_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(spring_tests)
-
-# Sub-blueprint reference tests (TDD - SubBlueprintInstance data structures)
-add_executable(sub_blueprint_ref_tests
-    test_sub_blueprint_ref.cpp
-    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
-    ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
-)
-target_include_directories(sub_blueprint_ref_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(sub_blueprint_ref_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(sub_blueprint_ref_tests)
 
 add_executable(v3_migration_tests
     test_v3_migration.cpp

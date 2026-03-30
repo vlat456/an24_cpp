@@ -217,25 +217,35 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 **Target architecture:**
 - Derive output-port direction from authoritative component metadata rather than handwritten switch-like lists.
 - Extend port metadata model so each port includes direction (`input`, `output`, `inout`) in a runtime-queryable form.
+- Add explicit component-level `scheduler_source` metadata (boolean) instead of inferring scheduler bucket membership from port shapes.
+- Add explicit port-level `source_writer` metadata (boolean) for active source-conflict detection.
+- **Strict policy:** no inference, no heuristics, no duck-typing, no legacy fallback paths. Runtime behavior must depend only on strict metadata contracts.
 
 **Detailed TODO plan:**
 1. **Port metadata model**
    - Extend `port_registry` API to expose per-port direction (not just names).
-   - Define one source of truth for direction for all components (JIT + AOT compatible).
+   - Add `source_writer` on ports and `scheduler_source` on components in schema + parsed types.
+   - Define one source of truth for direction/source-writer/scheduler-source for all components (JIT + AOT compatible).
+   - Reject missing required metadata at load/build time (hard fail).
 2. **Runtime integration**
    - Replace `output_ports_for_class()` string set heuristics with metadata-driven lookup.
-   - Keep active source-conflict detection (`active_source_writer_ports_for`) aligned with the same metadata model.
+   - Replace active source-conflict detection (`active_source_writer_ports_for`) with explicit `source_writer` metadata lookup.
+   - Replace source/consumer scheduler split (`is_scheduler_source_component_class`) with explicit `scheduler_source` metadata lookup.
 3. **Validation and fail-fast**
-   - Add startup/build-time checks: if a component has unknown/missing direction metadata, fail build with explicit error.
+   - Add startup/build-time checks: if a component has unknown/missing required metadata (`direction`, `source_writer`, `scheduler_source`), fail build with explicit error.
    - Remove fallback "shotgun" output-name sets.
+   - Remove all inference branches and compatibility/legacy fallback logic.
 4. **Tests (required)**
    - Add classification tests for at least: `RU19A`, `GS24`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
    - Add one generic regression that verifies all output ports declared by metadata produce writer edges in topo ordering.
+   - Add one generic regression that verifies scheduler source bucket membership is determined only by `scheduler_source` metadata.
 
 **Acceptance criteria:**
 - No hardcoded fallback output-name sets remain in `output_ports_for_class()`.
-- Adding a new component output port requires metadata update only (no jit_solver.cpp edits).
+- No string/classname-based source classification remains (`is_scheduler_source_component_class`, `active_source_writer_ports_for` heuristics removed).
+- Adding a new component output port or scheduler source requires metadata update only (no jit_solver.cpp edits).
 - Full test suite passes, with new direction-driven regression tests.
+- Unknown/missing required metadata fails fast (no implicit defaults, no legacy compatibility).
 
 **Impact:** Medium effort, high long-term value (eliminates a bug class).
 
@@ -263,6 +273,70 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 - All tests remain green.
 
 **Impact:** Low effort, small readability and maintenance win.
+
+---
+
+### 19. Remove `MaxSelector -> Max` Metadata Alias Bridge
+**File:** `src/jit_solver/jit_solver.cpp:metadata_classname_for()`
+
+**Problem:**
+- Runtime metadata lookup currently special-cases `MaxSelector` and maps it to `Max`.
+- This is explicit (not inferred), but still creates coupling to a migration alias and hides schema drift risk.
+- If `Max` metadata changes and `MaxSelector` diverges, behavior may silently differ from intent.
+
+**Detailed TODO plan:**
+1. Add explicit alias/type entry in library metadata for `MaxSelector` **or** remove alias usage and migrate callers/tests to canonical classname.
+2. Remove `metadata_classname_for()` special case from `jit_solver.cpp`.
+3. Ensure `get_component_ports()` and generated metadata both resolve the same canonical classname.
+4. Add regression test: unknown alias class must fail fast unless alias is explicitly declared in metadata.
+
+**Acceptance criteria:**
+- No hardcoded per-class alias bridge remains in `jit_solver.cpp`.
+- Classname-to-metadata mapping is fully declarative via schema/registry.
+
+**Impact:** Low-to-medium effort, improves strict-contract purity.
+
+---
+
+### 20. Unify Duplicate TypeDefinition Parse Paths
+**Files:** `src/json_parser/json_parser.cpp:parse_type_definition()`, `src/json_parser/json_parser.cpp:load_type_registry()`
+
+**Problem:**
+- Two separate parsers handle similar component schema with different strictness.
+- New required fields can be added to one path but forgotten in the other (already happened for `scheduler_source`).
+
+**Detailed TODO plan:**
+1. Extract shared parser routine for type-definition fields (`interface`, `domains`, `scheduler_source`, `param_schema`, etc.).
+2. Parameterize strictness explicitly (`strict_registry_mode` vs `legacy_lenient_mode`) and document differences.
+3. Add parity tests that validate identical JSON produces identical parsed metadata across both paths where overlap is expected.
+4. For strict mode, fail hard on missing required metadata fields.
+
+**Acceptance criteria:**
+- One source of truth for schema field parsing logic.
+- No field exists in strict path only unless intentionally gated and documented.
+- Regression tests cover `scheduler_source`, `domain`, `source_writer`, and `visual_only` parity.
+
+**Impact:** Medium effort, high long-term maintenance value.
+
+---
+
+### 21. Strengthen Unknown-Class Fail-Fast in Metadata API
+**Files:** generated `src/jit_solver/components/port_registry.h`, `src/jit_solver/jit_solver.cpp`
+
+**Problem:**
+- Generated helper `is_scheduler_source_component(classname)` returns `false` for unknown class.
+- JIT path currently guards with `has_component_metadata()` before use, but helper behavior can hide misuse in other call sites.
+
+**Detailed TODO plan:**
+1. Add debug assert or explicit checked helper variant in generated API that requires known classname.
+2. Replace any unchecked call sites with checked variant.
+3. Add tests ensuring unknown classnames trigger explicit failure in strict paths.
+
+**Acceptance criteria:**
+- Unknown classnames cannot silently downgrade to "consumer" classification.
+- All runtime classification paths fail fast with explicit errors for unknown metadata.
+
+**Impact:** Low effort, prevents silent misclassification.
 
 ---
 

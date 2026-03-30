@@ -1,0 +1,32 @@
+{
+  "tests": 4,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UILayout",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "LinearLayoutHorizontal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_linear_layout.cpp",
+          "line": 19
+        },
+        {
+          "name": "LinearLayoutVertical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_linear_layout.cpp",
+          "line": 33
+        },
+        {
+          "name": "LinearLayoutFlex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_linear_layout.cpp",
+          "line": 47
+        },
+        {
+          "name": "RowAndColumnTypeAliases",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_linear_layout.cpp",
+          "line": 63
+        }
+      ]
+    }
+  ]
+}

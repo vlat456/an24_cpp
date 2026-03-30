@@ -1,0 +1,27 @@
+{
+  "tests": 3,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UILayout",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "EdgesExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_layout.cpp",
+          "line": 4
+        },
+        {
+          "name": "EdgesAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_layout.cpp",
+          "line": 12
+        },
+        {
+          "name": "EdgesSymmetric",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_layout.cpp",
+          "line": 20
+        }
+      ]
+    }
+  ]
+}

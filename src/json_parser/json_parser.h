@@ -65,6 +65,8 @@ struct Port {
     std::optional<std::string> alias;  // If set, this port is an alias to another port (e.g., "out1" -> "in")
 
     Port() = default;
+    Port(PortDirection direction_)
+        : direction(direction_), type(PortType::Any), domain(Domain::Electrical), source_writer(false), alias(std::nullopt) {}
     Port(PortDirection direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
         : direction(direction_), type(type_), domain(Domain::Electrical), source_writer(false), alias(std::move(alias_)) {}
     Port(PortDirection direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)

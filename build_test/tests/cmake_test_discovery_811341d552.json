@@ -1,0 +1,68 @@
+{
+  "tests": 10,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UnmappedPortRegression",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "UnmappedConstant_IsUINT32MAX",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 17
+        },
+        {
+          "name": "MappedPort_ReturnsCorrectIndex",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 21
+        },
+        {
+          "name": "Has_ReturnsTrueForMapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 28
+        },
+        {
+          "name": "Has_ReturnsFalseForUnmapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 35
+        },
+        {
+          "name": "MultiplePortsMapped",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 43
+        },
+        {
+          "name": "IndexZero_IsValidAndDistinguishable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 59
+        },
+        {
+          "name": "SetOverwritesPrevious",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 72
+        }
+      ]
+    },
+    {
+      "name": "DomainDispatchRegression",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "HoldButton_IsElectricalDomain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 85
+        },
+        {
+          "name": "ElectricPump_IncludesElectricalAndHydraulic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 93
+        },
+        {
+          "name": "Controllers_AreLogicalDomain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_unmapped_port_regression.cpp",
+          "line": 105
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "tests": 36,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "MinTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "APicksSmaller",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 31
+        },
+        {
+          "name": "BPicksSmaller",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 44
+        },
+        {
+          "name": "EqualValues_ReturnsEither",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 57
+        },
+        {
+          "name": "NegativeValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 70
+        },
+        {
+          "name": "MixedSign",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 83
+        }
+      ]
+    },
+    {
+      "name": "MaxTest",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "APicksLarger",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 100
+        },
+        {
+          "name": "BPicksLarger",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 113
+        },
+        {
+          "name": "EqualValues_ReturnsEither",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 126
+        },
+        {
+          "name": "NegativeValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 139
+        },
+        {
+          "name": "MixedSign",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 152
+        }
+      ]
+    },
+    {
+      "name": "GreaterTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AGreaterThanB_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 169
+        },
+        {
+          "name": "ALessThanB_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 182
+        },
+        {
+          "name": "Equal_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 195
+        }
+      ]
+    },
+    {
+      "name": "LesserTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ALessThanB_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 212
+        },
+        {
+          "name": "AGreaterThanB_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 225
+        },
+        {
+          "name": "Equal_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 238
+        }
+      ]
+    },
+    {
+      "name": "GreaterEqTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "AGreaterThanB_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 255
+        },
+        {
+          "name": "Equal_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 268
+        },
+        {
+          "name": "ALessThanB_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 281
+        }
+      ]
+    },
+    {
+      "name": "LesserEqTest",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ALessThanB_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 298
+        },
+        {
+          "name": "Equal_ReturnsOne",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 311
+        },
+        {
+          "name": "AGreaterThanB_ReturnsZero",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 324
+        }
+      ]
+    },
+    {
+      "name": "ComparisonComponents",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "PowerSupplySelection_OR",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 341
+        },
+        {
+          "name": "SafetyMonitoring_LowLimit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 356
+        },
+        {
+          "name": "SafetyMonitoring_HighLimit",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 372
+        },
+        {
+          "name": "Hysteresis_LesserEq",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 388
+        },
+        {
+          "name": "Hysteresis_GreaterEq",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 403
+        },
+        {
+          "name": "Min_ProtectsAgainstLowVoltage",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 418
+        },
+        {
+          "name": "Min_LimitsMaximum",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 433
+        },
+        {
+          "name": "Regression_Greater_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 452
+        },
+        {
+          "name": "Regression_Lesser_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 464
+        },
+        {
+          "name": "Regression_GreaterEq_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 476
+        },
+        {
+          "name": "Regression_LesserEq_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 488
+        },
+        {
+          "name": "Regression_NegativeValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 500
+        },
+        {
+          "name": "Regression_Min_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 512
+        },
+        {
+          "name": "Regression_Max_EqualValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_comparison_components.cpp",
+          "line": 524
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "tests": 12,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "Direction",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "HasThreeValues",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "name": "PortDescriptor",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "ConstructAndAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 12
+        },
+        {
+          "name": "EqualityByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 21
+        },
+        {
+          "name": "InequalityByDomain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 30
+        }
+      ]
+    },
+    {
+      "name": "Interface",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "EmptyByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 38
+        },
+        {
+          "name": "ConstructFromVector",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 44
+        },
+        {
+          "name": "IterationOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 54
+        },
+        {
+          "name": "FindByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 69
+        },
+        {
+          "name": "HasByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 87
+        },
+        {
+          "name": "AtByName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 96
+        },
+        {
+          "name": "EqualInterfaces",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 103
+        },
+        {
+          "name": "UnequalInterfaces",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_interface.cpp",
+          "line": 114
+        }
+      ]
+    }
+  ]
+}

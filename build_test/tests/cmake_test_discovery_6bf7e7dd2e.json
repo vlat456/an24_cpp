@@ -1,0 +1,62 @@
+{
+  "tests": 10,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SceneMutations",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "RebuildCreatesNodeWidgets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 52
+        },
+        {
+          "name": "RebuildFiltersGroupId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 75
+        },
+        {
+          "name": "RebuildCreatesWireWidgets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 95
+        },
+        {
+          "name": "RebuildClearsExistingScene",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 121
+        },
+        {
+          "name": "RebuildWithBusNodeCreatesAliasPortWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 143
+        },
+        {
+          "name": "RebuildPreservesNodeColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 178
+        },
+        {
+          "name": "RebuildPreservesBusNodeColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 197
+        },
+        {
+          "name": "RebuildNoColorWhenNodeHasNoColor",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 217
+        },
+        {
+          "name": "RebuildMultipleBusWires",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 239
+        },
+        {
+          "name": "Regression_GSCLoadHasPortsAndWiresVisible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_scene_mutations.cpp",
+          "line": 279
+        }
+      ]
+    }
+  ]
+}

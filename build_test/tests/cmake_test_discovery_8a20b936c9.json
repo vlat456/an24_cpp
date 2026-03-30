@@ -1,0 +1,37 @@
+{
+  "tests": 5,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UIWidget",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "BasicGeometry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_widget_purity.cpp",
+          "line": 4
+        },
+        {
+          "name": "WorldPos",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_widget_purity.cpp",
+          "line": 15
+        },
+        {
+          "name": "Contains",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_widget_purity.cpp",
+          "line": 26
+        },
+        {
+          "name": "NumericZOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_widget_purity.cpp",
+          "line": 37
+        },
+        {
+          "name": "DefaultZOrder",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_widget_purity.cpp",
+          "line": 46
+        }
+      ]
+    }
+  ]
+}

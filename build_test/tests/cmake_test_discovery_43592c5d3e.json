@@ -1,0 +1,139 @@
+{
+  "tests": 23,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "AsymTMOTest",
+      "tests": 12,
+      "testsuite": [
+        {
+          "name": "ColdStart_FirstFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 57
+        },
+        {
+          "name": "AsymmetricResponse_RiseFastFallSlow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 70
+        },
+        {
+          "name": "SymmetricBehavior_WhenTauEqual",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 100
+        },
+        {
+          "name": "Deadzone_PreventsMicroAdjustments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 132
+        },
+        {
+          "name": "Deadzone_AllowsLargeChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 152
+        },
+        {
+          "name": "SelectsTauUp_WhenDiffPositive",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 170
+        },
+        {
+          "name": "SelectsTauDown_WhenDiffNegative",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 191
+        },
+        {
+          "name": "PreLoad_ComputesInverseTaus",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 209
+        },
+        {
+          "name": "PreLoad_HandlesZeroTau",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 217
+        },
+        {
+          "name": "HandlesZeroDt_Pause",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 231
+        },
+        {
+          "name": "ExtremeValues_LargeTau",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 248
+        },
+        {
+          "name": "ExtremeValues_SmallTau",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 265
+        }
+      ]
+    },
+    {
+      "name": "FastTMOTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "ColdStart_FirstFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 286
+        },
+        {
+          "name": "BasicLowPassFiltering",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 298
+        },
+        {
+          "name": "LargerTau_SlowerResponse",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 317
+        },
+        {
+          "name": "Deadzone_PreventsMicroAdjustments",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 340
+        },
+        {
+          "name": "HandlesZeroDt_Pause",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 359
+        },
+        {
+          "name": "RationalApproximation_Stable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 374
+        },
+        {
+          "name": "PreLoad_ComputesInverseTau",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 395
+        },
+        {
+          "name": "PreLoad_HandlesZeroTau",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 402
+        },
+        {
+          "name": "StatePersistsBetweenFrames",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 413
+        },
+        {
+          "name": "ZeroDeadzone_AllowsAllChanges",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 433
+        }
+      ]
+    },
+    {
+      "name": "TMOTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "AsymVsFast_WithSameParameters",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_asym_tmo.cpp",
+          "line": 455
+        }
+      ]
+    }
+  ]
+}

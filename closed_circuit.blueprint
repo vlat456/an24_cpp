@@ -1,0 +1,164 @@
+{
+  "display_name": "battery_closed",
+  "grid_step": 16.0,
+  "id": "",
+  "interface": [],
+  "name": "battery_closed",
+  "nested": [],
+  "nodes": [
+    {
+      "id": "battery_1",
+      "name": "battery_1",
+      "params": {
+        "capacity": 1000.0,
+        "charge": 1000.0,
+        "internal_r": 0.009999999776482582,
+        "v_nominal": 28.0
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 192.0,
+        "y": 64.0
+      },
+      "type": "Battery"
+    },
+    {
+      "id": "bus_1",
+      "name": "bus_1",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 384.0,
+        "y": 192.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "content_label": "OFF",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 5,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "indicatorlight_1",
+      "name": "indicatorlight_1",
+      "params": {
+        "conductance": 1.0,
+        "max_brightness": 100.0
+      },
+      "ports": {
+        "brightness": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 640.0,
+        "y": 64.0
+      },
+      "string_params": {
+        "color": "white"
+      },
+      "type": "IndicatorLight"
+    },
+    {
+      "id": "refnode_1",
+      "name": "refnode_1",
+      "params": {
+        "value": 0.0
+      },
+      "ports": {
+        "v": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 400.0,
+        "y": 288.0
+      },
+      "render_hint": "ref",
+      "type": "RefNode"
+    },
+    {
+      "id": "resistor_1",
+      "name": "resistor_1",
+      "params": {
+        "conductance": 0.10000000149011612
+      },
+      "ports": {
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 480.0,
+        "y": 80.0
+      },
+      "type": "Resistor"
+    }
+  ],
+  "pan_x": -16.236297607421875,
+  "pan_y": -28.79114532470703,
+  "version": "3.0",
+  "wires": [
+    {
+      "id": "wire_10",
+      "source": "/indicatorlight_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_2",
+      "source": "/bus_1:v",
+      "target": "/battery_1:v_in"
+    },
+    {
+      "id": "wire_5",
+      "source": "/battery_1:v_out",
+      "target": "/resistor_1:v_in"
+    },
+    {
+      "id": "wire_8",
+      "source": "/refnode_1:v",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_9",
+      "source": "/resistor_1:v_out",
+      "target": "/indicatorlight_1:v_in"
+    }
+  ],
+  "zoom": 1.086523413658142
+}

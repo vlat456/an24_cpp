@@ -1,0 +1,42 @@
+{
+  "tests": 6,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "AotComposite",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "GeneratesSystemsForComposite",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 40
+        },
+        {
+          "name": "NestedComposite_ContainsSubSystems",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 83
+        },
+        {
+          "name": "ThreeLevelsDeep_FullHierarchy",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 123
+        },
+        {
+          "name": "TopoSort_LeavesFirst",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 171
+        },
+        {
+          "name": "PreLoad_CallsSubComposites",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 204
+        },
+        {
+          "name": "OutputMatchesJitExpansion",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_aot_composite.cpp",
+          "line": 247
+        }
+      ]
+    }
+  ]
+}

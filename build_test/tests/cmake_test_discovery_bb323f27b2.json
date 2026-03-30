@@ -1,0 +1,120 @@
+{
+  "tests": 18,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BlueprintNode",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ConstructAndAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "name": "BlueprintWire",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ConstructAndAccess",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "name": "BlueprintNested",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "ReferenceMode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 44
+        },
+        {
+          "name": "EmbeddedMode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 54
+        }
+      ]
+    },
+    {
+      "name": "Blueprint",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "EmptyByDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 64
+        },
+        {
+          "name": "AddNodeAndFind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 71
+        },
+        {
+          "name": "FindNodeNotFound",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 87
+        },
+        {
+          "name": "WithNodeDoesNotMutateOriginal",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 93
+        },
+        {
+          "name": "AddWireAndFind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 106
+        },
+        {
+          "name": "WithoutWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 130
+        },
+        {
+          "name": "AddNestedAndFind",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 154
+        },
+        {
+          "name": "WithoutNested",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 171
+        },
+        {
+          "name": "WithId",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 185
+        },
+        {
+          "name": "WithDisplayName",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 192
+        },
+        {
+          "name": "WithInterface",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 198
+        },
+        {
+          "name": "EqualEmptyBlueprints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 208
+        },
+        {
+          "name": "UnequalById",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 213
+        },
+        {
+          "name": "UnequalByNodes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_blueprint.cpp",
+          "line": 220
+        }
+      ]
+    }
+  ]
+}
