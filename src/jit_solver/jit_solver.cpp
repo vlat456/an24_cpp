@@ -79,13 +79,67 @@
 #include <algorithm>
 #include <map>
 #include <queue>
+#include <string_view>
 #include <unordered_set>
 #include <spdlog/spdlog.h>
 #include "../parse_number.h"
 
 namespace {
-    // Port setup is handled inline via the setup_ports lambda in build_systems_dev
+bool is_source_component_class(std::string_view classname) {
+    return classname == "Battery" || classname == "Generator" || classname == "RefNode";
 }
+
+bool is_migrated_component_class(std::string_view classname) {
+    return is_source_component_class(classname) ||
+           classname == "Switch" || classname == "Relay" ||
+           classname == "HoldButton" || classname == "Load" ||
+           classname == "Bus" || classname == "BlueprintInput" ||
+           classname == "BlueprintOutput" || classname == "Comparator" ||
+           classname == "CurrentSense" || classname == "AZS" ||
+           classname == "Resistor" || classname == "Voltmeter" ||
+           classname == "IndicatorLight" || classname == "Add" ||
+           classname == "Subtract" || classname == "Multiply" ||
+           classname == "Divide" || classname == "AND" || classname == "OR" ||
+           classname == "XOR" || classname == "NOT" || classname == "NAND" ||
+           classname == "Min" || classname == "Max" || classname == "MaxSelector" ||
+           classname == "Clamp" || classname == "PID" || classname == "PI" ||
+           classname == "PD" || classname == "P" || classname == "Integrator" ||
+           classname == "SampleHold" || classname == "TimeDelay" ||
+           classname == "Monostable" || classname == "SlewRate" ||
+           classname == "AsymSlewRate" || classname == "FastTMO" ||
+           classname == "AsymTMO" || classname == "Normalize" ||
+           classname == "LUT" || classname == "Greater" || classname == "Lesser" ||
+           classname == "GreaterEq" || classname == "LesserEq" ||
+           classname == "Any_V_to_Bool" || classname == "Positive_V_to_Bool" ||
+           classname == "LerpNode" || classname == "Slider" ||
+           classname == "Splitter" || classname == "Merger" ||
+           classname == "AGK47" || classname == "DMR400" ||
+           classname == "ElectricHeater" || classname == "ElectricPump" ||
+           classname == "FuelTank" || classname == "GidroAccumulator" ||
+           classname == "GS24" || classname == "Gyroscope" ||
+           classname == "HighPowerLoad" || classname == "InertiaNode" ||
+           classname == "Inverter" || classname == "Radiator" ||
+           classname == "RU19A" || classname == "RUG82" ||
+           classname == "SolenoidValve" || classname == "Spring" ||
+           classname == "TempSensor" || classname == "Transformer" ||
+           classname == "VoltageSense" ||
+           classname == "ControlledVoltageSource" ||
+           classname == "ControlledCurrentSource" ||
+           classname == "VariableConductance";
+}
+
+const std::unordered_set<std::string>& known_library_unused_params() {
+    static const std::unordered_set<std::string> params = {
+        "inv_internal_r",  // Computed in Battery/Generator pre_load() as 1.0f / internal_r
+        "inv_capacity",    // Computed in Battery pre_load() as 1.0f / capacity
+        "port_edge",       // Used in Bus blueprint but not consumed by Bus component
+        "exposed_direction", // Used in BlueprintInput blueprint but not consumed
+        "exposed_type",     // Used in BlueprintInput blueprint but not consumed
+        "resistance"        // Used in Load blueprint but Load uses conductance, not resistance
+    };
+    return params;
+}
+} // namespace
 
 BuildResult build_systems_dev(
     const std::vector<DeviceInstance>& devices,
@@ -215,62 +269,8 @@ BuildResult build_systems_dev(
             continue;
         }
 
-        // Check if this is a migrated component type
-        bool is_source = false;
-        bool is_migrated = false;
-        
-        if (dev.classname == "Battery") {
-            is_migrated = true;
-            is_source = true;
-        } else if (dev.classname == "Generator") {
-            is_migrated = true;
-            is_source = true;
-        } else if (dev.classname == "RefNode") {
-            is_migrated = true;
-            is_source = true;
-        }         else if (dev.classname == "Switch" || dev.classname == "Relay" ||
-                   dev.classname == "HoldButton" || dev.classname == "Load" ||
-                   dev.classname == "Bus" || dev.classname == "BlueprintInput" ||
-                   dev.classname == "BlueprintOutput" ||
-                   dev.classname == "Comparator" || dev.classname == "CurrentSense" ||
-                   dev.classname == "AZS" || dev.classname == "Resistor" ||
-                   dev.classname == "Voltmeter" || dev.classname == "IndicatorLight" ||
-                   dev.classname == "Add" || dev.classname == "Subtract" ||
-                   dev.classname == "Multiply" || dev.classname == "Divide" ||
-                   dev.classname == "AND" || dev.classname == "OR" ||
-                   dev.classname == "XOR" || dev.classname == "NOT" ||
-                   dev.classname == "NAND" || dev.classname == "Min" ||
-                   dev.classname == "Max" || dev.classname == "MaxSelector" || dev.classname == "Clamp" ||
-                   dev.classname == "PID" || dev.classname == "PI" ||
-                   dev.classname == "PD" || dev.classname == "P" ||
-                   dev.classname == "Integrator" || dev.classname == "SampleHold" ||
-                   dev.classname == "TimeDelay" || dev.classname == "Monostable" ||
-                   dev.classname == "SlewRate" || dev.classname == "AsymSlewRate" ||
-                   dev.classname == "FastTMO" || dev.classname == "AsymTMO" ||
-                   dev.classname == "Normalize" || dev.classname == "LUT" ||
-                   dev.classname == "Greater" || dev.classname == "Lesser" ||
-                   dev.classname == "GreaterEq" || dev.classname == "LesserEq" ||
-                   dev.classname == "Any_V_to_Bool" || dev.classname == "Positive_V_to_Bool" ||
-                   dev.classname == "LerpNode" || dev.classname == "Slider" ||
-                   dev.classname == "Splitter" || dev.classname == "Merger" ||
-                   // Phase 2 Slice 6: Additional non-controlled components
-                   dev.classname == "AGK47" || dev.classname == "DMR400" ||
-                   dev.classname == "ElectricHeater" || dev.classname == "ElectricPump" ||
-                   dev.classname == "FuelTank" || dev.classname == "GidroAccumulator" ||
-                   dev.classname == "GS24" || dev.classname == "Gyroscope" ||
-                   dev.classname == "HighPowerLoad" || dev.classname == "InertiaNode" ||
-                   dev.classname == "Inverter" || dev.classname == "Radiator" ||
-                   dev.classname == "RU19A" || dev.classname == "RUG82" ||
-                   dev.classname == "SolenoidValve" || dev.classname == "Spring" ||
-                   dev.classname == "TempSensor" || dev.classname == "Transformer" ||
-                   dev.classname == "VoltageSense" ||
-                   // Phase 2 Slice 7: Controlled source / conductance components
-                   dev.classname == "ControlledVoltageSource" ||
-                   dev.classname == "ControlledCurrentSource" ||
-                   dev.classname == "VariableConductance") {
-            is_migrated = true;
-            is_source = false;
-        }
+        bool is_source = is_source_component_class(dev.classname);
+        bool is_migrated = is_migrated_component_class(dev.classname);
 
         if (!is_migrated) {
             continue;
@@ -286,14 +286,7 @@ BuildResult build_systems_dev(
         // Whitelist of known library-specified parameters that the component doesn't actually consume.
         // These appear in library JSON but are not used by the component - they're silently consumed
         // to maintain backward compatibility with existing blueprints.
-        std::unordered_set<std::string> known_library_unused_params = {
-            "inv_internal_r",  // Computed in Battery/Generator pre_load() as 1.0f / internal_r
-            "inv_capacity",    // Computed in Battery pre_load() as 1.0f / capacity
-            "port_edge",       // Used in Bus blueprint but not consumed by Bus component
-            "exposed_direction", // Used in BlueprintInput blueprint but not consumed
-            "exposed_type",     // Used in BlueprintInput blueprint but not consumed
-            "resistance"        // Used in Load blueprint but Load uses conductance, not resistance
-        };
+        const auto& known_unused_params = known_library_unused_params();
 
         // == Consume helper lambdas - mark keys as used ==
         auto consume_float_optional = [&](const std::string& key, float default_val) -> float {
@@ -341,7 +334,7 @@ BuildResult build_systems_dev(
                 (void)val;
                 if (consumed_params.find(key) == consumed_params.end()) {
                     // Check if it's a known library-unused param
-                    if (known_library_unused_params.find(key) != known_library_unused_params.end()) {
+                    if (known_unused_params.find(key) != known_unused_params.end()) {
                         consumed_params.insert(key);  // Mark as consumed silently
                         continue;
                     }
@@ -1006,6 +999,8 @@ BuildResult build_systems_dev(
             comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
             comp.r_internal = consume_float_optional("r_internal", 0.025f);
             comp.r_norton = consume_float_optional("r_norton", 0.08f);
+            comp.rpm_cutoff = consume_float_optional("rpm_cutoff", 0.45f);
+            comp.rpm_threshold = consume_float_optional("rpm_threshold", 0.4f);
             comp.pre_load();
             setup_ports(comp);
             validate_all_params_consumed();
@@ -1072,7 +1067,14 @@ BuildResult build_systems_dev(
             
             comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
             comp.auto_start = consume_bool_optional("auto_start", true);
+            comp.spinup_inertia = consume_float_optional("spinup_inertia", 1.0f);
+            comp.spindown_inertia = consume_float_optional("spindown_inertia", 0.02f);
+            comp.crank_time = consume_float_optional("crank_time", 2.0f);
+            comp.ignition_time = consume_float_optional("ignition_time", 3.0f);
+            comp.start_timeout = consume_float_optional("start_timeout", 30.0f);
             comp.t4_target = consume_float_optional("t4_target", 400.0f);
+            comp.t4_max = consume_float_optional("t4_max", 750.0f);
+            comp.ambient_temp = consume_float_optional("ambient_temp", 20.0f);
             comp.pre_load();
             setup_ports(comp);
             validate_all_params_consumed();
