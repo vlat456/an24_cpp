@@ -925,6 +925,100 @@ TEST(PushRuntime, UnknownParamKeyThrows) {
     }
 }
 
+TEST(PushRuntime, GS24ExtendedParamsAreAcceptedAndAffectOutput) {
+    const std::string json_low_threshold = R"({
+        "devices": [
+            {"name": "gs", "classname": "GS24", "params": {
+                "target_rpm": "60.0",
+                "v_nominal": "28.5",
+                "rpm_threshold": "0.1",
+                "rpm_cutoff": "0.45"
+            }},
+            {"name": "k", "classname": "RefNode", "params": {"value": "1.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "k.v", "to": "gs.k_mod"},
+            {"from": "gnd.v", "to": "gs.v_in"}
+        ]
+    })";
+
+    const std::string json_high_threshold = R"({
+        "devices": [
+            {"name": "gs", "classname": "GS24", "params": {
+                "target_rpm": "60.0",
+                "v_nominal": "28.5",
+                "rpm_threshold": "0.9",
+                "rpm_cutoff": "0.45"
+            }},
+            {"name": "k", "classname": "RefNode", "params": {"value": "1.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "k.v", "to": "gs.k_mod"},
+            {"from": "gnd.v", "to": "gs.v_in"}
+        ]
+    })";
+
+    JIT_Simulator low;
+    JIT_Simulator high;
+    low.start_from_json(json_low_threshold);
+    high.start_from_json(json_high_threshold);
+
+    for (int i = 0; i < 90; ++i) {
+        low.step(1.0f / 60.0f);
+        high.step(1.0f / 60.0f);
+    }
+
+    const float low_v = low.get_port_value("gs", "v_out");
+    const float high_v = high.get_port_value("gs", "v_out");
+    EXPECT_TRUE(std::isfinite(low_v));
+    EXPECT_TRUE(std::isfinite(high_v));
+    EXPECT_GT(low_v, high_v);
+}
+
+TEST(PushRuntime, RU19AExtendedParamsAreAcceptedAndCrankTimeControlsState) {
+    std::vector<DeviceInstance> devices = {
+        make_device("ru", "RU19A", {
+            {"auto_start", "false"},
+            {"target_rpm", "4800.0"},
+            {"spinup_inertia", "1.2"},
+            {"spindown_inertia", "0.03"},
+            {"crank_time", "4.0"},
+            {"ignition_time", "3.0"},
+            {"start_timeout", "20.0"},
+            {"t4_target", "420.0"},
+            {"t4_max", "760.0"},
+            {"ambient_temp", "15.0"}
+        }),
+        make_device("k", "RefNode", {{"value", "1.0"}}),
+        make_device("v_src", "RefNode", {{"value", "28.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"k.v", "ru.k_mod"},
+        {"v_src.v", "ru.v_start"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+    auto st = make_state(result.signal_count);
+    RU19A<JitProvider>* ru = std::get_if<RU19A<JitProvider>>(&result.devices.at("ru"));
+    ASSERT_NE(ru, nullptr);
+
+    ru->start();
+    result.scheduler.step(st, 1.0f / 60.0f);
+
+    for (int i = 0; i < 170; ++i) {
+        result.scheduler.step(st, 1.0f / 60.0f);
+    }
+    EXPECT_EQ(ru->state, APUState::CRANKING);
+
+    for (int i = 0; i < 80; ++i) {
+        result.scheduler.step(st, 1.0f / 60.0f);
+    }
+    EXPECT_NE(ru->state, APUState::CRANKING);
+}
+
 // == RU19A Start/Stop Request Semantics Tests ==
 // Verifies two-phase commit semantics for start() and stop() requests.
 // start() while OFF -> CRANKING next frame

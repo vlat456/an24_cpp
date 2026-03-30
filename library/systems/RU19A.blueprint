@@ -46,6 +46,15 @@
   ],
   "priority": "high",
   "param_defaults": {
-    "target_rpm": "16000.0"
+    "target_rpm": "16000.0",
+    "auto_start": "true",
+    "spinup_inertia": "1.0",
+    "spindown_inertia": "0.02",
+    "crank_time": "2.0",
+    "ignition_time": "3.0",
+    "start_timeout": "30.0",
+    "t4_target": "400.0",
+    "t4_max": "750.0",
+    "ambient_temp": "20.0"
   }
 }

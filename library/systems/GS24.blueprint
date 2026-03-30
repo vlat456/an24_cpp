@@ -35,6 +35,8 @@
   "legacy_fixture": true,
   "content_type": "Gauge",
   "param_defaults": {
+    "rpm_cutoff": "0.45",
+    "rpm_threshold": "0.4",
     "r_internal": "0.025",
     "r_norton": "0.08",
     "target_rpm": "16000.0",
