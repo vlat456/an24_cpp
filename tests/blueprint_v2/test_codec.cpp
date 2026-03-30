@@ -1136,6 +1136,9 @@ TEST(BlueprintCodec, DecodeRejectsInterfaceUnknownDirectionValue) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsNonFiniteNodePosition) {
+#if defined(__FAST_MATH__)
+    GTEST_SKIP() << "Non-finite checks are undefined under -ffast-math";
+#endif
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;
@@ -1163,6 +1166,9 @@ TEST(BlueprintCodec, DecodeRejectsNonFiniteNodePosition) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsNonFiniteWireRoutingPoint) {
+#if defined(__FAST_MATH__)
+    GTEST_SKIP() << "Non-finite checks are undefined under -ffast-math";
+#endif
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;
@@ -1186,6 +1192,9 @@ TEST(BlueprintCodec, DecodeRejectsNonFiniteWireRoutingPoint) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsNonFiniteNestedPosition) {
+#if defined(__FAST_MATH__)
+    GTEST_SKIP() << "Non-finite checks are undefined under -ffast-math";
+#endif
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;
@@ -1223,6 +1232,9 @@ TEST(BlueprintCodec, DecodeRejectsNonFiniteNestedPosition) {
 }
 
 TEST(BlueprintCodec, DecodeRejectsNonFiniteViewportValues) {
+#if defined(__FAST_MATH__)
+    GTEST_SKIP() << "Non-finite checks are undefined under -ffast-math";
+#endif
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;

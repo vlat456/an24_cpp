@@ -6,13 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Aggressive optimization flags for Release.
-# - WASM/EMSCRIPTEN: keep full -ffast-math for max throughput.
-# - Native builds: keep a safe subset to preserve NaN/Inf semantics used by tests.
-if(EMSCRIPTEN)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
-else()
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fno-math-errno -freciprocal-math -fassociative-math -fno-trapping-math -fno-signed-zeros")
-endif()
+# Keep full -ffast-math for maximum runtime performance.
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
 
 # Options
 option(BUILD_TESTS "Build tests" ON)
