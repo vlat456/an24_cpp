@@ -24,6 +24,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Stable component design | `knowledge/component_authoring.md` | Rules for writing numerically stable components |
 | Known issues / TODO | `knowledge/errors_TODO.md` | Architecture smells, bugs, and follow-up items |
 | **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from legacy iterative solver to push propagation (game-grade sim) |
+| Blueprint zero-legacy cutover plan | `knowledge/blueprint_migration/zero_legacy_cutover_plan.md` | Strict no-fallback blueprint/runtime cutover checklist |
 | Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
 
 ## Suggested Reading Order

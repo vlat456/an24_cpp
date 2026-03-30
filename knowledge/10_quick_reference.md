@@ -66,13 +66,15 @@ See also: `knowledge/17_generated_files.md`.
 
 ## Domain Values
 
-| Domain | Value | Method | Frequency |
-|--------|-------|--------|-----------|
-| Electrical | 1 | `solve_electrical()` | 60 Hz |
-| Logical | 2 | `solve_logical()` | 60 Hz |
-| Mechanical | 4 | `solve_mechanical()` | 20 Hz |
-| Hydraulic | 8 | `solve_hydraulic()` | 5 Hz |
-| Thermal | 16 | `solve_thermal()` | 1 Hz |
+| Domain | Value | Frequency | Notes |
+|--------|-------|-----------|-------|
+| Electrical | 1 | 60 Hz | Domain metadata for scheduling/validation |
+| Logical | 2 | 60 Hz | Domain metadata for scheduling/validation |
+| Mechanical | 4 | 20 Hz | Domain metadata for scheduling/validation |
+| Hydraulic | 8 | 5 Hz | Domain metadata for scheduling/validation |
+| Thermal | 16 | 1 Hz | Domain metadata for scheduling/validation |
+
+**Runtime API:** `execute(st, dt)` + optional `commit(st)` + optional `pre_load()`.
 
 ## Port Directions
 
@@ -104,42 +106,21 @@ public:
     Provider provider;
     float param = 1.0f;
     
-    void solve_electrical(SimulationState& st, float dt) {
-        float in = st.across[provider.get(PortNames::v_in)];
-        st.across[provider.get(PortNames::v_out)] = in * param;
+    void execute(SimulationState& st, float dt) {
+        float in = st.values[provider.get(PortNames::v_in)];
+        st.values[provider.get(PortNames::v_out)] = in * param;
     }
     
-    void finalize_step(SimulationState& st, float dt) {}  // Optional
+    void commit(SimulationState& st) {}  // Optional
     void pre_load() {}  // Optional
 };
 ```
 
-## Simulation Loop
+## Simulation Loop (Conceptual)
 
 ```cpp
 for (int step = 0; step < total_steps; ++step) {
-    st.clear_through();
-    
-    // 60 Hz
-    for (auto& c : electrical) std::visit([&](auto& x) { x.solve_electrical(st, dt); }, c);
-    for (auto& c : logical) std::visit([&](auto& x) { x.solve_logical(st, dt); }, c);
-    
-    // 20 Hz
-    if (step % 3 == 0)
-        for (auto& c : mechanical) std::visit([&](auto& x) { x.solve_mechanical(st, dt*3); }, c);
-    
-    // 5 Hz
-    if (step % 12 == 0)
-        for (auto& c : hydraulic) std::visit([&](auto& x) { x.solve_hydraulic(st, dt*12); }, c);
-    
-    // 1 Hz
-    if (step % 60 == 0)
-        for (auto& c : thermal) std::visit([&](auto& x) { x.solve_thermal(st, dt*60); }, c);
-    
-    st.precompute_inv_conductance();
-    // Push model: single-pass execution, no iterative solve
-    
-    for (auto& c : all) std::visit([&](auto& x) { x.finalize_step(st, dt); }, c);
+    scheduler.step(st, dt);
 }
 ```
 
@@ -166,13 +147,13 @@ TEST(MyTest, Scenario_ExpectedResult) {
     auto st = make_state();
     
     // Setup
-    st.across[0] = 1.0f;
+    st.values[0] = 1.0f;
     
     // Execute
-    comp.solve_electrical(st, 1.0f/60.0f);
+    comp.execute(st, 1.0f/60.0f);
     
     // Verify
-    EXPECT_NEAR(st.across[1], expected, tolerance);
+    EXPECT_NEAR(st.values[1], expected, tolerance);
 }
 ```
 
@@ -182,9 +163,15 @@ For MSFS-style systems simulation, prefer stability.
 
 In push propagation model, solver tuning is minimal since there's no iterative relaxation.
 
+Hard rule:
+
+- **Do not add validation checks in hot runtime paths (JIT/AOT execute loops).**
+- Perform strict validation in parse/build/pre-load phases only.
+- Keep runtime mostly branchless and mostly division-free for SIMD-friendly execution.
+
 Rules of thumb:
 
-- keep persistent state updates in `finalize_step()`, not in `solve_*()`
+- keep persistent state updates in `commit()`, not in `execute()`
 - validate dangling series devices and near-short source paths early
 
 ## Centralized Runtime Config
@@ -210,7 +197,7 @@ Current high-current warning bands:
 | Context | Style | Example |
 |---------|-------|---------|
 | Classes | PascalCase | `Battery`, `SimulationState` |
-| Functions | snake_case | `solve_electrical`, `allocate_signal` |
+| Functions | snake_case | `execute`, `allocate_signal` |
 | Members | snake_case | `v_nominal`, `internal_r` |
 | Constants | PascalCase | `Domain::Electrical` |
 | Macros | UPPER_SNAKE | `PORTS`, `AOT_ALWAYS_INLINE` |

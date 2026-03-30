@@ -1,5 +1,30 @@
 # Push Propagation Migration Plan
 
+## Status Update (2026-03-30)
+
+This document includes historical migration notes. Current branch status is:
+
+- Push runtime is the active execution model in JIT and AOT paths.
+- Component runtime API is unified around `execute()` with optional `commit()` and `pre_load()`.
+- Legacy `execution` metadata was removed from library blueprints and parser paths.
+- Strict unknown/unconsumed parameter rejection is enabled in factory build paths.
+- Stateful commit semantics are covered by push runtime regressions.
+
+### Completed migration slices
+
+- Core push scheduler and push state model migration.
+- Component API simplification and staged state transitions for stateful components.
+- Strict parameter consumption checks in `build_systems_dev()`.
+- Test-pad fixture hardening for GS24/RU19A (explicit defaults + targeted regressions).
+- Full-suite validation from proper build directories (`build/tests`, `build_fulltests`).
+
+### Remaining work
+
+- Push migration cutover work is complete for runtime strictness goals.
+- Remaining items are post-migration architecture debt tracked in `knowledge/errors_TODO.md`.
+
+---
+
 ## Context
 
 Current legacy iterative solver has fundamental limitations for game-scale simulation:
@@ -24,6 +49,39 @@ For MSFS/FlightGear grade simulation, accuracy target is 0.1V — much lower tha
 - Blueprint V2 data model
 - JIT/AOT dual-mode execution
 - Signal-based port connections
+
+## Runtime API Simplification Decision
+
+**Principle:** Keep component runtime API minimal — one execute entry point plus optional end-of-frame commit for stateful components.
+
+### API Contract (Current Slice)
+| Method | Purpose | Who has it |
+|--------|---------|------------|
+| `execute(st, dt)` | Per-frame computation | All components |
+| `commit(st)` | Apply staged state transitions | Stateful components (Switch, Relay, HoldButton, AZS, LerpNode) |
+| `pre_load()` | Initialization | Components with params |
+
+### Legacy Taxonomy (Being Removed)
+Domain-specific methods are legacy taxonomy:
+- `solve_electrical()`, `solve_mechanical()`, `solve_hydraulic()`, `solve_thermal()`, `solve_logical()`
+
+These may remain as private helpers during migration but are NOT part of the public API.
+
+### Migration Status
+- Phase 1 (DONE): Introduce `commit()` hook in scheduler, add to 7 stateful components
+- Phase 2 (TODO): Move domain logic into `execute()` or private helpers
+- Phase 3 (TODO): Remove public `solve_*` from component headers
+- Phase 4 (TODO): AOT codegen update to use simplified API
+
+### One-Frame Delay Semantics
+Stateful components (Switch, Relay, etc.) detect input changes in `execute()` but apply them in `commit()`. This means:
+- Input change detected at frame N
+- State committed at end of frame N  
+- New state visible to other components in frame N+1
+
+This is intentional for push propagation: prevents combinatorial feedback loops.
+
+---
 
 ## Core Concepts
 

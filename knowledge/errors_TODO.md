@@ -132,10 +132,37 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
+### 16. Runtime API Simplification (ONGOING)
+**Status:** OPEN (Phase 1 - commit hook introduced)
+
+**Decision:** Simplify component runtime API to minimum surface area.
+
+**Keep:**
+- `execute(st, dt)` — main per-frame computation for stateless components
+- `commit(st)` — optional end-of-frame hook for stateful components (state machine transitions)
+- `pre_load()` — initialization
+
+**Domain taxonomy (`solve_electrical`, `solve_mechanical`, `solve_hydraulic`, `solve_thermal`, `solve_logical`) is legacy** and will be removed from public API. Components may keep these as private helpers temporarily during migration.
+
+**State transitions:** `finalize_step` and `commit_control` are unified into `commit()`. Incremental migration:
+- Components with `commit_control` → call it from `commit()`
+- Components with `finalize_step` → call it from `commit()`
+- No behavioral change in this slice (existing methods stay)
+
+**One-frame delay semantics:** Stateful components (Switch, Relay, HoldButton, AZS) apply staged transitions in `commit()`, meaning state changes take effect in the NEXT frame's `execute()`. This is the intentional push-model behavior.
+
+**Files touched:** `src/jit_solver/scheduler.h`, 7 stateful component headers/implementations.
+
+**Planned quality pass:**
+- After current execute/commit migration checkpoint commit, run `@escalate` for a dedicated **10/10 code-quality plan** based on latest strict review findings.
+- Deliverable should include: prioritized tasks, risk ranking, and verification gates.
+
+---
+
 ## High Priority
 
-### 14. Zero-Fallback Metadata Cutover (MANDATORY)
-**Status:** OPEN (active phase)
+### ~~14. Zero-Fallback Metadata Cutover (MANDATORY)~~ ✓ COMPLETED
+**Status:** CLOSED (2026-03-30)
 
 **Policy:** Remove all fallback/compatibility behavior and make metadata fully explicit.
 
@@ -145,20 +172,22 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 - No silent defaults for required fields.
 - Invalid metadata must fail fast at load/build time.
 
-**Current temporary compatibility to remove:**
-- Wire-domain tolerance fallback in bp2 wire validation (`wire.domain` mismatch accepted when endpoints resolve).
-- Any parser/load path that still accepts legacy forms without explicit schema declarations.
+**What was completed:**
+- Removed compatibility whitelist in factory param validation (`known_library_unused_params`).
+- Removed migrated-component gate path; unknown component classnames now hard-fail in factory build.
+- Removed legacy `VoltageSense::observe_electrical()` shim API.
+- Removed legacy simulator wire lookup port-name rewrite fallback (`:*.ext`).
+- Normalized affected library blueprint `param_defaults` keys to align with strict consumption.
+- Added strict negative regression tests for unknown class and rejected legacy/unknown params in push build validation suite.
 
 **Target end-state:**
 - `library/**/*.blueprint` metadata is fully normalized and explicit.
 - `GSC.blueprint` and other working blueprints contain no stale/legacy fields.
 - Validation runs strict-only mode with zero fallback.
 
-**Definition of done:**
-1. Audit and delete all fallback/compatibility code paths.
-2. Normalize all blueprint/type metadata to strict schema.
-3. Add regression tests that ensure invalid/legacy metadata is rejected (hard fail).
-4. Keep editor stable (no process aborts) while surfacing validation errors to user.
+**Result:**
+- Build-time validation is strict-only for active push runtime paths.
+- Invalid/legacy param usage now fails fast in build validation.
 
 ---
 
@@ -169,10 +198,12 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 **Problem:** Two blueprint implementations coexist. Unclear which is canonical, risks inconsistency.
 
-**Fix:** 
-- Complete migration to blueprint_v2
-- Add deprecation warnings to legacy
-- Document migration status in AGENTS.md
+**Current recommendation (Phase 7+):**
+- Treat `src/blueprint_v2/` as canonical for all new work.
+- Freeze legacy surface in `src/editor/data/blueprint.h` to bugfix-only.
+- Add a bridge/adaptor boundary so runtime/editor entry points consume one canonical model.
+- Add migration completion checklist with measurable exit criteria (loader parity, save/load parity, editor parity, test parity).
+- Only remove legacy implementation after parity matrix is green.
 
 ---
 
