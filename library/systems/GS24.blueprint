@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "GS24",
   "display_name": "GS24",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "k_mod",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "v_in",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "v_out",
       "domain": 1,
       "direction": 1,
-      "type": "V"
+      "type": "V",
+      "source_writer": true
     }
   ],
   "nodes": [],

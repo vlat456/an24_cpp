@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "Merger",
   "display_name": "Merger",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "i1",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "i2",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "o",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

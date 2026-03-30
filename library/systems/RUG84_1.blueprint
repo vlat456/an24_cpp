@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "RUG_82_1",
   "display_name": "RUG_82_1",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "Comp",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "v",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [

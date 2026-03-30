@@ -5,6 +5,7 @@
 #include "jit_solver/state.h"
 #include "json_parser/json_parser.h"
 #include <cmath>
+#include <algorithm>
 
 namespace {
 
@@ -659,4 +660,104 @@ TEST(PushBuildValidation, RU19AObservationPortsAreOutputsForTopo) {
 
     // The value must be finite (not NaN from uninitialized read).
     EXPECT_TRUE(std::isfinite(st.values[greater_out]));
+}
+
+TEST(PushBuildValidation, SchedulerSourceMetadata_ControlsBucketing) {
+    std::vector<DeviceInstance> devices = {
+        make_device("battery", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("load", "Load", {{"conductance", "0.1"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"battery.v_out", "load.input"},
+        {"battery.v_out", "gnd.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    EXPECT_TRUE(is_scheduler_source_component("Battery"));
+    EXPECT_TRUE(is_scheduler_source_component("RefNode"));
+    EXPECT_FALSE(is_scheduler_source_component("Load"));
+
+    SimulationState st;
+    for (uint32_t i = 0; i < result.signal_count; ++i) {
+        st.allocate_signal(0.0f, {Domain::Electrical, true});
+    }
+    EXPECT_NO_THROW(result.scheduler.step(st, 1.0f / 60.0f));
+}
+
+TEST(PushBuildValidation, SourceWriterMetadata_IsDomainScoped) {
+    // RU19A exposes source_writer on v_bus/v_start in Electrical domain.
+    // rpm_out is Mechanical output and must not appear in Electrical source writers.
+    auto electrical_writers = get_source_writer_ports("RU19A", static_cast<uint8_t>(Domain::Electrical));
+    auto mechanical_writers = get_source_writer_ports("RU19A", static_cast<uint8_t>(Domain::Mechanical));
+
+    EXPECT_EQ(electrical_writers.size(), 2u);
+    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "v_bus") != electrical_writers.end());
+    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "v_start") != electrical_writers.end());
+    EXPECT_TRUE(std::find(electrical_writers.begin(), electrical_writers.end(), "rpm_out") == electrical_writers.end());
+
+    EXPECT_TRUE(mechanical_writers.empty());
+}
+
+TEST(PushBuildValidation, OutputPorts_MetadataDrivenIncludesInOut) {
+    auto ru_outputs = get_output_ports("RU19A");
+    auto cvs_outputs = get_output_ports("ControlledVoltageSource");
+
+    EXPECT_TRUE(std::find(ru_outputs.begin(), ru_outputs.end(), "v_start") != ru_outputs.end());
+    EXPECT_TRUE(std::find(ru_outputs.begin(), ru_outputs.end(), "rpm_out") != ru_outputs.end());
+    EXPECT_TRUE(std::find(cvs_outputs.begin(), cvs_outputs.end(), "v_pos") != cvs_outputs.end());
+    EXPECT_TRUE(std::find(cvs_outputs.begin(), cvs_outputs.end(), "v_neg") != cvs_outputs.end());
+}
+
+// Regression: merge_device_instance must propagate domain and source_writer
+// from the type definition when both instance and definition have the same port.
+// Previously only type and alias were copied, silently dropping metadata.
+TEST(PushBuildValidation, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
+    TypeDefinition def;
+    def.classname = "Generator";
+    def.cpp_class = true;
+    def.domains = std::vector<Domain>{Domain::Electrical};
+    // Definition port: domain=Mechanical, source_writer=true
+    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Mechanical, true};
+
+    DeviceInstance inst;
+    inst.name = "gen1";
+    inst.classname = "Generator";
+    // Instance port: same name, but with default domain/source_writer
+    inst.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+
+    DeviceInstance merged = merge_device_instance(inst, def);
+
+    // domain and source_writer must come from the definition, not remain at defaults
+    EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);
+    EXPECT_TRUE(merged.ports.at("v_out").source_writer);
+}
+
+// Regression: parse_type_definition must parse scheduler_source from JSON.
+// Previously it was missing, always defaulting to false even when JSON said true.
+TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "TestSource",
+        "cpp_class": true,
+        "scheduler_source": true,
+        "domains": ["Electrical"],
+        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+    })");
+
+    TypeDefinition def = parse_type_definition(j);
+    EXPECT_TRUE(def.scheduler_source);
+
+    // Also verify false case
+    auto j2 = nlohmann::json::parse(R"({
+        "classname": "TestLoad",
+        "cpp_class": true,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "ports": {"v_in": {"direction": "In", "type": "V"}}
+    })");
+
+    TypeDefinition def2 = parse_type_definition(j2);
+    EXPECT_FALSE(def2.scheduler_source);
 }

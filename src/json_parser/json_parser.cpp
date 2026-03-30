@@ -18,6 +18,13 @@ static Domain parse_domain(const std::string& s) {
     throw std::runtime_error("Unknown domain: " + s);
 }
 
+static Domain parse_domain_mask_int(int v) {
+    if (v <= 0 || (v & ~31) != 0) {
+        throw std::runtime_error("Invalid domain bitmask value: " + std::to_string(v));
+    }
+    return static_cast<Domain>(static_cast<uint8_t>(v));
+}
+
 // Helper: convert Domain to string
 static std::string domain_to_string(Domain d) {
     switch (d) {
@@ -208,6 +215,18 @@ static Port parse_port(const json& j) {
             port.type = parse_port_type(j["type"].get<std::string>());
         } else {
             throw std::runtime_error("Port definition missing required 'type' field");
+        }
+        if (j.contains("domain")) {
+            if (!j["domain"].is_number_integer()) {
+                throw std::runtime_error("Port definition field 'domain' must be integer bitmask");
+            }
+            port.domain = parse_domain_mask_int(j["domain"].get<int>());
+        }
+        if (j.contains("source_writer")) {
+            if (!j["source_writer"].is_boolean()) {
+                throw std::runtime_error("Port definition field 'source_writer' must be bool");
+            }
+            port.source_writer = j["source_writer"].get<bool>();
         }
         if (j.contains("alias")) {
             port.alias = j["alias"].get<std::string>();
@@ -855,6 +874,11 @@ TypeDefinition parse_type_definition(const json& j) {
         def.visual_only = j["visual_only"].get<bool>();
     }
 
+    // Parse scheduler_source flag
+    if (j.contains("scheduler_source")) {
+        def.scheduler_source = j["scheduler_source"].get<bool>();
+    }
+
     // Parse size {x, y} in grid units
     if (j.contains("size") && j["size"].is_object()) {
         auto size_obj = j["size"];
@@ -991,6 +1015,10 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                 if (j.contains("visual_only") && j["visual_only"].is_boolean()) {
                     def.visual_only = j["visual_only"].get<bool>();
                 }
+                if (!j.contains("scheduler_source") || !j["scheduler_source"].is_boolean()) {
+                    throw std::runtime_error("Missing required boolean 'scheduler_source' for component '" + def.classname + "'");
+                }
+                def.scheduler_source = j["scheduler_source"].get<bool>();
 
                 // Parse domains (mandatory, no fallback)
                 if (!j.contains("domains") || !j["domains"].is_array()) {
@@ -1023,6 +1051,12 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     if (!p.contains("direction") || !p["direction"].is_number_integer()) {
                         throw std::runtime_error("Interface entry missing required integer 'direction' for component '" + def.classname + "'");
                     }
+                    if (!p.contains("domain") || !p["domain"].is_number_integer()) {
+                        throw std::runtime_error("Interface entry missing required integer 'domain' for component '" + def.classname + "'");
+                    }
+                    if (!p.contains("source_writer") || !p["source_writer"].is_boolean()) {
+                        throw std::runtime_error("Interface entry missing required boolean 'source_writer' for component '" + def.classname + "'");
+                    }
                     if (!p.contains("type") || !p["type"].is_string()) {
                         throw std::runtime_error("Interface entry missing required string 'type' for component '" + def.classname + "'");
                     }
@@ -1035,6 +1069,8 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     else {
                         throw std::runtime_error("Invalid interface direction value for component '" + def.classname + "'");
                     }
+                    port.domain = parse_domain_mask_int(p["domain"].get<int>());
+                    port.source_writer = p["source_writer"].get<bool>();
                     port.type = parse_port_type(p["type"].get<std::string>());
 
                     def.ports[p["name"].get<std::string>()] = port;
@@ -1189,10 +1225,13 @@ DeviceInstance merge_device_instance(
             if (!merged.ports.count(port_name)) {
                 merged.ports[port_name] = port;
             } else {
-                // Port exists in instance - always copy type and alias from definition
-                // This ensures port types from type definitions are always used
+                // Port exists in instance - always copy authoritative fields from definition.
+                // Instance may only override direction; type, alias, domain, and source_writer
+                // are owned by the type definition and must not be silently defaulted.
                 merged.ports[port_name].type = port.type;
                 merged.ports[port_name].alias = port.alias;
+                merged.ports[port_name].domain = port.domain;
+                merged.ports[port_name].source_writer = port.source_writer;
             }
         }
     }
@@ -1244,6 +1283,7 @@ DeviceInstance merge_device_instance(
 
     // Propagate explicit execution-phase metadata from definition when present.
     merged.execution = definition.execution;
+    merged.scheduler_source = definition.scheduler_source;
 
     if (!definition.param_schema.empty()) {
         validate_params_against_schema(merged.params, definition.param_schema, merged.name, merged.classname);

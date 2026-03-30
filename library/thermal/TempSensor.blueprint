@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "TempSensor",
   "display_name": "TempSensor",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "temp_in",
       "domain": 1,
       "direction": 0,
-      "type": "Temperature"
+      "type": "Temperature",
+      "source_writer": false
     },
     {
       "name": "temp_out",
       "domain": 16,
       "direction": 1,
-      "type": "Temperature"
+      "type": "Temperature",
+      "source_writer": false
     }
   ],
   "nodes": [],

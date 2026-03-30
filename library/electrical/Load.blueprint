@@ -2,12 +2,14 @@
   "version": "3.0",
   "id": "Load",
   "display_name": "Load",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "input",
       "domain": 1,
       "direction": 0,
-      "type": "I"
+      "type": "I",
+      "source_writer": false
     }
   ],
   "nodes": [],

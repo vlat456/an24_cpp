@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "Spring",
   "display_name": "Spring",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "force_out",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "pos_a",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "pos_b",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

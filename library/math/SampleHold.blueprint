@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "SampleHold",
   "display_name": "SampleHold",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "in",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "out",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "trigger",
       "domain": 2,
       "direction": 0,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     }
   ],
   "nodes": [],

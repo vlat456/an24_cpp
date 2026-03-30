@@ -2,12 +2,14 @@
   "version": "3.0",
   "id": "Voltmeter",
   "display_name": "Voltmeter",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "v_in",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

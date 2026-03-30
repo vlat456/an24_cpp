@@ -2,6 +2,7 @@
   "version": "3.0",
   "id": "Group",
   "display_name": "Group",
+  "scheduler_source": false,
   "interface": [],
   "nodes": [],
   "wires": [],

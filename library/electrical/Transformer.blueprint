@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "Transformer",
   "display_name": "Transformer",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "primary",
       "domain": 1,
       "direction": 0,
-      "type": "I"
+      "type": "I",
+      "source_writer": false
     },
     {
       "name": "secondary",
       "domain": 2,
       "direction": 1,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     }
   ],
   "nodes": [],

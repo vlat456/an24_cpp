@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "NOT",
   "display_name": "NOT",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "A",
       "domain": 2,
       "direction": 0,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     },
     {
       "name": "o",
       "domain": 2,
       "direction": 1,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     }
   ],
   "nodes": [],

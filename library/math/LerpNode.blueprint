@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "LerpNode",
   "display_name": "LerpNode",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "input",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "output",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

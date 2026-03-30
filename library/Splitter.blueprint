@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "Splitter",
   "display_name": "Splitter",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "i",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "o1",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "o2",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

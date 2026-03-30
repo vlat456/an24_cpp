@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "InertiaNode",
   "display_name": "InertiaNode",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "input",
       "domain": 1,
       "direction": 0,
-      "type": "I"
+      "type": "I",
+      "source_writer": false
     },
     {
       "name": "output",
       "domain": 16,
       "direction": 1,
-      "type": "Temperature"
+      "type": "Temperature",
+      "source_writer": false
     }
   ],
   "nodes": [],

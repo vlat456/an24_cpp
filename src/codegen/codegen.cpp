@@ -517,9 +517,17 @@ void CodeGen::write_files(
 void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {
     std::cerr << "[codegen] Generating port registry from TypeRegistry (" << registry.types.size() << " types)\n";
 
+    struct PortMeta {
+        std::string name;
+        PortDirection direction = PortDirection::Out;
+        Domain domain = Domain::Electrical;
+        bool source_writer = false;
+    };
+
     struct ComponentPorts {
         std::string classname;
-        std::vector<std::string> ports;
+        std::vector<PortMeta> ports;
+        bool scheduler_source = false;
     };
 
     std::vector<ComponentPorts> all_components;
@@ -529,10 +537,19 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
 
         ComponentPorts comp;
         comp.classname = def.classname;
-        for (const auto& [port_name, _] : def.ports) {
-            comp.ports.push_back(port_name);
+        comp.scheduler_source = def.scheduler_source;
+        for (const auto& [port_name, port] : def.ports) {
+            PortMeta meta;
+            meta.name = port_name;
+            meta.direction = port.direction;
+            meta.domain = port.domain;
+            meta.source_writer = port.source_writer;
+            comp.ports.push_back(std::move(meta));
         }
-        std::sort(comp.ports.begin(), comp.ports.end());
+        std::sort(comp.ports.begin(), comp.ports.end(),
+            [](const PortMeta& a, const PortMeta& b) {
+                return a.name < b.name;
+            });
         all_components.push_back(std::move(comp));
     }
 
@@ -546,7 +563,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     std::set<std::string> all_port_names;
     for (const auto& comp : all_components) {
         for (const auto& port : comp.ports) {
-            all_port_names.insert(port);
+            all_port_names.insert(port.name);
         }
     }
 
@@ -564,6 +581,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "#include <cstdint>\n";
     oss << "#include <string>\n";
     oss << "#include <unordered_map>\n";
+    oss << "#include <unordered_set>\n";
     oss << "#include <optional>\n";
     oss << "#include <vector>\n";
     oss << "#include <variant>\n";
@@ -610,13 +628,47 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     for (const auto& comp : all_components) {
         oss << "constexpr const char* " << comp.classname << "_PORTS[] = {\n";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "    \"" << comp.ports[i] << "\"";
+            oss << "    \"" << comp.ports[i].name << "\"";
             if (i < comp.ports.size() - 1) oss << ",\n";
             else oss << "\n";
         }
         oss << "};\n";
     }
     oss << "\n";
+
+    // Generate strict metadata arrays (direction/domain/source_writer/scheduler_source)
+    oss << "enum class RegistryPortDirection : uint8_t { In = 0, Out = 1, InOut = 2 };\n\n";
+    for (const auto& comp : all_components) {
+        oss << "constexpr RegistryPortDirection " << comp.classname << "_PORT_DIRECTIONS[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            const char* dir_name = "Out";
+            if (comp.ports[i].direction == PortDirection::In) dir_name = "In";
+            else if (comp.ports[i].direction == PortDirection::InOut) dir_name = "InOut";
+            oss << "    RegistryPortDirection::" << dir_name;
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr uint8_t " << comp.classname << "_PORT_DOMAINS[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            oss << "    " << static_cast<int>(static_cast<uint8_t>(comp.ports[i].domain));
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr bool " << comp.classname << "_PORT_SOURCE_WRITER[] = {\n";
+        for (size_t i = 0; i < comp.ports.size(); ++i) {
+            oss << "    " << (comp.ports[i].source_writer ? "true" : "false");
+            if (i < comp.ports.size() - 1) oss << ",\n";
+            else oss << "\n";
+        }
+        oss << "};\n";
+
+        oss << "constexpr bool " << comp.classname << "_SCHEDULER_SOURCE = "
+            << (comp.scheduler_source ? "true" : "false") << ";\n\n";
+    }
 
     // Generate helper function to get ports by classname
     oss << "// Get port names for a component type\n";
@@ -641,7 +693,7 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     for (const auto& comp : all_components) {
         oss << "        {\"" << comp.classname << "\", {";
         for (size_t i = 0; i < comp.ports.size(); ++i) {
-            oss << "\"" << comp.ports[i] << "\"";
+            oss << "\"" << comp.ports[i].name << "\"";
             if (i < comp.ports.size() - 1) oss << ", ";
         }
         oss << "}},\n";
@@ -655,6 +707,57 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
     oss << "    return {};\n";
     oss << "}\n";
     oss << "\n";
+
+    oss << "inline bool has_component_metadata(const std::string& classname) {\n";
+    oss << "    static const std::unordered_set<std::string> known = {\n";
+    for (const auto& comp : all_components) {
+        oss << "        \"" << comp.classname << "\",\n";
+    }
+    oss << "    };\n";
+    oss << "    return known.count(classname) > 0;\n";
+    oss << "}\n\n";
+
+    oss << "inline bool is_scheduler_source_component(const std::string& classname) {\n";
+    oss << "    static const std::unordered_map<std::string, bool> registry = {\n";
+    for (const auto& comp : all_components) {
+        oss << "        {\"" << comp.classname << "\", " << (comp.scheduler_source ? "true" : "false") << "},\n";
+    }
+    oss << "    };\n";
+    oss << "    auto it = registry.find(classname);\n";
+    oss << "    if (it == registry.end()) return false;\n";
+    oss << "    return it->second;\n";
+    oss << "}\n\n";
+
+    oss << "inline std::vector<std::string> get_output_ports(const std::string& classname) {\n";
+    oss << "    std::vector<std::string> result;\n";
+    for (const auto& comp : all_components) {
+        oss << "    if (classname == \"" << comp.classname << "\") {\n";
+        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "            if (" << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || "
+            << comp.classname << "_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {\n";
+        oss << "                result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "        }\n";
+        oss << "        return result;\n";
+        oss << "    }\n";
+    }
+    oss << "    return result;\n";
+    oss << "}\n\n";
+
+    oss << "inline std::vector<std::string> get_source_writer_ports(const std::string& classname, uint8_t domain_mask) {\n";
+    oss << "    std::vector<std::string> result;\n";
+    for (const auto& comp : all_components) {
+        oss << "    if (classname == \"" << comp.classname << "\") {\n";
+        oss << "        for (size_t i = 0; i < " << comp.classname << "_PORT_COUNT; ++i) {\n";
+        oss << "            if (" << comp.classname << "_PORT_SOURCE_WRITER[i] && ((" << comp.classname << "_PORT_DOMAINS[i] & domain_mask) != 0)) {\n";
+        oss << "                result.push_back(" << comp.classname << "_PORTS[i]);\n";
+        oss << "            }\n";
+        oss << "        }\n";
+        oss << "        return result;\n";
+        oss << "    }\n";
+    }
+    oss << "    return result;\n";
+    oss << "}\n\n";
 
     // Generate ComponentVariant for dynamic component containers (Editor JIT)
     oss << "// Component variant for dynamic component storage (Editor JIT mode)\n";

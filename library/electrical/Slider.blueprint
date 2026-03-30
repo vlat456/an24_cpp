@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "Slider",
   "display_name": "Slider",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "control",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "out",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

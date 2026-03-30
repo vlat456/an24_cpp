@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "ElectricHeater",
   "display_name": "ElectricHeater",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "heat_out",
       "domain": 16,
       "direction": 1,
-      "type": "Temperature"
+      "type": "Temperature",
+      "source_writer": false
     },
     {
       "name": "power",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

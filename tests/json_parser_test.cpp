@@ -850,3 +850,67 @@ TEST(TypeRegistry, ListClassnames_IncludesAllCategorized) {
     auto names = reg.list_classnames();
     EXPECT_EQ(names.size(), 2u);
 }
+
+// Regression: merge_device_instance must propagate domain and source_writer
+// from the type definition when both instance and definition have the same port.
+// Previously only type and alias were copied, silently dropping metadata.
+TEST(JsonParserTest, MergeDeviceInstance_PropagatesPortDomainAndSourceWriter) {
+    TypeDefinition def;
+    def.classname = "Generator";
+    def.cpp_class = true;
+    def.domains = std::vector<Domain>{Domain::Electrical};
+    // Definition port: domain=Mechanical, source_writer=true
+    def.ports["v_out"] = Port{PortDirection::Out, PortType::V, Domain::Mechanical, true};
+
+    DeviceInstance inst;
+    inst.name = "gen1";
+    inst.classname = "Generator";
+    // Instance port: same name, but with default domain/source_writer
+    inst.ports["v_out"] = Port{PortDirection::Out, PortType::V};
+
+    DeviceInstance merged = merge_device_instance(inst, def);
+
+    // domain and source_writer must come from the definition, not remain at defaults
+    EXPECT_EQ(merged.ports.at("v_out").domain, Domain::Mechanical);
+    EXPECT_TRUE(merged.ports.at("v_out").source_writer);
+}
+
+// Regression: parse_type_definition must parse scheduler_source from JSON.
+// Previously it was missing, always defaulting to false even when JSON said true.
+TEST(JsonParserTest, ParseTypeDefinition_ParsesSchedulerSource) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "TestSource",
+        "cpp_class": true,
+        "scheduler_source": true,
+        "domains": ["Electrical"],
+        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+    })");
+
+    TypeDefinition def = parse_type_definition(j);
+    EXPECT_TRUE(def.scheduler_source);
+
+    // Also verify false case
+    auto j2 = nlohmann::json::parse(R"({
+        "classname": "TestLoad",
+        "cpp_class": true,
+        "scheduler_source": false,
+        "domains": ["Electrical"],
+        "ports": {"v_in": {"direction": "In", "type": "V"}}
+    })");
+
+    TypeDefinition def2 = parse_type_definition(j2);
+    EXPECT_FALSE(def2.scheduler_source);
+}
+
+// Regression: parse_type_definition default when scheduler_source is absent.
+TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
+    auto j = nlohmann::json::parse(R"({
+        "classname": "TestNoField",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "ports": {"v_out": {"direction": "Out", "type": "V"}}
+    })");
+
+    TypeDefinition def = parse_type_definition(j);
+    EXPECT_FALSE(def.scheduler_source);
+}

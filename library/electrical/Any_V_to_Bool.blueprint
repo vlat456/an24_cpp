@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "Any_V_to_Bool",
   "display_name": "Any_V_to_Bool",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "Vin",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "o",
       "domain": 2,
       "direction": 1,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     }
   ],
   "nodes": [],

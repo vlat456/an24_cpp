@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "FuelTank",
   "display_name": "FuelTank",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "flow_out",
       "domain": 8,
       "direction": 1,
-      "type": "Pressure"
+      "type": "Pressure",
+      "source_writer": false
     },
     {
       "name": "level_out",
       "domain": 1,
       "direction": 1,
-      "type": "Fraction"
+      "type": "Fraction",
+      "source_writer": false
     }
   ],
   "nodes": [],

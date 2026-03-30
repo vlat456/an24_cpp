@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "BlueprintInput",
   "display_name": "BlueprintInput",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "ext",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "port",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

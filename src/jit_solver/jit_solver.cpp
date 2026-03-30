@@ -86,67 +86,26 @@
 #include "../parse_number.h"
 
 namespace {
-bool is_scheduler_source_component_class(std::string_view classname) {
-    return classname == "Battery" || classname == "Generator" || classname == "RefNode";
+std::string metadata_classname_for(std::string_view classname) {
+    if (classname == "MaxSelector") {
+        return "Max";
+    }
+    return std::string(classname);
 }
 
-std::vector<std::string_view> active_source_writer_ports_for(std::string_view classname) {
-    if (classname == "Battery" || classname == "Generator" || classname == "GS24") {
-        return {"v_out"};
-    }
-    if (classname == "RU19A") {
-        return {"v_bus", "v_start"};
-    }
-    if (classname == "ControlledVoltageSource" || classname == "ControlledCurrentSource") {
-        return {"v_pos"};
-    }
-    return {};
+bool is_scheduler_source_component_class(std::string_view classname) {
+    return is_scheduler_source_component(metadata_classname_for(classname));
+}
+
+std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
+    return get_source_writer_ports(
+        metadata_classname_for(classname),
+        static_cast<uint8_t>(Domain::Electrical));
 }
 
 std::unordered_set<std::string> output_ports_for_class(std::string_view classname) {
-    std::unordered_set<std::string> outputs;
-    for (std::string_view port : active_source_writer_ports_for(classname)) {
-        outputs.emplace(port);
-    }
-
-    if (classname == "RefNode") {
-        outputs.emplace("v");
-        return outputs;
-    }
-    if (classname == "ControlledVoltageSource" || classname == "ControlledCurrentSource") {
-        outputs.emplace("v_neg");
-        return outputs;
-    }
-    // GS24 only writes to v_out (already in outputs from active_source_writer_ports_for).
-    if (classname == "GS24") {
-        return outputs;
-    }
-    // RU19A writes to v_bus and v_start (active writer ports) plus observation outputs.
-    if (classname == "RU19A") {
-        outputs.emplace("rpm_out");
-        outputs.emplace("t4_out");
-        return outputs;
-    }
-    // Battery and Generator only write to v_out (already in outputs).
-    if (!outputs.empty()) {
-        return outputs;
-    }
-
-    if (classname == "Switch" || classname == "Relay" || classname == "HoldButton" ||
-        classname == "Resistor" || classname == "Bus" || classname == "BlueprintInput" ||
-        classname == "BlueprintOutput" || classname == "AGK47" || classname == "DMR400" ||
-        classname == "InertiaNode" || classname == "Spring" || classname == "TempSensor" ||
-        classname == "Radiator" || classname == "SolenoidValve" || classname == "ElectricHeater" ||
-        classname == "ElectricPump" || classname == "Transformer" || classname == "Inverter" ||
-        classname == "VoltageSense" || classname == "VariableConductance") {
-        return {"v_out", "out", "output", "state", "tripped", "temp",
-                "heat_out", "pressure_out", "rpm_out", "t4_out", "ac_out",
-                "secondary", "i_out", "force_out", "flow_out", "level_out"};
-    }
-
-    return {"o", "out", "output", "brightness", "state", "rpm_out",
-            "t4_out", "k_mod", "heat_out", "pressure_out", "fuel_out",
-            "i_out", "temp_out", "level_out", "force_out", "flow_out"};
+    auto outputs = get_output_ports(metadata_classname_for(classname));
+    return std::unordered_set<std::string>(outputs.begin(), outputs.end());
 }
 
 bool parse_bool_param_value(const std::string& value) {
@@ -330,6 +289,10 @@ BuildResult build_systems_dev(
     for (const auto& dev : devices) {
         if (dev.visual_only) {
             continue;
+        }
+
+        if (!has_component_metadata(metadata_classname_for(dev.classname))) {
+            throw std::runtime_error("Missing generated port metadata for component class '" + dev.classname + "'");
         }
 
         bool is_source = is_scheduler_source_component_class(dev.classname);
@@ -1249,8 +1212,8 @@ BuildResult build_systems_dev(
             continue;
         }
 
-        for (std::string_view port_name : active_source_writer_ports_for(dev.classname)) {
-            register_writer(dev.name, std::string(port_name));
+        for (const std::string& port_name : active_source_writer_ports_for(dev.classname)) {
+            register_writer(dev.name, port_name);
         }
         // Note: RefNode is intentionally NOT registered as an active source
         // because it defines the reference (0V) rather than driving voltage

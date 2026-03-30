@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "ElectricPump",
   "display_name": "ElectricPump",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "p_in",
       "domain": 8,
       "direction": 0,
-      "type": "Pressure"
+      "type": "Pressure",
+      "source_writer": false
     },
     {
       "name": "p_out",
       "domain": 8,
       "direction": 1,
-      "type": "Pressure"
+      "type": "Pressure",
+      "source_writer": false
     },
     {
       "name": "v_in",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

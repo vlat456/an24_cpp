@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "Monostable",
   "display_name": "Monostable",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "in",
       "domain": 2,
       "direction": 0,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     },
     {
       "name": "out",
       "domain": 2,
       "direction": 1,
-      "type": "Bool"
+      "type": "Bool",
+      "source_writer": false
     }
   ],
   "nodes": [],

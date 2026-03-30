@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "simple_battery",
   "display_name": "simple_battery",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "vin",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "vout",
       "domain": 1,
       "direction": 1,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [

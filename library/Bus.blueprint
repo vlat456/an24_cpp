@@ -2,12 +2,14 @@
   "version": "3.0",
   "id": "Bus",
   "display_name": "Bus",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "v",
       "domain": 1,
       "direction": 2,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

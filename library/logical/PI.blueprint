@@ -2,24 +2,28 @@
   "version": "3.0",
   "id": "PI",
   "display_name": "PI",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "feedback",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "output",
       "domain": 1,
       "direction": 1,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     },
     {
       "name": "setpoint",
       "domain": 1,
       "direction": 0,
-      "type": "Any"
+      "type": "Any",
+      "source_writer": false
     }
   ],
   "nodes": [],

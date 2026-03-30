@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "RUG82",
   "display_name": "RUG82",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "k_mod",
       "domain": 1,
       "direction": 1,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "v_gen",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

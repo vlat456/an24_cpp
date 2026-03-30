@@ -2,18 +2,21 @@
   "version": "3.0",
   "id": "Resistor",
   "display_name": "Resistor",
+  "scheduler_source": false,
   "interface": [
     {
       "name": "v_in",
       "domain": 1,
       "direction": 0,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     },
     {
       "name": "v_out",
       "domain": 1,
       "direction": 1,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

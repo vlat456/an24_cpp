@@ -2,12 +2,14 @@
   "version": "3.0",
   "id": "RefNode",
   "display_name": "RefNode",
+  "scheduler_source": true,
   "interface": [
     {
       "name": "v",
       "domain": 1,
       "direction": 1,
-      "type": "V"
+      "type": "V",
+      "source_writer": false
     }
   ],
   "nodes": [],

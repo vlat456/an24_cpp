@@ -60,7 +60,15 @@ enum class PortDirection {
 struct Port {
     PortDirection direction = PortDirection::Out;
     PortType type = PortType::Any;  // Port type for validation
+    Domain domain = Domain::Electrical;  // Port domain mask
+    bool source_writer = false;  // Active domain writer for source-conflict checks
     std::optional<std::string> alias;  // If set, this port is an alias to another port (e.g., "out1" -> "in")
+
+    Port() = default;
+    Port(PortDirection direction_, PortType type_, std::optional<std::string> alias_ = std::nullopt)
+        : direction(direction_), type(type_), domain(Domain::Electrical), source_writer(false), alias(std::move(alias_)) {}
+    Port(PortDirection direction_, PortType type_, Domain domain_, bool source_writer_, std::optional<std::string> alias_ = std::nullopt)
+        : direction(direction_), type(type_), domain(domain_), source_writer(source_writer_), alias(std::move(alias_)) {}
 };
 
 /// Connection between two ports: "device.port" -> "device.port"
@@ -124,6 +132,7 @@ struct TypeDefinition {
     bool visual_only = false;  // True = no simulation behavior (e.g. Group)
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
+    bool scheduler_source = false;                 // Explicit scheduler source classification
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
@@ -194,6 +203,7 @@ struct DeviceInstance {
     std::optional<std::pair<float,float>> pos;   // Editor layout position (optional)
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
     std::optional<ExecutionPhases> execution;    // Copied from type definition
+    bool scheduler_source = false;               // Copied from type definition
 
     // Default constructor
     DeviceInstance() = default;
@@ -211,7 +221,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{direction, type, std::nullopt};
+            ports[port_name] = Port{direction, type, Domain::Electrical, false, std::nullopt};
         }
     }
 
@@ -229,7 +239,7 @@ struct DeviceInstance {
             if (port_name.find('v') != std::string::npos) type = PortType::V;
             else if (port_name.find('i') != std::string::npos) type = PortType::I;
             else if (port_name.find("rpm") != std::string::npos) type = PortType::RPM;
-            ports[port_name] = Port{dir, type, std::nullopt};
+            ports[port_name] = Port{dir, type, Domain::Electrical, false, std::nullopt};
         }
     }
 
