@@ -12,7 +12,7 @@ void Load<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Load<Provider>::commit(SimulationState& st) {
+void Load<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

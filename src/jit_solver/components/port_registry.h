@@ -27,6 +27,7 @@ enum class PortNames : uint32_t {
     Vin,
     ac_out,
     brightness,
+    charge_out,
     cmd,
     control,
     ctrl,
@@ -63,6 +64,7 @@ enum class PortNames : uint32_t {
     rpm_out,
     secondary,
     setpoint,
+    soc_out,
     state,
     t4_out,
     temp,
@@ -104,6 +106,8 @@ enum class ComponentType {
     Divide,
     ElectricHeater,
     ElectricPump,
+    ElectricalConductance,
+    ElectricalSource,
     FastTMO,
     FuelTank,
     GS24,
@@ -169,7 +173,7 @@ constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t AsymSlewRate_PORT_COUNT = 2;
 constexpr size_t AsymTMO_PORT_COUNT = 2;
-constexpr size_t Battery_PORT_COUNT = 2;
+constexpr size_t Battery_PORT_COUNT = 4;
 constexpr size_t BlueprintInput_PORT_COUNT = 2;
 constexpr size_t BlueprintOutput_PORT_COUNT = 2;
 constexpr size_t Bus_PORT_COUNT = 1;
@@ -182,6 +186,8 @@ constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
 constexpr size_t ElectricHeater_PORT_COUNT = 2;
 constexpr size_t ElectricPump_PORT_COUNT = 3;
+constexpr size_t ElectricalConductance_PORT_COUNT = 2;
+constexpr size_t ElectricalSource_PORT_COUNT = 2;
 constexpr size_t FastTMO_PORT_COUNT = 2;
 constexpr size_t FuelTank_PORT_COUNT = 2;
 constexpr size_t GS24_PORT_COUNT = 3;
@@ -219,7 +225,7 @@ constexpr size_t RU19A_PORT_COUNT = 5;
 constexpr size_t RUG82_PORT_COUNT = 2;
 constexpr size_t Radiator_PORT_COUNT = 2;
 constexpr size_t RefNode_PORT_COUNT = 1;
-constexpr size_t Relay_PORT_COUNT = 3;
+constexpr size_t Relay_PORT_COUNT = 4;
 constexpr size_t Resistor_PORT_COUNT = 2;
 constexpr size_t SampleHold_PORT_COUNT = 3;
 constexpr size_t SlewRate_PORT_COUNT = 2;
@@ -272,6 +278,8 @@ constexpr const char* AsymTMO_PORTS[] = {
     "out"
 };
 constexpr const char* Battery_PORTS[] = {
+    "charge_out",
+    "soc_out",
     "v_in",
     "v_out"
 };
@@ -329,6 +337,14 @@ constexpr const char* ElectricPump_PORTS[] = {
     "p_in",
     "p_out",
     "v_in"
+};
+constexpr const char* ElectricalConductance_PORTS[] = {
+    "v_in",
+    "v_out"
+};
+constexpr const char* ElectricalSource_PORTS[] = {
+    "v_in",
+    "v_out"
 };
 constexpr const char* FastTMO_PORTS[] = {
     "in",
@@ -499,6 +515,7 @@ constexpr const char* RefNode_PORTS[] = {
 };
 constexpr const char* Relay_PORTS[] = {
     "control",
+    "state",
     "v_in",
     "v_out"
 };
@@ -692,14 +709,20 @@ constexpr bool AsymTMO_PORT_SOURCE_WRITER[] = {
 constexpr bool AsymTMO_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Battery_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Battery_PORT_DOMAINS[] = {
     1,
+    1,
+    1,
     1
 };
 constexpr bool Battery_PORT_SOURCE_WRITER[] = {
+    false,
+    false,
     false,
     true
 };
@@ -893,6 +916,34 @@ constexpr bool ElectricPump_PORT_SOURCE_WRITER[] = {
     false
 };
 constexpr bool ElectricPump_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricalConductance_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ElectricalConductance_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool ElectricalConductance_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool ElectricalConductance_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection ElectricalSource_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t ElectricalSource_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool ElectricalSource_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool ElectricalSource_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection FastTMO_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
@@ -1471,15 +1522,18 @@ constexpr bool RefNode_SCHEDULER_SOURCE = true;
 
 constexpr RegistryPortDirection Relay_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
+    RegistryPortDirection::Out,
     RegistryPortDirection::In,
     RegistryPortDirection::Out
 };
 constexpr uint8_t Relay_PORT_DOMAINS[] = {
     2,
+    2,
     1,
     1
 };
 constexpr bool Relay_PORT_SOURCE_WRITER[] = {
+    false,
     false,
     false,
     false
@@ -1749,6 +1803,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"Vin", PortNames::Vin},
         {"ac_out", PortNames::ac_out},
         {"brightness", PortNames::brightness},
+        {"charge_out", PortNames::charge_out},
         {"cmd", PortNames::cmd},
         {"control", PortNames::control},
         {"ctrl", PortNames::ctrl},
@@ -1785,6 +1840,7 @@ inline std::optional<PortNames> string_to_port_name(const std::string& name) {
         {"rpm_out", PortNames::rpm_out},
         {"secondary", PortNames::secondary},
         {"setpoint", PortNames::setpoint},
+        {"soc_out", PortNames::soc_out},
         {"state", PortNames::state},
         {"t4_out", PortNames::t4_out},
         {"temp", PortNames::temp},
@@ -1818,7 +1874,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"AsymSlewRate", {"in", "out"}},
         {"AsymTMO", {"in", "out"}},
-        {"Battery", {"v_in", "v_out"}},
+        {"Battery", {"charge_out", "soc_out", "v_in", "v_out"}},
         {"BlueprintInput", {"ext", "port"}},
         {"BlueprintOutput", {"ext", "port"}},
         {"Bus", {"v"}},
@@ -1831,6 +1887,8 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Divide", {"A", "B", "o"}},
         {"ElectricHeater", {"heat_out", "power"}},
         {"ElectricPump", {"p_in", "p_out", "v_in"}},
+        {"ElectricalConductance", {"v_in", "v_out"}},
+        {"ElectricalSource", {"v_in", "v_out"}},
         {"FastTMO", {"in", "out"}},
         {"FuelTank", {"flow_out", "level_out"}},
         {"GS24", {"k_mod", "v_in", "v_out"}},
@@ -1868,7 +1926,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"RUG82", {"k_mod", "v_gen"}},
         {"Radiator", {"heat_in", "heat_out"}},
         {"RefNode", {"v"}},
-        {"Relay", {"control", "v_in", "v_out"}},
+        {"Relay", {"control", "state", "v_in", "v_out"}},
         {"Resistor", {"v_in", "v_out"}},
         {"SampleHold", {"in", "out", "trigger"}},
         {"SlewRate", {"in", "out"}},
@@ -1916,6 +1974,8 @@ inline bool has_component_metadata(const std::string& classname) {
         "Divide",
         "ElectricHeater",
         "ElectricPump",
+        "ElectricalConductance",
+        "ElectricalSource",
         "FastTMO",
         "FuelTank",
         "GS24",
@@ -1996,6 +2056,8 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"Divide", false},
         {"ElectricHeater", false},
         {"ElectricPump", false},
+        {"ElectricalConductance", false},
+        {"ElectricalSource", false},
         {"FastTMO", false},
         {"FuelTank", false},
         {"GS24", false},
@@ -2214,6 +2276,22 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < ElectricPump_PORT_COUNT; ++i) {
             if (ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricPump_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(ElectricPump_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalConductance") {
+        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+            if (ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalConductance_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricalConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalSource") {
+        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+            if (ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || ElectricalSource_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(ElectricalSource_PORTS[i]);
             }
         }
         return result;
@@ -2815,6 +2893,22 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
+    if (classname == "ElectricalConductance") {
+        for (size_t i = 0; i < ElectricalConductance_PORT_COUNT; ++i) {
+            if (ElectricalConductance_PORT_SOURCE_WRITER[i] && ((ElectricalConductance_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricalConductance_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "ElectricalSource") {
+        for (size_t i = 0; i < ElectricalSource_PORT_COUNT; ++i) {
+            if (ElectricalSource_PORT_SOURCE_WRITER[i] && ((ElectricalSource_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(ElectricalSource_PORTS[i]);
+            }
+        }
+        return result;
+    }
     if (classname == "FastTMO") {
         for (size_t i = 0; i < FastTMO_PORT_COUNT; ++i) {
             if (FastTMO_PORT_SOURCE_WRITER[i] && ((FastTMO_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3273,6 +3367,8 @@ using ComponentVariant = std::variant<
     Divide<JitProvider>,
     ElectricHeater<JitProvider>,
     ElectricPump<JitProvider>,
+    ElectricalConductance<JitProvider>,
+    ElectricalSource<JitProvider>,
     FastTMO<JitProvider>,
     FuelTank<JitProvider>,
     GS24<JitProvider>,

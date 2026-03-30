@@ -9,6 +9,116 @@
 
 ---
 
+## Current Implementation Status
+
+### Steps 1-9: COMPLETED (Batches 1-9)
+
+- [x] Step 1: Regression tests (current failure captured)
+- [x] Step 2: commit(dt) migration
+- [x] Step 3: Empty electrical subsolver skeleton
+- [x] Step 4: Build-time electrical island extraction
+- [x] Step 5: Runtime handles from wrapper components to solved elements
+- [x] Step 6: Minimal electrical solver for one island (TheveninSource + ConductanceBranch + FixedVoltageNode)
+- [x] Step 7: Write solved voltages back into SimulationState::values
+- [x] Step 8: Remove double ownership of electrical writes
+- [x] Step 9: IndicatorLight derived-from-solve brightness
+
+### Steps 10-11: COMPLETED
+
+- [x] Step 10: CurrentSense reads solved current (not fake formula)
+- [x] Step 11: Battery discharge from solved current
+
+### Step 12: COMPLETED
+
+- [x] Step 12: Integration test for closed_circuit.blueprint
+
+  **Real fixture test**: `ClosedCircuitBlueprint_BatteryChargeDecreases_RealFixture`
+  loads actual `closed_circuit.blueprint` (battery_1→resistor_1→indicatorlight_1→bus_1→refnode_1),
+  runs 10 000 steps, and asserts monotonic charge decrease and measurable total discharge.
+
+  **Controlled topology companion**: `ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology`
+  uses a higher-conductance inline topology for stronger discharge signal.
+
+  **Root cause of prior flakiness (resolved)**:
+  Battery charge was stored as `float`. At charge=1000.0f, the float32 ULP is ~6.1e-5.
+  With the real blueprint's 10Ω resistor (conductance=0.1), the per-step discharge delta
+  was ~1.2e-5 Ah — below the ULP, so subtractions were silently swallowed by rounding.
+  Fix: `charge` and `capacity` are now `double` (ULP ~1.1e-13 at 1000.0). This is the
+  standard engineering practice for running accumulators in simulation.
+
+  **Existing no-runaway test**: `ClosedCircuitBlueprint_NoRunawayVoltage` continues
+  to verify voltage stability for the same fixture.
+
+### Step 13: COMPLETED
+
+- [x] Step 13: First explicit primitive electrical nodes
+
+  **Two new primitives created:**
+  - `ElectricalConductance` — maps directly to `ConductanceBranch` solver role (ports: v_in, v_out; param: conductance)
+  - `ElectricalSource` — maps directly to `TheveninSource` solver role (ports: v_in, v_out; params: voltage, resistance)
+
+  **Full pipeline wiring:** library blueprints, C++ headers/impls, `all.h`, regenerated `port_registry.h` (76 components),
+  builder Phase 2 cases, `is_solver_owned_electrical_propagator()`, electrical island extraction, `commit_solver_owned_devices()`.
+
+  **10 verification tests** in `test_electrical_primitives.cpp`:
+  1. Wrapper Resistor and primitive ElectricalConductance produce equivalent solve results
+  2. Primitive-only circuit (ElectricalSource + ElectricalConductance + RefNode) solves correctly
+  3. Primitive-only circuit stable over 500 steps (no drift)
+  4. Build plan correctly includes primitive elements with correct kinds and parameters
+  5. Primitives are solver-owned (not push-scheduled)
+  6. Mixed wrapper + primitive in same island solves correctly
+  7. ElectricalSource and Battery produce equivalent results
+  8. Two conductances in series solve correctly
+  9. Default parameters work correctly
+  10. Unknown params on primitives throw (validates strict param checking)
+
+### Steps 14-15: COMPLETED
+
+- [x] Step 14: Minimal metadata for primitive solver roles
+- [x] Step 15: Clean up transitional wrapper logic
+
+  **SolverRole schema added:**
+  - `kind`: "ConductanceBranch" | "TheveninSource" | "FixedVoltageNode"
+  - `ports`: role-key → port-name mapping (e.g., `{"a": "v_in", "b": "v_out"}`)
+  - `params`: role-key → param-name mapping (e.g., `{"g": "conductance"}`)
+
+  **Metadata added to 3 primitive blueprints:**
+  - `ElectricalConductance.blueprint` → ConductanceBranch
+  - `ElectricalSource.blueprint` → TheveninSource
+  - `RefNode.blueprint` → FixedVoltageNode
+
+  **Dual-path electrical extraction (jit_solver.cpp):**
+  - Path 1 (metadata-driven): When `dev.solver_role.has_value()`, uses `resolve_role_port()` and
+    `read_role_param()` to extract elements generically from the role metadata. Continues past
+    classname fallback.
+  - Path 2 (classname fallback): Remains for all component types, both wrappers (Battery,
+    Generator, Resistor, IndicatorLight, CurrentSense) and primitives (RefNode,
+    ElectricalConductance, ElectricalSource). This fallback is **intentionally retained** because
+    `build_systems_dev()` is used directly by many tests without library loading, so `solver_role`
+    is never populated in those paths.
+
+  **Key discovery:** `build_systems_dev()` does NOT call `merge_device_instance()`. Tests that
+  create `DeviceInstance` objects directly never go through the library loading path, so
+  `solver_role` is never populated. Classname-based fallback for ALL types must remain.
+
+  **4 new metadata validation tests:**
+  1. `MetadataProducesCorrectElementKind` — validates all 3 kinds produce correct elements
+  2. `MetadataMissingPortKeyThrows` — missing required port keys fail clearly
+  3. `MetadataMissingParamKeyThrows` — missing required param keys fail clearly
+  4. `MetadataPropagatedThroughLibraryPipeline` — end-to-end through `start_from_json()`
+
+  **Intentionally remaining transitional paths:**
+  - Battery → TheveninSource (classname-based, until decomposed into source primitive + state nodes)
+  - Generator → TheveninSource (classname-based, until decomposed)
+  - Resistor → ConductanceBranch (classname-based, until metadata added to its blueprint)
+  - IndicatorLight → ConductanceBranch (classname-based, until decomposed)
+  - CurrentSense → ConductanceBranch (classname-based, until decomposed)
+  - RefNode → FixedVoltageNode (classname fallback retained for direct `build_systems_dev()` usage)
+  - ElectricalConductance → ConductanceBranch (classname fallback retained for same reason)
+  - ElectricalSource → TheveninSource (classname fallback retained for same reason)
+
+---
+
 ## Purpose
 
 This document turns the mixed-domain subsolver direction into a concrete execution sequence.

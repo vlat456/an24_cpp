@@ -22,7 +22,7 @@ void SolenoidValve<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void SolenoidValve<Provider>::commit(SimulationState& st) {
+void SolenoidValve<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

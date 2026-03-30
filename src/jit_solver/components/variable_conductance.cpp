@@ -26,7 +26,7 @@ void VariableConductance<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void VariableConductance<Provider>::commit(SimulationState& st) {
+void VariableConductance<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

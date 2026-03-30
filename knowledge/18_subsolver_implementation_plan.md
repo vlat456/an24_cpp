@@ -1,9 +1,26 @@
 # Mixed-Domain Subsolver Implementation Plan
 
 **Date:** 2026-03-30
-**Status:** proposed implementation plan
+**Status:** phases 1-9 implemented, steps 10-15 complete (see implementation notes below)
 **Primary driver:** `closed_circuit.blueprint` shows that closed electrical networks cannot be modeled correctly by pure push propagation.
-**New design input:** in the near future, large monolithic components are expected to disappear in favor of compositions of base-level nodes.
+
+### Implementation Status (All Steps Complete)
+
+All phases through Step 15 are implemented and reviewed:
+
+- commit(dt) migration: done (Phase 1)
+- electrical island extraction: done (Phase 2)
+- handle plumbing: done (Phase 5)
+- local electrical solver: done (Phase 6)
+- solver ownership integration: done (Phase 8)
+- current sense + battery discharge: done (Batches 6/11)
+- pointer lifecycle + real blueprint runaway regression: done (Batch 7)
+- first primitive electrical nodes (ElectricalConductance, ElectricalSource): done (Step 13)
+- metadata-driven solver role extraction: done (Step 14)
+- transitional cleanup + documentation: done (Step 15)
+
+The electrical subsolver MVP is complete. See `knowledge/19_subsolver_step_by_step_plan.md`
+for detailed per-step notes.
 
 ---
 

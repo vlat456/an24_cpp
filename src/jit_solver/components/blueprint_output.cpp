@@ -10,7 +10,7 @@ void BlueprintOutput<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void BlueprintOutput<Provider>::commit(SimulationState& st) {
+void BlueprintOutput<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

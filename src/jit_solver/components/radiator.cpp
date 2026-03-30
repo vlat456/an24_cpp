@@ -13,7 +13,7 @@ void Radiator<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Radiator<Provider>::commit(SimulationState& st) {
+void Radiator<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

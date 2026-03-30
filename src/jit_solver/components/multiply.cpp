@@ -9,7 +9,7 @@ void Multiply<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Multiply<Provider>::commit(SimulationState& st) {
+void Multiply<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

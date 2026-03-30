@@ -14,7 +14,7 @@ void P<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void P<Provider>::commit(SimulationState& st) {
+void P<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

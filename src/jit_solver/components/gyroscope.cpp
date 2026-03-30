@@ -10,7 +10,7 @@ void Gyroscope<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Gyroscope<Provider>::commit(SimulationState& st) {
+void Gyroscope<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

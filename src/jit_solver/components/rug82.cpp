@@ -12,7 +12,7 @@ void RUG82<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RUG82<Provider>::commit(SimulationState& st) {
+void RUG82<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
     k_mod = next_k_mod;
 }

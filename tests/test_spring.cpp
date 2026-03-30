@@ -11,7 +11,7 @@
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 static Spring<JitProvider> make_spring(float k = 1000.0f, float c = 10.0f, float rest_length = 0.1f, bool compression_only = true)

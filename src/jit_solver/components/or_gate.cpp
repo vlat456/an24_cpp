@@ -12,7 +12,7 @@ void OR<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void OR<Provider>::commit(SimulationState& st) {
+void OR<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

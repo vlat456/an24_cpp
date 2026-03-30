@@ -14,7 +14,7 @@ void FuelTank<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void FuelTank<Provider>::commit(SimulationState& st) {
+void FuelTank<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
     level = next_level;
 }

@@ -10,7 +10,7 @@ void AGK47<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void AGK47<Provider>::commit(SimulationState& st) {
+void AGK47<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

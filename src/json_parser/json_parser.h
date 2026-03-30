@@ -90,6 +90,14 @@ struct SubBlueprintRef {
     std::map<std::string, std::string> params_override;
 };
 
+/// Solver role metadata — describes how a component participates in a domain subsolver.
+/// Primitives declare this in their blueprint; wrappers rely on classname fallback.
+struct SolverRole {
+    std::string kind;  // "ConductanceBranch", "TheveninSource", "FixedVoltageNode"
+    std::unordered_map<std::string, std::string> port_map;   // role key -> port name (e.g. "a" -> "v_in")
+    std::unordered_map<std::string, std::string> param_map;  // role key -> param name (e.g. "g" -> "conductance")
+};
+
 /// Explicit execution-phase participation metadata loaded from component JSON.
 struct ExecutionPhases {
     bool electrical_passive = false;
@@ -135,6 +143,7 @@ struct TypeDefinition {
     std::optional<std::pair<float, float>> size;  // Size in grid units {width, height}
     std::optional<ExecutionPhases> execution;      // Explicit execution-phase metadata
     bool scheduler_source = false;                 // Explicit scheduler source classification
+    std::optional<SolverRole> solver_role;          // Subsolver role metadata (primitives only)
     // For blueprints only: internal devices and connections
     std::vector<DeviceInstance> devices;  // Internal devices (for blueprints)
     std::vector<Connection> connections;  // Internal connections (for blueprints)
@@ -206,6 +215,7 @@ struct DeviceInstance {
     std::optional<std::pair<float,float>> size;  // Editor layout size (optional)
     std::optional<ExecutionPhases> execution;    // Copied from type definition
     bool scheduler_source = false;               // Copied from type definition
+    std::optional<SolverRole> solver_role;        // Copied from type definition
 
     // Default constructor
     DeviceInstance() = default;

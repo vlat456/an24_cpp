@@ -474,6 +474,12 @@ TEST(PushBuildValidation, MaxSelectorAvoidsSourceConflict) {
             (void)st.allocate_signal(0.0f, {Domain::Electrical, true});
         }
 
+        // Battery and Generator are solver-owned; their execute() does not run
+        // via the push scheduler. Seed the output voltages manually (as the
+        // electrical solver would in a full simulation).
+        st.values[result.port_to_signal.at("bat.v_out")] = 28.0f;
+        st.values[result.port_to_signal.at("gen.v_out")] = 28.5f;
+
         result.scheduler.step(st, 1.0f / 60.0f);
         const uint32_t out_sig = result.port_to_signal.at("sel.o");
         EXPECT_NEAR(st.values[out_sig], 28.5f, 1e-4f);

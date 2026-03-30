@@ -10,7 +10,7 @@ void Voltmeter<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Voltmeter<Provider>::commit(SimulationState& st) {
+void Voltmeter<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

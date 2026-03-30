@@ -11,7 +11,7 @@
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 static SimulationState make_state_2in(float A_val, float B_val)

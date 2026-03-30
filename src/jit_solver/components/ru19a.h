@@ -42,6 +42,6 @@ public:
     bool is_starter_active() const { return state == APUState::CRANKING || state == APUState::IGNITION; }
 
     void execute(SimulationState& st, float dt);
-    void commit(SimulationState& st);
+    void commit(SimulationState& st, float dt);
     void pre_load();
 };

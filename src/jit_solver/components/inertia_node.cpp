@@ -9,7 +9,7 @@ void InertiaNode<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void InertiaNode<Provider>::commit(SimulationState& st) {
+void InertiaNode<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

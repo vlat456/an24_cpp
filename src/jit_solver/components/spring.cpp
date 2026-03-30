@@ -44,7 +44,7 @@ void Spring<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Spring<Provider>::commit(SimulationState& st) {
+void Spring<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

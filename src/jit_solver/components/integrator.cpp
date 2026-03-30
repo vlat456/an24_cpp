@@ -32,7 +32,7 @@ void Integrator<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Integrator<Provider>::commit(SimulationState& /*st*/) {
+void Integrator<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
     // Commit staged next state
     accumulator = next_accumulator;
     first_frame_mask = next_first_frame_mask;

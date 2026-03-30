@@ -2,6 +2,7 @@
 
 #include "jit_solver.h"
 #include "state.h"
+#include "subsolvers/electrical_subsolver.h"
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -41,9 +42,16 @@ public:
     bool get_boolean_output(const std::string& port_name) const;
     bool get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const;
 
+    /// Get battery charge for a named device (test visibility).
+    /// Returns 0.0 if simulator not running, device missing, or not a Battery.
+    /// Uses double because charge is a running accumulator where float32 precision
+    /// is insufficient (per-step delta can be below float32 ULP at large charge values).
+    double get_battery_charge(const std::string& device_name) const;
+
 private:
     std::optional<BuildResult> build_result_;
     SimulationState state_;
+    ElectricalRuntimeState electrical_rt_;
 
     bool running_ = false;
     float time_ = 0.0f;

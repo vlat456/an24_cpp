@@ -31,7 +31,7 @@ void ControlledCurrentSource<Provider>::execute(SimulationState& st, float /*dt*
 }
 
 template <typename Provider>
-void ControlledCurrentSource<Provider>::commit(SimulationState& st) {
+void ControlledCurrentSource<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

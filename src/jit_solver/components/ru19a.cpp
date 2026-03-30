@@ -149,7 +149,7 @@ void RU19A<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void RU19A<Provider>::commit(SimulationState& st) {
+void RU19A<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
     state = next_state;
     timer = next_timer;

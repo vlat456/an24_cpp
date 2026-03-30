@@ -26,7 +26,9 @@ Use this file as the entry point before crawling the rest of the repo.
 | **Push improvement notes** | `knowledge/push_improvement.md` | Diagnostic analysis of closed electrical loop bugs and recommended electrical subsolver fix |
 | **Push migration plan** | `knowledge/16_push_migration_plan.md` | Migration from legacy iterative solver to push propagation (game-grade sim) |
 | Mixed-domain subsolver plan | `knowledge/18_subsolver_implementation_plan.md` | Concrete implementation plan for electrical-first local domain subsolvers |
-| Subsolver step-by-step plan | `knowledge/19_subsolver_step_by_step_plan.md` | Detailed implementation sequence with file targets and verification gates |
+| Subsolver step-by-step plan | `knowledge/19_subsolver_step_by_step_plan.md` | **Active implementation tracker** - detailed steps with completion status for phases 1-15 |
+| Electrical migration release notes | `knowledge/20_electrical_migration_release_notes.md` | Final summary of implemented electrical subsolver migration and behavioral changes |
+| Electrical component authoring | `knowledge/how_to_create_electrical_components.md` | Practical guide for creating primitive/wrapper electrical components and solver-role metadata |
 | Blueprint zero-legacy cutover plan | `knowledge/blueprint_migration/zero_legacy_cutover_plan.md` | Strict no-fallback blueprint/runtime cutover checklist |
 | Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
 
@@ -58,9 +60,10 @@ Use this file as the entry point before crawling the rest of the repo.
 ### For adding new components
 
 1. `knowledge/03_components.md`
-2. `knowledge/component_authoring.md`
-3. `knowledge/07_library.md`
-4. `knowledge/08_testing.md`
+2. `knowledge/how_to_create_electrical_components.md`
+3. `knowledge/component_authoring.md`
+4. `knowledge/07_library.md`
+5. `knowledge/08_testing.md`
 
 ## Fast Answers
 
@@ -68,6 +71,7 @@ Use this file as the entry point before crawling the rest of the repo.
 |---------|------------|
 | How does the solver work? | `knowledge/02_simulation.md` |
 | How do I write a stable component? | `knowledge/component_authoring.md` |
+| How do I add electrical components? | `knowledge/how_to_create_electrical_components.md` |
 | Where is the blueprint model? | `knowledge/04_blueprint_v2.md` |
 | How is the editor structured? | `knowledge/05_editor.md` |
 | What tests should I add? | `knowledge/08_testing.md` |

@@ -5,20 +5,19 @@
 
 template <typename Provider>
 void IndicatorLight<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: brightness derived from v_in directly.
-    // In push topology the indicator sits in series and passes voltage through.
+    // Observer-style: brightness derived from v_in, but NO pass-through write.
+    // Electrical propagation (including v_out) is handled by the electrical solver.
+    // The push executor only computes brightness from the already-solved voltage.
     float v_in = st.values[provider.get(PortNames::v_in)];
 
     // Brightness: normalized input voltage (0..rated → 0..max_brightness)
     float normalized = std::clamp(v_in * inv_rated_voltage, 0.0f, 1.0f);
     st.values[provider.get(PortNames::brightness)] = normalized * max_brightness;
-
-    // Pass-through: downstream sees full input voltage
-    st.values[provider.get(PortNames::v_out)] = v_in;
+    // NOTE: v_out is NOT written here. It is solved by the electrical solver.
 }
 
 template <typename Provider>
-void IndicatorLight<Provider>::commit(SimulationState& st) {
+void IndicatorLight<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

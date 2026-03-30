@@ -10,7 +10,7 @@
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 // All tests in this file are disabled because they use legacy iterative-era SimulationState members

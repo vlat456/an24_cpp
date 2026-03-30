@@ -27,7 +27,7 @@ void Monostable<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Monostable<Provider>::commit(SimulationState& /*st*/) {
+void Monostable<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
     // Commit staged next state
     timer = next_timer;
     last_in = next_last_in;

@@ -12,7 +12,7 @@ void HighPowerLoad<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void HighPowerLoad<Provider>::commit(SimulationState& st) {
+void HighPowerLoad<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

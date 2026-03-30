@@ -12,7 +12,7 @@
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 static Clamp<JitProvider> make_clamp(float min_val = 0.0f, float max_val = 1.0f)

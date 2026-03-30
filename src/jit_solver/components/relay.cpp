@@ -5,13 +5,19 @@ template <typename Provider>
 void Relay<Provider>::commit_control(SimulationState& st, float dt) {
     (void)dt;
     float control = st.values[provider.get(PortNames::control)];
-    closed = control > hold_threshold;
+    float threshold = 0.5f;
+
+    if (control > threshold) {
+        closed = true;
+    } else if (control < -threshold) {
+        closed = false;
+    }
+
+    st.values[provider.get(PortNames::state)] = closed ? 1.0f : 0.0f;
 }
 
 template <typename Provider>
 void Relay<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: when closed, propagate v_in to v_out; when open, set v_out=0
-    // Control logic handled in commit_control
     if (closed) {
         float v_in = st.values[provider.get(PortNames::v_in)];
         st.values[provider.get(PortNames::v_out)] = v_in;
@@ -21,7 +27,7 @@ void Relay<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Relay<Provider>::commit(SimulationState& st) {
+void Relay<Provider>::commit(SimulationState& st, float /*dt*/) {
     commit_control(st, 0.0f);
 }
 

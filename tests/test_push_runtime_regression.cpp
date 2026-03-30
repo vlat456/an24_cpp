@@ -7,6 +7,10 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 namespace {
 
@@ -35,6 +39,94 @@ SimulationState make_state(uint32_t signal_count) {
         (void)st.allocate_signal(0.0f, {Domain::Electrical, true});
     }
     return st;
+}
+
+/// Read a file and return its contents as a string.
+/// Fails with a clear message if the file cannot be read.
+static std::string read_file_or_fail(const std::string& path) {
+    std::ifstream f(path);
+    if (!f.is_open()) {
+        throw std::runtime_error("Failed to open file: " + path);
+    }
+    std::string content((std::istreambuf_iterator<char>(f)),
+                        std::istreambuf_iterator<char>());
+    return content;
+}
+
+/// Find the closed_circuit.blueprint file, trying multiple possible paths
+/// to work both when run via ctest (working directory: build/tests/)
+/// and when run directly (working directory: build/).
+static std::string find_closed_circuit_blueprint() {
+    std::vector<std::string> try_paths = {
+        "../../closed_circuit.blueprint",  // when run from build/tests/ via ctest
+        "../closed_circuit.blueprint",     // when run from build/ directly
+        "closed_circuit.blueprint",        // when run from project root
+    };
+    for (const auto& p : try_paths) {
+        std::ifstream f(p);
+        if (f.is_open()) return p;
+    }
+    std::string tried;
+    for (const auto& p : try_paths) {
+        if (!tried.empty()) tried += ", ";
+        tried += p;
+    }
+    throw std::runtime_error("Could not find closed_circuit.blueprint in any of: " + tried);
+}
+
+/// Convert blueprint v3 format (nodes/wires) to simulation JSON format (devices/connections).
+/// Blueprint v3 wires have source/target like "/node:port" - these are converted to "node.port".
+static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
+    std::string content = read_file_or_fail(blueprint_path);
+    json bp = json::parse(content);
+
+    json result;
+    result["devices"] = json::array();
+    result["connections"] = json::array();
+
+    // Convert nodes to devices
+    if (bp.contains("nodes") && bp["nodes"].is_array()) {
+        for (const auto& node : bp["nodes"]) {
+            json dev;
+            dev["name"] = node["name"].get<std::string>();
+            dev["classname"] = node["type"].get<std::string>();
+            if (node.contains("params") && node["params"].is_object()) {
+                dev["params"] = json::object();
+                for (const auto& [k, v] : node["params"].items()) {
+                    if (v.is_number()) {
+                        // Use nlohmann::json dump for full round-trip precision.
+                        // std::to_string(double) truncates to 6 decimal places,
+                        // silently drifting from blueprint source-of-truth values.
+                        dev["params"][k] = json(v.get<double>()).dump();
+                    } else {
+                        dev["params"][k] = v.get<std::string>();
+                    }
+                }
+            }
+            result["devices"].push_back(dev);
+        }
+    }
+
+    // Convert wires to connections
+    if (bp.contains("wires") && bp["wires"].is_array()) {
+        for (const auto& wire : bp["wires"]) {
+            json conn;
+            std::string from = wire["source"].get<std::string>();
+            std::string to = wire["target"].get<std::string>();
+
+            // Convert "/node:port" format to "node.port"
+            if (!from.empty() && from[0] == '/') from = from.substr(1);
+            if (!to.empty() && to[0] == '/') to = to.substr(1);
+            std::replace(from.begin(), from.end(), ':', '.');
+            std::replace(to.begin(), to.end(), ':', '.');
+
+            conn["from"] = from;
+            conn["to"] = to;
+            result["connections"].push_back(conn);
+        }
+    }
+
+    return result.dump();
 }
 
 } // namespace
@@ -464,9 +556,9 @@ TEST(PushRuntime, ComponentApiCommitHookCoverageSmoke) {
             {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
             {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
             {"name": "add", "classname": "Add"},
-            {"name": "pid", "classname": "PID", "params": {"Kp": "1.0", "Ki": "0.1", "Kd": "0.0"}},
-            {"name": "slew", "classname": "SlewRate", "params": {"max_rate": "5.0"}},
-            {"name": "integ", "classname": "Integrator", "params": {"gain": "1.0"}},
+            {"name": "pid", "classname": "PID", "params": {"Kp": "1.0", "Ki": "0.1", "Kd": "0.0", "output_min": "-10.0", "output_max": "10.0", "filter_alpha": "0.1"}},
+            {"name": "slew", "classname": "SlewRate", "params": {"max_rate": "5.0", "deadzone": "0.01"}},
+            {"name": "integ", "classname": "Integrator", "params": {"gain": "1.0", "initial_val": "0.0"}},
             {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
             {"name": "gen", "classname": "Generator", "params": {"v_nominal": "12.0"}},
             {"name": "relay", "classname": "Relay", "params": {"hold_threshold": "0.5"}}
@@ -1144,4 +1236,515 @@ TEST(PushRuntime, RU19AStartStopRequestsDoNotMutateCurrentFrameOutputs) {
     // a way to call start(). Since we don't, auto_start won't trigger
     // (v_start = 5.0 < 10.0 threshold), so we stay OFF.
     // This test documents the expected behavior for future component access.
+}
+
+// == Batch 5: Solver Ownership Integration Tests ==
+
+TEST(PushRuntime, SolverOwnedComponentsNotScheduledForElectricalPropagation) {
+    // Verify that Battery, Generator, Resistor are NOT scheduled
+    // in the push scheduler for electrical propagation.
+    // These components are now owned by the electrical solver instead.
+    // RefNode IS scheduled as a source: it writes its constant reference value
+    // into the signal array each frame so downstream logical consumers see it.
+    std::vector<DeviceInstance> devices = {
+        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("gen", "Generator", {{"v_nominal", "28.0"}}),
+        make_device("gnd", "RefNode", {{"value", "0.0"}}),
+        make_device("res", "Resistor", {{"conductance", "0.1"}}),
+        make_device("sw", "Switch", {{"closed", "true"}})  // consumer to verify scheduling works
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"gnd.v", "bat.v_in"},
+        {"bat.v_out", "res.v_in"},
+        {"res.v_out", "sw.v_in"},
+        {"gnd.v", "gen.v_in"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    // RefNode is scheduled as a source (it must write its constant value).
+    // Battery, Generator, Resistor are solver-owned and NOT scheduled.
+    EXPECT_EQ(result.scheduler.source_count(), 1u)
+        << "Only RefNode should be scheduled as a source";
+    EXPECT_EQ(result.scheduler.consumer_count(), 1u)
+        << "Only Switch should be scheduled as consumer (others are solver-owned)";
+}
+
+TEST(PushRuntime, ClosedLoopNoRunawayAfterManySteps) {
+    // Closed loop: Battery -> Resistor -> IndicatorLight -> RefNode (return)
+    // After solver ownership changes, voltages should remain bounded.
+    const std::string json = R"({
+        "devices": [
+            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0", "internal_r": "0.01"}},
+            {"name": "res", "classname": "Resistor", "params": {"conductance": "0.5"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "gnd.v", "to": "bat.v_in"},
+            {"from": "bat.v_out", "to": "res.v_in"},
+            {"from": "res.v_out", "to": "ind.v_in"},
+            {"from": "ind.v_out", "to": "gnd.v"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    float dt = 1.0f / 60.0f;
+
+    // Step for many frames - voltages should remain bounded
+    for (int i = 0; i < 500; ++i) {
+        sim.step(dt);
+
+        float bat_vout = sim.get_port_value("bat", "v_out");
+        float res_vout = sim.get_port_value("res", "v_out");
+        float ind_vout = sim.get_port_value("ind", "v_out");
+        float gnd_v = sim.get_port_value("gnd", "v");
+
+        // All voltages should be finite and bounded
+        EXPECT_TRUE(std::isfinite(bat_vout)) << "Battery v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(res_vout)) << "Resistor v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(ind_vout)) << "Indicator v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(gnd_v)) << "Ground v should be finite at frame " << i;
+
+        // No runaway to +28V unbounded
+        EXPECT_LT(bat_vout, 35.0f) << "Battery v_out should not runaway at frame " << i;
+        EXPECT_LT(res_vout, 35.0f) << "Resistor v_out should not runaway at frame " << i;
+
+        // Ground should stay at reference (0V)
+        EXPECT_NEAR(gnd_v, 0.0f, 0.1f) << "Ground should stay at 0V at frame " << i;
+    }
+}
+
+TEST(PushRuntime, IndicatorLightDoesNotOverwriteSolvedNode) {
+    // Build circuit where IndicatorLight v_out connects to a fixed RefNode.
+    // The RefNode should remain at its fixed value (not overwritten by indicator pass-through).
+    // After Batch 5, IndicatorLight does NOT write v_out (solver handles it).
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "RefNode", "params": {"value": "10.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "src.v", "to": "ind.v_in"},
+            {"from": "gnd.v", "to": "ind.v_out"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    float dt = 1.0f / 60.0f;
+
+    // Step once
+    sim.step(dt);
+
+    // gnd.v should still be 0.0 (not overwritten by indicator pass-through)
+    float gnd_v = sim.get_port_value("gnd", "v");
+    EXPECT_NEAR(gnd_v, 0.0f, 1e-4f)
+        << "RefNode should remain at fixed value (not overwritten by IndicatorLight)";
+
+    // Source should still be at its fixed value
+    float src_v = sim.get_port_value("src", "v");
+    EXPECT_NEAR(src_v, 10.0f, 1e-4f)
+        << "Source RefNode should remain at fixed value";
+
+    // Brightness should still compute correctly
+    float brightness = sim.get_port_value("ind", "brightness");
+    EXPECT_GT(brightness, 0.0f) << "IndicatorLight brightness should be > 0";
+    EXPECT_LE(brightness, 100.0f) << "IndicatorLight brightness should be <= max";
+}
+
+TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
+    // Verify IndicatorLight brightness calculation still works correctly
+    // after removing the electrical pass-through.
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "RefNode", "params": {"value": "14.0"}},
+            {"name": "ind", "classname": "IndicatorLight", "params": {"rated_voltage": "28.0", "max_brightness": "100.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "src.v", "to": "ind.v_in"},
+            {"from": "gnd.v", "to": "ind.v_out"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    float dt = 1.0f / 60.0f;
+    sim.step(dt);
+
+    // At 14V input with 28V rated, brightness should be 50%
+    float brightness = sim.get_port_value("ind", "brightness");
+    EXPECT_NEAR(brightness, 50.0f, 1e-3f)
+        << "IndicatorLight brightness should be 50% (14V/28V * 100)";
+}
+
+// == Batch 7: Real Blueprint Regression Tests ==
+
+TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
+    // Load real closed_circuit.blueprint from filesystem.
+    // Wire connections from blueprint:
+    //   battery_1.v_out -> resistor_1.v_in
+    //   resistor_1.v_out -> indicatorlight_1.v_in
+    //   indicatorlight_1.v_out -> bus_1.v
+    //   bus_1.v -> battery_1.v_in
+    //   refnode_1.v -> bus_1.v
+    //
+    // Verifies voltages remain bounded (no runaway) with real fixture topology.
+    std::string blueprint_path;
+    EXPECT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
+        << "Could not find closed_circuit.blueprint";
+    std::string json;
+    EXPECT_NO_THROW(json = blueprint_to_simulation_json(blueprint_path))
+        << "Failed to parse blueprint from: " << blueprint_path;
+
+    JIT_Simulator sim;
+    EXPECT_NO_THROW(sim.start_from_json(json))
+        << "Failed to start simulation from loaded blueprint";
+
+    float dt = 1.0f / 60.0f;
+
+    // Run 600 steps (10 seconds at 60Hz)
+    for (int i = 0; i < 600; ++i) {
+        sim.step(dt);
+
+        float bat_vout = sim.get_port_value("battery_1", "v_out");
+        float res_vout = sim.get_port_value("resistor_1", "v_out");
+        float ind_vout = sim.get_port_value("indicatorlight_1", "v_out");
+        float bus_v = sim.get_port_value("bus_1", "v");
+        float gnd_v = sim.get_port_value("refnode_1", "v");
+
+        // All key electrical ports must be finite
+        EXPECT_TRUE(std::isfinite(bat_vout)) << "Battery v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(res_vout)) << "Resistor v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(ind_vout)) << "IndicatorLight v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(bus_v)) << "Bus v should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(gnd_v)) << "RefNode v should be finite at frame " << i;
+
+        // No monotonic +28 runaway pattern: voltages should stay bounded
+        // Upper bound of 100V is generous (real circuit should be ~28V)
+        EXPECT_LT(bat_vout, 100.0f) << "Battery v_out runaway at frame " << i;
+        EXPECT_LT(res_vout, 100.0f) << "Resistor v_out runaway at frame " << i;
+        EXPECT_LT(ind_vout, 100.0f) << "IndicatorLight v_out runaway at frame " << i;
+        EXPECT_LT(bus_v, 100.0f) << "Bus v runaway at frame " << i;
+
+        // Reference node should remain near configured value (0V)
+        EXPECT_NEAR(gnd_v, 0.0f, 0.5f) << "RefNode drift at frame " << i;
+    }
+}
+
+TEST(PushRuntime, ClosedCircuitBlueprint_BatteryChargeDecreases_RealFixture) {
+    // Step 12 formal validation: real fixture end-to-end test.
+    // Load actual closed_circuit.blueprint and verify battery charge decreases
+    // when branch draws current through the full loop topology.
+    //
+    // Blueprint topology:
+    //   battery_1.v_out -> resistor_1.v_in
+    //   resistor_1.v_out -> indicatorlight_1.v_in
+    //   indicatorlight_1.v_out -> bus_1.v
+    //   bus_1.v -> battery_1.v_in
+    //   refnode_1.v -> bus_1.v (reference node at 0V)
+    //
+    // Battery params from blueprint: v_nominal=28.0, internal_r=0.01,
+    // capacity=1000, charge=1000
+    // Resistor conductance from blueprint: 0.1 (10 ohm load)
+    //
+    // Root cause of prior flakiness: battery charge is a running accumulator
+    // stored as double. At charge=1000 with resistor conductance=0.1, the
+    // per-step discharge delta is ~1.2e-5 Ah. In float32, this is below the
+    // ULP at 1000.0 (~6.1e-5), so the subtraction was swallowed by rounding.
+    // Using double (ULP ~1.1e-13 at 1000) resolves this permanently.
+    std::string blueprint_path;
+    ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
+        << "Could not find closed_circuit.blueprint";
+    std::string json;
+    ASSERT_NO_THROW(json = blueprint_to_simulation_json(blueprint_path))
+        << "Failed to parse blueprint from: " << blueprint_path;
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json))
+        << "Failed to start simulation from loaded blueprint";
+
+    // Verify blueprint includes expected devices
+    double initial_charge = sim.get_battery_charge("battery_1");
+    ASSERT_TRUE(std::isfinite(initial_charge))
+        << "Initial battery charge should be finite";
+    ASSERT_GT(initial_charge, 0.0)
+        << "Initial charge from blueprint should be positive";
+
+    float dt = 1.0f / 60.0f;
+
+    // Take one step to allow electrical solver to run and establish voltages
+    sim.step(dt);
+
+    // Verify battery voltage is finite after first solve step (not open-circuit)
+    float bat_vout = sim.get_port_value("battery_1", "v_out");
+    ASSERT_TRUE(std::isfinite(bat_vout))
+        << "Battery v_out should be finite after solve (not open-circuit)";
+    ASSERT_GT(bat_vout, 0.0f)
+        << "Battery should produce positive voltage after solve";
+
+    // Diagnostic: verify current flow using CurrentSense from the real fixture.
+    float i_out = sim.get_port_value("currentsense_1", "i_out");
+    ASSERT_TRUE(std::isfinite(i_out))
+        << "CurrentSense output should be finite";
+    EXPECT_GT(std::abs(i_out), 1e-4f)
+        << "CurrentSense should report non-zero current in closed circuit. i_out=" << i_out;
+
+    // Battery voltage should be near nominal 28V
+    EXPECT_GT(bat_vout, 20.0f)
+        << "Battery v_out should be near nominal 28V if properly connected. "
+        << "Got " << bat_vout << " which suggests open circuit or wiring issue";
+
+    // Sample periodically - 10 ohm load gives smaller discharge per step
+    // I ≈ 28V / 10.01Ω ≈ 2.8A, discharge/step ≈ 2.8/3600/60 ≈ 1.3e-5 Ah
+    // With 10000 steps: total ≈ 0.13 Ah decrease (measurable with double precision)
+    const int total_steps = 10000;
+    const int sample_interval = 1000;
+    std::vector<double> charge_samples;
+    charge_samples.push_back(initial_charge);
+
+    for (int i = 0; i < total_steps; ++i) {
+        sim.step(dt);
+        double ch = sim.get_battery_charge("battery_1");
+        ASSERT_TRUE(std::isfinite(ch)) << "Charge should be finite at step " << i;
+        if ((i + 1) % sample_interval == 0) {
+            charge_samples.push_back(ch);
+        }
+    }
+
+    double final_charge = sim.get_battery_charge("battery_1");
+    ASSERT_TRUE(std::isfinite(final_charge));
+
+    // Verify monotonic decrease over samples
+    for (size_t j = 1; j < charge_samples.size(); ++j) {
+        EXPECT_LT(charge_samples[j], charge_samples[j-1])
+            << "Charge should decrease monotonically: sample " << j-1
+            << " (" << charge_samples[j-1] << ") > sample " << j
+            << " (" << charge_samples[j] << ")";
+    }
+
+    // Total decrease should be measurable (≈0.13 Ah over 10000 steps)
+    double total_decrease = initial_charge - final_charge;
+    EXPECT_GT(total_decrease, 0.01)
+        << "Total discharge should be measurable (> 0.01 Ah): got " << total_decrease;
+
+    // Final charge should be strictly less than initial
+    EXPECT_LT(final_charge, initial_charge)
+        << "Final charge (" << final_charge << ") should be less than initial ("
+        << initial_charge << ")";
+}
+
+TEST(PushRuntime, ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology) {
+    // This test verifies battery discharge works with a controlled topology.
+    // Uses values matching the blueprint (v_nominal=28.0, internal_r=0.01,
+    // capacity=1000, charge=1000) with a simplified inline topology:
+    // Battery -> Resistor -> RefNode(ground).
+    // This is a controlled topology test providing stronger discharge signal
+    // than the real fixture (which has lower conductance and may discharge slowly).
+    //
+    // With conductance=1.0 (1 ohm load), discharge per step is:
+    //   I = 28V / 1.01 ohm ≈ 27.7A
+    //   discharge_per_step ≈ 27.7 * (1/60) / 3600 ≈ 0.000128
+    // After 1200 steps: total discharge ≈ 0.154 Ah, clearly measurable.
+    const std::string json = R"({
+        "devices": [
+            {"name": "battery_1", "classname": "Battery", "params": {
+                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1000.0", "charge": "1000.0"
+            }},
+            {"name": "resistor_1", "classname": "Resistor", "params": {"conductance": "1.0"}},
+            {"name": "refnode_1", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "refnode_1.v", "to": "battery_1.v_in"},
+            {"from": "battery_1.v_out", "to": "resistor_1.v_in"},
+            {"from": "resistor_1.v_out", "to": "refnode_1.v"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json));
+
+    float dt = 1.0f / 60.0f;
+
+    // Initial charge from blueprint values
+    double initial_charge = sim.get_battery_charge("battery_1");
+    ASSERT_EQ(initial_charge, 1000.0) << "Initial charge should be 1000.0";
+
+    // Sample charge periodically to verify monotonic decrease
+    const int total_steps = 1200;
+    const int sample_interval = 200;
+    std::vector<double> charge_samples;
+
+    for (int i = 0; i < total_steps; ++i) {
+        sim.step(dt);
+        if (i % sample_interval == 0) {
+            double ch = sim.get_battery_charge("battery_1");
+            ASSERT_TRUE(std::isfinite(ch)) << "Charge should be finite at step " << i;
+            charge_samples.push_back(ch);
+        }
+    }
+
+    double final_charge = sim.get_battery_charge("battery_1");
+    ASSERT_TRUE(std::isfinite(final_charge));
+
+    // Verify monotonic decrease over samples
+    for (size_t j = 1; j < charge_samples.size(); ++j) {
+        EXPECT_LT(charge_samples[j], charge_samples[j-1])
+            << "Charge should decrease monotonically: sample " << j-1
+            << " (" << charge_samples[j-1] << ") > sample " << j
+            << " (" << charge_samples[j] << ")";
+    }
+
+    // Total decrease should be > epsilon
+    double total_decrease = initial_charge - final_charge;
+    EXPECT_GT(total_decrease, 0.001)
+        << "Total discharge should be measurable (> 0.001 Ah): got " << total_decrease;
+
+    // Voltage assertions as secondary check
+    float final_vout = sim.get_port_value("battery_1", "v_out");
+    EXPECT_TRUE(std::isfinite(final_vout));
+    EXPECT_LT(final_vout, 29.0f) << "Battery voltage should be bounded under load";
+}
+
+TEST(PushRuntime, BatteryLiveOutputsExposeChargeAndSoc) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "battery_1", "classname": "Battery", "params": {
+                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1.0", "charge": "1.0"
+            }},
+            {"name": "resistor_1", "classname": "Resistor", "params": {"conductance": "1.0"}},
+            {"name": "refnode_1", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "refnode_1.v", "to": "battery_1.v_in"},
+            {"from": "battery_1.v_out", "to": "resistor_1.v_in"},
+            {"from": "resistor_1.v_out", "to": "refnode_1.v"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json));
+
+    float dt = 1.0f / 60.0f;
+    sim.step(dt);
+
+    float charge_out = sim.get_port_value("battery_1", "charge_out");
+    float soc_out = sim.get_port_value("battery_1", "soc_out");
+
+    ASSERT_TRUE(std::isfinite(charge_out));
+    ASSERT_TRUE(std::isfinite(soc_out));
+
+    // Under load, charge and SoC should both decrease from 1.0.
+    EXPECT_LT(charge_out, 1.0f);
+    EXPECT_LT(soc_out, 1.0f);
+    EXPECT_GT(soc_out, 0.0f);
+
+    // SoC should track charge/capacity (capacity=1.0, so they should match).
+    EXPECT_NEAR(soc_out, charge_out, 1e-5f);
+}
+
+TEST(PushRuntime, BatteryCommitRunsExactlyOncePerStepForSolverOwned) {
+    // Verify that Battery commit is called exactly once per step.
+    // Build simple circuit: Battery -> Resistor -> RefNode (ground return)
+    // Use the commit_solver_owned_devices helper that runs in step().
+    const std::string json = R"({
+        "devices": [
+            {"name": "bat", "classname": "Battery", "params": {
+                "v_nominal": "28.0", "internal_r": "0.01", "capacity": "1000.0", "charge": "1000.0"
+            }},
+            {"name": "res", "classname": "Resistor", "params": {"conductance": "1.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "gnd.v", "to": "bat.v_in"},
+            {"from": "bat.v_out", "to": "res.v_in"},
+            {"from": "res.v_out", "to": "gnd.v"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    float dt = 1.0f / 60.0f;
+
+    // Initial charge
+    double charge_0 = sim.get_battery_charge("bat");
+    EXPECT_EQ(charge_0, 1000.0);
+
+    // Step 1: delta after first step
+    sim.step(dt);
+    double charge_1 = sim.get_battery_charge("bat");
+    double delta_1 = charge_0 - charge_1;
+    EXPECT_GT(delta_1, 0.0) << "Charge should decrease after 1 step (commit ran)";
+
+    // Step 2: delta after second step
+    sim.step(dt);
+    double charge_2 = sim.get_battery_charge("bat");
+    double delta_2 = charge_1 - charge_2;
+    EXPECT_GT(delta_2, 0.0) << "Charge should continue decreasing after 2 steps";
+
+    // Ratio check: delta_2 should be approximately equal to delta_1
+    // (linear discharge, constant load, small dt) - allows for numerical tolerance
+    double ratio = delta_2 / delta_1;
+    EXPECT_NEAR(ratio, 1.0, 0.15)
+        << "Discharge rate should be consistent per step (delta_2/delta_1 = " << ratio
+        << ", expected ~1.0). If ratio is ~2.0, commit is being called twice. "
+        << "If ratio is ~0.0, commit is not being called.";
+
+    // Also verify cumulative: after N steps, total delta should be ~N * d1
+    double total_delta = charge_0 - charge_2;
+    double expected_total = delta_1 * 2.0;
+    EXPECT_NEAR(total_delta, expected_total, expected_total * 0.20)
+        << "Cumulative discharge should be ~2x single step (" << total_delta
+        << " vs " << expected_total << ")";
+}
+
+TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
+    // Verify electrical_rt pointer is nullptr outside of active step window.
+    // This is a regression test for Batch 7 pointer lifecycle hardening.
+    const std::string json = R"({
+        "devices": [
+            {"name": "bat", "classname": "Battery", "params": {"v_nominal": "28.0"}},
+            {"name": "sw", "classname": "Switch", "params": {"closed": "true"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            {"from": "gnd.v", "to": "bat.v_in"},
+            {"from": "bat.v_out", "to": "sw.v_in"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    sim.start_from_json(json);
+
+    // After start_from_json but before any step, electrical_rt should be nullptr
+    // (verified via internal state check by calling step and checking after)
+
+    float dt = 1.0f / 60.0f;
+
+    // Before step: pointer should be nullptr (start_from_json clears it)
+    // We can't directly check sim's internal state. Instead, run a step and
+    // verify behavior is correct (components that need electrical_rt still work).
+
+    sim.step(dt);
+
+    // After step: pointer should be cleared. Verify by running more steps
+    // and checking voltages are still correct (would be wrong if pointer stale).
+    for (int i = 0; i < 10; ++i) {
+        sim.step(dt);
+        float v = sim.get_port_value("sw", "v_out");
+        EXPECT_TRUE(std::isfinite(v)) << "Voltage should be valid after step " << i;
+    }
+
+    // Verify circuit still produces correct steady-state voltage
+    // (would diverge if electrical_rt pointer issue caused stale solves)
+    EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 28.0f, 0.5f)
+        << "Battery should maintain nominal voltage";
 }

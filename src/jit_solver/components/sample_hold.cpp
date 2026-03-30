@@ -27,7 +27,7 @@ void SampleHold<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void SampleHold<Provider>::commit(SimulationState& /*st*/) {
+void SampleHold<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
     // Commit staged next state
     stored_value = next_stored_value;
     last_trig = next_last_trig;

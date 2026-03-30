@@ -13,7 +13,7 @@ void AND<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void AND<Provider>::commit(SimulationState& st) {
+void AND<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

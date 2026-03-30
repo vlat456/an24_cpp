@@ -17,6 +17,20 @@
       "direction": 1,
       "type": "V",
       "source_writer": true
+    },
+    {
+      "name": "charge_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Signal",
+      "source_writer": false
+    },
+    {
+      "name": "soc_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Signal",
+      "source_writer": false
     }
   ],
   "nodes": [],

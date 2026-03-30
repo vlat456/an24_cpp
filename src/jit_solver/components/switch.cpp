@@ -29,7 +29,7 @@ void Switch<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Switch<Provider>::commit(SimulationState& st) {
+void Switch<Provider>::commit(SimulationState& st, float /*dt*/) {
     commit_control(st, 0.0f);
 }
 

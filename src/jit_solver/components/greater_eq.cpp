@@ -9,7 +9,7 @@ void GreaterEq<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void GreaterEq<Provider>::commit(SimulationState& st) {
+void GreaterEq<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

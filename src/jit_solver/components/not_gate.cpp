@@ -10,7 +10,7 @@ void NOT<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void NOT<Provider>::commit(SimulationState& st) {
+void NOT<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

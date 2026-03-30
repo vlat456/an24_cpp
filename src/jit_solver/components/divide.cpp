@@ -12,7 +12,7 @@ void Divide<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Divide<Provider>::commit(SimulationState& st) {
+void Divide<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

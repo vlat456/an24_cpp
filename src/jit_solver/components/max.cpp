@@ -10,7 +10,7 @@ void Max<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Max<Provider>::commit(SimulationState& st) {
+void Max<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

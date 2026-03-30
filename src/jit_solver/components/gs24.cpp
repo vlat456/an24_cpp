@@ -70,7 +70,7 @@ void GS24<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void GS24<Provider>::commit(SimulationState& st) {
+void GS24<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
     mode = next_mode;
     wait_time = next_wait_time;

@@ -9,7 +9,7 @@ void Subtract<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Subtract<Provider>::commit(SimulationState& st) {
+void Subtract<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

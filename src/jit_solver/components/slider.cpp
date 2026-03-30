@@ -9,7 +9,7 @@ void Slider<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Slider<Provider>::commit(SimulationState& st) {
+void Slider<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

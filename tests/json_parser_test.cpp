@@ -155,7 +155,9 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     EXPECT_EQ(dev.domains.size(), 2);
     EXPECT_EQ(dev.domains[0], Domain::Electrical);
 
-    EXPECT_EQ(dev.ports.size(), 3);
+    // Relay blueprint defines 4 ports: v_in, v_out, control, state
+    // merge_device_instance() enriches with library-defined ports
+    EXPECT_EQ(dev.ports.size(), 4);
     auto it_in = dev.ports.find("v_in");
     ASSERT_NE(it_in, dev.ports.end());
     EXPECT_EQ(it_in->second.direction, PortDirection::In);
@@ -165,6 +167,9 @@ TEST(JsonParserTest, ParseDevicesWithAllFields) {
     auto it_control = dev.ports.find("control");
     ASSERT_NE(it_control, dev.ports.end());
     EXPECT_EQ(it_control->second.direction, PortDirection::In);
+    auto it_state = dev.ports.find("state");
+    ASSERT_NE(it_state, dev.ports.end());
+    EXPECT_EQ(it_state->second.direction, PortDirection::Out);
 
     auto it_param = dev.params.find("closed");
     ASSERT_NE(it_param, dev.params.end());

@@ -29,7 +29,7 @@ void DMR400<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void DMR400<Provider>::commit(SimulationState& st) {
+void DMR400<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
     is_closed = next_is_closed;
     reconnect_delay = next_reconnect_delay;

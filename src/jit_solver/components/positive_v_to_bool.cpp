@@ -10,7 +10,7 @@ void Positive_V_to_Bool<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Positive_V_to_Bool<Provider>::commit(SimulationState& st) {
+void Positive_V_to_Bool<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

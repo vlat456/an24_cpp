@@ -29,7 +29,7 @@ void PI<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void PI<Provider>::commit(SimulationState& st) {
+void PI<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

@@ -13,7 +13,7 @@ void Transformer<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Transformer<Provider>::commit(SimulationState& st) {
+void Transformer<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

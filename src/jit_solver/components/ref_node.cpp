@@ -4,12 +4,16 @@
 
 template <typename Provider>
 void RefNode<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: set v pin to configured value every solve
+    // RefNode IS correctly scheduled as a source in the push scheduler.
+    // It writes its fixed reference value to the signal array each frame
+    // so downstream logical consumers see the correct reference voltage.
+    // This is correct behavior: RefNode defines the reference point (0V),
+    // it does not participate in the electrical solver's conductance matrix.
     st.values[provider.get(PortNames::v)] = value;
 }
 
 template <typename Provider>
-void RefNode<Provider>::commit(SimulationState& st) {
+void RefNode<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

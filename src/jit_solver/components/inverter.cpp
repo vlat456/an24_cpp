@@ -14,7 +14,7 @@ void Inverter<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Inverter<Provider>::commit(SimulationState& st) {
+void Inverter<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

@@ -33,7 +33,7 @@ void PID<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void PID<Provider>::commit(SimulationState& st) {
+void PID<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

@@ -38,7 +38,7 @@ void FastTMO<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void FastTMO<Provider>::commit(SimulationState& /*st*/) {
+void FastTMO<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
     // Commit staged next state
     current_value = next_current_value;
     first_frame_mask = next_first_frame_mask;

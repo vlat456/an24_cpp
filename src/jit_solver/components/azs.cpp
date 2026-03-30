@@ -54,7 +54,7 @@ void AZS<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void AZS<Provider>::commit(SimulationState& st) {
+void AZS<Provider>::commit(SimulationState& st, float /*dt*/) {
     commit_control(st, 0.0f);
 }
 

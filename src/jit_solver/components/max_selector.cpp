@@ -12,7 +12,7 @@ void MaxSelector<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void MaxSelector<Provider>::commit(SimulationState& st) {
+void MaxSelector<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

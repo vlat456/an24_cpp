@@ -10,7 +10,7 @@ void Bus<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Bus<Provider>::commit(SimulationState& st) {
+void Bus<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

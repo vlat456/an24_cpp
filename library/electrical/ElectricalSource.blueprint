@@ -1,0 +1,39 @@
+{
+  "version": "3.0",
+  "id": "ElectricalSource",
+  "display_name": "Electrical Source",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "v_in",
+      "domain": 1,
+      "direction": 0,
+      "type": "V",
+      "source_writer": false
+    },
+    {
+      "name": "v_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "V",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Primitive electrical voltage source (Thevenin). Maps directly to TheveninSource solver role without wrapper logic.",
+  "domains": [
+    "Electrical"
+  ],
+  "param_defaults": {
+    "voltage": "28.0",
+    "resistance": "0.01"
+  },
+  "solver_role": {
+    "kind": "TheveninSource",
+    "ports": { "pos": "v_out", "neg": "v_in" },
+    "params": { "voltage": "voltage", "resistance": "resistance" }
+  }
+}

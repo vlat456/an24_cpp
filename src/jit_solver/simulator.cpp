@@ -1,13 +1,47 @@
 #include "simulator.h"
+#include "components/battery.h"
+#include "components/electrical_conductance.h"
+#include "components/electrical_source.h"
 #include "../json_parser/json_parser.h"
 #include "../parse_number.h"
 #include <algorithm>
 #include <cmath>
 
+namespace {
+
+/// Commit pass for solver-owned components that need per-frame state integration.
+/// These components are NOT scheduled in the push scheduler for electrical
+/// propagation - they are solved via the conductance matrix. However, some have
+/// commit hooks for state (e.g., Battery discharge).
+/// This pass ensures their commit() is called each frame.
+///
+/// NOTE: Only Battery currently has non-trivial commit. All others have
+/// no-op commits and could be skipped, but we call them uniformly for safety.
+void commit_solver_owned_devices(BuildResult& br, SimulationState& st, float dt) {
+    for (auto& [_name, variant] : br.devices) {
+        (void)_name;
+        std::visit([&st, dt](auto& comp) {
+            using CompType = std::decay_t<decltype(comp)>;
+            // Battery has commit that discharges based on solved branch current.
+            // Generator, Resistor, and primitives have trivial no-op commits.
+            if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
+                          std::is_same_v<CompType, Generator<JitProvider>> ||
+                          std::is_same_v<CompType, Resistor<JitProvider>> ||
+                          std::is_same_v<CompType, ElectricalConductance<JitProvider>> ||
+                          std::is_same_v<CompType, ElectricalSource<JitProvider>>) {
+                comp.commit(st, dt);
+            }
+        }, variant);
+    }
+}
+
+} // anonymous namespace
+
 template <typename SolverTag>
 Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     : build_result_(std::move(other.build_result_))
     , state_(std::move(other.state_))
+    , electrical_rt_(std::move(other.electrical_rt_))
     , running_(other.running_)
     , time_(other.time_)
     , step_count_(other.step_count_) {
@@ -22,6 +56,7 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         stop();
         build_result_ = std::move(other.build_result_);
         state_ = std::move(other.state_);
+        electrical_rt_ = std::move(other.electrical_rt_);
         running_ = other.running_;
         time_ = other.time_;
         step_count_ = other.step_count_;
@@ -83,6 +118,10 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     state_.lut_keys = std::move(build_result_->lut_keys);
     state_.lut_values = std::move(build_result_->lut_values);
 
+    // Explicitly clear electrical_rt pointer: solver-owned electrical propagation
+    // runs inside step(), not between steps. Pointer must not be stale.
+    state_.electrical_rt = nullptr;
+
     time_ = 0.0f;
     step_count_ = 0;
     running_ = true;
@@ -95,6 +134,8 @@ void Simulator<SolverTag>::stop() {
     time_ = 0.0f;
     step_count_ = 0;
     running_ = false;
+    // Clear pointer on stop: electrical_rt is owned by this class and must not
+    // be accessed after stop. State was reset above which also zeroes the pointer.
 }
 
 template <typename SolverTag>
@@ -106,7 +147,25 @@ void Simulator<SolverTag>::step(float dt) {
         return;
     }
 
+    // Set pointer before solver runs so components can access electrical_rt.
+    // RAII guard ensures cleanup on ALL exit paths (including exceptions).
+    state_.electrical_rt = &electrical_rt_;
+    struct RtGuard {
+        SimulationState& st;
+        ~RtGuard() { st.electrical_rt = nullptr; }
+    } guard{state_};
+
+    // Run electrical subsolver to compute node voltages and branch currents
+    solve_electrical(build_result_->electrical_plan, state_, electrical_rt_, dt);
+
     build_result_->scheduler.step(state_, dt);
+
+    // Explicit commit pass for solver-owned components (Battery discharge, etc).
+    // These are NOT in the scheduler's source/consumer lists but need per-frame
+    // commit to update internal state (e.g., Battery.charge).
+    commit_solver_owned_devices(*build_result_, state_, dt);
+
+    // Guard destructor clears state_.electrical_rt = nullptr here.
 
     time_ += dt;
     step_count_++;
@@ -161,6 +220,25 @@ bool Simulator<SolverTag>::get_boolean_output(const std::string& port_name) cons
 template <typename SolverTag>
 bool Simulator<SolverTag>::get_component_state_as_bool(const std::string& node_id, const std::string& port_name) const {
     return get_boolean_output(node_id + "." + port_name);
+}
+
+template <typename SolverTag>
+double Simulator<SolverTag>::get_battery_charge(const std::string& device_name) const {
+    if (!running_ || !build_result_.has_value()) {
+        return 0.0;
+    }
+
+    auto it = build_result_->devices.find(device_name);
+    if (it == build_result_->devices.end()) {
+        return 0.0;
+    }
+
+    const Battery<JitProvider>* batt = std::get_if<Battery<JitProvider>>(&it->second);
+    if (batt == nullptr) {
+        return 0.0;
+    }
+
+    return batt->charge;
 }
 
 template class Simulator<JIT_Solver>;

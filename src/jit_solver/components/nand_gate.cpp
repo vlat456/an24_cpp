@@ -12,7 +12,7 @@ void NAND<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void NAND<Provider>::commit(SimulationState& st) {
+void NAND<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

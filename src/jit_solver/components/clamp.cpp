@@ -14,7 +14,7 @@ void Clamp<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Clamp<Provider>::commit(SimulationState& st) {
+void Clamp<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

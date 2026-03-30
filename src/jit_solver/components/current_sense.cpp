@@ -4,16 +4,17 @@
 
 template <typename Provider>
 void CurrentSense<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: CurrentSense is a measurement-only component
-    // Compute current from voltage difference and conductance
-    float v_in = st.values[provider.get(PortNames::v_in)];
-    float v_out = st.values[provider.get(PortNames::v_out)];
-    float v_diff = v_in - v_out;
-    st.values[provider.get(PortNames::i_out)] = v_diff * conductance;
+    // Read solved branch current from electrical runtime state.
+    // If no valid handle or no runtime state, output 0.0f.
+    float i_out = 0.0f;
+    if (st.electrical_rt != nullptr) {
+        i_out = get_branch_current(*st.electrical_rt, electrical_handle);
+    }
+    st.values[provider.get(PortNames::i_out)] = i_out;
 }
 
 template <typename Provider>
-void CurrentSense<Provider>::commit(SimulationState& st) {
+void CurrentSense<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

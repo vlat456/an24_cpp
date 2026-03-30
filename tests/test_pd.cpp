@@ -13,7 +13,7 @@
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 // Helper: build JIT PD with ports wired to: [0]=setpoint, [1]=feedback, [2]=output

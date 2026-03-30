@@ -88,7 +88,7 @@ static Transformer<JitProvider> make_transformer_test(SimulationState& st,
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 TEST(BugTransformerSignLoss, NegativeRatioInvertsVoltage) {

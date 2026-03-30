@@ -43,7 +43,7 @@ void TimeDelay<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void TimeDelay<Provider>::commit(SimulationState& /*st*/) {
+void TimeDelay<Provider>::commit(SimulationState& /*st*/, float /*dt*/) {
     // Commit staged next state
     current_out = next_current_out;
     last_in = next_last_in;

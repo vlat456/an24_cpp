@@ -1089,6 +1089,53 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                     def.param_schema = parse_param_schema(j["param_schema"]);
                 }
 
+                // Parse solver_role metadata (optional, for primitives).
+                // Must come after interface + param_defaults so port/param references can be validated.
+                if (j.contains("solver_role") && j["solver_role"].is_object()) {
+                    auto& sr = j["solver_role"];
+                    SolverRole role;
+                    if (!sr.contains("kind") || !sr["kind"].is_string() || sr["kind"].get<std::string>().empty()) {
+                        throw std::runtime_error("solver_role missing required non-empty 'kind' for component '" + def.classname + "'");
+                    }
+                    role.kind = sr["kind"].get<std::string>();
+
+                    // Validate kind
+                    if (role.kind != "ConductanceBranch" && role.kind != "TheveninSource" && role.kind != "FixedVoltageNode") {
+                        throw std::runtime_error("solver_role has invalid kind '" + role.kind +
+                            "' for component '" + def.classname + "'. Must be ConductanceBranch, TheveninSource, or FixedVoltageNode");
+                    }
+
+                    if (!sr.contains("ports") || !sr["ports"].is_object()) {
+                        throw std::runtime_error("solver_role missing required 'ports' object for component '" + def.classname + "'");
+                    }
+                    for (auto& [k, v] : sr["ports"].items()) {
+                        if (!v.is_string()) {
+                            throw std::runtime_error("solver_role port key '" + k + "' must map to a string port name for component '" + def.classname + "'");
+                        }
+                        role.port_map[k] = v.get<std::string>();
+                    }
+
+                    if (!sr.contains("params") || !sr["params"].is_object()) {
+                        throw std::runtime_error("solver_role missing required 'params' object for component '" + def.classname + "'");
+                    }
+                    for (auto& [k, v] : sr["params"].items()) {
+                        if (!v.is_string()) {
+                            throw std::runtime_error("solver_role param key '" + k + "' must map to a string param name for component '" + def.classname + "'");
+                        }
+                        role.param_map[k] = v.get<std::string>();
+                    }
+
+                    // Validate port references exist in interface
+                    for (const auto& [role_key, port_name] : role.port_map) {
+                        if (def.ports.find(port_name) == def.ports.end()) {
+                            throw std::runtime_error("solver_role port '" + role_key + "' references non-existent interface port '" +
+                                port_name + "' for component '" + def.classname + "'");
+                        }
+                    }
+
+                    def.solver_role = std::move(role);
+                }
+
                 auto parse_endpoint = [](std::string const& s) -> std::optional<std::pair<std::string, std::string>> {
                     if (s.empty() || s[0] != '/') return std::nullopt;
                     size_t colon = s.rfind(':');
@@ -1284,6 +1331,9 @@ DeviceInstance merge_device_instance(
     // Propagate explicit execution-phase metadata from definition when present.
     merged.execution = definition.execution;
     merged.scheduler_source = definition.scheduler_source;
+
+    // Propagate solver_role metadata from definition when present.
+    merged.solver_role = definition.solver_role;
 
     if (!definition.param_schema.empty()) {
         validate_params_against_schema(merged.params, definition.param_schema, merged.name, merged.classname);

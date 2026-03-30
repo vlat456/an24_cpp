@@ -12,7 +12,7 @@ void LUT<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void LUT<Provider>::commit(SimulationState& st) {
+void LUT<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

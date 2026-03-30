@@ -23,5 +23,10 @@
   "render_hint": "ref",
   "param_defaults": {
     "value": "0.0"
+  },
+  "solver_role": {
+    "kind": "FixedVoltageNode",
+    "ports": { "node": "v" },
+    "params": { "voltage": "value" }
   }
 }

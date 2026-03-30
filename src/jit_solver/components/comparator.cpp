@@ -21,7 +21,7 @@ void Comparator<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Comparator<Provider>::commit(SimulationState& st) {
+void Comparator<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

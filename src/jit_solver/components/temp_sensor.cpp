@@ -9,7 +9,7 @@ void TempSensor<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void TempSensor<Provider>::commit(SimulationState& st) {
+void TempSensor<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

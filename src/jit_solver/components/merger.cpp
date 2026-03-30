@@ -9,7 +9,7 @@ void Merger<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Merger<Provider>::commit(SimulationState& st) {
+void Merger<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

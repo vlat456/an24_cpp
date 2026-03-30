@@ -2,6 +2,7 @@
 
 #include "components/port_registry.h"
 #include "scheduler.h"
+#include "subsolvers/subsolver_types.h"
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -38,6 +39,9 @@ struct BuildResult {
 
     /// Push scheduler populated at build time.
     PushScheduler scheduler;
+
+    /// Electrical network build plan (for subsolver)
+    ElectricalBuildPlan electrical_plan;
 
     /// LUT table arena - accumulated during build, moved to SimulationState at start
     std::vector<float> lut_keys;

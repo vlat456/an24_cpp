@@ -18,7 +18,7 @@ void ElectricHeater<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void ElectricHeater<Provider>::commit(SimulationState& st) {
+void ElectricHeater<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

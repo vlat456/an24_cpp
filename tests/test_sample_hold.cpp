@@ -31,7 +31,7 @@ static SimulationState make_state(float input_val, float trigger_val)
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 #define step step_component

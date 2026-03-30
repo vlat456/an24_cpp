@@ -12,6 +12,13 @@
       "source_writer": false
     },
     {
+      "name": "state",
+      "domain": 2,
+      "direction": 1,
+      "type": "Bool",
+      "source_writer": false
+    },
+    {
       "name": "v_in",
       "domain": 1,
       "direction": 0,
@@ -36,11 +43,15 @@
     "Logical"
   ],
   "param_defaults": {
-    "closed": "false"
+    "closed": "false",
+    "hold_threshold": "0.5"
   },
   "param_schema": {
     "closed": {
       "type": "bool"
+    },
+    "hold_threshold": {
+      "type": "float"
     }
   }
 }

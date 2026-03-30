@@ -22,7 +22,7 @@ void GidroAccumulator<Provider>::execute(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void GidroAccumulator<Provider>::commit(SimulationState& st) {
+void GidroAccumulator<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

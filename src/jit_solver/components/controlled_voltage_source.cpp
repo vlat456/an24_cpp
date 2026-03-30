@@ -28,7 +28,7 @@ void ControlledVoltageSource<Provider>::execute(SimulationState& st, float /*dt*
 }
 
 template <typename Provider>
-void ControlledVoltageSource<Provider>::commit(SimulationState& st) {
+void ControlledVoltageSource<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

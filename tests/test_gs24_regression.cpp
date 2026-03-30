@@ -9,7 +9,7 @@ namespace {
 template <typename Comp>
 void step_component(Comp& comp, SimulationState& st, float dt) {
     comp.execute(st, dt);
-    comp.commit(st);
+    comp.commit(st, dt);
 }
 
 // DISABLED: legacy iterative-style test using SimulationState.across/through/conductance which

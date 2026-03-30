@@ -90,6 +90,12 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
+    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // which this port-mapping test intentionally skips.
+    auto bat_it = result.port_to_signal.find("bat.v_out");
+    ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
+    state.values[bat_it->second] = 28.0f;
+
     float dt = 1.0f / 60.0f;
     for (int i = 0; i < 20; ++i)
         result.scheduler.step(state, dt);
@@ -106,7 +112,7 @@ TEST(PortMapRegression, AND_Gate_Reads_Correct_Signals) {
     EXPECT_EQ(result.port_to_signal.at("and_1.B"), result.port_to_signal.at("hb.state"))
         << "and_1.B must be wired to hb.state";
 
-    // Bus should have ~28V
+    // Bus should have ~28V (seeded via bat.v_out which aliases bus.v)
     EXPECT_GT(get("bus.v"), 20.0f);
 
     // V_to_Bool(28V) -> 1.0
@@ -156,6 +162,12 @@ TEST(PortMapRegression, NOT_Gate_Reads_Correct_Input) {
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
 
+    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // which this port-mapping test intentionally skips.
+    auto bat_it = result.port_to_signal.find("bat.v_out");
+    ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
+    state.values[bat_it->second] = 28.0f;
+
     float dt = 1.0f / 60.0f;
     for (int i = 0; i < 20; ++i)
         result.scheduler.step(state, dt);
@@ -204,6 +216,12 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
     auto gnd_it = result.port_to_signal.find("gnd.v");
     if (gnd_it != result.port_to_signal.end())
         state.values[gnd_it->second] = 0.0f;
+
+    // Seed battery output: Battery is solver-owned (voltage from solve_electrical),
+    // which this port-mapping test intentionally skips.
+    auto bat_it = result.port_to_signal.find("bat.v_out");
+    ASSERT_NE(bat_it, result.port_to_signal.end()) << "bat.v_out must exist";
+    state.values[bat_it->second] = 28.0f;
 
     float dt = 1.0f / 60.0f;
     for (int i = 0; i < 20; ++i)

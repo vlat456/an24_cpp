@@ -75,6 +75,8 @@
 #include "components/controlled_voltage_source.h"
 #include "components/controlled_current_source.h"
 #include "components/variable_conductance.h"
+#include "components/electrical_conductance.h"
+#include "components/electrical_source.h"
 
 #include <algorithm>
 #include <map>
@@ -95,6 +97,18 @@ std::string metadata_classname_for(std::string_view classname) {
 
 bool is_scheduler_source_component_class(std::string_view classname) {
     return is_scheduler_source_component(metadata_classname_for(classname));
+}
+
+/// Returns true for components that are solver-owned for electrical propagation.
+/// These components run inside the electrical solver, NOT the push scheduler.
+/// RefNode remains scheduled as a source (it writes constant reference values).
+/// Guard: prevents accidental reintroduction of push scheduling for these classes.
+bool is_solver_owned_electrical_propagator(std::string_view classname) {
+    return classname == "Battery" ||
+           classname == "Generator" ||
+           classname == "Resistor" ||
+           classname == "ElectricalConductance" ||
+           classname == "ElectricalSource";
 }
 
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
@@ -296,8 +310,11 @@ BuildResult build_systems_dev(
         }
 
         bool is_source = is_scheduler_source_component_class(dev.classname);
+        bool is_solver_owned_electrical = is_solver_owned_electrical_propagator(dev.classname);
 
-        if (!is_source) {
+        // Guard: solver-owned electrical propagators must NOT be added to scheduler
+        // as consumers. They are handled by the electrical solver instead.
+        if (!is_source && !is_solver_owned_electrical) {
             consumer_device_names.push_back(dev.name);
         }
 
@@ -332,7 +349,8 @@ BuildResult build_systems_dev(
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_source(&std::get<Battery<JitProvider>>(result.devices[dev.name]));
+            // NOTE: Battery is NOT scheduled for push electrical propagation.
+            // Electrical propagation is now handled by the electrical solver (Batch 4/5).
         }
         else if (dev.classname == "Generator") {
             Generator<JitProvider> comp;
@@ -344,7 +362,8 @@ BuildResult build_systems_dev(
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_source(&std::get<Generator<JitProvider>>(result.devices[dev.name]));
+            // NOTE: Generator is NOT scheduled for push electrical propagation.
+            // Electrical propagation is now handled by the electrical solver (Batch 4/5).
         }
         else if (dev.classname == "RefNode") {
             RefNode<JitProvider> comp;
@@ -354,6 +373,8 @@ BuildResult build_systems_dev(
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
+            // RefNode is a source: it writes its fixed value into the signal array
+            // every frame so downstream consumers see the correct reference.
             result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
             
             // Also track as fixed signal
@@ -477,7 +498,29 @@ BuildResult build_systems_dev(
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<Resistor<JitProvider>>(result.devices[dev.name]));
+            // NOTE: Resistor is NOT scheduled for push electrical propagation.
+            // Electrical propagation is now handled by the electrical solver (Batch 4/5).
+        }
+        else if (dev.classname == "ElectricalConductance") {
+            ElectricalConductance<JitProvider> comp;
+            
+            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
+            setup_ports(comp);
+            param_reader.validate_all_consumed();
+            
+            result.devices[dev.name] = comp;
+            // Primitive: solver-owned, not scheduled for push.
+        }
+        else if (dev.classname == "ElectricalSource") {
+            ElectricalSource<JitProvider> comp;
+            
+            comp.voltage = param_reader.consume_float_optional("voltage", 28.0f);
+            comp.resistance = param_reader.consume_float_optional("resistance", 0.01f);
+            setup_ports(comp);
+            param_reader.validate_all_consumed();
+            
+            result.devices[dev.name] = comp;
+            // Primitive: solver-owned, not scheduled for push.
         }
         else if (dev.classname == "Voltmeter") {
             Voltmeter<JitProvider> comp;
@@ -1160,6 +1203,25 @@ BuildResult build_systems_dev(
         }
     }
 
+    // == Batch 7: Guardrail validation ==
+    // Verify that solver-owned electrical propagators were NOT accidentally added
+    // to the push scheduler. This would cause double-solve (push + solver) or
+    // bypass the solver's conductance matrix solution.
+    // Track device names that ended up in consumer_device_names and validate.
+    for (const auto& name : consumer_device_names) {
+        auto it_dev = std::find_if(devices.begin(), devices.end(),
+            [&name](const DeviceInstance& d) { return d.name == name; });
+        if (it_dev != devices.end()) {
+            if (is_solver_owned_electrical_propagator(it_dev->classname)) {
+                throw std::runtime_error(
+                    std::string("Guardrail violation: solver-owned electrical propagator '") +
+                    it_dev->classname + "' (device '" + it_dev->name +
+                    "') was incorrectly added to push scheduler consumer list. "
+                    "These components must only run via the electrical solver.");
+            }
+        }
+    }
+
     // Deduplicate fixed_signals (RefNode may have been added above and in the loop above)
     std::sort(result.fixed_signals.begin(), result.fixed_signals.end());
     result.fixed_signals.erase(
@@ -1351,6 +1413,408 @@ BuildResult build_systems_dev(
             std::visit([&](auto& comp) {
                 result.scheduler.add_consumer(&comp);
             }, it_var->second);
+        }
+    }
+
+    // == Batch 2: Electrical Island Extraction ==
+    // Extract electrical primitive elements from supported components and partition
+    // into connected islands.
+    //
+    // Extraction strategy (Step 14/15):
+    //   1. Metadata-driven: components with solver_role metadata are extracted
+    //      generically from their role kind, port_map, and param_map.
+    //   2. Classname fallback: wrapper components without metadata use hardcoded
+    //      classname-based extraction (Battery, Generator, Resistor, IndicatorLight,
+    //      CurrentSense). These remain intentionally transitional until wrappers
+    //      are decomposed into primitives.
+    //
+    // Unsupported components are silently ignored.
+
+    struct RawElement {
+        ElectricalElementKind kind;
+        uint32_t node_a;
+        uint32_t node_b;
+        float value_a;
+        float value_b;
+        size_t component_index;  // stable index for determinism
+        std::string device_name;  // for handle assignment back to wrapper components
+    };
+
+    std::vector<RawElement> raw_elements;
+    raw_elements.reserve(devices.size());
+
+    // Helper to resolve port to signal index with fail-fast on missing mapping
+    auto resolve_port = [&](const DeviceInstance& dev, const std::string& port_name) -> uint32_t {
+        const std::string full_port = dev.name + "." + port_name;
+        auto it = result.port_to_signal.find(full_port);
+        if (it == result.port_to_signal.end()) {
+            throw std::runtime_error("Missing required port mapping '" + full_port +
+                "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        }
+        return it->second;
+    };
+
+    // Helper to read a single float param by name, with default.
+    // Does NOT use ParamReader — params were already validated in Phase 2.
+    auto read_param_float = [](const DeviceInstance& dev, const std::string& key, float default_val) -> float {
+        auto it = dev.params.find(key);
+        if (it != dev.params.end()) {
+            return locale_safe::parse_float_or(it->second, default_val);
+        }
+        return default_val;
+    };
+
+    // Helper to resolve a solver_role port key to signal index
+    auto resolve_role_port = [&](const DeviceInstance& dev, const SolverRole& role,
+                                  const std::string& role_key) -> uint32_t {
+        auto it = role.port_map.find(role_key);
+        if (it == role.port_map.end()) {
+            throw std::runtime_error("solver_role missing required port key '" + role_key +
+                "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        }
+        return resolve_port(dev, it->second);
+    };
+
+    // Helper to read a solver_role param by role key, resolving to the actual param name
+    auto read_role_param = [&](const DeviceInstance& dev, const SolverRole& role,
+                                const std::string& role_key, float default_val) -> float {
+        auto it = role.param_map.find(role_key);
+        if (it == role.param_map.end()) {
+            throw std::runtime_error("solver_role missing required param key '" + role_key +
+                "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
+        }
+        return read_param_float(dev, it->second, default_val);
+    };
+
+    size_t element_idx = 0;
+    for (const auto& dev : devices) {
+        if (dev.visual_only) {
+            continue;
+        }
+
+        // == Path 1: Metadata-driven extraction ==
+        if (dev.solver_role.has_value()) {
+            const auto& role = *dev.solver_role;
+
+            if (role.kind == "FixedVoltageNode") {
+                float value = read_role_param(dev, role, "voltage", 0.0f);
+                uint32_t node_a = resolve_role_port(dev, role, "node");
+                raw_elements.push_back({
+                    ElectricalElementKind::FixedVoltageNode,
+                    node_a,
+                    UINT32_MAX,  // unused
+                    value,
+                    0.0f,
+                    element_idx++,
+                    dev.name
+                });
+            }
+            else if (role.kind == "TheveninSource") {
+                float voltage = read_role_param(dev, role, "voltage", 28.0f);
+                float resistance = read_role_param(dev, role, "resistance", 0.01f);
+                uint32_t node_pos = resolve_role_port(dev, role, "pos");
+                uint32_t node_neg = resolve_role_port(dev, role, "neg");
+                raw_elements.push_back({
+                    ElectricalElementKind::TheveninSource,
+                    node_pos,
+                    node_neg,
+                    voltage,
+                    resistance,
+                    element_idx++,
+                    {}  // Metadata-driven primitives: no handle assignment needed
+                });
+            }
+            else if (role.kind == "ConductanceBranch") {
+                float conductance = read_role_param(dev, role, "g", 0.1f);
+                uint32_t node_a = resolve_role_port(dev, role, "a");
+                uint32_t node_b = resolve_role_port(dev, role, "b");
+                raw_elements.push_back({
+                    ElectricalElementKind::ConductanceBranch,
+                    node_a,
+                    node_b,
+                    conductance,
+                    0.0f,
+                    element_idx++,
+                    {}  // Metadata-driven primitives: no handle assignment needed
+                });
+            }
+            continue;  // Metadata handled; skip classname fallback
+        }
+
+        // == Path 2: Classname-based fallback for wrapper components ==
+        // These remain intentionally transitional until wrappers are decomposed
+        // into primitives with solver_role metadata.
+        if (dev.classname == "Battery") {
+            // TheveninSource: value_a = source voltage, value_b = series resistance
+            float v_nominal = read_param_float(dev, "v_nominal", 28.0f);
+            float internal_r = read_param_float(dev, "internal_r", 0.01f);
+            uint32_t node_pos = resolve_port(dev, "v_out");
+            uint32_t node_neg = resolve_port(dev, "v_in");
+            raw_elements.push_back({
+                ElectricalElementKind::TheveninSource,
+                node_pos,
+                node_neg,
+                v_nominal,
+                internal_r,
+                element_idx++,
+                dev.name
+            });
+        }
+        else if (dev.classname == "Generator") {
+            // TheveninSource: value_a = source voltage, value_b = series resistance
+            float v_nominal = read_param_float(dev, "v_nominal", 28.5f);
+            float internal_r = read_param_float(dev, "internal_r", 0.005f);
+            uint32_t node_pos = resolve_port(dev, "v_out");
+            uint32_t node_neg = resolve_port(dev, "v_in");
+            raw_elements.push_back({
+                ElectricalElementKind::TheveninSource,
+                node_pos,
+                node_neg,
+                v_nominal,
+                internal_r,
+                element_idx++,
+                dev.name
+            });
+        }
+        else if (dev.classname == "Resistor") {
+            // ConductanceBranch: value_a = conductance
+            float conductance = read_param_float(dev, "conductance", 0.1f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                conductance,
+                0.0f,
+                element_idx++,
+                {}  // Resistor does not need handle assignment
+            });
+        }
+        else if (dev.classname == "IndicatorLight") {
+            // ConductanceBranch: value_a = conductance
+            float conductance = read_param_float(dev, "conductance", 1.0f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                conductance,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
+        else if (dev.classname == "CurrentSense") {
+            // ConductanceBranch: value_a = conductance (high conductance = low series resistance)
+            float conductance = read_param_float(dev, "conductance", 1000.0f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                conductance,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
+        // -- Classname fallback for primitives without metadata --
+        // When used via build_systems_dev() without library loading, solver_role
+        // is not populated. These mirror the metadata-driven path but are
+        // accessed only when solver_role is absent.
+        else if (dev.classname == "RefNode") {
+            float value = read_param_float(dev, "value", 0.0f);
+            uint32_t node_a = resolve_port(dev, "v");
+            raw_elements.push_back({
+                ElectricalElementKind::FixedVoltageNode,
+                node_a,
+                UINT32_MAX,
+                value,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
+        else if (dev.classname == "ElectricalConductance") {
+            float conductance = read_param_float(dev, "conductance", 0.1f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                conductance,
+                0.0f,
+                element_idx++,
+                {}
+            });
+        }
+        else if (dev.classname == "ElectricalSource") {
+            float voltage = read_param_float(dev, "voltage", 28.0f);
+            float resistance = read_param_float(dev, "resistance", 0.01f);
+            uint32_t node_pos = resolve_port(dev, "v_out");
+            uint32_t node_neg = resolve_port(dev, "v_in");
+            raw_elements.push_back({
+                ElectricalElementKind::TheveninSource,
+                node_pos,
+                node_neg,
+                voltage,
+                resistance,
+                element_idx++,
+                {}
+            });
+        }
+        // Unsupported components are silently ignored for electrical_plan
+    }
+
+    // Build connected islands using union-find on node indices
+    if (!raw_elements.empty()) {
+        // Collect all unique node indices referenced by elements
+        std::unordered_set<uint32_t> all_nodes;
+        for (const auto& elem : raw_elements) {
+            all_nodes.insert(elem.node_a);
+            if (elem.node_b != UINT32_MAX) {
+                all_nodes.insert(elem.node_b);
+            }
+        }
+
+        // Union-find over node indices
+        struct NodeUnionFind {
+            std::unordered_map<uint32_t, uint32_t> parent;
+            std::unordered_map<uint32_t, uint32_t> rank;
+
+            explicit NodeUnionFind(const std::unordered_set<uint32_t>& nodes) {
+                for (uint32_t n : nodes) {
+                    parent[n] = n;
+                    rank[n] = 0;
+                }
+            }
+
+            uint32_t find(uint32_t x) {
+                auto it = parent.find(x);
+                if (it == parent.end() || it->second == x) {
+                    return x;
+                }
+                it->second = find(it->second);
+                return it->second;
+            }
+
+            void unite(uint32_t a, uint32_t b) {
+                uint32_t ra = find(a);
+                uint32_t rb = find(b);
+                if (ra == rb) return;
+                if (rank[ra] < rank[rb]) {
+                    parent[ra] = rb;
+                } else if (rank[ra] > rank[rb]) {
+                    parent[rb] = ra;
+                } else {
+                    parent[rb] = ra;
+                    rank[ra]++;
+                }
+            }
+        };
+
+        NodeUnionFind uf(all_nodes);
+
+        // Unite nodes connected by each element
+        for (const auto& elem : raw_elements) {
+            if (elem.node_b != UINT32_MAX) {
+                uf.unite(elem.node_a, elem.node_b);
+            }
+        }
+
+        // Group elements by their island (root node)
+        std::map<uint32_t, std::vector<size_t>> island_members;  // root -> element indices
+        for (size_t i = 0; i < raw_elements.size(); ++i) {
+            uint32_t root = uf.find(raw_elements[i].node_a);
+            island_members[root].push_back(i);
+        }
+
+        // Create ElectricalIslandPlan for each island
+        // Sort islands by smallest signal index for determinism
+        std::vector<std::pair<uint32_t, std::vector<size_t>>> sorted_islands(
+            island_members.begin(), island_members.end());
+        std::sort(sorted_islands.begin(), sorted_islands.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+
+        for (const auto& [root, elem_indices] : sorted_islands) {
+            (void)root;
+            ElectricalIslandPlan island;
+
+            // Collect unique signal indices in this island
+            std::set<uint32_t> island_nodes;
+            for (size_t idx : elem_indices) {
+                island_nodes.insert(raw_elements[idx].node_a);
+                if (raw_elements[idx].node_b != UINT32_MAX) {
+                    island_nodes.insert(raw_elements[idx].node_b);
+                }
+            }
+            island.signal_indices.assign(island_nodes.begin(), island_nodes.end());
+
+            // Build elements in original insertion order
+            std::vector<size_t> sorted_indices(elem_indices.begin(), elem_indices.end());
+            std::sort(sorted_indices.begin(), sorted_indices.end());
+            for (size_t idx : sorted_indices) {
+                const auto& re = raw_elements[idx];
+                island.elements.push_back({
+                    re.kind,
+                    re.node_a,
+                    re.node_b,
+                    re.value_a,
+                    re.value_b,
+                    static_cast<uint32_t>(re.component_index)
+                });
+            }
+
+            result.electrical_plan.islands.push_back(std::move(island));
+        }
+    }
+
+    // == Batch 3: Assign ElectricalPrimitiveHandle to wrapper components ==
+    // After islands are built, map each wrapper component (Battery, Generator,
+    // IndicatorLight, CurrentSense) to its corresponding electrical primitive element.
+
+    // Build O(1) lookup: component_index -> device_name
+    std::unordered_map<uint32_t, std::string> comp_idx_to_device;
+    comp_idx_to_device.reserve(raw_elements.size());
+    for (const auto& raw_elem : raw_elements) {
+        if (!raw_elem.device_name.empty()) {
+            comp_idx_to_device[static_cast<uint32_t>(raw_elem.component_index)] = raw_elem.device_name;
+        }
+    }
+
+    // Assign handles from island elements
+    for (size_t island_idx = 0; island_idx < result.electrical_plan.islands.size(); ++island_idx) {
+        const auto& island = result.electrical_plan.islands[island_idx];
+        for (size_t elem_idx = 0; elem_idx < island.elements.size(); ++elem_idx) {
+            const auto& elem = island.elements[elem_idx];
+            auto it_name = comp_idx_to_device.find(elem.component_index);
+            if (it_name == comp_idx_to_device.end()) {
+                continue;  // Element without handle (e.g. Resistor)
+            }
+            const std::string& device_name = it_name->second;
+            auto it = result.devices.find(device_name);
+            if (it == result.devices.end()) {
+                throw std::runtime_error("Handle assignment failed: device '" +
+                    device_name + "' not found in result.devices");
+            }
+            ElectricalPrimitiveHandle handle;
+            handle.island_index = static_cast<uint32_t>(island_idx);
+            handle.element_index = static_cast<uint32_t>(elem_idx);
+            handle.component_index = elem.component_index;
+            // Assign handle to the appropriate component variant
+            std::visit([&](auto& comp) {
+                using CompType = std::decay_t<decltype(comp)>;
+                if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
+                              std::is_same_v<CompType, Generator<JitProvider>> ||
+                              std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
+                              std::is_same_v<CompType, CurrentSense<JitProvider>>) {
+                    comp.electrical_handle = handle;
+                }
+            }, it->second);
         }
     }
 

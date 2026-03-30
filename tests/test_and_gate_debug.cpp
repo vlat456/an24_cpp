@@ -80,6 +80,16 @@ TEST_F(ANDGateDebugTest, AND_With_Battery_VToBool_HoldButton) {
         }
     }
 
+    // Seed battery output voltage: Battery is solver-owned — its voltage is
+    // produced by solve_electrical(), which this test intentionally skips to
+    // isolate port mapping / logical gate wiring. Seeding bat.v_out to 28V
+    // is equivalent to what the electrical solver would produce.
+    {
+        auto it = result.port_to_signal.find("bat.v_out");
+        ASSERT_NE(it, result.port_to_signal.end()) << "bat.v_out must exist";
+        state.values[it->second] = 28.0f;
+    }
+
     // Print signal mapping
     printf("\n=== SIGNAL MAP ===\n");
     for (auto& [port, sig] : result.port_to_signal) {

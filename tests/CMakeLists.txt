@@ -60,6 +60,53 @@ target_link_libraries(push_runtime_regression_tests PRIVATE
 )
 gtest_discover_tests(push_runtime_regression_tests)
 
+# Electrical island build tests (Batch 2: build-time electrical extraction)
+add_executable(electrical_island_build_tests
+    test_electrical_island_build.cpp
+)
+target_include_directories(electrical_island_build_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electrical_island_build_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electrical_island_build_tests)
+
+# Electrical primitive handle tests (Batch 3: handle assignment for wrapper components)
+add_executable(electrical_handle_build_tests
+    test_electrical_handles_build.cpp
+)
+target_include_directories(electrical_handle_build_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electrical_handle_build_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electrical_handle_build_tests)
+
+# Electrical subsolver tests (Batch 4: actual island solving)
+add_executable(electrical_subsolver_tests
+    test_electrical_subsolver.cpp
+)
+target_include_directories(electrical_subsolver_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electrical_subsolver_tests PRIVATE
+    jit_solver
+    GTest::gtest_main
+)
+gtest_discover_tests(electrical_subsolver_tests)
+
 # Migrated tests - now using push-state API (SimulationState.values)
 add_executable(pid_tests
     test_pid.cpp
@@ -201,6 +248,22 @@ target_link_libraries(current_sense_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(current_sense_tests)
+
+# Battery discharge tests - Batch 6
+add_executable(battery_discharge_tests
+    test_battery_discharge.cpp
+)
+target_include_directories(battery_discharge_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(battery_discharge_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(battery_discharge_tests)
 
 # Bug-hunt regression tests — AotProvider sentinel, transformer physics
 add_executable(bug_hunt_regression_tests
@@ -1428,3 +1491,19 @@ target_link_libraries(bp2_validation_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(bp2_validation_tests)
+
+# Electrical primitives tests (Step 13: explicit primitive electrical nodes)
+add_executable(electrical_primitives_tests
+    test_electrical_primitives.cpp
+)
+target_include_directories(electrical_primitives_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electrical_primitives_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electrical_primitives_tests)

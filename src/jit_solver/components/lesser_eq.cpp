@@ -9,7 +9,7 @@ void LesserEq<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void LesserEq<Provider>::commit(SimulationState& st) {
+void LesserEq<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

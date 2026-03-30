@@ -2,6 +2,7 @@ add_library(jit_solver
     jit_solver.cpp
     state.cpp
     simulator.cpp
+    subsolvers/electrical_subsolver.cpp
     # Phase 2 Slice 1: Migrated push-style components
     components/battery.cpp
     components/switch.cpp
@@ -84,6 +85,9 @@ add_library(jit_solver
     components/controlled_voltage_source.cpp
     components/controlled_current_source.cpp
     components/variable_conductance.cpp
+    # Step 13: Explicit primitive electrical nodes
+    components/electrical_conductance.cpp
+    components/electrical_source.cpp
 )
 
 target_include_directories(jit_solver PUBLIC

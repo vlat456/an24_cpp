@@ -8,7 +8,7 @@ struct SimulationState;
 
 struct ComponentEntry {
     using ExecuteFn = void (*)(void* self, SimulationState& st, float dt);
-    using CommitFn = void (*)(void* self, SimulationState& st);
+    using CommitFn = void (*)(void* self, SimulationState& st, float dt);
 
     void* self = nullptr;
     ExecuteFn execute = nullptr;
@@ -43,13 +43,13 @@ public:
         // Commit all scheduled components (deterministic order: sources then consumers)
         for (auto& e : sources_) {
             if (e.commit != nullptr) {
-                e.commit(e.self, st);
+                e.commit(e.self, st, dt);
             }
         }
 
         for (auto& e : consumers_) {
             if (e.commit != nullptr) {
-                e.commit(e.self, st);
+                e.commit(e.self, st, dt);
             }
         }
     }
@@ -73,12 +73,13 @@ private:
                     (void)dt;
                 }
             },
-            [](void* self, SimulationState& st) {
-                if constexpr (requires(T& c) { c.commit(st); }) {
-                    static_cast<T*>(self)->commit(st);
+            [](void* self, SimulationState& st, float dt) {
+                if constexpr (requires(T& c) { c.commit(st, dt); }) {
+                    static_cast<T*>(self)->commit(st, dt);
                 } else {
                     (void)self;
                     (void)st;
+                    (void)dt;
                 }
             }
         };

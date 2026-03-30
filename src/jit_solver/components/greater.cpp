@@ -10,7 +10,7 @@ void Greater<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Greater<Provider>::commit(SimulationState& st) {
+void Greater<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 

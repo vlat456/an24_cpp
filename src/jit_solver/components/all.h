@@ -81,5 +81,7 @@
 #include "greater_eq.h"
 #include "lesser_eq.h"
 #include "slider.h"
+#include "electrical_conductance.h"
+#include "electrical_source.h"
 
 // No class declarations here - all are in their respective headers

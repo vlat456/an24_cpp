@@ -25,7 +25,7 @@ void Normalize<Provider>::execute(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Normalize<Provider>::commit(SimulationState& st) {
+void Normalize<Provider>::commit(SimulationState& st, float /*dt*/) {
     (void)st;
 }
 
