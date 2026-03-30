@@ -10,16 +10,10 @@ Simulator<SolverTag>::Simulator(Simulator&& other) noexcept
     , state_(std::move(other.state_))
     , running_(other.running_)
     , time_(other.time_)
-    , step_count_(other.step_count_)
-    , accumulator_mechanical_(other.accumulator_mechanical_)
-    , accumulator_hydraulic_(other.accumulator_hydraulic_)
-    , accumulator_thermal_(other.accumulator_thermal_) {
+    , step_count_(other.step_count_) {
     other.running_ = false;
     other.time_ = 0.0f;
     other.step_count_ = 0;
-    other.accumulator_mechanical_ = 0.0f;
-    other.accumulator_hydraulic_ = 0.0f;
-    other.accumulator_thermal_ = 0.0f;
 }
 
 template <typename SolverTag>
@@ -31,16 +25,10 @@ Simulator<SolverTag>& Simulator<SolverTag>::operator=(Simulator&& other) noexcep
         running_ = other.running_;
         time_ = other.time_;
         step_count_ = other.step_count_;
-        accumulator_mechanical_ = other.accumulator_mechanical_;
-        accumulator_hydraulic_ = other.accumulator_hydraulic_;
-        accumulator_thermal_ = other.accumulator_thermal_;
 
         other.running_ = false;
         other.time_ = 0.0f;
         other.step_count_ = 0;
-        other.accumulator_mechanical_ = 0.0f;
-        other.accumulator_hydraulic_ = 0.0f;
-        other.accumulator_thermal_ = 0.0f;
     }
     return *this;
 }
@@ -97,9 +85,6 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
 
     time_ = 0.0f;
     step_count_ = 0;
-    accumulator_mechanical_ = 0.0f;
-    accumulator_hydraulic_ = 0.0f;
-    accumulator_thermal_ = 0.0f;
     running_ = true;
 }
 
@@ -109,9 +94,6 @@ void Simulator<SolverTag>::stop() {
     state_ = SimulationState();
     time_ = 0.0f;
     step_count_ = 0;
-    accumulator_mechanical_ = 0.0f;
-    accumulator_hydraulic_ = 0.0f;
-    accumulator_thermal_ = 0.0f;
     running_ = false;
 }
 
@@ -126,10 +108,6 @@ void Simulator<SolverTag>::step(float dt) {
 
     build_result_->scheduler.step(state_, dt);
 
-    accumulator_mechanical_ += dt;
-    accumulator_hydraulic_ += dt;
-    accumulator_thermal_ += dt;
-
     time_ += dt;
     step_count_++;
 }
@@ -142,16 +120,7 @@ float Simulator<SolverTag>::get_wire_voltage(const std::string& port_name) const
 
     auto it = build_result_->port_to_signal.find(port_name);
     if (it == build_result_->port_to_signal.end()) {
-        auto dot = port_name.find('.');
-        if (dot == std::string::npos) {
-            return 0.0f;
-        }
-
-        std::string fallback = port_name.substr(0, dot) + ":" + port_name.substr(dot + 1) + ".ext";
-        it = build_result_->port_to_signal.find(fallback);
-        if (it == build_result_->port_to_signal.end()) {
-            return 0.0f;
-        }
+        return 0.0f;
     }
 
     if (it->second >= state_.values.size()) {

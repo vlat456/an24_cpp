@@ -3,24 +3,16 @@
 #include "../state.h"
 
 template <typename Provider>
-void VoltageSense<Provider>::solve_electrical(SimulationState& /*st*/, float /*dt*/) {}
-
-template <typename Provider>
-void VoltageSense<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void VoltageSense<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Pure observer behavior: out = (v_in - v_ref) * gain + offset
     float v = st.values[provider.get(PortNames::v_in)];
     float vref = st.values[provider.get(PortNames::v_ref)];
     st.values[provider.get(PortNames::out)] = (v - vref) * gain + offset;
 }
 
 template <typename Provider>
-void VoltageSense<Provider>::observe_electrical(SimulationState& st, float dt) {
-    solve_logical(st, dt);
-}
-
-template <typename Provider>
-void VoltageSense<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
-    solve_logical(st, dt);
+void VoltageSense<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class VoltageSense<JitProvider>;

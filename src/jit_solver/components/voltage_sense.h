@@ -19,9 +19,7 @@ public:
 
     VoltageSense() = default;
 
-    void solve_electrical(SimulationState& st, float dt);  // no-op stamp, output written here
-    void solve_logical(SimulationState& st, float dt);     // writes out = (v_in - v_ref) * gain + offset
-    void observe_electrical(SimulationState& st, float dt); // Stage 2 hook shim
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };
