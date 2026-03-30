@@ -15,12 +15,18 @@ public:
     float tau = 0.1f;
     float inv_tau = 10.0f; // Precomputed
     float deadzone = 0.001f;
+
+    // Committed state fields
     float current_value = 0.0f;
     float first_frame_mask = 1.0f; // Branchless init mask
 
+    // Staged next-state fields
+    float next_current_value = 0.0f;
+    float next_first_frame_mask = 1.0f;
+
     FastTMO() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load();
 };

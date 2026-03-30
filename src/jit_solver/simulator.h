@@ -48,10 +48,6 @@ private:
     bool running_ = false;
     float time_ = 0.0f;
     uint64_t step_count_ = 0;
-
-    float accumulator_mechanical_ = 0.0f;
-    float accumulator_hydraulic_ = 0.0f;
-    float accumulator_thermal_ = 0.0f;
 };
 
 using JIT_Simulator = Simulator<JIT_Solver>;

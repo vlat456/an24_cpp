@@ -811,19 +811,9 @@ using ComponentVariant = std::variant<
     XOR<JitProvider>
 >;
 
-// Visitor helper for calling solve_electrical on component variant
-template <typename... Visitors>
-struct overloaded : Visitors... {
-    using Visitors::operator()...;
-};
-
-// Helper visitor to call solve_electrical on any component
-inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {
-    component.solve_electrical(st, dt);
-};
-
 // Compile-time guard: ComponentType and ComponentVariant must stay in sync
 static_assert(
     std::variant_size_v<ComponentVariant> == static_cast<size_t>(ComponentType::_COUNT),
     "ComponentType enum and ComponentVariant are out of sync — regenerate port_registry.h"
 );
+

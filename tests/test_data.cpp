@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include "ui/math/pt.h"
 #include "editor/data/port.h"
-#include "editor/data/node.h"
-#include "editor/data/wire.h"
-#include "editor/data/blueprint.h"
+#include "editor/data/node_content.h"
+
+
 #include "ui/core/interned_id.h"
 
 /// TDD Step 1: Data layer - сначала тесты

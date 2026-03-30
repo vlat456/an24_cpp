@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void Transformer<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: transformer with voltage ratio
     float v_primary = st.values[provider.get(PortNames::primary)];
     // Secondary voltage = primary voltage * ratio
@@ -13,8 +13,8 @@ void Transformer<Provider>::solve_electrical(SimulationState& st, float /*dt*/) 
 }
 
 template <typename Provider>
-void Transformer<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void Transformer<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Transformer<JitProvider>;

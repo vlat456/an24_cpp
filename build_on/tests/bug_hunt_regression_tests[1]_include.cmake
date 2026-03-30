@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_on/tests/bug_hunt_regression_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_on/tests/bug_hunt_regression_tests[1]_tests.cmake")
+else()
+  add_test(bug_hunt_regression_tests_NOT_BUILT bug_hunt_regression_tests_NOT_BUILT)
+endif()

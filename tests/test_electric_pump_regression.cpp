@@ -5,6 +5,13 @@
 /// These regression tests verify legacy iterative stamping behavior that is not applicable to push architecture.
 
 #include <gtest/gtest.h>
+#include "jit_solver/state.h"
+
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
 
 // All tests in this file are disabled because they use legacy iterative-era SimulationState members
 // (across, through, conductance, inv_conductance) that don't exist in push model.

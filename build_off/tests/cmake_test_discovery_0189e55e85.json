@@ -1,0 +1,32 @@
+{
+  "tests": 4,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "BakeOps",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "BakeNestedReferenceToEmbedded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_bake.cpp",
+          "line": 18
+        },
+        {
+          "name": "TryUnbakeReturnsReferenceWhenExactMatchFound",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_bake.cpp",
+          "line": 47
+        },
+        {
+          "name": "BakeAllRecursivelyEmbedsReferences",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_bake.cpp",
+          "line": 74
+        },
+        {
+          "name": "BakeAllDetectsCyclicReferenceGraph",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_bake.cpp",
+          "line": 111
+        }
+      ]
+    }
+  ]
+}

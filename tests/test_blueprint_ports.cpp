@@ -3,6 +3,11 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
 
 TEST(BlueprintInput, PassThroughLikeBus) {
     // BlueprintInput should behave like Bus (no-op component)
@@ -16,7 +21,7 @@ TEST(BlueprintInput, PassThroughLikeBus) {
     input.provider.set(PortNames::v, 0);
 
     // Should not crash, should not modify state
-    ASSERT_NO_THROW(input.solve_electrical(st, 0.016f));
+    ASSERT_NO_THROW(step_component(input, st, 0.016f));
 
     // State should remain unchanged (no stamping in push model)
     EXPECT_EQ(st.values[0], 0.0f);
@@ -46,7 +51,7 @@ TEST(BlueprintOutput, PassThroughLikeBus) {
     output.provider.set(PortNames::v, 0);
 
     // Should not crash, should not modify state
-    ASSERT_NO_THROW(output.solve_electrical(st, 0.016f));
+    ASSERT_NO_THROW(step_component(output, st, 0.016f));
 
     // State should remain unchanged (no stamping in push model)
     EXPECT_EQ(st.values[0], 0.0f);

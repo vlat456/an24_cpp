@@ -1,6 +1,6 @@
 #pragma once
 
-#include "editor/data/node.h"
+#include "editor/data/node_content.h"
 #include "editor/data/port.h"
 #include "ui/core/interned_id.h"
 #include <array>

@@ -12,12 +12,17 @@ public:
 
     Provider provider;
 
+    // Committed state fields
     float stored_value = 0.0f;
     float last_trig = 0.0f;
 
+    // Staged next-state fields
+    float next_stored_value = 0.0f;
+    float next_last_trig = 0.0f;
+
     SampleHold() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

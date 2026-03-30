@@ -20,8 +20,7 @@ public:
 
     GidroAccumulator() = default;
 
-    void solve_hydraulic(SimulationState& st, float dt);
-    void finalize_step(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load();
 };

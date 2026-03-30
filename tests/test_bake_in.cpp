@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/data/blueprint.h"
+
 #include "json_parser/json_parser.h"
 #include "ui/core/interned_id.h"
 

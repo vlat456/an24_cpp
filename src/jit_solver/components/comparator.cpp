@@ -7,7 +7,7 @@ void Comparator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Comparator<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void Comparator<Provider>::execute(SimulationState& st, float /*dt*/) {
     float Va = st.values[provider.get(PortNames::Va)];
     float Vb = st.values[provider.get(PortNames::Vb)];
 
@@ -21,8 +21,8 @@ void Comparator<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Comparator<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void Comparator<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Comparator<JitProvider>;

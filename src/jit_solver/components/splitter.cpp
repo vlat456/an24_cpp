@@ -3,22 +3,14 @@
 #include "../state.h"
 
 template <typename Provider>
-void Splitter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {}
-
-template <typename Provider>
-void Splitter<Provider>::execute(SimulationState& st, float dt) {
+void Splitter<Provider>::execute(SimulationState& st, float /*dt*/) {
     // No-op: splitter is a pass-through for signal routing
     (void)st;
-    (void)dt;
 }
 
 template <typename Provider>
-void Splitter<Provider>::solve_mechanical(SimulationState& st, float /*dt*/) {}
-
-template <typename Provider>
-void Splitter<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {}
-
-template <typename Provider>
-void Splitter<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {}
+void Splitter<Provider>::commit(SimulationState& st) {
+    (void)st;
+}
 
 template class Splitter<JitProvider>;

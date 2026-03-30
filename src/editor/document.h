@@ -82,6 +82,10 @@ public:
     const Simulator<JIT_Solver>& simulation() const { return simulation_; }
     bool isSimulationRunning() const { return simulation_running_; }
 
+    /// Set the type registry used to filter visual-only params from simulation JSON.
+    /// Must be called before startSimulation(). Pointer must outlive the Document.
+    void setTypeRegistry(const TypeRegistry* reg) { type_registry_ = reg; }
+
     void startSimulation();
     void stopSimulation();
     void rebuildSimulation();
@@ -177,6 +181,7 @@ private:
 
     std::unordered_map<std::string, float> signal_overrides_;
     std::unordered_set<std::string> held_buttons_;
+    const TypeRegistry* type_registry_ = nullptr;
 
     static int next_id_;
 };

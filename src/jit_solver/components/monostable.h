@@ -13,12 +13,18 @@ public:
     Provider provider;
 
     float duration = 30.0f;
+
+    // Committed state fields
     float timer = 0.0f;
     float last_in = 0.0f;
 
+    // Staged next-state fields
+    float next_timer = 0.0f;
+    float next_last_in = 0.0f;
+
     Monostable() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

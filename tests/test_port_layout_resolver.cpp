@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "editor/data/node.h"
+#include "editor/data/node_content.h"
 #include "editor/data/port.h"
 #include "editor/visual/node/port_layout_resolver.h"
 #include "ui/core/interned_id.h"

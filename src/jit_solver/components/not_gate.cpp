@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void NOT<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void NOT<Provider>::execute(SimulationState& st, float /*dt*/) {
     float A = st.values[provider.get(PortNames::A)];
     bool a = (A > 0.5f);
     bool result = !a;
@@ -10,8 +10,8 @@ void NOT<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void NOT<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void NOT<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class NOT<JitProvider>;

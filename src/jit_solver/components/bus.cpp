@@ -3,15 +3,15 @@
 #include "../state.h"
 
 template <typename Provider>
-void Bus<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void Bus<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Bus is just a wire - no component behavior in push model
     // Union-find will collapse port to connected signal
     (void)st;
 }
 
 template <typename Provider>
-void Bus<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void Bus<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Bus<JitProvider>;

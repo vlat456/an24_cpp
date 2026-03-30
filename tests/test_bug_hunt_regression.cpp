@@ -85,6 +85,12 @@ static Transformer<JitProvider> make_transformer_test(SimulationState& st,
 // primary voltage and ratio. The 'through' array no longer exists.
 // The push-visible behavior is that v_secondary = v_primary * ratio (for ideal transformer).
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 TEST(BugTransformerSignLoss, NegativeRatioInvertsVoltage) {
     // A transformer with ratio = -1 should invert the voltage.
     // Push model: v_secondary = v_primary * ratio = 10 * -1 = -10V.
@@ -92,7 +98,7 @@ TEST(BugTransformerSignLoss, NegativeRatioInvertsVoltage) {
     SimulationState st;
     auto xfmr = make_transformer_test(st, 10.0f, 0.0f, -1.0f);
 
-    xfmr.solve_electrical(st, 1.0f / 60.0f);
+    step_component(xfmr, st, 1.0f / 60.0f);
 
     float secondary = st.values[1];
     EXPECT_FLOAT_EQ(secondary, -10.0f)
@@ -106,7 +112,7 @@ TEST(BugTransformerSignLoss, PositiveRatioScalesVoltage) {
     SimulationState st;
     auto xfmr = make_transformer_test(st, 24.0f, 0.0f, 0.5f);
 
-    xfmr.solve_electrical(st, 1.0f / 60.0f);
+    step_component(xfmr, st, 1.0f / 60.0f);
 
     float secondary = st.values[1];
     EXPECT_FLOAT_EQ(secondary, 12.0f)
@@ -119,7 +125,7 @@ TEST(BugTransformerSignLoss, NearZeroRatioDoesNotCrash) {
     auto xfmr = make_transformer_test(st, 0.0f, 10.0f, 0.0f);
 
     // Should not crash or produce NaN/Inf
-    EXPECT_NO_FATAL_FAILURE(xfmr.solve_electrical(st, 1.0f / 60.0f))
+    EXPECT_NO_FATAL_FAILURE(step_component(xfmr, st, 1.0f / 60.0f))
         << "Zero ratio must not cause division by zero";
 
     // Results must be finite (no inf/NaN)

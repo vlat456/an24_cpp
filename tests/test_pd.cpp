@@ -6,6 +6,16 @@
 #include <cmath>
 
 
+// =============================================================================
+// Test Helpers
+// =============================================================================
+
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 // Helper: build JIT PD with ports wired to: [0]=setpoint, [1]=feedback, [2]=output
 static PD<JitProvider> make_pd(float Kp = 1.0f, float Kd = 0.0f,
                                float out_min = -1000.0f, float out_max = 1000.0f,
@@ -40,7 +50,7 @@ TEST(PDTest, ProportionalOnly_Basic)
     auto pd = make_pd(/*Kp=*/2.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // output = Kp * (sp - fb) = 2 * 10 = 20
     EXPECT_FLOAT_EQ(st.values[2], 20.0f);
@@ -51,7 +61,7 @@ TEST(PDTest, ProportionalOnly_NegativeError)
     auto pd = make_pd(/*Kp=*/1.0f);
     auto st = make_state(/*sp=*/-5.0f, /*fb=*/5.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // output = 1 * (-5 - 5) = -10
     EXPECT_FLOAT_EQ(st.values[2], -10.0f);
@@ -62,7 +72,7 @@ TEST(PDTest, ProportionalOnly_ZeroError)
     auto pd = make_pd(/*Kp=*/5.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/10.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // output = 5 * (10 - 10) = 0
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
@@ -73,7 +83,7 @@ TEST(PDTest, ProportionalOnly_HighGain)
     auto pd = make_pd(/*Kp=*/100.0f);
     auto st = make_state(/*sp=*/1.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // output = 100 * 1 = 100
     EXPECT_FLOAT_EQ(st.values[2], 100.0f);
@@ -87,11 +97,11 @@ TEST(PDTest, DerivativeOnly_PositiveRateOfChange)
     auto st = make_state(/*sp=*/0.0f, /*fb=*/0.0f);
 
     // First step: error = 0
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // Second step: error becomes 10 (feedback drops to -10)
     st.values[1] = -10.0f;
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // d_raw = (10 - 0) / 0.01 = 1000
     // With alpha=1.0, d_filtered = d_raw
@@ -105,11 +115,11 @@ TEST(PDTest, DerivativeOnly_NegativeRateOfChange)
     auto st = make_state(/*sp=*/0.0f, /*fb=*/0.0f);
 
     // First step: error = 0
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // Second step: error becomes -10 (feedback rises to 10)
     st.values[1] = 10.0f;
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // d_raw = (-10 - 0) / 0.01 = -1000
     EXPECT_NEAR(st.values[2], -1000.0f, 1.0f);
@@ -121,11 +131,11 @@ TEST(PDTest, DerivativeOnly_ConstantError)
     auto st = make_state(/*sp=*/50.0f, /*fb=*/0.0f);  // error = 50
 
     // First step initializes last_error
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     float first_output = st.values[2];
 
     // Second step with same error (derivative = 0)
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     float second_output = st.values[2];
 
     // D-term should decay (LERP: d_filtered += alpha * (0 - d_filtered))
@@ -150,7 +160,7 @@ TEST(PDTest, DerivativeFilterReducesNoise)
     for (int i = 0; i < 100; ++i) {
         float noise = (i % 2 == 0) ? 1.0f : -1.0f;
         st.values[1] = noise;   // feedback with noise
-        pd.solve_logical(st, dt);
+        step_component(pd, st, dt);
 
         // Calculate raw derivative for comparison
         float prev_noise = (i > 0) ? ((i - 1) % 2 == 0 ? 1.0f : -1.0f) : 0.0f;
@@ -169,7 +179,7 @@ TEST(PDTest, ProportionalAndDerivative_StepResponse)
     auto pd = make_pd(/*Kp=*/1.0f, /*Kd=*/0.1f, -1e9f, 1e9f, /*alpha=*/0.5f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // P term = 1 * 10 = 10
     // D term reacts to initial step (error goes 0→10)
@@ -183,11 +193,11 @@ TEST(PDTest, ProportionalAndDerivative_SteadyState)
     auto st = make_state(/*sp=*/5.0f, /*fb=*/0.0f);
 
     // First step
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // Run until steady (error constant)
     for (int i = 0; i < 50; ++i) {
-        pd.solve_logical(st, 0.01f);
+        step_component(pd, st, 0.01f);
     }
 
     // At steady state, D term → 0, only P term remains
@@ -201,7 +211,7 @@ TEST(PDTest, NegativeGains_InvertControl)
     auto pd = make_pd(/*Kp=*/-2.0f, /*Kd=*/-0.5f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // P term = -2 * 10 = -20 (negative)
     // D term adds negative kick (error increasing)
@@ -216,7 +226,7 @@ TEST(PDTest, OutputSaturation_PositiveClamp)
                       /*out_min=*/-5.0f, /*out_max=*/5.0f);
     auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // P-only: output = 10 * 100 = 1000, should clamp to 5
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
@@ -228,7 +238,7 @@ TEST(PDTest, OutputSaturation_NegativeClamp)
                       /*out_min=*/-5.0f, /*out_max=*/5.0f);
     auto st = make_state(/*sp=*/0.0f, /*fb=*/100.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     // P-only: output = 10 * (-100) = -1000, should clamp to -5
     EXPECT_FLOAT_EQ(st.values[2], -5.0f);
@@ -242,10 +252,10 @@ TEST(PDTest, OutputSaturation_AsymmetricLimits)
     auto st_neg = make_state(/*sp=*/0.0f, /*fb=*/10.0f);   // negative error
     auto st_pos = make_state(/*sp=*/10.0f, /*fb=*/0.0f);   // positive error
 
-    pd.solve_logical(st_neg, 0.016f);
+    step_component(pd, st_neg, 0.016f);
     EXPECT_FLOAT_EQ(st_neg.values[2], 0.0f);  // Clamped to min
 
-    pd.solve_logical(st_pos, 0.016f);
+    step_component(pd, st_pos, 0.016f);
     EXPECT_FLOAT_EQ(st_pos.values[2], 100.0f); // Clamped to max
 }
 
@@ -257,11 +267,11 @@ TEST(PDTest, OutputSaturation_WithDerivativeKick)
     auto st = make_state(/*sp=*/0.0f, /*fb=*/0.0f);
 
     // Initialize
-    pd.solve_logical(st, 0.001f);
+    step_component(pd, st, 0.001f);
 
     // Large error step (should cause large D kick)
     st.values[1] = -10.0f;  // error = 10
-    pd.solve_logical(st, 0.001f);
+    step_component(pd, st, 0.001f);
 
     // Should be clamped despite large D term
     EXPECT_LE(st.values[2], 10.0f);
@@ -281,12 +291,12 @@ TEST(PDTest, TimeInvariance_DifferentDtSameOutput)
 
     // Run at 60Hz for 0.1s
     for (int i = 0; i < 6; ++i) {
-        pd60.solve_logical(st60, 1.0f / 60.0f);
+        step_component(pd60, st60, 1.0f / 60.0f);
     }
 
     // Run at 144Hz for 0.1s
     for (int i = 0; i < 14; ++i) {
-        pd144.solve_logical(st144, 1.0f / 144.0f);
+        step_component(pd144, st144, 1.0f / 144.0f);
     }
 
     // Outputs should be close (P term identical, D term similar)
@@ -301,7 +311,7 @@ TEST(PDTest, ZeroGains_ZeroOutput)
     auto pd = make_pd(/*Kp=*/0.0f, /*Kd=*/0.0f);
     auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -313,11 +323,11 @@ TEST(PDTest, ExtremeDt_ClampedToMax)
     auto st = make_state(10.0f, 10.0f);  // Initial: error = 0
 
     // Initialize (sets last_error = 0)
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // Large error change with extreme dt
     st.values[1] = 0.0f;  // error changes from 0 to 10
-    pd.solve_logical(st, 10.0f);
+    step_component(pd, st, 10.0f);
 
     // D term calculated with clamped dt=0.1, not 10.0
     float expected_d = (10.0f - 0.0f) / 0.1f;  // using safe_dt
@@ -330,7 +340,7 @@ TEST(PDTest, TinyDt_ClampedToMin)
     auto pd = make_pd(/*Kp=*/0.0f, /*Kd=*/1.0f, -1e9f, 1e9f, /*alpha=*/1.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    pd.solve_logical(st, 1e-9f);
+    step_component(pd, st, 1e-9f);
 
     // Should not crash or produce inf/nan
     EXPECT_FALSE(std::isinf(st.values[2]));
@@ -343,12 +353,12 @@ TEST(PDTest, FilterAlphaZero_NoFiltering)
     auto pd = make_pd(/*Kp=*/0.0f, /*Kd=*/1.0f, -1e9f, 1e9f, /*alpha=*/0.0f);
     auto st = make_state(0.0f, 0.0f);
 
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     EXPECT_FLOAT_EQ(pd.d_filtered, 0.0f);
 
     // Even with error change
     st.values[1] = 10.0f;
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     EXPECT_FLOAT_EQ(pd.d_filtered, 0.0f);
 }
 
@@ -358,11 +368,11 @@ TEST(PDTest, FilterAlphaOne_InstantTracking)
     auto pd = make_pd(/*Kp=*/0.0f, /*Kd=*/1.0f, -1e9f, 1e9f, /*alpha=*/1.0f);
     auto st = make_state(10.0f, 10.0f);  // Initial: error = 0
 
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // Step error: setpoint=10, feedback=0, so error = 10
     st.values[1] = 0.0f;
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
 
     // error changed from 0 to 10, so d_raw = (10 - 0) / 0.01 = 1000
     float expected_d_raw = (10.0f - 0.0f) / 0.01f;
@@ -379,7 +389,7 @@ TEST(PDTest, VeryLargeKd_WithSmallDt_Stability)
     for (int i = 0; i < 100; ++i) {
         float noise = (i % 2 == 0) ? 1.0f : -1.0f;
         st.values[1] = noise;
-        pd.solve_logical(st, 0.001f);
+        step_component(pd, st, 0.001f);
 
         EXPECT_FALSE(std::isinf(st.values[2]));
         EXPECT_FALSE(std::isnan(st.values[2]));
@@ -397,8 +407,8 @@ TEST(PDTest, MultipleInstances_IndependentState)
     auto st2 = make_state(5.0f, 0.0f);
 
     for (int i = 0; i < 10; ++i) {
-        pd1.solve_logical(st1, 0.016f);
-        pd2.solve_logical(st2, 0.016f);
+        step_component(pd1, st1, 0.016f);
+        step_component(pd2, st2, 0.016f);
     }
 
     // States should be different (different errors)
@@ -428,8 +438,8 @@ TEST(PDTest, ComparedToPID_NoIntegral)
     auto st_pd  = make_state(10.0f, 0.0f);
     auto st_pid = make_state(10.0f, 0.0f);
 
-    pd.solve_logical(st_pd, 0.01f);
-    pid.solve_logical(st_pid, 0.01f);
+    step_component(pd, st_pd, 0.01f);
+    step_component(pid, st_pid, 0.01f);
 
     // Should produce identical output
     EXPECT_FLOAT_EQ(st_pd.values[2], st_pid.values[2]);

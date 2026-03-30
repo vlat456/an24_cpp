@@ -11,7 +11,7 @@ void Normalize<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Normalize<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void Normalize<Provider>::execute(SimulationState& st, float /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -25,8 +25,8 @@ void Normalize<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Normalize<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void Normalize<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Normalize<JitProvider>;

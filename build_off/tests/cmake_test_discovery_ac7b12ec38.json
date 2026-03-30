@@ -1,0 +1,87 @@
+{
+  "tests": 15,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "VisualWidgetTest",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "DefaultConstructors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 36
+        },
+        {
+          "name": "SetPosition",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 46
+        },
+        {
+          "name": "SetSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 53
+        },
+        {
+          "name": "WorldPosNoParent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 60
+        },
+        {
+          "name": "WorldPosWithParent",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 66
+        },
+        {
+          "name": "WorldPosNested",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 76
+        },
+        {
+          "name": "WorldMinMax",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 90
+        },
+        {
+          "name": "Contains",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 98
+        },
+        {
+          "name": "AddChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 107
+        },
+        {
+          "name": "RemoveChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 118
+        },
+        {
+          "name": "EmplaceChild",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 131
+        },
+        {
+          "name": "FlexibleDefault",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 141
+        },
+        {
+          "name": "SetFlexible",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 146
+        },
+        {
+          "name": "DeepGridPropagation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 157
+        },
+        {
+          "name": "DestructorSafetyNet",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_visual_widget.cpp",
+          "line": 201
+        }
+      ]
+    }
+  ]
+}

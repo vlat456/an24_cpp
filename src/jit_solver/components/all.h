@@ -8,7 +8,7 @@
 #include "switch.h"
 #include "relay.h"
 
-// New per-component headers (split from legacy_remaining)
+// Per-component headers
 #include "hold_button.h"
 #include "resistor.h"
 #include "load.h"

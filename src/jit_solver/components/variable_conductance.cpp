@@ -3,12 +3,13 @@
 #include "../state.h"
 #include <cmath>
 
-/// Push model implementation:
-/// Reads cmd [0..1] control input, computes conductance g = lerp(g_min, g_max, cmd),
-/// then passes v_in through to v_out as a simple deterministic behavior.
-/// In push model without matrix solve, we do simple pass-through.
+/// Execute method for scheduler integration
 template <typename Provider>
-void VariableConductance<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void VariableConductance<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Push model implementation:
+    // Reads cmd [0..1] control input, computes conductance g = lerp(g_min, g_max, cmd),
+    // then passes v_in through to v_out as a simple deterministic behavior.
+    // In push model without matrix solve, we do simple pass-through.
     // Read control input (expected 0..1 range)
     float cmd = st.values[provider.get(PortNames::cmd)];
     
@@ -24,10 +25,9 @@ void VariableConductance<Provider>::solve_electrical(SimulationState& st, float 
     st.values[provider.get(PortNames::v_out)] = v_in;
 }
 
-/// Execute method for scheduler integration
 template <typename Provider>
-void VariableConductance<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void VariableConductance<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class VariableConductance<JitProvider>;

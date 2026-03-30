@@ -4,6 +4,11 @@
 #include "jit_solver/state.h"
 
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
 
 // =============================================================================
 // AZS (Автомат Защиты Сети) — Circuit Breaker Tests
@@ -78,7 +83,7 @@ TEST_F(AZSTestFixture, OpenCircuitWhenOff) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 99.0f; // leftover from previous step
 
-    azs.solve_electrical(st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0f / 60.0f);
 
     // v_out should be zeroed when open
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
@@ -90,7 +95,7 @@ TEST_F(AZSTestFixture, PassesVoltageWhenClosed) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 0.0f;
 
-    azs.solve_electrical(st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 28.0f);
 }
@@ -101,7 +106,7 @@ TEST_F(AZSTestFixture, ZeroVoltageWhenOpen) {
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 28.0f; // leftover from previous step
 
-    azs.solve_electrical(st, 1.0f / 60.0f);
+    step_component(azs, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
 }
@@ -172,13 +177,16 @@ TEST_F(AZSTestFixture, OutputsStateOff) {
 // =============================================================================
 
 TEST_F(AZSTestFixture, HeatsUpWithCurrent) {
-    // current is computed in solve_electrical and stored; solve_thermal uses stored value
+    // Thermal equation: T += I² * r_heat * dt when current flows
     azs.closed = true;
     azs.temp = 0.0f;
-    azs.current = 28.0f; // 28A flowing through AZS
+    // Set v_in so solve_electrical computes current = 28A
+    // current = v_in / r where r = 28.0 / i_nominal = 28.0 / 20.0 = 1.4
+    // So v_in = 28.0 * 1.4 = 39.2
+    st.values[IDX_V_IN] = 39.2f;
 
     float dt = 1.0f; // thermal domain accumulated dt
-    azs.solve_thermal(st, dt);
+    step_component(azs, st, dt);
 
     // Temperature should increase: T += I² * r_heat * dt (minus cooling which is 0 at T=0)
     EXPECT_GT(azs.temp, 0.0f);
@@ -191,7 +199,7 @@ TEST_F(AZSTestFixture, CoolsDownWhenNoCurrent) {
     azs.current = 0.0f;
 
     float dt = 1.0f;
-    azs.solve_thermal(st, dt);
+    step_component(azs, st, dt);
 
     EXPECT_LT(azs.temp, 0.8f);
 }
@@ -203,7 +211,7 @@ TEST_F(AZSTestFixture, TempNeverGoesNegative) {
 
     // Multiple cooling steps
     for (int i = 0; i < 100; ++i) {
-        azs.solve_thermal(st, 1.0f);
+        step_component(azs, st, 1.0f);
     }
 
     EXPECT_GE(azs.temp, 0.0f);
@@ -322,11 +330,13 @@ TEST_F(AZSTestFixture, NominalCurrentReachesSteadyStateAtOne) {
     // T_ss = I² * r_heat / k_cool = 400 * (1/400) / 1 = 1.0
     azs.closed = true;
     azs.temp = 0.0f;
-    azs.current = 20.0f; // nominal current
+    // Set v_in so solve_electrical computes current = 20A (nominal)
+    // current = v_in / r where r = 28.0 / i_nominal = 1.4, so v_in = 20 * 1.4 = 28.0
+    st.values[IDX_V_IN] = 28.0f;
 
     // Run thermal for many seconds until convergence
     for (int i = 0; i < 100; ++i) {
-        azs.solve_thermal(st, 1.0f);
+        step_component(azs, st, 1.0f);
     }
 
     // Should converge to ~1.0 (equilibrium)
@@ -337,11 +347,13 @@ TEST_F(AZSTestFixture, DoubleNominalTripsQuickly) {
     // At I = 2 * i_nominal (40A), should overshoot 1.0 within a few seconds
     azs.closed = true;
     azs.temp = 0.0f;
-    azs.current = 40.0f; // 2x nominal
+    // Set v_in so solve_electrical computes current = 40A (2x nominal)
+    // current = v_in / r where r = 28.0 / i_nominal = 1.4, so v_in = 40 * 1.4 = 56.0
+    st.values[IDX_V_IN] = 56.0f;
 
     int steps_to_trip = 0;
     for (int i = 0; i < 30; ++i) {
-        azs.solve_thermal(st, 1.0f);
+        step_component(azs, st, 1.0f);
         if (azs.temp > 1.0f) {
             steps_to_trip = i + 1;
             break;
@@ -360,14 +372,14 @@ TEST_F(AZSTestFixture, ThermalWorksWithVariableDt) {
     AZS<JitProvider> azs2 = azs;
     azs1.closed = true;
     azs2.closed = true;
-    azs1.current = 20.0f;
-    azs2.current = 20.0f;
     azs1.temp = 0.0f;
     azs2.temp = 0.0f;
+    // Set v_in so solve_electrical computes current = 20A (nominal)
+    st.values[IDX_V_IN] = 28.0f;
 
     // 10 seconds at dt=1.0 (50Hz screen → thermal fires every ~50 frames)
     for (int i = 0; i < 10; ++i) {
-        azs1.solve_thermal(st, 1.0f);
+        step_component(azs1, st, 1.0f);
     }
 
     // 10 seconds at dt=0.42 (144Hz screen → thermal fires ~every 144 frames → dt≈0.42)
@@ -375,7 +387,7 @@ TEST_F(AZSTestFixture, ThermalWorksWithVariableDt) {
     while (total < 10.0f) {
         float chunk = 0.42f;
         if (total + chunk > 10.0f) chunk = 10.0f - total;
-        azs2.solve_thermal(st, chunk);
+        step_component(azs2, st, chunk);
         total += chunk;
     }
 

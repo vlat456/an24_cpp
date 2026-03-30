@@ -9,11 +9,12 @@ void ControlledVoltageSource<Provider>::pre_load() {
     inv_r = 1.0f / safe_r;
 }
 
-/// Push model implementation:
-/// Reads cmd control input, computes source voltage with gain/offset/limits,
-/// then sets v_pos to the computed voltage and v_neg to 0 (ground reference).
+/// Execute method for scheduler integration
 template <typename Provider>
-void ControlledVoltageSource<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void ControlledVoltageSource<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Push model implementation:
+    // Reads cmd control input, computes source voltage with gain/offset/limits,
+    // then sets v_pos to the computed voltage and v_neg to 0 (ground reference).
     // Read control input
     float cmd = st.values[provider.get(PortNames::cmd)];
     
@@ -26,10 +27,9 @@ void ControlledVoltageSource<Provider>::solve_electrical(SimulationState& st, fl
     st.values[provider.get(PortNames::v_neg)] = 0.0f;
 }
 
-/// Execute method for scheduler integration
 template <typename Provider>
-void ControlledVoltageSource<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void ControlledVoltageSource<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class ControlledVoltageSource<JitProvider>;

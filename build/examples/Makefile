@@ -255,6 +255,20 @@ benchmark_jit_vs_aot/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/build
 .PHONY : benchmark_jit_vs_aot/fast
 
+# Convenience name for target.
+examples/CMakeFiles/benchmark_push_scheduler.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 examples/CMakeFiles/benchmark_push_scheduler.dir/rule
+.PHONY : examples/CMakeFiles/benchmark_push_scheduler.dir/rule
+
+# Convenience name for target.
+benchmark_push_scheduler: examples/CMakeFiles/benchmark_push_scheduler.dir/rule
+.PHONY : benchmark_push_scheduler
+
+# fast build rule for target.
+benchmark_push_scheduler/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/build
+.PHONY : benchmark_push_scheduler/fast
+
 __/_deps/imgui-src/backends/imgui_impl_opengl3.o: __/_deps/imgui-src/backends/imgui_impl_opengl3.cpp.o
 .PHONY : __/_deps/imgui-src/backends/imgui_impl_opengl3.o
 
@@ -518,30 +532,6 @@ __/src/editor/commands/extract_blueprint.s: __/src/editor/commands/extract_bluep
 __/src/editor/commands/extract_blueprint.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/commands/extract_blueprint.cpp.s
 .PHONY : __/src/editor/commands/extract_blueprint.cpp.s
-
-__/src/editor/data/blueprint.o: __/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.o
-
-# target to build an object file
-__/src/editor/data/blueprint.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.o
-.PHONY : __/src/editor/data/blueprint.cpp.o
-
-__/src/editor/data/blueprint.i: __/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.i
-
-# target to preprocess a source file
-__/src/editor/data/blueprint.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.i
-.PHONY : __/src/editor/data/blueprint.cpp.i
-
-__/src/editor/data/blueprint.s: __/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.s
-
-# target to generate assembly for a file
-__/src/editor/data/blueprint.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/an24_editor.dir/build.make examples/CMakeFiles/an24_editor.dir/__/src/editor/data/blueprint.cpp.s
-.PHONY : __/src/editor/data/blueprint.cpp.s
 
 __/src/editor/document.o: __/src/editor/document.cpp.o
 .PHONY : __/src/editor/document.o
@@ -1551,6 +1541,30 @@ benchmark_jit_vs_aot.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_jit_vs_aot.dir/build.make examples/CMakeFiles/benchmark_jit_vs_aot.dir/benchmark_jit_vs_aot.cpp.s
 .PHONY : benchmark_jit_vs_aot.cpp.s
 
+benchmark_push_scheduler.o: benchmark_push_scheduler.cpp.o
+.PHONY : benchmark_push_scheduler.o
+
+# target to build an object file
+benchmark_push_scheduler.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.o
+.PHONY : benchmark_push_scheduler.cpp.o
+
+benchmark_push_scheduler.i: benchmark_push_scheduler.cpp.i
+.PHONY : benchmark_push_scheduler.i
+
+# target to preprocess a source file
+benchmark_push_scheduler.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.i
+.PHONY : benchmark_push_scheduler.cpp.i
+
+benchmark_push_scheduler.s: benchmark_push_scheduler.cpp.s
+.PHONY : benchmark_push_scheduler.s
+
+# target to generate assembly for a file
+benchmark_push_scheduler.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f examples/CMakeFiles/benchmark_push_scheduler.dir/build.make examples/CMakeFiles/benchmark_push_scheduler.dir/benchmark_push_scheduler.cpp.s
+.PHONY : benchmark_push_scheduler.cpp.s
+
 codegen_test.o: codegen_test.cpp.o
 .PHONY : codegen_test.o
 
@@ -1639,6 +1653,7 @@ help:
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
 	@echo "... benchmark_jit_vs_aot"
+	@echo "... benchmark_push_scheduler"
 	@echo "... codegen_test"
 	@echo "... hello_world"
 	@echo "... sim_debug"
@@ -1675,9 +1690,6 @@ help:
 	@echo "... __/src/editor/commands/extract_blueprint.o"
 	@echo "... __/src/editor/commands/extract_blueprint.i"
 	@echo "... __/src/editor/commands/extract_blueprint.s"
-	@echo "... __/src/editor/data/blueprint.o"
-	@echo "... __/src/editor/data/blueprint.i"
-	@echo "... __/src/editor/data/blueprint.s"
 	@echo "... __/src/editor/document.o"
 	@echo "... __/src/editor/document.i"
 	@echo "... __/src/editor/document.s"
@@ -1804,6 +1816,9 @@ help:
 	@echo "... benchmark_jit_vs_aot.o"
 	@echo "... benchmark_jit_vs_aot.i"
 	@echo "... benchmark_jit_vs_aot.s"
+	@echo "... benchmark_push_scheduler.o"
+	@echo "... benchmark_push_scheduler.i"
+	@echo "... benchmark_push_scheduler.s"
 	@echo "... codegen_test.o"
 	@echo "... codegen_test.i"
 	@echo "... codegen_test.s"

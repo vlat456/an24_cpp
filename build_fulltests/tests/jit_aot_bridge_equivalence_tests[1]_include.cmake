@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/jit_aot_bridge_equivalence_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/jit_aot_bridge_equivalence_tests[1]_tests.cmake")
+else()
+  add_test(jit_aot_bridge_equivalence_tests_NOT_BUILT jit_aot_bridge_equivalence_tests_NOT_BUILT)
+endif()

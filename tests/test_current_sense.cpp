@@ -8,6 +8,12 @@
 // Test Helpers
 // =============================================================================
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 /// Port layout: [0]=v_in, [1]=v_out, [2]=i_out
 static CurrentSense<JitProvider> make_current_sense(float g = 1000.0f) {
     CurrentSense<JitProvider> comp;
@@ -38,7 +44,7 @@ TEST(CurrentSense, ComputesCurrentFromVoltageDifference) {
     st.values[0] = 28.0f;  // v_in
     st.values[1] = 27.9f;  // v_out (slight drop across ammeter)
 
-    comp.solve_electrical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     float expected_i = (28.0f - 27.9f) * 1000.0f; // 100 A
     EXPECT_FLOAT_EQ(st.values[2], expected_i)
@@ -51,7 +57,7 @@ TEST(CurrentSense, ZeroCurrentWhenEqualVoltage) {
     st.values[0] = 28.0f;  // v_in
     st.values[1] = 28.0f;  // v_out (same as v_in)
 
-    comp.solve_electrical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f)
         << "i_out should be zero when v_in == v_out";
@@ -64,7 +70,7 @@ TEST(CurrentSense, NegativeCurrentWhenReversed) {
     st.values[0] = 27.0f;  // v_in
     st.values[1] = 28.0f;  // v_out
 
-    comp.solve_electrical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     float expected_i = (27.0f - 28.0f) * 1000.0f; // -1000 A
     EXPECT_FLOAT_EQ(st.values[2], expected_i)
@@ -77,7 +83,7 @@ TEST(CurrentSense, UsesConfiguredConductance) {
     st.values[0] = 10.0f;
     st.values[1] = 9.0f;
 
-    comp.solve_electrical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[2], (10.0f - 9.0f) * 500.0f)
         << "i_out should use the configured conductance";
@@ -90,7 +96,7 @@ TEST(CurrentSense, ZeroVoltageDifference_ZeroCurrent) {
     st.values[0] = 0.0f;
     st.values[1] = 0.0f;
 
-    comp.solve_electrical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f)
         << "i_out should be zero when no voltage difference";

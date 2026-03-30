@@ -17,12 +17,18 @@ public:
     float inv_tau_up = 10.0f;
     float inv_tau_down = 2.0f;
     float deadzone = 0.001f;
+
+    // Committed state fields
     float current_value = 0.0f;
     float first_frame_mask = 1.0f;
 
+    // Staged next-state fields
+    float next_current_value = 0.0f;
+    float next_first_frame_mask = 1.0f;
+
     AsymTMO() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load();
 };

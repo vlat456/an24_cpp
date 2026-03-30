@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void PD<Provider>::solve_logical(SimulationState& st, float dt) {
+void PD<Provider>::execute(SimulationState& st, float dt) {
     constexpr float kDtMin = 1e-6f;
     constexpr float kDtMax = 0.1f;
     const float safe_dt = std::clamp(dt, kDtMin, kDtMax);
@@ -24,8 +24,8 @@ void PD<Provider>::solve_logical(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void PD<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void PD<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class PD<JitProvider>;

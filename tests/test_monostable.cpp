@@ -26,6 +26,15 @@ static SimulationState make_state(float input_val)
     return st;
 }
 
+/// Simulate one complete frame: execute + commit (two-phase semantics)
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
+#define step step_component
+
 // =============================================================================
 // Monostable Tests
 // =============================================================================
@@ -35,9 +44,9 @@ TEST(MonostableTest, InitiallyOff)
     auto comp = make_monostable();
     auto st = make_state(0.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
-    // Initially output should be off
+    // Initially output should be off (committed timer = 0)
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
@@ -47,14 +56,16 @@ TEST(MonostableTest, RisingEdge_TriggersPulse)
     auto comp = make_monostable();
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Rising edge
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
-
-    // Timer should be set to duration, output should be on
+    step(comp, st, 1.0f / 60.0f);
+    // After commit: timer = duration = 30.0, but output was from committed timer=0 → out=0
     EXPECT_FLOAT_EQ(comp.timer, 30.0f);
+
+    // Next frame: committed timer > 0, so output = 1
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -63,25 +74,26 @@ TEST(MonostableTest, Pulse_ExpiresAfterDuration)
     auto comp = make_monostable(1.0f);  // 1 second pulse
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);  // stages timer = duration
+    step(comp, st, 1.0f / 60.0f);  // output = 1 (committed timer > 0)
 
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Run for 0.9 seconds
-    for (int i = 0; i < 54; ++i) {  // 54 frames ≈ 0.9s
-        comp.solve_logical(st, 1.0f / 60.0f);
+    for (int i = 0; i < 54; ++i) {
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should still be on
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
-    // Run past expiration (+1 frame for fp rounding safety)
-    for (int i = 0; i < 7; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+    // Run past expiration (extra frames for one-frame delay)
+    for (int i = 0; i < 8; ++i) {
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should now be off
@@ -93,15 +105,18 @@ TEST(MonostableTest, FallingEdge_DoesNotRetrigger)
 {
     auto comp = make_monostable();
 
+    // Start with input=1 (cold start: last_in=0 by default, so first frame with input=1 IS a rising edge)
     auto st = make_state(1.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
+    // After commit: timer = 30.0 (triggered), output was from committed timer=0 → 0
 
-    // First frame with input=1.0 triggers the timer
+    // Next frame: committed timer=30.0, output=1
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Input goes low (this is a falling edge, should not retrigger)
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Timer should still be active (not reset by falling edge)
     EXPECT_GT(comp.timer, 0.0f);
@@ -113,20 +128,22 @@ TEST(MonostableTest, HighInput_DoesNotRetrigger)
     auto comp = make_monostable();
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // First rising edge
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     float timer_after_first = comp.timer;
     EXPECT_FLOAT_EQ(timer_after_first, 30.0f);
 
-    // Keep input high
-    comp.solve_logical(st, 1.0f / 60.0f);
+    // Keep input high — no new rising edge, timer just ticks down
+    step(comp, st, 1.0f / 60.0f);
 
-    // Timer should not be reset
+    // Timer should not be reset (no new rising edge)
     EXPECT_LT(comp.timer, timer_after_first);
+
+    // Output should be 1 (committed timer > 0)
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -135,29 +152,32 @@ TEST(MonostableTest, RetriggerOnNewPulse)
     auto comp = make_monostable(1.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // First trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Let timer decay partially
-    for (int i = 0; i < 30; ++i) {  // 0.5 seconds
-        comp.solve_logical(st, 1.0f / 60.0f);
+    for (int i = 0; i < 30; ++i) {
+        step(comp, st, 1.0f / 60.0f);
     }
 
     EXPECT_LT(comp.timer, 1.0f);
     EXPECT_GT(comp.timer, 0.0f);
 
-    // Bring input low, then high again
+    // Bring input low, then high again (new rising edge)
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Timer should be reset to full duration
     EXPECT_FLOAT_EQ(comp.timer, 1.0f);
+
+    // Output = 1 on next frame (committed timer > 0)
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -166,24 +186,28 @@ TEST(MonostableTest, VariableDt_TimerTicksCorrectly)
     auto comp = make_monostable(1.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);  // timer set to 1.0
 
-    // Large dt
-    comp.solve_logical(st, 0.5f);
+    // Large dt - timer ticks down
+    step(comp, st, 0.5f);
 
     // Timer should have decreased by 0.5
     EXPECT_NEAR(comp.timer, 0.5f, 0.001f);
+    // Output = 1 (committed timer was 1.0 at start of this step → > 0)
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Another large dt
-    comp.solve_logical(st, 0.5f);
+    step(comp, st, 0.5f);
 
     // Timer should now be 0
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
+    // Output still 1 because committed timer was 0.5 at start of this step → > 0
+    // It goes to 0 on next frame when committed timer = 0
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
 
@@ -192,21 +216,24 @@ TEST(MonostableTest, ZeroDt_PausesTimer)
     auto comp = make_monostable(30.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     float timer_before_pause = comp.timer;
 
     // Pause
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 0.0f);
+        step(comp, st, 0.0f);
     }
 
     // Timer should not have changed
     EXPECT_FLOAT_EQ(comp.timer, timer_before_pause);
+
+    // Output = 1 (committed timer > 0)
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -215,24 +242,27 @@ TEST(MonostableTest, ShortPulse)
     auto comp = make_monostable(0.1f);  // 100ms pulse
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);  // stages timer = 0.1
 
+    // Next frame: output = 1 (committed timer > 0)
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Run for 0.1 seconds (6 frames)
     for (int i = 0; i < 6; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should still be on (timer just about to expire)
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
-    // One more frame to actually expire
-    comp.solve_logical(st, 1.0f / 60.0f);
+    // Run a couple more frames to expire (one-frame delay)
+    step(comp, st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Should now be off
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
@@ -243,15 +273,15 @@ TEST(MonostableTest, LongPulse)
     auto comp = make_monostable(60.0f);  // 60 second pulse
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);  // stages timer = 60.0
 
     // Run for 1 second
     for (int i = 0; i < 60; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should still be on
@@ -264,17 +294,19 @@ TEST(MonostableTest, BooleanThreshold_0_5)
     auto comp = make_monostable();
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
-    // Input below threshold (not a trigger)
+    // Input below threshold (not a trigger: 0.4 <= 0.5)
     st.values[0] = 0.4f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 
-    // Rising edge through threshold (trigger)
+    // Rising edge through threshold (0.4 → 0.6)
     st.values[0] = 0.6f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(comp.timer, 30.0f);
+    // Output shows on next frame
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -283,11 +315,11 @@ TEST(MonostableTest, NegativeInput_Ignored)
     auto comp = make_monostable();
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Negative input (not a trigger)
     st.values[0] = -1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
@@ -298,24 +330,28 @@ TEST(MonostableTest, MultiplePulses_Sequential)
     auto comp = make_monostable(0.2f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // First pulse
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
+    // Output = 1 on next frame
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
-    // Wait for expiration (13 frames for 0.2s due to floating point)
-    for (int i = 0; i < 13; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+    // Wait for expiration (extra frames for one-frame delay)
+    for (int i = 0; i < 15; ++i) {
+        step(comp, st, 1.0f / 60.0f);
     }
     EXPECT_NEAR(st.values[1], 0.0f, 0.01f);
 
     // Second pulse (need to go low first)
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
+    // Output = 1 on next frame
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
 
@@ -324,24 +360,24 @@ TEST(MonostableTest, RapidRetrigger_ExtendsPulse)
     auto comp = make_monostable(1.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // First trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Let decay partially
     for (int i = 0; i < 30; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     EXPECT_LT(comp.timer, 1.0f);
 
     // Retrigger
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Timer should be back to full duration
     EXPECT_FLOAT_EQ(comp.timer, 1.0f);
@@ -352,13 +388,15 @@ TEST(MonostableTest, ZeroDuration_InstantPulse)
     auto comp = make_monostable(0.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
-    // With zero duration, output turns on but immediately expires
+    // With zero duration, timer immediately set to 0 (trigger ? 0.0 : max(0, 0-dt) = 0)
+    // Actually: trigger ? duration : ... → timer = 0.0 (duration is 0)
+    // Output from committed timer=0 → 0
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
     EXPECT_FLOAT_EQ(comp.timer, 0.0f);
 }
@@ -368,15 +406,15 @@ TEST(MonostableTest, TimerClampedAtZero)
     auto comp = make_monostable(0.1f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Run past expiration
     for (int i = 0; i < 20; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Timer should be exactly zero (not negative)
@@ -389,17 +427,17 @@ TEST(MonostableTest, InputHighDuringPulse_NoEffect)
     auto comp = make_monostable(1.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Trigger
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     float timer_after_trigger = comp.timer;
 
-    // Keep input high for several frames
+    // Keep input high for several frames (no re-trigger since no new rising edge)
     for (int i = 0; i < 10; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Timer should have decreased, not reset
@@ -413,17 +451,19 @@ TEST(MonostableTest, EngineStartCycle_RealisticUseCase)
     auto comp = make_monostable(30.0f);
 
     auto st = make_state(0.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Press start button
     st.values[0] = 1.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);  // stages timer = 30.0
 
+    // Output = 1 on next frame
+    step(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Simulate 10 seconds of cranking
     for (int i = 0; i < 600; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should still be cranking
@@ -432,14 +472,14 @@ TEST(MonostableTest, EngineStartCycle_RealisticUseCase)
 
     // Release start button (goes low)
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step(comp, st, 1.0f / 60.0f);
 
     // Cranking continues automatically
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 
     // Simulate another 20 seconds
     for (int i = 0; i < 1200; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step(comp, st, 1.0f / 60.0f);
     }
 
     // Should now stop

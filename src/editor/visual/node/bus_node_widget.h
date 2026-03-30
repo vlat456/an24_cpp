@@ -3,8 +3,7 @@
 #include "visual/render_context.h"
 #include "visual/port/visual_port.h"
 #include "ui/core/interned_id.h"
-#include "data/node.h"
-#include "data/wire.h"
+#include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
@@ -13,8 +12,6 @@
 #include <cstdint>
 
 namespace visual {
-
-using DataWire = ::Wire;
 
 struct BusWireRef {
     ui::InternedId id;
@@ -35,14 +32,6 @@ enum class PortEdge {
 /// Ports are distributed evenly along one edge based on orientation.
 class BusNodeWidget : public Widget {
 public:
-    BusNodeWidget(const ::Node& data,
-                  const ui::StringInterner& interner,
-                  PortEdge port_edge = PortEdge::Bottom,
-                  const std::vector<BusWireRef>& wires = {});
-    BusNodeWidget(const ::Node& data,
-                  const ui::StringInterner& interner,
-                  PortEdge port_edge,
-                  const std::vector<DataWire>& wires);
     BusNodeWidget(const bp2::Blueprint::Node& data,
                   const ui::StringInterner& interner,
                   PortEdge port_edge = PortEdge::Bottom,
@@ -69,9 +58,7 @@ public:
 
     /// Wire management: dynamically add/remove alias ports
     void connectWire(const BusWireRef& wire);
-    void connectWire(const DataWire& wire);
     void disconnectWire(const BusWireRef& wire);
-    void disconnectWire(const DataWire& wire);
 
     /// Swap two alias port positions (by wire_id)
     bool swapAliasPorts(ui::InternedId wire_id_a,

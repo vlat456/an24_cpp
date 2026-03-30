@@ -6,7 +6,7 @@
 #include "editor/layout_constants.h"
 #include "visual/node/bounds.h"
 #include "visual/snap.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -17,17 +17,22 @@ namespace visual {
 // Construction
 // ============================================================================
 
-NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
+NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
-    , type_name_(data.type_name)
+    , type_name_(std::string(interner.resolve(data.type)))
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
     buildLayout(data, interner);
 
     // Auto-size: compute preferred, snap to grid
@@ -36,18 +41,16 @@ NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
     float w = preferred.x;
     float h = preferred.y;
 
-    if (data.has_explicit_size()) {
+    bool has_explicit = data.width.has_value() && data.height.has_value();
+    if (has_explicit) {
         // Trust the user's explicit size — only enforce a hard minimum
         // (PORT_LAYOUT_GRID) to prevent degenerate zero-area nodes.
-        // The old code rejected explicit sizes smaller than preferred,
-        // which silently reverted content-heavy nodes (AZS, Voltmeter,
-        // HoldButton) back to auto-size after every scene rebuild.
-        if (data.explicit_size().x >= editor_constants::PORT_LAYOUT_GRID) w = data.explicit_size().x;
-        if (data.explicit_size().y >= editor_constants::PORT_LAYOUT_GRID) h = data.explicit_size().y;
+        if (*data.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.width;
+        if (*data.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.height;
     }
     spdlog::info("[DEBUG-WIDGET] NodeWidget: node={} type={} preferred=({},{}) has_explicit_size={} -> final=({},{})",
-                 data.name, data.type_name, preferred.x, preferred.y,
-                 data.has_explicit_size(), w, h);
+                 data.name, type_name_, preferred.x, preferred.y,
+                 has_explicit, w, h);
 
     // Snap to layout grid (round up to nearest PORT_LAYOUT_GRID)
     Pt snapped = editor_math::snap_size_to_layout_grid(Pt(w, h));
@@ -57,76 +60,46 @@ NodeWidget::NodeWidget(const ::Node& data, const ui::StringInterner& interner)
     layout(w, h);
 }
 
-NodeWidget::NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : NodeWidget([
-        &]() {
-            Node node;
-            node.id = data.id;
-            node.name = data.name;
-            node.type_name = std::string(interner.resolve(data.type));
-            node.render_hint = data.render_hint;
-            node.expandable = data.expandable;
-            node.collapsed = data.collapsed;
-            node.blueprint_path = data.blueprint_path;
-            node.group_id = data.group_id;
-            node.pos = ui::Pt(data.x, data.y);
-
-            if (data.width.has_value() && data.height.has_value()) {
-                node.set_explicit_size(ui::Pt(*data.width, *data.height));
-            }
-
-            node.inputs = data.inputs;
-            node.outputs = data.outputs;
-
-            for (const auto& ov : data.layout_overrides) {
-                PortLayoutOverride lo;
-                lo.port_name = ov.port_name;
-                if (ov.side.has_value()) {
-                    lo.side = parse_port_layout_side(*ov.side);
-                }
-                if (ov.position.has_value()) {
-                    lo.position = static_cast<uint8_t>(*ov.position);
-                }
-                node.layout_overrides.push_back(std::move(lo));
-            }
-
-            node.node_content.type = static_cast<NodeContentType>(data.content_type);
-            node.node_content.label = data.content_label;
-            node.node_content.value = data.content_value;
-            node.node_content.min = data.content_min;
-            node.node_content.max = data.content_max;
-            node.node_content.unit = data.content_unit;
-            node.node_content.state = data.content_state;
-            node.node_content.tripped = data.content_tripped;
-
-            if (data.has_color) {
-                NodeColor c;
-                c.r = data.color_r;
-                c.g = data.color_g;
-                c.b = data.color_b;
-                c.a = data.color_a;
-                node.color = c;
-            }
-
-            return node;
-        }(),
-        interner)
-{}
-
 // ============================================================================
 // Layout construction
 // ============================================================================
 
-void NodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& interner) {
+/// Helper: resolve layout overrides from bp2 format to PortLayoutOverride vector
+static std::vector<PortLayoutOverride> resolve_bp2_layout_overrides(
+    const std::vector<bp2::Blueprint::Node::PortLayoutOverride>& bp2_overrides) {
+    std::vector<PortLayoutOverride> result;
+    result.reserve(bp2_overrides.size());
+    for (const auto& ov : bp2_overrides) {
+        PortLayoutOverride lo;
+        lo.port_name = ov.port_name;
+        if (ov.side.has_value()) {
+            lo.side = parse_port_layout_side(*ov.side);
+        }
+        if (ov.position.has_value()) {
+            lo.position = static_cast<uint8_t>(*ov.position);
+        }
+        result.push_back(std::move(lo));
+    }
+    return result;
+}
+
+/// Helper: get NodeContentType from bp2 enum
+static NodeContentType to_node_content_type(bp2::NodeContentType t) {
+    return static_cast<NodeContentType>(t);
+}
+
+void NodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     layout_ = emplaceChild<Column>();
 
     // -- Header --
     layout_->emplaceChild<HeaderWidget>(
         name_, render_theme::COLOR_HEADER_FILL, editor_constants::NODE_ROUNDING);
 
+    NodeContentType content_type = to_node_content_type(data.content_type);
+
     // -- Port rows / Content --
     // VerticalToggle uses special layout, but falls back to standard when overrides present
-    if (data.node_content.type == NodeContentType::VerticalToggle && data.layout_overrides.empty()) {
+    if (content_type == NodeContentType::VerticalToggle && data.layout_overrides.empty()) {
         buildVerticalToggleLayout(data, interner);
     } else {
         buildStandardLayout(data, interner);
@@ -143,7 +116,9 @@ void NodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& inter
     layout_->emplaceChild<TypeNameWidget>(type_name_);
 }
 
-void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
+    NodeContentType content_type = to_node_content_type(data.content_type);
+
     // Fast path: no overrides — use existing paired-row layout
     if (data.layout_overrides.empty()) {
         // Port rows: pair inputs and outputs
@@ -163,42 +138,42 @@ void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterne
         }
 
         // Content area (appended below port rows in the root Column)
-        if (data.node_content.type == NodeContentType::Gauge) {
+        if (content_type == NodeContentType::Gauge) {
             content_widget_ = layout_->emplaceChild<VoltmeterWidget>(
-                data.node_content.value, data.node_content.min,
-                data.node_content.max, data.node_content.unit);
-        } else if (data.node_content.type == NodeContentType::Switch) {
+                data.content_value, data.content_min,
+                data.content_max, data.content_unit);
+        } else if (content_type == NodeContentType::Switch) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, v_pad, margin, v_pad});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<SwitchWidget>(
-                data.node_content.state, data.node_content.tripped);
-        } else if (data.node_content.type == NodeContentType::VerticalToggle) {
+                data.content_state, data.content_tripped);
+        } else if (content_type == NodeContentType::VerticalToggle) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 5.0f, margin, 5.0f});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<VerticalToggleWidget>(
-                data.node_content.state, data.node_content.tripped);
-        } else if (data.node_content.type == NodeContentType::Slider) {
+                data.content_state, data.content_tripped);
+        } else if (content_type == NodeContentType::Slider) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             float v_pad = 2.0f;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, v_pad, margin, v_pad});
             container->setFlexGrow(1.0f);
             content_widget_ = container->emplaceChild<SliderWidget>(
-                data.node_content.value, data.node_content.min,
-                data.node_content.max);
-        } else if (data.node_content.type != NodeContentType::None) {
+                data.content_value, data.content_min,
+                data.content_max);
+        } else if (content_type != NodeContentType::None) {
             float margin = PortConstants::RADIUS + PortConstants::LEFT_LABEL_OFFSET;
             auto* container = layout_->emplaceChild<Container>(
                 Edges{margin, 0, margin, 0});
             container->setFlexGrow(1.0f);
-            if (!data.node_content.label.empty()) {
+            if (!data.content_label.empty()) {
                 content_widget_ = container->emplaceChild<Label>(
-                    data.node_content.label, 10.0f, (uint32_t)0x00000000);
+                    data.content_label, 10.0f, (uint32_t)0x00000000);
             } else {
                 content_widget_ = container->emplaceChild<Spacer>();
             }
@@ -210,7 +185,7 @@ void NodeWidget::buildStandardLayout(const ::Node& data, const ui::StringInterne
     }
 }
 
-void NodeWidget::buildVerticalToggleLayout(const ::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     auto* main_row = layout_->emplaceChild<Row>();
 
     // Left column (input ports)
@@ -226,7 +201,7 @@ void NodeWidget::buildVerticalToggleLayout(const ::Node& data, const ui::StringI
     auto* toggle_container = center_col->emplaceChild<Container>(
         Edges{0, 5.0f, 0, 5.0f});
     content_widget_ = toggle_container->emplaceChild<VerticalToggleWidget>(
-        data.node_content.state, data.node_content.tripped);
+        data.content_state, data.content_tripped);
 
     // Right column (output ports)
     auto* right_col = main_row->emplaceChild<Column>();
@@ -250,13 +225,16 @@ void NodeWidget::buildPortInColumn(Widget* col, std::string_view name,
     if (row->port()) ports_.push_back(row->port());
 }
 
-void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringInterner& interner) {
+void NodeWidget::buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     using namespace editor_constants;
     four_sided_layout_ = true;
+
+    auto overrides = resolve_bp2_layout_overrides(data.layout_overrides);
+    ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs,
+                                                 overrides, interner);
     
-    ResolvedLayout layout = resolve_port_layout(data.inputs, data.outputs, 
-                                                 data.layout_overrides, interner);
-    
+    NodeContentType content_type = to_node_content_type(data.content_type);
+
     // Top port strip
     if (!layout.top.empty()) {
         buildHorizontalPortStrip(layout.top);
@@ -277,27 +255,27 @@ void NodeWidget::buildFourSidedLayout(const ::Node& data, const ui::StringIntern
     auto* center = body_row->emplaceChild<Container>(Edges{4, 0, 4, 0});
     center->setFlexGrow(1.0f);
 
-    if (data.node_content.type == NodeContentType::Gauge) {
+    if (content_type == NodeContentType::Gauge) {
         content_widget_ = center->emplaceChild<VoltmeterWidget>(
-            data.node_content.value, data.node_content.min,
-            data.node_content.max, data.node_content.unit);
-    } else if (data.node_content.type == NodeContentType::Switch) {
+            data.content_value, data.content_min,
+            data.content_max, data.content_unit);
+    } else if (content_type == NodeContentType::Switch) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SwitchWidget>(
-            data.node_content.state, data.node_content.tripped);
-    } else if (data.node_content.type == NodeContentType::VerticalToggle) {
+            data.content_state, data.content_tripped);
+    } else if (content_type == NodeContentType::VerticalToggle) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 5.0f, 0, 5.0f});
         content_widget_ = inner->emplaceChild<VerticalToggleWidget>(
-            data.node_content.state, data.node_content.tripped);
-    } else if (data.node_content.type == NodeContentType::Slider) {
+            data.content_state, data.content_tripped);
+    } else if (content_type == NodeContentType::Slider) {
         auto* inner = center->emplaceChild<Container>(Edges{0, 2.0f, 0, 2.0f});
         content_widget_ = inner->emplaceChild<SliderWidget>(
-            data.node_content.value, data.node_content.min,
-            data.node_content.max);
-    } else if (data.node_content.type != NodeContentType::None) {
-        if (!data.node_content.label.empty()) {
+            data.content_value, data.content_min,
+            data.content_max);
+    } else if (content_type != NodeContentType::None) {
+        if (!data.content_label.empty()) {
             content_widget_ = center->emplaceChild<Label>(
-                data.node_content.label, 10.0f, (uint32_t)0x00000000);
+                data.content_label, 10.0f, (uint32_t)0x00000000);
         } else {
             center->emplaceChild<Spacer>();
         }

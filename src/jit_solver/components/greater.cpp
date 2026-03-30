@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Greater<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void Greater<Provider>::execute(SimulationState& st, float /*dt*/) {
     float A = st.values[provider.get(PortNames::A)];
     float B = st.values[provider.get(PortNames::B)];
     // Branchless: результат сравнения приводится к float (1.0 или 0.0)
@@ -10,8 +10,8 @@ void Greater<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Greater<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void Greater<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Greater<JitProvider>;

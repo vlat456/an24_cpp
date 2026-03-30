@@ -9,6 +9,12 @@
 // Test Helpers
 // =============================================================================
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 static Clamp<JitProvider> make_clamp(float min_val = 0.0f, float max_val = 1.0f)
 {
     Clamp<JitProvider> comp;
@@ -48,7 +54,7 @@ TEST(ClampTest, WithinRange_PassesThrough)
     auto comp = make_clamp(0.0f, 10.0f);
     auto st = make_state(5.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 5.0f);
 }
@@ -58,7 +64,7 @@ TEST(ClampTest, BelowMinimum_ClampsToMin)
     auto comp = make_clamp(0.0f, 10.0f);
     auto st = make_state(-5.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
@@ -68,7 +74,7 @@ TEST(ClampTest, AboveMaximum_ClampsToMax)
     auto comp = make_clamp(0.0f, 10.0f);
     auto st = make_state(15.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 10.0f);
 }
@@ -78,7 +84,7 @@ TEST(ClampTest, AtBoundary_Min)
     auto comp = make_clamp(0.0f, 10.0f);
     auto st = make_state(0.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
@@ -88,7 +94,7 @@ TEST(ClampTest, AtBoundary_Max)
     auto comp = make_clamp(0.0f, 10.0f);
     auto st = make_state(10.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 10.0f);
 }
@@ -98,7 +104,7 @@ TEST(ClampTest, NegativeRange)
     auto comp = make_clamp(-10.0f, -5.0f);
     auto st = make_state(-7.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], -7.0f);
 }
@@ -108,7 +114,7 @@ TEST(ClampTest, NegativeRange_ClampsBelow)
     auto comp = make_clamp(-10.0f, -5.0f);
     auto st = make_state(-15.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], -10.0f);
 }
@@ -118,7 +124,7 @@ TEST(ClampTest, NegativeRange_ClampsAbove)
     auto comp = make_clamp(-10.0f, -5.0f);
     auto st = make_state(0.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], -5.0f);
 }
@@ -128,7 +134,7 @@ TEST(ClampTest, ZeroRange_ClampsToSingleValue)
     auto comp = make_clamp(5.0f, 5.0f);
     auto st = make_state(100.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 5.0f);
 }
@@ -138,7 +144,7 @@ TEST(ClampTest, SymmetricRange_Positive)
     auto comp = make_clamp(-1.0f, 1.0f);
     auto st = make_state(0.5f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -148,7 +154,7 @@ TEST(ClampTest, SymmetricRange_Negative)
     auto comp = make_clamp(-1.0f, 1.0f);
     auto st = make_state(-0.5f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], -0.5f);
 }
@@ -158,7 +164,7 @@ TEST(ClampTest, LargeValues)
     auto comp = make_clamp(1000.0f, 10000.0f);
     auto st = make_state(5000.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 5000.0f);
 }
@@ -172,7 +178,7 @@ TEST(NormalizeTest, MidRange_MapsToZeroPointFive)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(50.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -182,7 +188,7 @@ TEST(NormalizeTest, AtMin_MapsToZero)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(0.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
@@ -192,7 +198,7 @@ TEST(NormalizeTest, AtMax_MapsToOne)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(100.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
@@ -202,7 +208,7 @@ TEST(NormalizeTest, BelowMin_ClampsToZero)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(-10.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
@@ -212,7 +218,7 @@ TEST(NormalizeTest, AboveMax_ClampsToOne)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(150.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
@@ -222,7 +228,7 @@ TEST(NormalizeTest, OffsetRange)
     auto comp = make_normalize(20.0f, 120.0f);
     auto st = make_state(70.0f);  // Midpoint
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -232,7 +238,7 @@ TEST(NormalizeTest, NegativeRange)
     auto comp = make_normalize(-50.0f, 50.0f);
     auto st = make_state(0.0f);  // Midpoint
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -242,7 +248,7 @@ TEST(NormalizeTest, NegativeRange_Min)
     auto comp = make_normalize(-50.0f, 50.0f);
     auto st = make_state(-50.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }
@@ -252,7 +258,7 @@ TEST(NormalizeTest, NegativeRange_Max)
     auto comp = make_normalize(-50.0f, 50.0f);
     auto st = make_state(50.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 1.0f);
 }
@@ -263,7 +269,7 @@ TEST(NormalizeTest, SmallRange_PressureSensor)
     auto comp = make_normalize(0.0f, 10.0f);
     auto st = make_state(7.5f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.75f);
 }
@@ -274,7 +280,7 @@ TEST(NormalizeTest, TemperatureRange_Celsius)
     auto comp = make_normalize(-50.0f, 150.0f);
     auto st = make_state(50.0f);  // 1/2 of range
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -285,7 +291,7 @@ TEST(NormalizeTest, VoltageRange_Aircraft)
     auto comp = make_normalize(20.0f, 30.0f);
     auto st = make_state(28.5f);  // Nominal
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_NEAR(st.values[1], 0.85f, 0.01f);
 }
@@ -296,7 +302,7 @@ TEST(NormalizeTest, ZeroRange_DefaultsToZero)
     auto comp = make_normalize(50.0f, 50.0f);
     auto st = make_state(100.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     // Should clamp to 0 since inv_range = 0
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
@@ -342,7 +348,7 @@ TEST(NormalizeTest, RealWorld_OilPressureWarning)
     auto comp = make_normalize(0.0f, 10.0f);
     auto st = make_state(1.5f);  // Low pressure
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     // Should be 0.15 (below 0.2 threshold)
     EXPECT_NEAR(st.values[1], 0.15f, 0.01f);
@@ -354,7 +360,7 @@ TEST(NormalizeTest, RealWorld_FuelQuantityGauge)
     auto comp = make_normalize(0.0f, 500.0f);
     auto st = make_state(350.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.7f);
 }
@@ -364,11 +370,11 @@ TEST(NormalizeTest, VariableInput_UpdatesCorrectly)
     auto comp = make_normalize(0.0f, 100.0f);
     auto st = make_state(25.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 0.25f);
 
     st.values[0] = 75.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 0.75f);
 }
 
@@ -389,15 +395,15 @@ TEST(ClampTest, Regression_InvertedRange_NoCrash)
     comp.provider.set(PortNames::out, 1);
 
     auto st = make_state(7.0f);
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st.values[1], 7.0f);
 
     auto st2 = make_state(3.0f);
-    comp.solve_logical(st2, 1.0f / 60.0f);
+    step_component(comp, st2, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st2.values[1], 5.0f);
 
     auto st3 = make_state(12.0f);
-    comp.solve_logical(st3, 1.0f / 60.0f);
+    step_component(comp, st3, 1.0f / 60.0f);
     EXPECT_FLOAT_EQ(st3.values[1], 10.0f);
 }
 
@@ -408,7 +414,7 @@ TEST(NormalizeTest, Regression_InvertedRange_SafeOutput)
     auto comp = make_normalize(100.0f, 0.0f);
     auto st = make_state(50.0f);  // midpoint stays 0.5
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -419,7 +425,7 @@ TEST(NormalizeTest, Regression_VerySmallRange)
     auto comp = make_normalize(0.0f, 1e-5f);
     auto st = make_state(5e-6f);  // midpoint
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.5f);
 }
@@ -429,7 +435,7 @@ TEST(ClampTest, Regression_ZeroInput)
     auto comp = make_clamp(-10.0f, 10.0f);
     auto st = make_state(0.0f);
 
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
 
     EXPECT_FLOAT_EQ(st.values[1], 0.0f);
 }

@@ -246,13 +246,6 @@ std::string CodeGen::generate_header(
     }
     oss << "\n";
 
-    // Domain scheduling accumulators (FPS-independent sub-rate domains)
-    oss << "    // Domain scheduling accumulators — accumulate dt each step,\n";
-    oss << "    // pass accumulated value when sub-rate domain fires, then reset.\n";
-    oss << "    float acc_mechanical_ = 0.0f;\n";
-    oss << "    float acc_hydraulic_  = 0.0f;\n";
-    oss << "    float acc_thermal_    = 0.0f;\n\n";
-
     // Global simulation step counter (not modulo cycle index)
     oss << "    uint32_t step_counter_ = 0;\n\n";
 
@@ -419,10 +412,7 @@ std::string CodeGen::generate_source(
     // Jump table dispatch - computed goto (GCC/Clang) or switch fallback (MSVC)
     oss << "void " << class_name << "::solve_step(void* state, uint32_t step, float dt) {\n";
     oss << "    if (dt <= 0.0f) return;\n";
-    oss << "    // Accumulate dt for sub-rate domain scheduling\n";
-    oss << "    acc_mechanical_ += dt;\n";
-    oss << "    acc_hydraulic_  += dt;\n";
-    oss << "    acc_thermal_    += dt;\n\n";
+    oss << "\n";
     oss << "#ifndef _MSC_VER\n";
     oss << "    // Computed goto dispatch table (static const for one-time init)\n";
     oss << "    static const void* dispatch_table[" << 60 << "] = {\n";
@@ -676,18 +666,6 @@ void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::st
         else oss << "\n";
     }
     oss << ">;\n\n";
-
-    // Generate visitor helper for calling solve methods on variant
-    oss << "// Visitor helper for calling solve_electrical on component variant\n";
-    oss << "template <typename... Visitors>\n";
-    oss << "struct overloaded : Visitors... {\n";
-    oss << "    using Visitors::operator()...;\n";
-    oss << "};\n\n";
-
-    oss << "// Helper visitor to call solve_electrical on any component\n";
-    oss << "inline auto solve_electrical_visitor = [](auto& component, SimulationState& st, float dt) {\n";
-    oss << "    component.solve_electrical(st, dt);\n";
-    oss << "};\n\n";
 
     // Compile-time guard: ComponentType enum and ComponentVariant must stay in sync
     oss << "// Compile-time guard: ComponentType and ComponentVariant must stay in sync\n";

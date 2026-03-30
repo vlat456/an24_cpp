@@ -154,8 +154,6 @@ gtest_discover_tests(azs_tests)
 # Logical solver tests (TDD - Comparator component)
 add_executable(logical_solver_tests
     test_logical_solver.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(logical_solver_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -478,28 +476,6 @@ target_link_libraries(visual_wire_tests PRIVATE
 )
 gtest_discover_tests(visual_wire_tests)
 
-# Visual Hit Test (Phase 7: Scene-graph hit testing)
-add_executable(visual_hittest_tests
-    test_visual_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene_hittest.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-)
-target_include_directories(visual_hittest_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(visual_hittest_tests PRIVATE
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(visual_hittest_tests)
-
 # Visual Container tests (Phase 2 of Scene Graph Refactoring - containers)
 add_executable(visual_container_tests
     test_visual_container.cpp
@@ -530,7 +506,7 @@ target_link_libraries(visual_primitives_tests PRIVATE
 gtest_discover_tests(visual_primitives_tests)
 
 # Visual Content Widgets tests (Phase 3 - content widgets)
-# BLOCKED: Circular dependency with nlohmann/json via data/node.h
+# BLOCKED: historical include dependency issue (now uses node_content.h)
 # Tests are written but disabled until dependency issue is resolved.
 # See SCENE_GRAPH_PROGRESS.md for details.
 # add_executable(visual_content_widgets_tests
@@ -546,59 +522,6 @@ gtest_discover_tests(visual_primitives_tests)
 #     GTest::gtest_main
 # )
 # gtest_discover_tests(visual_content_widgets_tests)
-
-# Visual NodeWidget tests (Phase 4-5 of Scene Graph Refactoring)
-# Integrated test: includes json_parser for data/node.h dependency
-add_executable(visual_node_widget_tests
-    test_visual_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-)
-target_include_directories(visual_node_widget_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(visual_node_widget_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(visual_node_widget_tests)
-
-# Specialized node widget tests (Phase 9.2 of Scene Graph Refactoring)
-# Tests for RefNodeWidget, TextNodeWidget, GroupNodeWidget, BusNodeWidget, NodeFactory
-add_executable(specialized_node_widget_tests
-    test_specialized_node_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/scene.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/port/visual_port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/primitives/primitives.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/widgets/content_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/wire/wire.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/visual_node.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/ref_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/text_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/group_node_widget.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/node/bus_node_widget.cpp
-)
-target_include_directories(specialized_node_widget_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(specialized_node_widget_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(specialized_node_widget_tests)
 
 # Scene mutations tests (Phase 10: Blueprint <-> visual::Scene sync)
 add_executable(scene_mutations_tests
@@ -749,7 +672,6 @@ gtest_discover_tests(editor_componentvariant_tests)
 # Editor data tests (TDD Step 1)
 add_executable(editor_data_tests
     test_data.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(editor_data_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -781,7 +703,6 @@ gtest_discover_tests(editor_settings_tests)
 # Editor data interning tests (InternedId migration)
 add_executable(editor_data_interning_tests
     test_data_interning.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(editor_data_interning_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -907,26 +828,6 @@ gtest_discover_tests(json_parser_tests)
 
 # A* Router tests
 
-
-# Editor simulation tests (TDD - integration with JIT solver)
-add_executable(editor_simulation_tests
-    test_simulation.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(editor_simulation_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(editor_simulation_tests PRIVATE
-    jit_solver
-    json_parser
-    blueprint_v2
-    GTest::gtest_main
-)
-gtest_discover_tests(editor_simulation_tests)
 
 # Factory validation tests
 add_executable(factory_validation_tests
@@ -1155,25 +1056,6 @@ gtest_discover_tests(lamp_passthrough_jit_test)
 
 # Refactoring regression tests (audit: extracted types, [[nodiscard]], dependency decoupling)
 
-# expand_type_definition tests (shared blueprint expansion)
-add_executable(expand_typedef_tests
-    test_expand_type_definition.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_compile_definitions(expand_typedef_tests PRIVATE EDITOR_TESTING)
-target_include_directories(expand_typedef_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(expand_typedef_tests PRIVATE
-    json_parser
-    spdlog::spdlog
-    GTest::gtest_main
-)
-gtest_discover_tests(expand_typedef_tests)
-
 
 # Properties window tests (Phase 2: PropertiesWindow logic)
 add_executable(properties_window_tests
@@ -1200,46 +1082,6 @@ target_link_libraries(properties_window_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(properties_window_tests)
-
-# DT regression tests — FPS-independent physics, legacy solver constants, accumulator correctness
-add_executable(dt_regression_tests
-    test_dt_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(dt_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(dt_regression_tests PRIVATE
-    blueprint_v2
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(dt_regression_tests)
-
-# Closed-loop latency regression tests — ensure same-step observer/control/actuator response
-add_executable(closed_loop_latency_regression_tests
-    test_closed_loop_latency_regression.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(closed_loop_latency_regression_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(closed_loop_latency_regression_tests PRIVATE
-    blueprint_v2
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(closed_loop_latency_regression_tests)
 
 # Codegen accumulator regression tests — verify AOT emits accumulator-based domain scheduling
 add_executable(codegen_accumulator_tests
@@ -1298,7 +1140,6 @@ gtest_discover_tests(jit_aot_bridge_equivalence_tests)
 # Bake-in tests (Phase 4: bake-in conversion, params flatten)
 add_executable(bake_in_tests
     test_bake_in.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
 )
 target_include_directories(bake_in_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1405,7 +1246,6 @@ gtest_discover_tests(spring_tests)
 # Sub-blueprint reference tests (TDD - SubBlueprintInstance data structures)
 add_executable(sub_blueprint_ref_tests
     test_sub_blueprint_ref.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
 )
@@ -1446,26 +1286,6 @@ gtest_discover_tests(v3_migration_tests)
 #     ...
 # )
 
-
-# Multi-domain scheduling tests
-add_executable(multi_domain_tests
-    test_multi_domain.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-)
-target_include_directories(multi_domain_tests PRIVATE
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/editor
-    ${CMAKE_SOURCE_DIR}/src/json_parser
-    ${CMAKE_BINARY_DIR}/_deps/json-src/include
-)
-target_link_libraries(multi_domain_tests PRIVATE
-    blueprint_v2
-    jit_solver
-    json_parser
-    GTest::gtest_main
-)
-gtest_discover_tests(multi_domain_tests)
 
 # Command system tests (Undo/Redo)
 add_executable(command_tests

@@ -16,9 +16,6 @@ public:
     bool closed = false;
     bool tripped = false;
     float last_control = 0.0f;
-    float downstream_g = 0.0f;
-    float downstream_I = 0.0f;
-    float v_out_old = 0.0f;
     float temp = 0.0f;
     float current = 0.0f;
     float i_nominal = 20.0f;
@@ -27,9 +24,8 @@ public:
 
     AZS() = default;
 
-    void solve_electrical(SimulationState& st, float dt);
-    void solve_thermal(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load();
 };

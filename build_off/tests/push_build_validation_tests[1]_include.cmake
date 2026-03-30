@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/push_build_validation_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_off/tests/push_build_validation_tests[1]_tests.cmake")
+else()
+  add_test(push_build_validation_tests_NOT_BUILT push_build_validation_tests_NOT_BUILT)
+endif()

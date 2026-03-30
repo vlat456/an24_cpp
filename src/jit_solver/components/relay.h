@@ -12,14 +12,11 @@ public:
     Provider provider;
     bool closed = false;
     float hold_threshold = 0.5f;
-    float downstream_g = 0.0f;
-    float downstream_I = 0.0f;
-    float v_out_old = 0.0f;
 
     Relay() = default;
 
-    void solve_electrical(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void IndicatorLight<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void IndicatorLight<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: brightness derived from v_in directly.
     // In push topology the indicator sits in series and passes voltage through.
     float v_in = st.values[provider.get(PortNames::v_in)];
@@ -18,8 +18,8 @@ void IndicatorLight<Provider>::solve_electrical(SimulationState& st, float /*dt*
 }
 
 template <typename Provider>
-void IndicatorLight<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void IndicatorLight<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template <typename Provider>

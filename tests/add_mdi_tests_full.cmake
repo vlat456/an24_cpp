@@ -4,11 +4,7 @@ add_executable(mdi_tests
     document_tests.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/document.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window_system.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/node.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/data/port.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/pt.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/wire.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/canvas_input.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/input/input_types.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/hittest.cpp

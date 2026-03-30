@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/blueprint.h"
+#include "blueprint_v2/blueprint/blueprint.h"
 #include <vector>
 #include <cstddef>
 #include <optional>
@@ -9,8 +9,8 @@
 // Snapshot-based UndoStack
 // =============================================================================
 //
-// Stores full Blueprint copies. Before any mutation, call snapshot() to save
-// the current state. Undo/Redo swap the live Blueprint with stored copies.
+// Stores full bp2::Blueprint copies. Before any mutation, call snapshot() to save
+// the current state. Undo/Redo swap the live blueprint with stored copies.
 //
 // Typical usage:
 //   undo_stack.snapshot(blueprint);   // save current state
@@ -32,7 +32,7 @@ struct UndoStack {
 
     /// Take a snapshot of the current blueprint state before a mutation.
     /// Clears the redo stack (new action invalidates redo history).
-    void snapshot(const Blueprint& bp) {
+    void snapshot(const bp2::Blueprint& bp) {
         undo_stack_.push_back(bp);  // deep copy
         redo_stack_.clear();
         if (undo_stack_.size() > MAX_HISTORY) {
@@ -50,7 +50,7 @@ struct UndoStack {
     /// Undo: restore the blueprint to the previous state.
     /// The current state is pushed onto the redo stack.
     /// Returns true if undo was performed.
-    bool undo(Blueprint& bp) {
+    bool undo(bp2::Blueprint& bp) {
         if (undo_stack_.empty()) return false;
 
         redo_stack_.push_back(std::move(bp));   // save current for redo
@@ -66,7 +66,7 @@ struct UndoStack {
     /// Redo: re-apply the previously undone state.
     /// The current state is pushed back onto the undo stack.
     /// Returns true if redo was performed.
-    bool redo(Blueprint& bp) {
+    bool redo(bp2::Blueprint& bp) {
         if (redo_stack_.empty()) return false;
 
         undo_stack_.push_back(std::move(bp));   // save current for undo
@@ -91,7 +91,7 @@ struct UndoStack {
     /// undo stack, WITHOUT pushing the current state onto the redo stack.
     /// Use this to silently revert mutations that should not leave a redo
     /// entry (e.g. TransactionGuard::discard()).
-    bool restore_last_snapshot(Blueprint& bp) {
+    bool restore_last_snapshot(bp2::Blueprint& bp) {
         if (undo_stack_.empty()) return false;
         bp = std::move(undo_stack_.back());
         undo_stack_.pop_back();
@@ -115,8 +115,8 @@ struct UndoStack {
     bool is_dirty() const { return dirty_; }
 
 private:
-    std::vector<Blueprint> undo_stack_;
-    std::vector<Blueprint> redo_stack_;
+    std::vector<bp2::Blueprint> undo_stack_;
+    std::vector<bp2::Blueprint> redo_stack_;
     std::optional<size_t> save_point_ = 0;  // Index into undo_stack_ representing "clean" state
     bool dirty_ = false;
 
@@ -129,11 +129,7 @@ private:
     }
 
     /// Rebuild all derived indices after restoring a snapshot.
-    static void rebuild_indices(Blueprint& bp) {
-        bp.rebuild_node_index();
-        bp.rebuild_wire_index();
-        bp.rebuild_wire_id_index();
-        bp.rebuild_bus_wire_index();
-        bp.rebuild_port_occupancy_index();
+    static void rebuild_indices(bp2::Blueprint& bp) {
+        (void)bp;
     }
 };

@@ -244,5 +244,5 @@ public:
 | Viewport | `src/editor/viewport/viewport.h` |
 | NodeWidget | `src/editor/visual/node/visual_node.h` |
 | Port | `src/editor/visual/port/visual_port.h` |
-| Router | `src/editor/router/router.h` |
+| Router | `src/editor/visual/wire/` and `src/editor/visual/scene_hittest.h` |
 | StringInterner | `src/ui/core/interned_id.h` |

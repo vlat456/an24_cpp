@@ -1,0 +1,52 @@
+{
+  "tests": 8,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PushRuntime",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "SinglePassSettlesLinearChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 42
+        },
+        {
+          "name": "CycleUsesOneFrameDelay",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 69
+        },
+        {
+          "name": "DynamicEnableDisableStable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 95
+        },
+        {
+          "name": "InitialValuesSeedState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 124
+        },
+        {
+          "name": "SourceConflictErrorMessageReadable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 146
+        },
+        {
+          "name": "GS24StartupSequenceProducesOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 171
+        },
+        {
+          "name": "RU19ASmokeNoNaNOverLongRun",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 196
+        },
+        {
+          "name": "DynamicFeedbackLoopStableAndBounded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 221
+        }
+      ]
+    }
+  ]
+}

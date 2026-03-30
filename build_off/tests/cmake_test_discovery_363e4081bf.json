@@ -1,0 +1,17 @@
+{
+  "tests": 1,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "UIRenderer",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "IDrawListExists",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_ui_renderer.cpp",
+          "line": 4
+        }
+      ]
+    }
+  ]
+}

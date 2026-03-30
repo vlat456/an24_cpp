@@ -1,0 +1,965 @@
+Start testing: Mar 28 20:46 CET
+----------------------------------------------------------
+1/199 Testing: push_state.ValuesArrayExists
+1/199 Test: push_state.ValuesArrayExists
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.ValuesArrayExists" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.ValuesArrayExists" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.ValuesArrayExists
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.ValuesArrayExists
+[       OK ] push_state.ValuesArrayExists (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.ValuesArrayExists" end time: Mar 28 20:46 CET
+"push_state.ValuesArrayExists" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/199 Testing: push_state.AllocateSignalWritesToValues
+2/199 Test: push_state.AllocateSignalWritesToValues
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.AllocateSignalWritesToValues" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.AllocateSignalWritesToValues" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.AllocateSignalWritesToValues
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.AllocateSignalWritesToValues
+[       OK ] push_state.AllocateSignalWritesToValues (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.AllocateSignalWritesToValues" end time: Mar 28 20:46 CET
+"push_state.AllocateSignalWritesToValues" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/199 Testing: push_state.AllocateMultipleSignals
+3/199 Test: push_state.AllocateMultipleSignals
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.AllocateMultipleSignals" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.AllocateMultipleSignals" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.AllocateMultipleSignals
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.AllocateMultipleSignals
+[       OK ] push_state.AllocateMultipleSignals (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.AllocateMultipleSignals" end time: Mar 28 20:46 CET
+"push_state.AllocateMultipleSignals" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/199 Testing: push_state.DynamicInsertedBeforeFixed
+4/199 Test: push_state.DynamicInsertedBeforeFixed
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.DynamicInsertedBeforeFixed" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.DynamicInsertedBeforeFixed" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.DynamicInsertedBeforeFixed
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.DynamicInsertedBeforeFixed
+[       OK ] push_state.DynamicInsertedBeforeFixed (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.DynamicInsertedBeforeFixed" end time: Mar 28 20:46 CET
+"push_state.DynamicInsertedBeforeFixed" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/199 Testing: push_state.NoLegacySorArrays
+5/199 Test: push_state.NoLegacySorArrays
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.NoLegacySorArrays" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.NoLegacySorArrays" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.NoLegacySorArrays
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.NoLegacySorArrays
+[       OK ] push_state.NoLegacySorArrays (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.NoLegacySorArrays" end time: Mar 28 20:46 CET
+"push_state.NoLegacySorArrays" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/199 Testing: push_state.LutArenaPreserved
+6/199 Test: push_state.LutArenaPreserved
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_state_tests" "--gtest_filter=push_state.LutArenaPreserved" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_state.LutArenaPreserved" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_state.LutArenaPreserved
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_state
+[ RUN      ] push_state.LutArenaPreserved
+[       OK ] push_state.LutArenaPreserved (0 ms)
+[----------] 1 test from push_state (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_state.LutArenaPreserved" end time: Mar 28 20:46 CET
+"push_state.LutArenaPreserved" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/199 Testing: push_scheduler.SourcesBeforeConsumers
+7/199 Test: push_scheduler.SourcesBeforeConsumers
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests" "--gtest_filter=push_scheduler.SourcesBeforeConsumers" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_scheduler.SourcesBeforeConsumers" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_scheduler.SourcesBeforeConsumers
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_scheduler
+[ RUN      ] push_scheduler.SourcesBeforeConsumers
+[       OK ] push_scheduler.SourcesBeforeConsumers (0 ms)
+[----------] 1 test from push_scheduler (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_scheduler.SourcesBeforeConsumers" end time: Mar 28 20:46 CET
+"push_scheduler.SourcesBeforeConsumers" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/199 Testing: push_scheduler.MultipleSourcesMultipleConsumers
+8/199 Test: push_scheduler.MultipleSourcesMultipleConsumers
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests" "--gtest_filter=push_scheduler.MultipleSourcesMultipleConsumers" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_scheduler.MultipleSourcesMultipleConsumers" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_scheduler.MultipleSourcesMultipleConsumers
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_scheduler
+[ RUN      ] push_scheduler.MultipleSourcesMultipleConsumers
+[       OK ] push_scheduler.MultipleSourcesMultipleConsumers (0 ms)
+[----------] 1 test from push_scheduler (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_scheduler.MultipleSourcesMultipleConsumers" end time: Mar 28 20:46 CET
+"push_scheduler.MultipleSourcesMultipleConsumers" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/199 Testing: push_scheduler.EmptySchedulerNoOp
+9/199 Test: push_scheduler.EmptySchedulerNoOp
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests" "--gtest_filter=push_scheduler.EmptySchedulerNoOp" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_scheduler.EmptySchedulerNoOp" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_scheduler.EmptySchedulerNoOp
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_scheduler
+[ RUN      ] push_scheduler.EmptySchedulerNoOp
+[       OK ] push_scheduler.EmptySchedulerNoOp (0 ms)
+[----------] 1 test from push_scheduler (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_scheduler.EmptySchedulerNoOp" end time: Mar 28 20:46 CET
+"push_scheduler.EmptySchedulerNoOp" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/199 Testing: push_scheduler.SinglePassExecution
+10/199 Test: push_scheduler.SinglePassExecution
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_scheduler_tests" "--gtest_filter=push_scheduler.SinglePassExecution" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"push_scheduler.SinglePassExecution" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = push_scheduler.SinglePassExecution
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from push_scheduler
+[ RUN      ] push_scheduler.SinglePassExecution
+[       OK ] push_scheduler.SinglePassExecution (0 ms)
+[----------] 1 test from push_scheduler (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"push_scheduler.SinglePassExecution" end time: Mar 28 20:46 CET
+"push_scheduler.SinglePassExecution" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/199 Testing: PushBuildValidation.SingleSourcePerWireOK
+11/199 Test: PushBuildValidation.SingleSourcePerWireOK
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.SingleSourcePerWireOK" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.SingleSourcePerWireOK" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.SingleSourcePerWireOK
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.SingleSourcePerWireOK
+[       OK ] PushBuildValidation.SingleSourcePerWireOK (1 ms)
+[----------] 1 test from PushBuildValidation (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.SingleSourcePerWireOK" end time: Mar 28 20:46 CET
+"PushBuildValidation.SingleSourcePerWireOK" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/199 Testing: PushBuildValidation.MultipleSourcesSameWireErrors
+12/199 Test: PushBuildValidation.MultipleSourcesSameWireErrors
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.MultipleSourcesSameWireErrors" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.MultipleSourcesSameWireErrors" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.MultipleSourcesSameWireErrors
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.MultipleSourcesSameWireErrors
+[       OK ] PushBuildValidation.MultipleSourcesSameWireErrors (1 ms)
+[----------] 1 test from PushBuildValidation (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.MultipleSourcesSameWireErrors" end time: Mar 28 20:46 CET
+"PushBuildValidation.MultipleSourcesSameWireErrors" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/199 Testing: PushBuildValidation.MultipleSourceLikeComponentsConflict
+13/199 Test: PushBuildValidation.MultipleSourceLikeComponentsConflict
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.MultipleSourceLikeComponentsConflict" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.MultipleSourceLikeComponentsConflict" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.MultipleSourceLikeComponentsConflict
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.MultipleSourceLikeComponentsConflict
+[       OK ] PushBuildValidation.MultipleSourceLikeComponentsConflict (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.MultipleSourceLikeComponentsConflict" end time: Mar 28 20:46 CET
+"PushBuildValidation.MultipleSourceLikeComponentsConflict" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/199 Testing: PushBuildValidation.BatteryAndGeneratorOnSameWire
+14/199 Test: PushBuildValidation.BatteryAndGeneratorOnSameWire
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.BatteryAndGeneratorOnSameWire" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.BatteryAndGeneratorOnSameWire" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.BatteryAndGeneratorOnSameWire
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.BatteryAndGeneratorOnSameWire
+[       OK ] PushBuildValidation.BatteryAndGeneratorOnSameWire (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.BatteryAndGeneratorOnSameWire" end time: Mar 28 20:46 CET
+"PushBuildValidation.BatteryAndGeneratorOnSameWire" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/199 Testing: PushBuildValidation.BatteryAndRefNodeOnSameWire
+15/199 Test: PushBuildValidation.BatteryAndRefNodeOnSameWire
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.BatteryAndRefNodeOnSameWire" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.BatteryAndRefNodeOnSameWire" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.BatteryAndRefNodeOnSameWire
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.BatteryAndRefNodeOnSameWire
+[       OK ] PushBuildValidation.BatteryAndRefNodeOnSameWire (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.BatteryAndRefNodeOnSameWire" end time: Mar 28 20:46 CET
+"PushBuildValidation.BatteryAndRefNodeOnSameWire" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/199 Testing: PushBuildValidation.ControlledCurrentSourceConflict
+16/199 Test: PushBuildValidation.ControlledCurrentSourceConflict
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.ControlledCurrentSourceConflict" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.ControlledCurrentSourceConflict" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.ControlledCurrentSourceConflict
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.ControlledCurrentSourceConflict
+[       OK ] PushBuildValidation.ControlledCurrentSourceConflict (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.ControlledCurrentSourceConflict" end time: Mar 28 20:46 CET
+"PushBuildValidation.ControlledCurrentSourceConflict" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/199 Testing: PushBuildValidation.MultipleLoadsOK
+17/199 Test: PushBuildValidation.MultipleLoadsOK
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.MultipleLoadsOK" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.MultipleLoadsOK" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.MultipleLoadsOK
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.MultipleLoadsOK
+[       OK ] PushBuildValidation.MultipleLoadsOK (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.MultipleLoadsOK" end time: Mar 28 20:46 CET
+"PushBuildValidation.MultipleLoadsOK" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/199 Testing: PushBuildValidation.SeparateWiresOK
+18/199 Test: PushBuildValidation.SeparateWiresOK
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.SeparateWiresOK" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.SeparateWiresOK" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.SeparateWiresOK
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.SeparateWiresOK
+[       OK ] PushBuildValidation.SeparateWiresOK (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.SeparateWiresOK" end time: Mar 28 20:46 CET
+"PushBuildValidation.SeparateWiresOK" time elapsed: 00:00:00
+----------------------------------------------------------
+
+19/199 Testing: PushBuildValidation.TwoBatteriesDirectConnection
+19/199 Test: PushBuildValidation.TwoBatteriesDirectConnection
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.TwoBatteriesDirectConnection" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.TwoBatteriesDirectConnection" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.TwoBatteriesDirectConnection
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.TwoBatteriesDirectConnection
+[       OK ] PushBuildValidation.TwoBatteriesDirectConnection (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.TwoBatteriesDirectConnection" end time: Mar 28 20:46 CET
+"PushBuildValidation.TwoBatteriesDirectConnection" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/199 Testing: PushBuildValidation.SingleBatteryOK
+20/199 Test: PushBuildValidation.SingleBatteryOK
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.SingleBatteryOK" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.SingleBatteryOK" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.SingleBatteryOK
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.SingleBatteryOK
+[       OK ] PushBuildValidation.SingleBatteryOK (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.SingleBatteryOK" end time: Mar 28 20:46 CET
+"PushBuildValidation.SingleBatteryOK" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/199 Testing: PushBuildValidation.TopologicalOrder_LinearChain
+21/199 Test: PushBuildValidation.TopologicalOrder_LinearChain
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.TopologicalOrder_LinearChain" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.TopologicalOrder_LinearChain" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.TopologicalOrder_LinearChain
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.TopologicalOrder_LinearChain
+[       OK ] PushBuildValidation.TopologicalOrder_LinearChain (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.TopologicalOrder_LinearChain" end time: Mar 28 20:46 CET
+"PushBuildValidation.TopologicalOrder_LinearChain" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/199 Testing: PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow
+22/199 Test: PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow
+[2026-03-28 20:46:48.017] [warning] [build] Consumer dependency cycle detected; falling back to one-frame delay ordering for cycle edges
+[       OK ] PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow (1 ms)
+[----------] 1 test from PushBuildValidation (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow" end time: Mar 28 20:46 CET
+"PushBuildValidation.TopologicalOrder_CycleFallsBackNoThrow" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/199 Testing: PushBuildValidation.ParseInitialValuesFromJson
+23/199 Test: PushBuildValidation.ParseInitialValuesFromJson
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.ParseInitialValuesFromJson" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.ParseInitialValuesFromJson" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.ParseInitialValuesFromJson
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.ParseInitialValuesFromJson
+[2026-03-28 20:46:48.096] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.096] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushBuildValidation.ParseInitialValuesFromJson (42 ms)
+[----------] 1 test from PushBuildValidation (42 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (42 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.ParseInitialValuesFromJson" end time: Mar 28 20:46 CET
+"PushBuildValidation.ParseInitialValuesFromJson" time elapsed: 00:00:00
+----------------------------------------------------------
+
+24/199 Testing: PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep
+24/199 Test: PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep
+[2026-03-28 20:46:48.167] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.168] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep (36 ms)
+[----------] 1 test from PushBuildValidation (36 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (36 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep" end time: Mar 28 20:46 CET
+"PushBuildValidation.SimulatorAppliesInitialValuesBeforeStep" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/199 Testing: PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted
+25/199 Test: PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted
+[       OK ] PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted" end time: Mar 28 20:46 CET
+"PushBuildValidation.TypeDefinitionWithoutExecutionIsAccepted" time elapsed: 00:00:00
+----------------------------------------------------------
+
+26/199 Testing: PushBuildValidation.MaxSelectorSelectsHigherInput
+26/199 Test: PushBuildValidation.MaxSelectorSelectsHigherInput
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.MaxSelectorSelectsHigherInput" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.MaxSelectorSelectsHigherInput" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.MaxSelectorSelectsHigherInput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.MaxSelectorSelectsHigherInput
+[       OK ] PushBuildValidation.MaxSelectorSelectsHigherInput (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.MaxSelectorSelectsHigherInput" end time: Mar 28 20:46 CET
+"PushBuildValidation.MaxSelectorSelectsHigherInput" time elapsed: 00:00:00
+----------------------------------------------------------
+
+27/199 Testing: PushBuildValidation.MaxSelectorAvoidsSourceConflict
+27/199 Test: PushBuildValidation.MaxSelectorAvoidsSourceConflict
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_build_validation_tests" "--gtest_filter=PushBuildValidation.MaxSelectorAvoidsSourceConflict" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushBuildValidation.MaxSelectorAvoidsSourceConflict" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushBuildValidation.MaxSelectorAvoidsSourceConflict
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushBuildValidation
+[ RUN      ] PushBuildValidation.MaxSelectorAvoidsSourceConflict
+[       OK ] PushBuildValidation.MaxSelectorAvoidsSourceConflict (0 ms)
+[----------] 1 test from PushBuildValidation (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushBuildValidation.MaxSelectorAvoidsSourceConflict" end time: Mar 28 20:46 CET
+"PushBuildValidation.MaxSelectorAvoidsSourceConflict" time elapsed: 00:00:00
+----------------------------------------------------------
+
+28/199 Testing: PushRuntime.SinglePassSettlesLinearChain
+28/199 Test: PushRuntime.SinglePassSettlesLinearChain
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.SinglePassSettlesLinearChain" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.SinglePassSettlesLinearChain" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.SinglePassSettlesLinearChain
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.SinglePassSettlesLinearChain
+[       OK ] PushRuntime.SinglePassSettlesLinearChain (1 ms)
+[----------] 1 test from PushRuntime (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.SinglePassSettlesLinearChain" end time: Mar 28 20:46 CET
+"PushRuntime.SinglePassSettlesLinearChain" time elapsed: 00:00:00
+----------------------------------------------------------
+
+29/199 Testing: PushRuntime.CycleUsesOneFrameDelay
+29/199 Test: PushRuntime.CycleUsesOneFrameDelay
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.CycleUsesOneFrameDelay" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.CycleUsesOneFrameDelay" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.CycleUsesOneFrameDelay
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.CycleUsesOneFrameDelay
+[2026-03-28 20:46:48.383] [warning] [build] Consumer dependency cycle detected; falling back to one-frame delay ordering for cycle edges
+[       OK ] PushRuntime.CycleUsesOneFrameDelay (1 ms)
+[----------] 1 test from PushRuntime (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.CycleUsesOneFrameDelay" end time: Mar 28 20:46 CET
+"PushRuntime.CycleUsesOneFrameDelay" time elapsed: 00:00:00
+----------------------------------------------------------
+
+30/199 Testing: PushRuntime.DynamicEnableDisableStable
+30/199 Test: PushRuntime.DynamicEnableDisableStable
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.DynamicEnableDisableStable" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.DynamicEnableDisableStable" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.DynamicEnableDisableStable
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.DynamicEnableDisableStable
+[2026-03-28 20:46:48.456] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.457] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushRuntime.DynamicEnableDisableStable (36 ms)
+[----------] 1 test from PushRuntime (36 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (36 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.DynamicEnableDisableStable" end time: Mar 28 20:46 CET
+"PushRuntime.DynamicEnableDisableStable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+31/199 Testing: PushRuntime.InitialValuesSeedState
+31/199 Test: PushRuntime.InitialValuesSeedState
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.InitialValuesSeedState" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.InitialValuesSeedState" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.InitialValuesSeedState
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.InitialValuesSeedState
+[2026-03-28 20:46:48.534] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.535] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushRuntime.InitialValuesSeedState (39 ms)
+[----------] 1 test from PushRuntime (39 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (39 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.InitialValuesSeedState" end time: Mar 28 20:46 CET
+"PushRuntime.InitialValuesSeedState" time elapsed: 00:00:00
+----------------------------------------------------------
+
+32/199 Testing: PushRuntime.SourceConflictErrorMessageReadable
+32/199 Test: PushRuntime.SourceConflictErrorMessageReadable
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.SourceConflictErrorMessageReadable" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.SourceConflictErrorMessageReadable" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.SourceConflictErrorMessageReadable
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.SourceConflictErrorMessageReadable
+[       OK ] PushRuntime.SourceConflictErrorMessageReadable (1 ms)
+[----------] 1 test from PushRuntime (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (1 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.SourceConflictErrorMessageReadable" end time: Mar 28 20:46 CET
+"PushRuntime.SourceConflictErrorMessageReadable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+33/199 Testing: PushRuntime.GS24StartupSequenceProducesOutput
+33/199 Test: PushRuntime.GS24StartupSequenceProducesOutput
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.GS24StartupSequenceProducesOutput" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.GS24StartupSequenceProducesOutput" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.GS24StartupSequenceProducesOutput
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.GS24StartupSequenceProducesOutput
+[2026-03-28 20:46:48.648] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.649] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushRuntime.GS24StartupSequenceProducesOutput (36 ms)
+[----------] 1 test from PushRuntime (36 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (36 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.GS24StartupSequenceProducesOutput" end time: Mar 28 20:46 CET
+"PushRuntime.GS24StartupSequenceProducesOutput" time elapsed: 00:00:00
+----------------------------------------------------------
+
+34/199 Testing: PushRuntime.RU19ASmokeNoNaNOverLongRun
+34/199 Test: PushRuntime.RU19ASmokeNoNaNOverLongRun
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.RU19ASmokeNoNaNOverLongRun" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.RU19ASmokeNoNaNOverLongRun" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.RU19ASmokeNoNaNOverLongRun
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.RU19ASmokeNoNaNOverLongRun
+[2026-03-28 20:46:48.725] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.725] [info] [json_parser] Loaded 79 type definitions
+[       OK ] PushRuntime.RU19ASmokeNoNaNOverLongRun (36 ms)
+[----------] 1 test from PushRuntime (36 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (36 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.RU19ASmokeNoNaNOverLongRun" end time: Mar 28 20:46 CET
+"PushRuntime.RU19ASmokeNoNaNOverLongRun" time elapsed: 00:00:00
+----------------------------------------------------------
+
+35/199 Testing: PushRuntime.DynamicFeedbackLoopStableAndBounded
+35/199 Test: PushRuntime.DynamicFeedbackLoopStableAndBounded
+Command: "/Users/vladimir/an24_cpp/build_on/tests/push_runtime_regression_tests" "--gtest_filter=PushRuntime.DynamicFeedbackLoopStableAndBounded" "--gtest_also_run_disabled_tests"
+Directory: /Users/vladimir/an24_cpp/build_on/tests
+"PushRuntime.DynamicFeedbackLoopStableAndBounded" start time: Mar 28 20:46 CET
+Output:
+----------------------------------------------------------
+Running main() from /Users/vladimir/an24_cpp/build_on/_deps/googletest-src/googletest/src/gtest_main.cc
+Note: Google Test filter = PushRuntime.DynamicFeedbackLoopStableAndBounded
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from PushRuntime
+[ RUN      ] PushRuntime.DynamicFeedbackLoopStableAndBounded
+[2026-03-28 20:46:48.815] [info] [json_parser] Loaded 79 type definitions from 'library/'
+[2026-03-28 20:46:48.816] [info] [json_parser] Loaded 79 type definitions
+[2026-03-28 20:46:48.817] [warning] [build] Consumer dependency cycle detected; falling back to one-frame delay ordering for cycle edges
+[       OK ] PushRuntime.DynamicFeedbackLoopStableAndBounded (48 ms)
+[----------] 1 test from PushRuntime (48 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (48 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"PushRuntime.DynamicFeedbackLoopStableAndBounded" end time: Mar 28 20:46 CET
+"PushRuntime.DynamicFeedbackLoopStableAndBounded" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Mar 28 20:46 CET

@@ -2,7 +2,7 @@
 #include "visual/port/visual_port.h"
 #include "visual/renderer/render_theme.h"
 #include "editor/layout_constants.h"
-#include "data/node.h"
+#include "data/node_content.h"
 
 namespace node_frame {
 

@@ -2,7 +2,7 @@
 #include "visual/renderer/draw_list.h"
 #include "visual/renderer/render_theme.h"
 #include "visual/render_context.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include <algorithm>
 #include <cmath>
 

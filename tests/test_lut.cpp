@@ -5,6 +5,16 @@
 
 
 // =============================================================================
+// Test Helpers
+// =============================================================================
+
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
+// =============================================================================
 // Helpers
 // =============================================================================
 
@@ -87,7 +97,7 @@ TEST(LUTSolveTest, ExactBreakpoint) {
     auto st = make_state();
     auto comp = make_lut("0:0; 100:50; 200:100", st);
     st.values[0] = 100.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.001f);
 }
 
@@ -95,7 +105,7 @@ TEST(LUTSolveTest, LinearInterpolation_Midpoint) {
     auto st = make_state();
     auto comp = make_lut("0:0; 100:100", st);
     st.values[0] = 50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.001f);
 }
 
@@ -103,7 +113,7 @@ TEST(LUTSolveTest, LinearInterpolation_Quarter) {
     auto st = make_state();
     auto comp = make_lut("0:0; 100:100", st);
     st.values[0] = 25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 25.0f, 0.001f);
 }
 
@@ -111,7 +121,7 @@ TEST(LUTSolveTest, ClampBelow) {
     auto st = make_state();
     auto comp = make_lut("100:10; 200:20", st);
     st.values[0] = 50.0f;  // below first breakpoint
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 10.0f, 0.001f);  // clamp to first value
 }
 
@@ -119,7 +129,7 @@ TEST(LUTSolveTest, ClampAbove) {
     auto st = make_state();
     auto comp = make_lut("100:10; 200:20", st);
     st.values[0] = 300.0f;  // above last breakpoint
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 20.0f, 0.001f);  // clamp to last value
 }
 
@@ -127,11 +137,11 @@ TEST(LUTSolveTest, SingleBreakpoint_AlwaysReturnsValue) {
     auto st = make_state();
     auto comp = make_lut("50:99", st);
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 99.0f, 0.001f);
 
     st.values[0] = 1000.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 99.0f, 0.001f);
 }
 
@@ -143,7 +153,7 @@ TEST(LUTSolveTest, EmptyTable_ReturnsZero) {
     comp.table_offset = 0;
     comp.table_size = 0;
     st.values[0] = 42.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 }
 
@@ -187,12 +197,12 @@ TEST(LUTArenaTest, MultipleLUTs_ShareArena) {
 
     // LUT1: x=4000 → linear interp between 0:0 and 8000:120 → 60
     st.values[0] = 4000.0f;
-    lut1.solve_logical(st, 1.0f / 60.0f);
+    step_component(lut1, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 60.0f, 0.001f);
 
     // LUT2: x=25 → linear interp between 0:100 and 50:80 → 90
     st.values[2] = 25.0f;
-    lut2.solve_logical(st, 1.0f / 60.0f);
+    step_component(lut2, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[3], 90.0f, 0.001f);
 }
 
@@ -206,17 +216,17 @@ TEST(LUTSolveTest, RealisticEngineCurve) {
 
     // At 0 RPM
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 
     // At 3000 RPM → between 1000:5 and 5000:12 → 5 + (2000/4000) * 7 = 8.5
     st.values[0] = 3000.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 8.5f, 0.01f);
 
     // At 16000 RPM (max)
     st.values[0] = 16000.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 28.0f, 0.001f);
 }
 
@@ -332,37 +342,37 @@ TEST(LUTInterpolationEdge, TwoEntryTable_AllPositions) {
 
     // Below first breakpoint -> clamp to first value
     st.values[0] = -50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 
     // Exactly at first breakpoint
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 
     // Quarter
     st.values[0] = 25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.001f);
 
     // Midpoint
     st.values[0] = 50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 100.0f, 0.001f);
 
     // Three quarters
     st.values[0] = 75.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 150.0f, 0.001f);
 
     // Exactly at last breakpoint
     st.values[0] = 100.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 200.0f, 0.001f);
 
     // Above last breakpoint -> clamp to last value
     st.values[0] = 150.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 200.0f, 0.001f);
 }
 
@@ -373,7 +383,7 @@ TEST(LUTInterpolationEdge, EveryBreakpointExact) {
     float expected[] = {100.0f, 200.0f, 50.0f, 300.0f, 0.0f};
     for (int i = 0; i < 5; ++i) {
         st.values[0] = static_cast<float>(i * 10);
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_component(comp, st, 1.0f / 60.0f);
         EXPECT_NEAR(st.values[1], expected[i], 0.001f)
             << "Failed at breakpoint x=" << i * 10;
     }
@@ -386,17 +396,17 @@ TEST(LUTInterpolationEdge, EverySegmentMidpoint) {
 
     // Midpoint of [0,10]: x=5 -> 0 + 0.5*(100-0) = 50
     st.values[0] = 5.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.01f);
 
     // Midpoint of [10,30]: x=20 -> 100 + 0.5*(200-100) = 150
     st.values[0] = 20.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 150.0f, 0.01f);
 
     // Midpoint of [30,60]: x=45 -> 200 + 0.5*(500-200) = 350
     st.values[0] = 45.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 350.0f, 0.01f);
 }
 
@@ -406,11 +416,11 @@ TEST(LUTInterpolationEdge, NonMonotonicValues) {
     auto comp = make_lut("0:0; 50:100; 100:0", st);
 
     st.values[0] = 25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.01f);
 
     st.values[0] = 75.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.01f);
 }
 
@@ -421,7 +431,7 @@ TEST(LUTInterpolationEdge, EqualAdjacentKeys) {
 
     // At the duplicate key, denom=0 -> t=0, should return first value
     st.values[0] = 10.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     // Should not crash/NaN — just return some valid value
     EXPECT_FALSE(std::isnan(st.values[1]));
     EXPECT_FALSE(std::isinf(st.values[1]));
@@ -432,11 +442,11 @@ TEST(LUTInterpolationEdge, VeryLargeInput) {
     auto comp = make_lut("0:10; 100:20", st);
 
     st.values[0] = 1e10f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 20.0f, 0.001f);  // clamp to last
 
     st.values[0] = -1e10f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 10.0f, 0.001f);  // clamp to first
 }
 
@@ -447,7 +457,7 @@ TEST(LUTInterpolationEdge, ConstantValueTable) {
 
     for (float x = -10.0f; x <= 110.0f; x += 10.0f) {
         st.values[0] = x;
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_component(comp, st, 1.0f / 60.0f);
         EXPECT_NEAR(st.values[1], 42.0f, 0.001f) << "Failed at x=" << x;
     }
 }
@@ -458,11 +468,11 @@ TEST(LUTInterpolationEdge, DecreasingValues) {
     auto comp = make_lut("0:100; 50:50; 100:0", st);
 
     st.values[0] = 25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 75.0f, 0.01f);
 
     st.values[0] = 75.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 25.0f, 0.01f);
 }
 
@@ -479,7 +489,7 @@ TEST(LUTInterpolationEdge, LargeTable_Accuracy) {
     // Test exact breakpoints
     for (int i = 0; i <= 199; ++i) {
         st.values[0] = static_cast<float>(i);
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_component(comp, st, 1.0f / 60.0f);
         EXPECT_NEAR(st.values[1], static_cast<float>(i * 2), 0.01f)
             << "Breakpoint " << i;
     }
@@ -487,7 +497,7 @@ TEST(LUTInterpolationEdge, LargeTable_Accuracy) {
     // Test midpoints between breakpoints
     for (int i = 0; i < 199; ++i) {
         st.values[0] = static_cast<float>(i) + 0.5f;
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_component(comp, st, 1.0f / 60.0f);
         float expected = static_cast<float>(i * 2) + 1.0f;  // midpoint of 2i and 2(i+1)
         EXPECT_NEAR(st.values[1], expected, 0.01f)
             << "Midpoint between " << i << " and " << (i + 1);
@@ -499,15 +509,15 @@ TEST(LUTInterpolationEdge, NegativeKeysInterpolation) {
     auto comp = make_lut("-100:0; -50:25; 0:50; 50:75; 100:100", st);
 
     st.values[0] = -75.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 12.5f, 0.01f);
 
     st.values[0] = -25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 37.5f, 0.01f);
 
     st.values[0] = 25.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 62.5f, 0.01f);
 }
 
@@ -542,7 +552,7 @@ TEST(LUTArenaStress, ManyLUTs_CorrectIsolation) {
     // Each LUT with input=50 should produce (i+1)*50
     for (int i = 0; i < N; ++i) {
         st.values[i * 2] = 50.0f;
-        luts[i].solve_logical(st, 1.0f / 60.0f);
+        step_component(luts[i], st, 1.0f / 60.0f);
         EXPECT_NEAR(st.values[i * 2 + 1], static_cast<float>((i + 1) * 50), 0.01f)
             << "LUT #" << i << " isolation failure";
     }
@@ -605,7 +615,7 @@ TEST(LUTArenaStress, LargeTableInArena) {
 
     // Spot check: x=500 should interpolate between entries 500 and 501
     st.values[0] = 500.5f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     float expected = (std::sin(500.0f * 0.01f) + std::sin(501.0f * 0.01f)) / 2.0f;
     EXPECT_NEAR(st.values[1], expected, 0.01f);
 }
@@ -620,17 +630,17 @@ TEST(LUTRegression, OutputNotStale) {
 
     // First solve
     st.values[0] = 50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 50.0f, 0.001f);
 
     // Change input, solve again
     st.values[0] = 80.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 80.0f, 0.001f);
 
     // Change back to 0
     st.values[0] = 0.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 }
 
@@ -641,7 +651,7 @@ TEST(LUTRegression, MultipleStepsStable) {
 
     st.values[0] = 25.0f;
     for (int i = 0; i < 100; ++i) {
-        comp.solve_logical(st, 1.0f / 60.0f);
+        step_component(comp, st, 1.0f / 60.0f);
         EXPECT_NEAR(st.values[1], 50.0f, 0.001f) << "Unstable at step " << i;
     }
 }
@@ -650,7 +660,7 @@ TEST(LUTRegression, ZeroInputZeroTable) {
     auto st = make_state();
     auto comp = make_lut("0:0; 100:0", st);
     st.values[0] = 50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     EXPECT_NEAR(st.values[1], 0.0f, 0.001f);
 }
 
@@ -676,7 +686,7 @@ TEST(LUTRegression, TableOffsetRespected) {
     st.lut_values.insert(st.lut_values.end(), values.begin(), values.end());
 
     st.values[0] = 50.0f;
-    comp.solve_logical(st, 1.0f / 60.0f);
+    step_component(comp, st, 1.0f / 60.0f);
     // Must use the real table at offset 3, not the junk prefix
     EXPECT_NEAR(st.values[1], 25.0f, 0.001f);
 }

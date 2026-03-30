@@ -6,6 +6,12 @@
 
 namespace {
 
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 // DISABLED: legacy iterative-style test using SimulationState.across/through/conductance which
 // do not exist in push architecture. No push equivalent - use JIT_Simulator based
 // tests in push_runtime_regression_tests for GS24 coverage.

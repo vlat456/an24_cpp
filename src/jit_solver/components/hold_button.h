@@ -13,14 +13,11 @@ public:
     Provider provider;
     float idle = 0.0f;
     bool is_pressed = false;
-    float downstream_g = 0.0f;
-    float downstream_I = 0.0f;
-    float v_out_old = 0.0f;
 
     HoldButton() = default;
 
-    void solve_electrical(SimulationState& st, float dt);
     void commit_control(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

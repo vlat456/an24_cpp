@@ -21,7 +21,7 @@ public:
 
     PI() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_fulltests/tests/command_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_fulltests/tests/command_tests[1]_tests.cmake")
+else()
+  add_test(command_tests_NOT_BUILT command_tests_NOT_BUILT)
+endif()

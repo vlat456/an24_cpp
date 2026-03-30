@@ -4,14 +4,6 @@
 #include <cmath>
 
 template <typename Provider>
-void Generator<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // Push model: set v_out = v_in + v_nominal (voltage source behavior)
-    // Similar to Battery but with different nominal voltage
-    float v_in = st.values[provider.get(PortNames::v_in)];
-    st.values[provider.get(PortNames::v_out)] = v_in + v_nominal;
-}
-
-template <typename Provider>
 void Generator<Provider>::pre_load() {
     // Match Battery's safety pattern: floor resistance instead of zeroing out
     float safe_r = std::max(internal_r, 1e-6f);
@@ -19,8 +11,16 @@ void Generator<Provider>::pre_load() {
 }
 
 template <typename Provider>
-void Generator<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void Generator<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Push model: set v_out = v_in + v_nominal (voltage source behavior)
+    // Similar to Battery but with different nominal voltage
+    float v_in = st.values[provider.get(PortNames::v_in)];
+    st.values[provider.get(PortNames::v_out)] = v_in + v_nominal;
+}
+
+template <typename Provider>
+void Generator<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Generator<JitProvider>;

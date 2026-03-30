@@ -53,9 +53,9 @@ Achieve a strict zero-legacy codebase where:
 
 | Area | Why |
 |------|-----|
-| Editor data model (`src/editor/data/blueprint.h`) | Tracked separately as Issue #2 (dual blueprint systems). The editor `Blueprint` struct is an editor-internal representation, not a legacy solver surface. |
+| Editor data model (`src/editor/data/blueprint.h`) | Removed in zero-legacy cutover; use `src/blueprint_v2/blueprint/blueprint.h` and `src/editor/data/node_content.h`. |
 | UI framework (`src/ui/`, `src/editor/visual/`) | UI layout fallbacks (`get_size(fallback)`, `fallback_lane_y`) are UI layout concerns, not simulation legacy. |
-| Router fallback (`src/editor/router/router.h` L-shape fallback) | Rendering/routing concern, not simulation data model. |
+| Router fallback (`src/editor/router/router.h` L-shape fallback) | Header removed in cutover; routing uses active visual/router code paths only. |
 | Port type compatibility checks | `are_ports_compatible()` is active validation logic, not a legacy shim. |
 | `parse_number.h` strtod fallback | Numeric parsing concern, not blueprint model legacy. |
 | MSVC computed-goto switch fallback in codegen | Compiler portability concern, not data model legacy. |

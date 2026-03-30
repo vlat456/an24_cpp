@@ -21,5 +21,13 @@
   "priority": "high",
   "critical": true,
   "render_hint": "bus",
-  "param_defaults": {}
+  "param_defaults": {
+    "port_edge": "bottom"
+  },
+  "param_schema": {
+    "port_edge": {
+      "type": "string",
+      "visual_only": true
+    }
+  }
 }

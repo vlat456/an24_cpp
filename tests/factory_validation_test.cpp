@@ -78,10 +78,62 @@ BuildResult build_single_component(const std::string& classname,
                                    const std::unordered_map<std::string, std::string>& params = {}) {
     auto ports = get_component_ports(classname);
 
+    std::unordered_map<std::string, std::string> merged_params = params;
+    // Strict-param components must provide canonical keys.
+    if (classname == "P") {
+        merged_params.try_emplace("Kp", "1.0");
+        merged_params.try_emplace("output_min", "-1e9");
+        merged_params.try_emplace("output_max", "1e9");
+    } else if (classname == "PI") {
+        merged_params.try_emplace("Kp", "1.0");
+        merged_params.try_emplace("Ki", "1.0");
+        merged_params.try_emplace("output_min", "-1e9");
+        merged_params.try_emplace("output_max", "1e9");
+    } else if (classname == "PD") {
+        merged_params.try_emplace("Kp", "1.0");
+        merged_params.try_emplace("Kd", "0.0");
+        merged_params.try_emplace("filter_alpha", "0.5");
+        merged_params.try_emplace("output_min", "-1e9");
+        merged_params.try_emplace("output_max", "1e9");
+    } else if (classname == "PID") {
+        merged_params.try_emplace("Kp", "1.0");
+        merged_params.try_emplace("Ki", "1.0");
+        merged_params.try_emplace("Kd", "0.0");
+        merged_params.try_emplace("filter_alpha", "0.5");
+        merged_params.try_emplace("output_min", "-1e9");
+        merged_params.try_emplace("output_max", "1e9");
+    } else if (classname == "SlewRate") {
+        merged_params.try_emplace("max_rate", "1.0");
+        merged_params.try_emplace("deadzone", "1e-6");
+    } else if (classname == "AsymSlewRate") {
+        merged_params.try_emplace("rate_up", "1.0");
+        merged_params.try_emplace("rate_down", "1.0");
+        merged_params.try_emplace("deadzone", "1e-6");
+    } else if (classname == "Integrator") {
+        merged_params.try_emplace("gain", "1.0");
+        merged_params.try_emplace("initial_val", "0.0");
+    } else if (classname == "SampleHold") {
+        // SampleHold has no configurable params - threshold is hardcoded in component
+    } else if (classname == "Monostable") {
+        merged_params.try_emplace("duration", "0.1");
+    } else if (classname == "FastTMO") {
+        merged_params.try_emplace("tau", "0.1");
+    } else if (classname == "AsymTMO") {
+        merged_params.try_emplace("tau_up", "0.1");
+        merged_params.try_emplace("tau_down", "0.1");
+    } else if (classname == "LerpNode") {
+        merged_params.try_emplace("factor", "0.5");
+        merged_params.try_emplace("deadzone", "1e-6");
+    } else if (classname == "TimeDelay") {
+        merged_params.try_emplace("delay", "0.1");
+        merged_params.try_emplace("delay_on", "0.1");
+        merged_params.try_emplace("delay_off", "0.1");
+    }
+
     DeviceInstance dev;
     dev.name = "test_" + classname;
     dev.classname = classname;
-    dev.params = params;
+    dev.params = merged_params;
     dev.execution = make_execution_for_class(classname);
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};

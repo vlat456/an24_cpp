@@ -3,18 +3,6 @@
 #include <cmath>
 
 template <typename Provider>
-void Switch<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
-    // Push model: when closed, propagate v_in to v_out; when open, set v_out=0
-    // Control logic is handled in commit_control
-    if (closed) {
-        float v_in = st.values[provider.get(PortNames::v_in)];
-        st.values[provider.get(PortNames::v_out)] = v_in;
-    } else {
-        st.values[provider.get(PortNames::v_out)] = 0.0f;
-    }
-}
-
-template <typename Provider>
 void Switch<Provider>::commit_control(SimulationState& st, float dt) {
     (void)dt;
     float current_control = st.values[provider.get(PortNames::control)];
@@ -29,9 +17,20 @@ void Switch<Provider>::commit_control(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Switch<Provider>::execute(SimulationState& st, float dt) {
-    commit_control(st, dt);
-    solve_electrical(st, dt);
+void Switch<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Push model: when closed, propagate v_in to v_out; when open, set v_out=0
+    // Control logic is handled in commit_control
+    if (closed) {
+        float v_in = st.values[provider.get(PortNames::v_in)];
+        st.values[provider.get(PortNames::v_out)] = v_in;
+    } else {
+        st.values[provider.get(PortNames::v_out)] = 0.0f;
+    }
+}
+
+template <typename Provider>
+void Switch<Provider>::commit(SimulationState& st) {
+    commit_control(st, 0.0f);
 }
 
 template class Switch<JitProvider>;

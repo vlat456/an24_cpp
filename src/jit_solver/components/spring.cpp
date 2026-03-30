@@ -3,7 +3,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Spring<Provider>::solve_mechanical(SimulationState& st, float dt) {
+void Spring<Provider>::execute(SimulationState& st, float dt) {
     float pA = st.values[provider.get(PortNames::pos_a)];
     float pB = st.values[provider.get(PortNames::pos_b)];
 
@@ -44,13 +44,13 @@ void Spring<Provider>::solve_mechanical(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void Spring<Provider>::execute(SimulationState& st, float dt) {
-    solve_mechanical(st, dt);
+void Spring<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template <typename Provider>
 void Spring<Provider>::pre_load() {
-    // No precomputation needed — solve_mechanical() derives co_f from compression_only
+    // No precomputation needed.
 }
 
 template class Spring<JitProvider>;

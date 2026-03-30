@@ -3,7 +3,7 @@
 #include <algorithm>
 
 template <typename Provider>
-void Clamp<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void Clamp<Provider>::execute(SimulationState& st, float /*dt*/) {
     uint32_t in_idx = provider.get(PortNames::in);
     uint32_t out_idx = provider.get(PortNames::out);
 
@@ -14,8 +14,8 @@ void Clamp<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Clamp<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void Clamp<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Clamp<JitProvider>;

@@ -1,65 +1,10 @@
 #pragma once
 
-#include <string>
-#include <memory>
-
-// Include shared types from json_parser
-#include "../json_parser/json_parser.h"
-
-/// Forward declaration
-struct SimulationState;
-
-/// Component interface - base class for all devices
-class Component {
-public:
-    virtual ~Component() = default;
-
-    /// Component type name (for debugging)
-    [[nodiscard]] virtual std::string_view type_name() const = 0;
-
-    /// Solve electrical phase work with scheduler-provided simulated interval `dt`.
-    virtual void solve_electrical(SimulationState& state, float dt) {}
-
-    /// Solve hydraulic phase work with scheduler-provided simulated interval `dt`.
-    virtual void solve_hydraulic(SimulationState& state, float dt) {}
-
-    /// Solve mechanical phase work with scheduler-provided simulated interval `dt`.
-    virtual void solve_mechanical(SimulationState& state, float dt) {}
-
-    /// Solve thermal phase work with scheduler-provided simulated interval `dt`.
-    virtual void solve_thermal(SimulationState& state, float dt) {}
-
-    /// Solve logical phase work with scheduler-provided simulated interval `dt`.
-    virtual void solve_logical(SimulationState& state, float dt) {}
-
-    /// Stage 2: explicit phase hook - passive electrical stamping path
-    /// Compatibility default delegates to legacy solve_electrical().
-    virtual void stamp_electrical_passive(SimulationState& state, float dt) {
-        solve_electrical(state, dt);
-    }
-
-    /// Stage 2: explicit phase hook - push electrical observation path
-    virtual void observe_electrical(SimulationState& state, float dt) {}
-
-    /// Stage 2: explicit phase hook - control edge/state commit path
-    virtual void commit_control(SimulationState& state, float dt) {}
-
-    /// Stage 2: explicit phase hook - actuator electrical stamping path
-    virtual void stamp_electrical_actuator(SimulationState& state, float dt) {}
-
-    /// Stage 2: explicit phase hook - end-of-step finalize path
-    virtual void finalize_step(SimulationState& state, float dt) {}
-
-    /// Pre-load initialization
-    virtual void pre_load() {}
-};
-
 // ============================================================================
 // PORTS Macro - Generate component port fields from registry
 // ============================================================================
 // Usage:
-//   class RU19A : public Component {
-//   public:
+//   struct RU19A {
 //       PORTS(RU19A, v_bus, v_start, k_mod, rpm_out, t4_out)
 //       // Expands to:
 //       // uint32_t v_bus_idx = 0;

@@ -1,0 +1,152 @@
+{
+  "tests": 28,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PushBuildValidation",
+      "tests": 28,
+      "testsuite": [
+        {
+          "name": "SingleSourcePerWireOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 38
+        },
+        {
+          "name": "MultipleSourcesSameWireErrors",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 58
+        },
+        {
+          "name": "MultipleSourceLikeComponentsConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 77
+        },
+        {
+          "name": "BatteryAndGeneratorOnSameWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 96
+        },
+        {
+          "name": "BatteryAndRefNodeOnSameWire",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 114
+        },
+        {
+          "name": "ControlledCurrentSourceConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 135
+        },
+        {
+          "name": "ControlledVoltageSourcesShareOnlyVNeg_NoConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 153
+        },
+        {
+          "name": "ControlledVoltageSourcesShareVPos_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 173
+        },
+        {
+          "name": "GS24AndBatteryOnSameWire_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 190
+        },
+        {
+          "name": "RU19AStartBusPortsActAsWriters",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 205
+        },
+        {
+          "name": "MultipleLoadsOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 228
+        },
+        {
+          "name": "SeparateWiresOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 249
+        },
+        {
+          "name": "TwoBatteriesDirectConnection",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 273
+        },
+        {
+          "name": "SingleBatteryOK",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 290
+        },
+        {
+          "name": "TopologicalOrder_LinearChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 307
+        },
+        {
+          "name": "TopologicalOrder_CycleFallsBackNoThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 339
+        },
+        {
+          "name": "ParseInitialValuesFromJson",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 370
+        },
+        {
+          "name": "SimulatorAppliesInitialValuesBeforeStep",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 390
+        },
+        {
+          "name": "TypeDefinitionWithoutExecutionIsAccepted",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 410
+        },
+        {
+          "name": "MaxSelectorSelectsHigherInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 429
+        },
+        {
+          "name": "MaxSelectorAvoidsSourceConflict",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 453
+        },
+        {
+          "name": "UnknownClassnameThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 482
+        },
+        {
+          "name": "WhitelistParamsRejected",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 495
+        },
+        {
+          "name": "UnknownParamThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 511
+        },
+        {
+          "name": "MissingRequiredParamThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 527
+        },
+        {
+          "name": "MissingDomainsThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 544
+        },
+        {
+          "name": "BusWithVisualOnlyParam_PortEdge_DoesNotThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 564
+        },
+        {
+          "name": "ParamSchemaVisualOnlyFlag",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_build_validation.cpp",
+          "line": 591
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "tests": 15,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "SubBlueprintParse",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "ParseSubBlueprintsArray",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 20
+        },
+        {
+          "name": "NoSubBlueprintsField_EmptyVector",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "name": "CycleDetection",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DirectSelfReference_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 97
+        },
+        {
+          "name": "IndirectCycle_Throws",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 116
+        }
+      ]
+    },
+    {
+      "name": "SubBlueprintExpand",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "SingleLevel_FlattensPrefixed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 150
+        },
+        {
+          "name": "OverrideParams_Applied",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 199
+        },
+        {
+          "name": "TwoLevelsDeep_FullyPrefixed",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 232
+        }
+      ]
+    },
+    {
+      "name": "SubBlueprintInstance",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DefaultConstruction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 275
+        },
+        {
+          "name": "FullConstruction",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 289
+        }
+      ]
+    },
+    {
+      "name": "TypeDefinition",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "HasSubBlueprintsField",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 311
+        }
+      ]
+    },
+    {
+      "name": "BlueprintSubRef",
+      "tests": 3,
+      "testsuite": [
+        {
+          "name": "HasSubBlueprintInstancesField",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 326
+        },
+        {
+          "name": "FindSubBlueprintById",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 337
+        },
+        {
+          "name": "RemoveSubBlueprintById",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 351
+        }
+      ]
+    },
+    {
+      "name": "HierarchicalCodegen",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "SubBlueprintInstances_CodegenGeneratesCode",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 370
+        },
+        {
+          "name": "MultipleSubBlueprints_CodegenHandlesAll",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_sub_blueprint_ref.cpp",
+          "line": 431
+        }
+      ]
+    }
+  ]
+}

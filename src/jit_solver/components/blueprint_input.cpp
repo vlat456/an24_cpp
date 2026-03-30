@@ -3,15 +3,15 @@
 #include "../state.h"
 
 template <typename Provider>
-void BlueprintInput<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void BlueprintInput<Provider>::execute(SimulationState& st, float /*dt*/) {
     // No-op - pass-through component (like Bus)
     // Union-find will collapse port to connected signal
     (void)st;
 }
 
 template <typename Provider>
-void BlueprintInput<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void BlueprintInput<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class BlueprintInput<JitProvider>;

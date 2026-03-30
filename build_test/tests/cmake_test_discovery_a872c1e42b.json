@@ -1,0 +1,167 @@
+{
+  "tests": 31,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PushRuntime",
+      "tests": 31,
+      "testsuite": [
+        {
+          "name": "SinglePassSettlesLinearChain",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 42
+        },
+        {
+          "name": "CycleUsesOneFrameDelay",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 69
+        },
+        {
+          "name": "DynamicEnableDisableStable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 95
+        },
+        {
+          "name": "InitialValuesSeedState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 130
+        },
+        {
+          "name": "SourceConflictErrorMessageReadable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 152
+        },
+        {
+          "name": "GS24StartupSequenceProducesOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 177
+        },
+        {
+          "name": "RU19ASmokeNoNaNOverLongRun",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 202
+        },
+        {
+          "name": "LerpNodeExecuteProducesOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 227
+        },
+        {
+          "name": "DynamicFeedbackLoopStableAndBounded",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 250
+        },
+        {
+          "name": "CommitHookRunsAfterExecute",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 280
+        },
+        {
+          "name": "StatefulComponentOneFrameDelaySemantic",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 312
+        },
+        {
+          "name": "IntegratorComputesCorrectAccumulation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 354
+        },
+        {
+          "name": "SampleHoldBasicOperation",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 392
+        },
+        {
+          "name": "SlewRateConvergesToInput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 420
+        },
+        {
+          "name": "ComponentApiCommitHookCoverageSmoke",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 459
+        },
+        {
+          "name": "TimeDelayCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 508
+        },
+        {
+          "name": "MonostableCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 535
+        },
+        {
+          "name": "SlewRateCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 566
+        },
+        {
+          "name": "AsymSlewRateCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 601
+        },
+        {
+          "name": "IntegratorCommitOneFrameDelay",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 630
+        },
+        {
+          "name": "SampleHoldCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 668
+        },
+        {
+          "name": "LerpNodeCommitSemantics",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 695
+        },
+        {
+          "name": "StrictParamMissingThrowsForPID",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 732
+        },
+        {
+          "name": "StrictParamMissingThrowsForSlewRate",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 762
+        },
+        {
+          "name": "StrictParamUsesCanonicalKey",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 791
+        },
+        {
+          "name": "UnknownParamKeyThrows",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 827
+        },
+        {
+          "name": "GS24ExtendedParamsAreAcceptedAndAffectOutput",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 928
+        },
+        {
+          "name": "RU19AExtendedParamsAreAcceptedAndCrankTimeControlsState",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 980
+        },
+        {
+          "name": "RU19AStartRequestTransitionsToCrankingNextFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 1027
+        },
+        {
+          "name": "RU19AStopRequestTransitionsToStoppingNextFrame",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 1061
+        },
+        {
+          "name": "RU19AStartStopRequestsDoNotMutateCurrentFrameOutputs",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_push_runtime_regression.cpp",
+          "line": 1109
+        }
+      ]
+    }
+  ]
+}

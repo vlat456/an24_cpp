@@ -1,6 +1,5 @@
 add_library(jit_solver
     jit_solver.cpp
-    component.cpp
     state.cpp
     simulator.cpp
     # Phase 2 Slice 1: Migrated push-style components

@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/apu_mechanical_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_off/tests/apu_mechanical_tests[1]_tests.cmake")
+else()
+  add_test(apu_mechanical_tests_NOT_BUILT apu_mechanical_tests_NOT_BUILT)
+endif()

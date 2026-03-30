@@ -105,6 +105,7 @@ struct ParamSchemaEntry {
     std::optional<double> min;
     std::optional<double> max;
     bool required = false;
+    bool visual_only = false;   ///< True = editor-only param, excluded from simulation JSON
 };
 
 /// Type definition (ports, params, domains for a component class or blueprint)

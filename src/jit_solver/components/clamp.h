@@ -11,13 +11,12 @@ public:
     static constexpr Domain domain = Domain::Logical;
 
     Provider provider;
-
     float min = 0.0f;
     float max = 1.0f;
 
     Clamp() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

@@ -1,0 +1,151 @@
+{
+  "tests": 23,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "PathResolver",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "ResolveNodePortOnRoot",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 29
+        },
+        {
+          "name": "ResolveRootInterfacePort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 48
+        },
+        {
+          "name": "ResolveNestedInterfacePort",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 66
+        },
+        {
+          "name": "CanConnectRejectsBoundarySkipAcrossNestedScopes",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 96
+        },
+        {
+          "name": "CanConnectAcceptsSameScopeWithCompatibleDirections",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 123
+        }
+      ]
+    },
+    {
+      "name": "WireValidator",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "ValidWirePasses",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 141
+        },
+        {
+          "name": "InvalidPathFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 160
+        },
+        {
+          "name": "DomainMismatchFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 178
+        },
+        {
+          "name": "DirectionMismatchFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 205
+        },
+        {
+          "name": "SelfLoopFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 224
+        }
+      ]
+    },
+    {
+      "name": "BlueprintValidate",
+      "tests": 6,
+      "testsuite": [
+        {
+          "name": "DuplicateNodeIdsFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 244
+        },
+        {
+          "name": "DuplicateWireIdsFail",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 259
+        },
+        {
+          "name": "UnknownNodeTypeFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 286
+        },
+        {
+          "name": "InvalidNestedReferenceFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 300
+        },
+        {
+          "name": "WirePathUnresolvedFails",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 318
+        },
+        {
+          "name": "ValidBlueprintPasses",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 339
+        }
+      ]
+    },
+    {
+      "name": "BlueprintRepair",
+      "tests": 2,
+      "testsuite": [
+        {
+          "name": "DiagnoseAndRepairRemovesInvalidWireEndpoints",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 361
+        },
+        {
+          "name": "DiagnoseReportsUnknownNodeType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_validation.cpp",
+          "line": 391
+        }
+      ]
+    },
+    {
+      "name": "PersistValidation",
+      "tests": 5,
+      "testsuite": [
+        {
+          "name": "RejectsInvalidWireEndpointOnLoad",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 10
+        },
+        {
+          "name": "ValidateBlueprintForPersistRejectsUnknownType",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 54
+        },
+        {
+          "name": "SaveUsesTypedParamNormalizationWhenRegistryAvailable",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 71
+        },
+        {
+          "name": "ValidateBlueprintIntegrityPassesForValidBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 112
+        },
+        {
+          "name": "WireDomainMismatchIsToleratedWithoutThrow",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/blueprint_v2\/test_persist_validation.cpp",
+          "line": 132
+        }
+      ]
+    }
+  ]
+}

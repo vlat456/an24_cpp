@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void AND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
+void AND<Provider>::execute(SimulationState& st, float /*dt*/) {
     float A = st.values[provider.get(PortNames::A)];
     float B = st.values[provider.get(PortNames::B)];
     // Treat > 0.5V as TRUE, else FALSE
@@ -13,8 +13,8 @@ void AND<Provider>::solve_logical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void AND<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void AND<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class AND<JitProvider>;

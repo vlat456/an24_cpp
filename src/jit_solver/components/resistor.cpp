@@ -3,7 +3,7 @@
 #include "../state.h"
 
 template <typename Provider>
-void Resistor<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void Resistor<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: Resistor as pass-through element
     // In a simple push model, we propagate v_in to v_out
     // The actual voltage drop would require solving, but for push-friendly
@@ -13,8 +13,8 @@ void Resistor<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Resistor<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void Resistor<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Resistor<JitProvider>;

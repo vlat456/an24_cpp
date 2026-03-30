@@ -3,7 +3,7 @@
 #include "../state.h"
 
 template <typename Provider>
-void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void CurrentSense<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: CurrentSense is a measurement-only component
     // Compute current from voltage difference and conductance
     float v_in = st.values[provider.get(PortNames::v_in)];
@@ -13,8 +13,8 @@ void CurrentSense<Provider>::solve_electrical(SimulationState& st, float /*dt*/)
 }
 
 template <typename Provider>
-void CurrentSense<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void CurrentSense<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class CurrentSense<JitProvider>;

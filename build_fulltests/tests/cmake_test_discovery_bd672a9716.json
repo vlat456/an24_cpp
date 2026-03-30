@@ -1,0 +1,57 @@
+{
+  "tests": 9,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "CodegenAccumulator",
+      "tests": 9,
+      "testsuite": [
+        {
+          "name": "HeaderDoesNotContainAccumulatorFields",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 107
+        },
+        {
+          "name": "SolveStepHasNoAccumulatorDtUpdates",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 125
+        },
+        {
+          "name": "NoDtMultiplyPatternInGenerated",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 143
+        },
+        {
+          "name": "DISABLED_MechanicalUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 163
+        },
+        {
+          "name": "DISABLED_HydraulicUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 180
+        },
+        {
+          "name": "DISABLED_ThermalUsesAccumulatorAndResets",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 195
+        },
+        {
+          "name": "DomainScheduleConstantsAreCanonical",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 212
+        },
+        {
+          "name": "DispatchTableSizeMatchesCycleLength",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 227
+        },
+        {
+          "name": "DISABLED_ControlCommitPhaseIsEmittedBeforeSecondElectricalPass",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_codegen_accumulator.cpp",
+          "line": 246
+        }
+      ]
+    }
+  ]
+}

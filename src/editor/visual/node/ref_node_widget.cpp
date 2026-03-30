@@ -5,7 +5,7 @@
 #include "visual/renderer/handle_renderer.h"
 #include "editor/layout_constants.h"
 #include "visual/snap.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cmath>
@@ -16,17 +16,22 @@ namespace visual {
 // Construction
 // ============================================================================
 
-RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& interner)
+RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
-    , type_name_(data.type_name)
+    , type_name_(std::string(interner.resolve(data.type)))
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
     buildLayout(data, interner);
 
     // Compute preferred size, then allow explicit override
@@ -34,9 +39,10 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
     float w = preferred.x;
     float h = preferred.y;
 
-    if (data.has_explicit_size()) {
-        if (data.explicit_size().x >= editor_constants::PORT_LAYOUT_GRID) w = data.explicit_size().x;
-        if (data.explicit_size().y >= editor_constants::PORT_LAYOUT_GRID) h = data.explicit_size().y;
+    bool has_explicit = data.width.has_value() && data.height.has_value();
+    if (has_explicit) {
+        if (*data.width >= editor_constants::PORT_LAYOUT_GRID) w = *data.width;
+        if (*data.height >= editor_constants::PORT_LAYOUT_GRID) h = *data.height;
     }
 
     // Snap to layout grid
@@ -48,37 +54,11 @@ RefNodeWidget::RefNodeWidget(const ::Node& data, const ui::StringInterner& inter
     positionPort();
 }
 
-RefNodeWidget::RefNodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner)
-    : RefNodeWidget([
-        &]() {
-            Node node;
-            node.id = data.id;
-            node.name = data.name;
-            node.type_name = std::string(interner.resolve(data.type));
-            node.pos = ui::Pt(data.x, data.y);
-            node.inputs = data.inputs;
-            node.outputs = data.outputs;
-            if (data.width.has_value() && data.height.has_value()) {
-                node.set_explicit_size(ui::Pt(*data.width, *data.height));
-            }
-            if (data.has_color) {
-                NodeColor c;
-                c.r = data.color_r;
-                c.g = data.color_g;
-                c.b = data.color_b;
-                c.a = data.color_a;
-                node.color = c;
-            }
-            return node;
-        }(),
-        interner)
-{}
-
 // ============================================================================
 // Layout
 // ============================================================================
 
-void RefNodeWidget::buildLayout(const ::Node& data, const ui::StringInterner& interner) {
+void RefNodeWidget::buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner) {
     // Determine the single port from node data.
     // Port stores a string_view, so the name must point to stable storage
     // (the interner) — never to a local std::string.

@@ -21,8 +21,8 @@ public:
 
     LUT() = default;
 
-    void solve_logical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 
     /// Parse "k1:v1; k2:v2; ..." table string into keys/values vectors
@@ -30,6 +30,5 @@ public:
                             std::vector<float>& keys,
                             std::vector<float>& values);
 
-private:
     static float interpolate(float x, const float* keys, const float* vals, uint16_t size);
 };

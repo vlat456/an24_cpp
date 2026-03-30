@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void SolenoidValve<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/) {
+void SolenoidValve<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: valve passes through when open, blocks when closed
     float ctrl = st.values[provider.get(PortNames::ctrl)];
     float ctrl_above = (ctrl > 12.0f) ? 1.0f : 0.0f;
@@ -22,8 +22,8 @@ void SolenoidValve<Provider>::solve_hydraulic(SimulationState& st, float /*dt*/)
 }
 
 template <typename Provider>
-void SolenoidValve<Provider>::execute(SimulationState& st, float dt) {
-    solve_hydraulic(st, dt);
+void SolenoidValve<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class SolenoidValve<JitProvider>;

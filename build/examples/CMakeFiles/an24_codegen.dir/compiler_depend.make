@@ -525,13 +525,8 @@ examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o: /Users/vladim
   _deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/parse_number.h \
-  /Users/vladimir/an24_cpp/src/codegen/codegen.h \
-  /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/execution_traits.h
+  /Users/vladimir/an24_cpp/src/codegen/codegen.h
 
-
-/Users/vladimir/an24_cpp/src/jit_solver/SOR_constants.h:
 
 /Users/vladimir/an24_cpp/src/parse_number.h:
 
@@ -1426,8 +1421,6 @@ _deps/json-src/include/nlohmann/detail/meta/is_sax.hpp:
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h:
 
 /Library/Developer/CommandLineTools/usr/include/c++/v1/__iterator/projected.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/execution_traits.h:
 
 /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_clock_t.h:
 

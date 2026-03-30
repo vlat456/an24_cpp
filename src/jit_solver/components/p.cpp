@@ -4,8 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void P<Provider>::solve_logical(SimulationState& st, float dt) {
-    (void)dt;
+void P<Provider>::execute(SimulationState& st, float /*dt*/) {
     float sp = st.values[provider.get(PortNames::setpoint)];
     float fb = st.values[provider.get(PortNames::feedback)];
     float error = sp - fb;
@@ -15,8 +14,8 @@ void P<Provider>::solve_logical(SimulationState& st, float dt) {
 }
 
 template <typename Provider>
-void P<Provider>::execute(SimulationState& st, float dt) {
-    solve_logical(st, dt);
+void P<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class P<JitProvider>;

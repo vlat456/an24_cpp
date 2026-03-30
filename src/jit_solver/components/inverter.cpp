@@ -4,7 +4,7 @@
 #include <cmath>
 
 template <typename Provider>
-void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void Inverter<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: DC to AC conversion
     // Input: dc_in, Output: ac_out
     float v_dc = st.values[provider.get(PortNames::dc_in)];
@@ -14,8 +14,8 @@ void Inverter<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Inverter<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void Inverter<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Inverter<JitProvider>;

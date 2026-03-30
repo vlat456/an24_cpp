@@ -9,12 +9,13 @@ void ControlledCurrentSource<Provider>::pre_load() {
     r_shunt = (g_shunt > 1e-9f) ? (1.0f / g_shunt) : 1e9f;
 }
 
-/// Push model implementation:
-/// Reads cmd control input, computes source current with gain/limits,
-/// emulates current source effect via voltage offset (V = I * r_shunt).
-/// This is a deterministic approximation since push model cannot inject current.
+/// Execute method for scheduler integration
 template <typename Provider>
-void ControlledCurrentSource<Provider>::solve_electrical(SimulationState& st, float /*dt*/) {
+void ControlledCurrentSource<Provider>::execute(SimulationState& st, float /*dt*/) {
+    // Push model implementation:
+    // Reads cmd control input, computes source current with gain/limits,
+    // emulates current source effect via voltage offset (V = I * r_shunt).
+    // This is a deterministic approximation since push model cannot inject current.
     // Read control input
     float cmd = st.values[provider.get(PortNames::cmd)];
     
@@ -29,10 +30,9 @@ void ControlledCurrentSource<Provider>::solve_electrical(SimulationState& st, fl
     st.values[provider.get(PortNames::v_neg)] = 0.0f;
 }
 
-/// Execute method for scheduler integration
 template <typename Provider>
-void ControlledCurrentSource<Provider>::execute(SimulationState& st, float dt) {
-    solve_electrical(st, dt);
+void ControlledCurrentSource<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class ControlledCurrentSource<JitProvider>;

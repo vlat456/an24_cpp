@@ -101,40 +101,39 @@ static auto make_multi_domain_devices() {
 }
 
 // =============================================================================
-// Tests: generated header contains accumulator fields
+// Tests: generated header uses push single-pass fields (no accumulators)
 // =============================================================================
 
-TEST(CodegenAccumulator, HeaderContainsAccumulatorFields) {
+TEST(CodegenAccumulator, HeaderDoesNotContainAccumulatorFields) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string header = CodeGen::generate_header(
         "test.json", devices, connections, port_to_signal, signal_count);
 
-    EXPECT_NE(header.find("acc_mechanical_"), std::string::npos)
-        << "Header must declare acc_mechanical_ field";
-    EXPECT_NE(header.find("acc_hydraulic_"), std::string::npos)
-        << "Header must declare acc_hydraulic_ field";
-    EXPECT_NE(header.find("acc_thermal_"), std::string::npos)
-        << "Header must declare acc_thermal_ field";
+    EXPECT_EQ(header.find("acc_mechanical_"), std::string::npos)
+        << "Header must not declare acc_mechanical_ field in push single-pass mode";
+    EXPECT_EQ(header.find("acc_hydraulic_"), std::string::npos)
+        << "Header must not declare acc_hydraulic_ field in push single-pass mode";
+    EXPECT_EQ(header.find("acc_thermal_"), std::string::npos)
+        << "Header must not declare acc_thermal_ field in push single-pass mode";
 }
 
 // =============================================================================
-// Tests: generated source accumulates dt in solve_step
+// Tests: generated source does not accumulate dt in solve_step
 // =============================================================================
 
-TEST(CodegenAccumulator, SolveStepAccumulatesDt) {
+TEST(CodegenAccumulator, SolveStepHasNoAccumulatorDtUpdates) {
     auto [devices, connections, port_to_signal, signal_count] = make_multi_domain_devices();
 
     std::string source = CodeGen::generate_source(
         "test.h", devices, connections, port_to_signal, signal_count);
 
-    // solve_step must accumulate dt into all three accumulators
-    EXPECT_NE(source.find("acc_mechanical_ += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_mechanical_";
-    EXPECT_NE(source.find("acc_hydraulic_  += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_hydraulic_";
-    EXPECT_NE(source.find("acc_thermal_    += dt"), std::string::npos)
-        << "solve_step must accumulate dt into acc_thermal_";
+    EXPECT_EQ(source.find("acc_mechanical_ += dt"), std::string::npos)
+        << "solve_step must not update acc_mechanical_ in push single-pass mode";
+    EXPECT_EQ(source.find("acc_hydraulic_  += dt"), std::string::npos)
+        << "solve_step must not update acc_hydraulic_ in push single-pass mode";
+    EXPECT_EQ(source.find("acc_thermal_    += dt"), std::string::npos)
+        << "solve_step must not update acc_thermal_ in push single-pass mode";
 }
 
 // =============================================================================

@@ -11,7 +11,7 @@
 #include "visual/node/layout_context.h"
 #include "ui/core/interned_id.h"
 #include "visual/node/port_layout_resolver.h"
-#include "data/node.h"
+#include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <string>
 #include <string_view>
@@ -26,7 +26,6 @@ namespace visual {
 /// Owns its layout tree: header, port rows, content area, type name footer.
 class NodeWidget : public Widget {
 public:
-    explicit NodeWidget(const Node& data, const ui::StringInterner& interner);
     explicit NodeWidget(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     std::string_view id() const override { return interner_->resolve(node_iid_); }
@@ -76,13 +75,13 @@ private:
 
     std::optional<uint32_t> custom_fill_;
 
-    void buildLayout(const Node& data, const ui::StringInterner& interner);
-    void buildStandardLayout(const Node& data, const ui::StringInterner& interner);
-    void buildVerticalToggleLayout(const Node& data, const ui::StringInterner& interner);
+    void buildLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildStandardLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
+    void buildVerticalToggleLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
     void buildPortRow(std::string_view left_name, PortType left_type,
                       std::string_view right_name, PortType right_type);
     void buildPortInColumn(Widget* col, std::string_view name, PortType type, PortSide logical_side, PortLayoutSide layout_side);
-    void buildFourSidedLayout(const Node& data, const ui::StringInterner& interner);
+    void buildFourSidedLayout(const bp2::Blueprint::Node& data, const ui::StringInterner& interner);
 
     void buildHorizontalPortStrip(const std::vector<ResolvedPort>& ports);
 

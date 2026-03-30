@@ -1,0 +1,17 @@
+{
+  "tests": 1,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "JitAotBridgeEquivalence",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "MinimalBridgeTopologyAndCodegenSmoke",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_jit_aot_bridge_equivalence.cpp",
+          "line": 38
+        }
+      ]
+    }
+  ]
+}

@@ -78,6 +78,17 @@ grep -rn "SOR_constants\|execution_traits" src/
 
 ## Step 5.3: Clean Up Component Headers
 
+### Runtime API Simplification Status
+
+**Done (Phase 1):** `commit()` hook introduced in scheduler and wired to 7 stateful components:
+- LerpNode, AZS, HoldButton, Relay, Switch, TimeDelay, Monostable
+
+**Next (Phase 2):** Move domain logic into `execute()` or private helpers.
+
+**Final:** Remove public `solve_*` from component headers (domain taxonomy is legacy).
+
+### Remove Obsolete Methods from `all.h`
+
 ### Remove Obsolete Methods from `all.h`
 
 These method declarations should no longer exist on any component:

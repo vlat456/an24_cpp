@@ -7,8 +7,7 @@
 #include "visual/wire/wire.h"
 #include "visual/snap.h"
 #include "editor/layout_constants.h"
-#include "data/node.h"
-#include "data/wire.h"
+#include "data/node_content.h"
 #include "blueprint_v2/blueprint/blueprint.h"
 #include <algorithm>
 #include <cassert>
@@ -16,27 +15,30 @@
 
 namespace visual {
 
-using DataWire = ::Wire;
-
 // ============================================================================
 // Construction
 // ============================================================================
 
-BusNodeWidget::BusNodeWidget(const ::Node& data,
+BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
                              const ui::StringInterner& interner,
                              PortEdge port_edge,
                              const std::vector<BusWireRef>& wires)
     : node_iid_(data.id)
     , interner_(&interner)
     , name_(data.name)
-    , type_name_(data.type_name)
+    , type_name_(std::string(interner.resolve(data.type)))
     , port_edge_(port_edge)
 {
-    if (data.color.has_value()) {
-        custom_fill_ = data.color->to_uint32();
+    if (data.has_color) {
+        NodeColor c;
+        c.r = data.color_r;
+        c.g = data.color_g;
+        c.b = data.color_b;
+        c.a = data.color_a;
+        custom_fill_ = c.to_uint32();
     }
 
-    setLocalPos(data.pos);
+    setLocalPos(Pt(data.x, data.y));
 
     // Collect wires connected to this node
     for (const auto& w : wires) {
@@ -47,61 +49,18 @@ BusNodeWidget::BusNodeWidget(const ::Node& data,
 
     // Carry the explicit-size flag from the data layer so rebuildPorts()
     // keeps the user's custom size instead of auto-calculating it.
-    size_explicitly_set_ = data.has_explicit_size();
+    size_explicitly_set_ = data.width.has_value() && data.height.has_value();
 
     // Initial size from data (will be recalculated in rebuildPorts if not explicit)
-    Pt snapped = editor_math::snap_size_to_layout_grid(data.get_size());
+    Pt default_size(120.0f, 80.0f);
+    if (size_explicitly_set_) {
+        default_size = Pt(*data.width, *data.height);
+    }
+    Pt snapped = editor_math::snap_size_to_layout_grid(default_size);
     setSize(snapped);
 
     rebuildPorts();
 }
-
-BusNodeWidget::BusNodeWidget(const ::Node& data,
-                             const ui::StringInterner& interner,
-                             PortEdge port_edge,
-                             const std::vector<DataWire>& wires)
-    : BusNodeWidget(
-        data,
-        interner,
-        port_edge,
-        [&]() {
-            std::vector<BusWireRef> refs;
-            refs.reserve(wires.size());
-            for (const auto& w : wires) {
-                refs.push_back(BusWireRef{w.id, w.start.node_id, w.end.node_id});
-            }
-            return refs;
-        }())
-{}
-
-BusNodeWidget::BusNodeWidget(const bp2::Blueprint::Node& data,
-                             const ui::StringInterner& interner,
-                             PortEdge port_edge,
-                             const std::vector<BusWireRef>& wires)
-    : BusNodeWidget([
-        &]() {
-            Node node;
-            node.id = data.id;
-            node.name = data.name;
-            node.type_name = std::string(interner.resolve(data.type));
-            node.pos = ui::Pt(data.x, data.y);
-            if (data.width.has_value() && data.height.has_value()) {
-                node.set_explicit_size(ui::Pt(*data.width, *data.height));
-            }
-            if (data.has_color) {
-                NodeColor c;
-                c.r = data.color_r;
-                c.g = data.color_g;
-                c.b = data.color_b;
-                c.a = data.color_a;
-                node.color = c;
-            }
-            return node;
-        }(),
-        interner,
-        port_edge,
-        wires)
-{}
 
 // ============================================================================
 // Port management
@@ -250,20 +209,12 @@ void BusNodeWidget::connectWire(const BusWireRef& wire) {
     }
 }
 
-void BusNodeWidget::connectWire(const DataWire& wire) {
-    connectWire(BusWireRef{wire.id, wire.start.node_id, wire.end.node_id});
-}
-
 void BusNodeWidget::disconnectWire(const BusWireRef& wire) {
     wires_.erase(
         std::remove_if(wires_.begin(), wires_.end(),
             [&](const BusWireRef& w) { return w.id == wire.id; }),
         wires_.end());
     rebuildPorts();
-}
-
-void BusNodeWidget::disconnectWire(const DataWire& wire) {
-    disconnectWire(BusWireRef{wire.id, wire.start.node_id, wire.end.node_id});
 }
 
 bool BusNodeWidget::swapAliasPorts(ui::InternedId wire_id_a,

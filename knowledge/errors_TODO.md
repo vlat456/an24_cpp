@@ -191,23 +191,80 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
-### 2. Dual Blueprint Systems (Incomplete Migration)
-**Files:** 
-- `src/editor/data/blueprint.h` (legacy)
-- `src/blueprint_v2/blueprint/blueprint.h` (new)
+### ~~2. Dual Blueprint Systems (Incomplete Migration)~~ ✓ COMPLETED
+**Status:** CLOSED (2026-03-30)
 
-**Problem:** Two blueprint implementations coexist. Unclear which is canonical, risks inconsistency.
+**Result:** Legacy editor blueprint/data files were removed from active codebase.
 
-**Current recommendation (Phase 7+):**
-- Treat `src/blueprint_v2/` as canonical for all new work.
-- Freeze legacy surface in `src/editor/data/blueprint.h` to bugfix-only.
-- Add a bridge/adaptor boundary so runtime/editor entry points consume one canonical model.
-- Add migration completion checklist with measurable exit criteria (loader parity, save/load parity, editor parity, test parity).
-- Only remove legacy implementation after parity matrix is green.
+- Deleted legacy files: `src/editor/data/blueprint.h/.cpp`, `src/editor/data/node.h`,
+  `src/editor/data/wire.h`, `src/editor/data/sub_blueprint_instance.h`.
+- Removed dead legacy router headers: `src/editor/router/router.h`, `src/editor/router/grid.h`.
+- Active code paths use `src/blueprint_v2/**` and shared `src/editor/data/node_content.h`.
+- Build/test targets were updated to stop compiling legacy-dependent suites.
 
 ---
 
 ## Medium Priority
+
+### 17. Replace String-Matched Output Port Classification With Metadata
+**File:** `src/jit_solver/jit_solver.cpp:output_ports_for_class()`
+
+**Problem:**
+- Topological writer/read classification still relies on hardcoded classname and port-name string lists.
+- New components (or new output ports on existing components) can silently be misclassified as inputs if not manually added.
+- This already caused a real regression (`RU19A` observation outputs `rpm_out`/`t4_out` missing from writer classification).
+
+**Target architecture:**
+- Derive output-port direction from authoritative component metadata rather than handwritten switch-like lists.
+- Extend port metadata model so each port includes direction (`input`, `output`, `inout`) in a runtime-queryable form.
+
+**Detailed TODO plan:**
+1. **Port metadata model**
+   - Extend `port_registry` API to expose per-port direction (not just names).
+   - Define one source of truth for direction for all components (JIT + AOT compatible).
+2. **Runtime integration**
+   - Replace `output_ports_for_class()` string set heuristics with metadata-driven lookup.
+   - Keep active source-conflict detection (`active_source_writer_ports_for`) aligned with the same metadata model.
+3. **Validation and fail-fast**
+   - Add startup/build-time checks: if a component has unknown/missing direction metadata, fail build with explicit error.
+   - Remove fallback "shotgun" output-name sets.
+4. **Tests (required)**
+   - Add classification tests for at least: `RU19A`, `GS24`, `ControlledVoltageSource`, `ControlledCurrentSource`, `RefNode`, `Battery`, `Generator`.
+   - Add one generic regression that verifies all output ports declared by metadata produce writer edges in topo ordering.
+
+**Acceptance criteria:**
+- No hardcoded fallback output-name sets remain in `output_ports_for_class()`.
+- Adding a new component output port requires metadata update only (no jit_solver.cpp edits).
+- Full test suite passes, with new direction-driven regression tests.
+
+**Impact:** Medium effort, high long-term value (eliminates a bug class).
+
+---
+
+### 18. Remove ParamReader Forwarding Lambdas in `build_systems_dev()`
+**File:** `src/jit_solver/jit_solver.cpp` (component build loop)
+
+**Problem:**
+- After introducing `ParamReader`, several local lambdas only forward calls (`consume_float_optional`, `consume_bool_optional`, etc.).
+- This adds indirection and boilerplate without behavior/value.
+
+**Detailed TODO plan:**
+1. Replace forwarding lambdas with direct calls to `param_reader` at component assignment sites.
+2. Keep strict-consumption behavior unchanged (`validate_all_consumed()` still called once per component path).
+3. For LUT/table and other special-case params, use explicit `param_reader.consume_*` calls directly.
+4. Run focused tests:
+   - `PushBuildValidation.*`
+   - `push_runtime_regression_tests`
+   - full suite
+
+**Acceptance criteria:**
+- Forwarding lambdas removed.
+- Param parsing behavior and error messages unchanged.
+- All tests remain green.
+
+**Impact:** Low effort, small readability and maintenance win.
+
+---
 
 
 

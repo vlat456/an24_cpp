@@ -15,7 +15,7 @@ public:
 
     Gyroscope() = default;
 
-    void solve_electrical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load() {}
 };

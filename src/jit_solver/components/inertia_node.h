@@ -17,7 +17,7 @@ public:
 
     InertiaNode() = default;
 
-    void solve_mechanical(SimulationState& st, float dt);
     void execute(SimulationState& st, float dt);
+    void commit(SimulationState& st);
     void pre_load();
 };

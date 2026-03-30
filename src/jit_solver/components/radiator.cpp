@@ -2,7 +2,7 @@
 #include "port_registry.h"
 
 template <typename Provider>
-void Radiator<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
+void Radiator<Provider>::execute(SimulationState& st, float /*dt*/) {
     // Push model: heat exchanger
     // Heat flows from heat_in to heat_out, with cooling capacity
     float heat_in = st.values[provider.get(PortNames::heat_in)];
@@ -13,8 +13,8 @@ void Radiator<Provider>::solve_thermal(SimulationState& st, float /*dt*/) {
 }
 
 template <typename Provider>
-void Radiator<Provider>::execute(SimulationState& st, float dt) {
-    solve_thermal(st, dt);
+void Radiator<Provider>::commit(SimulationState& st) {
+    (void)st;
 }
 
 template class Radiator<JitProvider>;

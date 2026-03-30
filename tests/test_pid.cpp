@@ -6,6 +6,16 @@
 #include <cmath>
 
 
+// =============================================================================
+// Test Helpers
+// =============================================================================
+
+template <typename Comp>
+void step_component(Comp& comp, SimulationState& st, float dt) {
+    comp.execute(st, dt);
+    comp.commit(st);
+}
+
 // Helper: build JIT PID with ports wired to: [0]=setpoint, [1]=feedback, [2]=output
 static PID<JitProvider> make_pid(float Kp = 1.0f, float Ki = 0.0f, float Kd = 0.0f,
                                   float out_min = -1000.0f, float out_max = 1000.0f,
@@ -41,7 +51,7 @@ TEST(PIDTest, ProportionalOnly)
     auto pid = make_pid(/*Kp=*/2.0f);
     auto st  = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     // output = Kp * (sp - fb) = 2 * 10 = 20
     EXPECT_FLOAT_EQ(st.values[2], 20.0f);
@@ -52,7 +62,7 @@ TEST(PIDTest, ProportionalSign)
     auto pid = make_pid(/*Kp=*/1.0f);
     auto st  = make_state(/*sp=*/-5.0f, /*fb=*/5.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], -10.0f);
 }
@@ -68,7 +78,7 @@ TEST(PIDTest, IntegralAccumulatesOverOneSecond_60Hz)
     const float dt = 1.0f / 60.0f;
     const int   N  = 60;
     for (int i = 0; i < N; ++i) {
-        pid.solve_logical(st, dt);
+        step_component(pid, st, dt);
     }
 
     // integral = 5.0 * 1.0 = 5.0 after 1 second (regardless of dt size)
@@ -85,8 +95,8 @@ TEST(PIDTest, IntegralTimeInvariance)
     SimulationState st60  = make_state(5.0f, 0.0f);
     SimulationState st144 = make_state(5.0f, 0.0f);
 
-    for (int i = 0; i < 60;  ++i) pid60 .solve_logical(st60,  1.0f / 60.0f);
-    for (int i = 0; i < 144; ++i) pid144.solve_logical(st144, 1.0f / 144.0f);
+    for (int i = 0; i < 60;  ++i) step_component(pid60, st60,  1.0f / 60.0f);
+    for (int i = 0; i < 144; ++i) step_component(pid144, st144, 1.0f / 144.0f);
 
     EXPECT_NEAR(st60.values[2], st144.values[2], 5e-3f);
 }
@@ -108,7 +118,7 @@ TEST(PIDTest, DerivativeFilterReducesNoise)
     for (int i = 0; i < 100; ++i) {
         float noise = (i % 2 == 0) ? 1.0f : -1.0f;
         st.values[1] = noise;   // feedback with noise
-        pid.solve_logical(st, dt);
+        step_component(pid, st, dt);
 
         float raw = std::abs((noise - (i > 0 ? ((i - 1) % 2 == 0 ? 1.0f : -1.0f) : 0.0f)) / dt);
         max_raw      = std::max(max_raw, raw);
@@ -128,7 +138,7 @@ TEST(PIDTest, AntiWindupCapsOutput)
     auto st  = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
     for (int i = 0; i < 200; ++i) {
-        pid.solve_logical(st, 0.016f);
+        step_component(pid, st, 0.016f);
     }
 
     EXPECT_LE(st.values[2], 10.0f);
@@ -144,7 +154,7 @@ TEST(PIDTest, AntiWindupIntegralClamped)
     auto st  = make_state(10.0f, 0.0f);
 
     for (int i = 0; i < 1000; ++i) {
-        pid.solve_logical(st, 0.016f);
+        step_component(pid, st, 0.016f);
     }
 
     EXPECT_LE(st.values[2], 5.0f);
@@ -159,7 +169,7 @@ TEST(PIDTest, ZeroErrorProducesZeroPAndD)
     auto pid = make_pid(/*Kp=*/2.0f, /*Ki=*/0.0f, /*Kd=*/1.0f);
     auto st = make_state(/*sp=*/5.0f, /*fb=*/5.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     // P and D terms should be zero (error = 0, delta_error = 0)
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
@@ -171,7 +181,7 @@ TEST(PIDTest, AllGainsZero)
     auto pid = make_pid(/*Kp=*/0.0f, /*Ki=*/0.0f, /*Kd=*/0.0f);
     auto st = make_state(/*sp=*/100.0f, /*fb=*/0.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -183,7 +193,7 @@ TEST(PIDTest, ExtremeDt_ClampedToMax)
     auto st = make_state(10.0f, 0.0f);
 
     // Run with extremely large dt (simulated lag spike)
-    pid.solve_logical(st, 10.0f);
+    step_component(pid, st, 10.0f);
 
     // integral should grow as if dt was 0.1s (clamped), not 10s
     EXPECT_FLOAT_EQ(pid.integral, 10.0f * 0.1f);  // error * safe_dt
@@ -195,7 +205,7 @@ TEST(PIDTest, TinyDt_ClampedToMin)
     auto pid = make_pid(/*Kp=*/0.0f, /*Ki=*/1.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    pid.solve_logical(st, 1e-9f);
+    step_component(pid, st, 1e-9f);
 
     // integral should grow as if dt was 1e-6
     EXPECT_FLOAT_EQ(pid.integral, 10.0f * 1e-6f);
@@ -210,7 +220,7 @@ TEST(PIDTest, FilterAlphaZero_NoFiltering)
 
     // Step error from 0 to 10
     st.values[1] = 10.0f;  // feedback = 10, error = -10
-    pid.solve_logical(st, 0.01f);
+    step_component(pid, st, 0.01f);
 
     // With alpha=0, d_filtered should remain 0 (never updates)
     EXPECT_FLOAT_EQ(pid.d_filtered, 0.0f);
@@ -225,7 +235,7 @@ TEST(PIDTest, FilterAlphaOne_InstantTracking)
 
     // First step: error = 0 → 10
     st.values[1] = 10.0f;
-    pid.solve_logical(st, 0.01f);
+    step_component(pid, st, 0.01f);
 
     float expected_d_raw = (0.0f - 10.0f) / 0.01f;  // (error - last_error) / dt
     EXPECT_FLOAT_EQ(pid.d_filtered, expected_d_raw);
@@ -243,7 +253,7 @@ TEST(PIDTest, VeryLargeKd_WithSmallDt_Stability)
     for (int i = 0; i < 100; ++i) {
         float noise = (i % 2 == 0) ? 1.0f : -1.0f;
         st.values[1] = noise;
-        pid.solve_logical(st, 0.001f);  // 1kHz sampling
+        step_component(pid, st, 0.001f);  // 1kHz sampling
 
         // Output should remain bounded (not inf/nan)
         EXPECT_FALSE(std::isinf(st.values[2]));
@@ -258,7 +268,7 @@ TEST(PIDTest, NegativeKp_InvertsControl)
     auto pid = make_pid(/*Kp=*/-2.0f);
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     // output = -2 * (10 - 0) = -20
     EXPECT_FLOAT_EQ(st.values[2], -20.0f);
@@ -271,7 +281,7 @@ TEST(PIDTest, BidirectionalOutputLimits)
                         /*out_min=*/-5.0f, /*out_max=*/5.0f);
     auto st = make_state(100.0f, 0.0f);
 
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
 
     // P-only: output = 10 * 100 = 1000, should clamp to 5
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
@@ -285,10 +295,10 @@ TEST(PIDTest, AsymmetricOutputLimits)
     auto st_neg = make_state(10.0f, 100.0f);  // negative error
     auto st_pos = make_state(100.0f, 0.0f);   // positive error
 
-    pid.solve_logical(st_neg, 0.016f);
+    step_component(pid, st_neg, 0.016f);
     EXPECT_FLOAT_EQ(st_neg.values[2], 0.0f);  // Clamped to min
 
-    pid.solve_logical(st_pos, 0.016f);
+    step_component(pid, st_pos, 0.016f);
     EXPECT_FLOAT_EQ(st_pos.values[2], 100.0f); // Clamped to max
 }
 
@@ -301,7 +311,7 @@ TEST(PIDTest, IntegralDecay_WhenErrorSignChanges)
     // Accumulate positive integral
     st.values[0] = 10.0f;  // setpoint = 10
     for (int i = 0; i < 10; ++i) {
-        pid.solve_logical(st, 0.016f);
+        step_component(pid, st, 0.016f);
     }
     float integral_after_positive = pid.integral;
     EXPECT_GT(integral_after_positive, 0.0f);
@@ -310,7 +320,7 @@ TEST(PIDTest, IntegralDecay_WhenErrorSignChanges)
     st.values[0] = 0.0f;   // setpoint = 0, feedback still 0
     st.values[1] = 10.0f;  // feedback = 10, error = -10
     for (int i = 0; i < 5; ++i) {
-        pid.solve_logical(st, 0.016f);
+        step_component(pid, st, 0.016f);
     }
 
     // Integral should have decreased
@@ -325,11 +335,11 @@ TEST(PIDTest, DerivativeZeroWhenErrorConstant)
     auto st = make_state(50.0f, 0.0f);  // error = 50
 
     // First step initializes last_error
-    pid.solve_logical(st, 0.01f);
+    step_component(pid, st, 0.01f);
     float first_output = st.values[2];
 
     // Second step with same error → derivative should be ~0
-    pid.solve_logical(st, 0.01f);
+    step_component(pid, st, 0.01f);
     float second_output = st.values[2];
 
     // D-term should decay to near zero (due to filtering)
@@ -344,7 +354,7 @@ TEST(PIDTest, FullPID_StepResponse)
     auto st = make_state(/*sp=*/10.0f, /*fb=*/0.0f);
 
     // Initial step
-    pid.solve_logical(st, 0.016f);
+    step_component(pid, st, 0.016f);
     float first_output = st.values[2];
 
     // Run for more steps
@@ -352,7 +362,7 @@ TEST(PIDTest, FullPID_StepResponse)
         // Feedback approaches setpoint (simple first-order system simulation)
         float feedback = st.values[2] * 0.1f;  // Simple plant model
         st.values[1] = feedback;
-        pid.solve_logical(st, 0.016f);
+        step_component(pid, st, 0.016f);
     }
 
     // Output should be bounded
@@ -372,11 +382,11 @@ TEST(PIDTest, MultipleResets_WithSameInitialState)
     auto st = make_state(10.0f, 0.0f);
 
     for (int i = 0; i < 10; ++i) {
-        pid1.solve_logical(st, 0.016f);
+        step_component(pid1, st, 0.016f);
     }
 
     for (int i = 0; i < 10; ++i) {
-        pid2.solve_logical(st, 0.016f);
+        step_component(pid2, st, 0.016f);
     }
 
     // Same parameters + same inputs = same outputs
@@ -405,7 +415,7 @@ TEST(PTest, BasicProportional)
     auto p  = make_p(3.0f);
     auto st = make_state(10.0f, 4.0f);
 
-    p.solve_logical(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     // output = 3 * (10 - 4) = 18
     EXPECT_FLOAT_EQ(st.values[2], 18.0f);
@@ -416,7 +426,7 @@ TEST(PTest, OutputClamped)
     auto p  = make_p(100.0f, -5.0f, 5.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    p.solve_logical(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 5.0f);
 }
@@ -426,7 +436,7 @@ TEST(PTest, ZeroError)
     auto p  = make_p(10.0f);
     auto st = make_state(7.0f, 7.0f);
 
-    p.solve_logical(st, 0.016f);
+    step_component(p, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 0.0f);
 }
@@ -456,7 +466,7 @@ TEST(PDTest, ProportionalTerm)
     auto pd = make_pd(2.0f, 0.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 20.0f);
 }
@@ -468,12 +478,12 @@ TEST(PDTest, DerivativeReducesOvershoot)
     auto st = make_state(10.0f, 0.0f);
 
     // Step 1: error = 10, last_error = 0 → d_raw = 10/dt > 0 → adds to output
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     float out1 = st.values[2];
 
     // Step 2: error drops to 5 (feedback approaching setpoint)
     st.values[1] = 5.0f;
-    pd.solve_logical(st, 0.01f);
+    step_component(pd, st, 0.01f);
     float out2 = st.values[2];
 
     // D-term should be negative (error decreasing), reducing output vs P-only
@@ -486,10 +496,10 @@ TEST(PDTest, NoIntegral)
     auto pd = make_pd(1.0f, 0.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
     float out1 = st.values[2];
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
     float out2 = st.values[2];
 
     // Same error, no integral → same P output (D decays to ~0 on constant error)
@@ -501,7 +511,7 @@ TEST(PDTest, OutputClamped)
     auto pd = make_pd(100.0f, 0.0f, 0.0f, 10.0f);
     auto st = make_state(100.0f, 0.0f);
 
-    pd.solve_logical(st, 0.016f);
+    step_component(pd, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 10.0f);
 }
@@ -529,7 +539,7 @@ TEST(PITest, ProportionalTerm)
     auto pi = make_pi(3.0f, 0.0f);
     auto st = make_state(10.0f, 0.0f);
 
-    pi.solve_logical(st, 0.016f);
+    step_component(pi, st, 0.016f);
 
     EXPECT_FLOAT_EQ(st.values[2], 30.0f);
 }
@@ -541,7 +551,7 @@ TEST(PITest, IntegralAccumulates)
 
     const float dt = 1.0f / 60.0f;
     for (int i = 0; i < 60; ++i) {
-        pi.solve_logical(st, dt);
+        step_component(pi, st, dt);
     }
 
     // integral ≈ 5 * 1.0s = 5
@@ -556,8 +566,8 @@ TEST(PITest, IntegralTimeInvariance)
     SimulationState st60  = make_state(5.0f, 0.0f);
     SimulationState st144 = make_state(5.0f, 0.0f);
 
-    for (int i = 0; i < 60;  ++i) pi60 .solve_logical(st60,  1.0f / 60.0f);
-    for (int i = 0; i < 144; ++i) pi144.solve_logical(st144, 1.0f / 144.0f);
+    for (int i = 0; i < 60;  ++i) step_component(pi60, st60,  1.0f / 60.0f);
+    for (int i = 0; i < 144; ++i) step_component(pi144, st144, 1.0f / 144.0f);
 
     EXPECT_NEAR(st60.values[2], st144.values[2], 5e-3f);
 }
@@ -568,7 +578,7 @@ TEST(PITest, AntiWindup)
     auto st = make_state(100.0f, 0.0f);
 
     for (int i = 0; i < 1000; ++i) {
-        pi.solve_logical(st, 0.016f);
+        step_component(pi, st, 0.016f);
     }
 
     EXPECT_LE(st.values[2], 5.0f);
@@ -583,7 +593,7 @@ TEST(PITest, NoDerivative)
 
     // Sudden step: error jumps from 0 to 100
     st.values[0] = 100.0f;
-    pi.solve_logical(st, 0.01f);
+    step_component(pi, st, 0.01f);
 
     // Output = Ki * integral = 1.0 * 100 * 0.01 = 1.0 (no D spike)
     EXPECT_NEAR(st.values[2], 1.0f, 1e-4f);

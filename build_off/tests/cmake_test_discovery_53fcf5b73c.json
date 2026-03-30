@@ -1,0 +1,82 @@
+{
+  "tests": 14,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "ExpandTypeDef",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "EmptyDef_ProducesEmptyBlueprint",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 65
+        },
+        {
+          "name": "SimpleBattery_NodeAndWireCount",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 80
+        },
+        {
+          "name": "NodeIds_MatchDeviceNames",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 93
+        },
+        {
+          "name": "PortsFallbackToRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 108
+        },
+        {
+          "name": "Params_RegistryDefaultsMergedWithOverrides",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 132
+        },
+        {
+          "name": "RenderHint_FromRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 160
+        },
+        {
+          "name": "WireEndpoints_Correct",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 174
+        },
+        {
+          "name": "Positions_PreservedFromDevices",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 197
+        },
+        {
+          "name": "Size_FallbackToRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 233
+        },
+        {
+          "name": "RoutingPoints_Preserved",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 257
+        },
+        {
+          "name": "ParseTypeDefinition_WiresFormat",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 286
+        },
+        {
+          "name": "ParseTypeDefinition_DevicePosSize",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 347
+        },
+        {
+          "name": "InlinePorts_PreferredOverRegistry",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 412
+        },
+        {
+          "name": "RealLibrary_SimpleBattery",
+          "file": "\/Users\/vladimir\/an24_cpp\/tests\/test_expand_type_definition.cpp",
+          "line": 443
+        }
+      ]
+    }
+  ]
+}

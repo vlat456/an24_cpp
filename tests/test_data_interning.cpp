@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 #include "ui/core/interned_id.h"
 #include "editor/data/port.h"
-#include "editor/data/node.h"
-#include "editor/data/wire.h"
-#include "editor/data/blueprint.h"
+#include "editor/data/node_content.h"
+
+
 
 /// TDD: Failing tests that define the InternedId migration contract.
 /// These tests verify that data types use InternedId instead of std::string

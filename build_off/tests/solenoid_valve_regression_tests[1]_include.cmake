@@ -1,0 +1,5 @@
+if(EXISTS "/Users/vladimir/an24_cpp/build_off/tests/solenoid_valve_regression_tests[1]_tests.cmake")
+  include("/Users/vladimir/an24_cpp/build_off/tests/solenoid_valve_regression_tests[1]_tests.cmake")
+else()
+  add_test(solenoid_valve_regression_tests_NOT_BUILT solenoid_valve_regression_tests_NOT_BUILT)
+endif()

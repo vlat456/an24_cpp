@@ -142,7 +142,6 @@ add_executable(an24_editor
     ${CMAKE_SOURCE_DIR}/src/editor/visual/windows/oscilloscope_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/context_menus.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/popups/color_picker_dialog.cpp
-    ${CMAKE_SOURCE_DIR}/src/editor/data/blueprint.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/persist.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/window/properties_window.cpp
     ${CMAKE_SOURCE_DIR}/src/editor/visual/inspector/inspector_core.cpp
