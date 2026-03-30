@@ -404,3 +404,81 @@ TEST(PushBuildValidation, MaxSelectorAvoidsSourceConflict) {
         EXPECT_NEAR(st.values[out_sig], 28.5f, 1e-4f);
     });
 }
+
+TEST(PushBuildValidation, UnknownClassnameThrows) {
+    std::vector<DeviceInstance> devices = {
+        make_device("mystery", "NoSuchComponent", {}),
+        make_device("gnd", "RefNode", {{"value", "0.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"gnd.v", "mystery.in"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, WhitelistParamsRejected) {
+    std::vector<DeviceInstance> devices = {
+        make_device("bat", "Battery", {
+            {"v_nominal", "28.0"},
+            {"inv_internal_r", "40.0"}
+        }),
+        make_device("gnd", "RefNode", {{"value", "0.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"gnd.v", "bat.v_in"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, UnknownParamThrows) {
+    std::vector<DeviceInstance> devices = {
+        make_device("load", "Load", {
+            {"conductance", "0.1"},
+            {"bogus_param", "42"}
+        }),
+        make_device("gnd", "RefNode", {{"value", "0.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"load.v_out", "gnd.v"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, MissingRequiredParamThrows) {
+    std::vector<DeviceInstance> devices = {
+        make_device("p", "P", {
+            {"output_min", "-10.0"},
+            {"output_max", "10.0"}
+        }),
+        make_device("ref", "RefNode", {{"value", "1.0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"ref.v", "p.setpoint"},
+        {"ref.v", "p.measured"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, MissingDomainsThrows) {
+    const std::string json = R"({
+        "version": "3.0",
+        "classname": "BadNoDomains",
+        "description": "invalid type",
+        "cpp_class": true,
+        "interface": [
+            {"name": "in", "direction": 0, "type": "Any"},
+            {"name": "out", "direction": 1, "type": "Any"}
+        ],
+        "param_defaults": {}
+    })";
+
+    EXPECT_THROW(parse_type_definition(nlohmann::json::parse(json)), std::runtime_error);
+}
