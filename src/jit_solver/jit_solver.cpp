@@ -388,6 +388,9 @@ BuildResult build_systems_dev(
         }
         else if (dev.classname == "BlueprintInput") {
             BlueprintInput<JitProvider> comp;
+            // Consume metadata params (used by extract_exposed_ports, not by runtime)
+            consume_string_optional("exposed_direction", "In");
+            consume_string_optional("exposed_type", "V");
             setup_ports(comp);
             validate_all_params_consumed();
             
@@ -396,6 +399,9 @@ BuildResult build_systems_dev(
         }
         else if (dev.classname == "BlueprintOutput") {
             BlueprintOutput<JitProvider> comp;
+            // Consume metadata params (used by extract_exposed_ports, not by runtime)
+            consume_string_optional("exposed_direction", "Out");
+            consume_string_optional("exposed_type", "V");
             setup_ports(comp);
             validate_all_params_consumed();
             

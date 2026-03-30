@@ -29,5 +29,8 @@
     "Thermal"
   ],
   "priority": "high",
-  "param_defaults": {}
+  "param_defaults": {
+    "exposed_direction": "In",
+    "exposed_type": "V"
+  }
 }
