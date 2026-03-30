@@ -340,30 +340,6 @@ BuildResult build_systems_dev(
 
         ParamReader param_reader(dev.params, dev);
 
-        auto consume_float_optional = [&](const std::string& key, float default_val) -> float {
-            return param_reader.consume_float_optional(key, default_val);
-        };
-
-        auto consume_bool_optional = [&](const std::string& key, bool default_val) -> bool {
-            return param_reader.consume_bool_optional(key, default_val);
-        };
-
-        auto consume_string_optional = [&](const std::string& key, const std::string& default_val) -> std::string {
-            return param_reader.consume_string_optional(key, default_val);
-        };
-
-        auto consume_float_required = [&](const std::string& key) -> float {
-            return param_reader.consume_float_required(key);
-        };
-
-        auto consume_bool_required = [&](const std::string& key) -> bool {
-            return param_reader.consume_bool_required(key);
-        };
-
-        auto validate_all_params_consumed = [&]() {
-            param_reader.validate_all_consumed();
-        };
-
         // Set up port indices for the provider
         auto setup_ports = [&](auto& comp) {
             for (const auto& [port_name, port] : dev.ports) {
@@ -383,14 +359,14 @@ BuildResult build_systems_dev(
             Battery<JitProvider> comp;
             
             // Load parameters
-            comp.v_nominal = consume_float_optional("v_nominal", 28.0f);
-            comp.internal_r = consume_float_optional("internal_r", 0.01f);
+            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.0f);
+            comp.internal_r = param_reader.consume_float_optional("internal_r", 0.01f);
             // capacity and charge are stored but not used in current battery model
-            comp.capacity = consume_float_optional("capacity", 1000.0f);
-            comp.charge = consume_float_optional("charge", 1000.0f);
+            comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
+            comp.charge = param_reader.consume_float_optional("charge", 1000.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Battery<JitProvider>>(result.devices[dev.name]));
@@ -398,11 +374,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Generator") {
             Generator<JitProvider> comp;
             
-            comp.v_nominal = consume_float_optional("v_nominal", 28.5f);
-            comp.internal_r = consume_float_optional("internal_r", 0.005f);
+            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
+            comp.internal_r = param_reader.consume_float_optional("internal_r", 0.005f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<Generator<JitProvider>>(result.devices[dev.name]));
@@ -410,9 +386,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RefNode") {
             RefNode<JitProvider> comp;
             
-            comp.value = consume_float_optional("value", 0.0f);
+            comp.value = param_reader.consume_float_optional("value", 0.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_source(&std::get<RefNode<JitProvider>>(result.devices[dev.name]));
@@ -427,9 +403,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Switch") {
             Switch<JitProvider> comp;
             
-            comp.closed = consume_bool_optional("closed", false);
+            comp.closed = param_reader.consume_bool_optional("closed", false);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Switch<JitProvider>>(result.devices[dev.name]));
@@ -437,10 +413,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Relay") {
             Relay<JitProvider> comp;
             
-            comp.closed = consume_bool_optional("closed", false);
-            comp.hold_threshold = consume_float_optional("hold_threshold", 0.5f);
+            comp.closed = param_reader.consume_bool_optional("closed", false);
+            comp.hold_threshold = param_reader.consume_float_optional("hold_threshold", 0.5f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Relay<JitProvider>>(result.devices[dev.name]));
@@ -448,9 +424,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "HoldButton") {
             HoldButton<JitProvider> comp;
             
-            comp.idle = consume_float_optional("idle", 0.0f);
+            comp.idle = param_reader.consume_float_optional("idle", 0.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<HoldButton<JitProvider>>(result.devices[dev.name]));
@@ -458,9 +434,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Load") {
             Load<JitProvider> comp;
             
-            comp.conductance = consume_float_optional("conductance", 0.1f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Load<JitProvider>>(result.devices[dev.name]));
@@ -468,7 +444,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Bus") {
             Bus<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Bus<JitProvider>>(result.devices[dev.name]));
@@ -476,10 +452,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "BlueprintInput") {
             BlueprintInput<JitProvider> comp;
             // Consume metadata params (used by extract_exposed_ports, not by runtime)
-            consume_string_optional("exposed_direction", "In");
-            consume_string_optional("exposed_type", "V");
+            param_reader.consume_string_optional("exposed_direction", "In");
+            param_reader.consume_string_optional("exposed_type", "V");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintInput<JitProvider>>(result.devices[dev.name]));
@@ -487,10 +463,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "BlueprintOutput") {
             BlueprintOutput<JitProvider> comp;
             // Consume metadata params (used by extract_exposed_ports, not by runtime)
-            consume_string_optional("exposed_direction", "Out");
-            consume_string_optional("exposed_type", "V");
+            param_reader.consume_string_optional("exposed_direction", "Out");
+            param_reader.consume_string_optional("exposed_type", "V");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<BlueprintOutput<JitProvider>>(result.devices[dev.name]));
@@ -498,10 +474,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Comparator") {
             Comparator<JitProvider> comp;
             
-            comp.Von = consume_float_optional("Von", 5.0f);
-            comp.Voff = consume_float_optional("Voff", 2.0f);
+            comp.Von = param_reader.consume_float_optional("Von", 5.0f);
+            comp.Voff = param_reader.consume_float_optional("Voff", 2.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Comparator<JitProvider>>(result.devices[dev.name]));
@@ -509,10 +485,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "CurrentSense") {
             CurrentSense<JitProvider> comp;
             
-            comp.conductance = consume_float_optional("conductance", 1000.0f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 1000.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<CurrentSense<JitProvider>>(result.devices[dev.name]));
@@ -520,12 +496,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AZS") {
             AZS<JitProvider> comp;
             
-            comp.closed = consume_bool_optional("closed", false);
-            comp.i_nominal = consume_float_optional("i_nominal", 20.0f);
-            comp.k_cool = consume_float_optional("k_cool", 1.0f);
+            comp.closed = param_reader.consume_bool_optional("closed", false);
+            comp.i_nominal = param_reader.consume_float_optional("i_nominal", 20.0f);
+            comp.k_cool = param_reader.consume_float_optional("k_cool", 1.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AZS<JitProvider>>(result.devices[dev.name]));
@@ -533,9 +509,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Resistor") {
             Resistor<JitProvider> comp;
             
-            comp.conductance = consume_float_optional("conductance", 0.1f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 0.1f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Resistor<JitProvider>>(result.devices[dev.name]));
@@ -543,10 +519,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Voltmeter") {
             Voltmeter<JitProvider> comp;
             
-            comp.min = consume_float_optional("min", 0.0f);
-            comp.max = consume_float_optional("max", 28.0f);
+            comp.min = param_reader.consume_float_optional("min", 0.0f);
+            comp.max = param_reader.consume_float_optional("max", 28.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Voltmeter<JitProvider>>(result.devices[dev.name]));
@@ -554,13 +530,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "IndicatorLight") {
             IndicatorLight<JitProvider> comp;
             
-            comp.max_brightness = consume_float_optional("max_brightness", 100.0f);
-            comp.conductance = consume_float_optional("conductance", 1.0f);
-            comp.rated_voltage = consume_float_optional("rated_voltage", 28.0f);
-            comp.color = consume_string_optional("color", "white");
+            comp.max_brightness = param_reader.consume_float_optional("max_brightness", 100.0f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 1.0f);
+            comp.rated_voltage = param_reader.consume_float_optional("rated_voltage", 28.0f);
+            comp.color = param_reader.consume_string_optional("color", "white");
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<IndicatorLight<JitProvider>>(result.devices[dev.name]));
@@ -569,7 +545,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Add") {
             Add<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Add<JitProvider>>(result.devices[dev.name]));
@@ -577,7 +553,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Subtract") {
             Subtract<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Subtract<JitProvider>>(result.devices[dev.name]));
@@ -585,7 +561,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Multiply") {
             Multiply<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Multiply<JitProvider>>(result.devices[dev.name]));
@@ -593,7 +569,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Divide") {
             Divide<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Divide<JitProvider>>(result.devices[dev.name]));
@@ -601,7 +577,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AND") {
             AND<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AND<JitProvider>>(result.devices[dev.name]));
@@ -609,7 +585,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "OR") {
             OR<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<OR<JitProvider>>(result.devices[dev.name]));
@@ -617,7 +593,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "XOR") {
             XOR<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<XOR<JitProvider>>(result.devices[dev.name]));
@@ -625,7 +601,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "NOT") {
             NOT<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<NOT<JitProvider>>(result.devices[dev.name]));
@@ -633,7 +609,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "NAND") {
             NAND<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<NAND<JitProvider>>(result.devices[dev.name]));
@@ -641,7 +617,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Min") {
             Min<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
@@ -649,7 +625,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Max" || dev.classname == "MaxSelector") {
             Max<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Max<JitProvider>>(result.devices[dev.name]));
@@ -657,10 +633,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Clamp") {
             Clamp<JitProvider> comp;
             
-            comp.min = consume_float_optional("min", 0.0f);
-            comp.max = consume_float_optional("max", 1.0f);
+            comp.min = param_reader.consume_float_optional("min", 0.0f);
+            comp.max = param_reader.consume_float_optional("max", 1.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Clamp<JitProvider>>(result.devices[dev.name]));
@@ -669,14 +645,14 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PID") {
             PID<JitProvider> comp;
             
-            comp.Kp = consume_float_required("Kp");
-            comp.Ki = consume_float_required("Ki");
-            comp.Kd = consume_float_required("Kd");
-            comp.output_min = consume_float_required("output_min");
-            comp.output_max = consume_float_required("output_max");
-            comp.filter_alpha = consume_float_required("filter_alpha");
+            comp.Kp = param_reader.consume_float_required("Kp");
+            comp.Ki = param_reader.consume_float_required("Ki");
+            comp.Kd = param_reader.consume_float_required("Kd");
+            comp.output_min = param_reader.consume_float_required("output_min");
+            comp.output_max = param_reader.consume_float_required("output_max");
+            comp.filter_alpha = param_reader.consume_float_required("filter_alpha");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PID<JitProvider>>(result.devices[dev.name]));
@@ -684,12 +660,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PI") {
             PI<JitProvider> comp;
             
-            comp.Kp = consume_float_required("Kp");
-            comp.Ki = consume_float_required("Ki");
-            comp.output_min = consume_float_required("output_min");
-            comp.output_max = consume_float_required("output_max");
+            comp.Kp = param_reader.consume_float_required("Kp");
+            comp.Ki = param_reader.consume_float_required("Ki");
+            comp.output_min = param_reader.consume_float_required("output_min");
+            comp.output_max = param_reader.consume_float_required("output_max");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PI<JitProvider>>(result.devices[dev.name]));
@@ -697,13 +673,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "PD") {
             PD<JitProvider> comp;
             
-            comp.Kp = consume_float_required("Kp");
-            comp.Kd = consume_float_required("Kd");
-            comp.filter_alpha = consume_float_required("filter_alpha");
-            comp.output_min = consume_float_required("output_min");
-            comp.output_max = consume_float_required("output_max");
+            comp.Kp = param_reader.consume_float_required("Kp");
+            comp.Kd = param_reader.consume_float_required("Kd");
+            comp.filter_alpha = param_reader.consume_float_required("filter_alpha");
+            comp.output_min = param_reader.consume_float_required("output_min");
+            comp.output_max = param_reader.consume_float_required("output_max");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<PD<JitProvider>>(result.devices[dev.name]));
@@ -711,11 +687,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "P") {
             P<JitProvider> comp;
             
-            comp.Kp = consume_float_required("Kp");
-            comp.output_min = consume_float_required("output_min");
-            comp.output_max = consume_float_required("output_max");
+            comp.Kp = param_reader.consume_float_required("Kp");
+            comp.output_min = param_reader.consume_float_required("output_min");
+            comp.output_max = param_reader.consume_float_required("output_max");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<P<JitProvider>>(result.devices[dev.name]));
@@ -723,12 +699,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Integrator") {
             Integrator<JitProvider> comp;
             
-            comp.gain = consume_float_required("gain");
-            comp.initial_val = consume_float_required("initial_val");
+            comp.gain = param_reader.consume_float_required("gain");
+            comp.initial_val = param_reader.consume_float_required("initial_val");
             comp.accumulator = comp.initial_val;
             comp.next_accumulator = comp.initial_val;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Integrator<JitProvider>>(result.devices[dev.name]));
@@ -736,7 +712,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SampleHold") {
             SampleHold<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SampleHold<JitProvider>>(result.devices[dev.name]));
@@ -750,15 +726,15 @@ BuildResult build_systems_dev(
             bool has_delay_off = dev.params.find("delay_off") != dev.params.end();
             
             if (has_delay) {
-                float d = consume_float_required("delay");
+                float d = param_reader.consume_float_required("delay");
                 comp.delay_on = d;
                 comp.delay_off = d;
             }
             if (has_delay_on) {
-                comp.delay_on = consume_float_required("delay_on");
+                comp.delay_on = param_reader.consume_float_required("delay_on");
             }
             if (has_delay_off) {
-                comp.delay_off = consume_float_required("delay_off");
+                comp.delay_off = param_reader.consume_float_required("delay_off");
             }
             // Require at least one of delay/delay_on/delay_off
             if (!has_delay && !has_delay_on && !has_delay_off) {
@@ -766,7 +742,7 @@ BuildResult build_systems_dev(
                     "': must have 'delay', or 'delay_on'/'delay_off'. Available keys: ");
             }
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<TimeDelay<JitProvider>>(result.devices[dev.name]));
@@ -774,9 +750,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Monostable") {
             Monostable<JitProvider> comp;
             
-            comp.duration = consume_float_required("duration");
+            comp.duration = param_reader.consume_float_required("duration");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Monostable<JitProvider>>(result.devices[dev.name]));
@@ -784,10 +760,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SlewRate") {
             SlewRate<JitProvider> comp;
             
-            comp.max_rate = consume_float_required("max_rate");
-            comp.deadzone = consume_float_required("deadzone");
+            comp.max_rate = param_reader.consume_float_required("max_rate");
+            comp.deadzone = param_reader.consume_float_required("deadzone");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SlewRate<JitProvider>>(result.devices[dev.name]));
@@ -795,11 +771,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AsymSlewRate") {
             AsymSlewRate<JitProvider> comp;
             
-            comp.rate_up = consume_float_required("rate_up");
-            comp.rate_down = consume_float_required("rate_down");
-            comp.deadzone = consume_float_required("deadzone");
+            comp.rate_up = param_reader.consume_float_required("rate_up");
+            comp.rate_down = param_reader.consume_float_required("rate_down");
+            comp.deadzone = param_reader.consume_float_required("deadzone");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AsymSlewRate<JitProvider>>(result.devices[dev.name]));
@@ -807,11 +783,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "FastTMO") {
             FastTMO<JitProvider> comp;
             
-            comp.tau = consume_float_required("tau");
-            comp.deadzone = consume_float_optional("deadzone", 0.001f);
+            comp.tau = param_reader.consume_float_required("tau");
+            comp.deadzone = param_reader.consume_float_optional("deadzone", 0.001f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<FastTMO<JitProvider>>(result.devices[dev.name]));
@@ -819,11 +795,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AsymTMO") {
             AsymTMO<JitProvider> comp;
             
-            comp.tau_up = consume_float_required("tau_up");
-            comp.tau_down = consume_float_required("tau_down");
+            comp.tau_up = param_reader.consume_float_required("tau_up");
+            comp.tau_down = param_reader.consume_float_required("tau_down");
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AsymTMO<JitProvider>>(result.devices[dev.name]));
@@ -832,11 +808,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Normalize") {
             Normalize<JitProvider> comp;
             
-            comp.min = consume_float_optional("min", 0.0f);
-            comp.max = consume_float_optional("max", 100.0f);
+            comp.min = param_reader.consume_float_optional("min", 0.0f);
+            comp.max = param_reader.consume_float_optional("max", 100.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Normalize<JitProvider>>(result.devices[dev.name]));
@@ -846,7 +822,7 @@ BuildResult build_systems_dev(
             
             // Parse table data from "table" param into arena
             if (auto it = dev.params.find("table"); it != dev.params.end()) {
-                const std::string table = consume_string_optional("table", "");
+                const std::string table = param_reader.consume_string_optional("table", "");
                 std::vector<float> keys, vals;
                 if (LUT<JitProvider>::parse_table(table, keys, vals)) {
                     comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
@@ -856,7 +832,7 @@ BuildResult build_systems_dev(
                 }
             }
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LUT<JitProvider>>(result.devices[dev.name]));
@@ -864,7 +840,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Greater") {
             Greater<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Greater<JitProvider>>(result.devices[dev.name]));
@@ -872,7 +848,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Lesser") {
             Lesser<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Lesser<JitProvider>>(result.devices[dev.name]));
@@ -880,7 +856,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GreaterEq") {
             GreaterEq<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GreaterEq<JitProvider>>(result.devices[dev.name]));
@@ -888,7 +864,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "LesserEq") {
             LesserEq<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LesserEq<JitProvider>>(result.devices[dev.name]));
@@ -896,7 +872,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Any_V_to_Bool") {
             Any_V_to_Bool<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Any_V_to_Bool<JitProvider>>(result.devices[dev.name]));
@@ -904,7 +880,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Positive_V_to_Bool") {
             Positive_V_to_Bool<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Positive_V_to_Bool<JitProvider>>(result.devices[dev.name]));
@@ -912,10 +888,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "LerpNode") {
             LerpNode<JitProvider> comp;
             
-            comp.factor = consume_float_required("factor");
-            comp.deadzone = consume_float_required("deadzone");
+            comp.factor = param_reader.consume_float_required("factor");
+            comp.deadzone = param_reader.consume_float_required("deadzone");
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<LerpNode<JitProvider>>(result.devices[dev.name]));
@@ -923,10 +899,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Slider") {
             Slider<JitProvider> comp;
             
-            comp.min = consume_float_optional("min", 0.0f);
-            comp.max = consume_float_optional("max", 1.0f);
+            comp.min = param_reader.consume_float_optional("min", 0.0f);
+            comp.max = param_reader.consume_float_optional("max", 1.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Slider<JitProvider>>(result.devices[dev.name]));
@@ -934,7 +910,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Splitter") {
             Splitter<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Splitter<JitProvider>>(result.devices[dev.name]));
@@ -942,7 +918,7 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Merger") {
             Merger<JitProvider> comp;
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Merger<JitProvider>>(result.devices[dev.name]));
@@ -951,9 +927,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "AGK47") {
             AGK47<JitProvider> comp;
             
-            comp.conductance = consume_float_optional("conductance", 0.001f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 0.001f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<AGK47<JitProvider>>(result.devices[dev.name]));
@@ -961,12 +937,12 @@ BuildResult build_systems_dev(
         else if (dev.classname == "DMR400") {
             DMR400<JitProvider> comp;
             
-            comp.connect_threshold = consume_float_optional("connect_threshold", 2.0f);
-            comp.disconnect_threshold = consume_float_optional("disconnect_threshold", 10.0f);
-            comp.min_voltage_to_close = consume_float_optional("min_voltage_to_close", 20.0f);
+            comp.connect_threshold = param_reader.consume_float_optional("connect_threshold", 2.0f);
+            comp.disconnect_threshold = param_reader.consume_float_optional("disconnect_threshold", 10.0f);
+            comp.min_voltage_to_close = param_reader.consume_float_optional("min_voltage_to_close", 20.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<DMR400<JitProvider>>(result.devices[dev.name]));
@@ -974,10 +950,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ElectricHeater") {
             ElectricHeater<JitProvider> comp;
             
-            comp.max_power = consume_float_optional("max_power", 1000.0f);
-            comp.efficiency = consume_float_optional("efficiency", 0.9f);
+            comp.max_power = param_reader.consume_float_optional("max_power", 1000.0f);
+            comp.efficiency = param_reader.consume_float_optional("efficiency", 0.9f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ElectricHeater<JitProvider>>(result.devices[dev.name]));
@@ -985,9 +961,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ElectricPump") {
             ElectricPump<JitProvider> comp;
             
-            comp.max_pressure = consume_float_optional("max_pressure", 1000.0f);
+            comp.max_pressure = param_reader.consume_float_optional("max_pressure", 1000.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ElectricPump<JitProvider>>(result.devices[dev.name]));
@@ -995,13 +971,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "FuelTank") {
             FuelTank<JitProvider> comp;
             
-            comp.capacity = consume_float_optional("capacity", 1000.0f);
-            comp.level = consume_float_optional("level", 1000.0f);
-            comp.density = consume_float_optional("density", 0.78f);
-            comp.consumption_rate = consume_float_optional("consumption_rate", 0.0f);
+            comp.capacity = param_reader.consume_float_optional("capacity", 1000.0f);
+            comp.level = param_reader.consume_float_optional("level", 1000.0f);
+            comp.density = param_reader.consume_float_optional("density", 0.78f);
+            comp.consumption_rate = param_reader.consume_float_optional("consumption_rate", 0.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<FuelTank<JitProvider>>(result.devices[dev.name]));
@@ -1009,11 +985,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GidroAccumulator") {
             GidroAccumulator<JitProvider> comp;
             
-            comp.precharge_pressure = consume_float_optional("precharge_pressure", 50.0f);
-            comp.volume = consume_float_optional("volume", 10.0f);
+            comp.precharge_pressure = param_reader.consume_float_optional("precharge_pressure", 50.0f);
+            comp.volume = param_reader.consume_float_optional("volume", 10.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GidroAccumulator<JitProvider>>(result.devices[dev.name]));
@@ -1021,15 +997,15 @@ BuildResult build_systems_dev(
         else if (dev.classname == "GS24") {
             GS24<JitProvider> comp;
             
-            comp.v_nominal = consume_float_optional("v_nominal", 28.5f);
-            comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
-            comp.r_internal = consume_float_optional("r_internal", 0.025f);
-            comp.r_norton = consume_float_optional("r_norton", 0.08f);
-            comp.rpm_cutoff = consume_float_optional("rpm_cutoff", 0.45f);
-            comp.rpm_threshold = consume_float_optional("rpm_threshold", 0.4f);
+            comp.v_nominal = param_reader.consume_float_optional("v_nominal", 28.5f);
+            comp.target_rpm = param_reader.consume_float_optional("target_rpm", 16000.0f);
+            comp.r_internal = param_reader.consume_float_optional("r_internal", 0.025f);
+            comp.r_norton = param_reader.consume_float_optional("r_norton", 0.08f);
+            comp.rpm_cutoff = param_reader.consume_float_optional("rpm_cutoff", 0.45f);
+            comp.rpm_threshold = param_reader.consume_float_optional("rpm_threshold", 0.4f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<GS24<JitProvider>>(result.devices[dev.name]));
@@ -1037,9 +1013,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Gyroscope") {
             Gyroscope<JitProvider> comp;
             
-            comp.conductance = consume_float_optional("conductance", 0.001f);
+            comp.conductance = param_reader.consume_float_optional("conductance", 0.001f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Gyroscope<JitProvider>>(result.devices[dev.name]));
@@ -1047,10 +1023,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "HighPowerLoad") {
             HighPowerLoad<JitProvider> comp;
             
-            comp.power_draw = consume_float_optional("power_draw", 500.0f);
-            comp.min_voltage_diff = consume_float_optional("min_voltage_diff", 0.01f);
+            comp.power_draw = param_reader.consume_float_optional("power_draw", 500.0f);
+            comp.min_voltage_diff = param_reader.consume_float_optional("min_voltage_diff", 0.01f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<HighPowerLoad<JitProvider>>(result.devices[dev.name]));
@@ -1058,11 +1034,11 @@ BuildResult build_systems_dev(
         else if (dev.classname == "InertiaNode") {
             InertiaNode<JitProvider> comp;
             
-            comp.mass = consume_float_optional("mass", 1.0f);
-            comp.damping = consume_float_optional("damping", 0.5f);
+            comp.mass = param_reader.consume_float_optional("mass", 1.0f);
+            comp.damping = param_reader.consume_float_optional("damping", 0.5f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<InertiaNode<JitProvider>>(result.devices[dev.name]));
@@ -1070,10 +1046,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Inverter") {
             Inverter<JitProvider> comp;
             
-            comp.efficiency = consume_float_optional("efficiency", 0.95f);
-            comp.frequency = consume_float_optional("frequency", 400.0f);
+            comp.efficiency = param_reader.consume_float_optional("efficiency", 0.95f);
+            comp.frequency = param_reader.consume_float_optional("frequency", 400.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Inverter<JitProvider>>(result.devices[dev.name]));
@@ -1081,9 +1057,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Radiator") {
             Radiator<JitProvider> comp;
             
-            comp.cooling_capacity = consume_float_optional("cooling_capacity", 1000.0f);
+            comp.cooling_capacity = param_reader.consume_float_optional("cooling_capacity", 1000.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Radiator<JitProvider>>(result.devices[dev.name]));
@@ -1091,19 +1067,19 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RU19A") {
             RU19A<JitProvider> comp;
             
-            comp.target_rpm = consume_float_optional("target_rpm", 16000.0f);
-            comp.auto_start = consume_bool_optional("auto_start", true);
-            comp.spinup_inertia = consume_float_optional("spinup_inertia", 1.0f);
-            comp.spindown_inertia = consume_float_optional("spindown_inertia", 0.02f);
-            comp.crank_time = consume_float_optional("crank_time", 2.0f);
-            comp.ignition_time = consume_float_optional("ignition_time", 3.0f);
-            comp.start_timeout = consume_float_optional("start_timeout", 30.0f);
-            comp.t4_target = consume_float_optional("t4_target", 400.0f);
-            comp.t4_max = consume_float_optional("t4_max", 750.0f);
-            comp.ambient_temp = consume_float_optional("ambient_temp", 20.0f);
+            comp.target_rpm = param_reader.consume_float_optional("target_rpm", 16000.0f);
+            comp.auto_start = param_reader.consume_bool_optional("auto_start", true);
+            comp.spinup_inertia = param_reader.consume_float_optional("spinup_inertia", 1.0f);
+            comp.spindown_inertia = param_reader.consume_float_optional("spindown_inertia", 0.02f);
+            comp.crank_time = param_reader.consume_float_optional("crank_time", 2.0f);
+            comp.ignition_time = param_reader.consume_float_optional("ignition_time", 3.0f);
+            comp.start_timeout = param_reader.consume_float_optional("start_timeout", 30.0f);
+            comp.t4_target = param_reader.consume_float_optional("t4_target", 400.0f);
+            comp.t4_max = param_reader.consume_float_optional("t4_max", 750.0f);
+            comp.ambient_temp = param_reader.consume_float_optional("ambient_temp", 20.0f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<RU19A<JitProvider>>(result.devices[dev.name]));
@@ -1111,10 +1087,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "RUG82") {
             RUG82<JitProvider> comp;
             
-            comp.v_target = consume_float_optional("v_target", 28.5f);
-            comp.kp = consume_float_optional("kp", 2.0f);
+            comp.v_target = param_reader.consume_float_optional("v_target", 28.5f);
+            comp.kp = param_reader.consume_float_optional("kp", 2.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<RUG82<JitProvider>>(result.devices[dev.name]));
@@ -1122,9 +1098,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "SolenoidValve") {
             SolenoidValve<JitProvider> comp;
             
-            comp.normally_closed = consume_bool_optional("normally_closed", false);
+            comp.normally_closed = param_reader.consume_bool_optional("normally_closed", false);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<SolenoidValve<JitProvider>>(result.devices[dev.name]));
@@ -1132,13 +1108,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Spring") {
             Spring<JitProvider> comp;
             
-            comp.k = consume_float_optional("k", 1000.0f);
-            comp.c = consume_float_optional("c", 10.0f);
-            comp.rest_length = consume_float_optional("rest_length", 0.1f);
-            comp.compression_only = consume_bool_optional("compression_only", false);
+            comp.k = param_reader.consume_float_optional("k", 1000.0f);
+            comp.c = param_reader.consume_float_optional("c", 10.0f);
+            comp.rest_length = param_reader.consume_float_optional("rest_length", 0.1f);
+            comp.compression_only = param_reader.consume_bool_optional("compression_only", false);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Spring<JitProvider>>(result.devices[dev.name]));
@@ -1146,9 +1122,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "TempSensor") {
             TempSensor<JitProvider> comp;
             
-            comp.sensitivity = consume_float_optional("sensitivity", 1.0f);
+            comp.sensitivity = param_reader.consume_float_optional("sensitivity", 1.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<TempSensor<JitProvider>>(result.devices[dev.name]));
@@ -1156,9 +1132,9 @@ BuildResult build_systems_dev(
         else if (dev.classname == "Transformer") {
             Transformer<JitProvider> comp;
             
-            comp.ratio = consume_float_optional("ratio", 1.0f);
+            comp.ratio = param_reader.consume_float_optional("ratio", 1.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Transformer<JitProvider>>(result.devices[dev.name]));
@@ -1166,10 +1142,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VoltageSense") {
             VoltageSense<JitProvider> comp;
             
-            comp.gain = consume_float_optional("gain", 1.0f);
-            comp.offset = consume_float_optional("offset", 0.0f);
+            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
+            comp.offset = param_reader.consume_float_optional("offset", 0.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<VoltageSense<JitProvider>>(result.devices[dev.name]));
@@ -1178,14 +1154,14 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ControlledVoltageSource") {
             ControlledVoltageSource<JitProvider> comp;
             
-            comp.gain = consume_float_optional("gain", 1.0f);
-            comp.offset = consume_float_optional("offset", 0.0f);
-            comp.min_v = consume_float_optional("min_v", 0.0f);
-            comp.max_v = consume_float_optional("max_v", 30.0f);
-            comp.r_internal = consume_float_optional("r_internal", 0.1f);
+            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
+            comp.offset = param_reader.consume_float_optional("offset", 0.0f);
+            comp.min_v = param_reader.consume_float_optional("min_v", 0.0f);
+            comp.max_v = param_reader.consume_float_optional("max_v", 30.0f);
+            comp.r_internal = param_reader.consume_float_optional("r_internal", 0.1f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledVoltageSource<JitProvider>>(result.devices[dev.name]));
@@ -1193,13 +1169,13 @@ BuildResult build_systems_dev(
         else if (dev.classname == "ControlledCurrentSource") {
             ControlledCurrentSource<JitProvider> comp;
             
-            comp.gain = consume_float_optional("gain", 1.0f);
-            comp.min_i = consume_float_optional("min_i", 0.0f);
-            comp.max_i = consume_float_optional("max_i", 100.0f);
-            comp.g_shunt = consume_float_optional("g_shunt", 0.001f);
+            comp.gain = param_reader.consume_float_optional("gain", 1.0f);
+            comp.min_i = param_reader.consume_float_optional("min_i", 0.0f);
+            comp.max_i = param_reader.consume_float_optional("max_i", 100.0f);
+            comp.g_shunt = param_reader.consume_float_optional("g_shunt", 0.001f);
             comp.pre_load();
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<ControlledCurrentSource<JitProvider>>(result.devices[dev.name]));
@@ -1207,10 +1183,10 @@ BuildResult build_systems_dev(
         else if (dev.classname == "VariableConductance") {
             VariableConductance<JitProvider> comp;
             
-            comp.g_min = consume_float_optional("g_min", 0.001f);
-            comp.g_max = consume_float_optional("g_max", 10.0f);
+            comp.g_min = param_reader.consume_float_optional("g_min", 0.001f);
+            comp.g_max = param_reader.consume_float_optional("g_max", 10.0f);
             setup_ports(comp);
-            validate_all_params_consumed();
+            param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<VariableConductance<JitProvider>>(result.devices[dev.name]));
