@@ -19,6 +19,8 @@ struct SimulationState {
     alignas(64) std::vector<float> lut_keys;
     alignas(64) std::vector<float> lut_values;
 
+    // Number of non-fixed signals allocated so far.
+    // Allocation is append-only so returned indices remain stable.
     uint32_t dynamic_signals_count = 0;
 
     SimulationState() = default;

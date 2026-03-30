@@ -6,9 +6,7 @@
 #include "visual/snap.h"
 #include "visual/node/visual_node.h"
 #include "debug.h"
-#include "data/wire.h"
-#include "data/node.h"
-#include "data/blueprint.h"
+#include "data/node_content.h"
 #include "json_parser/json_parser.h"
 #include <nlohmann/json.hpp>
 #include "blueprint_v2/path/path.h"
@@ -96,11 +94,26 @@ std::string Document::build_simulation_json() const {
         }
         device["ports"] = std::move(ports);
 
+        // Look up param schema to filter visual_only params from simulation
+        const TypeDefinition* type_def = nullptr;
+        std::string classname = std::string(interner_.resolve(n.type));
+        if (type_registry_) {
+            type_def = type_registry_->get(classname);
+        }
+        auto is_visual_only = [&](const std::string& key) -> bool {
+            if (!type_def) return false;
+            auto it = type_def->param_schema.find(key);
+            return it != type_def->param_schema.end() && it->second.visual_only;
+        };
+
         json params = json::object();
         for (const auto& [k, v] : n.params) {
-            params[std::string(interner_.resolve(k))] = std::to_string(v);
+            std::string key = std::string(interner_.resolve(k));
+            if (is_visual_only(key)) continue;
+            params[key] = std::to_string(v);
         }
         for (const auto& [k, v] : n.string_params) {
+            if (is_visual_only(k)) continue;
             params[k] = v;
         }
         if (!params.empty()) {
@@ -378,8 +391,8 @@ void Document::updateNodeContentFromSimulation() {
             float brightness = simulation_.get_port_value(nid, "brightness");
             content.label = (brightness > 0.1f) ? "ON" : "OFF";
         } else if (type_name == "DMR400") {
-            float v_gen = simulation_.get_port_value(nid, "v_gen");
-            float v_bus = simulation_.get_port_value(nid, "v_bus");
+            float v_gen = simulation_.get_port_value(nid, "v_gen_ref");
+            float v_bus = simulation_.get_port_value(nid, "v_in");
             content.state = (v_gen > v_bus + 2.0f);
         } else if (type_name == "Switch") {
             float state_voltage = simulation_.get_port_value(nid, "state");

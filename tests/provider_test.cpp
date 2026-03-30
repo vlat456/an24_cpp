@@ -63,10 +63,10 @@ void test_signal_allocation() {
 
     SimulationState st;
     
-    // Current behavior: 
-    // - Fixed signals append at end (index = values.size() at allocation time)
-    // - Dynamic signals insert at index = dynamic_signals_count, then increment
-    // - This can result in fixed signals being shifted to higher indices
+    // Allocation behavior:
+    // - All signals append at end (index = values.size() at allocation time)
+    // - dynamic_signals_count tracks how many non-fixed allocations were made
+    // - Returned indices are stable and never shift after allocation
     uint32_t sig1 = st.allocate_signal(0.0f, {Domain::Electrical, true});
     uint32_t sig2 = st.allocate_signal(24.0f, {Domain::Electrical, false});
     uint32_t sig3 = st.allocate_signal(0.0f, {Domain::Logical, false});
@@ -79,17 +79,15 @@ void test_signal_allocation() {
     assert(st.values.size() == 3);
     assert(st.signal_types.size() == 3);
     
-    // Current implementation trace:
-    // - sig1 (fixed): idx=0, appends 0.0f -> values=[0.0f], sig1=0
-    // - sig2 (dynamic): idx=0, inserts 24.0f at 0 -> values=[24.0f,0.0f], sig2=0
-    // - sig3 (dynamic): idx=1, inserts 0.0f at 1 -> values=[24.0f,0.0f,0.0f], sig3=1
-    // Result: sig1=0, sig2=0, sig3=1; values=[24.0f,0.0f,0.0f]
+    // Allocation trace:
+    // - sig1 (fixed): idx=0, values=[0.0f]
+    // - sig2 (dynamic): idx=1, values=[0.0f,24.0f]
+    // - sig3 (dynamic): idx=2, values=[0.0f,24.0f,0.0f]
     
     // Verify values are stored at the returned indices
-    // Note: sig1 and sig2 may return the same index (sig1=0, sig2=0)
-    // The important thing is each signal's value is retrievable at its returned index
-    assert(st.values[sig2] == 24.0f); // sig2 at index 0, values[0] = 24.0f
-    assert(st.values[sig3] == 0.0f);   // sig3 at index 1, values[1] = 0.0f
+    assert(st.values[sig1] == 0.0f);
+    assert(st.values[sig2] == 24.0f);
+    assert(st.values[sig3] == 0.0f);
     
     // Verify signal types at the returned indices
     assert(st.signal_types[sig2].domain == Domain::Electrical);

@@ -73,6 +73,12 @@ static std::unordered_map<std::string, ParamSchemaEntry> parse_param_schema(cons
         if (e.min.has_value() && e.max.has_value() && *e.min > *e.max) {
             throw std::runtime_error("param_schema entry '" + name + "' has min > max");
         }
+        if (entry.contains("visual_only")) {
+            if (!entry["visual_only"].is_boolean()) {
+                throw std::runtime_error("param_schema entry '" + name + "' field 'visual_only' must be bool");
+            }
+            e.visual_only = entry["visual_only"].get<bool>();
+        }
         out[name] = e;
     }
     return out;
@@ -1039,7 +1045,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                         if (v.is_string()) {
                             def.params[k] = v.get<std::string>();
                         } else if (v.is_number()) {
-                            def.params[k] = std::to_string(v.get<double>());
+                            def.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
                         }
                     }
                 }
@@ -1078,7 +1084,7 @@ TypeRegistry load_type_registry(const std::string& library_dir) {
                         if (n.contains("params") && n["params"].is_object()) {
                             for (auto& [k, v] : n["params"].items()) {
                                 if (v.is_string()) dev.params[k] = v.get<std::string>();
-                                else if (v.is_number()) dev.params[k] = std::to_string(v.get<double>());
+                                else if (v.is_number()) dev.params[k] = locale_safe::format_float(static_cast<float>(v.get<double>()));
                             }
                         }
                         if (n.contains("position") && n["position"].is_object()) {
@@ -1191,10 +1197,26 @@ DeviceInstance merge_device_instance(
         }
     }
 
-    // Merge params: instance overrides, defaults fill gaps
+    // Merge params: instance overrides, defaults fill gaps.
+    // Skip visual_only params (editor-only, not consumed by simulation).
     for (const auto& [param_name, param_value] : definition.params) {
+        auto schema_it = definition.param_schema.find(param_name);
+        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+            continue;
+        }
         if (!merged.params.count(param_name)) {
             merged.params[param_name] = param_value;
+        }
+    }
+
+    // Strip visual_only params that arrived via the instance itself
+    // (e.g., from a JSON file that wasn't filtered by the editor).
+    for (auto it = merged.params.begin(); it != merged.params.end(); ) {
+        auto schema_it = definition.param_schema.find(it->first);
+        if (schema_it != definition.param_schema.end() && schema_it->second.visual_only) {
+            it = merged.params.erase(it);
+        } else {
+            ++it;
         }
     }
 

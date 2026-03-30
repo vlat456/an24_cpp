@@ -81,13 +81,153 @@
 #include <queue>
 #include <string_view>
 #include <unordered_set>
+#include <vector>
 #include <spdlog/spdlog.h>
 #include "../parse_number.h"
 
 namespace {
-bool is_source_component_class(std::string_view classname) {
+bool is_scheduler_source_component_class(std::string_view classname) {
     return classname == "Battery" || classname == "Generator" || classname == "RefNode";
 }
+
+std::vector<std::string_view> active_source_writer_ports_for(std::string_view classname) {
+    if (classname == "Battery" || classname == "Generator" || classname == "GS24") {
+        return {"v_out"};
+    }
+    if (classname == "RU19A") {
+        return {"v_bus", "v_start"};
+    }
+    if (classname == "ControlledVoltageSource" || classname == "ControlledCurrentSource") {
+        return {"v_pos"};
+    }
+    return {};
+}
+
+std::unordered_set<std::string> output_ports_for_class(std::string_view classname) {
+    std::unordered_set<std::string> outputs;
+    for (std::string_view port : active_source_writer_ports_for(classname)) {
+        outputs.emplace(port);
+    }
+
+    if (classname == "RefNode") {
+        outputs.emplace("v");
+        return outputs;
+    }
+    if (classname == "ControlledVoltageSource" || classname == "ControlledCurrentSource") {
+        outputs.emplace("v_neg");
+        return outputs;
+    }
+    // GS24 only writes to v_out (already in outputs from active_source_writer_ports_for).
+    if (classname == "GS24") {
+        return outputs;
+    }
+    // RU19A writes to v_bus and v_start (active writer ports) plus observation outputs.
+    if (classname == "RU19A") {
+        outputs.emplace("rpm_out");
+        outputs.emplace("t4_out");
+        return outputs;
+    }
+    // Battery and Generator only write to v_out (already in outputs).
+    if (!outputs.empty()) {
+        return outputs;
+    }
+
+    if (classname == "Switch" || classname == "Relay" || classname == "HoldButton" ||
+        classname == "Resistor" || classname == "Bus" || classname == "BlueprintInput" ||
+        classname == "BlueprintOutput" || classname == "AGK47" || classname == "DMR400" ||
+        classname == "InertiaNode" || classname == "Spring" || classname == "TempSensor" ||
+        classname == "Radiator" || classname == "SolenoidValve" || classname == "ElectricHeater" ||
+        classname == "ElectricPump" || classname == "Transformer" || classname == "Inverter" ||
+        classname == "VoltageSense" || classname == "VariableConductance") {
+        return {"v_out", "out", "output", "state", "tripped", "temp",
+                "heat_out", "pressure_out", "rpm_out", "t4_out", "ac_out",
+                "secondary", "i_out", "force_out", "flow_out", "level_out"};
+    }
+
+    return {"o", "out", "output", "brightness", "state", "rpm_out",
+            "t4_out", "k_mod", "heat_out", "pressure_out", "fuel_out",
+            "i_out", "temp_out", "level_out", "force_out", "flow_out"};
+}
+
+bool parse_bool_param_value(const std::string& value) {
+    return value == "true" || value == "1";
+}
+
+class ParamReader {
+public:
+    ParamReader(const std::unordered_map<std::string, std::string>& params, const DeviceInstance& dev)
+        : params_(params), dev_(dev) {}
+
+    float consume_float_optional(const std::string& key, float default_val) {
+        consumed_params_.insert(key);
+        auto it = params_.find(key);
+        if (it != params_.end()) {
+            return locale_safe::parse_float_or(it->second, default_val);
+        }
+        return default_val;
+    }
+
+    bool consume_bool_optional(const std::string& key, bool default_val) {
+        consumed_params_.insert(key);
+        auto it = params_.find(key);
+        if (it != params_.end()) {
+            return parse_bool_param_value(it->second);
+        }
+        return default_val;
+    }
+
+    std::string consume_string_optional(const std::string& key, const std::string& default_val) {
+        consumed_params_.insert(key);
+        auto it = params_.find(key);
+        if (it != params_.end()) {
+            return it->second;
+        }
+        return default_val;
+    }
+
+    float consume_float_required(const std::string& key) {
+        consumed_params_.insert(key);
+        return locale_safe::parse_float_or(get_required(key), 0.0f);
+    }
+
+    bool consume_bool_required(const std::string& key) {
+        consumed_params_.insert(key);
+        return parse_bool_param_value(get_required(key));
+    }
+
+    void validate_all_consumed() const {
+        for (const auto& [key, val] : params_) {
+            (void)val;
+            if (consumed_params_.find(key) == consumed_params_.end()) {
+                throw std::runtime_error("Unknown/unconsumed parameter '" + key +
+                    "' for component '" + dev_.name + "' (classname: " + dev_.classname + ")");
+            }
+        }
+    }
+
+private:
+    const std::string& get_required(const std::string& key) const {
+        auto it = params_.find(key);
+        if (it == params_.end()) {
+            std::string available;
+            for (const auto& [k, v] : params_) {
+                (void)v;
+                if (!available.empty()) {
+                    available += ", ";
+                }
+                available += k;
+            }
+            throw std::runtime_error("Missing required parameter '" + key +
+                "' for component '" + dev_.name + "' (classname: " + dev_.classname +
+                "). Available keys: " + available);
+        }
+        return it->second;
+    }
+
+    const std::unordered_map<std::string, std::string>& params_;
+    const DeviceInstance& dev_;
+    std::unordered_set<std::string> consumed_params_;
+};
 } // namespace
 
 BuildResult build_systems_dev(
@@ -95,39 +235,6 @@ BuildResult build_systems_dev(
     const std::vector<std::pair<std::string, std::string>>& connections
 ) {
     BuildResult result{};
-
-    // == Strict parameter helpers - fail fast on missing required params ==
-    auto get_param_required = [&](const std::unordered_map<std::string, std::string>& params,
-                                  const std::string& key,
-                                  const DeviceInstance& dev) -> std::string {
-        auto it = params.find(key);
-        if (it == params.end()) {
-            // Build list of available keys
-            std::string available;
-            for (const auto& [k, v] : params) {
-                if (!available.empty()) available += ", ";
-                available += k;
-            }
-            throw std::runtime_error("Missing required parameter '" + key +
-                "' for component '" + dev.name + "' (classname: " + dev.classname +
-                "). Available keys: " + available);
-        }
-        return it->second;
-    };
-
-    auto parse_param_float_required = [&](const std::unordered_map<std::string, std::string>& params,
-                                         const std::string& key,
-                                         const DeviceInstance& dev) -> float {
-        std::string val = get_param_required(params, key, dev);
-        return locale_safe::parse_float_or(val, 0.0f);
-    };
-
-    auto parse_param_bool_required = [&](const std::unordered_map<std::string, std::string>& params,
-                                         const std::string& key,
-                                         const DeviceInstance& dev) -> bool {
-        std::string val = get_param_required(params, key, dev);
-        return val == "true" || val == "1";
-    };
 
     std::vector<std::string> all_ports;
 
@@ -194,6 +301,13 @@ BuildResult build_systems_dev(
         auto it_to = port_to_idx.find(to);
         if (it_from != port_to_idx.end() && it_to != port_to_idx.end()) {
             uf.unite(it_from->second, it_to->second);
+        } else {
+            if (it_from == port_to_idx.end()) {
+                spdlog::warn("[build] Connection references non-existent port '{}' (connected to '{}')", from, to);
+            }
+            if (it_to == port_to_idx.end()) {
+                spdlog::warn("[build] Connection references non-existent port '{}' (connected from '{}')", to, from);
+            }
         }
     }
 
@@ -218,63 +332,36 @@ BuildResult build_systems_dev(
             continue;
         }
 
-        bool is_source = is_source_component_class(dev.classname);
+        bool is_source = is_scheduler_source_component_class(dev.classname);
 
         if (!is_source) {
             consumer_device_names.push_back(dev.name);
         }
 
-        // == Per-device consumed-key tracking for strict validation ==
-        std::unordered_set<std::string> consumed_params;
+        ParamReader param_reader(dev.params, dev);
 
-        // == Consume helper lambdas - mark keys as used ==
         auto consume_float_optional = [&](const std::string& key, float default_val) -> float {
-            consumed_params.insert(key);
-            auto it = dev.params.find(key);
-            if (it != dev.params.end()) {
-                return locale_safe::parse_float_or(it->second, default_val);
-            }
-            return default_val;
+            return param_reader.consume_float_optional(key, default_val);
         };
 
         auto consume_bool_optional = [&](const std::string& key, bool default_val) -> bool {
-            consumed_params.insert(key);
-            auto it = dev.params.find(key);
-            if (it != dev.params.end()) {
-                return it->second == "true" || it->second == "1";
-            }
-            return default_val;
+            return param_reader.consume_bool_optional(key, default_val);
         };
 
         auto consume_string_optional = [&](const std::string& key, const std::string& default_val) -> std::string {
-            consumed_params.insert(key);
-            auto it = dev.params.find(key);
-            if (it != dev.params.end()) {
-                return it->second;
-            }
-            return default_val;
+            return param_reader.consume_string_optional(key, default_val);
         };
 
-        // Required helpers also insert into consumed_params for strict validation
         auto consume_float_required = [&](const std::string& key) -> float {
-            consumed_params.insert(key);
-            return parse_param_float_required(dev.params, key, dev);
+            return param_reader.consume_float_required(key);
         };
 
         auto consume_bool_required = [&](const std::string& key) -> bool {
-            consumed_params.insert(key);
-            return parse_param_bool_required(dev.params, key, dev);
+            return param_reader.consume_bool_required(key);
         };
 
-        // Strict validation helper: throws on any unconsumed key
         auto validate_all_params_consumed = [&]() {
-            for (const auto& [key, val] : dev.params) {
-                (void)val;
-                if (consumed_params.find(key) == consumed_params.end()) {
-                    throw std::runtime_error("Unknown/unconsumed parameter '" + key +
-                        "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
-                }
-            }
+            param_reader.validate_all_consumed();
         };
 
         // Set up port indices for the provider
@@ -759,9 +846,9 @@ BuildResult build_systems_dev(
             
             // Parse table data from "table" param into arena
             if (auto it = dev.params.find("table"); it != dev.params.end()) {
-                consumed_params.insert("table");
+                const std::string table = consume_string_optional("table", "");
                 std::vector<float> keys, vals;
-                if (LUT<JitProvider>::parse_table(it->second, keys, vals)) {
+                if (LUT<JitProvider>::parse_table(table, keys, vals)) {
                     comp.table_offset = static_cast<uint32_t>(result.lut_keys.size());
                     comp.table_size = static_cast<uint16_t>(keys.size());
                     result.lut_keys.insert(result.lut_keys.end(), keys.begin(), keys.end());
@@ -1185,27 +1272,9 @@ BuildResult build_systems_dev(
         if (dev.visual_only) {
             continue;
         }
-        
-        // Active voltage sources - these CANNOT share a wire
-        if (dev.classname == "Battery") {
-            register_writer(dev.name, "v_out");
-        }
-        else if (dev.classname == "Generator") {
-            register_writer(dev.name, "v_out");
-        }
-        else if (dev.classname == "GS24") {
-            register_writer(dev.name, "v_out");
-        }
-        else if (dev.classname == "RU19A") {
-            register_writer(dev.name, "v_bus");
-            // v_start is also a writer output in the starting circuit
-            register_writer(dev.name, "v_start");
-        }
-        else if (dev.classname == "ControlledVoltageSource") {
-            register_writer(dev.name, "v_pos");
-        }
-        else if (dev.classname == "ControlledCurrentSource") {
-            register_writer(dev.name, "v_pos");
+
+        for (std::string_view port_name : active_source_writer_ports_for(dev.classname)) {
+            register_writer(dev.name, std::string(port_name));
         }
         // Note: RefNode is intentionally NOT registered as an active source
         // because it defines the reference (0V) rather than driving voltage
@@ -1214,32 +1283,6 @@ BuildResult build_systems_dev(
     // Phase 3.2: Topological ordering of consumers (writer -> reader)
     // Sources already run before consumers. Here we order only consumer bucket.
     if (!consumer_device_names.empty()) {
-        auto output_ports_for = [](const std::string& classname) -> std::unordered_set<std::string> {
-            if (classname == "Battery") return {"v_out"};
-            if (classname == "Generator") return {"v_out"};
-            if (classname == "RefNode") return {"v"};
-            if (classname == "GS24") return {"v_out"};
-            if (classname == "RU19A") return {"v_bus", "v_start"};
-            if (classname == "ControlledVoltageSource") return {"v_pos", "v_neg"};
-            if (classname == "ControlledCurrentSource") return {"v_pos", "v_neg"};
-
-            if (classname == "Switch" || classname == "Relay" || classname == "HoldButton" ||
-                classname == "Resistor" || classname == "Bus" || classname == "BlueprintInput" ||
-                classname == "BlueprintOutput" || classname == "AGK47" || classname == "DMR400" ||
-                classname == "InertiaNode" || classname == "Spring" || classname == "TempSensor" ||
-                classname == "Radiator" || classname == "SolenoidValve" || classname == "ElectricHeater" ||
-                classname == "ElectricPump" || classname == "Transformer" || classname == "Inverter" ||
-                classname == "VoltageSense" || classname == "VariableConductance") {
-                return {"v_out", "out", "output", "state", "tripped", "temp",
-                        "heat_out", "pressure_out", "rpm_out", "t4_out", "ac_out",
-                        "secondary", "i_out", "force_out", "flow_out", "level_out"};
-            }
-
-            return {"o", "out", "output", "brightness", "state", "rpm_out",
-                    "t4_out", "k_mod", "heat_out", "pressure_out", "fuel_out",
-                    "i_out", "temp_out", "level_out", "force_out", "flow_out"};
-        };
-
         std::unordered_map<std::string, const DeviceInstance*> device_by_name;
         device_by_name.reserve(devices.size());
         for (const auto& dev : devices) {
@@ -1260,7 +1303,7 @@ BuildResult build_systems_dev(
             }
 
             const DeviceInstance& dev = *it_dev->second;
-            const auto output_ports = output_ports_for(dev.classname);
+            const auto output_ports = output_ports_for_class(dev.classname);
             auto& io = io_by_consumer[name];
 
             for (const auto& [port_name, port] : dev.ports) {

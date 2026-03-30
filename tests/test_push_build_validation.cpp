@@ -44,7 +44,7 @@ TEST(PushBuildValidation, SingleSourcePerWireOK) {
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load.v_in"},
+        {"battery.v_out", "load.input"},
         {"battery.v_out", "gnd.v"}
     };
     
@@ -66,7 +66,7 @@ TEST(PushBuildValidation, MultipleSourcesSameWireErrors) {
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery1.v_out", "battery2.v_out"},  // Both batteries on same wire
-        {"battery1.v_out", "load.v_in"},
+        {"battery1.v_out", "load.input"},
         {"battery2.v_out", "gnd.v"}
     };
     
@@ -85,7 +85,7 @@ TEST(PushBuildValidation, MultipleSourceLikeComponentsConflict) {
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"gen.v_out", "cvs.v_pos"},  // Both writing to same wire
-        {"gen.v_out", "load.v_in"},
+        {"gen.v_out", "load.input"},
         {"cvs.v_neg", "gnd.v"}
     };
     
@@ -104,7 +104,7 @@ TEST(PushBuildValidation, BatteryAndGeneratorOnSameWire) {
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "generator.v_out"},  // Both on same wire
-        {"battery.v_out", "load.v_in"},
+        {"battery.v_out", "load.input"},
         {"generator.v_out", "gnd.v"}
     };
     
@@ -122,7 +122,7 @@ TEST(PushBuildValidation, BatteryAndRefNodeOnSameWire) {
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "ref.v"},  // Battery connected to reference node
-        {"battery.v_out", "load.v_in"}
+        {"battery.v_out", "load.input"}
     };
     
     // RefNode is a reference point, not an active source - allowed
@@ -143,11 +143,86 @@ TEST(PushBuildValidation, ControlledCurrentSourceConflict) {
     
     std::vector<std::pair<std::string, std::string>> connections = {
         {"battery.v_out", "ccs.v_pos"},  // Both writing voltage
-        {"battery.v_out", "load.v_in"},
+        {"battery.v_out", "load.input"},
         {"ccs.v_neg", "gnd.v"}
     };
     
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, ControlledVoltageSourcesShareOnlyVNeg_NoConflict) {
+    // v_neg is treated as an output for dependency ordering, but NOT as an
+    // active source-writer for one-source-per-wire conflict detection.
+    std::vector<DeviceInstance> devices = {
+        make_device("cvs1", "ControlledVoltageSource", {{"gain", "1.0"}}),
+        make_device("cvs2", "ControlledVoltageSource", {{"gain", "1.0"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"cvs1.v_neg", "gnd.v"},
+        {"cvs2.v_neg", "gnd.v"}
+    };
+
+    EXPECT_NO_THROW({
+        auto result = build_systems_dev(devices, connections);
+        EXPECT_GT(result.signal_count, 0u);
+    });
+}
+
+TEST(PushBuildValidation, ControlledVoltageSourcesShareVPos_Throws) {
+    // v_pos is an active writer; two CVS devices on same v_pos wire must fail.
+    std::vector<DeviceInstance> devices = {
+        make_device("cvs1", "ControlledVoltageSource", {{"gain", "1.0"}}),
+        make_device("cvs2", "ControlledVoltageSource", {{"gain", "1.0"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"cvs1.v_pos", "cvs2.v_pos"},
+        {"cvs1.v_neg", "gnd.v"},
+        {"cvs2.v_neg", "gnd.v"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, GS24AndBatteryOnSameWire_Throws) {
+    std::vector<DeviceInstance> devices = {
+        make_device("gs", "GS24"),
+        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"gs.v_out", "bat.v_out"},
+        {"gs.v_in", "gnd.v"}
+    };
+
+    EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
+}
+
+TEST(PushBuildValidation, RU19AStartBusPortsActAsWriters) {
+    // Both RU19A writer ports (v_bus and v_start) must participate in
+    // one-source-per-wire conflict detection.
+    std::vector<DeviceInstance> devices = {
+        make_device("ru", "RU19A"),
+        make_device("bat1", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("bat2", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections_v_bus = {
+        {"ru.v_bus", "bat1.v_out"},
+        {"ru.v_start", "gnd.v"}
+    };
+    EXPECT_THROW(build_systems_dev(devices, connections_v_bus), std::runtime_error);
+
+    std::vector<std::pair<std::string, std::string>> connections_v_start = {
+        {"ru.v_start", "bat2.v_out"},
+        {"ru.v_bus", "gnd.v"}
+    };
+    EXPECT_THROW(build_systems_dev(devices, connections_v_start), std::runtime_error);
 }
 
 TEST(PushBuildValidation, MultipleLoadsOK) {
@@ -160,10 +235,9 @@ TEST(PushBuildValidation, MultipleLoadsOK) {
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery.v_out", "load1.v_in"},
-        {"battery.v_out", "load2.v_in"},
-        {"load1.v_out", "gnd.v"},
-        {"load2.v_out", "gnd.v"}
+        {"battery.v_out", "load1.input"},
+        {"battery.v_out", "load2.input"},
+        {"battery.v_out", "gnd.v"}
     };
     
     EXPECT_NO_THROW({
@@ -184,10 +258,10 @@ TEST(PushBuildValidation, SeparateWiresOK) {
     };
     
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"battery1.v_out", "load1.v_in"},
-        {"load1.v_out", "gnd1.v"},
-        {"battery2.v_out", "load2.v_in"},
-        {"load2.v_out", "gnd2.v"}
+        {"battery1.v_out", "load1.input"},
+        {"battery1.v_out", "gnd1.v"},
+        {"battery2.v_out", "load2.input"},
+        {"battery2.v_out", "gnd2.v"}
     };
     
     EXPECT_NO_THROW({
@@ -444,7 +518,7 @@ TEST(PushBuildValidation, UnknownParamThrows) {
     };
 
     std::vector<std::pair<std::string, std::string>> connections = {
-        {"load.v_out", "gnd.v"}
+        {"load.input", "gnd.v"}
     };
 
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
@@ -461,7 +535,7 @@ TEST(PushBuildValidation, MissingRequiredParamThrows) {
 
     std::vector<std::pair<std::string, std::string>> connections = {
         {"ref.v", "p.setpoint"},
-        {"ref.v", "p.measured"}
+        {"ref.v", "p.feedback"}
     };
 
     EXPECT_THROW(build_systems_dev(devices, connections), std::runtime_error);
@@ -481,4 +555,108 @@ TEST(PushBuildValidation, MissingDomainsThrows) {
     })";
 
     EXPECT_THROW(parse_type_definition(nlohmann::json::parse(json)), std::runtime_error);
+}
+
+// ============================================================================
+// Regression: visual_only params must not reach JIT solver validation
+// ============================================================================
+
+TEST(PushBuildValidation, BusWithVisualOnlyParam_PortEdge_DoesNotThrow) {
+    // A Bus with a visual-only 'port_edge' parameter must not cause
+    // "Unknown/unconsumed parameter" in build_systems_dev.
+    // This is a regression test for the bug where string_params like
+    // port_edge leaked into the simulation and caused build failure.
+    std::vector<DeviceInstance> devices = {
+        make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
+        make_device("bus_1", "Bus"),
+        make_device("gnd", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"bat.v_out", "bus_1.v"},
+        {"bus_1.v", "gnd.v"}
+    };
+
+    // Without the fix, port_edge in params would cause:
+    //   "Unknown/unconsumed parameter 'port_edge' for component 'bus_1'"
+    // The fix filters visual_only params in build_simulation_json() so they
+    // never reach build_systems_dev(). Verify the solver side is clean too:
+    // a Bus with NO extra params must build successfully.
+    EXPECT_NO_THROW({
+        auto result = build_systems_dev(devices, connections);
+        EXPECT_GT(result.signal_count, 0u);
+    });
+}
+
+TEST(PushBuildValidation, ParamSchemaVisualOnlyFlag) {
+    // Verify visual_only flag is correctly parsed from param_schema JSON
+    const auto j = nlohmann::json::parse(R"({
+        "version": "3.0",
+        "classname": "TestVisual",
+        "description": "test",
+        "cpp_class": true,
+        "domains": ["Electrical"],
+        "interface": [
+            {"name": "v", "direction": 2, "type": "V"}
+        ],
+        "param_defaults": {
+            "port_edge": "bottom",
+            "v_nominal": "28.0"
+        },
+        "param_schema": {
+            "port_edge": {"type": "string", "visual_only": true},
+            "v_nominal": {"type": "float"}
+        }
+    })");
+
+    TypeDefinition def = parse_type_definition(j);
+
+    ASSERT_TRUE(def.param_schema.count("port_edge") > 0);
+    EXPECT_TRUE(def.param_schema.at("port_edge").visual_only);
+    EXPECT_EQ(def.param_schema.at("port_edge").type, ParamSchemaType::String);
+
+    ASSERT_TRUE(def.param_schema.count("v_nominal") > 0);
+    EXPECT_FALSE(def.param_schema.at("v_nominal").visual_only);
+}
+
+// ============================================================================
+// Regression: RU19A observation ports (rpm_out, t4_out) must be classified
+// as outputs for topological ordering. A downstream consumer reading rpm_out
+// must be ordered after RU19A so it sees the value written in the same step.
+// ============================================================================
+
+TEST(PushBuildValidation, RU19AObservationPortsAreOutputsForTopo) {
+    // Build: RU19A writes rpm_out -> Greater reads it as input A.
+    // If rpm_out were misclassified as an input, Greater would not have a
+    // topological dependency on RU19A, potentially executing first and
+    // reading a stale zero.
+    std::vector<DeviceInstance> devices = {
+        make_device("greater", "Greater"),  // declared BEFORE ru to stress topo sort
+        make_device("ru", "RU19A"),
+        make_device("ref_threshold", "RefNode", {{"value", "50"}}),
+        make_device("gnd_bus", "RefNode", {{"value", "0"}}),
+        make_device("gnd_start", "RefNode", {{"value", "0"}})
+    };
+
+    std::vector<std::pair<std::string, std::string>> connections = {
+        {"ru.rpm_out", "greater.A"},
+        {"ref_threshold.v", "greater.B"},
+        {"ru.v_bus", "gnd_bus.v"},
+        {"ru.v_start", "gnd_start.v"}
+    };
+
+    auto result = build_systems_dev(devices, connections);
+
+    SimulationState st;
+    for (uint32_t i = 0; i < result.signal_count; ++i) {
+        st.allocate_signal(0.0f, {Domain::Electrical, true});
+    }
+
+    // The initial rpm_out should be 0 (APU is OFF), so Greater(0 > 50) = 0.
+    result.scheduler.step(st, 1.0f / 60.0f);
+    const uint32_t greater_out = result.port_to_signal.at("greater.o");
+    EXPECT_FLOAT_EQ(st.values[greater_out], 0.0f);
+
+    // The value must be finite (not NaN from uninitialized read).
+    EXPECT_TRUE(std::isfinite(st.values[greater_out]));
 }

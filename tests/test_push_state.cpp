@@ -49,12 +49,12 @@ TEST(push_state, DynamicInsertedBeforeFixed) {
     const uint32_t dyn1 = st.allocate_signal(12.0f, {Domain::Electrical, false});
 
     EXPECT_EQ(fixed0, 0u);
-    EXPECT_EQ(dyn0, 0u);
-    EXPECT_EQ(dyn1, 1u);
+    EXPECT_EQ(dyn0, 1u);
+    EXPECT_EQ(dyn1, 2u);
     EXPECT_EQ(st.dynamic_signals_count, 2u);
-    EXPECT_FLOAT_EQ(st.values[0], 28.0f);
-    EXPECT_FLOAT_EQ(st.values[1], 12.0f);
-    EXPECT_FLOAT_EQ(st.values[2], 115.0f);
+    EXPECT_FLOAT_EQ(st.values[0], 115.0f);
+    EXPECT_FLOAT_EQ(st.values[1], 28.0f);
+    EXPECT_FLOAT_EQ(st.values[2], 12.0f);
 }
 
 TEST(push_state, NoLegacySorArrays) {
