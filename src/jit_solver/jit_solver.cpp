@@ -88,57 +88,6 @@ namespace {
 bool is_source_component_class(std::string_view classname) {
     return classname == "Battery" || classname == "Generator" || classname == "RefNode";
 }
-
-bool is_migrated_component_class(std::string_view classname) {
-    return is_source_component_class(classname) ||
-           classname == "Switch" || classname == "Relay" ||
-           classname == "HoldButton" || classname == "Load" ||
-           classname == "Bus" || classname == "BlueprintInput" ||
-           classname == "BlueprintOutput" || classname == "Comparator" ||
-           classname == "CurrentSense" || classname == "AZS" ||
-           classname == "Resistor" || classname == "Voltmeter" ||
-           classname == "IndicatorLight" || classname == "Add" ||
-           classname == "Subtract" || classname == "Multiply" ||
-           classname == "Divide" || classname == "AND" || classname == "OR" ||
-           classname == "XOR" || classname == "NOT" || classname == "NAND" ||
-           classname == "Min" || classname == "Max" || classname == "MaxSelector" ||
-           classname == "Clamp" || classname == "PID" || classname == "PI" ||
-           classname == "PD" || classname == "P" || classname == "Integrator" ||
-           classname == "SampleHold" || classname == "TimeDelay" ||
-           classname == "Monostable" || classname == "SlewRate" ||
-           classname == "AsymSlewRate" || classname == "FastTMO" ||
-           classname == "AsymTMO" || classname == "Normalize" ||
-           classname == "LUT" || classname == "Greater" || classname == "Lesser" ||
-           classname == "GreaterEq" || classname == "LesserEq" ||
-           classname == "Any_V_to_Bool" || classname == "Positive_V_to_Bool" ||
-           classname == "LerpNode" || classname == "Slider" ||
-           classname == "Splitter" || classname == "Merger" ||
-           classname == "AGK47" || classname == "DMR400" ||
-           classname == "ElectricHeater" || classname == "ElectricPump" ||
-           classname == "FuelTank" || classname == "GidroAccumulator" ||
-           classname == "GS24" || classname == "Gyroscope" ||
-           classname == "HighPowerLoad" || classname == "InertiaNode" ||
-           classname == "Inverter" || classname == "Radiator" ||
-           classname == "RU19A" || classname == "RUG82" ||
-           classname == "SolenoidValve" || classname == "Spring" ||
-           classname == "TempSensor" || classname == "Transformer" ||
-           classname == "VoltageSense" ||
-           classname == "ControlledVoltageSource" ||
-           classname == "ControlledCurrentSource" ||
-           classname == "VariableConductance";
-}
-
-const std::unordered_set<std::string>& known_library_unused_params() {
-    static const std::unordered_set<std::string> params = {
-        "inv_internal_r",  // Computed in Battery/Generator pre_load() as 1.0f / internal_r
-        "inv_capacity",    // Computed in Battery pre_load() as 1.0f / capacity
-        "port_edge",       // Used in Bus blueprint but not consumed by Bus component
-        "exposed_direction", // Used in BlueprintInput blueprint but not consumed
-        "exposed_type",     // Used in BlueprintInput blueprint but not consumed
-        "resistance"        // Used in Load blueprint but Load uses conductance, not resistance
-    };
-    return params;
-}
 } // namespace
 
 BuildResult build_systems_dev(
@@ -270,11 +219,6 @@ BuildResult build_systems_dev(
         }
 
         bool is_source = is_source_component_class(dev.classname);
-        bool is_migrated = is_migrated_component_class(dev.classname);
-
-        if (!is_migrated) {
-            continue;
-        }
 
         if (!is_source) {
             consumer_device_names.push_back(dev.name);
@@ -282,11 +226,6 @@ BuildResult build_systems_dev(
 
         // == Per-device consumed-key tracking for strict validation ==
         std::unordered_set<std::string> consumed_params;
-
-        // Whitelist of known library-specified parameters that the component doesn't actually consume.
-        // These appear in library JSON but are not used by the component - they're silently consumed
-        // to maintain backward compatibility with existing blueprints.
-        const auto& known_unused_params = known_library_unused_params();
 
         // == Consume helper lambdas - mark keys as used ==
         auto consume_float_optional = [&](const std::string& key, float default_val) -> float {
@@ -328,16 +267,10 @@ BuildResult build_systems_dev(
         };
 
         // Strict validation helper: throws on any unconsumed key
-        // Internal computed params (inv_internal_r, inv_capacity) are silently consumed
         auto validate_all_params_consumed = [&]() {
             for (const auto& [key, val] : dev.params) {
                 (void)val;
                 if (consumed_params.find(key) == consumed_params.end()) {
-                    // Check if it's a known library-unused param
-                    if (known_unused_params.find(key) != known_unused_params.end()) {
-                        consumed_params.insert(key);  // Mark as consumed silently
-                        continue;
-                    }
                     throw std::runtime_error("Unknown/unconsumed parameter '" + key +
                         "' for component '" + dev.name + "' (classname: " + dev.classname + ")");
                 }
@@ -1188,6 +1121,10 @@ BuildResult build_systems_dev(
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<VariableConductance<JitProvider>>(result.devices[dev.name]));
+        }
+        else {
+            throw std::runtime_error("Unknown component class '" + std::string(dev.classname) +
+                "' for device '" + dev.name + "'. No factory handler registered.");
         }
     }
 

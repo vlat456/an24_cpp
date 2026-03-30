@@ -30,8 +30,6 @@
     "capacity": "1000.0",
     "charge": "1000.0",
     "internal_r": "0.01",
-    "inv_capacity": "0.001",
-    "inv_internal_r": "100.0",
     "v_nominal": "28.0"
   }
 }
