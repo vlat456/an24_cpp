@@ -400,6 +400,25 @@ Implementation log:
     - `ElectricalAotParity` (5/5)
     - `JitAotBridgeEquivalence` (1/1)
 
+- **Step 4 (Phase 3 strict 2-pass review + bugfix)**: ✅ DONE
+  - Ran strict 2-pass review (`@review`) over Phase 3 implementation and
+    full required regression suites
+  - Found and fixed high-severity latent bug in AOT parity test helper:
+    `run_aot_electrical()` allocated only max-signal+1 slots, while JIT path
+    includes an additional sentinel slot (`next_signal + 1`), causing potential
+    out-of-bounds reads in parity comparisons
+  - Fix applied in `tests/test_electrical_parity_fixtures.cpp`:
+    - allocate sentinel slot to match JIT builder semantics
+    - remove unused `connections` helper parameter
+  - Post-fix required suites all pass:
+    - `AotComposite` (all)
+    - `ElectricalParityFixtures`
+    - `ElectricalAotParity`
+    - `JitAotBridgeEquivalence`
+    - `LUTCodegen`
+    - `CodegenAccumulator` (enabled subset)
+  - Phase 3 marked ready
+
 ## Phase 4: Test Infrastructure Migration + Fallback Boundary
 
 Note: this workstream is largely independent and can start in parallel with
