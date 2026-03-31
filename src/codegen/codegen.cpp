@@ -177,18 +177,11 @@ std::string CodeGen::generate_header(
     bool first = true;
     for (const auto& dev : devices) {
         if (dev.classname == "RefNode") {
-            std::string port_key = dev.name + ".v_out";
+            std::string port_key = dev.name + ".v";
             if (port_to_signal.count(port_key)) {
                 if (!first) oss << ", ";
                 oss << port_to_signal.at(port_key);
                 first = false;
-            } else {
-                port_key = dev.name + ".v";
-                if (port_to_signal.count(port_key)) {
-                    if (!first) oss << ", ";
-                    oss << port_to_signal.at(port_key);
-                    first = false;
-                }
             }
         }
     }

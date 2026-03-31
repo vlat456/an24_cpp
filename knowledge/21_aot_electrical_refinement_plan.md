@@ -767,6 +767,23 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 4 (Phase 6 cleanup)**: ✅ DONE — remove dead RefNode fallback branch
+  - Removed transitional/dead compatibility branch in `codegen.cpp` fixed-signal
+    emission (`RefNode` port lookup fallback from `.v_out` to `.v`)
+  - `RefNode` canonical port remains `.v`; generated fixed-signal emission now
+    uses only canonical mapping, reducing dead-path ambiguity
+  - Validation passed:
+    - `ElectricalSubsolver` (all)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ---
 
 ## Must-Have vs Nice-to-Have Matrix
