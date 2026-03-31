@@ -11,6 +11,41 @@ struct CompositeCodegenResult {
     std::string class_name;
 };
 
+// == Electrical plan for AOT codegen ==
+// Mirrors the runtime ElectricalBuildPlan but with static arrays for hot path.
+// Used to emit constexpr electrical island data in generated code.
+
+enum class ElectricalElementKindCodegen : uint8_t {
+    FixedVoltageNode = 0,
+    TheveninSource = 1,
+    ConductanceBranch = 2
+};
+
+struct ElectricalElementCodegen {
+    ElectricalElementKindCodegen kind;
+    uint32_t node_a;
+    uint32_t node_b;
+    float value_a;
+    float value_b;
+    uint32_t component_index;
+};
+
+struct ElectricalIslandPlanCodegen {
+    std::vector<uint32_t> signal_indices;
+    std::vector<ElectricalElementCodegen> elements;
+};
+
+struct ElectricalPlanCodegen {
+    std::vector<ElectricalIslandPlanCodegen> islands;
+};
+
+/// Extract electrical island plan from devices and port_to_signal mapping.
+/// Mirrors the island extraction logic in build_systems_dev().
+ElectricalPlanCodegen extract_electrical_plan(
+    const std::vector<DeviceInstance>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal
+);
+
 /// Code generator - produces C++ source files from device configuration
 class CodeGen {
 public:
@@ -21,7 +56,8 @@ public:
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
-        const std::string& class_name = "Systems"
+        const std::string& class_name = "Systems",
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Generate C++ source file with implementations
@@ -31,7 +67,8 @@ public:
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
         uint32_t signal_count,
-        const std::string& class_name = "Systems"
+        const std::string& class_name = "Systems",
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Write generated files to directory

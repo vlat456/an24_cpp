@@ -1,5 +1,6 @@
 #include "codegen.h"
 #include "../parse_number.h"
+#include <spdlog/spdlog.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -121,13 +122,329 @@ std::string get_port_name(const std::unordered_map<std::string, Port>& ports, co
 
 } // anonymous namespace
 
+// == Electrical plan extraction for AOT codegen ==
+// Mirrors the island extraction logic in jit_solver.cpp build_systems_dev().
+// This runs at codegen time to produce static electrical plan arrays.
+
+namespace {
+
+float parse_float_codegen(const std::string& value, float default_val) {
+    if (value.empty()) return default_val;
+    char* end = nullptr;
+    float f = std::strtof(value.c_str(), &end);
+    if (end == value.c_str() || *end != '\0') {
+        return default_val;
+    }
+    return f;
+}
+
+} // anonymous namespace
+
+ElectricalPlanCodegen extract_electrical_plan(
+    const std::vector<DeviceInstance>& devices,
+    const std::unordered_map<std::string, uint32_t>& port_to_signal
+) {
+    ElectricalPlanCodegen plan;
+
+    struct RawElement {
+        ElectricalElementKindCodegen kind;
+        uint32_t node_a;
+        uint32_t node_b;
+        float value_a;
+        float value_b;
+        size_t component_index;
+    };
+
+    std::vector<RawElement> raw_elements;
+
+    // Check whether a device has ANY ports in the signal map.
+    // Devices without ports (e.g., test stubs not merged with type definitions)
+    // are benign skips. Devices WITH ports that are missing a specific electrical
+    // port indicate a bug (typo in port name, incomplete type definition, etc.).
+    auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
+        for (const auto& [port_name, port] : dev.ports) {
+            std::string full_port = dev.name + "." + port_name;
+            if (port_to_signal.find(full_port) != port_to_signal.end()) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    auto resolve_port = [&](const DeviceInstance& dev, const std::string& port_name) -> std::optional<uint32_t> {
+        const std::string full_port = dev.name + "." + port_name;
+        auto it = port_to_signal.find(full_port);
+        if (it == port_to_signal.end()) {
+            spdlog::warn("[codegen] electrical port '{}' not found in signal map for device '{}' (classname: {}). Element skipped from electrical plan.",
+                full_port, dev.name, dev.classname);
+            return std::nullopt;
+        }
+        return it->second;
+    };
+
+    size_t element_idx = 0;
+    for (const auto& dev : devices) {
+        if (dev.visual_only) continue;
+
+        // Skip devices with no ports in the signal map (e.g., test stubs
+        // that were never merged with their type definition). These devices
+        // can't participate in the electrical solve because they have no
+        // signal bindings. This is distinct from a device that HAS ports
+        // but is missing a specific electrical port — that case is warned
+        // below and indicates a likely bug.
+        if (!device_has_any_ports(dev)) continue;
+
+        // == Path 1: Metadata-driven extraction via solver_role ==
+        if (dev.solver_role.has_value()) {
+            const auto& role = *dev.solver_role;
+
+            if (role.kind == "FixedVoltageNode") {
+                float value = 0.0f;
+                auto it_val = role.param_map.find("voltage");
+                if (it_val != role.param_map.end()) {
+                    auto it_param = dev.params.find(it_val->second);
+                    if (it_param != dev.params.end()) {
+                        value = parse_float_codegen(it_param->second, 0.0f);
+                    }
+                }
+                auto node_a_opt = resolve_port(dev, role.port_map.at("node"));
+                if (!node_a_opt.has_value()) continue;
+                raw_elements.push_back({
+                    ElectricalElementKindCodegen::FixedVoltageNode,
+                    *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++
+                });
+            }
+            else if (role.kind == "TheveninSource") {
+                float voltage = 28.0f;
+                float resistance = 0.01f;
+                auto it_v = role.param_map.find("voltage");
+                if (it_v != role.param_map.end()) {
+                    auto it_param = dev.params.find(it_v->second);
+                    if (it_param != dev.params.end()) {
+                        voltage = parse_float_codegen(it_param->second, 28.0f);
+                    }
+                }
+                auto it_r = role.param_map.find("resistance");
+                if (it_r != role.param_map.end()) {
+                    auto it_param = dev.params.find(it_r->second);
+                    if (it_param != dev.params.end()) {
+                        resistance = parse_float_codegen(it_param->second, 0.01f);
+                    }
+                }
+                auto node_pos_opt = resolve_port(dev, role.port_map.at("pos"));
+                auto node_neg_opt = resolve_port(dev, role.port_map.at("neg"));
+                if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) continue;
+                raw_elements.push_back({
+                    ElectricalElementKindCodegen::TheveninSource,
+                    *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++
+                });
+            }
+            else if (role.kind == "ConductanceBranch") {
+                float conductance = 0.1f;
+                auto it_g = role.param_map.find("g");
+                if (it_g != role.param_map.end()) {
+                    auto it_param = dev.params.find(it_g->second);
+                    if (it_param != dev.params.end()) {
+                        conductance = parse_float_codegen(it_param->second, 0.1f);
+                    }
+                }
+                auto node_a_opt = resolve_port(dev, role.port_map.at("a"));
+                auto node_b_opt = resolve_port(dev, role.port_map.at("b"));
+                if (!node_a_opt.has_value() || !node_b_opt.has_value()) continue;
+                raw_elements.push_back({
+                    ElectricalElementKindCodegen::ConductanceBranch,
+                    *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+                });
+            }
+            continue;
+        }
+
+        // == Path 2: Classname-based fallback for wrapper components ==
+        if (dev.classname == "Battery") {
+            float v_nominal = parse_float_codegen(dev.params.count("v_nominal") ?
+                dev.params.at("v_nominal") : "", 28.0f);
+            float internal_r = parse_float_codegen(dev.params.count("internal_r") ?
+                dev.params.at("internal_r") : "", 0.01f);
+            auto node_pos_opt = resolve_port(dev, "v_out");
+            auto node_neg_opt = resolve_port(dev, "v_in");
+            if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::TheveninSource,
+                *node_pos_opt, *node_neg_opt, v_nominal, internal_r, element_idx++
+            });
+        }
+        else if (dev.classname == "Generator") {
+            float v_nominal = parse_float_codegen(dev.params.count("v_nominal") ?
+                dev.params.at("v_nominal") : "", 28.5f);
+            float internal_r = parse_float_codegen(dev.params.count("internal_r") ?
+                dev.params.at("internal_r") : "", 0.005f);
+            auto node_pos_opt = resolve_port(dev, "v_out");
+            auto node_neg_opt = resolve_port(dev, "v_in");
+            if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::TheveninSource,
+                *node_pos_opt, *node_neg_opt, v_nominal, internal_r, element_idx++
+            });
+        }
+        else if (dev.classname == "RefNode") {
+            float value = parse_float_codegen(dev.params.count("value") ?
+                dev.params.at("value") : "", 0.0f);
+            auto node_a_opt = resolve_port(dev, "v");
+            if (!node_a_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::FixedVoltageNode,
+                *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++
+            });
+        }
+        else if (dev.classname == "Resistor") {
+            float conductance = parse_float_codegen(dev.params.count("conductance") ?
+                dev.params.at("conductance") : "", 0.1f);
+            auto node_a_opt = resolve_port(dev, "v_in");
+            auto node_b_opt = resolve_port(dev, "v_out");
+            if (!node_a_opt.has_value() || !node_b_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::ConductanceBranch,
+                *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+            });
+        }
+        else if (dev.classname == "IndicatorLight") {
+            float conductance = parse_float_codegen(dev.params.count("conductance") ?
+                dev.params.at("conductance") : "", 1.0f);
+            auto node_a_opt = resolve_port(dev, "v_in");
+            auto node_b_opt = resolve_port(dev, "v_out");
+            if (!node_a_opt.has_value() || !node_b_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::ConductanceBranch,
+                *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+            });
+        }
+        else if (dev.classname == "CurrentSense") {
+            float conductance = parse_float_codegen(dev.params.count("conductance") ?
+                dev.params.at("conductance") : "", 1000.0f);
+            auto node_a_opt = resolve_port(dev, "v_in");
+            auto node_b_opt = resolve_port(dev, "v_out");
+            if (!node_a_opt.has_value() || !node_b_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::ConductanceBranch,
+                *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+            });
+        }
+        else if (dev.classname == "ElectricalConductance") {
+            float conductance = parse_float_codegen(dev.params.count("conductance") ?
+                dev.params.at("conductance") : "", 0.1f);
+            auto node_a_opt = resolve_port(dev, "v_in");
+            auto node_b_opt = resolve_port(dev, "v_out");
+            if (!node_a_opt.has_value() || !node_b_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::ConductanceBranch,
+                *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+            });
+        }
+        else if (dev.classname == "ElectricalSource") {
+            float voltage = parse_float_codegen(dev.params.count("voltage") ?
+                dev.params.at("voltage") : "", 28.0f);
+            float resistance = parse_float_codegen(dev.params.count("resistance") ?
+                dev.params.at("resistance") : "", 0.01f);
+            auto node_pos_opt = resolve_port(dev, "v_out");
+            auto node_neg_opt = resolve_port(dev, "v_in");
+            if (!node_pos_opt.has_value() || !node_neg_opt.has_value()) continue;
+            raw_elements.push_back({
+                ElectricalElementKindCodegen::TheveninSource,
+                *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++
+            });
+        }
+    }
+
+    if (raw_elements.empty()) {
+        return plan;
+    }
+
+    // Union-find over node indices to group into islands
+    std::unordered_map<uint32_t, uint32_t> uf_parent;
+    std::unordered_map<uint32_t, uint32_t> uf_rank;
+    std::unordered_set<uint32_t> all_nodes;
+    for (const auto& elem : raw_elements) {
+        all_nodes.insert(elem.node_a);
+        if (elem.node_b != UINT32_MAX) all_nodes.insert(elem.node_b);
+    }
+    for (uint32_t n : all_nodes) {
+        uf_parent[n] = n;
+        uf_rank[n] = 0;
+    }
+    auto uf_find = [&](uint32_t x) {
+        while (uf_parent[x] != x) {
+            uf_parent[x] = uf_parent[uf_parent[x]];
+            x = uf_parent[x];
+        }
+        return x;
+    };
+    auto uf_unite = [&](uint32_t a, uint32_t b) {
+        uint32_t ra = uf_find(a), rb = uf_find(b);
+        if (ra == rb) return;
+        if (uf_rank[ra] < uf_rank[rb]) std::swap(ra, rb);
+        uf_parent[rb] = ra;
+        if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
+    };
+    for (const auto& elem : raw_elements) {
+        if (elem.node_b != UINT32_MAX) {
+            uf_unite(elem.node_a, elem.node_b);
+        }
+    }
+
+    // Group elements by island (root node)
+    std::map<uint32_t, std::vector<size_t>> island_members;
+    for (size_t i = 0; i < raw_elements.size(); ++i) {
+        uint32_t root = uf_find(raw_elements[i].node_a);
+        island_members[root].push_back(i);
+    }
+
+    // Sort islands by smallest node for determinism
+    std::vector<std::pair<uint32_t, std::vector<size_t>>> sorted_islands(
+        island_members.begin(), island_members.end());
+    std::sort(sorted_islands.begin(), sorted_islands.end(),
+        [](const auto& a, const auto& b) { return a.first < b.first; });
+
+    for (const auto& [root, elem_indices] : sorted_islands) {
+        (void)root;
+        ElectricalIslandPlanCodegen island;
+
+        std::set<uint32_t> island_nodes;
+        for (size_t idx : elem_indices) {
+            island_nodes.insert(raw_elements[idx].node_a);
+            if (raw_elements[idx].node_b != UINT32_MAX) {
+                island_nodes.insert(raw_elements[idx].node_b);
+            }
+        }
+        island.signal_indices.assign(island_nodes.begin(), island_nodes.end());
+
+        std::vector<size_t> sorted_indices = elem_indices;
+        std::sort(sorted_indices.begin(), sorted_indices.end());
+        for (size_t idx : sorted_indices) {
+            const auto& re = raw_elements[idx];
+            island.elements.push_back({
+                re.kind,
+                re.node_a,
+                re.node_b,
+                re.value_a,
+                re.value_b,
+                static_cast<uint32_t>(re.component_index)
+            });
+        }
+
+        plan.islands.push_back(std::move(island));
+    }
+
+    return plan;
+}
+
 std::string CodeGen::generate_header(
     const std::string& source_file,
     const std::vector<DeviceInstance>& devices_unfiltered,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
-    const std::string& class_name
+    const std::string& class_name,
+    const ElectricalPlanCodegen& electrical_plan
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -209,6 +526,66 @@ std::string CodeGen::generate_header(
     oss << "/// Number of devices in this system\n";
     oss << "constexpr uint32_t DEVICE_COUNT = " << devices.size() << ";\n\n";
 
+    // Electrical plan — static island data for AOT solve_electrical()
+    if (!electrical_plan.islands.empty()) {
+        oss << "// ==============================================================================\n";
+        oss << "// ELECTRICAL ISLAND PLAN (AOT static arrays)\n";
+        oss << "// ==============================================================================\n\n";
+
+        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = "
+            << electrical_plan.islands.size() << ";\n\n";
+
+        // Emit element kind enum for codegen use in static arrays
+        // (runtime uses ElectricalElementKind which has same values)
+        for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
+            const auto& island = electrical_plan.islands[island_idx];
+            oss << "// -- Island " << island_idx << " --\n";
+
+            // Signal indices for this island
+            oss << "constexpr uint32_t island_" << island_idx << "_nodes[] = {";
+            for (size_t i = 0; i < island.signal_indices.size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << island.signal_indices[i];
+            }
+            oss << "};\n";
+
+            // Elements for this island
+            oss << "constexpr uint32_t island_" << island_idx << "_element_count = "
+                << island.elements.size() << ";\n";
+
+            oss << "constexpr ElectricalElement island_" << island_idx << "_elements[] = {\n";
+            for (const auto& elem : island.elements) {
+                const char* kind_str = "ElectricalElementKind::FixedVoltageNode";
+                if (elem.kind == ElectricalElementKindCodegen::TheveninSource) kind_str = "ElectricalElementKind::TheveninSource";
+                else if (elem.kind == ElectricalElementKindCodegen::ConductanceBranch) kind_str = "ElectricalElementKind::ConductanceBranch";
+                oss << "    { " << kind_str << ", " << elem.node_a << ", " << elem.node_b
+                    << ", " << locale_safe::format_float(elem.value_a) << "f, "
+                    << locale_safe::format_float(elem.value_b) << "f, " << elem.component_index << " },\n";
+            }
+            oss << "};\n\n";
+        }
+
+        // ElectricalBuildPlan struct using static arrays
+        oss << "// ElectricalBuildPlan adapter: uses static constexpr arrays\n";
+        oss << "struct AotElectricalPlan {\n";
+        oss << "    std::vector<ElectricalIslandPlan> islands;\n";
+        oss << "    AotElectricalPlan() {\n";
+        for (size_t island_idx = 0; island_idx < electrical_plan.islands.size(); ++island_idx) {
+            const auto& island = electrical_plan.islands[island_idx];
+            oss << "        // Island " << island_idx << "\n";
+            oss << "        ElectricalIslandPlan isl;\n";
+            oss << "        isl.signal_indices.assign(island_" << island_idx << "_nodes, "
+                << "island_" << island_idx << "_nodes + " << island.signal_indices.size() << ");\n";
+            oss << "        isl.elements.assign(island_" << island_idx << "_elements, "
+                << "island_" << island_idx << "_elements + " << island.elements.size() << ");\n";
+            oss << "        islands.push_back(std::move(isl));\n";
+        }
+        oss << "    }\n";
+        oss << "};\n\n";
+    } else {
+        oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
+    }
+
     // Global simulation state pointer (set at init, available globally)
     oss << "/// Global simulation state pointer (set once, used by all components)\n";
     oss << "extern SimulationState* g_state;\n\n";
@@ -249,6 +626,13 @@ std::string CodeGen::generate_header(
     // Global simulation step counter (not modulo cycle index)
     oss << "    uint32_t step_counter_ = 0;\n\n";
 
+    // Electrical plan and runtime state (for AOT solve_electrical)
+    if (!electrical_plan.islands.empty()) {
+        oss << "    AotElectricalPlan electrical_plan_;\n";
+        oss << "    ElectricalRuntimeState electrical_rt_;\n";
+    }
+    oss << "\n";
+
     // Constructor / Destructor
     oss << "    " << class_name << "();\n";
     oss << "    ~" << class_name << "();\n\n";
@@ -286,7 +670,8 @@ std::string CodeGen::generate_source(
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
     uint32_t signal_count,
-    const std::string& class_name
+    const std::string& class_name,
+    const ElectricalPlanCodegen& electrical_plan
 ) {
     // Filter out visual-only devices (no simulation behavior, e.g. Group)
     std::vector<DeviceInstance> devices;
@@ -299,6 +684,8 @@ std::string CodeGen::generate_source(
     oss << "#include \"" << header_name << "\"\n";
     // Include template definitions from all.cpp so compiler can instantiate AotProvider versions
     oss << "#include \"jit_solver/components/all.cpp\"\n";
+    // Electrical subsolver for AOT island solve
+    oss << "#include \"jit_solver/subsolvers/electrical_subsolver.h\"\n";
     oss << "#include <cstring>  // memcpy\n\n";
     // Enable fast-math for generated code only (not spdlog)
     oss << "#ifdef __GNUC__\n";
@@ -443,6 +830,11 @@ std::string CodeGen::generate_source(
     for (int step = 0; step < 60; ++step) {
         oss << "AOT_INLINE void " << class_name << "::step_" << step << "(void* state, float dt) {\n";
         oss << "    auto* st = static_cast<SimulationState*>(state);\n";
+        // Electrical solve: compute node voltages and branch currents before component execute
+        if (!electrical_plan.islands.empty()) {
+            oss << "    st->electrical_rt = &electrical_rt_;\n";
+            oss << "    solve_electrical(electrical_plan_.islands, *st, electrical_rt_, dt);\n";
+        }
         for (const auto& dev : devices) {
             oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";
         }
@@ -894,7 +1286,10 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     }
     uint32_t signal_count = next_signal;
 
-    // 4. Delegate to existing generate_header/generate_source
+    // 4. Extract electrical island plan (for AOT solve_electrical)
+    ElectricalPlanCodegen electrical_plan = extract_electrical_plan(expanded.devices, port_to_signal);
+
+    // 5. Delegate to existing generate_header/generate_source
     std::string class_name = sanitize_name(td.classname) + "_Systems";
     std::string source_file = td.classname + ".blueprint";
     std::string header_name = "generated_" + sanitize_name(td.classname) + ".h";
@@ -902,9 +1297,9 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
     CompositeCodegenResult result;
     result.class_name = class_name;
     result.header = generate_header(source_file, expanded.devices, expanded.connections,
-                                    port_to_signal, signal_count, class_name);
+                                    port_to_signal, signal_count, class_name, electrical_plan);
     result.source = generate_source(header_name, expanded.devices, expanded.connections,
-                                    port_to_signal, signal_count, class_name);
+                                    port_to_signal, signal_count, class_name, electrical_plan);
     return result;
 }
 
