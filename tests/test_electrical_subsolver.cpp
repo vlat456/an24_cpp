@@ -597,3 +597,48 @@ TEST(ElectricalSubsolver, SolveCountersTrackDensePathForN3) {
     EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
     EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 3u);
 }
+
+TEST(ElectricalSubsolver, ReservedScratchBuffersStayStableAcrossSteps) {
+    ElectricalBuildPlan plan;
+    plan.islands.push_back(make_island(
+        {0, 1, 2},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 0, 28.0f, 1.0f, 1u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 0.5f, 0.0f, 2u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 0.5f, 0.0f, 3u}
+        }
+    ));
+
+    SimulationState st = make_sim_state(6);
+    ElectricalRuntimeState rt;
+    rt.reserve(/*max_nodes=*/3, /*max_elements=*/4, /*max_component_index=*/3);
+
+    solve_electrical(plan, st, rt, 0.0f);
+
+    size_t cap_branch_currents = rt.branch_currents.capacity();
+    size_t cap_island_nodes = rt.island_nodes.capacity();
+    size_t cap_fixed_nodes = rt.fixed_nodes.capacity();
+    size_t cap_fixed_voltages = rt.fixed_voltages.capacity();
+    size_t cap_is_fixed = rt.is_fixed.capacity();
+    size_t cap_node_to_unknown = rt.node_to_unknown.capacity();
+    size_t cap_island_voltages = rt.island_voltages.capacity();
+    size_t cap_kcl = rt.kcl_residuals.capacity();
+    size_t cap_matrix = rt.scratch_matrix.capacity();
+    size_t cap_rhs = rt.scratch_rhs.capacity();
+
+    for (int i = 0; i < 100; ++i) {
+        solve_electrical(plan, st, rt, 1.0f / 60.0f);
+    }
+
+    EXPECT_EQ(rt.branch_currents.capacity(), cap_branch_currents);
+    EXPECT_EQ(rt.island_nodes.capacity(), cap_island_nodes);
+    EXPECT_EQ(rt.fixed_nodes.capacity(), cap_fixed_nodes);
+    EXPECT_EQ(rt.fixed_voltages.capacity(), cap_fixed_voltages);
+    EXPECT_EQ(rt.is_fixed.capacity(), cap_is_fixed);
+    EXPECT_EQ(rt.node_to_unknown.capacity(), cap_node_to_unknown);
+    EXPECT_EQ(rt.island_voltages.capacity(), cap_island_voltages);
+    EXPECT_EQ(rt.kcl_residuals.capacity(), cap_kcl);
+    EXPECT_EQ(rt.scratch_matrix.capacity(), cap_matrix);
+    EXPECT_EQ(rt.scratch_rhs.capacity(), cap_rhs);
+}

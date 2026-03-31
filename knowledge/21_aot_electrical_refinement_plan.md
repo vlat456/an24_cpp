@@ -784,6 +784,23 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 5 (Phase 6 closure audit)**: ✅ DONE — exit-gate verification pass
+  - Added allocation-stability regression:
+    - `ElectricalSubsolver.ReservedScratchBuffersStayStableAcrossSteps`
+    - verifies reserved scratch-buffer capacities remain stable across repeated
+      solves (guard against per-frame reallocation regressions)
+  - Revalidated specialization fallback boundaries:
+    - `SolveCountersTrackSpecializedPaths`
+    - `SolveCountersTrackDensePathForN3`
+  - Performed closure-matrix run (parity + production-path + codegen suites)
+    and confirmed all enabled tests pass
+  - Exit gate status:
+    - ✅ zero per-frame heap allocation regressions detected on reserved path
+    - ✅ zero runtime string/hash lookups in AOT electrical solve hot path
+      (static arrays + generated bindings/debug maps)
+    - ✅ no dead transitional compatibility path remains in active codegen
+      hot paths touched during migration
+
 ---
 
 ## Must-Have vs Nice-to-Have Matrix
