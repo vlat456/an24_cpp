@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "codegen_utils.h"
 #include "../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <fstream>
@@ -24,17 +25,7 @@ std::string to_upper(const std::string& s) {
 }
 
 std::string sanitize_name(const std::string& s) {
-    std::string result;
-    result.reserve(s.size());
-    for (char c : s) {
-        switch (c) {
-            case '.': result += "_DOT_"; break;
-            case '-': result += "_DASH_"; break;
-            case ':': result += "_"; break;  // Colon is the hierarchical separator, stays as '_'
-            default:  result += c; break;
-        }
-    }
-    return result;
+    return sanitize_codegen_name(s);
 }
 
 // Infer C++ type from parameter value (locale-independent)

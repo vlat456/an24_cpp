@@ -1,4 +1,5 @@
 #include "codegen.h"
+#include "codegen_utils.h"
 #include "../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -10,20 +11,6 @@
 #include <unordered_set>
 
 namespace {
-
-std::string sanitize_name_codegen(const std::string& s) {
-    std::string result;
-    result.reserve(s.size());
-    for (char c : s) {
-        switch (c) {
-            case '.': result += "_DOT_"; break;
-            case '-': result += "_DASH_"; break;
-            case ':': result += "_"; break;
-            default:  result += c; break;
-        }
-    }
-    return result;
-}
 
 float parse_float_codegen(const std::string& value, float default_val) {
     if (value.empty()) {
@@ -371,7 +358,7 @@ ElectricalPlanCodegen extract_electrical_plan(
         if (re.device_classname == "Battery" || re.device_classname == "Generator" ||
             re.device_classname == "IndicatorLight" || re.device_classname == "CurrentSense") {
             bindings.push_back({
-                sanitize_name_codegen(re.device_name),
+                sanitize_codegen_name(re.device_name),
                 pos.first,
                 pos.second,
                 component_index

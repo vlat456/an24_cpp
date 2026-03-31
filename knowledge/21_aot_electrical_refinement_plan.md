@@ -727,6 +727,25 @@ Implementation log:
     3. confirm no dead transitional code remains in active compilation paths
     4. run full parity + production-path regression matrix before final closure
 
+- **Step 2 (Phase 6 cleanup)**: ✅ DONE — deduplicate codegen sanitization helper
+  - Added shared utility header: `src/codegen/codegen_utils.h`
+    - `sanitize_codegen_name(...)`
+  - Removed duplicated local sanitization implementations between
+    `codegen.cpp` and `electrical_codegen.cpp`
+  - Updated both code paths to use shared helper, reducing drift risk during
+    future cleanup/maintenance
+  - Validation passed:
+    - `ElectricalSubsolver` (all)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ---
 
 ## Must-Have vs Nice-to-Have Matrix
