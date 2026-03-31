@@ -531,6 +531,27 @@ Implementation log:
     - `ElectricalParityFixtures` (5/5)
     - `ElectricalAotParity` (5/5)
 
+- **Step 6 (Phase 4 strict gate review + hygiene fixes)**: ✅ DONE
+  - Ran strict 2-pass `@review` across whole Phase 4 + cross-phase interactions
+  - Review gate decision: **READY for Phase 5** (no blocking bugs)
+  - Applied two non-functional hygiene fixes from review notes:
+    - `tests/test_electrical_subsolver.cpp`: add assertions for
+      `island_diagnostics` fields (`solve_ok`, `unknown_count`, residual bound)
+      in `ElectricalSubsolver.SimpleTheveninDivider`
+    - `tests/test_jit_aot_bridge_equivalence.cpp`: clarify smoke-test scope
+      (structural codegen test, not numeric parity)
+  - Re-ran required regression suites (+ touched subsolver suite):
+    - `AotComposite` (all)
+    - `ProductionPathParity` (all)
+    - `ProductionPathPortMap` (all)
+    - `ProductionPathPushRuntime` (all)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+    - `ElectricalSubsolver` (10/10)
+
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
 Must-have:

@@ -119,6 +119,8 @@ TEST(JitAotBridgeEquivalence, MinimalBridgeTopologyAndCodegenSmoke) {
         {"src.v_pos", "meter.v_in"},
     };
 
+    // AOT side here is a structural codegen smoke test, not numeric parity:
+    // we assign deterministic per-port indices directly (no union-find collapsing).
     std::unordered_map<std::string, uint32_t> port_to_signal;
     uint32_t next_signal = 0;
     for (const auto& dev : devices) {

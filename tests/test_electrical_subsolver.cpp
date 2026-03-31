@@ -82,6 +82,12 @@ TEST(ElectricalSubsolver, SimpleTheveninDivider) {
     // Thevenin branch current is stored as net Norton branch current.
     // With node_a=1, node_b=0: I = g*(14-0) - 28 = -14A.
     EXPECT_NEAR(rt.branch_currents[1], -14.0f, 1e-3f);
+
+    ASSERT_EQ(rt.island_diagnostics.size(), 1u);
+    EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
+    EXPECT_EQ(rt.island_diagnostics[0].island_index, 0u);
+    EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 1u);
+    EXPECT_LT(rt.island_diagnostics[0].max_abs_kcl_residual, 1e-4f);
 }
 
 TEST(ElectricalSubsolver, SeriesChainTwoResistors) {
