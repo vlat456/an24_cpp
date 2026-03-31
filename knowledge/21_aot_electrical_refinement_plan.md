@@ -710,6 +710,23 @@ Exit gate:
   (or a tighter target established by Phase 0 benchmark)
 - no dead fallback code remains in active compilation paths
 
+Implementation log:
+
+- **Step 1 (Phase 6 kickoff)**: ✅ DONE — cleanup scope lock + closure checklist
+  - Carry-over from Phase 5 decision:
+    - keep specialization budget at `N==1` / `N==2`
+    - keep dense generic fallback for `N>=3`
+  - Cleanup targets for Phase 6:
+    - identify transitional diagnostics and temporary compatibility paths
+      that were added during Phases 1–5 and are now candidates for pruning
+    - keep production-path parity suites as release guardrails during cleanup
+    - preserve explicit `raw_builder` vs `production_path` test boundary
+  - Closure checklist established:
+    1. verify no per-frame allocations in AOT electrical solve path regressions
+    2. verify no runtime string/hash lookups on AOT electrical hot path
+    3. confirm no dead transitional code remains in active compilation paths
+    4. run full parity + production-path regression matrix before final closure
+
 ---
 
 ## Must-Have vs Nice-to-Have Matrix
