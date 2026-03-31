@@ -73,7 +73,9 @@ Consensus direction:
 - **Step 3**: ✅ DONE — added `tests/test_electrical_parity_fixtures.cpp` with 5 JIT reference
   fixtures. All 5 pass (SimpleTheveninDivider, SeriesChainTwoResistors,
   ParallelBranchSplit, MultiIsland, NearShortHighConductance). Also verified
-  existing 10 `electrical_subsolver_tests` still pass after scratch buffer refactor.
+  existing 10 `electrical_subsolver_tests`, 14 `electrical_primitives_tests`,
+  8 `battery_discharge_tests`, and 6 `current_sense_tests` all pass after
+  scratch buffer refactor. Build verified after `-ffast-math` workaround.
 - **Step 4**: (pending — electrical plan emission in `codegen.cpp`)
 
 ### Phase 1: Generated Static Electrical Plan — IN PROGRESS
