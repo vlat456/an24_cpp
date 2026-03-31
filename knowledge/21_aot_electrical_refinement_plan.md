@@ -336,6 +336,26 @@ Exit gate:
 
 - any parity failure is diagnosable from logs without ad-hoc instrumentation
 
+Implementation log:
+
+- **Step 1 (Phase 3 bootstrap)**: ✅ DONE — generated electrical debug mapping
+  - Extended `ElectricalPlanCodegen` with per-component debug entries:
+    `{component_index, device_name, device_classname, role, node_a, node_b}`
+  - `extract_electrical_plan()` now fills `component_debug` deterministically
+    from extracted electrical elements
+  - `generate_header()` now emits observability tables in generated code:
+    - `struct ElectricalDebugEntry`
+    - `constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[]`
+    - `constexpr uint32_t ELECTRICAL_DEBUG_COUNT`
+  - Added regression test:
+    - `AotComposite.ElectricalDebugMap_ContainsRoleAndEndpoints`
+    - verifies generated debug map includes wrapper names, classnames, and role tags
+  - Validation passed:
+    - `AotComposite.ElectricalBindings*` + `ElectricalDebugMap*`
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+
 ## Phase 4: Test Infrastructure Migration + Fallback Boundary
 
 Note: this workstream is largely independent and can start in parallel with

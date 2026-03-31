@@ -920,3 +920,71 @@ TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
     EXPECT_EQ(result.source.find("logic.electrical_handle"), std::string::npos)
         << "Non-electrical device should not get electrical_handle assignment";
 }
+
+TEST(AotComposite, ElectricalDebugMap_ContainsRoleAndEndpoints) {
+    TypeRegistry registry;
+
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition sense_type;
+    sense_type.classname = "CurrentSense";
+    sense_type.cpp_class = true;
+    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    sense_type.domains = {{Domain::Electrical}};
+    registry.types["CurrentSense"] = sense_type;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = refnode_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "debug_map_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_sense;
+    d_sense.name = "sense";
+    d_sense.classname = "CurrentSense";
+    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    circuit.devices = {d_bat, d_sense, d_ref};
+    circuit.connections = {
+        {"bat.v_out", "sense.v_in", {}},
+        {"sense.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    };
+    registry.types["debug_map_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    EXPECT_NE(result.header.find("struct ElectricalDebugEntry"), std::string::npos);
+    EXPECT_NE(result.header.find("ELECTRICAL_DEBUG_MAP"), std::string::npos);
+    EXPECT_NE(result.header.find("ELECTRICAL_DEBUG_COUNT"), std::string::npos);
+
+    EXPECT_NE(result.header.find("\"bat\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"sense\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"Battery\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"CurrentSense\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"TheveninSource\""), std::string::npos);
+    EXPECT_NE(result.header.find("\"ConductanceBranch\""), std::string::npos);
+}

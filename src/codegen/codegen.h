@@ -36,6 +36,15 @@ struct ElectricalIslandPlanCodegen {
 };
 
 struct ElectricalPlanCodegen {
+    struct ComponentDebug {
+        uint32_t component_index;
+        std::string device_name;
+        std::string device_classname;
+        std::string role;
+        uint32_t node_a;
+        uint32_t node_b;
+    };
+
     std::vector<ElectricalIslandPlanCodegen> islands;
     struct DeviceBinding {
         std::string device_field_name;
@@ -44,6 +53,7 @@ struct ElectricalPlanCodegen {
         uint32_t component_index;
     };
     std::vector<DeviceBinding> device_bindings;
+    std::vector<ComponentDebug> component_debug;
 };
 
 struct ElectricalExtractOptions {

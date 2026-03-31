@@ -82,6 +82,16 @@ ElectricalPlanCodegen extract_electrical_plan(
         std::string device_classname;
     };
 
+    auto kind_to_role = [](ElectricalElementKindCodegen k) -> std::string {
+        if (k == ElectricalElementKindCodegen::FixedVoltageNode) {
+            return "FixedVoltageNode";
+        }
+        if (k == ElectricalElementKindCodegen::TheveninSource) {
+            return "TheveninSource";
+        }
+        return "ConductanceBranch";
+    };
+
     std::vector<RawElement> raw_elements;
 
     auto device_has_any_ports = [&](const DeviceInstance& dev) -> bool {
@@ -387,6 +397,26 @@ ElectricalPlanCodegen extract_electrical_plan(
                a.component_index == b.component_index;
     }), bindings.end());
     plan.device_bindings = std::move(bindings);
+
+    std::vector<ElectricalPlanCodegen::ComponentDebug> debug;
+    debug.reserve(raw_elements.size());
+    for (const auto& re : raw_elements) {
+        debug.push_back({
+            static_cast<uint32_t>(re.component_index),
+            re.device_name,
+            re.device_classname,
+            kind_to_role(re.kind),
+            re.node_a,
+            re.node_b
+        });
+    }
+    std::sort(debug.begin(), debug.end(), [](const auto& a, const auto& b) {
+        if (a.component_index != b.component_index) {
+            return a.component_index < b.component_index;
+        }
+        return a.device_name < b.device_name;
+    });
+    plan.component_debug = std::move(debug);
 
     return plan;
 }

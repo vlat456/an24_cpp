@@ -268,6 +268,24 @@ std::string CodeGen::generate_header(
         oss << "    }\n";
         oss << "};\n\n";
 
+        oss << "struct ElectricalDebugEntry {\n";
+        oss << "    uint32_t component_index;\n";
+        oss << "    const char* device_name;\n";
+        oss << "    const char* classname;\n";
+        oss << "    const char* role;\n";
+        oss << "    uint32_t node_a;\n";
+        oss << "    uint32_t node_b;\n";
+        oss << "};\n\n";
+        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {\n";
+        for (const auto& dbg : electrical_plan.component_debug) {
+            oss << "    { " << dbg.component_index << ", \"" << dbg.device_name
+                << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
+                << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
+        }
+        oss << "};\n";
+        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = "
+            << electrical_plan.component_debug.size() << ";\n\n";
+
         // Compute max island sizes for scratch buffer pre-allocation
         uint32_t max_island_nodes = 0;
         uint32_t max_island_elements = 0;
@@ -288,6 +306,16 @@ std::string CodeGen::generate_header(
         oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
         oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
         oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
+        oss << "struct ElectricalDebugEntry {\n";
+        oss << "    uint32_t component_index;\n";
+        oss << "    const char* device_name;\n";
+        oss << "    const char* classname;\n";
+        oss << "    const char* role;\n";
+        oss << "    uint32_t node_a;\n";
+        oss << "    uint32_t node_b;\n";
+        oss << "};\n\n";
+        oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {};\n";
+        oss << "constexpr uint32_t ELECTRICAL_DEBUG_COUNT = 0;\n\n";
     }
 
     // Global simulation state pointer (set at init, available globally)
