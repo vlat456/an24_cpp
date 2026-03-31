@@ -126,6 +126,8 @@ void solve_electrical(
         rt.branch_currents.clear();
     }
 
+    rt.island_diagnostics.clear();
+
     // Process each island independently
     for (size_t island_idx = 0; island_idx < plan.islands.size(); ++island_idx) {
         const auto& island = plan.islands[island_idx];
@@ -289,6 +291,8 @@ void solve_electrical(
         }
 
         // Compute branch currents
+        uint32_t worst_branch_component_index = UINT32_MAX;
+        float worst_branch_abs_current = -1.0f;
         for (const auto& elem : island.elements) {
             if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
                 rt.branch_currents[elem.component_index] = 0.0f;
@@ -321,6 +325,67 @@ void solve_electrical(
             }
 
             rt.branch_currents[elem.component_index] = current;
+            float abs_i = std::abs(current);
+            if (abs_i > worst_branch_abs_current) {
+                worst_branch_abs_current = abs_i;
+                worst_branch_component_index = elem.component_index;
+            }
         }
+
+        // KCL residual diagnostics per node: sum of currents entering node.
+        rt.kcl_residuals.resize(node_count);
+        std::fill(rt.kcl_residuals.begin(), rt.kcl_residuals.end(), 0.0f);
+        for (const auto& elem : island.elements) {
+            if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
+                continue;
+            }
+
+            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
+            int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
+            if (node_a_idx == -1 || node_b_idx == -1) {
+                continue;
+            }
+
+            float Va = rt.island_voltages[node_a_idx];
+            float Vb = rt.island_voltages[node_b_idx];
+            float i_ab = 0.0f;
+            if (elem.kind == ElectricalElementKind::ConductanceBranch) {
+                float g = elem.value_a;
+                i_ab = g * (Va - Vb);
+            } else if (elem.kind == ElectricalElementKind::TheveninSource) {
+                float Vth = elem.value_a;
+                float Rseries = elem.value_b;
+                float safe_r = std::max(Rseries, 1e-6f);
+                float g = 1.0f / safe_r;
+                float In = Vth * g;
+                i_ab = g * (Va - Vb) - In;
+            }
+
+            // Positive i_ab means leaving node_a and entering node_b.
+            rt.kcl_residuals[node_a_idx] -= i_ab;
+            rt.kcl_residuals[node_b_idx] += i_ab;
+        }
+
+        float max_abs_residual = 0.0f;
+        uint32_t worst_signal = UINT32_MAX;
+        float worst_voltage = 0.0f;
+        for (size_t i = 0; i < node_count; ++i) {
+            float ar = std::abs(rt.kcl_residuals[i]);
+            if (ar > max_abs_residual) {
+                max_abs_residual = ar;
+                worst_signal = rt.island_nodes[i];
+                worst_voltage = rt.island_voltages[i];
+            }
+        }
+
+        rt.island_diagnostics.push_back({
+            static_cast<uint32_t>(island_idx),
+            solve_ok,
+            static_cast<uint32_t>(N),
+            worst_signal,
+            worst_voltage,
+            max_abs_residual,
+            worst_branch_component_index
+        });
     }
 }

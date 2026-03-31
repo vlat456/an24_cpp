@@ -356,6 +356,28 @@ Implementation log:
     - `ElectricalAotParity` (5/5)
     - `JitAotBridgeEquivalence` (1/1)
 
+- **Step 2 (Phase 3 diagnostics)**: ✅ DONE — structured island diagnostics
+  - Extended runtime diagnostics in `ElectricalRuntimeState`:
+    - `IslandDiagnostic` records: island id, solve_ok, unknown_count,
+      worst-node signal/voltage, max abs KCL residual, worst branch component index
+    - scratch residual vector `kcl_residuals`
+  - `solve_electrical()` now computes and stores per-island diagnostics every solve:
+    - branch-current extrema tracking
+    - per-node KCL residual accumulation and max residual extraction
+  - Generated AOT solve path now logs structured diagnostics when:
+    - island solve fails, or
+    - residual exceeds threshold (`ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f`)
+  - Diagnostic logs include branch metadata via generated `ELECTRICAL_DEBUG_MAP`
+    (component index -> device/class/role/endpoints)
+  - Added regression test:
+    - `AotComposite.ElectricalDiagnostics_WarnPathGenerated`
+    - verifies warn-path code generation and debug-map correlation hooks
+  - Validation passed:
+    - `AotComposite.ElectricalBindings*`, `ElectricalDebugMap*`, `ElectricalDiagnostics*`
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+
 ## Phase 4: Test Infrastructure Migration + Fallback Boundary
 
 Note: this workstream is largely independent and can start in parallel with

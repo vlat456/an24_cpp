@@ -362,6 +362,7 @@ std::string CodeGen::generate_header(
     if (!electrical_plan.islands.empty()) {
         oss << "    ElectricalBuildPlan electrical_plan_;\n";
         oss << "    ElectricalRuntimeState electrical_rt_;\n";
+        oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
         oss << "\n";
         oss << "    struct ElectricalBindings {\n";
         for (const auto& binding : electrical_plan.device_bindings) {
@@ -429,6 +430,7 @@ std::string CodeGen::generate_source(
     oss << "#include \"jit_solver/components/all.cpp\"\n";
     // Electrical subsolver for AOT island solve
     oss << "#include \"jit_solver/subsolvers/electrical_subsolver.h\"\n";
+    oss << "#include <spdlog/spdlog.h>\n";
     oss << "#include <cstring>  // memcpy\n\n";
     // Enable fast-math for generated code only (not spdlog)
     oss << "#ifdef __GNUC__\n";
@@ -593,6 +595,21 @@ std::string CodeGen::generate_source(
         if (!electrical_plan.islands.empty()) {
             oss << "    st->electrical_rt = &electrical_rt_;\n";
             oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
+            oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
+            oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
+            oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
+            oss << "                diag.island_index, diag.solve_ok, diag.unknown_count, diag.max_abs_kcl_residual,\n";
+            oss << "                diag.worst_node_signal, diag.worst_node_voltage, diag.worst_branch_component_index);\n";
+            oss << "            for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
+            oss << "                const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
+            oss << "                if (e.component_index == diag.worst_branch_component_index) {\n";
+            oss << "                    spdlog::warn(\"[aot-elec] branch component={} device={} class={} role={} nodes=({},{})\",\n";
+            oss << "                        e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
+            oss << "                    break;\n";
+            oss << "                }\n";
+            oss << "            }\n";
+            oss << "        }\n";
+            oss << "    }\n";
         }
         for (const auto& dev : devices) {
             oss << "    " << sanitize_name(dev.name) << ".execute(*st, dt);\n";

@@ -51,6 +51,16 @@ inline bool is_valid(const ElectricalPrimitiveHandle& h) {
 // All vectors retain capacity across frames — resize() keeps existing memory.
 // Use reserve() at init time to pre-allocate to max island size.
 struct ElectricalRuntimeState {
+    struct IslandDiagnostic {
+        uint32_t island_index = 0;
+        bool solve_ok = true;
+        uint32_t unknown_count = 0;
+        uint32_t worst_node_signal = UINT32_MAX;
+        float worst_node_voltage = 0.0f;
+        float max_abs_kcl_residual = 0.0f;
+        uint32_t worst_branch_component_index = UINT32_MAX;
+    };
+
     std::vector<float> branch_currents;
     std::vector<float> scratch_matrix;
     std::vector<float> scratch_rhs;
@@ -61,6 +71,9 @@ struct ElectricalRuntimeState {
     std::vector<bool> is_fixed;
     std::vector<int> node_to_unknown;
     std::vector<float> island_voltages;
+    std::vector<float> kcl_residuals;
+
+    std::vector<IslandDiagnostic> island_diagnostics;
 
     void reserve(uint32_t max_nodes, uint32_t max_elements, uint32_t max_component_index) {
         uint32_t max_unknowns = max_nodes;
@@ -71,6 +84,7 @@ struct ElectricalRuntimeState {
         is_fixed.reserve(max_nodes);
         node_to_unknown.reserve(max_nodes);
         island_voltages.reserve(max_nodes);
+        kcl_residuals.reserve(max_nodes);
         scratch_matrix.reserve(static_cast<size_t>(max_unknowns) * max_unknowns);
         scratch_rhs.reserve(max_unknowns);
     }
