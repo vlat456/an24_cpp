@@ -131,23 +131,24 @@ void solve_electrical(
         const auto& island = plan.islands[island_idx];
 
         // Collect fixed nodes and validate no conflicts
-        std::vector<std::pair<uint32_t, float>> fixed_nodes;
+        // Reuse scratch buffer for fixed_nodes — resize keeps capacity
+        rt.fixed_nodes.clear();
         for (const auto& elem : island.elements) {
             if (elem.kind == ElectricalElementKind::FixedVoltageNode) {
-                fixed_nodes.emplace_back(elem.node_a, elem.value_a);
+                rt.fixed_nodes.emplace_back(elem.node_a, elem.value_a);
             }
         }
 
         // Check for conflicting fixed constraints on same node
-        for (size_t i = 0; i < fixed_nodes.size(); ++i) {
-            for (size_t j = i + 1; j < fixed_nodes.size(); ++j) {
-                if (fixed_nodes[i].first == fixed_nodes[j].first) {
-                    if (std::fabs(fixed_nodes[i].second - fixed_nodes[j].second) > 1e-5f) {
+        for (size_t i = 0; i < rt.fixed_nodes.size(); ++i) {
+            for (size_t j = i + 1; j < rt.fixed_nodes.size(); ++j) {
+                if (rt.fixed_nodes[i].first == rt.fixed_nodes[j].first) {
+                    if (std::fabs(rt.fixed_nodes[i].second - rt.fixed_nodes[j].second) > 1e-5f) {
                         throw std::runtime_error(
                             "Conflicting fixed voltage constraints on node " +
-                            std::to_string(fixed_nodes[i].first) +
-                            ": " + std::to_string(fixed_nodes[i].second) +
-                            " vs " + std::to_string(fixed_nodes[j].second)
+                            std::to_string(rt.fixed_nodes[i].first) +
+                            ": " + std::to_string(rt.fixed_nodes[i].second) +
+                            " vs " + std::to_string(rt.fixed_nodes[j].second)
                         );
                     }
                 }
@@ -155,28 +156,32 @@ void solve_electrical(
         }
 
         // Build sorted, deduplicated node list for this island
-        std::vector<uint32_t> island_nodes = island.signal_indices;
-        std::sort(island_nodes.begin(), island_nodes.end());
-        island_nodes.erase(std::unique(island_nodes.begin(), island_nodes.end()), island_nodes.end());
+        rt.island_nodes = island.signal_indices;
+        std::sort(rt.island_nodes.begin(), rt.island_nodes.end());
+        rt.island_nodes.erase(std::unique(rt.island_nodes.begin(), rt.island_nodes.end()), rt.island_nodes.end());
 
         // Map each node to fixed/unknown status
-        std::vector<float> fixed_voltages(island_nodes.size(), 0.0f);
-        std::vector<bool> is_fixed(island_nodes.size(), false);
+        size_t node_count = rt.island_nodes.size();
+        rt.fixed_voltages.resize(node_count);
+        std::fill(rt.fixed_voltages.begin(), rt.fixed_voltages.end(), 0.0f);
+        rt.is_fixed.resize(node_count);
+        std::fill(rt.is_fixed.begin(), rt.is_fixed.end(), false);
 
-        for (const auto& fn : fixed_nodes) {
-            int idx = find_node_index(island_nodes, fn.first);
+        for (const auto& fn : rt.fixed_nodes) {
+            int idx = find_node_index(rt.island_nodes, fn.first);
             if (idx >= 0) {
-                fixed_voltages[idx] = fn.second;
-                is_fixed[idx] = true;
+                rt.fixed_voltages[idx] = fn.second;
+                rt.is_fixed[idx] = true;
             }
         }
 
         // Count unknown nodes and build dense index mapping
         int N = 0;
-        std::vector<int> node_to_unknown(island_nodes.size(), -1);
-        for (size_t i = 0; i < island_nodes.size(); ++i) {
-            if (!is_fixed[i]) {
-                node_to_unknown[i] = N++;
+        rt.node_to_unknown.resize(node_count);
+        std::fill(rt.node_to_unknown.begin(), rt.node_to_unknown.end(), -1);
+        for (size_t i = 0; i < node_count; ++i) {
+            if (!rt.is_fixed[i]) {
+                rt.node_to_unknown[i] = N++;
             }
         }
 
@@ -192,10 +197,10 @@ void solve_electrical(
 
         // Stamp all elements into conductance matrix
         for (const auto& elem : island.elements) {
-            int node_a_idx = find_node_index(island_nodes, elem.node_a);
+            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
             // node_b may be UINT32_MAX for FixedVoltageNode (unused)
             int node_b_idx = (elem.node_b != UINT32_MAX)
-                ? find_node_index(island_nodes, elem.node_b) : -1;
+                ? find_node_index(rt.island_nodes, elem.node_b) : -1;
 
             if (node_a_idx == -1 || (elem.node_b != UINT32_MAX && node_b_idx == -1)) {
                 throw std::runtime_error("Element references node not in island");
@@ -210,7 +215,7 @@ void solve_electrical(
                     );
                 }
                 stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
-                                  node_to_unknown, is_fixed, fixed_voltages);
+                                  rt.node_to_unknown, rt.is_fixed, rt.fixed_voltages);
             }
             else if (elem.kind == ElectricalElementKind::TheveninSource) {
                 // Convert Thevenin to Norton: Vth, Rseries -> g=1/R, In=Vth/R
@@ -221,15 +226,15 @@ void solve_electrical(
                 float In = Vth * g;
 
                 stamp_conductance(A, b, N, g, node_a_idx, node_b_idx,
-                                  node_to_unknown, is_fixed, fixed_voltages);
+                                  rt.node_to_unknown, rt.is_fixed, rt.fixed_voltages);
 
                 // Stamp Norton current source: In flows from node_b to node_a.
                 // Positive current injected into a node adds to RHS.
-                if (!is_fixed[node_a_idx]) {
-                    b[node_to_unknown[node_a_idx]] += In;
+                if (!rt.is_fixed[node_a_idx]) {
+                    b[rt.node_to_unknown[node_a_idx]] += In;
                 }
-                if (!is_fixed[node_b_idx]) {
-                    b[node_to_unknown[node_b_idx]] -= In;
+                if (!rt.is_fixed[node_b_idx]) {
+                    b[rt.node_to_unknown[node_b_idx]] -= In;
                 }
             }
             // FixedVoltageNode: no matrix stamping (handled via fixed map)
@@ -250,36 +255,37 @@ void solve_electrical(
         }
 
         // Build complete voltage map and write back to SimulationState
-        std::vector<float> island_voltages(island_nodes.size(), 0.0f);
-        for (size_t i = 0; i < island_nodes.size(); ++i) {
-            if (is_fixed[i]) {
-                island_voltages[i] = fixed_voltages[i];
+        rt.island_voltages.resize(node_count);
+        std::fill(rt.island_voltages.begin(), rt.island_voltages.end(), 0.0f);
+        for (size_t i = 0; i < node_count; ++i) {
+            if (rt.is_fixed[i]) {
+                rt.island_voltages[i] = rt.fixed_voltages[i];
             } else if (solve_ok) {
-                island_voltages[i] = b[node_to_unknown[i]];
+                rt.island_voltages[i] = b[rt.node_to_unknown[i]];
             } else {
                 // Singular island fallback: preserve previous state value.
                 // This keeps the simulation stable and avoids aborting editor runtime.
-                uint32_t sig_idx = island_nodes[i];
+                uint32_t sig_idx = rt.island_nodes[i];
                 if (sig_idx >= st.values.size()) {
                     throw std::runtime_error(
                         "Signal index " + std::to_string(sig_idx) +
                         " out of range (size " + std::to_string(st.values.size()) + ")"
                     );
                 }
-                island_voltages[i] = st.values[sig_idx];
+                rt.island_voltages[i] = st.values[sig_idx];
             }
         }
 
         // Write voltages back to SimulationState
-        for (size_t i = 0; i < island_nodes.size(); ++i) {
-            uint32_t sig_idx = island_nodes[i];
+        for (size_t i = 0; i < node_count; ++i) {
+            uint32_t sig_idx = rt.island_nodes[i];
             if (sig_idx >= st.values.size()) {
                 throw std::runtime_error(
                     "Signal index " + std::to_string(sig_idx) +
                     " out of range (size " + std::to_string(st.values.size()) + ")"
                 );
             }
-            st.values[sig_idx] = island_voltages[i];
+            st.values[sig_idx] = rt.island_voltages[i];
         }
 
         // Compute branch currents
@@ -289,13 +295,13 @@ void solve_electrical(
                 continue;
             }
 
-            int node_a_idx = find_node_index(island_nodes, elem.node_a);
-            int node_b_idx = find_node_index(island_nodes, elem.node_b);
+            int node_a_idx = find_node_index(rt.island_nodes, elem.node_a);
+            int node_b_idx = find_node_index(rt.island_nodes, elem.node_b);
             if (node_a_idx == -1 || node_b_idx == -1) {
                 throw std::runtime_error("Element references node not in island during current computation");
             }
-            float Va = island_voltages[node_a_idx];
-            float Vb = island_voltages[node_b_idx];
+            float Va = rt.island_voltages[node_a_idx];
+            float Vb = rt.island_voltages[node_b_idx];
 
             float current = 0.0f;
             if (solve_ok) {
