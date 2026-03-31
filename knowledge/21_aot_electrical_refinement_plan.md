@@ -437,6 +437,31 @@ Exit gate:
 
 - fallback extraction use is measured, scoped, and no longer accidental
 
+Implementation log:
+
+- **Step 1 (Phase 4 bootstrap)**: ✅ DONE — explicit raw-builder vs production-path split
+  - Added test labels in `tests/CMakeLists.txt`:
+    - `raw_builder;electrical` for raw extraction/build tests
+    - `production_path;electrical` for merged/codegen-driven tests
+  - Applied labels to key electrical suites:
+    - raw-builder: `electrical_island_build_tests`, `electrical_handle_build_tests`,
+      `electrical_primitives_tests`, `electrical_parity_fixtures_tests`
+    - production-path: `aot_composite_tests`, `jit_aot_bridge_equivalence_tests`
+  - Added new production-path parity suite:
+    - `tests/test_production_path_parity.cpp`
+    - test: `ProductionPathParity.CompositeAotJitTopologyParity`
+    - validates expanded/merged composite topology parity against AOT generation
+      while exercising generated electrical debug-map presence
+  - Measured current split baseline via ctest labels:
+    - `production_path`: 17 tests
+    - `raw_builder`: 10 tests
+  - Validation passed:
+    - `AotComposite` (all)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `ProductionPathParity` (1/1)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
 Must-have:

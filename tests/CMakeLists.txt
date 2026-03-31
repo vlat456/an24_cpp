@@ -74,7 +74,9 @@ target_link_libraries(electrical_island_build_tests PRIVATE
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(electrical_island_build_tests)
+gtest_discover_tests(electrical_island_build_tests
+    PROPERTIES LABELS "raw_builder;electrical"
+)
 
 # Electrical primitive handle tests (Batch 3: handle assignment for wrapper components)
 add_executable(electrical_handle_build_tests
@@ -90,7 +92,9 @@ target_link_libraries(electrical_handle_build_tests PRIVATE
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(electrical_handle_build_tests)
+gtest_discover_tests(electrical_handle_build_tests
+    PROPERTIES LABELS "raw_builder;electrical"
+)
 
 # Electrical subsolver tests (Batch 4: actual island solving)
 add_executable(electrical_subsolver_tests
@@ -1143,7 +1147,9 @@ target_link_libraries(aot_composite_tests PRIVATE
     spdlog::spdlog
     GTest::gtest_main
 )
-gtest_discover_tests(aot_composite_tests)
+gtest_discover_tests(aot_composite_tests
+    PROPERTIES LABELS "production_path;electrical"
+)
 
 # Minimal bridge-based JIT vs AOT equivalence regression
 add_executable(jit_aot_bridge_equivalence_tests
@@ -1162,7 +1168,29 @@ target_link_libraries(jit_aot_bridge_equivalence_tests PRIVATE
     spdlog::spdlog
     GTest::gtest_main
 )
-gtest_discover_tests(jit_aot_bridge_equivalence_tests)
+gtest_discover_tests(jit_aot_bridge_equivalence_tests
+    PROPERTIES LABELS "production_path;electrical"
+)
+
+add_executable(production_path_parity_tests
+    test_production_path_parity.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
+)
+target_include_directories(production_path_parity_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(production_path_parity_tests PRIVATE
+    json_parser
+    jit_solver
+    spdlog::spdlog
+    GTest::gtest_main
+)
+gtest_discover_tests(production_path_parity_tests
+    PROPERTIES LABELS "production_path;electrical"
+)
 
 # Node color tests (Phase 1: data model, persistence, visual node)
 
@@ -1510,7 +1538,9 @@ target_link_libraries(electrical_primitives_tests PRIVATE
     json_parser
     GTest::gtest_main
 )
-gtest_discover_tests(electrical_primitives_tests)
+gtest_discover_tests(electrical_primitives_tests
+    PROPERTIES LABELS "raw_builder;electrical"
+)
 
 # JIT↔AOT electrical parity fixtures (Phase 0-1: reference fixtures for semantic validation)
 add_executable(electrical_parity_fixtures_tests
@@ -1527,4 +1557,6 @@ target_link_libraries(electrical_parity_fixtures_tests PRIVATE
     an24_codegen
     GTest::gtest_main
 )
-gtest_discover_tests(electrical_parity_fixtures_tests)
+gtest_discover_tests(electrical_parity_fixtures_tests
+    PROPERTIES LABELS "raw_builder;electrical"
+)
