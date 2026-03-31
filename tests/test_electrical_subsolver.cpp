@@ -568,3 +568,32 @@ TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
     EXPECT_EQ(rt.counters.solves_dense, 0u);
     EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
 }
+
+TEST(ElectricalSubsolver, SolveCountersTrackDensePathForN3) {
+    ElectricalBuildPlan plan;
+    // N==3 island (nodes 1,2,3 unknown; node0 fixed).
+    plan.islands.push_back(make_island(
+        {0, 1, 2, 3},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, UINT32_MAX, 0.0f, 0.0f, 0u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 3, 0, 28.0f, 1.0f, 1u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 3, 2, 1.0f, 0.0f, 2u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 1.0f, 0.0f, 3u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 1.0f, 0.0f, 4u}
+        }
+    ));
+
+    SimulationState st = make_sim_state(8);
+    ElectricalRuntimeState rt;
+    solve_electrical(plan, st, rt, 0.0f);
+
+    EXPECT_EQ(rt.counters.islands_total, 1u);
+    EXPECT_EQ(rt.counters.solves_n0, 0u);
+    EXPECT_EQ(rt.counters.solves_n1, 0u);
+    EXPECT_EQ(rt.counters.solves_n2, 0u);
+    EXPECT_EQ(rt.counters.solves_dense, 1u);
+    EXPECT_EQ(rt.counters.singular_fallbacks, 0u);
+    ASSERT_EQ(rt.island_diagnostics.size(), 1u);
+    EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
+    EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 3u);
+}

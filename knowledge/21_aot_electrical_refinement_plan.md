@@ -670,6 +670,30 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 6 (Phase 5 budget decision)**: ✅ DONE — hold at N1/N2, keep dense fallback
+  - Added explicit dense-path coverage regression:
+    - `ElectricalSubsolver.SolveCountersTrackDensePathForN3`
+    - validates N==3 islands route to dense generic kernel (`solves_dense=1`)
+  - Decision based on counters + risk budget:
+    - keep specialization families at **N==1** and **N==2** for now
+    - do **not** add third specialized family in this phase
+    - preserve dense generic path as correctness fallback for N>=3
+  - Rationale:
+    - bounded complexity and code growth
+    - full parity matrix remains green
+    - instrumentation now in place to justify future expansion empirically
+  - Validation passed:
+    - `ElectricalSubsolver` specialized + dense counter tests
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:
