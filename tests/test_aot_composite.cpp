@@ -4,6 +4,7 @@
 #include "jit_solver/jit_solver.h"
 #include <regex>
 #include <set>
+#include <unordered_map>
 
 namespace {
 
@@ -573,4 +574,183 @@ TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
 
     EXPECT_EQ(result.source.find("solve_electrical"), std::string::npos)
         << "Source should NOT contain solve_electrical when no electrical devices";
+}
+
+TEST(AotComposite, ElectricalBindings_WrapperHandlesGenerated) {
+    TypeRegistry registry;
+
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition sense_type;
+    sense_type.classname = "CurrentSense";
+    sense_type.cpp_class = true;
+    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    sense_type.domains = {{Domain::Electrical}};
+    registry.types["CurrentSense"] = sense_type;
+
+    TypeDefinition light_type;
+    light_type.classname = "IndicatorLight";
+    light_type.cpp_class = true;
+    light_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    light_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    light_type.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    light_type.domains = {{Domain::Electrical}};
+    registry.types["IndicatorLight"] = light_type;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = refnode_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "wrapper_binding_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_sense;
+    d_sense.name = "sense";
+    d_sense.classname = "CurrentSense";
+    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_lamp;
+    d_lamp.name = "lamp";
+    d_lamp.classname = "IndicatorLight";
+    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    circuit.devices = {d_bat, d_sense, d_lamp, d_ref};
+    circuit.connections = {
+        {"bat.v_out", "sense.v_in", {}},
+        {"sense.v_out", "lamp.v_in", {}},
+        {"lamp.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    };
+    registry.types["wrapper_binding_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    EXPECT_NE(result.header.find("struct ElectricalBindings"), std::string::npos);
+    EXPECT_NE(result.header.find("bat_component"), std::string::npos);
+    EXPECT_NE(result.header.find("sense_component"), std::string::npos);
+    EXPECT_NE(result.header.find("lamp_component"), std::string::npos);
+
+    EXPECT_NE(result.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
+    EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(result.source.find("lamp.electrical_handle.component_index = ElectricalBindings::lamp_component"), std::string::npos);
+}
+
+TEST(AotComposite, ElectricalBindings_StableAcrossConnectionReordering) {
+    TypeRegistry registry;
+
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition sense_type;
+    sense_type.classname = "CurrentSense";
+    sense_type.cpp_class = true;
+    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    sense_type.domains = {{Domain::Electrical}};
+    registry.types["CurrentSense"] = sense_type;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = refnode_type;
+
+    auto make_circuit = [&](const std::vector<Connection>& conns, const std::string& name) {
+        TypeDefinition td;
+        td.classname = name;
+        td.cpp_class = false;
+
+        DeviceInstance d_bat;
+        d_bat.name = "bat";
+        d_bat.classname = "Battery";
+        d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+        DeviceInstance d_sense;
+        d_sense.name = "sense";
+        d_sense.classname = "CurrentSense";
+        d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+        DeviceInstance d_ref;
+        d_ref.name = "gnd";
+        d_ref.classname = "RefNode";
+        d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+        td.devices = {d_bat, d_sense, d_ref};
+        td.connections = conns;
+        return td;
+    };
+
+    auto c1 = make_circuit({
+        {"bat.v_out", "sense.v_in", {}},
+        {"sense.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    }, "bind_order_1");
+
+    auto c2 = make_circuit({
+        {"bat.v_in", "gnd.v", {}},
+        {"sense.v_out", "gnd.v", {}},
+        {"bat.v_out", "sense.v_in", {}}
+    }, "bind_order_2");
+
+    registry.types[c1.classname] = c1;
+    registry.types[c2.classname] = c2;
+
+    auto r1 = CodeGen::generate_composite_systems(c1, registry);
+    auto r2 = CodeGen::generate_composite_systems(c2, registry);
+
+    auto extract_component_const = [](const std::string& header, const std::string& dev) -> int {
+        std::regex re("static constexpr uint32_t " + dev + "_component\\s*=\\s*(\\d+)");
+        std::smatch m;
+        if (!std::regex_search(header, m, re)) {
+            return -1;
+        }
+        return std::stoi(m[1].str());
+    };
+
+    int bat_1 = extract_component_const(r1.header, "bat");
+    int sense_1 = extract_component_const(r1.header, "sense");
+    int bat_2 = extract_component_const(r2.header, "bat");
+    int sense_2 = extract_component_const(r2.header, "sense");
+
+    ASSERT_GE(bat_1, 0);
+    ASSERT_GE(sense_1, 0);
+    ASSERT_GE(bat_2, 0);
+    ASSERT_GE(sense_2, 0);
+
+    EXPECT_EQ(bat_1, bat_2);
+    EXPECT_EQ(sense_1, sense_2);
+
+    EXPECT_NE(r1.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
+    EXPECT_NE(r1.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
+    EXPECT_NE(r2.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos);
+    EXPECT_NE(r2.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
 }

@@ -262,6 +262,25 @@ Implementation log:
     - 5/5 `ElectricalAotParity`
     - 1/1 `JitAotBridgeEquivalence`
 
+- **Step 2 (Phase 2 validation)**: ✅ DONE — binding stability regression tests
+  - Added `AotComposite.ElectricalBindings_WrapperHandlesGenerated`
+    in `tests/test_aot_composite.cpp`:
+    - verifies generated header contains `ElectricalBindings` constants
+      for wrapper devices
+    - verifies generated source assigns `electrical_handle.component_index`
+      from generated symbolic constants
+  - Added `AotComposite.ElectricalBindings_StableAcrossConnectionReordering`
+    in `tests/test_aot_composite.cpp`:
+    - builds two topologically identical circuits with reordered connection lists
+    - verifies generated binding constants (`bat_component`, `sense_component`)
+      remain identical across reorderings
+    - verifies generated handle assignment lines remain present in both outputs
+  - Validation passed:
+    - 6/6 targeted `AotComposite` tests (including new binding tests)
+    - 5/5 `ElectricalParityFixtures`
+    - 5/5 `ElectricalAotParity`
+    - 1/1 `JitAotBridgeEquivalence`
+
 ## Phase 3: Observability
 
 Must-have:
