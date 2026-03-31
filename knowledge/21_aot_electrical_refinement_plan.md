@@ -462,6 +462,24 @@ Implementation log:
     - `ElectricalParityFixtures` (5/5)
     - `ElectricalAotParity` (5/5)
 
+- **Step 2 (Phase 4 migration)**: ✅ DONE — migrate critical multi-island parity to production path
+  - Extended `tests/test_production_path_parity.cpp` with:
+    - `ProductionPathParity.MultiIslandDebugAndPlanParity`
+  - New production-path test validates for multi-island topology:
+    - JIT detects 2 electrical islands after merge/expand path
+    - AOT generated header encodes `ELECTRICAL_ISLAND_COUNT = 2`
+    - generated diagnostics/debug hooks are present (`ELECTRICAL_DEBUG_MAP`,
+      `dump_island_debug(diag.island_index)`)
+  - Updated measured split baseline:
+    - `production_path`: 18 tests (was 17)
+    - `raw_builder`: 10 tests
+  - Validation passed:
+    - `AotComposite` (all)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `ProductionPathParity` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
 Must-have:
