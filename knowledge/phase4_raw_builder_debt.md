@@ -6,14 +6,15 @@ Generated on: 2026-03-31
 
 ## Current Baseline
 
-- Raw-builder callsites (`build_systems_dev(...)`) across `tests/*.cpp`: **108**
+- Raw-builder callsites (`build_systems_dev(...)`) across `tests/*.cpp`: **107**
+  (non-comment invocations only; verified 2026-03-31)
 - Labeled CTest split (electrical-focused suites):
-  - `production_path`: **18** tests
+  - `production_path`: **22** tests
   - `raw_builder`: **10** tests
 
 ## Raw-Builder Usage by Test File (descending)
 
-1. `tests/test_push_build_validation.cpp` — 27
+1. `tests/test_push_build_validation.cpp` — 26
 2. `tests/test_electrical_primitives.cpp` — 16
 3. `tests/test_electrical_island_build.cpp` — 13
 4. `tests/test_electrical_handles_build.cpp` — 12
@@ -22,8 +23,8 @@ Generated on: 2026-03-31
 7. `tests/editor_componentvariant_test.cpp` — 5
 8. `tests/factory_validation_test.cpp` — 4
 9. `tests/test_port_map_regression.cpp` — 4
-10. `tests/test_blueprint_integration.cpp` — 2
-11. `tests/test_production_path_parity.cpp` — 2
+10. `tests/test_production_path_parity.cpp` — 2
+11. `tests/test_blueprint_integration.cpp` — 2
 12. `tests/test_and_gate_debug.cpp` — 1
 13. `tests/test_aot_composite.cpp` — 1
 14. `tests/test_blueprint_loading.cpp` — 1
@@ -40,6 +41,13 @@ These verify extraction/build internals directly and should remain raw-builder t
 - `tests/test_electrical_handles_build.cpp`
 - `tests/test_electrical_primitives.cpp` (builder-focused portions)
 - `tests/test_push_build_validation.cpp` (builder validation rules)
+
+### Mixed Label (needs split or dual label)
+
+- `tests/test_electrical_parity_fixtures.cpp` — labeled `raw_builder` but contains
+  both `ElectricalParityFixtures` (full JIT_Simulator path, production-like) and
+  `ElectricalAotParity` (direct `build_systems_dev` calls). Consider splitting into
+  separate executables or applying dual labels when CTest supports per-test labels.
 
 ### Migration Candidates (high value)
 
@@ -59,6 +67,15 @@ These should gain production-path counterparts (or migrate fully):
    - raw-builder callsites count
    - production_path test count
 4. Move at least 3 additional critical electrical scenarios from raw to production-path helpers.
+
+## Progress Notes
+
+- 2026-03-31: Added `tests/test_production_path_port_map.cpp` with 3 production-path
+  regressions migrated from raw-builder-heavy `test_port_map_regression.cpp` patterns:
+  - `ProductionPathPortMap.AndGateReadsWiredInputs`
+  - `ProductionPathPortMap.NotGateReadsCorrectInput`
+  - `ProductionPathPortMap.SubtractReadsBothInputs`
+- Resulting label baseline moved from `production_path=18` to `production_path=22`.
 
 ## Exit Criteria for Phase 4 (operationalized)
 

@@ -487,9 +487,29 @@ Implementation log:
     - intentional raw-builder vs migration-candidate categorization
     - operational migration steps and measurable exit criteria
   - Added index entry in `knowledge/index.md`
-  - Current measured baseline (2026-03-31):
-    - raw-builder callsites: 108
+  - Current measured baseline (2026-03-31, verified):
+    - raw-builder callsites: 107 (non-comment invocations)
     - CTest labels: `production_path`=18, `raw_builder`=10
+
+- **Step 4 (Phase 4 migration)**: ✅ DONE — migrate port-map regressions to production path
+  - Added `tests/test_production_path_port_map.cpp` with 3 production-path tests:
+    - `ProductionPathPortMap.AndGateReadsWiredInputs`
+    - `ProductionPathPortMap.NotGateReadsCorrectInput`
+    - `ProductionPathPortMap.SubtractReadsBothInputs`
+  - New suite uses `JIT_Simulator::start_from_json()` + runtime stepping to validate
+    wiring semantics on merged/expanded production path (not direct raw builder)
+  - Added `production_path_port_map_tests` target in `tests/CMakeLists.txt`
+    labeled as `production_path`
+  - Updated debt tracker baseline:
+    - `production_path` tests: 22 (was 18)
+    - `raw_builder` tests: 10
+  - Validation passed:
+    - `AotComposite` (all)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
 
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
