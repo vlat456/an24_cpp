@@ -270,6 +270,8 @@ std::string CodeGen::generate_header(
 
         oss << "struct ElectricalDebugEntry {\n";
         oss << "    uint32_t component_index;\n";
+        oss << "    uint32_t island_index;\n";
+        oss << "    uint32_t element_index;\n";
         oss << "    const char* device_name;\n";
         oss << "    const char* classname;\n";
         oss << "    const char* role;\n";
@@ -278,7 +280,8 @@ std::string CodeGen::generate_header(
         oss << "};\n\n";
         oss << "constexpr ElectricalDebugEntry ELECTRICAL_DEBUG_MAP[] = {\n";
         for (const auto& dbg : electrical_plan.component_debug) {
-            oss << "    { " << dbg.component_index << ", \"" << dbg.device_name
+            oss << "    { " << dbg.component_index << ", " << dbg.island_index << ", "
+                << dbg.element_index << ", \"" << dbg.device_name
                 << "\", \"" << dbg.device_classname << "\", \"" << dbg.role
                 << "\", " << dbg.node_a << ", " << dbg.node_b << " },\n";
         }
@@ -308,6 +311,8 @@ std::string CodeGen::generate_header(
         oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
         oss << "struct ElectricalDebugEntry {\n";
         oss << "    uint32_t component_index;\n";
+        oss << "    uint32_t island_index;\n";
+        oss << "    uint32_t element_index;\n";
         oss << "    const char* device_name;\n";
         oss << "    const char* classname;\n";
         oss << "    const char* role;\n";
@@ -374,6 +379,9 @@ std::string CodeGen::generate_header(
                 << "_component = " << binding.component_index << ";\n";
         }
         oss << "    };\n";
+
+        oss << "\n";
+        oss << "    static void dump_island_debug(uint32_t island_idx);\n";
     }
     oss << "\n";
 
@@ -608,6 +616,7 @@ std::string CodeGen::generate_source(
             oss << "                    break;\n";
             oss << "                }\n";
             oss << "            }\n";
+            oss << "            dump_island_debug(diag.island_index);\n";
             oss << "        }\n";
             oss << "    }\n";
         }
@@ -626,6 +635,18 @@ std::string CodeGen::generate_source(
     oss << "    (void)tolerance;\n";
     oss << "    return true;\n";
     oss << "}\n\n";
+
+    if (!electrical_plan.islands.empty()) {
+        oss << "void " << class_name << "::dump_island_debug(uint32_t island_idx) {\n";
+        oss << "    spdlog::warn(\"[aot-elec] dump island={} entries={}\", island_idx, ELECTRICAL_DEBUG_COUNT);\n";
+        oss << "    for (uint32_t i = 0; i < ELECTRICAL_DEBUG_COUNT; ++i) {\n";
+        oss << "        const auto& e = ELECTRICAL_DEBUG_MAP[i];\n";
+        oss << "        if (e.island_index != island_idx) continue;\n";
+        oss << "        spdlog::warn(\"[aot-elec]   elem={} comp={} device={} class={} role={} nodes=({},{})\",\n";
+        oss << "            e.element_index, e.component_index, e.device_name, e.classname, e.role, e.node_a, e.node_b);\n";
+        oss << "    }\n";
+        oss << "}\n\n";
+    }
 
     return oss.str();
 }

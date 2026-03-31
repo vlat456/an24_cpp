@@ -400,19 +400,36 @@ ElectricalPlanCodegen extract_electrical_plan(
 
     std::vector<ElectricalPlanCodegen::ComponentDebug> debug;
     debug.reserve(raw_elements.size());
-    for (const auto& re : raw_elements) {
-        debug.push_back({
-            static_cast<uint32_t>(re.component_index),
-            re.device_name,
-            re.device_classname,
-            kind_to_role(re.kind),
-            re.node_a,
-            re.node_b
-        });
+    for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
+        const auto& island = plan.islands[island_i];
+        for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
+            const auto& elem = island.elements[elem_i];
+            auto raw_it = component_to_raw_idx.find(elem.component_index);
+            if (raw_it == component_to_raw_idx.end()) {
+                continue;
+            }
+            const auto& re = raw_elements[raw_it->second];
+            debug.push_back({
+                static_cast<uint32_t>(re.component_index),
+                static_cast<uint32_t>(island_i),
+                static_cast<uint32_t>(elem_i),
+                re.device_name,
+                re.device_classname,
+                kind_to_role(re.kind),
+                re.node_a,
+                re.node_b
+            });
+        }
     }
     std::sort(debug.begin(), debug.end(), [](const auto& a, const auto& b) {
         if (a.component_index != b.component_index) {
             return a.component_index < b.component_index;
+        }
+        if (a.island_index != b.island_index) {
+            return a.island_index < b.island_index;
+        }
+        if (a.element_index != b.element_index) {
+            return a.element_index < b.element_index;
         }
         return a.device_name < b.device_name;
     });

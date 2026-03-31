@@ -378,6 +378,28 @@ Implementation log:
     - `ElectricalAotParity` (5/5)
     - `JitAotBridgeEquivalence` (1/1)
 
+- **Step 3 (Phase 3 traceability hardening)**: ✅ DONE — island/element trace path
+  - Extended generated debug entries with structural location keys:
+    - `island_index`
+    - `element_index`
+  - Added generated helper in AOT class:
+    - `dump_island_debug(uint32_t island_idx)`
+    - logs all debug entries for that island using generated
+      `ELECTRICAL_DEBUG_MAP`
+  - Warn path now calls `dump_island_debug(diag.island_index)` for richer,
+    directly attributable failure context
+  - Added regression test:
+    - `AotComposite.ElectricalDebugMap_ContainsIslandAndElementIndices`
+    - verifies generated output includes island/element debug keys and
+      island-filtered dump path
+  - Validation passed:
+    - `AotComposite.ElectricalBindings*`
+    - `AotComposite.ElectricalDebugMap*`
+    - `AotComposite.ElectricalDiagnostics*`
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+
 ## Phase 4: Test Infrastructure Migration + Fallback Boundary
 
 Note: this workstream is largely independent and can start in parallel with

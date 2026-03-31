@@ -1047,6 +1047,68 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     EXPECT_NE(result.source.find("ELECTRICAL_DIAG_RESIDUAL_WARN"), std::string::npos);
     EXPECT_NE(result.source.find("electrical_rt_.island_diagnostics"), std::string::npos);
     EXPECT_NE(result.source.find("[aot-elec] island="), std::string::npos);
+    EXPECT_NE(result.source.find("dump_island_debug(diag.island_index)"), std::string::npos);
     EXPECT_NE(result.source.find("ELECTRICAL_DEBUG_COUNT"), std::string::npos);
     EXPECT_NE(result.source.find("ELECTRICAL_DEBUG_MAP"), std::string::npos);
+}
+
+TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
+    TypeRegistry registry;
+
+    TypeDefinition src_type;
+    src_type.classname = "ElectricalSource";
+    src_type.cpp_class = true;
+    src_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    src_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    src_type.domains = {{Domain::Electrical}};
+    registry.types["ElectricalSource"] = src_type;
+
+    TypeDefinition load_type;
+    load_type.classname = "ElectricalConductance";
+    load_type.cpp_class = true;
+    load_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    load_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    load_type.domains = {{Domain::Electrical}};
+    registry.types["ElectricalConductance"] = load_type;
+
+    TypeDefinition ref_type;
+    ref_type.classname = "RefNode";
+    ref_type.cpp_class = true;
+    ref_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    ref_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = ref_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "debug_idx_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_src;
+    d_src.name = "src";
+    d_src.classname = "ElectricalSource";
+    d_src.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_load;
+    d_load.name = "load";
+    d_load.classname = "ElectricalConductance";
+    d_load.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    circuit.devices = {d_src, d_load, d_ref};
+    circuit.connections = {
+        {"src.v_out", "load.v_in", {}},
+        {"load.v_out", "gnd.v", {}},
+        {"src.v_in", "gnd.v", {}}
+    };
+    registry.types["debug_idx_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    EXPECT_NE(result.header.find("island_index"), std::string::npos);
+    EXPECT_NE(result.header.find("element_index"), std::string::npos);
+    EXPECT_NE(result.source.find("if (e.island_index != island_idx) continue;"), std::string::npos);
+    EXPECT_NE(result.source.find("[aot-elec]   elem={} comp={}"), std::string::npos);
 }

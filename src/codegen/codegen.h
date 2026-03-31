@@ -38,6 +38,8 @@ struct ElectricalIslandPlanCodegen {
 struct ElectricalPlanCodegen {
     struct ComponentDebug {
         uint32_t component_index;
+        uint32_t island_index;
+        uint32_t element_index;
         std::string device_name;
         std::string device_classname;
         std::string role;
