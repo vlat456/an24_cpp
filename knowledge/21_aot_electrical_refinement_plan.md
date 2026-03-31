@@ -281,6 +281,19 @@ Implementation log:
     - 5/5 `ElectricalAotParity`
     - 1/1 `JitAotBridgeEquivalence`
 
+- **Step 3 (Phase 2 hardening)**: ✅ DONE — full handle-field symbolic assignment checks
+  - Added `AotComposite.ElectricalBindings_AssignAllHandleFieldsFromConstants`
+    in `tests/test_aot_composite.cpp`
+  - Verifies generated header contains symbolic constants for all three handle
+    fields (`*_island`, `*_element`, `*_component`) for wrapper devices
+  - Verifies generated source assigns all three runtime handle fields from those
+    constants for `Battery` and `CurrentSense`
+  - Validation passed:
+    - 3/3 `AotComposite.ElectricalBindings*`
+    - 5/5 `ElectricalParityFixtures`
+    - 5/5 `ElectricalAotParity`
+    - 1/1 `JitAotBridgeEquivalence`
+
 ## Phase 3: Observability
 
 Must-have:
