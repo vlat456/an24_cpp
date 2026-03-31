@@ -710,6 +710,8 @@ Exit gate:
   (or a tighter target established by Phase 0 benchmark)
 - no dead fallback code remains in active compilation paths
 
+Status: ✅ COMPLETE (2026-03-31)
+
 Implementation log:
 
 - **Step 1 (Phase 6 kickoff)**: ✅ DONE — cleanup scope lock + closure checklist
@@ -800,6 +802,32 @@ Implementation log:
       (static arrays + generated bindings/debug maps)
     - ✅ no dead transitional compatibility path remains in active codegen
       hot paths touched during migration
+
+- **Step 6 (Phase 6 finalization)**: ✅ DONE — plan closure snapshot
+  - Final phase summary:
+    - shared codegen sanitization helper deduplicated (`codegen_utils.h`)
+    - duplicated test execution helper removed (`tests/test_helpers.h`)
+    - dead RefNode fixed-signal fallback (`.v_out`) removed
+    - specialization budget finalized at N==1/N==2 with dense fallback for N>=3
+  - Final validated test matrix (enabled tests):
+    - `ElectricalSubsolver` (all, incl. specialization/counter/allocation guards)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+  - Overall roadmap status:
+    - Phase 0 ✅
+    - Phase 1 ✅
+    - Phase 2 ✅
+    - Phase 3 ✅
+    - Phase 4 ✅
+    - Phase 5 ✅
+    - Phase 6 ✅
 
 ---
 
