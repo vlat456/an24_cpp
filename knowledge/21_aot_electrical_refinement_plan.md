@@ -67,8 +67,13 @@ Consensus direction:
   island extraction, phase ordering, and codegen implications.
   - Review found Norton polarity was backwards in draft (injecting `+I_n` into `node_a`
     instead of `node_b`). Fixed before commit.
-- **Step 2**: (pending — allocation elimination in `solve_electrical()`)
-- **Step 3**: (pending — JIT↔AOT parity fixtures)
+- **Step 2**: ✅ DONE — moved per-island scratch vectors (`fixed_nodes`, `island_nodes`,
+  `fixed_voltages`, `is_fixed`, `node_to_unknown`, `island_voltages`) into
+  `ElectricalRuntimeState`. Zero per-island heap allocations in solve path.
+- **Step 3**: ✅ DONE — added `tests/test_electrical_parity_fixtures.cpp` with 5 JIT reference
+  fixtures. All 5 pass (SimpleTheveninDivider, SeriesChainTwoResistors,
+  ParallelBranchSplit, MultiIsland, NearShortHighConductance). Also verified
+  existing 10 `electrical_subsolver_tests` still pass after scratch buffer refactor.
 - **Step 4**: (pending — electrical plan emission in `codegen.cpp`)
 
 ### Phase 1: Generated Static Electrical Plan — IN PROGRESS

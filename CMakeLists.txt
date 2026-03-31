@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Aggressive optimization flags for Release.
-# Keep full -ffast-math for maximum runtime performance.
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -ffast-math")
+# TEMPORARILY DISABLED: -ffast-math conflicts with fmt NAN handling in spdlog
+# Re-enable after spdlog/fmt issue is resolved
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 
 # Options
 option(BUILD_TESTS "Build tests" ON)
