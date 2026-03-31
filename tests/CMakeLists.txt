@@ -1209,6 +1209,23 @@ gtest_discover_tests(production_path_port_map_tests
     PROPERTIES LABELS "production_path"
 )
 
+add_executable(production_path_push_runtime_tests
+    test_production_path_push_runtime.cpp
+)
+target_include_directories(production_path_push_runtime_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(production_path_push_runtime_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(production_path_push_runtime_tests
+    PROPERTIES LABELS "production_path"
+)
+
 # Node color tests (Phase 1: data model, persistence, visual node)
 
 # Node auto-size tests (TDD - dynamic resize based on ports + content)

@@ -511,6 +511,26 @@ Implementation log:
     - `ElectricalParityFixtures` (5/5)
     - `ElectricalAotParity` (5/5)
 
+- **Step 5 (Phase 4 migration)**: ✅ DONE — migrate push-runtime regressions to production path
+  - Added `tests/test_production_path_push_runtime.cpp` with 2 production-path tests:
+    - `ProductionPathPushRuntime.SinglePassSettlesLinearChain`
+    - `ProductionPathPushRuntime.CycleRemainsFinite`
+  - New suite uses `JIT_Simulator::start_from_json()` + stepping to validate
+    runtime behavior without direct `build_systems_dev(...)` wiring in test body
+  - Added `production_path_push_runtime_tests` target in `tests/CMakeLists.txt`
+    labeled as `production_path`
+  - Updated debt-tracker baseline:
+    - `production_path` tests: 24 (was 22)
+    - `raw_builder` tests: 10
+  - Validation passed:
+    - `AotComposite` (all)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
 Must-have:

@@ -9,7 +9,7 @@ Generated on: 2026-03-31
 - Raw-builder callsites (`build_systems_dev(...)`) across `tests/*.cpp`: **107**
   (non-comment invocations only; verified 2026-03-31)
 - Labeled CTest split (electrical-focused suites):
-  - `production_path`: **22** tests
+  - `production_path`: **24** tests
   - `raw_builder`: **10** tests
 
 ## Raw-Builder Usage by Test File (descending)
@@ -76,6 +76,12 @@ These should gain production-path counterparts (or migrate fully):
   - `ProductionPathPortMap.NotGateReadsCorrectInput`
   - `ProductionPathPortMap.SubtractReadsBothInputs`
 - Resulting label baseline moved from `production_path=18` to `production_path=22`.
+
+- 2026-03-31: Added `tests/test_production_path_push_runtime.cpp` with 2 production-path
+  runtime regressions migrated from raw-builder-heavy push runtime scenarios:
+  - `ProductionPathPushRuntime.SinglePassSettlesLinearChain`
+  - `ProductionPathPushRuntime.CycleRemainsFinite`
+- Resulting label baseline moved from `production_path=22` to `production_path=24`.
 
 ## Exit Criteria for Phase 4 (operationalized)
 
