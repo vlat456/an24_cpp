@@ -76,7 +76,7 @@ Consensus direction:
   existing 10 `electrical_subsolver_tests`, 14 `electrical_primitives_tests`,
   8 `battery_discharge_tests`, and 6 `current_sense_tests` all pass after
   scratch buffer refactor. Build verified after `-ffast-math` workaround.
-- **Step 4**: (pending — electrical plan emission in `codegen.cpp`)
+- **Step 4**: ✅ DONE — electrical plan emission in `codegen.cpp` (see Phase 1 Step 4 below)
 
 ### Phase 1: Generated Static Electrical Plan — ✅ COMPLETE (2026-03-31)
 

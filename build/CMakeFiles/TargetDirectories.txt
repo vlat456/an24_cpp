@@ -180,6 +180,9 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/codegen_accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/aot_composite_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/production_path_parity_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/production_path_port_map_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/production_path_push_runtime_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/integrator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/clamp_normalize_tests.dir
@@ -201,6 +204,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bake_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_primitives_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_parity_fixtures_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

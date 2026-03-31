@@ -86,17 +86,33 @@ examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s"
 	cd /Users/vladimir/an24_cpp/build/examples && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/codegen/codegen.cpp -o CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.s
 
+examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o: examples/CMakeFiles/an24_codegen.dir/flags.make
+examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o: /Users/vladimir/an24_cpp/src/codegen/electrical_codegen.cpp
+examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o: examples/CMakeFiles/an24_codegen.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o"
+	cd /Users/vladimir/an24_cpp/build/examples && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o -MF CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o.d -o CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o -c /Users/vladimir/an24_cpp/src/codegen/electrical_codegen.cpp
+
+examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i"
+	cd /Users/vladimir/an24_cpp/build/examples && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/vladimir/an24_cpp/src/codegen/electrical_codegen.cpp > CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.i
+
+examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s"
+	cd /Users/vladimir/an24_cpp/build/examples && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/vladimir/an24_cpp/src/codegen/electrical_codegen.cpp -o CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.s
+
 # Object files for target an24_codegen
 an24_codegen_OBJECTS = \
-"CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o"
+"CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o" \
+"CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o"
 
 # External object files for target an24_codegen
 an24_codegen_EXTERNAL_OBJECTS =
 
 examples/liban24_codegen.a: examples/CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o
+examples/liban24_codegen.a: examples/CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o
 examples/liban24_codegen.a: examples/CMakeFiles/an24_codegen.dir/build.make
 examples/liban24_codegen.a: examples/CMakeFiles/an24_codegen.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library liban24_codegen.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/vladimir/an24_cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library liban24_codegen.a"
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -P CMakeFiles/an24_codegen.dir/cmake_clean_target.cmake
 	cd /Users/vladimir/an24_cpp/build/examples && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/an24_codegen.dir/link.txt --verbose=$(VERBOSE)
 

@@ -1264,6 +1264,45 @@ jit_aot_bridge_equivalence_tests/fast:
 .PHONY : jit_aot_bridge_equivalence_tests/fast
 
 #=============================================================================
+# Target rules for targets named production_path_parity_tests
+
+# Build rule for target.
+production_path_parity_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 production_path_parity_tests
+.PHONY : production_path_parity_tests
+
+# fast build rule for target.
+production_path_parity_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/build
+.PHONY : production_path_parity_tests/fast
+
+#=============================================================================
+# Target rules for targets named production_path_port_map_tests
+
+# Build rule for target.
+production_path_port_map_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 production_path_port_map_tests
+.PHONY : production_path_port_map_tests
+
+# fast build rule for target.
+production_path_port_map_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/build
+.PHONY : production_path_port_map_tests/fast
+
+#=============================================================================
+# Target rules for targets named production_path_push_runtime_tests
+
+# Build rule for target.
+production_path_push_runtime_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 production_path_push_runtime_tests
+.PHONY : production_path_push_runtime_tests
+
+# fast build rule for target.
+production_path_push_runtime_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/build
+.PHONY : production_path_push_runtime_tests/fast
+
+#=============================================================================
 # Target rules for targets named asym_slew_rate_tests
 
 # Build rule for target.
@@ -1536,6 +1575,19 @@ electrical_primitives_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
 .PHONY : electrical_primitives_tests/fast
 
+#=============================================================================
+# Target rules for targets named electrical_parity_fixtures_tests
+
+# Build rule for target.
+electrical_parity_fixtures_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electrical_parity_fixtures_tests
+.PHONY : electrical_parity_fixtures_tests
+
+# fast build rule for target.
+electrical_parity_fixtures_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
+.PHONY : electrical_parity_fixtures_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1589,6 +1641,7 @@ help:
 	@echo "... electric_pump_regression_tests"
 	@echo "... electrical_handle_build_tests"
 	@echo "... electrical_island_build_tests"
+	@echo "... electrical_parity_fixtures_tests"
 	@echo "... electrical_primitives_tests"
 	@echo "... electrical_subsolver_tests"
 	@echo "... factory_validation_tests"
@@ -1620,6 +1673,9 @@ help:
 	@echo "... port_macro_tests"
 	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
+	@echo "... production_path_parity_tests"
+	@echo "... production_path_port_map_tests"
+	@echo "... production_path_push_runtime_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... push_build_validation_tests"

@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o"
   "CMakeFiles/an24_codegen.dir/__/src/codegen/codegen.cpp.o.d"
+  "CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o"
+  "CMakeFiles/an24_codegen.dir/__/src/codegen/electrical_codegen.cpp.o.d"
   "liban24_codegen.a"
   "liban24_codegen.pdb"
 )

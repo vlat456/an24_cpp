@@ -1096,6 +1096,48 @@ jit_aot_bridge_equivalence_tests/fast:
 .PHONY : jit_aot_bridge_equivalence_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/production_path_parity_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_parity_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_parity_tests.dir/rule
+
+# Convenience name for target.
+production_path_parity_tests: tests/CMakeFiles/production_path_parity_tests.dir/rule
+.PHONY : production_path_parity_tests
+
+# fast build rule for target.
+production_path_parity_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/build
+.PHONY : production_path_parity_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/production_path_port_map_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_port_map_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_port_map_tests.dir/rule
+
+# Convenience name for target.
+production_path_port_map_tests: tests/CMakeFiles/production_path_port_map_tests.dir/rule
+.PHONY : production_path_port_map_tests
+
+# fast build rule for target.
+production_path_port_map_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/build
+.PHONY : production_path_port_map_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/production_path_push_runtime_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+.PHONY : tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+
+# Convenience name for target.
+production_path_push_runtime_tests: tests/CMakeFiles/production_path_push_runtime_tests.dir/rule
+.PHONY : production_path_push_runtime_tests
+
+# fast build rule for target.
+production_path_push_runtime_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/build
+.PHONY : production_path_push_runtime_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/asym_slew_rate_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/asym_slew_rate_tests.dir/rule
 .PHONY : tests/CMakeFiles/asym_slew_rate_tests.dir/rule
@@ -1389,6 +1431,20 @@ electrical_primitives_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
 .PHONY : electrical_primitives_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+
+# Convenience name for target.
+electrical_parity_fixtures_tests: tests/CMakeFiles/electrical_parity_fixtures_tests.dir/rule
+.PHONY : electrical_parity_fixtures_tests
+
+# fast build rule for target.
+electrical_parity_fixtures_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
+.PHONY : electrical_parity_fixtures_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -1398,6 +1454,7 @@ __/src/codegen/codegen.cpp.o:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.o
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.cpp.o
 
 __/src/codegen/codegen.i: __/src/codegen/codegen.cpp.i
@@ -1409,6 +1466,7 @@ __/src/codegen/codegen.cpp.i:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.i
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.i
 .PHONY : __/src/codegen/codegen.cpp.i
 
 __/src/codegen/codegen.s: __/src/codegen/codegen.cpp.s
@@ -1420,7 +1478,44 @@ __/src/codegen/codegen.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/codegen.cpp.s
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/codegen.cpp.s
 .PHONY : __/src/codegen/codegen.cpp.s
+
+__/src/codegen/electrical_codegen.o: __/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.o
+
+# target to build an object file
+__/src/codegen/electrical_codegen.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.o
+.PHONY : __/src/codegen/electrical_codegen.cpp.o
+
+__/src/codegen/electrical_codegen.i: __/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.i
+
+# target to preprocess a source file
+__/src/codegen/electrical_codegen.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.i
+.PHONY : __/src/codegen/electrical_codegen.cpp.i
+
+__/src/codegen/electrical_codegen.s: __/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.s
+
+# target to generate assembly for a file
+__/src/codegen/electrical_codegen.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/lut_codegen_tests.dir/build.make tests/CMakeFiles/lut_codegen_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/codegen_accumulator_tests.dir/build.make tests/CMakeFiles/codegen_accumulator_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/aot_composite_tests.dir/build.make tests/CMakeFiles/aot_composite_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/build.make tests/CMakeFiles/jit_aot_bridge_equivalence_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/__/src/codegen/electrical_codegen.cpp.s
+.PHONY : __/src/codegen/electrical_codegen.cpp.s
 
 __/src/editor/commands/commands.o: __/src/editor/commands/commands.cpp.o
 .PHONY : __/src/editor/commands/commands.o
@@ -3015,6 +3110,30 @@ test_electrical_island_build.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.s
 .PHONY : test_electrical_island_build.cpp.s
 
+test_electrical_parity_fixtures.o: test_electrical_parity_fixtures.cpp.o
+.PHONY : test_electrical_parity_fixtures.o
+
+# target to build an object file
+test_electrical_parity_fixtures.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.o
+.PHONY : test_electrical_parity_fixtures.cpp.o
+
+test_electrical_parity_fixtures.i: test_electrical_parity_fixtures.cpp.i
+.PHONY : test_electrical_parity_fixtures.i
+
+# target to preprocess a source file
+test_electrical_parity_fixtures.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.i
+.PHONY : test_electrical_parity_fixtures.cpp.i
+
+test_electrical_parity_fixtures.s: test_electrical_parity_fixtures.cpp.s
+.PHONY : test_electrical_parity_fixtures.s
+
+# target to generate assembly for a file
+test_electrical_parity_fixtures.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/test_electrical_parity_fixtures.cpp.s
+.PHONY : test_electrical_parity_fixtures.cpp.s
+
 test_electrical_primitives.o: test_electrical_primitives.cpp.o
 .PHONY : test_electrical_primitives.o
 
@@ -3470,6 +3589,78 @@ test_port_map_regression.s: test_port_map_regression.cpp.s
 test_port_map_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/port_map_regression_tests.dir/build.make tests/CMakeFiles/port_map_regression_tests.dir/test_port_map_regression.cpp.s
 .PHONY : test_port_map_regression.cpp.s
+
+test_production_path_parity.o: test_production_path_parity.cpp.o
+.PHONY : test_production_path_parity.o
+
+# target to build an object file
+test_production_path_parity.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.o
+.PHONY : test_production_path_parity.cpp.o
+
+test_production_path_parity.i: test_production_path_parity.cpp.i
+.PHONY : test_production_path_parity.i
+
+# target to preprocess a source file
+test_production_path_parity.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.i
+.PHONY : test_production_path_parity.cpp.i
+
+test_production_path_parity.s: test_production_path_parity.cpp.s
+.PHONY : test_production_path_parity.s
+
+# target to generate assembly for a file
+test_production_path_parity.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_parity_tests.dir/build.make tests/CMakeFiles/production_path_parity_tests.dir/test_production_path_parity.cpp.s
+.PHONY : test_production_path_parity.cpp.s
+
+test_production_path_port_map.o: test_production_path_port_map.cpp.o
+.PHONY : test_production_path_port_map.o
+
+# target to build an object file
+test_production_path_port_map.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.o
+.PHONY : test_production_path_port_map.cpp.o
+
+test_production_path_port_map.i: test_production_path_port_map.cpp.i
+.PHONY : test_production_path_port_map.i
+
+# target to preprocess a source file
+test_production_path_port_map.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.i
+.PHONY : test_production_path_port_map.cpp.i
+
+test_production_path_port_map.s: test_production_path_port_map.cpp.s
+.PHONY : test_production_path_port_map.s
+
+# target to generate assembly for a file
+test_production_path_port_map.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_port_map_tests.dir/build.make tests/CMakeFiles/production_path_port_map_tests.dir/test_production_path_port_map.cpp.s
+.PHONY : test_production_path_port_map.cpp.s
+
+test_production_path_push_runtime.o: test_production_path_push_runtime.cpp.o
+.PHONY : test_production_path_push_runtime.o
+
+# target to build an object file
+test_production_path_push_runtime.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.o
+.PHONY : test_production_path_push_runtime.cpp.o
+
+test_production_path_push_runtime.i: test_production_path_push_runtime.cpp.i
+.PHONY : test_production_path_push_runtime.i
+
+# target to preprocess a source file
+test_production_path_push_runtime.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.i
+.PHONY : test_production_path_push_runtime.cpp.i
+
+test_production_path_push_runtime.s: test_production_path_push_runtime.cpp.s
+.PHONY : test_production_path_push_runtime.s
+
+# target to generate assembly for a file
+test_production_path_push_runtime.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/production_path_push_runtime_tests.dir/build.make tests/CMakeFiles/production_path_push_runtime_tests.dir/test_production_path_push_runtime.cpp.s
+.PHONY : test_production_path_push_runtime.cpp.s
 
 test_properties_window.o: test_properties_window.cpp.o
 .PHONY : test_properties_window.o
@@ -4261,6 +4452,7 @@ help:
 	@echo "... electric_pump_regression_tests"
 	@echo "... electrical_handle_build_tests"
 	@echo "... electrical_island_build_tests"
+	@echo "... electrical_parity_fixtures_tests"
 	@echo "... electrical_primitives_tests"
 	@echo "... electrical_subsolver_tests"
 	@echo "... factory_validation_tests"
@@ -4284,6 +4476,9 @@ help:
 	@echo "... port_macro_tests"
 	@echo "... port_map_regression_tests"
 	@echo "... port_registry_tests"
+	@echo "... production_path_parity_tests"
+	@echo "... production_path_port_map_tests"
+	@echo "... production_path_push_runtime_tests"
 	@echo "... properties_window_tests"
 	@echo "... provider_pattern_tests"
 	@echo "... push_build_validation_tests"
@@ -4318,6 +4513,9 @@ help:
 	@echo "... __/src/codegen/codegen.o"
 	@echo "... __/src/codegen/codegen.i"
 	@echo "... __/src/codegen/codegen.s"
+	@echo "... __/src/codegen/electrical_codegen.o"
+	@echo "... __/src/codegen/electrical_codegen.i"
+	@echo "... __/src/codegen/electrical_codegen.s"
 	@echo "... __/src/editor/commands/commands.o"
 	@echo "... __/src/editor/commands/commands.i"
 	@echo "... __/src/editor/commands/commands.s"
@@ -4504,6 +4702,9 @@ help:
 	@echo "... test_electrical_island_build.o"
 	@echo "... test_electrical_island_build.i"
 	@echo "... test_electrical_island_build.s"
+	@echo "... test_electrical_parity_fixtures.o"
+	@echo "... test_electrical_parity_fixtures.i"
+	@echo "... test_electrical_parity_fixtures.s"
 	@echo "... test_electrical_primitives.o"
 	@echo "... test_electrical_primitives.i"
 	@echo "... test_electrical_primitives.s"
@@ -4561,6 +4762,15 @@ help:
 	@echo "... test_port_map_regression.o"
 	@echo "... test_port_map_regression.i"
 	@echo "... test_port_map_regression.s"
+	@echo "... test_production_path_parity.o"
+	@echo "... test_production_path_parity.i"
+	@echo "... test_production_path_parity.s"
+	@echo "... test_production_path_port_map.o"
+	@echo "... test_production_path_port_map.i"
+	@echo "... test_production_path_port_map.s"
+	@echo "... test_production_path_push_runtime.o"
+	@echo "... test_production_path_push_runtime.i"
+	@echo "... test_production_path_push_runtime.s"
 	@echo "... test_properties_window.o"
 	@echo "... test_properties_window.i"
 	@echo "... test_properties_window.s"
