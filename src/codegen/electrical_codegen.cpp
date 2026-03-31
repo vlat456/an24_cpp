@@ -2,6 +2,7 @@
 #include "../parse_number.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <cctype>
 #include <map>
 #include <optional>
 #include <set>
@@ -9,6 +10,20 @@
 #include <unordered_set>
 
 namespace {
+
+std::string sanitize_name_codegen(const std::string& s) {
+    std::string result;
+    result.reserve(s.size());
+    for (char c : s) {
+        switch (c) {
+            case '.': result += "_DOT_"; break;
+            case '-': result += "_DASH_"; break;
+            case ':': result += "_"; break;
+            default:  result += c; break;
+        }
+    }
+    return result;
+}
 
 float parse_float_codegen(const std::string& value, float default_val) {
     if (value.empty()) {
@@ -307,6 +322,56 @@ ElectricalPlanCodegen extract_electrical_plan(
 
         plan.islands.push_back(std::move(island));
     }
+
+    // Build stable symbolic binding list for wrapper components.
+    std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> component_to_island_elem;
+    for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
+        const auto& island = plan.islands[island_i];
+        for (size_t elem_i = 0; elem_i < island.elements.size(); ++elem_i) {
+            const auto& elem = island.elements[elem_i];
+            component_to_island_elem[elem.component_index] = {
+                static_cast<uint32_t>(island_i),
+                static_cast<uint32_t>(elem_i)
+            };
+        }
+    }
+
+    std::vector<ElectricalPlanCodegen::DeviceBinding> bindings;
+    bindings.reserve(component_to_island_elem.size());
+    for (const auto& [component_index, pos] : component_to_island_elem) {
+        if (component_index >= devices.size()) {
+            continue;
+        }
+        const auto& dev = devices[component_index];
+        if (dev.classname == "Battery" || dev.classname == "Generator" ||
+            dev.classname == "IndicatorLight" || dev.classname == "CurrentSense") {
+            bindings.push_back({
+                sanitize_name_codegen(dev.name),
+                pos.first,
+                pos.second,
+                component_index
+            });
+        }
+    }
+    std::sort(bindings.begin(), bindings.end(), [](const auto& a, const auto& b) {
+        if (a.component_index != b.component_index) {
+            return a.component_index < b.component_index;
+        }
+        if (a.island_index != b.island_index) {
+            return a.island_index < b.island_index;
+        }
+        if (a.element_index != b.element_index) {
+            return a.element_index < b.element_index;
+        }
+        return a.device_field_name < b.device_field_name;
+    });
+    bindings.erase(std::unique(bindings.begin(), bindings.end(), [](const auto& a, const auto& b) {
+        return a.device_field_name == b.device_field_name &&
+               a.island_index == b.island_index &&
+               a.element_index == b.element_index &&
+               a.component_index == b.component_index;
+    }), bindings.end());
+    plan.device_bindings = std::move(bindings);
 
     return plan;
 }

@@ -241,6 +241,27 @@ Exit gate:
 
 - no runtime device-name -> branch-index mapping in AOT step
 
+Implementation log:
+
+- **Step 1 (Phase 2 bootstrap)**: ✅ DONE — generated stable symbolic electrical bindings
+  - Added `ElectricalExtractOptions` and extraction options plumbing in `codegen.h`
+    and `electrical_codegen.cpp`
+  - Added deterministic symbolic binding extraction in `extract_electrical_plan()`:
+    wrapper devices (`Battery`, `Generator`, `IndicatorLight`, `CurrentSense`) now
+    emit stable `{device_field_name, island_index, element_index, component_index}`
+    records in `ElectricalPlanCodegen::device_bindings`
+  - Updated generated class emission in `codegen.cpp`:
+    - emits `ElectricalBindings` static constants per wrapper device
+    - writes wrapper `electrical_handle.{island_index, element_index, component_index}`
+      in constructor from generated constants (no runtime name lookup)
+  - Kept AOT step pointer hygiene: generated steps now clear
+    `st->electrical_rt = nullptr` after execute pass
+  - Regression suite passed:
+    - 9/9 `AotComposite`
+    - 5/5 `ElectricalParityFixtures`
+    - 5/5 `ElectricalAotParity`
+    - 1/1 `JitAotBridgeEquivalence`
+
 ## Phase 3: Observability
 
 Must-have:

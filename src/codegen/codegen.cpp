@@ -334,6 +334,17 @@ std::string CodeGen::generate_header(
     if (!electrical_plan.islands.empty()) {
         oss << "    ElectricalBuildPlan electrical_plan_;\n";
         oss << "    ElectricalRuntimeState electrical_rt_;\n";
+        oss << "\n";
+        oss << "    struct ElectricalBindings {\n";
+        for (const auto& binding : electrical_plan.device_bindings) {
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_island = " << binding.island_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_element = " << binding.element_index << ";\n";
+            oss << "        static constexpr uint32_t " << binding.device_field_name
+                << "_component = " << binding.component_index << ";\n";
+        }
+        oss << "    };\n";
     }
     oss << "\n";
 
@@ -468,6 +479,14 @@ std::string CodeGen::generate_source(
         oss << "      electrical_plan_.islands = std::move(aot_plan.islands); }\n";
         oss << "    electrical_rt_.reserve(ELECTRICAL_MAX_ISLAND_NODES, "
             << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_COMPONENT_INDEX);\n";
+        for (const auto& binding : electrical_plan.device_bindings) {
+            oss << "    " << binding.device_field_name << ".electrical_handle.island_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_island;\n";
+            oss << "    " << binding.device_field_name << ".electrical_handle.element_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_element;\n";
+            oss << "    " << binding.device_field_name << ".electrical_handle.component_index = "
+                << "ElectricalBindings::" << binding.device_field_name << "_component;\n";
+        }
     }
     oss << "}\n\n";
 
