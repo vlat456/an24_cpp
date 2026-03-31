@@ -51,6 +51,15 @@ inline bool is_valid(const ElectricalPrimitiveHandle& h) {
 // All vectors retain capacity across frames — resize() keeps existing memory.
 // Use reserve() at init time to pre-allocate to max island size.
 struct ElectricalRuntimeState {
+    struct SolveCounters {
+        uint32_t islands_total = 0;
+        uint32_t solves_n0 = 0;
+        uint32_t solves_n1 = 0;
+        uint32_t solves_n2 = 0;
+        uint32_t solves_dense = 0;
+        uint32_t singular_fallbacks = 0;
+    };
+
     struct IslandDiagnostic {
         uint32_t island_index = 0;
         bool solve_ok = true;
@@ -74,6 +83,11 @@ struct ElectricalRuntimeState {
     std::vector<float> kcl_residuals;
 
     std::vector<IslandDiagnostic> island_diagnostics;
+    SolveCounters counters;
+
+    void reset_counters() {
+        counters = {};
+    }
 
     void reserve(uint32_t max_nodes, uint32_t max_elements, uint32_t max_component_index) {
         uint32_t max_unknowns = max_nodes;

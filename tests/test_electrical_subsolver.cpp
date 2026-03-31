@@ -512,3 +512,59 @@ TEST(ElectricalSubsolver, SpecializedN2SolveMatchesSeriesChain) {
     EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 2u);
     EXPECT_LT(rt.island_diagnostics[0].max_abs_kcl_residual, 1e-4f);
 }
+
+TEST(ElectricalSubsolver, SolveCountersTrackSpecializedPaths) {
+    ElectricalBuildPlan plan;
+
+    // Island 0: N==0 (all fixed)
+    plan.islands.push_back(make_island(
+        {0},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u}
+        }
+    ));
+
+    // Island 1: N==1
+    plan.islands.push_back(make_island(
+        {1, 2},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 1, UINT32_MAX, 0.0f, 0.0f, 1u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 1, 28.0f, 1.0f, 2u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 1.0f, 0.0f, 3u}
+        }
+    ));
+
+    // Island 2: N==2
+    plan.islands.push_back(make_island(
+        {3, 4, 5},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 3, UINT32_MAX, 0.0f, 0.0f, 4u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 5, 3, 28.0f, 1.0f, 5u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 5, 4, 0.5f, 0.0f, 6u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 4, 3, 0.5f, 0.0f, 7u}
+        }
+    ));
+
+    // Island 3: singular floating N==2 -> fallback
+    plan.islands.push_back(make_island(
+        {6, 7},
+        {
+            ElectricalElement{ElectricalElementKind::TheveninSource, 6, 7, 28.0f, 0.01f, 8u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 6, 7, 1.0f, 0.0f, 9u}
+        }
+    ));
+
+    SimulationState st = make_sim_state(10);
+    st.values[6] = 1.0f;
+    st.values[7] = -1.0f;
+
+    ElectricalRuntimeState rt;
+    solve_electrical(plan, st, rt, 0.0f);
+
+    EXPECT_EQ(rt.counters.islands_total, 4u);
+    EXPECT_EQ(rt.counters.solves_n0, 1u);
+    EXPECT_EQ(rt.counters.solves_n1, 1u);
+    EXPECT_EQ(rt.counters.solves_n2, 2u);
+    EXPECT_EQ(rt.counters.solves_dense, 0u);
+    EXPECT_EQ(rt.counters.singular_fallbacks, 1u);
+}

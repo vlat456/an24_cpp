@@ -627,6 +627,27 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 4 (Phase 5 instrumentation)**: ✅ DONE — specialization hit counters
+  - Extended `ElectricalRuntimeState` with `SolveCounters`:
+    - `islands_total`, `solves_n0`, `solves_n1`, `solves_n2`, `solves_dense`,
+      `singular_fallbacks`
+  - `solve_electrical()` now resets/fills counters each solve call and tracks
+    which kernel family executed per island
+  - Added regression in `tests/test_electrical_subsolver.cpp`:
+    - `ElectricalSubsolver.SolveCountersTrackSpecializedPaths`
+    - validates counter distribution across mixed N=0/N=1/N=2/singular islands
+  - Validation passed:
+    - `ElectricalSubsolver` specialized + counter tests
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:

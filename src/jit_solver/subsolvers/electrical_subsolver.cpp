@@ -127,6 +127,8 @@ void solve_electrical(
     }
 
     rt.island_diagnostics.clear();
+    rt.reset_counters();
+    rt.counters.islands_total = static_cast<uint32_t>(plan.islands.size());
 
     // Process each island independently
     for (size_t island_idx = 0; island_idx < plan.islands.size(); ++island_idx) {
@@ -251,6 +253,7 @@ void solve_electrical(
             // This is a common island family (single unknown node) and avoids
             // invoking full Gaussian elimination for N==1.
             if (N == 1) {
+                rt.counters.solves_n1++;
                 float a00 = A[0];
                 if (std::fabs(a00) < 1e-12f) {
                     solve_ok = false;
@@ -258,6 +261,7 @@ void solve_electrical(
                     b[0] /= a00;
                 }
             } else if (N == 2) {
+                rt.counters.solves_n2++;
                 // Phase 5 specialization scaffold: 2x2 dense solve kernel.
                 // Solve:
                 //   [a00 a01] [x0] = [b0]
@@ -274,6 +278,7 @@ void solve_electrical(
                     b[1] = (a00 * b1 - a10 * b0) / det;
                 }
             } else {
+                rt.counters.solves_dense++;
                 try {
                     solve_dense_gaussian(A, b, N);
                     // After in-place solve, b[] contains the solution vector.
@@ -282,6 +287,12 @@ void solve_electrical(
                     solve_ok = false;
                 }
             }
+        } else {
+            rt.counters.solves_n0++;
+        }
+
+        if (!solve_ok) {
+            rt.counters.singular_fallbacks++;
         }
 
         // Build complete voltage map and write back to SimulationState
