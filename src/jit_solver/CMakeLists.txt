@@ -33,7 +33,6 @@ add_library(jit_solver
     components/nand_gate.cpp
     components/min.cpp
     components/max.cpp
-    components/max_selector.cpp
     components/clamp.cpp
     # Phase 2 Slice 4: Control/filter components
     components/pid.cpp

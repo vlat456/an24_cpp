@@ -75,7 +75,6 @@
 #include "normalize.h"
 #include "min.h"
 #include "max.h"
-#include "max_selector.h"
 #include "greater.h"
 #include "lesser.h"
 #include "greater_eq.h"

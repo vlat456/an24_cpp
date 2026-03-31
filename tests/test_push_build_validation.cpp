@@ -19,10 +19,6 @@ DeviceInstance make_device(const std::string& name, const std::string& classname
     dev.execution = {};
     
     auto ports = get_component_ports(classname);
-    if (ports.empty() && classname == "MaxSelector") {
-        // MaxSelector is migration-local alias currently mapped to Max runtime type.
-        ports = {"A", "B", "o"};
-    }
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
     }
@@ -427,9 +423,9 @@ TEST(PushBuildValidation, TypeDefinitionWithoutExecutionIsAccepted) {
     });
 }
 
-TEST(PushBuildValidation, MaxSelectorSelectsHigherInput) {
+TEST(PushBuildValidation, MaxSelectsHigherInput) {
     std::vector<DeviceInstance> devices = {
-        make_device("sel", "MaxSelector"),
+        make_device("sel", "Max"),
         make_device("ref_a", "RefNode", {{"value", "3.0"}}),
         make_device("ref_b", "RefNode", {{"value", "5.0"}})
     };
@@ -451,11 +447,11 @@ TEST(PushBuildValidation, MaxSelectorSelectsHigherInput) {
     EXPECT_NEAR(st.values[out_sig], 5.0f, 1e-5f);
 }
 
-TEST(PushBuildValidation, MaxSelectorAvoidsSourceConflict) {
+TEST(PushBuildValidation, MaxAvoidsSourceConflict) {
     std::vector<DeviceInstance> devices = {
         make_device("bat", "Battery", {{"v_nominal", "28.0"}}),
         make_device("gen", "Generator", {{"v_nominal", "28.5"}}),
-        make_device("sel", "MaxSelector"),
+        make_device("sel", "Max"),
         make_device("gnd", "RefNode", {{"value", "0.0"}})
     };
 

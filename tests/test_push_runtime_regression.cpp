@@ -24,9 +24,6 @@ DeviceInstance make_device(const std::string& name,
     dev.execution = {};
 
     auto ports = get_component_ports(classname);
-    if (ports.empty() && classname == "MaxSelector") {
-        ports = {"A", "B", "o"};
-    }
     for (const auto& port_name : ports) {
         dev.ports[port_name] = Port{PortDirection::InOut, PortType::Any};
     }

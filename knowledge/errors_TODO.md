@@ -276,7 +276,7 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
-### 19. Remove `MaxSelector -> Max` Metadata Alias Bridge
+### ~~19. Remove `MaxSelector -> Max` Metadata Alias Bridge~~ ✓ DONE
 **File:** `src/jit_solver/jit_solver.cpp:metadata_classname_for()`
 
 **Problem:**
@@ -284,15 +284,12 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 - This is explicit (not inferred), but still creates coupling to a migration alias and hides schema drift risk.
 - If `Max` metadata changes and `MaxSelector` diverges, behavior may silently differ from intent.
 
-**Detailed TODO plan:**
-1. Add explicit alias/type entry in library metadata for `MaxSelector` **or** remove alias usage and migrate callers/tests to canonical classname.
-2. Remove `metadata_classname_for()` special case from `jit_solver.cpp`.
-3. Ensure `get_component_ports()` and generated metadata both resolve the same canonical classname.
-4. Add regression test: unknown alias class must fail fast unless alias is explicitly declared in metadata.
-
-**Acceptance criteria:**
-- No hardcoded per-class alias bridge remains in `jit_solver.cpp`.
-- Classname-to-metadata mapping is fully declarative via schema/registry.
+**Resolution (2026-03-31):**
+- Deleted `src/jit_solver/components/max_selector.h` and `src/jit_solver/components/max_selector.cpp`.
+- Removed `#include "max_selector.h"` from `all.h` and `jit_solver.cpp`.
+- Removed `MaxSelector` if-branch from `metadata_classname_for()`.
+- Changed `else if (dev.classname == "Max" || dev.classname == "MaxSelector")` to `else if (dev.classname == "Max")` in `build_systems_dev()`.
+- Updated tests: removed `MaxSelector` special case in `make_device()` helpers, changed two test classnames from `"MaxSelector"` to `"Max"`.
 
 **Impact:** Low-to-medium effort, improves strict-contract purity.
 

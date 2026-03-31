@@ -27,7 +27,6 @@
 #include "components/nand_gate.h"
 #include "components/min.h"
 #include "components/max.h"
-#include "components/max_selector.h"
 #include "components/clamp.h"
 #include "components/pid.h"
 #include "components/pi.h"
@@ -89,9 +88,6 @@
 
 namespace {
 std::string metadata_classname_for(std::string_view classname) {
-    if (classname == "MaxSelector") {
-        return "Max";
-    }
     return std::string(classname);
 }
 
@@ -628,7 +624,7 @@ BuildResult build_systems_dev(
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<Min<JitProvider>>(result.devices[dev.name]));
         }
-        else if (dev.classname == "Max" || dev.classname == "MaxSelector") {
+        else if (dev.classname == "Max") {
             Max<JitProvider> comp;
             setup_ports(comp);
             param_reader.validate_all_consumed();
