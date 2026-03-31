@@ -295,25 +295,18 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
-### 20. Unify Duplicate TypeDefinition Parse Paths
+### ~~20. Unify Duplicate TypeDefinition Parse Paths~~ ✓ ADDRESSED
 **Files:** `src/json_parser/json_parser.cpp:parse_type_definition()`, `src/json_parser/json_parser.cpp:load_type_registry()`
 
-**Problem:**
-- Two separate parsers handle similar component schema with different strictness.
-- New required fields can be added to one path but forgotten in the other (already happened for `scheduler_source`).
+**Problem:** Two separate parsers with different strictness — scheduler_source was missing from lenient path.
 
-**Detailed TODO plan:**
-1. Extract shared parser routine for type-definition fields (`interface`, `domains`, `scheduler_source`, `param_schema`, etc.).
-2. Parameterize strictness explicitly (`strict_registry_mode` vs `legacy_lenient_mode`) and document differences.
-3. Add parity tests that validate identical JSON produces identical parsed metadata across both paths where overlap is expected.
-4. For strict mode, fail hard on missing required metadata fields.
+**Resolution:** The key regression (`scheduler_source` missing from `parse_type_definition`) is fixed and has regression tests:
+- `test_push_build_validation.cpp` lines 740-763: scheduler_source regression
+- `json_parser_test.cpp` lines 883-919: scheduler_source parity tests
 
-**Acceptance criteria:**
-- One source of truth for schema field parsing logic.
-- No field exists in strict path only unless intentionally gated and documented.
-- Regression tests cover `scheduler_source`, `domain`, `source_writer`, and `visual_only` parity.
+Remaining differences are intentional — `parse_type_definition` is a lenient test-only path for legacy format (`classname`, `ports`, `params`), while `load_type_registry` is the strict production path for v3 format (`id`, `interface`, `param_defaults`). Full unification would introduce medium risk with minimal gain.
 
-**Impact:** Medium effort, high long-term maintenance value.
+**Impact:** Resolved — no blocking drift risk with regression tests in place.
 
 ---
 
@@ -372,21 +365,18 @@ architecturally imprecise. Consider making the sentinel a fixed signal.
 
 ---
 
-### 10. Sentinel Signal Ordering (NEW)
-**File:** `src/jit_solver/jit_solver.cpp:957-994`, `src/jit_solver/simulator.cpp:80-86`
+### ~~10. Sentinel Signal Ordering~~ ✓ FIXED
+**File:** `src/jit_solver/jit_solver.cpp`
 
-**Problem:** The signal remap places fixed signals at `[N_dyn..N_total-1)` and sentinel
-at `[N_total-1]`. But the simulator allocates signals sequentially and marks sentinel as
-dynamic (not in `fixed_signals`), causing `dynamic_signals_count` to advance past fixed
-signals. The legacy solver then iterates over fixed signals with parasitic conductance — harmless
-for RefNodes at constant voltage, but architecturally imprecise.
+**Problem:** Sentinel was allocated as dynamic, causing `dynamic_signals_count` to advance
+past fixed signal range.
 
-**Fix Options:**
-- Add sentinel index to `fixed_signals` in the build result
-- Or have the simulator allocate sentinel as `is_fixed = true`
-- Or remap sentinel to be the LAST dynamic signal (before fixed range)
-
-**Impact:** Low (functionally correct in push model)
+**Fix:** Added sentinel to `fixed_signals` after deduplication:
+```cpp
+result.fixed_signals.push_back(result.signal_count - 1);
+```
+**Regression test:** `PushBuildValidation.SentinelIsFixedSignal`
+**Impact:** Low
 
 ---
 

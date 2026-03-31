@@ -1224,6 +1224,9 @@ BuildResult build_systems_dev(
         std::unique(result.fixed_signals.begin(), result.fixed_signals.end()),
         result.fixed_signals.end());
 
+    // Sentinel is a fixed signal: it is always allocated at the end and never changes
+    result.fixed_signals.push_back(result.signal_count - 1);
+
     // Phase 3.1: One-source-per-wire validation
     // Check that each electrical signal has at most one active voltage source writing to it.
     // Active source components (these conflict with each other):

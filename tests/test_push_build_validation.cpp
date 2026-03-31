@@ -763,3 +763,25 @@ TEST(PushBuildValidation, ParseTypeDefinition_ParsesSchedulerSource) {
     TypeDefinition def2 = parse_type_definition(j2);
     EXPECT_FALSE(def2.scheduler_source);
 }
+
+// Regression: sentinel signal must be included in fixed_signals.
+// Sentinel is conceptually fixed — always allocated at end, never changes.
+// Previously it was counted as dynamic, making dynamic_signals_count imprecise.
+TEST(PushBuildValidation, SentinelIsFixedSignal) {
+    std::vector<DeviceInstance> devices = {
+        make_device("ref", "RefNode", {{"value", "0.0"}})
+    };
+    std::vector<std::pair<std::string, std::string>> connections;
+
+    auto result = build_systems_dev(devices, connections);
+
+    uint32_t sentinel = result.signal_count - 1;
+    bool sentinel_in_fixed = false;
+    for (uint32_t fs : result.fixed_signals) {
+        if (fs == sentinel) {
+            sentinel_in_fixed = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(sentinel_in_fixed) << "Sentinel signal (index=" << sentinel << ") must be in fixed_signals";
+}

@@ -17,72 +17,9 @@
 #include "provider.h"
 #include "all.h"
 
-// Port names enum (for constexpr Provider pattern)
-// Used by AOT components to get compile-time port indices
-enum class PortNames : uint32_t {
-    A,
-    B,
-    Va,
-    Vb,
-    Vin,
-    ac_out,
-    brightness,
-    charge_out,
-    cmd,
-    control,
-    ctrl,
-    dc_in,
-    ext,
-    feedback,
-    flow_in,
-    flow_out,
-    force_out,
-    heat_in,
-    heat_out,
-    i,
-    i1,
-    i2,
-    i_out,
-    in,
-    input,
-    k_mod,
-    lamp,
-    level_out,
-    o,
-    o1,
-    o2,
-    out,
-    output,
-    p_in,
-    p_out,
-    port,
-    pos_a,
-    pos_b,
-    power,
-    primary,
-    reset,
-    rpm_out,
-    secondary,
-    setpoint,
-    soc_out,
-    state,
-    t4_out,
-    temp,
-    temp_in,
-    temp_out,
-    trigger,
-    tripped,
-    v,
-    v_bus,
-    v_gen,
-    v_gen_ref,
-    v_in,
-    v_neg,
-    v_out,
-    v_pos,
-    v_ref,
-    v_start
-};
+// PortNames enum is defined in port_names.h (included transitively via provider.h)
+// Separated to break circular dependency: component.h → port_registry.h → all.h → component.h
+#include "port_names.h"
 
 // Component type enumeration
 enum class ComponentType {

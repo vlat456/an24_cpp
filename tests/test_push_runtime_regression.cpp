@@ -2,6 +2,7 @@
 
 #include "jit_solver/jit_solver.h"
 #include "jit_solver/simulator.h"
+#include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
 
@@ -1744,4 +1745,46 @@ TEST(PushRuntime, SimulationStateElectricalRtPointerClearedOutsideStep) {
     // (would diverge if electrical_rt pointer issue caused stale solves)
     EXPECT_NEAR(sim.get_port_value("bat", "v_out"), 28.0f, 0.5f)
         << "Battery should maintain nominal voltage";
+}
+
+// =============================================================================
+// Regression: Relay must respect configurable hold_threshold.
+// Previously commit_control() used a hardcoded local threshold=0.5f
+// instead of the configurable class member hold_threshold.
+// =============================================================================
+TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
+    Relay<JitProvider> relay;
+    relay.hold_threshold = 2.0f;
+    relay.provider.set(PortNames::control, 0);
+    relay.provider.set(PortNames::state, 1);
+    relay.provider.set(PortNames::v_in, 2);
+    relay.provider.set(PortNames::v_out, 3);
+
+    SimulationState st;
+    st.values.resize(4, 0.0f);
+    st.signal_types.resize(4, {Domain::Electrical, false});
+
+    // 1.0 < 2.0 threshold → should NOT close
+    st.values[0] = 1.0f;
+    relay.commit_control(st, 0.0f);
+    EXPECT_FALSE(relay.closed)
+        << "control=1.0 is below hold_threshold=2.0, relay must stay open";
+
+    // 2.5 > 2.0 threshold → should close
+    st.values[0] = 2.5f;
+    relay.commit_control(st, 0.0f);
+    EXPECT_TRUE(relay.closed)
+        << "control=2.5 exceeds hold_threshold=2.0, relay must close";
+
+    // -1.0 > -2.0 → should remain closed (hysteresis)
+    st.values[0] = -1.0f;
+    relay.commit_control(st, 0.0f);
+    EXPECT_TRUE(relay.closed)
+        << "control=-1.0 does not reach -hold_threshold=-2.0, relay must stay closed";
+
+    // -2.5 < -2.0 → should open
+    st.values[0] = -2.5f;
+    relay.commit_control(st, 0.0f);
+    EXPECT_FALSE(relay.closed)
+        << "control=-2.5 reaches -hold_threshold=-2.0, relay must open";
 }

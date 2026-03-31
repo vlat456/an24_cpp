@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
+#include "jit_solver/components/provider.h"
 #include "jit_solver/state.h"
 #include "jit_solver/simulator.h"
 #include <cmath>
@@ -267,5 +268,38 @@ TEST(Battery, SignConventionMatchesSolver) {
 
     EXPECT_LT(comp.charge, initial_charge)
         << "Battery must discharge when solver produces negative branch current";
-    st.electrical_rt = nullptr;
+}
+
+// =============================================================================
+// Regression: AotProvider must have has() method for Battery<AotProvider>
+// to compile. Battery::commit() calls provider.has(PortNames::charge_out).
+// Previously AotProvider had no has() method, causing compile failure.
+// =============================================================================
+
+using TestBatteryAot = Battery<AotProvider<
+    Binding<PortNames::v_in, 0>,
+    Binding<PortNames::v_out, 1>
+>>;
+template class Battery<AotProvider<
+    Binding<PortNames::v_in, 0>,
+    Binding<PortNames::v_out, 1>
+>>;
+
+TEST(BatteryDischarge, AotProviderInstantiatesAndCommits) {
+    TestBatteryAot bat;
+    bat.v_nominal = 28.0f;
+    bat.internal_r = 0.01f;
+    bat.capacity = 1000.0f;
+    bat.pre_load();
+
+    SimulationState st;
+    st.values.resize(4, 0.0f);
+    st.signal_types.resize(4, {Domain::Electrical, false});
+    st.dynamic_signals_count = 2;
+
+    EXPECT_NO_THROW(bat.commit(st, 1.0f / 60.0f))
+        << "Battery<AotProvider> must compile and commit without crashing";
+
+    EXPECT_DOUBLE_EQ(bat.charge, 1000.0)
+        << "Without electrical_rt, charge should remain at initial value";
 }

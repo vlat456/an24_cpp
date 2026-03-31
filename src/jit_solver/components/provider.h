@@ -6,8 +6,8 @@
 #include <cstdio>
 #include <vector>
 
-// Forward declarations (PortNames defined in port_registry.h)
-enum class PortNames : uint32_t;
+// Full definition of PortNames (lightweight, no component dependencies)
+#include "port_names.h"
 
 // =============================================================================
 // Provider Pattern for Zero-Overhead AOT vs Flexible JIT
@@ -31,6 +31,12 @@ struct AotProvider {
         // Compiler fully optimizes to single constant at compile-time
         ((p == Bindings::key ? (result = Bindings::value, void()) : void()), ...);
         return result;
+    }
+
+    /// Check if a port is in the binding list (compile-time constant).
+    /// Returns true if port maps to a valid index (not UINT32_MAX sentinel).
+    static constexpr bool has(PortNames p) {
+        return get(p) != UINT32_MAX;
     }
 };
 

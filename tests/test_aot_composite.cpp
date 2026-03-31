@@ -1087,3 +1087,81 @@ TEST(AotComposite, ElectricalDebugMap_ContainsIslandAndElementIndices) {
     EXPECT_NE(result.source.find("if (e.island_index != island_idx) continue;"), std::string::npos);
     EXPECT_NE(result.source.find("[aot-elec]   elem={} comp={}"), std::string::npos);
 }
+
+// =============================================================================
+// Regression: Generated step_N() methods must call .commit() on devices.
+// Previously codegen only emitted .execute() calls, breaking battery discharge,
+// switch toggling, relay actuation, and AZS circuit breakers in AOT mode.
+// =============================================================================
+TEST(AotComposite, GeneratedStepMethodsIncludeCommitCalls) {
+    TypeRegistry registry;
+
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition load_type;
+    load_type.classname = "Load";
+    load_type.cpp_class = true;
+    load_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    load_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    load_type.domains = {{Domain::Electrical}};
+    registry.types["Load"] = load_type;
+
+    TypeDefinition ref_type;
+    ref_type.classname = "RefNode";
+    ref_type.cpp_class = true;
+    ref_type.ports["v"] = Port{PortDirection::InOut, PortType::V, std::nullopt};
+    ref_type.domains = {{Domain::Electrical}};
+    ref_type.scheduler_source = true;
+    registry.types["RefNode"] = ref_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "test_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.ports = {{"v_in", Port{}}, {"v_out", Port{}}};
+
+    DeviceInstance d_load;
+    d_load.name = "load";
+    d_load.classname = "Load";
+    d_load.ports = {{"v_in", Port{}}, {"v_out", Port{}}};
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.ports = {{"v", Port{}}};
+
+    circuit.devices = {d_bat, d_load, d_ref};
+    circuit.connections = {
+        {"bat.v_out", "load.v_in", {}},
+        {"load.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}}
+    };
+    registry.types["test_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    // Verify .commit() calls are present in generated source
+    EXPECT_NE(result.source.find(".commit(*st, dt)"), std::string::npos)
+        << "Generated step_N() must call .commit() on devices for battery discharge to work";
+
+    // Verify .execute() calls are also present
+    EXPECT_NE(result.source.find(".execute(*st, dt)"), std::string::npos)
+        << "Generated step_N() must call .execute() on devices";
+
+    // Verify commit comes after execute in the generated code
+    size_t exec_pos = result.source.find(".execute(*st, dt)");
+    size_t commit_pos = result.source.find(".commit(*st, dt)");
+    if (exec_pos != std::string::npos && commit_pos != std::string::npos) {
+        EXPECT_LT(exec_pos, commit_pos)
+            << "execute() must come before commit() in generated step";
+    }
+}
