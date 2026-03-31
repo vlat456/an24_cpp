@@ -257,7 +257,10 @@ static void run_aot_electrical(
     ElectricalRuntimeState& out_rt
 ) {
     // Extract plan using codegen's extract_electrical_plan
-    ElectricalPlanCodegen codegen_plan = extract_electrical_plan(devices, port_to_signal);
+    ElectricalExtractOptions options;
+    options.strict_port_resolution = true;
+    options.warn_on_missing_ports = false;
+    ElectricalPlanCodegen codegen_plan = extract_electrical_plan(devices, port_to_signal, options);
 
     // Convert ElectricalPlanCodegen to ElectricalBuildPlan (same as AotElectricalPlan constructor)
     out_plan.islands.clear();

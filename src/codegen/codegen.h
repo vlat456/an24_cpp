@@ -39,11 +39,17 @@ struct ElectricalPlanCodegen {
     std::vector<ElectricalIslandPlanCodegen> islands;
 };
 
+struct ElectricalExtractOptions {
+    bool strict_port_resolution = false;
+    bool warn_on_missing_ports = true;
+};
+
 /// Extract electrical island plan from devices and port_to_signal mapping.
 /// Mirrors the island extraction logic in build_systems_dev().
 ElectricalPlanCodegen extract_electrical_plan(
     const std::vector<DeviceInstance>& devices,
-    const std::unordered_map<std::string, uint32_t>& port_to_signal
+    const std::unordered_map<std::string, uint32_t>& port_to_signal,
+    const ElectricalExtractOptions& options = {}
 );
 
 /// Code generator - produces C++ source files from device configuration
@@ -99,4 +105,3 @@ public:
     static std::map<std::string, CompositeCodegenResult> generate_all_composites(
         const TypeRegistry& registry);
 };
-

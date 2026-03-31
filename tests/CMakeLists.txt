@@ -938,6 +938,7 @@ gtest_discover_tests(asym_tmo_tests)
 add_executable(lut_codegen_tests
     test_lut_codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
 )
 target_include_directories(lut_codegen_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1110,6 +1111,7 @@ gtest_discover_tests(properties_window_tests)
 add_executable(codegen_accumulator_tests
     test_codegen_accumulator.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
 )
 target_include_directories(codegen_accumulator_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1128,6 +1130,7 @@ gtest_discover_tests(codegen_accumulator_tests)
 add_executable(aot_composite_tests
     test_aot_composite.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
     ${CMAKE_SOURCE_DIR}/src/json_parser/json_parser.cpp
 )
 target_include_directories(aot_composite_tests PRIVATE
@@ -1146,6 +1149,7 @@ gtest_discover_tests(aot_composite_tests)
 add_executable(jit_aot_bridge_equivalence_tests
     test_jit_aot_bridge_equivalence.cpp
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
 )
 target_include_directories(jit_aot_bridge_equivalence_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src

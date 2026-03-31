@@ -53,7 +53,7 @@ metadata is processed.
 - `value_a` = Thevenin voltage `V_th` (volts)
 - `value_b` = series resistance `R_series` (ohms)
 - Internally converted: `g = 1 / max(R_series, 1e-6)`, `I_n = V_th * g`
-- The Norton current source injects `-I_n` into `node_a` and `+I_n` into `node_b`
+- The Norton current source injects `+I_n` into `node_a` and `-I_n` into `node_b`
 - Net branch current (node_a → node_b): `I = g * (V_a - V_b) - I_n`
 
 ### FixedVoltageNode

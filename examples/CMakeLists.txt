@@ -24,6 +24,7 @@ target_link_libraries(hello_world PRIVATE jit_solver spdlog::spdlog)
 
 add_library(an24_codegen STATIC
     ${CMAKE_SOURCE_DIR}/src/codegen/codegen.cpp
+    ${CMAKE_SOURCE_DIR}/src/codegen/electrical_codegen.cpp
 )
 target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
