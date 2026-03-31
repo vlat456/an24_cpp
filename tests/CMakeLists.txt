@@ -1507,3 +1507,19 @@ target_link_libraries(electrical_primitives_tests PRIVATE
     GTest::gtest_main
 )
 gtest_discover_tests(electrical_primitives_tests)
+
+# JIT↔AOT electrical parity fixtures (Phase 0-1: reference fixtures for semantic validation)
+add_executable(electrical_parity_fixtures_tests
+    test_electrical_parity_fixtures.cpp
+)
+target_include_directories(electrical_parity_fixtures_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(electrical_parity_fixtures_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(electrical_parity_fixtures_tests)
