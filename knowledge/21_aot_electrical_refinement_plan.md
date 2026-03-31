@@ -1,0 +1,359 @@
+# AOT-First Electrical Refinement Plan (Consensus)
+
+Date: 2026-03-31
+Status: revised after expert consultation + technical review
+
+## Intent
+
+Electrical subsolver MVP is complete and stable. The next goal is to improve:
+
+- elegance (clear boundaries, less transitional complexity)
+- AOT performance (no avoidable indirection in hot path)
+
+Primary constraint: preserve validated electrical semantics and runtime stability.
+
+---
+
+## Executive Summary
+
+The first draft underestimated three things:
+
+1. semantic freeze needs more precision than "same stamping/signs"
+2. test migration off direct `build_systems_dev()` fallback is a substantial workstream
+3. kernel specialization should happen later, after parity and observability are stable
+
+A fourth underestimate was identified on review:
+
+4. codegen currently emits zero electrical solver logic — generated `step_N()` methods
+   only call `execute()` per component. There is no generated call to `solve_electrical()`,
+   no generated `ElectricalBuildPlan`, and no generated `ElectricalRuntimeState`.
+   Phase 1 is therefore a net-new codegen feature, not a small plumbing change.
+
+Consensus direction:
+
+- freeze semantics first
+- generate static AOT electrical plan first
+- run shared generic solver first
+- add stable symbolic bindings (directly tied to AOT indirection removal)
+- add observability tooling
+- only then apply targeted specialization under strict budget controls
+
+---
+
+## Non-Negotiable Principles
+
+1. One electrical model, two execution backends:
+   - JIT/editor: flexible and safe for malformed in-flight topologies
+   - AOT/runtime: static, generated, low-indirection
+
+2. AOT hot path targets:
+   - no string/hash lookups
+   - no variant visitation in solve loops
+   - no per-frame heap allocation in electrical solve
+
+3. Semantic reference must be explicit and testable.
+
+4. Deletion is gated by coverage, not preference.
+
+---
+
+## Current Baseline
+
+Completed in MVP:
+
+- electrical island extraction and solve
+- solver-owned electrical propagation
+- branch-current bindings for Battery/CurrentSense
+- primitive nodes (`ElectricalSource`, `ElectricalConductance`)
+- metadata path (`solver_role`) plus fallback for direct builder tests
+- broad regression coverage including real fixture behavior
+
+Known gaps in current implementation:
+
+- `solve_electrical()` allocates multiple `std::vector` temporaries per island per frame
+  (`island_nodes`, `fixed_nodes`, `is_fixed`, `node_to_unknown`, `island_voltages`).
+  This violates the "no per-frame heap allocation" target. Must be addressed in or before Phase 1.
+- codegen (`codegen.cpp`) has zero awareness of electrical islands — generated step methods
+  call only `execute()` per device. No generated `solve_electrical()` call exists.
+- `ElectricalRuntimeState` scratch buffers reuse capacity but the per-island local vectors do not.
+
+---
+
+## Phase Plan (Revised)
+
+## Phase 0: Semantic Freeze + Parity Fixtures
+
+Must-have:
+
+- short electrical semantics spec covering:
+  - branch current direction conventions
+  - source polarity rules
+  - fixed-node behavior
+  - singular/ill-conditioned island behavior
+  - pivot/threshold policy
+  - float/double rules for accumulators
+- canonical parity fixture set (JIT reference vs AOT path):
+  - simple source+load+ref
+  - parallel branch split
+  - mixed wrapper+primitive island
+  - singular malformed island
+  - near-short/high-conductance case
+- baseline benchmark command and reproducible metric capture
+
+Exit gate:
+
+- semantics spec is a committed document (can be a `.md` in `knowledge/`)
+- every convention in the spec has at least one parity fixture exercising it
+- baseline benchmark produces a numeric result that can be compared across runs
+
+## Phase 1: Generated Static Electrical Plan, Shared Solver
+
+This is the largest phase. Current codegen has zero electrical awareness.
+
+Must-have:
+
+- codegen emits static electrical island plan arrays:
+  - nodes
+  - fixed constraints
+  - branches (kind, node_a, node_b, value_a, value_b, component_index)
+  - component-binding references
+- generated step methods call `solve_electrical()` with the generated plan
+  at the correct point in the phase sequence (before component execute,
+  matching JIT simulator step flow)
+- generated code owns `ElectricalRuntimeState` (scratch buffers, branch currents)
+- eliminate per-island heap allocation in `solve_electrical()`:
+  - pre-allocate `island_nodes`, `is_fixed`, `node_to_unknown`, `island_voltages`
+    as scratch arrays in `ElectricalRuntimeState` (sized to max island node count)
+  - this is required before any performance claims are meaningful
+- AOT runtime consumes generated plan using shared generic solve logic
+- stable symbolic IDs (separate from solve-order indices)
+
+Nice-to-have:
+
+- schema/version hash for generated plan in debug builds
+
+Key risk:
+
+- The shared `solve_electrical()` function signature currently takes `ElectricalBuildPlan`
+  which contains `std::vector` members. For AOT, the generated plan should use
+  `constexpr` / `static const` arrays. Either the solver accepts a view/span-based
+  interface, or a thin adapter converts static arrays to the existing types at init.
+  Prefer the span-based approach (lower indirection) but do not block Phase 1 on it
+  if the adapter approach ships faster.
+
+Exit gate:
+
+- AOT path no longer depends on metadata/string lookups at runtime
+- generated code compiles and passes all Phase 0 parity fixtures
+- no per-frame heap allocation in `solve_electrical()` (verified by metric)
+
+## Phase 2: Direct Symbolic Observer/State Bindings
+
+Rationale: this phase directly removes dynamic name→index lookups from the AOT
+step, which is the project's primary performance goal. Observability (Phase 3)
+is important but does not reduce indirection, so it comes after.
+
+Must-have:
+
+- generated stable bindings for Battery, CurrentSense, and observers
+- runtime reads by generated symbolic handle/offset, not dynamic name lookup
+- tests proving binding correctness survives harmless plan reorderings
+
+Exit gate:
+
+- no runtime device-name -> branch-index mapping in AOT step
+
+## Phase 3: Observability
+
+Must-have:
+
+- generated debug mapping:
+  - branch ID -> device/role/endpoints
+  - node ID -> signal/port identity
+- structured island diagnostics for failures/parity mismatches:
+  - island id
+  - offending node/branch ids
+  - solved/residual values
+
+Nice-to-have:
+
+- generated source comments/source-map style traceability in debug
+
+Exit gate:
+
+- any parity failure is diagnosable from logs without ad-hoc instrumentation
+
+## Phase 4: Test Infrastructure Migration + Fallback Boundary
+
+Note: this workstream is largely independent and can start in parallel with
+Phases 1-3. It is numbered Phase 4 only because it must complete before Phase 5
+(specialization), not because it must wait for Phase 3 to finish.
+
+Must-have:
+
+- explicitly split tests into:
+  - raw-builder tests (intentional direct `build_systems_dev()`)
+  - production-path tests (library merge/metadata/codegen path)
+- migrate critical electrical parity tests to production-path helpers
+- track remaining fallback-dependent tests as explicit debt
+
+Exit gate:
+
+- fallback extraction use is measured, scoped, and no longer accidental
+
+## Phase 5: Targeted Kernel Specialization (Budgeted)
+
+Must-have:
+
+- specialize only hot/common island shapes
+- keep generic solver path as correctness fallback
+- enforce hard budgets on:
+  - number of specialized families
+  - compile-time growth
+  - generated code size growth
+- parity validation against shared solver for every specialized path
+
+Nice-to-have:
+
+- unrolled kernels for only top 2-3 size classes
+
+Exit gate:
+
+- measurable AOT speedup on representative graphs with acceptable build/binary cost
+
+## Phase 6: Transitional Cleanup + Performance Closure
+
+Must-have:
+
+- remove/de-scope transitional fallback code only after gates pass
+- remove dead compatibility paths introduced during migration
+- final profiling and optimization sweep on representative aircraft graphs
+
+Exit gate:
+
+- zero per-frame heap allocations in AOT electrical solve path
+- zero string/hash lookups in AOT electrical solve path
+- AOT electrical step time is within 2× of a no-op baseline on same graph
+  (or a tighter target established by Phase 0 benchmark)
+- no dead fallback code remains in active compilation paths
+
+---
+
+## Must-Have vs Nice-to-Have Matrix
+
+Must-have:
+
+- semantic freeze doc + parity fixtures
+- generated static plan consumed at runtime
+- debug diagnostics for parity/failures
+- stable symbolic bindings
+- explicit fallback-boundary and test migration tracking
+- specialization budget caps
+
+Nice-to-have:
+
+- aggressive small-N unrolled kernels
+- richer generated source maps
+- optional high-detail debug traces in non-debug configurations
+
+---
+
+## Metrics and Gates
+
+Track continuously:
+
+- parity:
+  - max abs/rel voltage error (target: < 1e-5 relative for shared solver path)
+  - max abs/rel branch-current error (target: < 1e-5 relative)
+  - KCL residual per island (target: < 1e-10 absolute)
+- performance:
+  - AOT electrical step avg/p95 (baseline established in Phase 0)
+  - allocations/frame in electrical solve (target: zero after Phase 1)
+  - indirect branch count in electrical solve path (target: zero after Phase 6)
+- codegen/build cost:
+  - codegen time (must not exceed 2× current codegen time)
+  - compile time delta (must not exceed 20% growth from electrical plan addition)
+  - generated LOC (tracked, no hard cap until Phase 5)
+  - binary size delta (must not exceed 10% from electrical plan addition)
+- test migration:
+  - count of tests still using raw builder path
+  - count relying on classname fallback
+
+---
+
+## Red Flags (Stop / Re-Scope Triggers)
+
+Stop and re-scope if any occurs:
+
+1. JIT/AOT parity failures rise without clear diagnostic attribution
+2. IR/schema changes churn across multiple consecutive patches
+3. specialization increases compile/binary cost without real workload speedup
+4. binding correctness depends on incidental element ordering
+5. new tests are added to fallback path instead of production path
+6. generated-kernel failures cannot be diagnosed from test output/logs
+7. backend-specific numerics introduced before shared-kernel parity stability
+
+---
+
+## First Concrete Coding Milestone
+
+Implement this first (Phase 0 + Phase 1 bootstrap):
+
+1. Write electrical semantics spec (`knowledge/22_electrical_semantics.md`)
+   covering the 6 topics listed in Phase 0. This is a documentation-only step.
+
+2. Eliminate per-island heap allocations in `solve_electrical()`:
+   - move `island_nodes`, `is_fixed`, `node_to_unknown`, `island_voltages`,
+     `fixed_nodes`, `fixed_voltages` into `ElectricalRuntimeState` as
+     reusable scratch buffers sized to max island node count
+   - this is prerequisite for meaningful performance measurement
+
+3. Add 3-5 mandatory JIT↔AOT parity test fixtures (Phase 0 fixtures)
+   that run the same topology through both paths and assert matching results.
+
+4. Add electrical plan emission to `codegen.cpp`:
+   - emit `static const ElectricalElement` arrays per island
+   - emit `static const uint32_t` signal index arrays per island
+   - emit `solve_electrical()` call in generated step method at correct phase position
+
+Rationale:
+
+- step 1 is zero-risk and unblocks parity fixture design
+- step 2 removes the most obvious performance floor before measuring anything
+- step 3 creates the safety net for all subsequent work
+- step 4 is the core deliverable that surfaces codegen/IR/binding issues early
+
+Do NOT combine steps 2 and 4 in one patch. The allocation fix should land
+independently so its correctness is verified before codegen changes.
+
+---
+
+## Open Decisions
+
+1. specialization cutoff policy (island size/topology thresholds)
+2. numeric policy for specialization paths (identical vs bounded-drift)
+3. explicit timeline for reducing classname fallback
+4. debug introspection level in release AOT builds
+5. `solve_electrical()` interface for static data: span-based vs adapter
+   (see Phase 1 key risk — prefer span-based but don't block on it)
+
+## Technical Risks
+
+1. **Codegen complexity jump**: current codegen is ~900 LOC of straightforward
+   string emission. Adding electrical plan awareness (island extraction, element
+   serialization, phase-correct call placement) may double that. Consider whether
+   a separate `electrical_codegen.cpp` is warranted to keep files focused.
+
+2. **Solver interface mismatch**: `ElectricalBuildPlan` uses `std::vector` members.
+   Static AOT arrays are `constexpr` / `static const`. Bridging these without
+   runtime copies requires either a template/span-based solver interface or
+   init-time construction of the plan struct from static data. This design
+   decision should be made explicitly before coding Phase 1.
+
+3. **Phase ordering in generated code**: the JIT simulator has a 9-phase step
+   (`simulator.cpp`). Generated code currently has a flat `execute()` loop.
+   Replicating the correct phase ordering (passive electrical → solve → observers
+   → logical → commit → actuators → second solve → logical → sub-rate → finalize)
+   in codegen requires careful mapping. A mismatch here would cause subtle
+   JIT/AOT divergence that parity fixtures might not catch if fixtures are
+   too simple.
