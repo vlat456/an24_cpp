@@ -572,6 +572,18 @@ Exit gate:
 
 - measurable AOT speedup on representative graphs with acceptable build/binary cost
 
+Implementation log:
+
+- **Step 1 (Phase 5 bootstrap)**: ✅ DONE — pre-specialization budget + baseline gate
+  - Entered Phase 5 only after strict Phase 4 gate review (`Step 6`) passed
+  - Baseline constraints carried into specialization work:
+    - Keep generic `solve_electrical()` as correctness fallback
+    - Keep specialization count budgeted to top 2–3 island families max
+    - Preserve parity guardrails (`ElectricalAotParity`, `AotComposite`,
+      production-path suites)
+  - No specialization kernels added in this step; this is the gate + scope lock
+    before introducing specialized dispatch
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:
