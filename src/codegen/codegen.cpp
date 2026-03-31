@@ -488,7 +488,7 @@ std::string CodeGen::generate_source(
         for (const auto& e : lut_entries) {
             for (float k : e.keys) {
                 if (!first_k) oss << ", ";
-                oss << k << "f";
+                oss << locale_safe::format_float(k) << "f";
                 first_k = false;
             }
         }
@@ -498,7 +498,7 @@ std::string CodeGen::generate_source(
         for (const auto& e : lut_entries) {
             for (float v : e.values) {
                 if (!first_v) oss << ", ";
-                oss << v << "f";
+                oss << locale_safe::format_float(v) << "f";
                 first_v = false;
             }
         }

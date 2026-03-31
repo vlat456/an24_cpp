@@ -30,7 +30,7 @@ target_include_directories(an24_codegen PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_BINARY_DIR}/_deps/json-src/include
 )
-target_link_libraries(an24_codegen PUBLIC spdlog::spdlog)
+target_link_libraries(an24_codegen PUBLIC spdlog::spdlog json_parser)
 
 # Codegen tool for generating port registry and ComponentVariant
 add_executable(codegen_test codegen_test.cpp)
