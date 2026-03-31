@@ -159,6 +159,9 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/push_scheduler_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/push_build_validation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/push_runtime_regression_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/electrical_island_build_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/electrical_handle_build_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/electrical_subsolver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pid_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/pd_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/subtract_tests.dir/DependInfo.cmake"
@@ -168,6 +171,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/logical_solver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/blueprint_ports_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/current_sense_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/battery_discharge_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bug_hunt_regression_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/slew_rate_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/lut_tests.dir/DependInfo.cmake"
@@ -237,4 +241,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/bp2_editor_model_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_bake_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/bp2_validation_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/electrical_primitives_tests.dir/DependInfo.cmake"
   )

@@ -517,4 +517,5 @@ src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o: \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/ordered_map.hpp \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
-  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp
+  /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h

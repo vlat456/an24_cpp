@@ -28,6 +28,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/jit_solver/components/dmr400.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/dmr400.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/dmr400.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/electric_heater.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_heater.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_heater.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/electric_pump.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_pump.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_pump.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/fast_tmo.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/fast_tmo.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/fast_tmo.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/fuel_tank.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/fuel_tank.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/fuel_tank.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/generator.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/generator.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/generator.cpp.o.d"
@@ -86,6 +88,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/jit_solver/jit_solver.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/simulator.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/simulator.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/state.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/jit_solver/subsolvers/electrical_subsolver.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

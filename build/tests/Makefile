@@ -228,6 +228,48 @@ push_runtime_regression_tests/fast:
 .PHONY : push_runtime_regression_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/electrical_island_build_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_island_build_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_island_build_tests.dir/rule
+
+# Convenience name for target.
+electrical_island_build_tests: tests/CMakeFiles/electrical_island_build_tests.dir/rule
+.PHONY : electrical_island_build_tests
+
+# fast build rule for target.
+electrical_island_build_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/build
+.PHONY : electrical_island_build_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_handle_build_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+
+# Convenience name for target.
+electrical_handle_build_tests: tests/CMakeFiles/electrical_handle_build_tests.dir/rule
+.PHONY : electrical_handle_build_tests
+
+# fast build rule for target.
+electrical_handle_build_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/build
+.PHONY : electrical_handle_build_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_subsolver_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+
+# Convenience name for target.
+electrical_subsolver_tests: tests/CMakeFiles/electrical_subsolver_tests.dir/rule
+.PHONY : electrical_subsolver_tests
+
+# fast build rule for target.
+electrical_subsolver_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/build
+.PHONY : electrical_subsolver_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/pid_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/pid_tests.dir/rule
 .PHONY : tests/CMakeFiles/pid_tests.dir/rule
@@ -352,6 +394,20 @@ current_sense_tests: tests/CMakeFiles/current_sense_tests.dir/rule
 current_sense_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
 .PHONY : current_sense_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/battery_discharge_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/battery_discharge_tests.dir/rule
+.PHONY : tests/CMakeFiles/battery_discharge_tests.dir/rule
+
+# Convenience name for target.
+battery_discharge_tests: tests/CMakeFiles/battery_discharge_tests.dir/rule
+.PHONY : battery_discharge_tests
+
+# fast build rule for target.
+battery_discharge_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/build
+.PHONY : battery_discharge_tests/fast
 
 # Convenience name for target.
 tests/CMakeFiles/bug_hunt_regression_tests.dir/rule:
@@ -1318,6 +1374,20 @@ bp2_validation_tests: tests/CMakeFiles/bp2_validation_tests.dir/rule
 bp2_validation_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/build
 .PHONY : bp2_validation_tests/fast
+
+# Convenience name for target.
+tests/CMakeFiles/electrical_primitives_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/electrical_primitives_tests.dir/rule
+.PHONY : tests/CMakeFiles/electrical_primitives_tests.dir/rule
+
+# Convenience name for target.
+electrical_primitives_tests: tests/CMakeFiles/electrical_primitives_tests.dir/rule
+.PHONY : electrical_primitives_tests
+
+# fast build rule for target.
+electrical_primitives_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
+.PHONY : electrical_primitives_tests/fast
 
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
@@ -2561,6 +2631,30 @@ test_azs.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/azs_tests.dir/build.make tests/CMakeFiles/azs_tests.dir/test_azs.cpp.s
 .PHONY : test_azs.cpp.s
 
+test_battery_discharge.o: test_battery_discharge.cpp.o
+.PHONY : test_battery_discharge.o
+
+# target to build an object file
+test_battery_discharge.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.o
+.PHONY : test_battery_discharge.cpp.o
+
+test_battery_discharge.i: test_battery_discharge.cpp.i
+.PHONY : test_battery_discharge.i
+
+# target to preprocess a source file
+test_battery_discharge.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.i
+.PHONY : test_battery_discharge.cpp.i
+
+test_battery_discharge.s: test_battery_discharge.cpp.s
+.PHONY : test_battery_discharge.s
+
+# target to generate assembly for a file
+test_battery_discharge.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.s
+.PHONY : test_battery_discharge.cpp.s
+
 test_blueprint_integration.o: test_blueprint_integration.cpp.o
 .PHONY : test_blueprint_integration.o
 
@@ -2872,6 +2966,102 @@ test_electric_pump_regression.s: test_electric_pump_regression.cpp.s
 test_electric_pump_regression.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electric_pump_regression_tests.dir/build.make tests/CMakeFiles/electric_pump_regression_tests.dir/test_electric_pump_regression.cpp.s
 .PHONY : test_electric_pump_regression.cpp.s
+
+test_electrical_handles_build.o: test_electrical_handles_build.cpp.o
+.PHONY : test_electrical_handles_build.o
+
+# target to build an object file
+test_electrical_handles_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.o
+.PHONY : test_electrical_handles_build.cpp.o
+
+test_electrical_handles_build.i: test_electrical_handles_build.cpp.i
+.PHONY : test_electrical_handles_build.i
+
+# target to preprocess a source file
+test_electrical_handles_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.i
+.PHONY : test_electrical_handles_build.cpp.i
+
+test_electrical_handles_build.s: test_electrical_handles_build.cpp.s
+.PHONY : test_electrical_handles_build.s
+
+# target to generate assembly for a file
+test_electrical_handles_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.s
+.PHONY : test_electrical_handles_build.cpp.s
+
+test_electrical_island_build.o: test_electrical_island_build.cpp.o
+.PHONY : test_electrical_island_build.o
+
+# target to build an object file
+test_electrical_island_build.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.o
+.PHONY : test_electrical_island_build.cpp.o
+
+test_electrical_island_build.i: test_electrical_island_build.cpp.i
+.PHONY : test_electrical_island_build.i
+
+# target to preprocess a source file
+test_electrical_island_build.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.i
+.PHONY : test_electrical_island_build.cpp.i
+
+test_electrical_island_build.s: test_electrical_island_build.cpp.s
+.PHONY : test_electrical_island_build.s
+
+# target to generate assembly for a file
+test_electrical_island_build.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.s
+.PHONY : test_electrical_island_build.cpp.s
+
+test_electrical_primitives.o: test_electrical_primitives.cpp.o
+.PHONY : test_electrical_primitives.o
+
+# target to build an object file
+test_electrical_primitives.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.o
+.PHONY : test_electrical_primitives.cpp.o
+
+test_electrical_primitives.i: test_electrical_primitives.cpp.i
+.PHONY : test_electrical_primitives.i
+
+# target to preprocess a source file
+test_electrical_primitives.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.i
+.PHONY : test_electrical_primitives.cpp.i
+
+test_electrical_primitives.s: test_electrical_primitives.cpp.s
+.PHONY : test_electrical_primitives.s
+
+# target to generate assembly for a file
+test_electrical_primitives.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.s
+.PHONY : test_electrical_primitives.cpp.s
+
+test_electrical_subsolver.o: test_electrical_subsolver.cpp.o
+.PHONY : test_electrical_subsolver.o
+
+# target to build an object file
+test_electrical_subsolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.o
+.PHONY : test_electrical_subsolver.cpp.o
+
+test_electrical_subsolver.i: test_electrical_subsolver.cpp.i
+.PHONY : test_electrical_subsolver.i
+
+# target to preprocess a source file
+test_electrical_subsolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.i
+.PHONY : test_electrical_subsolver.cpp.i
+
+test_electrical_subsolver.s: test_electrical_subsolver.cpp.s
+.PHONY : test_electrical_subsolver.s
+
+# target to generate assembly for a file
+test_electrical_subsolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.s
+.PHONY : test_electrical_subsolver.cpp.s
 
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
@@ -4044,6 +4234,7 @@ help:
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
+	@echo "... battery_discharge_tests"
 	@echo "... blueprint_integration_tests"
 	@echo "... blueprint_loading_tests"
 	@echo "... blueprint_ports_tests"
@@ -4068,6 +4259,10 @@ help:
 	@echo "... editor_settings_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... electric_pump_regression_tests"
+	@echo "... electrical_handle_build_tests"
+	@echo "... electrical_island_build_tests"
+	@echo "... electrical_primitives_tests"
+	@echo "... electrical_subsolver_tests"
 	@echo "... factory_validation_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
@@ -4261,6 +4456,9 @@ help:
 	@echo "... test_azs.o"
 	@echo "... test_azs.i"
 	@echo "... test_azs.s"
+	@echo "... test_battery_discharge.o"
+	@echo "... test_battery_discharge.i"
+	@echo "... test_battery_discharge.s"
 	@echo "... test_blueprint_integration.o"
 	@echo "... test_blueprint_integration.i"
 	@echo "... test_blueprint_integration.s"
@@ -4300,6 +4498,18 @@ help:
 	@echo "... test_electric_pump_regression.o"
 	@echo "... test_electric_pump_regression.i"
 	@echo "... test_electric_pump_regression.s"
+	@echo "... test_electrical_handles_build.o"
+	@echo "... test_electrical_handles_build.i"
+	@echo "... test_electrical_handles_build.s"
+	@echo "... test_electrical_island_build.o"
+	@echo "... test_electrical_island_build.i"
+	@echo "... test_electrical_island_build.s"
+	@echo "... test_electrical_primitives.o"
+	@echo "... test_electrical_primitives.i"
+	@echo "... test_electrical_primitives.s"
+	@echo "... test_electrical_subsolver.o"
+	@echo "... test_electrical_subsolver.i"
+	@echo "... test_electrical_subsolver.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"

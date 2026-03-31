@@ -525,6 +525,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/any \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/detail/macro_unscope.hpp \
   /Users/vladimir/an24_cpp/build/_deps/json-src/include/nlohmann/thirdparty/hedley/hedley_undef.hpp \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/../subsolvers/subsolver_types.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/switch.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/relay.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/hold_button.h \
@@ -599,7 +600,10 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lesser_eq.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/slider.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h \
   /Users/vladimir/an24_cpp/src/jit_solver/scheduler.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/queue \
   /Users/vladimir/an24_cpp/build/_deps/spdlog-src/include/spdlog/spdlog.h \

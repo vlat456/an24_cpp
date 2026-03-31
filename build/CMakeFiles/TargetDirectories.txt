@@ -118,6 +118,9 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/push_scheduler_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/push_build_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/push_runtime_regression_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_island_build_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_handle_build_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_subsolver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pid_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/pd_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/subtract_tests.dir
@@ -127,6 +130,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_ports_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/current_sense_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/battery_discharge_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bug_hunt_regression_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/lut_tests.dir
@@ -196,6 +200,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_editor_model_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_bake_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_primitives_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

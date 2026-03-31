@@ -91,6 +91,12 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/electrical_subsolver.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/subsolvers/electrical_subsolver.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/battery.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/battery.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/battery.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/battery.cpp.o"
@@ -538,6 +544,18 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
@@ -991,6 +1009,24 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electrical_island_build.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electrical_island_build.cpp",
+  "output": "tests/CMakeFiles/electrical_island_build_tests.dir/test_electrical_island_build.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electrical_handles_build.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electrical_handles_build.cpp",
+  "output": "tests/CMakeFiles/electrical_handle_build_tests.dir/test_electrical_handles_build.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electrical_subsolver.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electrical_subsolver.cpp",
+  "output": "tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/pid_tests.dir/test_pid.cpp.o -c /Users/vladimir/an24_cpp/tests/test_pid.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_pid.cpp",
   "output": "tests/CMakeFiles/pid_tests.dir/test_pid.cpp.o"
@@ -1042,6 +1078,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.o -c /Users/vladimir/an24_cpp/tests/test_current_sense.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_current_sense.cpp",
   "output": "tests/CMakeFiles/current_sense_tests.dir/test_current_sense.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.o -c /Users/vladimir/an24_cpp/tests/test_battery_discharge.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_battery_discharge.cpp",
+  "output": "tests/CMakeFiles/battery_discharge_tests.dir/test_battery_discharge.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",
@@ -1840,5 +1882,11 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.o -c /Users/vladimir/an24_cpp/src/editor/visual/persist.cpp",
   "file": "/Users/vladimir/an24_cpp/src/editor/visual/persist.cpp",
   "output": "tests/CMakeFiles/bp2_validation_tests.dir/__/src/editor/visual/persist.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.o -c /Users/vladimir/an24_cpp/tests/test_electrical_primitives.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_electrical_primitives.cpp",
+  "output": "tests/CMakeFiles/electrical_primitives_tests.dir/test_electrical_primitives.cpp.o"
 }
 ]

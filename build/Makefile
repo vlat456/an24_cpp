@@ -458,6 +458,45 @@ push_runtime_regression_tests/fast:
 .PHONY : push_runtime_regression_tests/fast
 
 #=============================================================================
+# Target rules for targets named electrical_island_build_tests
+
+# Build rule for target.
+electrical_island_build_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electrical_island_build_tests
+.PHONY : electrical_island_build_tests
+
+# fast build rule for target.
+electrical_island_build_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_island_build_tests.dir/build.make tests/CMakeFiles/electrical_island_build_tests.dir/build
+.PHONY : electrical_island_build_tests/fast
+
+#=============================================================================
+# Target rules for targets named electrical_handle_build_tests
+
+# Build rule for target.
+electrical_handle_build_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electrical_handle_build_tests
+.PHONY : electrical_handle_build_tests
+
+# fast build rule for target.
+electrical_handle_build_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_handle_build_tests.dir/build.make tests/CMakeFiles/electrical_handle_build_tests.dir/build
+.PHONY : electrical_handle_build_tests/fast
+
+#=============================================================================
+# Target rules for targets named electrical_subsolver_tests
+
+# Build rule for target.
+electrical_subsolver_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electrical_subsolver_tests
+.PHONY : electrical_subsolver_tests
+
+# fast build rule for target.
+electrical_subsolver_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/build
+.PHONY : electrical_subsolver_tests/fast
+
+#=============================================================================
 # Target rules for targets named pid_tests
 
 # Build rule for target.
@@ -573,6 +612,19 @@ current_sense_tests: cmake_check_build_system
 current_sense_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/current_sense_tests.dir/build.make tests/CMakeFiles/current_sense_tests.dir/build
 .PHONY : current_sense_tests/fast
+
+#=============================================================================
+# Target rules for targets named battery_discharge_tests
+
+# Build rule for target.
+battery_discharge_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 battery_discharge_tests
+.PHONY : battery_discharge_tests
+
+# fast build rule for target.
+battery_discharge_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/battery_discharge_tests.dir/build.make tests/CMakeFiles/battery_discharge_tests.dir/build
+.PHONY : battery_discharge_tests/fast
 
 #=============================================================================
 # Target rules for targets named bug_hunt_regression_tests
@@ -1471,6 +1523,19 @@ bp2_validation_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_validation_tests.dir/build.make tests/CMakeFiles/bp2_validation_tests.dir/build
 .PHONY : bp2_validation_tests/fast
 
+#=============================================================================
+# Target rules for targets named electrical_primitives_tests
+
+# Build rule for target.
+electrical_primitives_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 electrical_primitives_tests
+.PHONY : electrical_primitives_tests
+
+# fast build rule for target.
+electrical_primitives_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_primitives_tests.dir/build.make tests/CMakeFiles/electrical_primitives_tests.dir/build
+.PHONY : electrical_primitives_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1493,6 +1558,7 @@ help:
 	@echo "... asym_slew_rate_tests"
 	@echo "... asym_tmo_tests"
 	@echo "... azs_tests"
+	@echo "... battery_discharge_tests"
 	@echo "... benchmark_jit_vs_aot"
 	@echo "... benchmark_push_scheduler"
 	@echo "... blueprint_integration_tests"
@@ -1521,6 +1587,10 @@ help:
 	@echo "... editor_settings_tests"
 	@echo "... editor_viewport_tests"
 	@echo "... electric_pump_regression_tests"
+	@echo "... electrical_handle_build_tests"
+	@echo "... electrical_island_build_tests"
+	@echo "... electrical_primitives_tests"
+	@echo "... electrical_subsolver_tests"
 	@echo "... factory_validation_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"

@@ -10,9 +10,9 @@
       "id": "battery_1",
       "name": "battery_1",
       "params": {
-        "capacity": 1000.0,
-        "charge": 1000.0,
-        "internal_r": 0.009999999776482582,
+        "capacity": 1.0,
+        "charge": 1.0,
+        "internal_r": 0.5,
         "v_nominal": 28.0
       },
       "ports": {
@@ -41,14 +41,86 @@
         }
       },
       "position": {
-        "x": 384.0,
-        "y": 192.0
+        "x": 400.0,
+        "y": 208.0
       },
       "render_hint": "bus",
       "string_params": {
         "port_edge": "bottom"
       },
       "type": "Bus"
+    },
+    {
+      "id": "bus_2",
+      "name": "bus_2",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 352.0,
+        "y": -16.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "id": "bus_3",
+      "name": "bus_3",
+      "ports": {
+        "v": {
+          "direction": "InOut",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 832.0,
+        "y": -16.0
+      },
+      "render_hint": "bus",
+      "string_params": {
+        "port_edge": "bottom"
+      },
+      "type": "Bus"
+    },
+    {
+      "content_label": "OFF",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 5,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "currentsense_1",
+      "name": "currentsense_1",
+      "params": {
+        "conductance": 1000.0
+      },
+      "ports": {
+        "i_out": {
+          "direction": "Out",
+          "type": 1
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 592.0,
+        "y": 80.0
+      },
+      "type": "CurrentSense"
     },
     {
       "content_label": "OFF",
@@ -80,8 +152,8 @@
         }
       },
       "position": {
-        "x": 640.0,
-        "y": 64.0
+        "x": 752.0,
+        "y": 80.0
       },
       "string_params": {
         "color": "white"
@@ -108,8 +180,8 @@
       "type": "RefNode"
     },
     {
-      "id": "resistor_1",
-      "name": "resistor_1",
+      "id": "resistor_2",
+      "name": "resistor_2",
       "params": {
         "conductance": 0.10000000149011612
       },
@@ -125,7 +197,7 @@
       },
       "position": {
         "x": 480.0,
-        "y": 80.0
+        "y": -16.0
       },
       "type": "Resistor"
     }
@@ -140,23 +212,38 @@
       "target": "/bus_1:v"
     },
     {
+      "id": "wire_11",
+      "source": "/bus_2:v",
+      "target": "/resistor_2:v_in"
+    },
+    {
+      "id": "wire_15",
+      "source": "/refnode_1:v",
+      "target": "/bus_1:v"
+    },
+    {
       "id": "wire_2",
       "source": "/bus_1:v",
       "target": "/battery_1:v_in"
     },
     {
-      "id": "wire_5",
-      "source": "/battery_1:v_out",
-      "target": "/resistor_1:v_in"
+      "id": "wire_20",
+      "source": "/resistor_2:v_out",
+      "target": "/bus_3:v"
     },
     {
-      "id": "wire_8",
-      "source": "/refnode_1:v",
-      "target": "/bus_1:v"
+      "id": "wire_21",
+      "source": "/bus_3:v",
+      "target": "/currentsense_1:v_in"
+    },
+    {
+      "id": "wire_5",
+      "source": "/battery_1:v_out",
+      "target": "/bus_2:v"
     },
     {
       "id": "wire_9",
-      "source": "/resistor_1:v_out",
+      "source": "/currentsense_1:v_out",
       "target": "/indicatorlight_1:v_in"
     }
   ],

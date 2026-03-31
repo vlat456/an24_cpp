@@ -665,6 +665,54 @@ components/electric_pump.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electric_pump.cpp.s
 .PHONY : components/electric_pump.cpp.s
 
+components/electrical_conductance.o: components/electrical_conductance.cpp.o
+.PHONY : components/electrical_conductance.o
+
+# target to build an object file
+components/electrical_conductance.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.o
+.PHONY : components/electrical_conductance.cpp.o
+
+components/electrical_conductance.i: components/electrical_conductance.cpp.i
+.PHONY : components/electrical_conductance.i
+
+# target to preprocess a source file
+components/electrical_conductance.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.i
+.PHONY : components/electrical_conductance.cpp.i
+
+components/electrical_conductance.s: components/electrical_conductance.cpp.s
+.PHONY : components/electrical_conductance.s
+
+# target to generate assembly for a file
+components/electrical_conductance.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_conductance.cpp.s
+.PHONY : components/electrical_conductance.cpp.s
+
+components/electrical_source.o: components/electrical_source.cpp.o
+.PHONY : components/electrical_source.o
+
+# target to build an object file
+components/electrical_source.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o
+.PHONY : components/electrical_source.cpp.o
+
+components/electrical_source.i: components/electrical_source.cpp.i
+.PHONY : components/electrical_source.i
+
+# target to preprocess a source file
+components/electrical_source.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.i
+.PHONY : components/electrical_source.cpp.i
+
+components/electrical_source.s: components/electrical_source.cpp.s
+.PHONY : components/electrical_source.s
+
+# target to generate assembly for a file
+components/electrical_source.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.s
+.PHONY : components/electrical_source.cpp.s
+
 components/fast_tmo.o: components/fast_tmo.cpp.o
 .PHONY : components/fast_tmo.o
 
@@ -2057,6 +2105,30 @@ state.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/state.cpp.s
 .PHONY : state.cpp.s
 
+subsolvers/electrical_subsolver.o: subsolvers/electrical_subsolver.cpp.o
+.PHONY : subsolvers/electrical_subsolver.o
+
+# target to build an object file
+subsolvers/electrical_subsolver.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.o
+.PHONY : subsolvers/electrical_subsolver.cpp.o
+
+subsolvers/electrical_subsolver.i: subsolvers/electrical_subsolver.cpp.i
+.PHONY : subsolvers/electrical_subsolver.i
+
+# target to preprocess a source file
+subsolvers/electrical_subsolver.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.i
+.PHONY : subsolvers/electrical_subsolver.cpp.i
+
+subsolvers/electrical_subsolver.s: subsolvers/electrical_subsolver.cpp.s
+.PHONY : subsolvers/electrical_subsolver.s
+
+# target to generate assembly for a file
+subsolvers/electrical_subsolver.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/subsolvers/electrical_subsolver.cpp.s
+.PHONY : subsolvers/electrical_subsolver.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -2131,6 +2203,12 @@ help:
 	@echo "... components/electric_pump.o"
 	@echo "... components/electric_pump.i"
 	@echo "... components/electric_pump.s"
+	@echo "... components/electrical_conductance.o"
+	@echo "... components/electrical_conductance.i"
+	@echo "... components/electrical_conductance.s"
+	@echo "... components/electrical_source.o"
+	@echo "... components/electrical_source.i"
+	@echo "... components/electrical_source.s"
 	@echo "... components/fast_tmo.o"
 	@echo "... components/fast_tmo.i"
 	@echo "... components/fast_tmo.s"
@@ -2305,6 +2383,9 @@ help:
 	@echo "... state.o"
 	@echo "... state.i"
 	@echo "... state.s"
+	@echo "... subsolvers/electrical_subsolver.o"
+	@echo "... subsolvers/electrical_subsolver.i"
+	@echo "... subsolvers/electrical_subsolver.s"
 .PHONY : help
 
 
