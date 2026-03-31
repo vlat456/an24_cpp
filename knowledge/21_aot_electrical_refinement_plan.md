@@ -57,6 +57,26 @@ Consensus direction:
 
 ---
 
+## Implementation Log
+
+### Phase 0: Semantic Freeze — ✅ COMPLETE (2026-03-31)
+
+- **Step 1**: Created `knowledge/22_electrical_semantics.md` — documentation-only semantic freeze
+  covering: branch current direction conventions, source polarity rules, fixed-node behavior,
+  singular/ill-conditioned island handling, pivot/threshold policy, float precision rules,
+  island extraction, phase ordering, and codegen implications.
+  - Review found Norton polarity was backwards in draft (injecting `+I_n` into `node_a`
+    instead of `node_b`). Fixed before commit.
+- **Step 2**: (pending — allocation elimination in `solve_electrical()`)
+- **Step 3**: (pending — JIT↔AOT parity fixtures)
+- **Step 4**: (pending — electrical plan emission in `codegen.cpp`)
+
+### Phase 1: Generated Static Electrical Plan — IN PROGRESS
+
+(TBD)
+
+---
+
 ## Current Baseline
 
 Completed in MVP:
