@@ -857,8 +857,15 @@ void CodeGen::write_files(
     const std::vector<DeviceInstance>& devices,
     const std::vector<Connection>& connections,
     const std::unordered_map<std::string, uint32_t>& port_to_signal,
-    uint32_t signal_count
+    uint32_t signal_count,
+    const ElectricalPlanCodegen& electrical_plan_arg
 ) {
+    // Extract electrical plan if not provided
+    ElectricalPlanCodegen electrical_plan = electrical_plan_arg;
+    if (electrical_plan.islands.empty() && !devices.empty()) {
+        electrical_plan = extract_electrical_plan(devices, port_to_signal);
+    }
+
     // Generate header name from source file
     std::string base_name = source_file;
     size_t pos = base_name.find_last_of("/\\");
@@ -879,7 +886,7 @@ void CodeGen::write_files(
     std::cerr << "[codegen] Writing optimized ECS-like source to: " << source_path << "\n";
 
     // Generate header
-    std::string header = generate_header(source_file, devices, connections, port_to_signal, signal_count);
+    std::string header = generate_header(source_file, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream hfile(header_path);
     if (!hfile.is_open()) {
         std::cerr << "Failed to open: " << header_path << "\n";
@@ -889,7 +896,7 @@ void CodeGen::write_files(
     hfile.close();
 
     // Generate source
-    std::string source = generate_source(header_name, devices, connections, port_to_signal, signal_count);
+    std::string source = generate_source(header_name, devices, connections, port_to_signal, signal_count, "Systems", electrical_plan);
     std::ofstream sfile(source_path);
     if (!sfile.is_open()) {
         std::cerr << "Failed to open: " << source_path << "\n";
@@ -904,6 +911,9 @@ void CodeGen::write_files(
     std::cerr << "[codegen]   - __restrict pointers (no aliasing)\n";
     std::cerr << "[codegen]   - AOT_INLINE + AOT_LIKELY/AOT_UNLIKELY\n";
     std::cerr << "[codegen]   - Push single-pass step execution\n";
+    if (!electrical_plan.islands.empty()) {
+        std::cerr << "[codegen]   - Electrical plan: " << electrical_plan.islands.size() << " island(s)\n";
+    }
 }
 
 void CodeGen::generate_port_registry(const TypeRegistry& registry, const std::string& output_path) {

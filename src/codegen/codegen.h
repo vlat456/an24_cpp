@@ -78,7 +78,8 @@ public:
         const std::vector<DeviceInstance>& devices,
         const std::vector<Connection>& connections,
         const std::unordered_map<std::string, uint32_t>& port_to_signal,
-        uint32_t signal_count
+        uint32_t signal_count,
+        const ElectricalPlanCodegen& electrical_plan = {}
     );
 
     /// Generate port registry header from TypeRegistry

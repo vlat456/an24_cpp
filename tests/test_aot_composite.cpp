@@ -413,3 +413,164 @@ TEST(AotComposite, OutputMatchesJitExpansion) {
     EXPECT_NE(aot_result.source.find("vout.execute"), std::string::npos)
         << "AOT source should contain vout.execute call";
 }
+
+// ============================================================
+// Electrical Plan codegen
+// ============================================================
+
+TEST(AotComposite, ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays) {
+    TypeRegistry registry;
+
+    // === Register types with ports ===
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition resistor_type;
+    resistor_type.classname = "Resistor";
+    resistor_type.cpp_class = true;
+    resistor_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    resistor_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    resistor_type.domains = {{Domain::Electrical}};
+    registry.types["Resistor"] = resistor_type;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = refnode_type;
+
+    // Simple circuit: Battery -> Resistor -> RefNode (fixed voltage)
+    TypeDefinition circuit;
+    circuit.classname = "simple_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_bat.params["v_nominal"] = "28.0";
+    d_bat.params["internal_r"] = "0.01";
+
+    DeviceInstance d_res;
+    d_res.name = "res";
+    d_res.classname = "Resistor";
+    d_res.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_res.params["conductance"] = "10.0";
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+    d_ref.params["value"] = "0.0";
+
+    circuit.devices = {d_bat, d_res, d_ref};
+    circuit.connections = {
+        {"bat.v_out", "res.v_in", {}},
+        {"res.v_out", "gnd.v", {}}
+    };
+    registry.types["simple_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    EXPECT_FALSE(result.header.empty());
+    EXPECT_FALSE(result.source.empty());
+
+    EXPECT_NE(result.header.find("ELECTRICAL_ISLAND_COUNT"), std::string::npos)
+        << "Header should contain ELECTRICAL_ISLAND_COUNT";
+
+    EXPECT_NE(result.header.find("island_0_nodes"), std::string::npos)
+        << "Header should contain island_0_nodes array";
+
+    EXPECT_NE(result.header.find("island_0_elements"), std::string::npos)
+        << "Header should contain island_0_elements array";
+
+    EXPECT_NE(result.source.find("solve_electrical"), std::string::npos)
+        << "Source should contain solve_electrical call";
+
+    EXPECT_NE(result.header.find("AotElectricalPlan"), std::string::npos)
+        << "Header should contain AotElectricalPlan struct";
+
+    EXPECT_NE(result.header.find("electrical_rt_"), std::string::npos)
+        << "Header should contain electrical_rt_ member";
+}
+
+TEST(AotComposite, ElectricalPlan_IndicatorLight_GeneratesConductanceBranch) {
+    TypeRegistry registry;
+
+    // === Register types with ports ===
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    TypeDefinition light_type;
+    light_type.classname = "IndicatorLight";
+    light_type.cpp_class = true;
+    light_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    light_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    light_type.ports["brightness"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    light_type.domains = {{Domain::Electrical}};
+    registry.types["IndicatorLight"] = light_type;
+
+    TypeDefinition lamp_circuit;
+    lamp_circuit.classname = "lamp_circuit";
+    lamp_circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_lamp;
+    d_lamp.name = "lamp";
+    d_lamp.classname = "IndicatorLight";
+    d_lamp.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    lamp_circuit.devices = {d_bat, d_lamp};
+    lamp_circuit.connections = {
+        {"bat.v_out", "lamp.v_in", {}},
+        {"bat.v_in", "lamp.v_out", {}}
+    };
+    registry.types["lamp_circuit"] = lamp_circuit;
+
+    auto result = CodeGen::generate_composite_systems(lamp_circuit, registry);
+
+    EXPECT_NE(result.header.find("ELECTRICAL_ISLAND_COUNT"), std::string::npos)
+        << "Header should contain ELECTRICAL_ISLAND_COUNT even for IndicatorLight";
+
+    EXPECT_NE(result.source.find("solve_electrical"), std::string::npos)
+        << "Source should contain solve_electrical for circuit with IndicatorLight";
+}
+
+TEST(AotComposite, ElectricalPlan_NoElectricalDevices_HasZeroIslands) {
+    TypeRegistry registry;
+
+    TypeDefinition no_elec;
+    no_elec.classname = "no_electrical";
+    no_elec.cpp_class = false;
+
+    DeviceInstance d_bus;
+    d_bus.name = "bus";
+    d_bus.classname = "Bus";
+    d_bus.execution = make_execution(false, false, true, false, false, false, false, false, false);
+
+    no_elec.devices = {d_bus};
+    registry.types["no_electrical"] = no_elec;
+
+    auto result = CodeGen::generate_composite_systems(no_elec, registry);
+
+    EXPECT_NE(result.header.find("ELECTRICAL_ISLAND_COUNT = 0"), std::string::npos)
+        << "Header should show ELECTRICAL_ISLAND_COUNT = 0 when no electrical devices";
+
+    EXPECT_EQ(result.source.find("solve_electrical"), std::string::npos)
+        << "Source should NOT contain solve_electrical when no electrical devices";
+}
