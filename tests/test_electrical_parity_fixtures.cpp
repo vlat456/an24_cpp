@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
 #include "jit_solver/simulator.h"
+#include "codegen/codegen.h"
+#include "jit_solver/jit_solver.h"
+#include "jit_solver/subsolvers/electrical_subsolver.h"
 #include <cmath>
 
 namespace {
@@ -235,3 +238,347 @@ TEST(ElectricalParityFixtures, NearShortHighConductance) {
 //   - max branch current error < 1e-3A
 //   - KCL residual per island < 1e-10 absolute
 // ============================================================================
+
+// ============================================================================
+// AOT Electrical Parity Tests
+// ============================================================================
+// These tests verify that extract_electrical_plan() (used by codegen) produces
+// the same electrical plan and solve results as build_systems_dev() (JIT path).
+// Both paths use the same shared solve_electrical() function, so plan parity
+// implies result parity.
+//
+// Helper: run AOT path (extract_electrical_plan + solve_electrical)
+static void run_aot_electrical(
+    const std::vector<DeviceInstance>& devices,
+    const std::vector<Connection>& connections,
+    const PortToSignal& port_to_signal,
+    ElectricalBuildPlan& out_plan,
+    SimulationState& out_state,
+    ElectricalRuntimeState& out_rt
+) {
+    // Extract plan using codegen's extract_electrical_plan
+    ElectricalPlanCodegen codegen_plan = extract_electrical_plan(devices, port_to_signal);
+
+    // Convert ElectricalPlanCodegen to ElectricalBuildPlan (same as AotElectricalPlan constructor)
+    out_plan.islands.clear();
+    for (auto& island_cg : codegen_plan.islands) {
+        ElectricalIslandPlan isl;
+        isl.signal_indices = island_cg.signal_indices;
+        for (auto& e : island_cg.elements) {
+            isl.elements.push_back({
+                static_cast<ElectricalElementKind>(static_cast<uint8_t>(e.kind)),
+                e.node_a, e.node_b, e.value_a, e.value_b, e.component_index
+            });
+        }
+        out_plan.islands.push_back(std::move(isl));
+    }
+
+    // Allocate signals
+    uint32_t signal_count = 0;
+    for (const auto& [port, sig] : port_to_signal) {
+        signal_count = std::max(signal_count, sig + 1);
+    }
+    for (uint32_t i = 0; i < signal_count; ++i) {
+        out_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    }
+
+    // Pre-allocate scratch buffers (reserve to avoid reallocation)
+    uint32_t max_nodes = 0, max_elems = 0, max_comp = 0;
+    for (const auto& island : out_plan.islands) {
+        max_nodes = std::max(max_nodes, (uint32_t)island.signal_indices.size());
+        max_elems = std::max(max_elems, (uint32_t)island.elements.size());
+        for (const auto& e : island.elements)
+            max_comp = std::max(max_comp, e.component_index);
+    }
+    out_rt.branch_currents.reserve(max_comp + 1);
+    out_rt.island_nodes.reserve(max_nodes);
+    out_rt.fixed_nodes.reserve(max_elems);
+    out_rt.fixed_voltages.reserve(max_nodes);
+    out_rt.is_fixed.reserve(max_nodes);
+    out_rt.node_to_unknown.reserve(max_nodes);
+    out_rt.island_voltages.reserve(max_nodes);
+    out_rt.scratch_matrix.reserve(static_cast<size_t>(max_nodes) * max_nodes);
+    out_rt.scratch_rhs.reserve(max_nodes);
+
+    // Run electrical solve
+    solve_electrical(out_plan, out_state, out_rt, 1.0f / 60.0f);
+}
+
+// Helper: set RefNode initial values in SimulationState
+static void set_refnode_values(
+    SimulationState& st,
+    const std::vector<DeviceInstance>& devices,
+    const PortToSignal& port_to_signal
+) {
+    for (const auto& dev : devices) {
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it = dev.params.find("value");
+            if (it != dev.params.end()) {
+                value = std::stof(it->second);
+            }
+            std::string port_key = dev.name + ".v";
+            auto it_sig = port_to_signal.find(port_key);
+            if (it_sig != port_to_signal.end()) {
+                st.values[it_sig->second] = value;
+            }
+        }
+    }
+}
+
+// Helper: get voltage at a port from SimulationState
+static float get_voltage(const SimulationState& st, const PortToSignal& port_to_signal,
+                         const std::string& device_name, const std::string& port_name) {
+    std::string key = device_name + "." + port_name;
+    auto it = port_to_signal.find(key);
+    if (it == port_to_signal.end()) return 0.0f;
+    return st.values[it->second];
+}
+
+// ----------------------------------------------------------------------------
+// AOT Parity Fixture 1: Simple Thevenin Divider
+// ----------------------------------------------------------------------------
+TEST(ElectricalAotParity, SimpleTheveninDivider) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "1.0"}},
+            {"name": "load", "classname": "ElectricalConductance", "params": {"conductance": "1.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            "src.v_out -> load.v_in",
+            "load.v_out -> gnd.v",
+            "src.v_in -> gnd.v"
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : ctx.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+
+    // JIT path
+    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    SimulationState jit_state;
+    for (uint32_t i = 0; i < jit_result.signal_count; ++i)
+        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    ElectricalRuntimeState jit_rt;
+    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+
+    // AOT path
+    ElectricalBuildPlan aot_plan;
+    SimulationState aot_state;
+    ElectricalRuntimeState aot_rt;
+    run_aot_electrical(ctx.devices, ctx.connections, jit_result.port_to_signal,
+                       aot_plan, aot_state, aot_rt);
+
+    // Compare signal values
+    ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
+    for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
+        if (jit_state.signal_types[i].is_fixed) continue; // Skip fixed signals
+        EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
+            << "Signal " << i << " voltage mismatch";
+    }
+
+    // Compare specific known voltages
+    float jit_v_src_out = get_voltage(jit_state, jit_result.port_to_signal, "src", "v_out");
+    float aot_v_src_out = get_voltage(aot_state, jit_result.port_to_signal, "src", "v_out");
+    EXPECT_NEAR(jit_v_src_out, 14.0f, 1e-3f);
+    EXPECT_NEAR(jit_v_src_out, aot_v_src_out, 1e-6f);
+}
+
+// ----------------------------------------------------------------------------
+// AOT Parity Fixture 2: Series Chain Two Resistors
+// ----------------------------------------------------------------------------
+TEST(ElectricalAotParity, SeriesChainTwoResistors) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "ElectricalSource", "params": {"voltage": "28.0", "resistance": "0.0"}},
+            {"name": "r1", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
+            {"name": "r2", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            "src.v_out -> r1.v_in",
+            "r1.v_out -> r2.v_in",
+            "r2.v_out -> gnd.v",
+            "src.v_in -> gnd.v"
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : ctx.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+
+    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    SimulationState jit_state;
+    for (uint32_t i = 0; i < jit_result.signal_count; ++i)
+        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    ElectricalRuntimeState jit_rt;
+    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+
+    ElectricalBuildPlan aot_plan;
+    SimulationState aot_state;
+    ElectricalRuntimeState aot_rt;
+    run_aot_electrical(ctx.devices, ctx.connections, jit_result.port_to_signal,
+                       aot_plan, aot_state, aot_rt);
+
+    for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
+        if (jit_state.signal_types[i].is_fixed) continue;
+        EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
+            << "Signal " << i << " voltage mismatch";
+    }
+
+    float jit_v_r1 = get_voltage(jit_state, jit_result.port_to_signal, "r1", "v_out");
+    float aot_v_r1 = get_voltage(aot_state, jit_result.port_to_signal, "r1", "v_out");
+    EXPECT_NEAR(jit_v_r1, 14.0f, 1e-3f);
+    EXPECT_NEAR(jit_v_r1, aot_v_r1, 1e-6f);
+}
+
+// ----------------------------------------------------------------------------
+// AOT Parity Fixture 3: Parallel Branch Split
+// ----------------------------------------------------------------------------
+TEST(ElectricalAotParity, ParallelBranchSplit) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "ElectricalSource", "params": {"voltage": "24.0", "resistance": "2.0"}},
+            {"name": "r1", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
+            {"name": "r2", "classname": "ElectricalConductance", "params": {"conductance": "0.5"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            "src.v_out -> r1.v_in",
+            "r1.v_out -> gnd.v",
+            "src.v_out -> r2.v_in",
+            "r2.v_out -> gnd.v",
+            "src.v_in -> gnd.v"
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : ctx.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+
+    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    SimulationState jit_state;
+    for (uint32_t i = 0; i < jit_result.signal_count; ++i)
+        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    ElectricalRuntimeState jit_rt;
+    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+
+    ElectricalBuildPlan aot_plan;
+    SimulationState aot_state;
+    ElectricalRuntimeState aot_rt;
+    run_aot_electrical(ctx.devices, ctx.connections, jit_result.port_to_signal,
+                       aot_plan, aot_state, aot_rt);
+
+    for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
+        if (jit_state.signal_types[i].is_fixed) continue;
+        EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
+            << "Signal " << i << " voltage mismatch";
+    }
+}
+
+// ----------------------------------------------------------------------------
+// AOT Parity Fixture 4: Multi-Island (two disconnected circuits)
+// ----------------------------------------------------------------------------
+TEST(ElectricalAotParity, MultiIsland) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "src1", "classname": "ElectricalSource", "params": {"voltage": "12.0", "resistance": "1.0"}},
+            {"name": "load1", "classname": "ElectricalConductance", "params": {"conductance": "1.0"}},
+            {"name": "gnd1", "classname": "RefNode", "params": {"value": "0.0"}},
+            {"name": "src2", "classname": "ElectricalSource", "params": {"voltage": "24.0", "resistance": "2.0"}},
+            {"name": "load2", "classname": "ElectricalConductance", "params": {"conductance": "2.0"}},
+            {"name": "gnd2", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            "src1.v_out -> load1.v_in",
+            "load1.v_out -> gnd1.v",
+            "src1.v_in -> gnd1.v",
+            "src2.v_out -> load2.v_in",
+            "load2.v_out -> gnd2.v",
+            "src2.v_in -> gnd2.v"
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : ctx.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+
+    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    SimulationState jit_state;
+    for (uint32_t i = 0; i < jit_result.signal_count; ++i)
+        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    ElectricalRuntimeState jit_rt;
+    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+
+    ElectricalBuildPlan aot_plan;
+    SimulationState aot_state;
+    ElectricalRuntimeState aot_rt;
+    run_aot_electrical(ctx.devices, ctx.connections, jit_result.port_to_signal,
+                       aot_plan, aot_state, aot_rt);
+
+    ASSERT_EQ(jit_result.electrical_plan.islands.size(), aot_plan.islands.size());
+
+    for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
+        if (jit_state.signal_types[i].is_fixed) continue;
+        EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
+            << "Signal " << i << " voltage mismatch";
+    }
+}
+
+// ----------------------------------------------------------------------------
+// AOT Parity Fixture 5: Near-Short High Conductance
+// ----------------------------------------------------------------------------
+TEST(ElectricalAotParity, NearShortHighConductance) {
+    const std::string json = R"({
+        "devices": [
+            {"name": "src", "classname": "ElectricalSource", "params": {"voltage": "12.0", "resistance": "0.001"}},
+            {"name": "load", "classname": "ElectricalConductance", "params": {"conductance": "1000.0"}},
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}}
+        ],
+        "connections": [
+            "src.v_out -> load.v_in",
+            "load.v_out -> gnd.v",
+            "src.v_in -> gnd.v"
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+    std::vector<std::pair<std::string, std::string>> conn_pairs;
+    for (const auto& c : ctx.connections) {
+        conn_pairs.push_back({c.from, c.to});
+    }
+
+    auto jit_result = build_systems_dev(ctx.devices, conn_pairs);
+    SimulationState jit_state;
+    for (uint32_t i = 0; i < jit_result.signal_count; ++i)
+        jit_state.allocate_signal(0.0f, {Domain::Electrical, false});
+    set_refnode_values(jit_state, ctx.devices, jit_result.port_to_signal);
+    ElectricalRuntimeState jit_rt;
+    solve_electrical(jit_result.electrical_plan, jit_state, jit_rt, 1.0f / 60.0f);
+
+    ElectricalBuildPlan aot_plan;
+    SimulationState aot_state;
+    ElectricalRuntimeState aot_rt;
+    run_aot_electrical(ctx.devices, ctx.connections, jit_result.port_to_signal,
+                       aot_plan, aot_state, aot_rt);
+
+    for (size_t i = 0; i < jit_result.signal_count && i < 100u; ++i) {
+        if (jit_state.signal_types[i].is_fixed) continue;
+        EXPECT_NEAR(jit_state.values[i], aot_state.values[i], 1e-6f)
+            << "Signal " << i << " voltage mismatch";
+    }
+}

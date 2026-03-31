@@ -1520,6 +1520,7 @@ target_include_directories(electrical_parity_fixtures_tests PRIVATE
 target_link_libraries(electrical_parity_fixtures_tests PRIVATE
     jit_solver
     json_parser
+    an24_codegen
     GTest::gtest_main
 )
 gtest_discover_tests(electrical_parity_fixtures_tests)

@@ -49,6 +49,7 @@ inline bool is_valid(const ElectricalPrimitiveHandle& h) {
 // == ElectricalRuntimeState ==
 // Scratch buffers for electrical solve. Sized to max island node count.
 // All vectors retain capacity across frames — resize() keeps existing memory.
+// Use reserve() at init time to pre-allocate to max island size.
 struct ElectricalRuntimeState {
     std::vector<float> branch_currents;
     std::vector<float> scratch_matrix;
@@ -60,6 +61,19 @@ struct ElectricalRuntimeState {
     std::vector<bool> is_fixed;
     std::vector<int> node_to_unknown;
     std::vector<float> island_voltages;
+
+    void reserve(uint32_t max_nodes, uint32_t max_elements, uint32_t max_component_index) {
+        uint32_t max_unknowns = max_nodes;
+        branch_currents.reserve(max_component_index + 1);
+        island_nodes.reserve(max_nodes);
+        fixed_nodes.reserve(max_elements);
+        fixed_voltages.reserve(max_nodes);
+        is_fixed.reserve(max_nodes);
+        node_to_unknown.reserve(max_nodes);
+        island_voltages.reserve(max_nodes);
+        scratch_matrix.reserve(static_cast<size_t>(max_unknowns) * max_unknowns);
+        scratch_rhs.reserve(max_unknowns);
+    }
 };
 
 /// Get the solved branch current for a given electrical primitive handle.

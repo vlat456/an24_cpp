@@ -582,8 +582,27 @@ std::string CodeGen::generate_header(
         }
         oss << "    }\n";
         oss << "};\n\n";
+
+        // Compute max island sizes for scratch buffer pre-allocation
+        uint32_t max_island_nodes = 0;
+        uint32_t max_island_elements = 0;
+        uint32_t max_component_index = 0;
+        for (const auto& island : electrical_plan.islands) {
+            max_island_nodes = std::max(max_island_nodes, (uint32_t)island.signal_indices.size());
+            max_island_elements = std::max(max_island_elements, (uint32_t)island.elements.size());
+            for (const auto& elem : island.elements) {
+                max_component_index = std::max(max_component_index, elem.component_index);
+            }
+        }
+        oss << "/// Pre-allocated scratch buffer sizes for electrical solve\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = " << max_island_nodes << ";\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = " << max_island_elements << ";\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = " << max_component_index << ";\n\n";
     } else {
         oss << "constexpr uint32_t ELECTRICAL_ISLAND_COUNT = 0;\n\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_NODES = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_ISLAND_ELEMENTS = 0;\n";
+        oss << "constexpr uint32_t ELECTRICAL_MAX_COMPONENT_INDEX = 0;\n\n";
     }
 
     // Global simulation state pointer (set at init, available globally)
@@ -756,6 +775,13 @@ std::string CodeGen::generate_source(
             std::string type = infer_type(value);
             oss << "    " << sanitize_name(dev.name) << "." << param_name << " = " << format_value(value, type) << ";\n";
         }
+    }
+
+    // Initialize electrical plan and pre-allocate scratch buffers
+    if (!electrical_plan.islands.empty()) {
+        oss << "    electrical_plan_ = AotElectricalPlan();\n";
+        oss << "    electrical_rt_.reserve(ELECTRICAL_MAX_ISLAND_NODES, "
+            << "ELECTRICAL_MAX_ISLAND_ELEMENTS, ELECTRICAL_MAX_COMPONENT_INDEX);\n";
     }
     oss << "}\n\n";
 
