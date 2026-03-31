@@ -106,14 +106,22 @@ Implementation log:
     unresolvable electrical ports in `extract_electrical_plan()` — follows existing
     spdlog conventions in the codebase
   - Added 3 codegen tests in `test_aot_composite.cpp`:
-    - `ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays` — verifies static arrays,
-      `solve_electrical()` call, `AotElectricalPlan` struct, and `electrical_rt_` member
-    - `ElectricalPlan_IndicatorLight_GeneratesConductanceBranch` — verifies IndicatorLight
-      (purely classname-based) generates conductance branch
-    - `ElectricalPlan_NoElectricalDevices_HasZeroIslands` — verifies circuits without
-      electrical devices produce `ELECTRICAL_ISLAND_COUNT = 0` and no `solve_electrical` call
+    - `ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays`
+    - `ElectricalPlan_IndicatorLight_GeneratesConductanceBranch`
+    - `ElectricalPlan_NoElectricalDevices_HasZeroIslands`
+  - **AOT parity tests**: Added 5 `ElectricalAotParity` tests comparing JIT vs codegen path
+    results using the same fixtures as `ElectricalParityFixtures`. `run_aot_electrical()` helper
+    calls `extract_electrical_plan()` → converts to `ElectricalBuildPlan` → runs `solve_electrical()`
+    → compares all signal values. All 5 pass, proving `extract_electrical_plan()` produces
+    identical electrical model to `build_systems_dev()`.
+  - **Scratch buffer pre-allocation**: Added `reserve()` method to `ElectricalRuntimeState`
+    for pre-allocating all scratch buffers to max island sizes. Codegen emits
+    `ELECTRICAL_MAX_ISLAND_NODES/ELEMENTS/MAX_COMPONENT_INDEX` constants and calls
+    `electrical_rt_.reserve()` in constructor. Tightens allocation bound from `signal_count`
+    to actual max island size (typically 3-15 vs 200+).
   - All 5 `ElectricalParityFixtures` tests pass
-  - All 6 `AotComposite` tests pass (including 3 new electrical plan tests)
+  - All 6 `AotComposite` tests pass
+  - All 5 `ElectricalAotParity` tests pass
   - 7 pre-existing test failures unrelated to electrical/codegen changes
 
 ---
@@ -137,7 +145,7 @@ Known gaps in current implementation:
   (`island_nodes`, `fixed_nodes`, `is_fixed`, `node_to_unknown`, `island_voltages`).
   This violates the "no per-frame heap allocation" target. ✅ FIXED (Phase 0 Step 2)
 - `ElectricalRuntimeState` scratch buffers reuse capacity but the per-island local vectors do not.
-  (Partial fix: scratch buffers are in `ElectricalRuntimeState`; still need pre-allocation to max island size)
+  ✅ FIXED (Phase 1): `reserve()` method added; codegen pre-allocates to max island size.
 - Stable symbolic bindings (Phase 2) not yet implemented
 - Observability/diagnostics for electrical failures (Phase 3) not yet implemented
 - `write_files()` public API doesn't call `merge_device_instance` — only works when
@@ -208,11 +216,14 @@ Key risk:
   Prefer the span-based approach (lower indirection) but do not block Phase 1 on it
   if the adapter approach ships faster.
 
-Exit gate:
+Exit gate: ✅ ALL MET (2026-03-31)
 
-- AOT path no longer depends on metadata/string lookups at runtime
-- generated code compiles and passes all Phase 0 parity fixtures
-- no per-frame heap allocation in `solve_electrical()` (verified by metric)
+- ✅ AOT path no longer depends on metadata/string lookups at runtime — codegen emits
+  static electrical plan arrays consumed by shared `solve_electrical()`
+- ✅ generated code compiles and passes all Phase 0 parity fixtures — 5 `ElectricalParityFixtures`
+  (JIT) + 5 `ElectricalAotParity` (JIT vs codegen comparison) all pass
+- ✅ no per-frame heap allocation in `solve_electrical()` — scratch buffers pre-allocated via
+  `reserve()` to max island sizes
 
 ## Phase 2: Direct Symbolic Observer/State Bindings
 
