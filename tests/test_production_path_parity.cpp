@@ -2,32 +2,10 @@
 #include "json_parser/json_parser.h"
 #include "jit_solver/jit_solver.h"
 #include "codegen/codegen.h"
+#include "test_helpers.h"
 #include <set>
 
 namespace {
-
-ExecutionPhases make_execution(
-    bool electrical_passive,
-    bool electrical_observer,
-    bool logical,
-    bool control_commit,
-    bool electrical_actuator,
-    bool finalize,
-    bool mechanical,
-    bool hydraulic,
-    bool thermal) {
-    ExecutionPhases phases;
-    phases.electrical_passive = electrical_passive;
-    phases.electrical_observer = electrical_observer;
-    phases.logical = logical;
-    phases.control_commit = control_commit;
-    phases.electrical_actuator = electrical_actuator;
-    phases.finalize = finalize;
-    phases.mechanical = mechanical;
-    phases.hydraulic = hydraulic;
-    phases.thermal = thermal;
-    return phases;
-}
 
 TypeRegistry build_registry_for_lamp() {
     TypeRegistry registry;

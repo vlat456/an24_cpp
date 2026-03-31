@@ -746,6 +746,27 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 3 (Phase 6 cleanup)**: ✅ DONE — deduplicate test execution helper
+  - Added shared test helper header: `tests/test_helpers.h`
+    - centralized `make_execution(...)` helper for `ExecutionPhases`
+  - Removed duplicated local `make_execution(...)` implementations from:
+    - `tests/test_aot_composite.cpp`
+    - `tests/test_production_path_parity.cpp`
+    - `tests/test_jit_aot_bridge_equivalence.cpp`
+  - Preserved test behavior while reducing maintenance drift risk in
+    production-path/codegen validation suites
+  - Validation passed:
+    - `ElectricalSubsolver` (all)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ---
 
 ## Must-Have vs Nice-to-Have Matrix
