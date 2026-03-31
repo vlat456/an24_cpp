@@ -480,6 +480,17 @@ Implementation log:
     - `ElectricalParityFixtures` (5/5)
     - `ElectricalAotParity` (5/5)
 
+- **Step 3 (Phase 4 debt accounting)**: ✅ DONE — explicit raw-builder debt tracker
+  - Added `knowledge/phase4_raw_builder_debt.md` with:
+    - measured baseline callsites: `build_systems_dev(...)` in `tests/*.cpp`
+    - per-file raw-builder usage ranking
+    - intentional raw-builder vs migration-candidate categorization
+    - operational migration steps and measurable exit criteria
+  - Added index entry in `knowledge/index.md`
+  - Current measured baseline (2026-03-31):
+    - raw-builder callsites: 108
+    - CTest labels: `production_path`=18, `raw_builder`=10
+
 ## Phase 5: Targeted Kernel Specialization (Budgeted)
 
 Must-have:

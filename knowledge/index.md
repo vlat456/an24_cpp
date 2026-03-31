@@ -29,6 +29,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Subsolver step-by-step plan | `knowledge/19_subsolver_step_by_step_plan.md` | **Active implementation tracker** - detailed steps with completion status for phases 1-15 |
 | Electrical migration release notes | `knowledge/20_electrical_migration_release_notes.md` | Final summary of implemented electrical subsolver migration and behavioral changes |
 | AOT electrical refinement plan | `knowledge/21_aot_electrical_refinement_plan.md` | AOT-first plan to simplify runtime hot path and improve architectural elegance post-MVP |
+| Phase 4 raw-builder debt | `knowledge/phase4_raw_builder_debt.md` | Explicit tracker of raw-builder test usage and migration candidates |
 | Electrical component authoring | `knowledge/how_to_create_electrical_components.md` | Practical guide for creating primitive/wrapper electrical components and solver-role metadata |
 | Blueprint zero-legacy cutover plan | `knowledge/blueprint_migration/zero_legacy_cutover_plan.md` | Strict no-fallback blueprint/runtime cutover checklist |
 | Generated files policy | `knowledge/17_generated_files.md` | Which files are auto-generated and must not be edited manually |
