@@ -458,3 +458,27 @@ TEST(ElectricalSubsolver, SingularIslandDoesNotThrowAndKeepsPreviousState) {
     EXPECT_FLOAT_EQ(rt.branch_currents[0], 0.0f);
     EXPECT_FLOAT_EQ(rt.branch_currents[1], 0.0f);
 }
+
+TEST(ElectricalSubsolver, SpecializedN1SolveMatchesExpectedDivider) {
+    // Single unknown node (N=1): source + load to fixed ground.
+    // This path should use the specialized N==1 solve branch.
+    ElectricalBuildPlan plan;
+    plan.islands.push_back(make_island(
+        {0, 1},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 1, 0, 28.0f, 1.0f, 1u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 1.0f, 0.0f, 2u}
+        }
+    ));
+
+    SimulationState st = make_sim_state(4);
+    ElectricalRuntimeState rt;
+
+    solve_electrical(plan, st, rt, 0.0f);
+
+    EXPECT_NEAR(st.values[1], 14.0f, 1e-3f);
+    ASSERT_EQ(rt.island_diagnostics.size(), 1u);
+    EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
+    EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 1u);
+}

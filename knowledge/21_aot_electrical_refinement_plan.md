@@ -584,6 +584,28 @@ Implementation log:
   - No specialization kernels added in this step; this is the gate + scope lock
     before introducing specialized dispatch
 
+- **Step 2 (Phase 5 first specialized family)**: ✅ DONE — N==1 solve fast path
+  - Added first bounded specialization in `solve_electrical()`:
+    - when dense unknown count `N == 1`, solve directly with scalar divide
+      (`b[0] /= A[0]`) and singular guard (`|A[0]| < 1e-12` => fallback)
+    - keep generic Gaussian path unchanged for `N > 1`
+  - This specialization preserves existing fallback semantics:
+    - on singular matrix, `solve_ok=false` and previous-state voltage retention
+  - Added regression test in `tests/test_electrical_subsolver.cpp`:
+    - `ElectricalSubsolver.SpecializedN1SolveMatchesExpectedDivider`
+    - validates expected divider voltage and diagnostics fields for N==1 case
+  - Validation passed:
+    - `ElectricalSubsolver` (11/11)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:

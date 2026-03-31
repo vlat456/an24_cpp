@@ -247,12 +247,24 @@ void solve_electrical(
         // malformed or underconstrained user graphs are expected during editing.
         bool solve_ok = true;
         if (N > 0) {
-            try {
-                solve_dense_gaussian(A, b, N);
-                // After in-place solve, b[] contains the solution vector.
-            }
-            catch (const std::runtime_error&) {
-                solve_ok = false;
+            // Phase 5 specialization scaffold: 1x1 dense solve kernel.
+            // This is a common island family (single unknown node) and avoids
+            // invoking full Gaussian elimination for N==1.
+            if (N == 1) {
+                float a00 = A[0];
+                if (std::fabs(a00) < 1e-12f) {
+                    solve_ok = false;
+                } else {
+                    b[0] /= a00;
+                }
+            } else {
+                try {
+                    solve_dense_gaussian(A, b, N);
+                    // After in-place solve, b[] contains the solution vector.
+                }
+                catch (const std::runtime_error&) {
+                    solve_ok = false;
+                }
             }
         }
 
