@@ -648,6 +648,28 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 5 (Phase 5 observability tie-in)**: ✅ DONE — periodic AOT counter logs
+  - Extended generated AOT solve path to emit periodic specialization summary:
+    - added `ELECTRICAL_COUNTER_LOG_PERIOD = 600` frames
+    - every period logs `ElectricalRuntimeState::counters` via spdlog:
+      islands total, N0/N1/N2/dense hits, singular fallback count
+  - Added/extended regressions:
+    - `AotComposite.ElectricalDiagnostics_WarnPathGenerated` now verifies
+      generated counter-log hook strings
+    - `ElectricalSubsolver.SolveCountersTrackSpecializedPaths` validates
+      runtime counter values for mixed island families
+  - Validation passed:
+    - `ElectricalSubsolver` (all, incl. N1/N2/counter tests)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:

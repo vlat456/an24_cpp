@@ -1048,6 +1048,8 @@ TEST(AotComposite, ElectricalDiagnostics_WarnPathGenerated) {
     EXPECT_NE(result.source.find("electrical_rt_.island_diagnostics"), std::string::npos);
     EXPECT_NE(result.source.find("[aot-elec] island="), std::string::npos);
     EXPECT_NE(result.source.find("dump_island_debug(diag.island_index)"), std::string::npos);
+    EXPECT_NE(result.source.find("[aot-elec] solve counters:"), std::string::npos);
+    EXPECT_NE(result.source.find("electrical_rt_.counters"), std::string::npos);
     EXPECT_NE(result.source.find("ELECTRICAL_DEBUG_COUNT"), std::string::npos);
     EXPECT_NE(result.source.find("ELECTRICAL_DEBUG_MAP"), std::string::npos);
 }

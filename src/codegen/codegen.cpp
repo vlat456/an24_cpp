@@ -368,6 +368,7 @@ std::string CodeGen::generate_header(
         oss << "    ElectricalBuildPlan electrical_plan_;\n";
         oss << "    ElectricalRuntimeState electrical_rt_;\n";
         oss << "    static constexpr float ELECTRICAL_DIAG_RESIDUAL_WARN = 1e-4f;\n";
+        oss << "    static constexpr uint32_t ELECTRICAL_COUNTER_LOG_PERIOD = 600;\n";
         oss << "\n";
         oss << "    struct ElectricalBindings {\n";
         for (const auto& binding : electrical_plan.device_bindings) {
@@ -603,6 +604,11 @@ std::string CodeGen::generate_source(
         if (!electrical_plan.islands.empty()) {
             oss << "    st->electrical_rt = &electrical_rt_;\n";
             oss << "    solve_electrical(electrical_plan_, *st, electrical_rt_, dt);\n";
+            oss << "    if (step_counter_ > 0 && (step_counter_ % ELECTRICAL_COUNTER_LOG_PERIOD) == 0) {\n";
+            oss << "        const auto& c = electrical_rt_.counters;\n";
+            oss << "        spdlog::info(\"[aot-elec] solve counters: islands={} n0={} n1={} n2={} dense={} singular={}\",\n";
+            oss << "            c.islands_total, c.solves_n0, c.solves_n1, c.solves_n2, c.solves_dense, c.singular_fallbacks);\n";
+            oss << "    }\n";
             oss << "    for (const auto& diag : electrical_rt_.island_diagnostics) {\n";
             oss << "        if (!diag.solve_ok || diag.max_abs_kcl_residual > ELECTRICAL_DIAG_RESIDUAL_WARN) {\n";
             oss << "            spdlog::warn(\"[aot-elec] island={} solve_ok={} unknowns={} max_abs_kcl={} worst_signal={} worst_v={} worst_branch_comp={}\",\n";
