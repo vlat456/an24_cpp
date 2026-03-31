@@ -78,9 +78,43 @@ Consensus direction:
   scratch buffer refactor. Build verified after `-ffast-math` workaround.
 - **Step 4**: (pending — electrical plan emission in `codegen.cpp`)
 
-### Phase 1: Generated Static Electrical Plan — IN PROGRESS
+### Phase 1: Generated Static Electrical Plan — ✅ COMPLETE (2026-03-31)
 
-(TBD)
+Implementation log:
+
+- **Step 4 (Phase 1 bootstrap)**: ✅ DONE — electrical plan emission in codegen
+  - Added `ElectricalElementKindCodegen`, `ElectricalElementCodegen`, `ElectricalIslandPlanCodegen`,
+    `ElectricalPlanCodegen` structs to `codegen.h`
+  - Added `extract_electrical_plan()` to `codegen.cpp` — mirrors island extraction from
+    `build_systems_dev()` using union-find over connected ports; supports both `solver_role`
+    metadata path and classname fallback (Battery, Generator, RefNode, Resistor,
+    IndicatorLight, CurrentSense, ElectricalConductance, ElectricalSource)
+  - Updated `generate_header()`: emits `constexpr ElectricalElement` arrays per island
+    (`island_N_elements[]`), signal index arrays (`island_N_nodes[]`),
+    `ELECTRICAL_ISLAND_COUNT`, and `AotElectricalPlan` struct (builds
+    `ElectricalBuildPlan` from static arrays at init). Adds `AotElectricalPlan electrical_plan_`
+    and `ElectricalRuntimeState electrical_rt_` members to generated class.
+  - Updated `generate_source()`: added `#include "jit_solver/subsolvers/electrical_subsolver.h"`;
+    modified each generated `step_N()` to call `solve_electrical()` BEFORE component
+    `execute()` calls.
+  - Updated `generate_composite_systems()`: calls `extract_electrical_plan()` and passes
+    it to `generate_header()`/`generate_source()`
+  - Updated `write_files()` public API: accepts optional `ElectricalPlanCodegen`;
+    auto-extracts if not provided, enabling the old flat-signal codegen path to also
+    benefit from electrical plan emission
+  - Used `spdlog::warn` (via `spdlog::spdlog` linked to `an24_codegen`) for
+    unresolvable electrical ports in `extract_electrical_plan()` — follows existing
+    spdlog conventions in the codebase
+  - Added 3 codegen tests in `test_aot_composite.cpp`:
+    - `ElectricalPlan_BatteryAndResistor_GeneratesIslandArrays` — verifies static arrays,
+      `solve_electrical()` call, `AotElectricalPlan` struct, and `electrical_rt_` member
+    - `ElectricalPlan_IndicatorLight_GeneratesConductanceBranch` — verifies IndicatorLight
+      (purely classname-based) generates conductance branch
+    - `ElectricalPlan_NoElectricalDevices_HasZeroIslands` — verifies circuits without
+      electrical devices produce `ELECTRICAL_ISLAND_COUNT = 0` and no `solve_electrical` call
+  - All 5 `ElectricalParityFixtures` tests pass
+  - All 6 `AotComposite` tests pass (including 3 new electrical plan tests)
+  - 7 pre-existing test failures unrelated to electrical/codegen changes
 
 ---
 
@@ -97,12 +131,18 @@ Completed in MVP:
 
 Known gaps in current implementation:
 
+- codegen (`codegen.cpp`) has zero awareness of electrical islands — generated step methods
+  call only `execute()` per device. No generated `solve_electrical()` call exists. ✅ FIXED (Phase 1 Step 4)
 - `solve_electrical()` allocates multiple `std::vector` temporaries per island per frame
   (`island_nodes`, `fixed_nodes`, `is_fixed`, `node_to_unknown`, `island_voltages`).
-  This violates the "no per-frame heap allocation" target. Must be addressed in or before Phase 1.
-- codegen (`codegen.cpp`) has zero awareness of electrical islands — generated step methods
-  call only `execute()` per device. No generated `solve_electrical()` call exists.
+  This violates the "no per-frame heap allocation" target. ✅ FIXED (Phase 0 Step 2)
 - `ElectricalRuntimeState` scratch buffers reuse capacity but the per-island local vectors do not.
+  (Partial fix: scratch buffers are in `ElectricalRuntimeState`; still need pre-allocation to max island size)
+- Stable symbolic bindings (Phase 2) not yet implemented
+- Observability/diagnostics for electrical failures (Phase 3) not yet implemented
+- `write_files()` public API doesn't call `merge_device_instance` — only works when
+  devices already have ports defined inline (test fixtures using `generate_composite_systems`
+  must register types in registry with ports defined)
 
 ---
 
