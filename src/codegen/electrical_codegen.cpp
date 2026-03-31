@@ -78,6 +78,8 @@ ElectricalPlanCodegen extract_electrical_plan(
         float value_a;
         float value_b;
         size_t component_index;
+        std::string device_name;   // for handle assignment back to wrapper components
+        std::string device_classname;
     };
 
     std::vector<RawElement> raw_elements;
@@ -140,7 +142,8 @@ ElectricalPlanCodegen extract_electrical_plan(
                 }
                 raw_elements.push_back({
                     ElectricalElementKindCodegen::FixedVoltageNode,
-                    *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++
+                    *node_a_opt, UINT32_MAX, value, 0.0f, element_idx++,
+                    dev.name, dev.classname
                 });
             } else if (role.kind == "TheveninSource") {
                 float voltage = 28.0f;
@@ -166,7 +169,8 @@ ElectricalPlanCodegen extract_electrical_plan(
                 }
                 raw_elements.push_back({
                     ElectricalElementKindCodegen::TheveninSource,
-                    *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++
+                    *node_pos_opt, *node_neg_opt, voltage, resistance, element_idx++,
+                    dev.name, dev.classname
                 });
             } else if (role.kind == "ConductanceBranch") {
                 float conductance = 0.1f;
@@ -184,7 +188,8 @@ ElectricalPlanCodegen extract_electrical_plan(
                 }
                 raw_elements.push_back({
                     ElectricalElementKindCodegen::ConductanceBranch,
-                    *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++
+                    *node_a_opt, *node_b_opt, conductance, 0.0f, element_idx++,
+                    dev.name, dev.classname
                 });
             }
             continue;
@@ -207,7 +212,8 @@ ElectricalPlanCodegen extract_electrical_plan(
                     UINT32_MAX,
                     read_param_or(dev, rule.param_a, rule.param_a_default),
                     0.0f,
-                    element_idx++
+                    element_idx++,
+                    dev.name, dev.classname
                 });
                 break;
             }
@@ -229,7 +235,8 @@ ElectricalPlanCodegen extract_electrical_plan(
                 *node_b_opt,
                 value_a,
                 value_b,
-                element_idx++
+                element_idx++,
+                dev.name, dev.classname
             });
             break;
         }
@@ -324,6 +331,13 @@ ElectricalPlanCodegen extract_electrical_plan(
     }
 
     // Build stable symbolic binding list for wrapper components.
+    // Use device_name/classname stored on raw elements (not devices array index,
+    // since component_index != device array index when non-electrical devices exist).
+    std::unordered_map<uint32_t, size_t> component_to_raw_idx;
+    for (size_t i = 0; i < raw_elements.size(); ++i) {
+        component_to_raw_idx[static_cast<uint32_t>(raw_elements[i].component_index)] = i;
+    }
+
     std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> component_to_island_elem;
     for (size_t island_i = 0; island_i < plan.islands.size(); ++island_i) {
         const auto& island = plan.islands[island_i];
@@ -339,14 +353,15 @@ ElectricalPlanCodegen extract_electrical_plan(
     std::vector<ElectricalPlanCodegen::DeviceBinding> bindings;
     bindings.reserve(component_to_island_elem.size());
     for (const auto& [component_index, pos] : component_to_island_elem) {
-        if (component_index >= devices.size()) {
+        auto raw_it = component_to_raw_idx.find(component_index);
+        if (raw_it == component_to_raw_idx.end()) {
             continue;
         }
-        const auto& dev = devices[component_index];
-        if (dev.classname == "Battery" || dev.classname == "Generator" ||
-            dev.classname == "IndicatorLight" || dev.classname == "CurrentSense") {
+        const auto& re = raw_elements[raw_it->second];
+        if (re.device_classname == "Battery" || re.device_classname == "Generator" ||
+            re.device_classname == "IndicatorLight" || re.device_classname == "CurrentSense") {
             bindings.push_back({
-                sanitize_name_codegen(dev.name),
+                sanitize_name_codegen(re.device_name),
                 pos.first,
                 pos.second,
                 component_index

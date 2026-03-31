@@ -294,6 +294,28 @@ Implementation log:
     - 5/5 `ElectricalAotParity`
     - 1/1 `JitAotBridgeEquivalence`
 
+- **Step 4 (Phase 2 strict review + bugfix)**: ✅ DONE — 2-pass review complete
+  - Ran strict 2-pass review (`@review`) before entering Phase 3
+  - Found and fixed latent high-severity mapping bug in
+    `src/codegen/electrical_codegen.cpp`:
+    - root cause: binding generation incorrectly indexed `devices[component_index]`
+      where `component_index` is electrical-element ordinal, not device-array index
+      when non-electrical devices are interleaved
+    - fix: store `device_name` + `device_classname` in raw electrical elements and
+      derive symbolic bindings from those stored fields via component→raw lookup
+  - Added regression test:
+    - `AotComposite.ElectricalBindings_MixedDevicesCorrectMapping`
+    - verifies correct wrapper binding names with interleaved non-electrical device
+      and guards against accidental non-electrical handle assignment
+  - Full required pre-Phase-3 regression suite passed:
+    - `AotComposite` (all, including new test)
+    - `ElectricalParityFixtures`
+    - `ElectricalAotParity`
+    - `JitAotBridgeEquivalence`
+    - `LUTCodegen`
+    - `CodegenAccumulator` (enabled subset)
+  - Phase 2 ready for Phase 3
+
 ## Phase 3: Observability
 
 Must-have:

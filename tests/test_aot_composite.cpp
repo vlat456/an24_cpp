@@ -825,3 +825,98 @@ TEST(AotComposite, ElectricalBindings_AssignAllHandleFieldsFromConstants) {
     EXPECT_NE(result.source.find("sense.electrical_handle.element_index = ElectricalBindings::sense_element"), std::string::npos);
     EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos);
 }
+
+// Regression: when non-electrical devices are interleaved between electrical ones,
+// binding construction must still map to the correct device name (not devices[element_idx]).
+TEST(AotComposite, ElectricalBindings_MixedDevicesCorrectMapping) {
+    TypeRegistry registry;
+
+    TypeDefinition battery_type;
+    battery_type.classname = "Battery";
+    battery_type.cpp_class = true;
+    battery_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    battery_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    battery_type.domains = {{Domain::Electrical}};
+    registry.types["Battery"] = battery_type;
+
+    // Non-electrical device that sits between electrical devices in the list
+    TypeDefinition logic_type;
+    logic_type.classname = "Any_V_to_Bool";
+    logic_type.cpp_class = true;
+    logic_type.ports["Vin"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    logic_type.ports["o"]   = Port{PortDirection::Out, PortType::Bool, std::nullopt};
+    logic_type.domains = {{Domain::Logical}};
+    registry.types["Any_V_to_Bool"] = logic_type;
+
+    TypeDefinition sense_type;
+    sense_type.classname = "CurrentSense";
+    sense_type.cpp_class = true;
+    sense_type.ports["v_in"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    sense_type.ports["v_out"] = Port{PortDirection::Out, PortType::V, std::nullopt};
+    sense_type.ports["i_out"] = Port{PortDirection::Out, PortType::I, std::nullopt};
+    sense_type.domains = {{Domain::Electrical}};
+    registry.types["CurrentSense"] = sense_type;
+
+    TypeDefinition refnode_type;
+    refnode_type.classname = "RefNode";
+    refnode_type.cpp_class = true;
+    refnode_type.ports["v"] = Port{PortDirection::In, PortType::V, std::nullopt};
+    refnode_type.domains = {{Domain::Electrical}};
+    registry.types["RefNode"] = refnode_type;
+
+    TypeDefinition circuit;
+    circuit.classname = "mixed_device_circuit";
+    circuit.cpp_class = false;
+
+    DeviceInstance d_bat;
+    d_bat.name = "bat";
+    d_bat.classname = "Battery";
+    d_bat.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    // Non-electrical device inserted between bat and sense
+    DeviceInstance d_logic;
+    d_logic.name = "logic";
+    d_logic.classname = "Any_V_to_Bool";
+    d_logic.execution = make_execution(false, false, true, false, false, false, false, false, false);
+
+    DeviceInstance d_sense;
+    d_sense.name = "sense";
+    d_sense.classname = "CurrentSense";
+    d_sense.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    DeviceInstance d_ref;
+    d_ref.name = "gnd";
+    d_ref.classname = "RefNode";
+    d_ref.execution = make_execution(true, false, false, false, false, false, false, false, false);
+
+    // Key: logic device sits at index 1 in devices array, but is NOT electrical.
+    // If binding code used devices[element_idx], sense would wrongly get logic's name.
+    circuit.devices = {d_bat, d_logic, d_sense, d_ref};
+    circuit.connections = {
+        {"bat.v_out", "sense.v_in", {}},
+        {"sense.v_out", "gnd.v", {}},
+        {"bat.v_in", "gnd.v", {}},
+        {"bat.v_out", "logic.Vin", {}}
+    };
+    registry.types["mixed_device_circuit"] = circuit;
+
+    auto result = CodeGen::generate_composite_systems(circuit, registry);
+
+    // bat and sense must have correct bindings (not logic's name)
+    EXPECT_NE(result.header.find("bat_component"), std::string::npos)
+        << "Battery binding missing from header";
+    EXPECT_NE(result.header.find("sense_component"), std::string::npos)
+        << "CurrentSense binding missing from header";
+
+    // logic must NOT appear in electrical bindings (it's not an electrical component)
+    EXPECT_EQ(result.header.find("logic_component"), std::string::npos)
+        << "Non-electrical device should not have electrical binding";
+
+    // Constructor must assign handle to bat and sense, not to logic
+    EXPECT_NE(result.source.find("bat.electrical_handle.component_index = ElectricalBindings::bat_component"), std::string::npos)
+        << "Battery handle assignment missing";
+    EXPECT_NE(result.source.find("sense.electrical_handle.component_index = ElectricalBindings::sense_component"), std::string::npos)
+        << "CurrentSense handle assignment missing";
+    EXPECT_EQ(result.source.find("logic.electrical_handle"), std::string::npos)
+        << "Non-electrical device should not get electrical_handle assignment";
+}
