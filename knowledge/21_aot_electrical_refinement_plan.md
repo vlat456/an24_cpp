@@ -606,6 +606,27 @@ Implementation log:
     - `LUTCodegen` (9/9)
     - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
 
+- **Step 3 (Phase 5 second specialized family)**: ✅ DONE — N==2 solve fast path
+  - Added second bounded specialization in `solve_electrical()`:
+    - when dense unknown count `N == 2`, solve via closed-form 2x2 inverse
+      with determinant singular guard (`|det| < 1e-12` => fallback)
+    - preserve generic Gaussian path for `N > 2`
+  - Preserved fallback semantics and diagnostics behavior on singular cases
+  - Added regression in `tests/test_electrical_subsolver.cpp`:
+    - `ElectricalSubsolver.SpecializedN2SolveMatchesSeriesChain`
+    - validates expected 2-unknown solve voltages and diagnostics residual bound
+  - Validation passed:
+    - `ElectricalSubsolver` specialized tests (`N1`, `N2`)
+    - `AotComposite` (all)
+    - `ProductionPathParity` (2/2)
+    - `ProductionPathPortMap` (3/3)
+    - `ProductionPathPushRuntime` (2/2)
+    - `ElectricalParityFixtures` (5/5)
+    - `ElectricalAotParity` (5/5)
+    - `JitAotBridgeEquivalence` (1/1)
+    - `LUTCodegen` (9/9)
+    - `CodegenAccumulator` enabled subset (5/5, 4 disabled)
+
 ## Phase 6: Transitional Cleanup + Performance Closure
 
 Must-have:

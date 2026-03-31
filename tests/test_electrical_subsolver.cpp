@@ -482,3 +482,33 @@ TEST(ElectricalSubsolver, SpecializedN1SolveMatchesExpectedDivider) {
     EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
     EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 1u);
 }
+
+TEST(ElectricalSubsolver, SpecializedN2SolveMatchesSeriesChain) {
+    // Two unknown nodes (N=2): ideal source node + middle node against fixed ground.
+    // Topology:
+    //   node2 --R1(2ohm)-- node1 --R2(2ohm)-- node0(gnd)
+    //   source Vth=28V, Rseries=1 between node2 and node0
+    // Expected: node2=22.4V, node1=11.2V.
+    ElectricalBuildPlan plan;
+    plan.islands.push_back(make_island(
+        {0, 1, 2},
+        {
+            ElectricalElement{ElectricalElementKind::FixedVoltageNode, 0, 0, 0.0f, 0.0f, 0u},
+            ElectricalElement{ElectricalElementKind::TheveninSource, 2, 0, 28.0f, 1.0f, 1u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 2, 1, 0.5f, 0.0f, 2u},
+            ElectricalElement{ElectricalElementKind::ConductanceBranch, 1, 0, 0.5f, 0.0f, 3u}
+        }
+    ));
+
+    SimulationState st = make_sim_state(5);
+    ElectricalRuntimeState rt;
+
+    solve_electrical(plan, st, rt, 0.0f);
+
+    EXPECT_NEAR(st.values[2], 22.4f, 1e-3f);
+    EXPECT_NEAR(st.values[1], 11.2f, 1e-3f);
+    ASSERT_EQ(rt.island_diagnostics.size(), 1u);
+    EXPECT_TRUE(rt.island_diagnostics[0].solve_ok);
+    EXPECT_EQ(rt.island_diagnostics[0].unknown_count, 2u);
+    EXPECT_LT(rt.island_diagnostics[0].max_abs_kcl_residual, 1e-4f);
+}

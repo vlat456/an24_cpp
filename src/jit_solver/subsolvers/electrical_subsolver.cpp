@@ -257,6 +257,22 @@ void solve_electrical(
                 } else {
                     b[0] /= a00;
                 }
+            } else if (N == 2) {
+                // Phase 5 specialization scaffold: 2x2 dense solve kernel.
+                // Solve:
+                //   [a00 a01] [x0] = [b0]
+                //   [a10 a11] [x1]   [b1]
+                // via closed-form inverse with singular guard.
+                float a00 = A[0], a01 = A[1];
+                float a10 = A[2], a11 = A[3];
+                float b0 = b[0], b1 = b[1];
+                float det = a00 * a11 - a01 * a10;
+                if (std::fabs(det) < 1e-12f) {
+                    solve_ok = false;
+                } else {
+                    b[0] = (b0 * a11 - b1 * a01) / det;
+                    b[1] = (a00 * b1 - a10 * b0) / det;
+                }
             } else {
                 try {
                     solve_dense_gaussian(A, b, N);
