@@ -2,6 +2,7 @@
 #include "jit_solver/components/all.h"
 #include "jit_solver/components/port_registry.h"
 #include "jit_solver/state.h"
+#include "jit_solver/subsolvers/subsolver_types.h"
 
 
 template <typename Comp>
@@ -33,6 +34,7 @@ struct AZSTestFixture : public ::testing::Test {
     static constexpr uint32_t SIGNAL_COUNT = 6;
 
     SimulationState st;
+    ElectricalRuntimeState rt;
     AZS<JitProvider> azs;
 
     void SetUp() override {
@@ -55,6 +57,15 @@ struct AZSTestFixture : public ::testing::Test {
         azs.r_heat = 1.0f / (azs.i_nominal * azs.i_nominal);
         azs.k_cool = 1.0f;
         azs.pre_load();
+
+        // Attach electrical runtime handle for solver-owned branch current sampling.
+        rt.branch_currents.resize(1, 0.0f);
+        azs.electrical_handle = {0, 0, 0};
+        st.electrical_rt = &rt;
+    }
+
+    void set_branch_current(float i_abs) {
+        rt.branch_currents[0] = i_abs;
     }
 };
 
@@ -79,36 +90,35 @@ TEST_F(AZSTestFixture, StartsOff) {
 // =============================================================================
 
 TEST_F(AZSTestFixture, OpenCircuitWhenOff) {
-    // When OFF, solve_electrical should set v_out to 0 regardless of v_in
+    // Solver-owned electrical mode: AZS execute should not push-write v_out.
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 99.0f; // leftover from previous step
 
     step_component(azs, st, 1.0f / 60.0f);
 
-    // v_out should be zeroed when open
-    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 99.0f);
 }
 
 TEST_F(AZSTestFixture, PassesVoltageWhenClosed) {
-    // solve_electrical should copy v_in to v_out when closed
+    // Solver-owned electrical mode: AZS execute should not push-write v_out.
     azs.closed = true;
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 0.0f;
 
     step_component(azs, st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 28.0f);
+    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
 }
 
 TEST_F(AZSTestFixture, ZeroVoltageWhenOpen) {
-    // solve_electrical should zero v_out when open
+    // Solver-owned electrical mode: AZS execute should not push-write v_out.
     azs.closed = false;
     st.values[IDX_V_IN] = 28.0f;
     st.values[IDX_V_OUT] = 28.0f; // leftover from previous step
 
     step_component(azs, st, 1.0f / 60.0f);
 
-    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 0.0f);
+    EXPECT_FLOAT_EQ(st.values[IDX_V_OUT], 28.0f);
 }
 
 // =============================================================================
@@ -180,10 +190,8 @@ TEST_F(AZSTestFixture, HeatsUpWithCurrent) {
     // Thermal equation: T += I² * r_heat * dt when current flows
     azs.closed = true;
     azs.temp = 0.0f;
-    // Set v_in so solve_electrical computes current = 28A
-    // current = v_in / r where r = 28.0 / i_nominal = 28.0 / 20.0 = 1.4
-    // So v_in = 28.0 * 1.4 = 39.2
-    st.values[IDX_V_IN] = 39.2f;
+    // Solver-owned mode: branch current comes from electrical runtime.
+    set_branch_current(28.0f);
 
     float dt = 1.0f; // thermal domain accumulated dt
     step_component(azs, st, dt);
@@ -330,9 +338,7 @@ TEST_F(AZSTestFixture, NominalCurrentReachesSteadyStateAtOne) {
     // T_ss = I² * r_heat / k_cool = 400 * (1/400) / 1 = 1.0
     azs.closed = true;
     azs.temp = 0.0f;
-    // Set v_in so solve_electrical computes current = 20A (nominal)
-    // current = v_in / r where r = 28.0 / i_nominal = 1.4, so v_in = 20 * 1.4 = 28.0
-    st.values[IDX_V_IN] = 28.0f;
+    set_branch_current(20.0f);
 
     // Run thermal for many seconds until convergence
     for (int i = 0; i < 100; ++i) {
@@ -347,9 +353,7 @@ TEST_F(AZSTestFixture, DoubleNominalTripsQuickly) {
     // At I = 2 * i_nominal (40A), should overshoot 1.0 within a few seconds
     azs.closed = true;
     azs.temp = 0.0f;
-    // Set v_in so solve_electrical computes current = 40A (2x nominal)
-    // current = v_in / r where r = 28.0 / i_nominal = 1.4, so v_in = 40 * 1.4 = 56.0
-    st.values[IDX_V_IN] = 56.0f;
+    set_branch_current(40.0f);
 
     int steps_to_trip = 0;
     for (int i = 0; i < 30; ++i) {
@@ -374,8 +378,7 @@ TEST_F(AZSTestFixture, ThermalWorksWithVariableDt) {
     azs2.closed = true;
     azs1.temp = 0.0f;
     azs2.temp = 0.0f;
-    // Set v_in so solve_electrical computes current = 20A (nominal)
-    st.values[IDX_V_IN] = 28.0f;
+    set_branch_current(20.0f);
 
     // 10 seconds at dt=1.0 (50Hz screen → thermal fires every ~50 frames)
     for (int i = 0; i < 10; ++i) {

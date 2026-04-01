@@ -3,6 +3,8 @@
 #include "components/controlled_voltage_source.h"
 #include "components/electrical_conductance.h"
 #include "components/electrical_source.h"
+#include "components/azs.h"
+#include "components/hold_button.h"
 #include "components/variable_conductance.h"
 #include "../json_parser/json_parser.h"
 #include "../parse_number.h"
@@ -47,6 +49,24 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
                 auto& elem = island.elements[comp.electrical_handle.element_index];
                 elem.value_a = g;
             }
+            else if constexpr (std::is_same_v<CompType, AZS<JitProvider>>) {
+                if (!is_valid(comp.electrical_handle)) {
+                    return;
+                }
+                float g = comp.closed ? comp.g_closed : comp.g_open;
+                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
+                auto& elem = island.elements[comp.electrical_handle.element_index];
+                elem.value_a = g;
+            }
+            else if constexpr (std::is_same_v<CompType, HoldButton<JitProvider>>) {
+                if (!is_valid(comp.electrical_handle)) {
+                    return;
+                }
+                float g = comp.is_pressed ? comp.g_closed : comp.g_open;
+                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
+                auto& elem = island.elements[comp.electrical_handle.element_index];
+                elem.value_a = g;
+            }
         }, variant);
     }
 }
@@ -72,7 +92,9 @@ void commit_solver_owned_devices(BuildResult& br, SimulationState& st, float dt)
                           std::is_same_v<CompType, ElectricalConductance<JitProvider>> ||
                           std::is_same_v<CompType, ElectricalSource<JitProvider>> ||
                           std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
-                          std::is_same_v<CompType, VariableConductance<JitProvider>>) {
+                          std::is_same_v<CompType, VariableConductance<JitProvider>> ||
+                          std::is_same_v<CompType, AZS<JitProvider>> ||
+                          std::is_same_v<CompType, HoldButton<JitProvider>>) {
                 comp.commit(st, dt);
             }
         }, variant);

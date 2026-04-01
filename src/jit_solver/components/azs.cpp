@@ -1,5 +1,6 @@
 #include "azs.h"
 #include "port_registry.h"
+#include "../subsolvers/subsolver_types.h"
 #include <cmath>
 
 template <typename Provider>
@@ -33,19 +34,15 @@ void AZS<Provider>::commit_control(SimulationState& st, float dt) {
 
 template <typename Provider>
 void AZS<Provider>::execute(SimulationState& st, float dt) {
-    // Electrical behavior: when closed, propagate v_in to v_out; when open, set v_out=0.
-    if (closed) {
-        float v_in = st.values[provider.get(PortNames::v_in)];
-        st.values[provider.get(PortNames::v_out)] = v_in;
-        // Simple current estimate: I = V / R (using i_nominal to derive R)
-        float r = (i_nominal > 0.0f) ? (28.0f / i_nominal) : 1.0f;
-        current = (v_in > 0.0f) ? (v_in / r) : 0.0f;
+    // Electrical behavior is solver-owned via dynamic conductance branch.
+    // Estimate branch current from solved electrical runtime for thermal model.
+    if (st.electrical_rt != nullptr && is_valid(electrical_handle)) {
+        current = std::fabs(get_branch_current(*st.electrical_rt, electrical_handle));
     } else {
-        st.values[provider.get(PortNames::v_out)] = 0.0f;
         current = 0.0f;
     }
     
-    // Thermal behavior: use current computed above.
+    // Thermal behavior: use branch current from solver.
     // T += (I² * r_heat - T * k_cool) * dt
     float I = current;
     temp += (I * I * r_heat - temp * k_cool) * dt;

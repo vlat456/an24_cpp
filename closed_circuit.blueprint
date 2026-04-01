@@ -186,6 +186,55 @@
   ],
   "nodes": [
     {
+      "content_label": "",
+      "content_max": 1.0,
+      "content_min": 0.0,
+      "content_state": false,
+      "content_tripped": false,
+      "content_type": 3,
+      "content_unit": "",
+      "content_value": 0.0,
+      "id": "azs_1",
+      "name": "azs_1",
+      "params": {
+        "i_nominal": 20.0
+      },
+      "ports": {
+        "control": {
+          "direction": "In",
+          "type": 4
+        },
+        "state": {
+          "direction": "Out",
+          "type": 2
+        },
+        "temp": {
+          "direction": "Out",
+          "type": 4
+        },
+        "tripped": {
+          "direction": "Out",
+          "type": 2
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 384.0,
+        "y": -400.0
+      },
+      "string_params": {
+        "closed": "false"
+      },
+      "type": "AZS"
+    },
+    {
       "id": "bus_1",
       "name": "bus_1",
       "ports": {
@@ -571,6 +620,33 @@
       "type": "Value"
     },
     {
+      "id": "variableconductance_1",
+      "name": "variableconductance_1",
+      "params": {
+        "g_max": 17.5,
+        "g_min": 17.5
+      },
+      "ports": {
+        "cmd": {
+          "direction": "In",
+          "type": 7
+        },
+        "v_in": {
+          "direction": "In",
+          "type": 0
+        },
+        "v_out": {
+          "direction": "Out",
+          "type": 0
+        }
+      },
+      "position": {
+        "x": 608.0,
+        "y": -400.0
+      },
+      "type": "VariableConductance"
+    },
+    {
       "content_label": "V",
       "content_max": 28.0,
       "content_min": 0.0,
@@ -598,8 +674,8 @@
       "type": "Voltmeter"
     }
   ],
-  "pan_x": -189.33892822265625,
-  "pan_y": -568.8621826171875,
+  "pan_x": 262.603271484375,
+  "pan_y": -523.6713256835938,
   "version": "3.0",
   "wires": [
     {
@@ -693,17 +769,6 @@
       "target": "/bus_1:v"
     },
     {
-      "id": "wire_39",
-      "routing_points": [
-        [
-          736.0,
-          -112.0
-        ]
-      ],
-      "source": "/bus_2:v",
-      "target": "/resistor_1:v_in"
-    },
-    {
       "id": "wire_41",
       "source": "/resistor_1:v_out",
       "target": "/currentsense_1:v_in"
@@ -766,7 +831,27 @@
       ],
       "source": "/bus_2:v",
       "target": "/voltmeter_1:v_in"
+    },
+    {
+      "id": "wire_63",
+      "source": "/variableconductance_1:v_out",
+      "target": "/bus_1:v"
+    },
+    {
+      "id": "wire_67",
+      "source": "/bus_2:v",
+      "target": "/resistor_1:v_in"
+    },
+    {
+      "id": "wire_68",
+      "source": "/bus_2:v",
+      "target": "/azs_1:v_in"
+    },
+    {
+      "id": "wire_69",
+      "source": "/azs_1:v_out",
+      "target": "/variableconductance_1:v_in"
     }
   ],
-  "zoom": 0.6598597168922424
+  "zoom": 0.867153525352478
 }

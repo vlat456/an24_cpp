@@ -81,6 +81,9 @@ static std::string read_file_or_fail(const std::string& path) {
 
 static std::string find_closed_circuit_blueprint() {
     std::vector<std::string> try_paths = {
+        "../../tests/fixtures/closed_circuit_regression.blueprint",
+        "../tests/fixtures/closed_circuit_regression.blueprint",
+        "tests/fixtures/closed_circuit_regression.blueprint",
         "../../closed_circuit.blueprint",
         "../closed_circuit.blueprint",
         "closed_circuit.blueprint",

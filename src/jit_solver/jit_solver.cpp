@@ -107,6 +107,8 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
            classname == "ElectricalConductance" ||
            classname == "ElectricalSource" ||
            classname == "ControlledVoltageSource" ||
+           classname == "AZS" ||
+           classname == "HoldButton" ||
            classname == "VariableConductance";
 }
 
@@ -462,11 +464,13 @@ BuildResult build_systems_dev(
             HoldButton<JitProvider> comp;
             
             comp.idle = param_reader.consume_float_optional("idle", 0.0f);
+            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<HoldButton<JitProvider>>(result.devices[dev.name]));
+            // Solver-owned electrical path; commit() runs in solver-owned commit pass.
         }
         else if (dev.classname == "Load") {
             Load<JitProvider> comp;
@@ -535,13 +539,15 @@ BuildResult build_systems_dev(
             
             comp.closed = param_reader.consume_bool_optional("closed", false);
             comp.i_nominal = param_reader.consume_float_optional("i_nominal", 20.0f);
+            comp.g_open = param_reader.consume_float_optional("g_open", 1e-6f);
+            comp.g_closed = param_reader.consume_float_optional("g_closed", 1000.0f);
             comp.k_cool = param_reader.consume_float_optional("k_cool", 1.0f);
             comp.pre_load();
             setup_ports(comp);
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<AZS<JitProvider>>(result.devices[dev.name]));
+            // Solver-owned electrical path; commit() runs in solver-owned commit pass.
         }
         else if (dev.classname == "Resistor") {
             Resistor<JitProvider> comp;
@@ -1773,6 +1779,36 @@ BuildResult build_systems_dev(
                 dev.name
             });
         }
+        else if (dev.classname == "AZS") {
+            // ConductanceBranch with dynamic conductance switched by AZS.closed.
+            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                g_open_val,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
+        else if (dev.classname == "HoldButton") {
+            // ConductanceBranch with dynamic conductance switched by HoldButton.is_pressed.
+            float g_open_val = read_param_float(dev, "g_open", 1e-6f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                g_open_val,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
         // Unsupported components are silently ignored for electrical_plan
     }
 
@@ -1919,7 +1955,9 @@ BuildResult build_systems_dev(
                               std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
                               std::is_same_v<CompType, CurrentSense<JitProvider>> ||
                               std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
-                              std::is_same_v<CompType, VariableConductance<JitProvider>>) {
+                              std::is_same_v<CompType, VariableConductance<JitProvider>> ||
+                              std::is_same_v<CompType, AZS<JitProvider>> ||
+                              std::is_same_v<CompType, HoldButton<JitProvider>>) {
                     comp.electrical_handle = handle;
                 }
             }, it->second);

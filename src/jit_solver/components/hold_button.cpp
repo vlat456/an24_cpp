@@ -1,6 +1,5 @@
 #include "hold_button.h"
 #include "port_registry.h"
-#include "../state.h"
 #include <cmath>
 
 template <typename Provider>
@@ -16,14 +15,9 @@ void HoldButton<Provider>::commit_control(SimulationState& st, float dt) {
 
 template <typename Provider>
 void HoldButton<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push model: when pressed, propagate v_in to v_out; when not pressed, set v_out=0
-    // Control logic handled in commit_control
-    if (is_pressed) {
-        float v_in = st.values[provider.get(PortNames::v_in)];
-        st.values[provider.get(PortNames::v_out)] = v_in;
-    } else {
-        st.values[provider.get(PortNames::v_out)] = 0.0f;
-    }
+    // Electrical behavior is solver-owned via dynamic conductance branch.
+    // HoldButton execute only updates non-electrical control/state outputs.
+    (void)st;
 }
 
 template <typename Provider>

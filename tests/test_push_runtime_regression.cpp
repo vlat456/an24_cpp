@@ -56,9 +56,12 @@ static std::string read_file_or_fail(const std::string& path) {
 /// and when run directly (working directory: build/).
 static std::string find_closed_circuit_blueprint() {
     std::vector<std::string> try_paths = {
-        "../../closed_circuit.blueprint",  // when run from build/tests/ via ctest
-        "../closed_circuit.blueprint",     // when run from build/ directly
-        "closed_circuit.blueprint",        // when run from project root
+        "../../tests/fixtures/closed_circuit_regression.blueprint",  // ctest from build/tests/
+        "../tests/fixtures/closed_circuit_regression.blueprint",     // run from build/
+        "tests/fixtures/closed_circuit_regression.blueprint",        // run from project root
+        "../../closed_circuit.blueprint",                            // fallback for ad-hoc local runs
+        "../closed_circuit.blueprint",                               // fallback
+        "closed_circuit.blueprint",                                  // fallback
     };
     for (const auto& p : try_paths) {
         std::ifstream f(p);
@@ -1923,4 +1926,67 @@ TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
     float gen_vpos = sim.get_port_value("GEN", "v_pos");
     EXPECT_FLOAT_EQ(gen_vpos, 0.0f)
         << "Querying by display name 'GEN' should return 0 (device keyed by id)";
+}
+
+TEST(PushRuntime, AZS_ElectricalSolverPath_ClosedProducesSag) {
+    const char* kJson = R"({
+  "devices": [
+    {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
+    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
+    {"name":"azs","classname":"AZS","params":{"closed":"true","i_nominal":"20.0","g_open":"0.0","g_closed":"1000.0"}},
+    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+  ],
+  "connections": [
+    {"from":"src.v_out","to":"azs.v_in"},
+    {"from":"azs.v_out","to":"load.v_in"},
+    {"from":"load.v_out","to":"gnd.v"},
+    {"from":"src.v_in","to":"gnd.v"}
+  ]
+})";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(kJson));
+
+    // Let solver-owned dynamic conductance settle through commit/update cycle.
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 5; ++i) sim.step(dt);
+
+    float v_hot = sim.get_wire_voltage("src.v_out");
+    ASSERT_TRUE(std::isfinite(v_hot));
+    EXPECT_LT(v_hot, 27.0f)
+        << "AZS closed should insert heavy load branch into electrical solver and produce sag";
+}
+
+TEST(PushRuntime, HoldButton_ElectricalSolverPath_PressProducesSag) {
+    const char* kJson = R"({
+  "devices": [
+    {"name":"gnd","classname":"RefNode","params":{"value":"0.0"}},
+    {"name":"src","classname":"ElectricalSource","params":{"voltage":"28.5","resistance":"0.01"}},
+    {"name":"ctrl","classname":"Value","params":{"value":"1.0"}},
+    {"name":"btn","classname":"HoldButton","params":{"idle":"0.0","g_open":"0.0","g_closed":"1000.0"}},
+    {"name":"load","classname":"VariableConductance","params":{"g_min":"17.5","g_max":"17.5"}}
+  ],
+  "connections": [
+    {"from":"src.v_out","to":"btn.v_in"},
+    {"from":"btn.v_out","to":"load.v_in"},
+    {"from":"load.v_out","to":"gnd.v"},
+    {"from":"src.v_in","to":"gnd.v"},
+    {"from":"ctrl.o","to":"btn.control"}
+  ]
+})";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(kJson));
+
+    const float dt = 1.0f / 60.0f;
+    sim.step(dt); // first frame: button state updates after solve
+    float v_step1 = sim.get_wire_voltage("src.v_out");
+
+    for (int i = 0; i < 5; ++i) sim.step(dt);
+    float v_pressed = sim.get_wire_voltage("src.v_out");
+
+    ASSERT_TRUE(std::isfinite(v_step1));
+    ASSERT_TRUE(std::isfinite(v_pressed));
+    EXPECT_LT(v_pressed, v_step1 - 0.5f)
+        << "Pressed HoldButton should close solver-owned branch and increase sag";
 }

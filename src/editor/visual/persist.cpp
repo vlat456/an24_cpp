@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <cerrno>
 #include <cstdlib>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 #include <spdlog/spdlog.h>
@@ -43,7 +44,7 @@ Domain to_bp2_domain_from_port_type(PortType t, Domain fallback) {
     return fallback;
 }
 
-bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
+bp2::TypeRegistry build_bp2_registry_uncached(ui::StringInterner& interner) {
     bp2::TypeRegistry out;
     TypeRegistry parsed = load_type_registry("library/");
 
@@ -80,6 +81,21 @@ bp2::TypeRegistry build_bp2_registry(ui::StringInterner& interner) {
     return out;
 }
 
+const bp2::TypeRegistry& get_cached_bp2_registry(ui::StringInterner& interner) {
+    static std::mutex cache_mu;
+    static std::unordered_map<uintptr_t, bp2::TypeRegistry> cache;
+
+    const uintptr_t key = reinterpret_cast<uintptr_t>(&interner);
+    std::lock_guard<std::mutex> lock(cache_mu);
+    auto it = cache.find(key);
+    if (it != cache.end()) {
+        return it->second;
+    }
+
+    auto inserted = cache.emplace(key, build_bp2_registry_uncached(interner));
+    return inserted.first->second;
+}
+
 } // namespace
 
 bool validate_blueprint_for_persist(
@@ -107,7 +123,7 @@ bool save_blueprint_to_file(const bp2::Blueprint& bp,
             return false;
         }
     }
-    bp2::TypeRegistry registry = build_bp2_registry(interner);
+    const bp2::TypeRegistry& registry = get_cached_bp2_registry(interner);
     std::string json_str = bp2::BlueprintCodec::encode(bp, interner, arena, &registry);
     std::ofstream file(path);
     if (!file.is_open()) return false;
@@ -124,7 +140,7 @@ std::optional<bp2::Blueprint> load_blueprint_from_file(
     std::stringstream buffer;
     buffer << file.rdbuf();
     bp2::DecodeError err;
-    bp2::TypeRegistry registry = build_bp2_registry(interner);
+    const bp2::TypeRegistry& registry = get_cached_bp2_registry(interner);
     auto bp = bp2::BlueprintCodec::decode(buffer.str(), interner, arena, registry, &err);
     if (!bp) {
         spdlog::error("[persist] Failed to load blueprint: {}", err.message);
@@ -188,30 +204,40 @@ bool validate_blueprint_integrity(
         ui::StringInterner& interner,
         const bp2::PathArena& arena,
         std::string* error_out) {
-    bp2::TypeRegistry bp2_registry = build_bp2_registry(interner);
+    bp2::TypeRegistry bp2_registry = get_cached_bp2_registry(interner);
 
     // Debug/validation should still work on ad-hoc editor node types used in tests or
     // transient documents. Register unknown types with empty interfaces so structural
     // invariants (IDs, paths, wire endpoints) remain checkable.
     for (const auto& node : bp.nodes()) {
         if (!bp2_registry.has(node.type)) {
-            std::unordered_map<ui::InternedId, bp2::Direction> dirs;
+            struct PortMeta {
+                bp2::Direction dir;
+                Domain domain;
+            };
+            std::unordered_map<ui::InternedId, PortMeta> metas;
             for (const auto& p : node.inputs) {
-                dirs[p.name] = bp2::Direction::Input;
+                metas[p.name] = {
+                    bp2::Direction::Input,
+                    to_bp2_domain_from_port_type(p.type, Domain::Electrical)
+                };
             }
             for (const auto& p : node.outputs) {
-                auto it = dirs.find(p.name);
-                if (it == dirs.end()) {
-                    dirs[p.name] = bp2::Direction::Output;
-                } else if (it->second != bp2::Direction::Output) {
-                    it->second = bp2::Direction::InOut;
+                auto it = metas.find(p.name);
+                if (it == metas.end()) {
+                    metas[p.name] = {
+                        bp2::Direction::Output,
+                        to_bp2_domain_from_port_type(p.type, Domain::Electrical)
+                    };
+                } else if (it->second.dir != bp2::Direction::Output) {
+                    it->second.dir = bp2::Direction::InOut;
                 }
             }
 
             std::vector<bp2::PortDescriptor> ports;
-            ports.reserve(dirs.size());
-            for (const auto& [name, dir] : dirs) {
-                ports.push_back({name, Domain::Electrical, dir});
+            ports.reserve(metas.size());
+            for (const auto& [name, meta] : metas) {
+                ports.push_back({name, meta.domain, meta.dir});
             }
 
             bp2_registry.register_component(
