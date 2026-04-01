@@ -81,12 +81,19 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
     json result;
     result["devices"] = json::array();
     result["connections"] = json::array();
+    std::unordered_map<std::string, std::string> id_to_name;
 
     // Convert nodes to devices
     if (bp.contains("nodes") && bp["nodes"].is_array()) {
         for (const auto& node : bp["nodes"]) {
+            std::string node_id = node.value("id", "");
+            std::string node_name = node.value("name", node_id);
+            if (!node_id.empty()) {
+                id_to_name[node_id] = node_name;
+            }
+
             json dev;
-            dev["name"] = node["name"].get<std::string>();
+            dev["name"] = node_name;
             dev["classname"] = node["type"].get<std::string>();
             if (node.contains("params") && node["params"].is_object()) {
                 dev["params"] = json::object();
@@ -115,6 +122,21 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
             // Convert "/node:port" format to "node.port"
             if (!from.empty() && from[0] == '/') from = from.substr(1);
             if (!to.empty() && to[0] == '/') to = to.substr(1);
+
+            auto remap_endpoint = [&](std::string& endpoint) {
+                size_t sep = endpoint.find(':');
+                if (sep == std::string::npos) {
+                    return;
+                }
+                std::string node_id = endpoint.substr(0, sep);
+                auto it = id_to_name.find(node_id);
+                if (it != id_to_name.end()) {
+                    endpoint.replace(0, sep, it->second);
+                }
+            };
+            remap_endpoint(from);
+            remap_endpoint(to);
+
             std::replace(from.begin(), from.end(), ':', '.');
             std::replace(to.begin(), to.end(), ':', '.');
 
@@ -1387,14 +1409,10 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
 
 TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     // Load real closed_circuit.blueprint from filesystem.
-    // Wire connections from blueprint:
-    //   battery_1.v_out -> resistor_1.v_in
-    //   resistor_1.v_out -> indicatorlight_1.v_in
-    //   indicatorlight_1.v_out -> bus_1.v
-    //   bus_1.v -> battery_1.v_in
-    //   refnode_1.v -> bus_1.v
-    //
-    // Verifies voltages remain bounded (no runaway) with real fixture topology.
+    // Current fixture is a self-excitation generator loop:
+    // GEN.v_pos -> bus_2 -> currentsense_1 -> bus_1 -> GEN.v_neg / ground,
+    // with currentsense_1.i_out fed back through FastTMO/Add/Multiply into GEN.cmd.
+    // Verifies the loop stays finite and does not run away.
     std::string blueprint_path;
     EXPECT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
@@ -1412,52 +1430,38 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     for (int i = 0; i < 600; ++i) {
         sim.step(dt);
 
-        float bat_vout = sim.get_port_value("battery_1", "v_out");
-        float res_vout = sim.get_port_value("resistor_1", "v_out");
-        float ind_vout = sim.get_port_value("indicatorlight_1", "v_out");
-        float bus_v = sim.get_port_value("bus_1", "v");
-        float gnd_v = sim.get_port_value("refnode_1", "v");
+        float gen_vpos = sim.get_port_value("GEN", "v_pos");
+        float bus_2_v = sim.get_port_value("bus_2", "v");
+        float cs_vin = sim.get_port_value("currentsense_1", "v_in");
+        float cs_vout = sim.get_port_value("currentsense_1", "v_out");
+        float cs_iout = sim.get_port_value("currentsense_1", "i_out");
+        float bus_1_v = sim.get_port_value("bus_1", "v");
+        float gnd_v = sim.get_port_value("refnode_4", "v");
 
         // All key electrical ports must be finite
-        EXPECT_TRUE(std::isfinite(bat_vout)) << "Battery v_out should be finite at frame " << i;
-        EXPECT_TRUE(std::isfinite(res_vout)) << "Resistor v_out should be finite at frame " << i;
-        EXPECT_TRUE(std::isfinite(ind_vout)) << "IndicatorLight v_out should be finite at frame " << i;
-        EXPECT_TRUE(std::isfinite(bus_v)) << "Bus v should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(gen_vpos)) << "GEN.v_pos should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(bus_2_v)) << "bus_2.v should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(cs_vin)) << "currentsense_1.v_in should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(cs_vout)) << "currentsense_1.v_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(cs_iout)) << "currentsense_1.i_out should be finite at frame " << i;
+        EXPECT_TRUE(std::isfinite(bus_1_v)) << "bus_1.v should be finite at frame " << i;
         EXPECT_TRUE(std::isfinite(gnd_v)) << "RefNode v should be finite at frame " << i;
 
-        // No monotonic +28 runaway pattern: voltages should stay bounded
-        // Upper bound of 100V is generous (real circuit should be ~28V)
-        EXPECT_LT(bat_vout, 100.0f) << "Battery v_out runaway at frame " << i;
-        EXPECT_LT(res_vout, 100.0f) << "Resistor v_out runaway at frame " << i;
-        EXPECT_LT(ind_vout, 100.0f) << "IndicatorLight v_out runaway at frame " << i;
-        EXPECT_LT(bus_v, 100.0f) << "Bus v runaway at frame " << i;
+        EXPECT_LT(std::fabs(gen_vpos), 100.0f) << "GEN.v_pos runaway at frame " << i;
+        EXPECT_LT(std::fabs(bus_2_v), 100.0f) << "bus_2.v runaway at frame " << i;
+        EXPECT_LT(std::fabs(cs_vin), 100.0f) << "currentsense_1.v_in runaway at frame " << i;
+        EXPECT_LT(std::fabs(cs_vout), 100.0f) << "currentsense_1.v_out runaway at frame " << i;
+        EXPECT_LT(std::fabs(bus_1_v), 100.0f) << "bus_1.v runaway at frame " << i;
 
         // Reference node should remain near configured value (0V)
         EXPECT_NEAR(gnd_v, 0.0f, 0.5f) << "RefNode drift at frame " << i;
     }
 }
 
-TEST(PushRuntime, ClosedCircuitBlueprint_BatteryChargeDecreases_RealFixture) {
-    // Step 12 formal validation: real fixture end-to-end test.
-    // Load actual closed_circuit.blueprint and verify battery charge decreases
-    // when branch draws current through the full loop topology.
-    //
-    // Blueprint topology:
-    //   battery_1.v_out -> resistor_1.v_in
-    //   resistor_1.v_out -> indicatorlight_1.v_in
-    //   indicatorlight_1.v_out -> bus_1.v
-    //   bus_1.v -> battery_1.v_in
-    //   refnode_1.v -> bus_1.v (reference node at 0V)
-    //
-    // Battery params from blueprint: v_nominal=28.0, internal_r=0.01,
-    // capacity=1000, charge=1000
-    // Resistor conductance from blueprint: 0.1 (10 ohm load)
-    //
-    // Root cause of prior flakiness: battery charge is a running accumulator
-    // stored as double. At charge=1000 with resistor conductance=0.1, the
-    // per-step discharge delta is ~1.2e-5 Ah. In float32, this is below the
-    // ULP at 1000.0 (~6.1e-5), so the subtraction was swallowed by rounding.
-    // Using double (ULP ~1.1e-13 at 1000) resolves this permanently.
+TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent) {
+    // Load the real self-excitation generator fixture and verify that the
+    // commanded source energizes the CurrentSense branch and produces non-zero
+    // feedback current in the closed loop.
     std::string blueprint_path;
     ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
@@ -1469,74 +1473,33 @@ TEST(PushRuntime, ClosedCircuitBlueprint_BatteryChargeDecreases_RealFixture) {
     ASSERT_NO_THROW(sim.start_from_json(json))
         << "Failed to start simulation from loaded blueprint";
 
-    // Verify blueprint includes expected devices
-    double initial_charge = sim.get_battery_charge("battery_1");
-    ASSERT_TRUE(std::isfinite(initial_charge))
-        << "Initial battery charge should be finite";
-    ASSERT_GT(initial_charge, 0.0)
-        << "Initial charge from blueprint should be positive";
-
-    float dt = 1.0f / 60.0f;
-
-    // Take one step to allow electrical solver to run and establish voltages
-    sim.step(dt);
-
-    // Verify battery voltage is finite after first solve step (not open-circuit)
-    float bat_vout = sim.get_port_value("battery_1", "v_out");
-    ASSERT_TRUE(std::isfinite(bat_vout))
-        << "Battery v_out should be finite after solve (not open-circuit)";
-    ASSERT_GT(bat_vout, 0.0f)
-        << "Battery should produce positive voltage after solve";
-
-    // Diagnostic: verify current flow using CurrentSense from the real fixture.
-    float i_out = sim.get_port_value("currentsense_1", "i_out");
-    ASSERT_TRUE(std::isfinite(i_out))
-        << "CurrentSense output should be finite";
-    EXPECT_GT(std::abs(i_out), 1e-4f)
-        << "CurrentSense should report non-zero current in closed circuit. i_out=" << i_out;
-
-    // Battery voltage should be near nominal 28V
-    EXPECT_GT(bat_vout, 20.0f)
-        << "Battery v_out should be near nominal 28V if properly connected. "
-        << "Got " << bat_vout << " which suggests open circuit or wiring issue";
-
-    // Sample periodically - 10 ohm load gives smaller discharge per step
-    // I ≈ 28V / 10.01Ω ≈ 2.8A, discharge/step ≈ 2.8/3600/60 ≈ 1.3e-5 Ah
-    // With 10000 steps: total ≈ 0.13 Ah decrease (measurable with double precision)
-    const int total_steps = 10000;
-    const int sample_interval = 1000;
-    std::vector<double> charge_samples;
-    charge_samples.push_back(initial_charge);
-
-    for (int i = 0; i < total_steps; ++i) {
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 20; ++i) {
         sim.step(dt);
-        double ch = sim.get_battery_charge("battery_1");
-        ASSERT_TRUE(std::isfinite(ch)) << "Charge should be finite at step " << i;
-        if ((i + 1) % sample_interval == 0) {
-            charge_samples.push_back(ch);
-        }
     }
 
-    double final_charge = sim.get_battery_charge("battery_1");
-    ASSERT_TRUE(std::isfinite(final_charge));
+    float gen_vpos = sim.get_port_value("GEN", "v_pos");
+    float cs_vin = sim.get_port_value("currentsense_1", "v_in");
+    float cs_vout = sim.get_port_value("currentsense_1", "v_out");
+    float i_out = sim.get_port_value("currentsense_1", "i_out");
+    float filt_out = sim.get_port_value("fasttmo_1", "out");
 
-    // Verify monotonic decrease over samples
-    for (size_t j = 1; j < charge_samples.size(); ++j) {
-        EXPECT_LT(charge_samples[j], charge_samples[j-1])
-            << "Charge should decrease monotonically: sample " << j-1
-            << " (" << charge_samples[j-1] << ") > sample " << j
-            << " (" << charge_samples[j] << ")";
-    }
+    ASSERT_TRUE(std::isfinite(gen_vpos));
+    ASSERT_TRUE(std::isfinite(cs_vin));
+    ASSERT_TRUE(std::isfinite(cs_vout));
+    ASSERT_TRUE(std::isfinite(i_out));
+    ASSERT_TRUE(std::isfinite(filt_out));
 
-    // Total decrease should be measurable (≈0.13 Ah over 10000 steps)
-    double total_decrease = initial_charge - final_charge;
-    EXPECT_GT(total_decrease, 0.01)
-        << "Total discharge should be measurable (> 0.01 Ah): got " << total_decrease;
-
-    // Final charge should be strictly less than initial
-    EXPECT_LT(final_charge, initial_charge)
-        << "Final charge (" << final_charge << ") should be less than initial ("
-        << initial_charge << ")";
+    EXPECT_GT(gen_vpos, 0.5f)
+        << "Generator source should build positive voltage";
+    EXPECT_GT(cs_vin, 0.5f)
+        << "CurrentSense input should be energized by generator output";
+    EXPECT_NEAR(cs_vout, 0.0f, 1e-4f)
+        << "CurrentSense output node should stay tied to ground bus";
+    EXPECT_GT(std::fabs(i_out), 1e-3f)
+        << "CurrentSense should report non-zero loop current";
+    EXPECT_GT(filt_out, 1e-3f)
+        << "Current feedback should propagate through FastTMO";
 }
 
 TEST(PushRuntime, ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology) {
@@ -1787,4 +1750,55 @@ TEST(PushRuntime, RelayCustomHoldThresholdIsRespected) {
     relay.commit_control(st, 0.0f);
     EXPECT_FALSE(relay.closed)
         << "control=-2.5 reaches -hold_threshold=-2.0, relay must open";
+}
+
+TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
+    const char* json = R"({
+        "devices": [
+            {"name": "gnd", "classname": "RefNode", "params": {"value": "0.0"}},
+            {"name": "rpm", "classname": "RefNode", "params": {"value": "1.0"}},
+            {"name": "residual", "classname": "RefNode", "params": {"value": "0.05"}},
+            {"name": "gain", "classname": "RefNode", "params": {"value": "25.0"}},
+            {"name": "add", "classname": "Add"},
+            {"name": "mul1", "classname": "Multiply"},
+            {"name": "mul2", "classname": "Multiply"},
+            {"name": "cvs", "classname": "ControlledVoltageSource", "params": {
+                "gain": "1.0", "offset": "0.0", "min_v": "0.0", "max_v": "30.0", "r_internal": "0.01"
+            }},
+            {"name": "cs", "classname": "CurrentSense", "params": {"conductance": "10.0"}},
+            {"name": "filt", "classname": "FastTMO", "params": {"deadzone": "0.001", "tau": "0.2"}}
+        ],
+        "connections": [
+            {"from": "residual.v", "to": "add.A"},
+            {"from": "filt.out", "to": "add.B"},
+            {"from": "rpm.v", "to": "mul1.A"},
+            {"from": "add.o", "to": "mul1.B"},
+            {"from": "gain.v", "to": "mul2.A"},
+            {"from": "mul1.o", "to": "mul2.B"},
+            {"from": "mul2.o", "to": "cvs.cmd"},
+            {"from": "gnd.v", "to": "cvs.v_neg"},
+            {"from": "cvs.v_pos", "to": "cs.v_in"},
+            {"from": "cs.v_out", "to": "gnd.v"},
+            {"from": "cs.i_out", "to": "filt.in"}
+        ]
+    })";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json));
+
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 10; ++i) {
+        sim.step(dt);
+    }
+
+    float v_in = sim.get_port_value("cs", "v_in");
+    float v_out = sim.get_port_value("cs", "v_out");
+    float i_out = sim.get_port_value("cs", "i_out");
+
+    EXPECT_GT(v_in, 0.5f)
+        << "ControlledVoltageSource should energize CurrentSense input";
+    EXPECT_NEAR(v_out, 0.0f, 1e-4f)
+        << "CurrentSense output node should remain tied to ground";
+    EXPECT_GT(std::fabs(i_out), 1e-3f)
+        << "CurrentSense should report non-zero current in closed-loop CVS circuit";
 }
