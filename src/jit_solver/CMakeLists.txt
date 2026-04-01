@@ -39,6 +39,7 @@ add_library(jit_solver
     components/pi.cpp
     components/pd.cpp
     components/p.cpp
+    components/accumulator.cpp
     components/integrator.cpp
     components/sample_hold.cpp
     components/time_delay.cpp

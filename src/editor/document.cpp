@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "data/node_content.h"
 #include "json_parser/json_parser.h"
+#include "parse_number.h"
 #include <nlohmann/json.hpp>
 #include "blueprint_v2/path/path.h"
 #include <spdlog/spdlog.h>
@@ -570,11 +571,14 @@ void Document::addComponent(const std::string& classname, Pt world_pos,
         }
     }
 
-    // Convert params (string→string → InternedId→float where parseable)
+    // Convert params (string→string → InternedId→float where parseable).
+    // Use strict locale-safe parsing: values like LUT table strings
+    // ("0:0; 100:100") must stay in string_params.
     for (const auto& [k, v] : def->params) {
-        try {
-            node.params[interner_.intern(k)] = std::stof(v);
-        } catch (...) {
+        float parsed = 0.0f;
+        if (locale_safe::parse_float(v, parsed)) {
+            node.params[interner_.intern(k)] = parsed;
+        } else {
             node.string_params[k] = v;
         }
     }

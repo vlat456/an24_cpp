@@ -7,29 +7,6 @@
   "nested": [],
   "nodes": [
     {
-      "id": "add_1",
-      "name": "add_1",
-      "ports": {
-        "A": {
-          "direction": "In",
-          "type": 7
-        },
-        "B": {
-          "direction": "In",
-          "type": 7
-        },
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 448.0,
-        "y": -48.0
-      },
-      "type": "Add"
-    },
-    {
       "id": "bus_1",
       "name": "bus_1",
       "ports": {
@@ -126,17 +103,81 @@
         }
       },
       "position": {
-        "x": 1648.0,
-        "y": -128.0
+        "x": 1520.0,
+        "y": -64.0
       },
       "type": "CurrentSense"
     },
     {
-      "id": "fasttmo_1",
-      "name": "fasttmo_1",
+      "id": "subtract_fol",
+      "name": "FOL_Error",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1120.0,
+        "y": -400.0
+      },
+      "type": "Subtract"
+    },
+    {
+      "id": "rate_fol",
+      "name": "FOL_Rate",
       "params": {
-        "deadzone": 0.0010000000474974513,
-        "tau": 0.20000000298023224
+        "value": 6.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1120.0,
+        "y": -480.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
+    },
+    {
+      "id": "multiply_fol",
+      "name": "FOL_Scale",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": 7
+        },
+        "B": {
+          "direction": "In",
+          "type": 7
+        },
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1264.0,
+        "y": -400.0
+      },
+      "type": "Multiply"
+    },
+    {
+      "id": "accumulator_fol",
+      "name": "FieldState",
+      "params": {
+        "initial_val": 0.6000000238418579
       },
       "ports": {
         "in": {
@@ -149,10 +190,32 @@
         }
       },
       "position": {
-        "x": 288.0,
-        "y": 16.0
+        "x": 1408.0,
+        "y": -400.0
       },
-      "type": "FastTMO"
+      "type": "Accumulator"
+    },
+    {
+      "id": "lut_1",
+      "name": "RN180_excitation",
+      "ports": {
+        "input": {
+          "direction": "In",
+          "type": 7
+        },
+        "output": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1968.0,
+        "y": -288.0
+      },
+      "string_params": {
+        "table": "0.0:0.6; 1.0:28.5"
+      },
+      "type": "LUT"
     },
     {
       "id": "multiply_1",
@@ -178,27 +241,33 @@
       "type": "Multiply"
     },
     {
-      "id": "multiply_2",
-      "name": "multiply_2",
+      "id": "pi_1",
+      "name": "RN180",
+      "params": {
+        "Ki": 1.0,
+        "Kp": 0.10000000149011612,
+        "output_max": 1.0,
+        "output_min": 0.0
+      },
       "ports": {
-        "A": {
+        "feedback": {
           "direction": "In",
           "type": 7
         },
-        "B": {
-          "direction": "In",
-          "type": 7
-        },
-        "o": {
+        "output": {
           "direction": "Out",
+          "type": 7
+        },
+        "setpoint": {
+          "direction": "In",
           "type": 7
         }
       },
       "position": {
-        "x": 816.0,
-        "y": -64.0
+        "x": 1760.0,
+        "y": -256.0
       },
-      "type": "Multiply"
+      "type": "PI"
     },
     {
       "id": "refnode_1",
@@ -214,44 +283,6 @@
       },
       "position": {
         "x": 544.0,
-        "y": -112.0
-      },
-      "render_hint": "ref",
-      "type": "Value"
-    },
-    {
-      "id": "refnode_2",
-      "name": "OstNamagn",
-      "params": {
-        "value": 0.05000000074505806
-      },
-      "ports": {
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 368.0,
-        "y": -96.0
-      },
-      "render_hint": "ref",
-      "type": "Value"
-    },
-    {
-      "id": "refnode_3",
-      "name": "GAIN",
-      "params": {
-        "value": 12.0
-      },
-      "ports": {
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 736.0,
         "y": -112.0
       },
       "render_hint": "ref",
@@ -293,14 +324,33 @@
         }
       },
       "position": {
-        "x": 1408.0,
-        "y": -128.0
+        "x": 1392.0,
+        "y": -64.0
       },
       "type": "Resistor"
+    },
+    {
+      "id": "value_1",
+      "name": "IdealVoltage",
+      "params": {
+        "value": 28.5
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": 7
+        }
+      },
+      "position": {
+        "x": 1680.0,
+        "y": -192.0
+      },
+      "render_hint": "ref",
+      "type": "Value"
     }
   ],
-  "pan_x": 1161.420654296875,
-  "pan_y": -388.59234619140625,
+  "pan_x": 956.3096923828125,
+  "pan_y": -604.3232421875,
   "version": "3.0",
   "wires": [
     {
@@ -310,27 +360,12 @@
     },
     {
       "id": "wire_23",
-      "source": "/add_1:o",
+      "source": "/accumulator_fol:out",
       "target": "/multiply_1:B"
     },
     {
-      "id": "wire_24",
-      "source": "/refnode_2:o",
-      "target": "/add_1:A"
-    },
-    {
-      "id": "wire_25",
-      "source": "/multiply_1:o",
-      "target": "/multiply_2:B"
-    },
-    {
-      "id": "wire_26",
-      "source": "/refnode_3:o",
-      "target": "/multiply_2:A"
-    },
-    {
       "id": "wire_28",
-      "source": "/multiply_2:o",
+      "source": "/multiply_1:o",
       "target": "/controlledvoltagesource_1:cmd"
     },
     {
@@ -364,35 +399,55 @@
       "target": "/bus_1:v"
     },
     {
-      "id": "wire_38",
-      "routing_points": [
-        [
-          1824.0,
-          384.0
-        ],
-        [
-          192.0,
-          368.0
-        ]
-      ],
-      "source": "/currentsense_1:i_out",
-      "target": "/fasttmo_1:in"
-    },
-    {
       "id": "wire_39",
       "source": "/bus_2:v",
       "target": "/resistor_1:v_in"
     },
     {
-      "id": "wire_40",
-      "source": "/fasttmo_1:out",
-      "target": "/add_1:B"
-    },
-    {
       "id": "wire_41",
       "source": "/resistor_1:v_out",
       "target": "/currentsense_1:v_in"
+    },
+    {
+      "id": "wire_42",
+      "source": "/value_1:o",
+      "target": "/pi_1:setpoint"
+    },
+    {
+      "id": "wire_43",
+      "source": "/bus_2:v",
+      "target": "/pi_1:feedback"
+    },
+    {
+      "id": "wire_48",
+      "source": "/pi_1:output",
+      "target": "/lut_1:input"
+    },
+    {
+      "id": "wire_49",
+      "source": "/lut_1:output",
+      "target": "/subtract_fol:A"
+    },
+    {
+      "id": "wire_50",
+      "source": "/accumulator_fol:out",
+      "target": "/subtract_fol:B"
+    },
+    {
+      "id": "wire_51",
+      "source": "/subtract_fol:o",
+      "target": "/multiply_fol:A"
+    },
+    {
+      "id": "wire_52",
+      "source": "/rate_fol:o",
+      "target": "/multiply_fol:B"
+    },
+    {
+      "id": "wire_53",
+      "source": "/multiply_fol:o",
+      "target": "/accumulator_fol:in"
     }
   ],
-  "zoom": 1.1199346780776978
+  "zoom": 0.6512259244918823
 }

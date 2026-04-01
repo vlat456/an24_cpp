@@ -542,6 +542,7 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Users/vladimir/an24_cpp/src/json_parser/json_parser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/state.h \
   /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/add.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/agk47.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
@@ -586,7 +587,6 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Users/vladimir/an24_cpp/src/jit_solver/components/load.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lut.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/max.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/merger.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h \
@@ -599,6 +599,7 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Users/vladimir/an24_cpp/src/jit_solver/components/pd.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/pi.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/pid.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/port_registry.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/positive_v_to_bool.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
@@ -619,6 +620,7 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
   /Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/transformer.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/value.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.h \
@@ -634,6 +636,8 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
 /Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/value.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.h:
 
@@ -672,8 +676,6 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
 /Users/vladimir/an24_cpp/src/jit_solver/components/rug82.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/merger.h:
-
-/Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/max.h:
 
@@ -720,6 +722,8 @@ examples/CMakeFiles/hello_world.dir/main.cpp.o: /Users/vladimir/an24_cpp/example
 /Users/vladimir/an24_cpp/src/jit_solver/components/agk47.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/components/add.h:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h:
 
 /Users/vladimir/an24_cpp/src/jit_solver/state.h:
 
@@ -768,6 +772,8 @@ _deps/json-src/include/nlohmann/detail/json_ref.hpp:
 /Users/vladimir/an24_cpp/src/jit_solver/components/xor_gate.h:
 
 _deps/json-src/include/nlohmann/detail/iterators/primitive_iterator.hpp:
+
+/Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h:
 
 _deps/json-src/include/nlohmann/detail/iterators/json_reverse_iterator.hpp:
 

@@ -98,6 +98,15 @@ static std::string blueprint_to_simulation_json_by_id(const std::string& bluepri
                     }
                 }
             }
+            // Merge string_params (e.g. LUT table, Bus port_edge) into params
+            if (node.contains("string_params") && node["string_params"].is_object()) {
+                if (!dev.contains("params")) {
+                    dev["params"] = json::object();
+                }
+                for (const auto& [k, v] : node["string_params"].items()) {
+                    dev["params"][k] = v.get<std::string>();
+                }
+            }
             result["devices"].push_back(dev);
         }
     }
@@ -156,6 +165,15 @@ static std::string blueprint_to_simulation_json(const std::string& blueprint_pat
                     } else {
                         dev["params"][k] = v.get<std::string>();
                     }
+                }
+            }
+            // Merge string_params (e.g. LUT table, Bus port_edge) into params
+            if (node.contains("string_params") && node["string_params"].is_object()) {
+                if (!dev.contains("params")) {
+                    dev["params"] = json::object();
+                }
+                for (const auto& [k, v] : node["string_params"].items()) {
+                    dev["params"][k] = v.get<std::string>();
                 }
             }
             result["devices"].push_back(dev);
@@ -1459,10 +1477,10 @@ TEST(PushRuntime, IndicatorLightBrightnessStillFunctional) {
 
 TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     // Load real closed_circuit.blueprint from filesystem.
-    // Current fixture is a self-excitation generator loop:
-    // GEN.v_pos -> bus_2 -> currentsense_1 -> bus_1 -> GEN.v_neg / ground,
-    // with currentsense_1.i_out fed back through FastTMO/Add/Multiply into GEN.cmd.
-    // Verifies the loop stays finite and does not run away.
+    // Topology: GS-24A generator with RN-180 carbon-pile voltage regulator.
+    // CVS(GEN) → bus_2 → Resistor(10Ω) → CurrentSense(0.1Ω) → bus_1(gnd).
+    // PI("RN180") senses bus_2.v vs 28.5V setpoint, output → LUT → Multiply(RPM) → CVS.cmd.
+    // Verifies the regulated loop stays finite and does not run away.
     std::string blueprint_path;
     EXPECT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
@@ -1508,15 +1526,15 @@ TEST(PushRuntime, ClosedCircuitBlueprint_NoRunawayVoltage) {
     }
 }
 
-TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent) {
-    // Load the real self-excitation generator fixture and verify that the
+TEST(PushRuntime, ClosedCircuitBlueprint_RN180RegulatedGeneratorProducesCurrent) {
+    // Load the RN-180 regulated generator fixture and verify that the
     // commanded source energizes the CurrentSense branch and produces non-zero
-    // feedback current in the closed loop.
+    // current, with voltage settling near the 28.5V regulation target.
     //
-    // Topology: CVS(GEN) → bus_2 → Resistor(10Ω) → CurrentSense(0.1Ω) → bus_1(gnd)
-    // The voltage at cs.v_in is the small drop across the 0.1Ω current sense,
-    // NOT the full source voltage. Most voltage drops across the 10Ω resistor.
-    // At steady state: cs_vin = v_source * 0.1 / (0.01 + 10 + 0.1) ≈ v_source/101.
+    // Topology: PI("RN180") senses bus_2 vs 28.5V → LUT(excitation) → Multiply(RPM) → CVS(GEN).cmd
+    //           CVS(GEN) → bus_2 → Resistor(10Ω) → CurrentSense(0.1Ω) → bus_1(gnd)
+    // At steady state with regulated ~28.5V: I ≈ 28.5 / 10.1 ≈ 2.82A
+    // cs_vin ≈ I * 0.1 ≈ 0.282V
     std::string blueprint_path;
     ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
@@ -1528,8 +1546,9 @@ TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent)
     ASSERT_NO_THROW(sim.start_from_json(json))
         << "Failed to start simulation from loaded blueprint";
 
+    // Run 200 steps (~3.3 seconds) to let PI regulator settle
     const float dt = 1.0f / 60.0f;
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 200; ++i) {
         sim.step(dt);
     }
 
@@ -1537,16 +1556,17 @@ TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent)
     float cs_vin = sim.get_port_value("currentsense_1", "v_in");
     float cs_vout = sim.get_port_value("currentsense_1", "v_out");
     float i_out = sim.get_port_value("currentsense_1", "i_out");
-    float filt_out = sim.get_port_value("fasttmo_1", "out");
 
     ASSERT_TRUE(std::isfinite(gen_vpos));
     ASSERT_TRUE(std::isfinite(cs_vin));
     ASSERT_TRUE(std::isfinite(cs_vout));
     ASSERT_TRUE(std::isfinite(i_out));
-    ASSERT_TRUE(std::isfinite(filt_out));
 
+    // Generator voltage should settle near 28.5V regulation target (±2V tolerance for game sim)
     EXPECT_GT(gen_vpos, 0.5f)
         << "Generator source should build positive voltage";
+    EXPECT_NEAR(gen_vpos, 28.5f, 2.0f)
+        << "RN-180 regulator should stabilize generator near 28.5V";
     // cs_vin is the node between the 10Ω resistor and 0.1Ω current sense.
     // It carries only the small voltage drop across the current sense element.
     EXPECT_GT(cs_vin, 0.001f)
@@ -1555,8 +1575,6 @@ TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent)
         << "CurrentSense output node should stay tied to ground bus";
     EXPECT_GT(std::fabs(i_out), 1e-3f)
         << "CurrentSense should report non-zero loop current";
-    EXPECT_GT(filt_out, 1e-3f)
-        << "Current feedback should propagate through FastTMO";
 }
 
 TEST(PushRuntime, ClosedCircuitLike_BatteryChargeDecreases_CorrectedTopology) {

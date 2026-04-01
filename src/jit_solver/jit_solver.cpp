@@ -33,6 +33,7 @@
 #include "components/pd.h"
 #include "components/p.h"
 #include "components/integrator.h"
+#include "components/accumulator.h"
 #include "components/sample_hold.h"
 #include "components/time_delay.h"
 #include "components/monostable.h"
@@ -105,7 +106,8 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
            classname == "Resistor" ||
            classname == "ElectricalConductance" ||
            classname == "ElectricalSource" ||
-           classname == "ControlledVoltageSource";
+           classname == "ControlledVoltageSource" ||
+           classname == "VariableConductance";
 }
 
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
@@ -711,6 +713,18 @@ BuildResult build_systems_dev(
             
             result.devices[dev.name] = comp;
             result.scheduler.add_consumer(&std::get<P<JitProvider>>(result.devices[dev.name]));
+        }
+        else if (dev.classname == "Accumulator") {
+            Accumulator<JitProvider> comp;
+            
+            comp.initial_val = param_reader.consume_float_optional("initial_val", 0.0f);
+            comp.state = comp.initial_val;
+            comp.next_state = comp.initial_val;
+            setup_ports(comp);
+            param_reader.validate_all_consumed();
+            
+            result.devices[dev.name] = comp;
+            result.scheduler.add_consumer(&std::get<Accumulator<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Integrator") {
             Integrator<JitProvider> comp;
@@ -1702,6 +1716,22 @@ BuildResult build_systems_dev(
                 dev.name
             });
         }
+        else if (dev.classname == "VariableConductance") {
+            // ConductanceBranch with dynamic conductance: initial value_a = g_min.
+            // Updated each frame before solve_electrical() from cmd signal (one-frame delay).
+            float g_min_val = read_param_float(dev, "g_min", 0.001f);
+            uint32_t node_a = resolve_port(dev, "v_in");
+            uint32_t node_b = resolve_port(dev, "v_out");
+            raw_elements.push_back({
+                ElectricalElementKind::ConductanceBranch,
+                node_a,
+                node_b,
+                g_min_val,
+                0.0f,
+                element_idx++,
+                dev.name
+            });
+        }
         // Unsupported components are silently ignored for electrical_plan
     }
 
@@ -1847,7 +1877,8 @@ BuildResult build_systems_dev(
                               std::is_same_v<CompType, Generator<JitProvider>> ||
                               std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
                               std::is_same_v<CompType, CurrentSense<JitProvider>> ||
-                              std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
+                              std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
+                              std::is_same_v<CompType, VariableConductance<JitProvider>>) {
                     comp.electrical_handle = handle;
                 }
             }, it->second);

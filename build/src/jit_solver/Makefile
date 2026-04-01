@@ -185,6 +185,30 @@ jit_solver/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/build
 .PHONY : jit_solver/fast
 
+components/accumulator.o: components/accumulator.cpp.o
+.PHONY : components/accumulator.o
+
+# target to build an object file
+components/accumulator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.o
+.PHONY : components/accumulator.cpp.o
+
+components/accumulator.i: components/accumulator.cpp.i
+.PHONY : components/accumulator.i
+
+# target to preprocess a source file
+components/accumulator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.i
+.PHONY : components/accumulator.cpp.i
+
+components/accumulator.s: components/accumulator.cpp.s
+.PHONY : components/accumulator.s
+
+# target to generate assembly for a file
+components/accumulator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.s
+.PHONY : components/accumulator.cpp.s
+
 components/add.o: components/add.cpp.o
 .PHONY : components/add.o
 
@@ -1193,30 +1217,6 @@ components/max.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/max.cpp.s
 .PHONY : components/max.cpp.s
 
-components/max_selector.o: components/max_selector.cpp.o
-.PHONY : components/max_selector.o
-
-# target to build an object file
-components/max_selector.cpp.o:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.o
-.PHONY : components/max_selector.cpp.o
-
-components/max_selector.i: components/max_selector.cpp.i
-.PHONY : components/max_selector.i
-
-# target to preprocess a source file
-components/max_selector.cpp.i:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.i
-.PHONY : components/max_selector.cpp.i
-
-components/max_selector.s: components/max_selector.cpp.s
-.PHONY : components/max_selector.s
-
-# target to generate assembly for a file
-components/max_selector.cpp.s:
-	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.s
-.PHONY : components/max_selector.cpp.s
-
 components/merger.o: components/merger.cpp.o
 .PHONY : components/merger.o
 
@@ -1937,6 +1937,30 @@ components/transformer.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/transformer.cpp.s
 .PHONY : components/transformer.cpp.s
 
+components/value.o: components/value.cpp.o
+.PHONY : components/value.o
+
+# target to build an object file
+components/value.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o
+.PHONY : components/value.cpp.o
+
+components/value.i: components/value.cpp.i
+.PHONY : components/value.i
+
+# target to preprocess a source file
+components/value.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.i
+.PHONY : components/value.cpp.i
+
+components/value.s: components/value.cpp.s
+.PHONY : components/value.s
+
+# target to generate assembly for a file
+components/value.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f src/jit_solver/CMakeFiles/jit_solver.dir/build.make src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.s
+.PHONY : components/value.cpp.s
+
 components/variable_conductance.o: components/variable_conductance.cpp.o
 .PHONY : components/variable_conductance.o
 
@@ -2143,6 +2167,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... jit_solver"
+	@echo "... components/accumulator.o"
+	@echo "... components/accumulator.i"
+	@echo "... components/accumulator.s"
 	@echo "... components/add.o"
 	@echo "... components/add.i"
 	@echo "... components/add.s"
@@ -2269,9 +2296,6 @@ help:
 	@echo "... components/max.o"
 	@echo "... components/max.i"
 	@echo "... components/max.s"
-	@echo "... components/max_selector.o"
-	@echo "... components/max_selector.i"
-	@echo "... components/max_selector.s"
 	@echo "... components/merger.o"
 	@echo "... components/merger.i"
 	@echo "... components/merger.s"
@@ -2362,6 +2386,9 @@ help:
 	@echo "... components/transformer.o"
 	@echo "... components/transformer.i"
 	@echo "... components/transformer.s"
+	@echo "... components/value.o"
+	@echo "... components/value.i"
+	@echo "... components/value.s"
 	@echo "... components/variable_conductance.o"
 	@echo "... components/variable_conductance.i"
 	@echo "... components/variable_conductance.s"

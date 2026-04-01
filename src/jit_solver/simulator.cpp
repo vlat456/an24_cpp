@@ -3,6 +3,7 @@
 #include "components/controlled_voltage_source.h"
 #include "components/electrical_conductance.h"
 #include "components/electrical_source.h"
+#include "components/variable_conductance.h"
 #include "../json_parser/json_parser.h"
 #include "../parse_number.h"
 #include <algorithm>
@@ -32,6 +33,20 @@ void update_dynamic_sources(BuildResult& br, SimulationState& st) {
                 auto& elem = island.elements[comp.electrical_handle.element_index];
                 elem.value_a = v_source;
             }
+            else if constexpr (std::is_same_v<CompType, VariableConductance<JitProvider>>) {
+                if (!is_valid(comp.electrical_handle)) {
+                    return;
+                }
+                // Read cmd from previous frame's signal array (one-frame delay)
+                float cmd = st.values[comp.provider.get(PortNames::cmd)];
+                float t = std::clamp(cmd, 0.0f, 1.0f);
+                float g = comp.g_min + (comp.g_max - comp.g_min) * t;
+
+                // Patch the conductance in the electrical plan
+                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
+                auto& elem = island.elements[comp.electrical_handle.element_index];
+                elem.value_a = g;
+            }
         }, variant);
     }
 }
@@ -56,7 +71,8 @@ void commit_solver_owned_devices(BuildResult& br, SimulationState& st, float dt)
                           std::is_same_v<CompType, Resistor<JitProvider>> ||
                           std::is_same_v<CompType, ElectricalConductance<JitProvider>> ||
                           std::is_same_v<CompType, ElectricalSource<JitProvider>> ||
-                          std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
+                          std::is_same_v<CompType, ControlledVoltageSource<JitProvider>> ||
+                          std::is_same_v<CompType, VariableConductance<JitProvider>>) {
                 comp.commit(st, dt);
             }
         }, variant);

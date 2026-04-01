@@ -75,6 +75,7 @@ include("/Users/vladimir/an24_cpp/build/tests/production_path_port_map_tests[1]_
 include("/Users/vladimir/an24_cpp/build/tests/production_path_push_runtime_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/asym_slew_rate_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/integrator_tests[1]_include.cmake")
+include("/Users/vladimir/an24_cpp/build/tests/accumulator_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/clamp_normalize_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/comparison_components_tests[1]_include.cmake")
 include("/Users/vladimir/an24_cpp/build/tests/spring_tests[1]_include.cmake")

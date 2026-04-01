@@ -1329,6 +1329,19 @@ integrator_tests/fast:
 .PHONY : integrator_tests/fast
 
 #=============================================================================
+# Target rules for targets named accumulator_tests
+
+# Build rule for target.
+accumulator_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 accumulator_tests
+.PHONY : accumulator_tests
+
+# fast build rule for target.
+accumulator_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/build
+.PHONY : accumulator_tests/fast
+
+#=============================================================================
 # Target rules for targets named clamp_normalize_tests
 
 # Build rule for target.
@@ -1602,6 +1615,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... test"
 	@echo "... regenerate_port_registry"
+	@echo "... accumulator_tests"
 	@echo "... an24_codegen"
 	@echo "... an24_editor"
 	@echo "... and_gate_debug_tests"

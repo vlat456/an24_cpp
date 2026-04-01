@@ -26,6 +26,7 @@ enum class ComponentType {
     AGK47,
     AND,
     AZS,
+    Accumulator,
     Add,
     Any_V_to_Bool,
     AsymSlewRate,
@@ -107,6 +108,7 @@ enum class ComponentType {
 constexpr size_t AGK47_PORT_COUNT = 1;
 constexpr size_t AND_PORT_COUNT = 3;
 constexpr size_t AZS_PORT_COUNT = 6;
+constexpr size_t Accumulator_PORT_COUNT = 2;
 constexpr size_t Add_PORT_COUNT = 3;
 constexpr size_t Any_V_to_Bool_PORT_COUNT = 2;
 constexpr size_t AsymSlewRate_PORT_COUNT = 2;
@@ -198,6 +200,10 @@ constexpr const char* AZS_PORTS[] = {
     "tripped",
     "v_in",
     "v_out"
+};
+constexpr const char* Accumulator_PORTS[] = {
+    "in",
+    "out"
 };
 constexpr const char* Add_PORTS[] = {
     "A",
@@ -590,6 +596,20 @@ constexpr bool AZS_PORT_SOURCE_WRITER[] = {
     false
 };
 constexpr bool AZS_SCHEDULER_SOURCE = false;
+
+constexpr RegistryPortDirection Accumulator_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::In,
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Accumulator_PORT_DOMAINS[] = {
+    1,
+    1
+};
+constexpr bool Accumulator_PORT_SOURCE_WRITER[] = {
+    false,
+    false
+};
+constexpr bool Accumulator_SCHEDULER_SOURCE = false;
 
 constexpr RegistryPortDirection Add_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
@@ -1823,6 +1843,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"AGK47", {"input"}},
         {"AND", {"A", "B", "o"}},
         {"AZS", {"control", "state", "temp", "tripped", "v_in", "v_out"}},
+        {"Accumulator", {"in", "out"}},
         {"Add", {"A", "B", "o"}},
         {"Any_V_to_Bool", {"Vin", "o"}},
         {"AsymSlewRate", {"in", "out"}},
@@ -1911,6 +1932,7 @@ inline bool has_component_metadata(const std::string& classname) {
         "AGK47",
         "AND",
         "AZS",
+        "Accumulator",
         "Add",
         "Any_V_to_Bool",
         "AsymSlewRate",
@@ -1994,6 +2016,7 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"AGK47", false},
         {"AND", false},
         {"AZS", false},
+        {"Accumulator", false},
         {"Add", false},
         {"Any_V_to_Bool", false},
         {"AsymSlewRate", false},
@@ -2096,6 +2119,14 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < AZS_PORT_COUNT; ++i) {
             if (AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || AZS_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(AZS_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Accumulator") {
+        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+            if (Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Accumulator_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Accumulator_PORTS[i]);
             }
         }
         return result;
@@ -2721,6 +2752,14 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
+    if (classname == "Accumulator") {
+        for (size_t i = 0; i < Accumulator_PORT_COUNT; ++i) {
+            if (Accumulator_PORT_SOURCE_WRITER[i] && ((Accumulator_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Accumulator_PORTS[i]);
+            }
+        }
+        return result;
+    }
     if (classname == "Add") {
         for (size_t i = 0; i < Add_PORT_COUNT; ++i) {
             if (Add_PORT_SOURCE_WRITER[i] && ((Add_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3322,6 +3361,7 @@ using ComponentVariant = std::variant<
     AGK47<JitProvider>,
     AND<JitProvider>,
     AZS<JitProvider>,
+    Accumulator<JitProvider>,
     Add<JitProvider>,
     Any_V_to_Bool<JitProvider>,
     AsymSlewRate<JitProvider>,

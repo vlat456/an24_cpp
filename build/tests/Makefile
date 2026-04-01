@@ -1166,6 +1166,20 @@ integrator_tests/fast:
 .PHONY : integrator_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/accumulator_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/accumulator_tests.dir/rule
+.PHONY : tests/CMakeFiles/accumulator_tests.dir/rule
+
+# Convenience name for target.
+accumulator_tests: tests/CMakeFiles/accumulator_tests.dir/rule
+.PHONY : accumulator_tests
+
+# fast build rule for target.
+accumulator_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/build
+.PHONY : accumulator_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/clamp_normalize_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/clamp_normalize_tests.dir/rule
 .PHONY : tests/CMakeFiles/clamp_normalize_tests.dir/rule
@@ -2581,6 +2595,30 @@ provider_test.s: provider_test.cpp.s
 provider_test.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/provider_pattern_tests.dir/build.make tests/CMakeFiles/provider_pattern_tests.dir/provider_test.cpp.s
 .PHONY : provider_test.cpp.s
+
+test_accumulator.o: test_accumulator.cpp.o
+.PHONY : test_accumulator.o
+
+# target to build an object file
+test_accumulator.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.o
+.PHONY : test_accumulator.cpp.o
+
+test_accumulator.i: test_accumulator.cpp.i
+.PHONY : test_accumulator.i
+
+# target to preprocess a source file
+test_accumulator.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.i
+.PHONY : test_accumulator.cpp.i
+
+test_accumulator.s: test_accumulator.cpp.s
+.PHONY : test_accumulator.s
+
+# target to generate assembly for a file
+test_accumulator.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/accumulator_tests.dir/build.make tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.s
+.PHONY : test_accumulator.cpp.s
 
 test_and_gate_debug.o: test_and_gate_debug.cpp.o
 .PHONY : test_and_gate_debug.o
@@ -4419,6 +4457,7 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... test"
+	@echo "... accumulator_tests"
 	@echo "... and_gate_debug_tests"
 	@echo "... aot_composite_tests"
 	@echo "... arithmetic_tests"
@@ -4636,6 +4675,9 @@ help:
 	@echo "... provider_test.o"
 	@echo "... provider_test.i"
 	@echo "... provider_test.s"
+	@echo "... test_accumulator.o"
+	@echo "... test_accumulator.i"
+	@echo "... test_accumulator.s"
 	@echo "... test_and_gate_debug.o"
 	@echo "... test_and_gate_debug.i"
 	@echo "... test_and_gate_debug.s"

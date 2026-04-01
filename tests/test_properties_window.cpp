@@ -90,6 +90,27 @@ TEST_F(PropertiesWindowTest, OpenInitializesPendingState) {
     EXPECT_FLOAT_EQ(win.pending_params().at("r"), 0.01f);
 }
 
+TEST_F(PropertiesWindowTest, OpenKeepsLutTableAsStringParam) {
+    bp2::Blueprint::Node lut;
+    lut.id = interner.intern("lut_1");
+    lut.type = interner.intern("LUT");
+    lut.name = "lut_1";
+    lut.string_params["table"] = "0:0; 100:100";
+    model.add_node(std::move(lut));
+
+    const bp2::Blueprint::Node* node_ptr = model.current().find_node(interner.intern("lut_1"));
+    ASSERT_NE(node_ptr, nullptr);
+
+    PropertiesWindow win;
+    win.open(*node_ptr, "lut_1", model, interner, [](const std::string&) {});
+
+    EXPECT_EQ(win.pending_string_params().count("table"), 1u)
+        << "LUT table must be edited via string_params table editor";
+    EXPECT_EQ(win.pending_params().count("table"), 0u)
+        << "LUT table must not be treated as generic float param";
+    EXPECT_EQ(win.pending_string_params().at("table"), "0:0; 100:100");
+}
+
 TEST_F(PropertiesWindowTest, OpenInitializesPendingBridgePortType) {
     model.add_node(make_bridge_node(interner, "bp_in_1", true, PortType::V));
 

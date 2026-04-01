@@ -406,6 +406,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__bit_reference \
   /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1/__split_buffer \
   /Users/vladimir/an24_cpp/src/jit_solver/components/provider.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/port_names.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/all.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/component_enums.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/battery.h \
@@ -589,12 +590,12 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/monostable.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/sample_hold.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/integrator.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/normalize.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/min.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/max.h \
-  /Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/greater.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/lesser.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/greater_eq.h \
@@ -602,6 +603,7 @@ src/jit_solver/CMakeFiles/jit_solver.dir/jit_solver.cpp.o: \
   /Users/vladimir/an24_cpp/src/jit_solver/components/slider.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_conductance.h \
   /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.h \
+  /Users/vladimir/an24_cpp/src/jit_solver/components/value.h \
   /Users/vladimir/an24_cpp/src/jit_solver/scheduler.h \
   /Users/vladimir/an24_cpp/src/jit_solver/subsolvers/subsolver_types.h \
   /Users/vladimir/an24_cpp/src/jit_solver/../json_parser/json_parser.h \

@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/add.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/add.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/add.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/agk47.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/agk47.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/agk47.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/and_gate.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/and_gate.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/and_gate.cpp.o.d"
@@ -50,7 +51,6 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/jit_solver/components/load.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/load.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/load.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/lut.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lut.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/lut.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/max.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/max.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/max.cpp.o.d"
-  "/Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/merger.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/merger.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/merger.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/min.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/min.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/min.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/monostable.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/monostable.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/monostable.cpp.o.d"
@@ -81,6 +81,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/vladimir/an24_cpp/src/jit_solver/components/temp_sensor.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/temp_sensor.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/temp_sensor.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/time_delay.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/time_delay.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/time_delay.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/transformer.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/transformer.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/transformer.cpp.o.d"
+  "/Users/vladimir/an24_cpp/src/jit_solver/components/value.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/variable_conductance.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/variable_conductance.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/voltage_sense.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/voltage_sense.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/voltage_sense.cpp.o.d"
   "/Users/vladimir/an24_cpp/src/jit_solver/components/voltmeter.cpp" "src/jit_solver/CMakeFiles/jit_solver.dir/components/voltmeter.cpp.o" "gcc" "src/jit_solver/CMakeFiles/jit_solver.dir/components/voltmeter.cpp.o.d"

@@ -70,6 +70,7 @@
 #include "time_delay.h"
 #include "monostable.h"
 #include "sample_hold.h"
+#include "accumulator.h"
 #include "integrator.h"
 #include "clamp.h"
 #include "normalize.h"

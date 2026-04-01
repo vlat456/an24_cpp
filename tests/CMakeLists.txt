@@ -1267,6 +1267,22 @@ target_link_libraries(integrator_tests PRIVATE
 )
 gtest_discover_tests(integrator_tests)
 
+# Accumulator component tests
+add_executable(accumulator_tests
+    test_accumulator.cpp
+)
+target_include_directories(accumulator_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(accumulator_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(accumulator_tests)
+
 # Clamp and Normalize component tests
 add_executable(clamp_normalize_tests
     test_clamp_normalize.cpp

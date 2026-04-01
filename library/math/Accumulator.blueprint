@@ -1,0 +1,33 @@
+{
+  "version": "3.0",
+  "id": "Accumulator",
+  "display_name": "Accumulator",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [],
+  "wires": [],
+  "nested": [],
+  "cpp_class": true,
+  "description": "Pure stateful accumulator: state += in * dt. Minimal primitive for building composite filters.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "initial_val": "0.0"
+  }
+}

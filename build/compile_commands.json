@@ -259,12 +259,6 @@
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
-  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/max_selector.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.cpp",
-  "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/max_selector.cpp",
-  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/max_selector.cpp.o"
-},
-{
-  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/clamp.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/clamp.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/clamp.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/clamp.cpp.o"
@@ -292,6 +286,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/p.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/p.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/p.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/p.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/accumulator.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/accumulator.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/accumulator.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
@@ -556,6 +556,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.cpp",
   "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/electrical_source.cpp",
   "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/electrical_source.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/src/jit_solver",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -I/Users/vladimir/an24_cpp/src/json_parser -g -std=gnu++20 -arch arm64 -o CMakeFiles/jit_solver.dir/components/value.cpp.o -c /Users/vladimir/an24_cpp/src/jit_solver/components/value.cpp",
+  "file": "/Users/vladimir/an24_cpp/src/jit_solver/components/value.cpp",
+  "output": "src/jit_solver/CMakeFiles/jit_solver.dir/components/value.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/src/json_parser",
@@ -1804,6 +1810,12 @@
   "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/integrator_tests.dir/test_integrator.cpp.o -c /Users/vladimir/an24_cpp/tests/test_integrator.cpp",
   "file": "/Users/vladimir/an24_cpp/tests/test_integrator.cpp",
   "output": "tests/CMakeFiles/integrator_tests.dir/test_integrator.cpp.o"
+},
+{
+  "directory": "/Users/vladimir/an24_cpp/build/tests",
+  "command": "/usr/bin/c++ -DSPDLOG_COMPILED_LIB -I/Users/vladimir/an24_cpp/src -I/Users/vladimir/an24_cpp/src/json_parser -I/Users/vladimir/an24_cpp/build/_deps/json-src/include -I/Users/vladimir/an24_cpp/src/jit_solver -I/Users/vladimir/an24_cpp/src/editor -I/Users/vladimir/an24_cpp/build/_deps/spdlog-src/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest/include -isystem /Users/vladimir/an24_cpp/build/_deps/googletest-src/googletest -g -std=gnu++20 -arch arm64 -o CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.o -c /Users/vladimir/an24_cpp/tests/test_accumulator.cpp",
+  "file": "/Users/vladimir/an24_cpp/tests/test_accumulator.cpp",
+  "output": "tests/CMakeFiles/accumulator_tests.dir/test_accumulator.cpp.o"
 },
 {
   "directory": "/Users/vladimir/an24_cpp/build/tests",

@@ -48,6 +48,7 @@ constexpr ClassnameElectricalRule k_classname_rules[] = {
     {"ElectricalConductance", ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "conductance",  0.1f,  nullptr,      0.0f},
     {"ElectricalSource",      ElectricalElementKindCodegen::TheveninSource,   "v_out", "v_in",  "voltage",      28.0f, "resistance", 0.01f},
     {"ControlledVoltageSource",ElectricalElementKindCodegen::TheveninSource,  "v_pos", "v_neg", "offset",       0.0f,  "r_internal", 0.1f},
+    {"VariableConductance",   ElectricalElementKindCodegen::ConductanceBranch,"v_in",  "v_out", "g_min",        0.001f, nullptr,     0.0f},
 };
 
 } // anonymous namespace
@@ -358,7 +359,7 @@ ElectricalPlanCodegen extract_electrical_plan(
         const auto& re = raw_elements[raw_it->second];
         if (re.device_classname == "Battery" || re.device_classname == "Generator" ||
             re.device_classname == "IndicatorLight" || re.device_classname == "CurrentSense" ||
-            re.device_classname == "ControlledVoltageSource") {
+            re.device_classname == "ControlledVoltageSource" || re.device_classname == "VariableConductance") {
             bindings.push_back({
                 sanitize_codegen_name(re.device_name),
                 pos.first,

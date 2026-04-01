@@ -185,6 +185,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/production_path_push_runtime_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/asym_slew_rate_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/integrator_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/accumulator_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/clamp_normalize_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/comparison_components_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/spring_tests.dir

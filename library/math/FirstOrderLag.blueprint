@@ -1,0 +1,160 @@
+{
+  "version": "3.0",
+  "id": "FirstOrderLag",
+  "display_name": "FirstOrderLag",
+  "scheduler_source": false,
+  "interface": [
+    {
+      "name": "in",
+      "domain": 1,
+      "direction": 0,
+      "type": "Any",
+      "source_writer": false
+    },
+    {
+      "name": "out",
+      "domain": 1,
+      "direction": 1,
+      "type": "Any",
+      "source_writer": false
+    }
+  ],
+  "nodes": [
+    {
+      "id": "in",
+      "type": "BlueprintInput",
+      "ports": {
+        "ext": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "out",
+      "type": "BlueprintOutput",
+      "ports": {
+        "ext": {
+          "direction": "Out",
+          "type": "Any"
+        },
+        "port": {
+          "direction": "In",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "subtract",
+      "type": "Subtract",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "rate_val",
+      "type": "Value",
+      "params": {
+        "value": 6.0
+      },
+      "ports": {
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "multiply",
+      "type": "Multiply",
+      "ports": {
+        "A": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "B": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "o": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    },
+    {
+      "id": "accumulator",
+      "type": "Accumulator",
+      "params": {
+        "initial_val": 0.0
+      },
+      "ports": {
+        "in": {
+          "direction": "In",
+          "type": "Any"
+        },
+        "out": {
+          "direction": "Out",
+          "type": "Any"
+        }
+      }
+    }
+  ],
+  "wires": [
+    {
+      "id": "w_in_to_sub",
+      "source": "/in:port",
+      "target": "/subtract:A"
+    },
+    {
+      "id": "w_fb_to_sub",
+      "source": "/accumulator:out",
+      "target": "/subtract:B"
+    },
+    {
+      "id": "w_sub_to_mul",
+      "source": "/subtract:o",
+      "target": "/multiply:A"
+    },
+    {
+      "id": "w_rate_to_mul",
+      "source": "/rate_val:o",
+      "target": "/multiply:B"
+    },
+    {
+      "id": "w_mul_to_acc",
+      "source": "/multiply:o",
+      "target": "/accumulator:in"
+    },
+    {
+      "id": "w_acc_to_out",
+      "source": "/accumulator:out",
+      "target": "/out:port"
+    }
+  ],
+  "nested": [],
+  "cpp_class": false,
+  "description": "First-order lag filter: state += (target - state) * rate * dt. Composite of Subtract + Multiply + Accumulator.",
+  "domains": [
+    "Logical"
+  ],
+  "param_defaults": {
+    "rate": "6.0",
+    "initial_val": "0.0"
+  }
+}
