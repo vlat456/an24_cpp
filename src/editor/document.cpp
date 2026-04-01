@@ -357,9 +357,7 @@ void Document::updateNodeContentFromSimulation() {
     for (const bp2::Blueprint::Node& n : model_.current().nodes()) {
         if (n.content_type == bp2::NodeContentType::None) continue;
 
-        const std::string nid = n.name.empty()
-            ? std::string(interner_.resolve(n.id))
-            : n.name;
+        const std::string nid = std::string(interner_.resolve(n.id));
         const std::string type_name = std::string(interner_.resolve(n.type));
 
         // Build a mutable NodeContent snapshot from the bp2 node fields

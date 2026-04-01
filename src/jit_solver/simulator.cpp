@@ -1,5 +1,6 @@
 #include "simulator.h"
 #include "components/battery.h"
+#include "components/controlled_voltage_source.h"
 #include "components/electrical_conductance.h"
 #include "components/electrical_source.h"
 #include "../json_parser/json_parser.h"
@@ -8,6 +9,32 @@
 #include <cmath>
 
 namespace {
+
+/// Pre-solve pass: update dynamic Thevenin source voltages before solve_electrical().
+/// ControlledVoltageSource reads cmd from the signal array (previous frame value —
+/// one-frame-delay semantic) and patches its electrical plan element's value_a.
+/// This must run BEFORE solve_electrical() each frame.
+void update_dynamic_sources(BuildResult& br, SimulationState& st) {
+    for (auto& [_name, variant] : br.devices) {
+        (void)_name;
+        std::visit([&](auto& comp) {
+            using CompType = std::decay_t<decltype(comp)>;
+            if constexpr (std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
+                if (!is_valid(comp.electrical_handle)) {
+                    return;
+                }
+                // Read cmd from previous frame's signal array (one-frame delay)
+                float cmd = st.values[comp.provider.get(PortNames::cmd)];
+                float v_source = std::clamp(cmd * comp.gain + comp.offset, comp.min_v, comp.max_v);
+
+                // Patch the Thevenin voltage in the electrical plan
+                auto& island = br.electrical_plan.islands[comp.electrical_handle.island_index];
+                auto& elem = island.elements[comp.electrical_handle.element_index];
+                elem.value_a = v_source;
+            }
+        }, variant);
+    }
+}
 
 /// Commit pass for solver-owned components that need per-frame state integration.
 /// These components are NOT scheduled in the push scheduler for electrical
@@ -23,12 +50,13 @@ void commit_solver_owned_devices(BuildResult& br, SimulationState& st, float dt)
         std::visit([&st, dt](auto& comp) {
             using CompType = std::decay_t<decltype(comp)>;
             // Battery has commit that discharges based on solved branch current.
-            // Generator, Resistor, and primitives have trivial no-op commits.
+            // Generator, Resistor, CVS, and primitives have trivial no-op commits.
             if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
                           std::is_same_v<CompType, Generator<JitProvider>> ||
                           std::is_same_v<CompType, Resistor<JitProvider>> ||
                           std::is_same_v<CompType, ElectricalConductance<JitProvider>> ||
-                          std::is_same_v<CompType, ElectricalSource<JitProvider>>) {
+                          std::is_same_v<CompType, ElectricalSource<JitProvider>> ||
+                          std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
                 comp.commit(st, dt);
             }
         }, variant);
@@ -90,19 +118,29 @@ void Simulator<SolverTag>::start_from_json(const std::string& json_str) {
     }
 
     for (const auto& dev : ctx.devices) {
-        if (dev.classname != "RefNode") {
-            continue;
-        }
+        if (dev.classname == "RefNode") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) {
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
+            }
 
-        float value = 0.0f;
-        auto it_val = dev.params.find("value");
-        if (it_val != dev.params.end()) {
-            value = locale_safe::parse_float_or(it_val->second, 0.0f);
+            auto it_sig = build_result_->port_to_signal.find(dev.name + ".v");
+            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
+                state_.values[it_sig->second] = value;
+            }
         }
+        else if (dev.classname == "Value") {
+            float value = 0.0f;
+            auto it_val = dev.params.find("value");
+            if (it_val != dev.params.end()) {
+                value = locale_safe::parse_float_or(it_val->second, 0.0f);
+            }
 
-        auto it_sig = build_result_->port_to_signal.find(dev.name + ".v");
-        if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
-            state_.values[it_sig->second] = value;
+            auto it_sig = build_result_->port_to_signal.find(dev.name + ".o");
+            if (it_sig != build_result_->port_to_signal.end() && it_sig->second < state_.values.size()) {
+                state_.values[it_sig->second] = value;
+            }
         }
     }
 
@@ -154,6 +192,10 @@ void Simulator<SolverTag>::step(float dt) {
         SimulationState& st;
         ~RtGuard() { st.electrical_rt = nullptr; }
     } guard{state_};
+
+    // Pre-solve: update dynamic Thevenin source voltages (ControlledVoltageSource).
+    // Reads cmd from previous frame's signal array (one-frame-delay semantic).
+    update_dynamic_sources(*build_result_, state_);
 
     // Run electrical subsolver to compute node voltages and branch currents
     solve_electrical(build_result_->electrical_plan, state_, electrical_rt_, dt);

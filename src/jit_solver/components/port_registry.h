@@ -95,6 +95,7 @@ enum class ComponentType {
     TempSensor,
     TimeDelay,
     Transformer,
+    Value,
     VariableConductance,
     VoltageSense,
     Voltmeter,
@@ -175,6 +176,7 @@ constexpr size_t Switch_PORT_COUNT = 4;
 constexpr size_t TempSensor_PORT_COUNT = 2;
 constexpr size_t TimeDelay_PORT_COUNT = 2;
 constexpr size_t Transformer_PORT_COUNT = 2;
+constexpr size_t Value_PORT_COUNT = 1;
 constexpr size_t VariableConductance_PORT_COUNT = 3;
 constexpr size_t VoltageSense_PORT_COUNT = 3;
 constexpr size_t Voltmeter_PORT_COUNT = 1;
@@ -510,6 +512,9 @@ constexpr const char* TimeDelay_PORTS[] = {
 constexpr const char* Transformer_PORTS[] = {
     "primary",
     "secondary"
+};
+constexpr const char* Value_PORTS[] = {
+    "o"
 };
 constexpr const char* VariableConductance_PORTS[] = {
     "cmd",
@@ -1666,6 +1671,17 @@ constexpr bool Transformer_PORT_SOURCE_WRITER[] = {
 };
 constexpr bool Transformer_SCHEDULER_SOURCE = false;
 
+constexpr RegistryPortDirection Value_PORT_DIRECTIONS[] = {
+    RegistryPortDirection::Out
+};
+constexpr uint8_t Value_PORT_DOMAINS[] = {
+    2
+};
+constexpr bool Value_PORT_SOURCE_WRITER[] = {
+    false
+};
+constexpr bool Value_SCHEDULER_SOURCE = true;
+
 constexpr RegistryPortDirection VariableConductance_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::In,
@@ -1876,6 +1892,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"TempSensor", {"temp_in", "temp_out"}},
         {"TimeDelay", {"in", "out"}},
         {"Transformer", {"primary", "secondary"}},
+        {"Value", {"o"}},
         {"VariableConductance", {"cmd", "v_in", "v_out"}},
         {"VoltageSense", {"out", "v_in", "v_ref"}},
         {"Voltmeter", {"v_in"}},
@@ -1963,6 +1980,7 @@ inline bool has_component_metadata(const std::string& classname) {
         "TempSensor",
         "TimeDelay",
         "Transformer",
+        "Value",
         "VariableConductance",
         "VoltageSense",
         "Voltmeter",
@@ -2045,6 +2063,7 @@ inline bool is_scheduler_source_component(const std::string& classname) {
         {"TempSensor", false},
         {"TimeDelay", false},
         {"Transformer", false},
+        {"Value", true},
         {"VariableConductance", false},
         {"VoltageSense", false},
         {"Voltmeter", false},
@@ -2629,6 +2648,14 @@ inline std::vector<std::string> get_output_ports(const std::string& classname) {
         for (size_t i = 0; i < Transformer_PORT_COUNT; ++i) {
             if (Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Transformer_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
                 result.push_back(Transformer_PORTS[i]);
+            }
+        }
+        return result;
+    }
+    if (classname == "Value") {
+        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+            if (Value_PORT_DIRECTIONS[i] == RegistryPortDirection::Out || Value_PORT_DIRECTIONS[i] == RegistryPortDirection::InOut) {
+                result.push_back(Value_PORTS[i]);
             }
         }
         return result;
@@ -3246,6 +3273,14 @@ inline std::vector<std::string> get_source_writer_ports(const std::string& class
         }
         return result;
     }
+    if (classname == "Value") {
+        for (size_t i = 0; i < Value_PORT_COUNT; ++i) {
+            if (Value_PORT_SOURCE_WRITER[i] && ((Value_PORT_DOMAINS[i] & domain_mask) != 0)) {
+                result.push_back(Value_PORTS[i]);
+            }
+        }
+        return result;
+    }
     if (classname == "VariableConductance") {
         for (size_t i = 0; i < VariableConductance_PORT_COUNT; ++i) {
             if (VariableConductance_PORT_SOURCE_WRITER[i] && ((VariableConductance_PORT_DOMAINS[i] & domain_mask) != 0)) {
@@ -3356,6 +3391,7 @@ using ComponentVariant = std::variant<
     TempSensor<JitProvider>,
     TimeDelay<JitProvider>,
     Transformer<JitProvider>,
+    Value<JitProvider>,
     VariableConductance<JitProvider>,
     VoltageSense<JitProvider>,
     Voltmeter<JitProvider>,

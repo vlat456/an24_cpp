@@ -87,6 +87,8 @@ add_library(jit_solver
     # Step 13: Explicit primitive electrical nodes
     components/electrical_conductance.cpp
     components/electrical_source.cpp
+    # Generic constant value source (non-electrical)
+    components/value.cpp
 )
 
 target_include_directories(jit_solver PUBLIC

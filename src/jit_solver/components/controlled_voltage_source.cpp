@@ -9,18 +9,13 @@ void ControlledVoltageSource<Provider>::pre_load() {
     inv_r = 1.0f / safe_r;
 }
 
-/// Execute method for scheduler integration
+/// Execute: no-op for solver-owned CVS.
+/// Voltage propagation is handled by the electrical solver (TheveninSource element).
+/// The dynamic source voltage is patched into the electrical plan before
+/// solve_electrical() runs each frame (see update_dynamic_sources in simulator.cpp).
 template <typename Provider>
-void ControlledVoltageSource<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // Push actuator bridge: compute commanded differential voltage and apply it
-    // relative to the currently solved/observed negative terminal.
-    float cmd = st.values[provider.get(PortNames::cmd)];
-
-    float v_source = std::clamp(cmd * gain + offset, min_v, max_v);
-    float v_neg = st.values[provider.get(PortNames::v_neg)];
-
-    // Keep v_neg externally driven; only drive the differential output.
-    st.values[provider.get(PortNames::v_pos)] = v_neg + v_source;
+void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, float /*dt*/) {
+    // Intentionally empty. Solver handles v_pos/v_neg via TheveninSource.
 }
 
 template <typename Provider>

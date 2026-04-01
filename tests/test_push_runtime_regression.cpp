@@ -72,8 +72,58 @@ static std::string find_closed_circuit_blueprint() {
     throw std::runtime_error("Could not find closed_circuit.blueprint in any of: " + tried);
 }
 
+/// Convert blueprint v3 using node id as device key (mirrors Document::build_simulation_json).
+/// Wires in v3 already use node id in paths ("/node_id:port"), so no remapping needed.
+static std::string blueprint_to_simulation_json_by_id(const std::string& blueprint_path) {
+    std::string content = read_file_or_fail(blueprint_path);
+    json bp = json::parse(content);
+
+    json result;
+    result["devices"] = json::array();
+    result["connections"] = json::array();
+
+    if (bp.contains("nodes") && bp["nodes"].is_array()) {
+        for (const auto& node : bp["nodes"]) {
+            std::string node_id = node.value("id", "");
+            json dev;
+            dev["name"] = node_id;                            // key = id
+            dev["classname"] = node["type"].get<std::string>();
+            if (node.contains("params") && node["params"].is_object()) {
+                dev["params"] = json::object();
+                for (const auto& [k, v] : node["params"].items()) {
+                    if (v.is_number()) {
+                        dev["params"][k] = json(v.get<double>()).dump();
+                    } else {
+                        dev["params"][k] = v.get<std::string>();
+                    }
+                }
+            }
+            result["devices"].push_back(dev);
+        }
+    }
+
+    if (bp.contains("wires") && bp["wires"].is_array()) {
+        for (const auto& wire : bp["wires"]) {
+            json conn;
+            std::string from = wire["source"].get<std::string>();
+            std::string to = wire["target"].get<std::string>();
+            // Strip leading '/' and replace ':' with '.'
+            if (!from.empty() && from[0] == '/') from = from.substr(1);
+            if (!to.empty() && to[0] == '/') to = to.substr(1);
+            std::replace(from.begin(), from.end(), ':', '.');
+            std::replace(to.begin(), to.end(), ':', '.');
+            conn["from"] = from;
+            conn["to"] = to;
+            result["connections"].push_back(conn);
+        }
+    }
+
+    return result.dump();
+}
+
 /// Convert blueprint v3 format (nodes/wires) to simulation JSON format (devices/connections).
 /// Blueprint v3 wires have source/target like "/node:port" - these are converted to "node.port".
+/// NOTE: This legacy helper uses node name as device key. The real editor uses node id.
 static std::string blueprint_to_simulation_json(const std::string& blueprint_path) {
     std::string content = read_file_or_fail(blueprint_path);
     json bp = json::parse(content);
@@ -1462,6 +1512,11 @@ TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent)
     // Load the real self-excitation generator fixture and verify that the
     // commanded source energizes the CurrentSense branch and produces non-zero
     // feedback current in the closed loop.
+    //
+    // Topology: CVS(GEN) → bus_2 → Resistor(10Ω) → CurrentSense(0.1Ω) → bus_1(gnd)
+    // The voltage at cs.v_in is the small drop across the 0.1Ω current sense,
+    // NOT the full source voltage. Most voltage drops across the 10Ω resistor.
+    // At steady state: cs_vin = v_source * 0.1 / (0.01 + 10 + 0.1) ≈ v_source/101.
     std::string blueprint_path;
     ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
         << "Could not find closed_circuit.blueprint";
@@ -1492,8 +1547,10 @@ TEST(PushRuntime, ClosedCircuitBlueprint_GeneratorSelfExcitationProducesCurrent)
 
     EXPECT_GT(gen_vpos, 0.5f)
         << "Generator source should build positive voltage";
-    EXPECT_GT(cs_vin, 0.5f)
-        << "CurrentSense input should be energized by generator output";
+    // cs_vin is the node between the 10Ω resistor and 0.1Ω current sense.
+    // It carries only the small voltage drop across the current sense element.
+    EXPECT_GT(cs_vin, 0.001f)
+        << "CurrentSense input node should have non-zero voltage";
     EXPECT_NEAR(cs_vout, 0.0f, 1e-4f)
         << "CurrentSense output node should stay tied to ground bus";
     EXPECT_GT(std::fabs(i_out), 1e-3f)
@@ -1801,4 +1858,51 @@ TEST(PushRuntime, ControlledVoltageSourceAndCurrentSenseCloseLoop) {
         << "CurrentSense output node should remain tied to ground";
     EXPECT_GT(std::fabs(i_out), 1e-3f)
         << "CurrentSense should report non-zero current in closed-loop CVS circuit";
+}
+
+// Regression: editor readback must use node id (not display name) as simulation key.
+// In closed_circuit.blueprint, the CVS node has id="controlledvoltagesource_1"
+// but name="GEN". The real Document::build_simulation_json() exports devices keyed
+// by id. The editor's updateNodeContentFromSimulation() must query by id too,
+// otherwise it reads 0 for a device named "GEN" that doesn't exist in the sim.
+TEST(PushRuntime, ClosedCircuit_EditorIdBasedLookup_NonZeroVoltage) {
+    std::string blueprint_path;
+    ASSERT_NO_THROW(blueprint_path = find_closed_circuit_blueprint())
+        << "Could not find closed_circuit.blueprint";
+
+    // Build JSON using node id as key (mirrors real editor path)
+    std::string json;
+    ASSERT_NO_THROW(json = blueprint_to_simulation_json_by_id(blueprint_path))
+        << "Failed to build id-keyed simulation JSON";
+
+    JIT_Simulator sim;
+    ASSERT_NO_THROW(sim.start_from_json(json))
+        << "Failed to start simulation from id-keyed JSON";
+
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 20; ++i) {
+        sim.step(dt);
+    }
+
+    // Query by interned id (what the fixed editor does)
+    float v_pos = sim.get_port_value("controlledvoltagesource_1", "v_pos");
+    float cs_vin = sim.get_port_value("currentsense_1", "v_in");
+    float cs_iout = sim.get_port_value("currentsense_1", "i_out");
+
+    // CVS v_pos is the source-side node — should be near v_source (~1.6 V).
+    EXPECT_GT(v_pos, 0.5f)
+        << "CVS v_pos should be non-zero when queried by node id";
+    // cs_vin sits after a 10 Ω resistor in series with a 0.1 Ω current-sense,
+    // so the voltage divider gives cs_vin ≈ v_source * 0.1/10.1 ≈ 0.016 V.
+    // We just check it is energised (non-zero).
+    EXPECT_GT(cs_vin, 0.001f)
+        << "CurrentSense v_in should be non-zero when queried by node id";
+    EXPECT_GT(std::fabs(cs_iout), 1e-3f)
+        << "CurrentSense i_out should be non-zero when queried by node id";
+
+    // Query by display name should return 0 (device "GEN" does not exist
+    // in the id-keyed simulation)
+    float gen_vpos = sim.get_port_value("GEN", "v_pos");
+    EXPECT_FLOAT_EQ(gen_vpos, 0.0f)
+        << "Querying by display name 'GEN' should return 0 (device keyed by id)";
 }

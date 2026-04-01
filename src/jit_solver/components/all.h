@@ -82,5 +82,6 @@
 #include "slider.h"
 #include "electrical_conductance.h"
 #include "electrical_source.h"
+#include "value.h"
 
 // No class declarations here - all are in their respective headers

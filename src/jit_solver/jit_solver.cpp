@@ -104,7 +104,8 @@ bool is_solver_owned_electrical_propagator(std::string_view classname) {
            classname == "Generator" ||
            classname == "Resistor" ||
            classname == "ElectricalConductance" ||
-           classname == "ElectricalSource";
+           classname == "ElectricalSource" ||
+           classname == "ControlledVoltageSource";
 }
 
 std::vector<std::string> active_source_writer_ports_for(std::string_view classname) {
@@ -379,6 +380,19 @@ BuildResult build_systems_dev(
             if (it_sig != result.port_to_signal.end()) {
                 result.fixed_signals.push_back(it_sig->second);
             }
+        }
+        else if (dev.classname == "Value") {
+            Value<JitProvider> comp;
+
+            comp.value = param_reader.consume_float_optional("value", 0.0f);
+            setup_ports(comp);
+            param_reader.validate_all_consumed();
+
+            result.devices[dev.name] = comp;
+            // Value is a scheduler source: writes constant to output each frame.
+            // Unlike RefNode, Value has NO electrical semantics and is never
+            // extracted into the electrical plan.
+            result.scheduler.add_source(&std::get<Value<JitProvider>>(result.devices[dev.name]));
         }
         else if (dev.classname == "Switch") {
             Switch<JitProvider> comp;
@@ -1166,7 +1180,8 @@ BuildResult build_systems_dev(
             param_reader.validate_all_consumed();
             
             result.devices[dev.name] = comp;
-            result.scheduler.add_consumer(&std::get<ControlledVoltageSource<JitProvider>>(result.devices[dev.name]));
+            // NOTE: ControlledVoltageSource is NOT scheduled for push electrical propagation.
+            // It participates in the electrical solver as a TheveninSource with dynamic voltage.
         }
         else if (dev.classname == "ControlledCurrentSource") {
             ControlledCurrentSource<JitProvider> comp;
@@ -1666,6 +1681,27 @@ BuildResult build_systems_dev(
                 {}
             });
         }
+        else if (dev.classname == "ControlledVoltageSource") {
+            // TheveninSource with dynamic voltage: initial value_a = clamp(0 * gain + offset, min_v, max_v)
+            // Updated each frame before solve_electrical() from cmd signal (one-frame delay).
+            float gain_val = read_param_float(dev, "gain", 1.0f);
+            float offset_val = read_param_float(dev, "offset", 0.0f);
+            float min_v_val = read_param_float(dev, "min_v", 0.0f);
+            float max_v_val = read_param_float(dev, "max_v", 30.0f);
+            float r_internal_val = read_param_float(dev, "r_internal", 0.1f);
+            float initial_voltage = std::clamp(0.0f * gain_val + offset_val, min_v_val, max_v_val);
+            uint32_t node_pos = resolve_port(dev, "v_pos");
+            uint32_t node_neg = resolve_port(dev, "v_neg");
+            raw_elements.push_back({
+                ElectricalElementKind::TheveninSource,
+                node_pos,
+                node_neg,
+                initial_voltage,
+                r_internal_val,
+                element_idx++,
+                dev.name
+            });
+        }
         // Unsupported components are silently ignored for electrical_plan
     }
 
@@ -1810,7 +1846,8 @@ BuildResult build_systems_dev(
                 if constexpr (std::is_same_v<CompType, Battery<JitProvider>> ||
                               std::is_same_v<CompType, Generator<JitProvider>> ||
                               std::is_same_v<CompType, IndicatorLight<JitProvider>> ||
-                              std::is_same_v<CompType, CurrentSense<JitProvider>>) {
+                              std::is_same_v<CompType, CurrentSense<JitProvider>> ||
+                              std::is_same_v<CompType, ControlledVoltageSource<JitProvider>>) {
                     comp.electrical_handle = handle;
                 }
             }, it->second);
