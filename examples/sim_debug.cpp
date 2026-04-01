@@ -127,7 +127,13 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
     std::set<std::string> emitted_ids;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.expandable) continue;
+        // Don't skip expandable (composite) nodes – emit them as regular
+        // devices so that parse_json_impl() can expand them via TypeRegistry.
+        if (n.expandable) {
+            // Expandable nodes only carry exposed interface ports.  Emit a
+            // minimal device entry – parse_json_impl will replace it with the
+            // expanded sub-graph.
+        }
 
         std::string nid(interner.resolve(n.id));
         if (!emitted_ids.insert(nid).second) continue;
@@ -181,10 +187,9 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
                 std::string(interner.resolve(port_name))};
     };
 
-    std::set<std::string> blueprint_node_ids;
-    for (const auto& n : bp.nodes())
-        if (n.expandable)
-            blueprint_node_ids.insert(std::string(interner.resolve(n.id)));
+    // No special rewriting needed for expandable/composite nodes – they are
+    // emitted as normal devices and parse_json_impl() expands them, rewriting
+    // connections to point at the bridge nodes automatically.
 
     json connections = json::array();
     std::set<std::string> emitted_conn;
@@ -193,9 +198,6 @@ static std::string build_simulation_json(const bp2::Blueprint& bp,
         auto [sn, sp] = path_to_node_port(w.source);
         auto [tn, tp] = path_to_node_port(w.target);
         if (sn.empty() || sp.empty() || tn.empty() || tp.empty()) continue;
-
-        if (blueprint_node_ids.count(sn)) { sn = sn + ":" + sp; sp = "ext"; }
-        if (blueprint_node_ids.count(tn)) { tn = tn + ":" + tp; tp = "ext"; }
 
         std::string key = sn + "." + sp + "→" + tn + "." + tp;
         if (!emitted_conn.insert(key).second) continue;

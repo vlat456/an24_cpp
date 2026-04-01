@@ -1,5 +1,6 @@
 #include "context_menus.h"
 #include "editor/input/input_types.h"
+#include "editor/subwindow_open_target.h"
 #include <imgui.h>
 #include <cstring>
 
@@ -143,7 +144,12 @@ void ContextMenus::renderNodeContext(WindowSystem& ws) {
         
         if (node.expandable && ImGui::MenuItem("Open in New Window")) {
             std::string node_id_str(doc->interner().resolve(node.id));
-            doc->openSubWindow(node_id_str);
+            const auto target = editor::resolve_subwindow_open_target(doc->blueprint(), doc->interner(), node_id_str);
+            if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
+                ws.openDocument(target.path);
+            } else {
+                doc->openSubWindow(node_id_str);
+            }
         }
         
         // Check for a nested (sub-blueprint) reference that can be baked in

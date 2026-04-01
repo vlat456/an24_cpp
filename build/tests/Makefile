@@ -340,6 +340,20 @@ arithmetic_tests/fast:
 .PHONY : arithmetic_tests/fast
 
 # Convenience name for target.
+tests/CMakeFiles/splitter_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/splitter_tests.dir/rule
+.PHONY : tests/CMakeFiles/splitter_tests.dir/rule
+
+# Convenience name for target.
+splitter_tests: tests/CMakeFiles/splitter_tests.dir/rule
+.PHONY : splitter_tests
+
+# fast build rule for target.
+splitter_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/build
+.PHONY : splitter_tests/fast
+
+# Convenience name for target.
 tests/CMakeFiles/azs_tests.dir/rule:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/azs_tests.dir/rule
 .PHONY : tests/CMakeFiles/azs_tests.dir/rule
@@ -1459,6 +1473,20 @@ electrical_parity_fixtures_tests/fast:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
 .PHONY : electrical_parity_fixtures_tests/fast
 
+# Convenience name for target.
+tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+.PHONY : tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+
+# Convenience name for target.
+external_ref_signal_mapping_tests: tests/CMakeFiles/external_ref_signal_mapping_tests.dir/rule
+.PHONY : external_ref_signal_mapping_tests
+
+# fast build rule for target.
+external_ref_signal_mapping_tests/fast:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
+.PHONY : external_ref_signal_mapping_tests/fast
+
 __/src/codegen/codegen.o: __/src/codegen/codegen.cpp.o
 .PHONY : __/src/codegen/codegen.o
 
@@ -2428,6 +2456,30 @@ blueprint_v2/test_registry.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_registry_tests.dir/build.make tests/CMakeFiles/bp2_registry_tests.dir/blueprint_v2/test_registry.cpp.s
 .PHONY : blueprint_v2/test_registry.cpp.s
 
+blueprint_v2/test_subwindow_open_target.o: blueprint_v2/test_subwindow_open_target.cpp.o
+.PHONY : blueprint_v2/test_subwindow_open_target.o
+
+# target to build an object file
+blueprint_v2/test_subwindow_open_target.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.o
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.o
+
+blueprint_v2/test_subwindow_open_target.i: blueprint_v2/test_subwindow_open_target.cpp.i
+.PHONY : blueprint_v2/test_subwindow_open_target.i
+
+# target to preprocess a source file
+blueprint_v2/test_subwindow_open_target.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.i
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.i
+
+blueprint_v2/test_subwindow_open_target.s: blueprint_v2/test_subwindow_open_target.cpp.s
+.PHONY : blueprint_v2/test_subwindow_open_target.s
+
+# target to generate assembly for a file
+blueprint_v2/test_subwindow_open_target.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/bp2_codec_tests.dir/build.make tests/CMakeFiles/bp2_codec_tests.dir/blueprint_v2/test_subwindow_open_target.cpp.s
+.PHONY : blueprint_v2/test_subwindow_open_target.cpp.s
+
 blueprint_v2/test_validation.o: blueprint_v2/test_validation.cpp.o
 .PHONY : blueprint_v2/test_validation.o
 
@@ -3220,6 +3272,30 @@ test_electrical_subsolver.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_subsolver_tests.dir/build.make tests/CMakeFiles/electrical_subsolver_tests.dir/test_electrical_subsolver.cpp.s
 .PHONY : test_electrical_subsolver.cpp.s
 
+test_external_ref_signal_mapping.o: test_external_ref_signal_mapping.cpp.o
+.PHONY : test_external_ref_signal_mapping.o
+
+# target to build an object file
+test_external_ref_signal_mapping.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.o
+.PHONY : test_external_ref_signal_mapping.cpp.o
+
+test_external_ref_signal_mapping.i: test_external_ref_signal_mapping.cpp.i
+.PHONY : test_external_ref_signal_mapping.i
+
+# target to preprocess a source file
+test_external_ref_signal_mapping.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.i
+.PHONY : test_external_ref_signal_mapping.cpp.i
+
+test_external_ref_signal_mapping.s: test_external_ref_signal_mapping.cpp.s
+.PHONY : test_external_ref_signal_mapping.s
+
+# target to generate assembly for a file
+test_external_ref_signal_mapping.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/test_external_ref_signal_mapping.cpp.s
+.PHONY : test_external_ref_signal_mapping.cpp.s
+
 test_inspector.o: test_inspector.cpp.o
 .PHONY : test_inspector.o
 
@@ -3916,6 +3992,30 @@ test_slew_rate.cpp.s:
 	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/slew_rate_tests.dir/build.make tests/CMakeFiles/slew_rate_tests.dir/test_slew_rate.cpp.s
 .PHONY : test_slew_rate.cpp.s
 
+test_splitter.o: test_splitter.cpp.o
+.PHONY : test_splitter.o
+
+# target to build an object file
+test_splitter.cpp.o:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.o
+.PHONY : test_splitter.cpp.o
+
+test_splitter.i: test_splitter.cpp.i
+.PHONY : test_splitter.i
+
+# target to preprocess a source file
+test_splitter.cpp.i:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.i
+.PHONY : test_splitter.cpp.i
+
+test_splitter.s: test_splitter.cpp.s
+.PHONY : test_splitter.s
+
+# target to generate assembly for a file
+test_splitter.cpp.s:
+	cd /Users/vladimir/an24_cpp/build && $(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/test_splitter.cpp.s
+.PHONY : test_splitter.cpp.s
+
 test_spring.o: test_spring.cpp.o
 .PHONY : test_spring.o
 
@@ -4494,6 +4594,7 @@ help:
 	@echo "... electrical_parity_fixtures_tests"
 	@echo "... electrical_primitives_tests"
 	@echo "... electrical_subsolver_tests"
+	@echo "... external_ref_signal_mapping_tests"
 	@echo "... factory_validation_tests"
 	@echo "... inspector_tests"
 	@echo "... integrator_tests"
@@ -4528,6 +4629,7 @@ help:
 	@echo "... sample_hold_tests"
 	@echo "... scene_mutations_tests"
 	@echo "... slew_rate_tests"
+	@echo "... splitter_tests"
 	@echo "... spring_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"
@@ -4654,6 +4756,9 @@ help:
 	@echo "... blueprint_v2/test_registry.o"
 	@echo "... blueprint_v2/test_registry.i"
 	@echo "... blueprint_v2/test_registry.s"
+	@echo "... blueprint_v2/test_subwindow_open_target.o"
+	@echo "... blueprint_v2/test_subwindow_open_target.i"
+	@echo "... blueprint_v2/test_subwindow_open_target.s"
 	@echo "... blueprint_v2/test_validation.o"
 	@echo "... blueprint_v2/test_validation.i"
 	@echo "... blueprint_v2/test_validation.s"
@@ -4753,6 +4858,9 @@ help:
 	@echo "... test_electrical_subsolver.o"
 	@echo "... test_electrical_subsolver.i"
 	@echo "... test_electrical_subsolver.s"
+	@echo "... test_external_ref_signal_mapping.o"
+	@echo "... test_external_ref_signal_mapping.i"
+	@echo "... test_external_ref_signal_mapping.s"
 	@echo "... test_inspector.o"
 	@echo "... test_inspector.i"
 	@echo "... test_inspector.s"
@@ -4840,6 +4948,9 @@ help:
 	@echo "... test_slew_rate.o"
 	@echo "... test_slew_rate.i"
 	@echo "... test_slew_rate.s"
+	@echo "... test_splitter.o"
+	@echo "... test_splitter.i"
+	@echo "... test_splitter.s"
 	@echo "... test_spring.o"
 	@echo "... test_spring.i"
 	@echo "... test_spring.s"

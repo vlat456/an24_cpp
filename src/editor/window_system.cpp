@@ -37,6 +37,10 @@ Document* WindowSystem::openDocument(const std::string& path) {
     if (documents_.size() == 1 && documents_.front()->isPristine()) {
         Document* pristine = documents_.front().get();
         if (pristine->load(path)) {
+            // Library blueprints are read-only (cannot be saved back)
+            if (path.find("library/") != std::string::npos) {
+                pristine->root().set_read_only(true);
+            }
             settings.addRecentFile(path);
             settings.addOpenTab(path);
             pending_tab_focus_ = pristine;
@@ -52,6 +56,11 @@ Document* WindowSystem::openDocument(const std::string& path) {
     if (!doc->load(path)) {
         spdlog::error("[WindowSystem] Failed to load document: {}", path);
         return nullptr;
+    }
+
+    // Library blueprints are read-only (cannot be saved back)
+    if (path.find("library/") != std::string::npos) {
+        doc->root().set_read_only(true);
     }
 
     Document* doc_ptr = doc.get();
@@ -267,5 +276,8 @@ void WindowSystem::handleInputAction(const Document::InputResultAction& action, 
     if (!action.toggle_probe_wire_id.empty()) {
         const ui::Pt* click = action.has_toggle_probe_world_pos ? &action.toggle_probe_world_pos : nullptr;
         oscilloscope.toggle_probe(doc, action.toggle_probe_group_id, action.toggle_probe_wire_id, click);
+    }
+    if (!action.open_document_path.empty()) {
+        openDocument(action.open_document_path);
     }
 }

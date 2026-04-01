@@ -236,9 +236,10 @@ TEST(PortMapRegression, Subtract_Reads_Both_Inputs) {
         << "Subtract(28, 0) must output ~28! (port A/B mapping regression)";
 }
 
-// DISABLED: legacy solver-specific test relying on Splitter alias passthrough (o2->i).
-// In push model, Splitter outputs o1/o2 do not mirror input i, so sub.B
-// reads 0V instead of CVS voltage. This is a push model limitation.
+// DISABLED: CVS is electrical-domain and requires solve_electrical() which this
+// test harness does not call. The scheduler.step() only runs logical-domain
+// components, so cvs.v_pos is never populated. Splitter itself now correctly
+// copies i → o1/o2, but can't propagate a zero-valued electrical signal.
 TEST(PortMapRegression, DISABLED_Subtract_GSC_Topology_SignalIndices) {
     // Reproduce the GSC blueprint topology around subtract_1:
     // refnode_3 (28.5V) -> subtract_1:A

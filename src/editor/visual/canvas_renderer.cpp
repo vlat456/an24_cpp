@@ -9,6 +9,7 @@
 #include "editor/visual/oscilloscope_plot.h"
 #include "editor/input/input_types.h"
 #include "editor/input/key_handler.h"
+#include "editor/external_ref_mapping.h"
 #include "blueprint_v2/path/path.h"
 #include <imgui.h>
 #include <unordered_set>
@@ -109,7 +110,15 @@ void CanvasRenderer::renderBlueprint(BlueprintWindow& win, Document& doc, Pt cmi
 
     // Build energized wire set from simulation (reuse buffer across frames)
     energized_buf_.clear();
-    doc.buildEnergizedWireSet(energized_buf_, win.group_id);
+    if (win.is_external_ref() && win.external_blueprint && win.external_interner && win.external_arena) {
+        doc.buildEnergizedWireSetExternal(energized_buf_,
+                                          *win.external_blueprint,
+                                          *win.external_interner,
+                                          *win.external_arena,
+                                          win.parent_instance_id);
+    } else {
+        doc.buildEnergizedWireSet(energized_buf_, win.group_id);
+    }
 
     // Resolve selected node IDs → pointers for this frame.
     // Must outlive ctx (which stores a pointer to it).
@@ -148,7 +157,24 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
 
         std::string_view port_name = port->name();
         Pt port_screen = win.viewport.world_to_screen(port->worldPos(), cmin);
-        const std::string signal_key = std::string(node_id) + "." + std::string(port_name);
+        std::string signal_key;
+        // For external-ref windows, map through parent instance prefix
+        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+            signal_key = editor::resolve_external_ref_signal_key(
+                win.parent_instance_id,
+                editor::build_signal_key(node_id, port_name));
+        } else {
+            // For expandable composite nodes (with blueprint_path), the parser
+            // rewrites parent connections: "node.port" → "node:port.ext".
+            auto node_iid = doc.interner().lookup(node_id);
+            const bp2::Blueprint::Node* bp_node = node_iid.empty()
+                ? nullptr : doc.blueprint().find_node(node_iid);
+            if (bp_node && bp_node->expandable && !bp_node->blueprint_path.empty()) {
+                signal_key = editor::map_composite_port_key(node_id, port_name);
+            } else {
+                signal_key = editor::build_signal_key(node_id, port_name);
+            }
+        }
         ws.oscilloscope.set_hover_signal(signal_key);
         render_hover_scope_tooltip(doc, ws, signal_key, port_screen);
         return;
@@ -156,27 +182,43 @@ void CanvasRenderer::renderTooltips(BlueprintWindow& win, Document& doc, WindowS
     } else if (auto* hw = std::get_if<visual::HitWire>(&hit)) {
         visual::Wire* wire = hw->wire;
         std::string_view wire_id_sv = wire->id();
-        auto& interner = doc.interner();
+        // For external-ref windows, use the external interner/arena to decode wire paths
+        auto& interner = win.is_external_ref() && win.external_interner
+                         ? *win.external_interner : doc.interner();
         auto wire_iid = interner.lookup(wire_id_sv);
-        const bp2::Blueprint::Wire* data_wire = doc.blueprint().find_wire(wire_iid);
+        const bp2::Blueprint& bp_ref = win.is_external_ref() && win.external_blueprint
+                                       ? *win.external_blueprint : doc.blueprint();
+        const bp2::Blueprint::Wire* data_wire = bp_ref.find_wire(wire_iid);
         if (!data_wire) return;
 
         // Decode the source port path: Port -> Node -> Root
-        const auto& arena = doc.arena();
+        bp2::PathArena& arena_ref = win.is_external_ref() && win.external_arena
+                                    ? *win.external_arena : const_cast<bp2::PathArena&>(doc.arena());
         bp2::Path src = data_wire->source;
         if (src.kind() != bp2::PathKind::Port) return;
         ui::InternedId port_iid = src.segment();
-        bp2::Path node_path = arena.parent(src);
+        bp2::Path node_path = arena_ref.parent(src);
         if (node_path.kind() != bp2::PathKind::Node) return;
         ui::InternedId node_iid = node_path.segment();
 
         std::string_view node_sv = interner.resolve(node_iid);
         std::string_view port_sv = interner.resolve(port_iid);
         std::string signal_key;
-        signal_key.reserve(node_sv.size() + 1 + port_sv.size());
-        signal_key.append(node_sv);
-        signal_key.push_back('.');
-        signal_key.append(port_sv);
+        // For external-ref windows, map through parent instance prefix
+        if (win.is_external_ref() && !win.parent_instance_id.empty()) {
+            signal_key = editor::resolve_external_ref_signal_key(
+                win.parent_instance_id,
+                editor::build_signal_key(node_sv, port_sv));
+        } else {
+            // For expandable composite nodes (with blueprint_path), the parser
+            // rewrites parent connections: "node.port" → "node:port.ext".
+            const bp2::Blueprint::Node* bp_node = bp_ref.find_node(node_iid);
+            if (bp_node && bp_node->expandable && !bp_node->blueprint_path.empty()) {
+                signal_key = editor::map_composite_port_key(node_sv, port_sv);
+            } else {
+                signal_key = editor::build_signal_key(node_sv, port_sv);
+            }
+        }
         // Project mouse onto wire segment for tooltip anchor
         const auto& poly = wire->polyline();
         size_t seg = hw->segment;

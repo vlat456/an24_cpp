@@ -562,6 +562,19 @@ arithmetic_tests/fast:
 .PHONY : arithmetic_tests/fast
 
 #=============================================================================
+# Target rules for targets named splitter_tests
+
+# Build rule for target.
+splitter_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 splitter_tests
+.PHONY : splitter_tests
+
+# fast build rule for target.
+splitter_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/splitter_tests.dir/build.make tests/CMakeFiles/splitter_tests.dir/build
+.PHONY : splitter_tests/fast
+
+#=============================================================================
 # Target rules for targets named azs_tests
 
 # Build rule for target.
@@ -1601,6 +1614,19 @@ electrical_parity_fixtures_tests/fast:
 	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build.make tests/CMakeFiles/electrical_parity_fixtures_tests.dir/build
 .PHONY : electrical_parity_fixtures_tests/fast
 
+#=============================================================================
+# Target rules for targets named external_ref_signal_mapping_tests
+
+# Build rule for target.
+external_ref_signal_mapping_tests: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 external_ref_signal_mapping_tests
+.PHONY : external_ref_signal_mapping_tests
+
+# fast build rule for target.
+external_ref_signal_mapping_tests/fast:
+	$(MAKE) $(MAKESILENT) -f tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build.make tests/CMakeFiles/external_ref_signal_mapping_tests.dir/build
+.PHONY : external_ref_signal_mapping_tests/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1658,6 +1684,7 @@ help:
 	@echo "... electrical_parity_fixtures_tests"
 	@echo "... electrical_primitives_tests"
 	@echo "... electrical_subsolver_tests"
+	@echo "... external_ref_signal_mapping_tests"
 	@echo "... factory_validation_tests"
 	@echo "... gmock"
 	@echo "... gmock_main"
@@ -1702,6 +1729,7 @@ help:
 	@echo "... sim_debug"
 	@echo "... slew_rate_tests"
 	@echo "... spdlog"
+	@echo "... splitter_tests"
 	@echo "... spring_tests"
 	@echo "... subtract_tests"
 	@echo "... time_delay_tests"

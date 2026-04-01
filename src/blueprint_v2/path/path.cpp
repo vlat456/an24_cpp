@@ -49,7 +49,7 @@ std::optional<Path> PathArena::parse(std::string_view s) {
             s.remove_prefix(slash_pos + 1);
         }
         
-        size_t colon_in_token = token.find(':');
+        size_t colon_in_token = token.rfind(':');
         if (colon_in_token != std::string_view::npos) {
             std::string_view node_id = token.substr(0, colon_in_token);
             std::string_view port_name = token.substr(colon_in_token + 1);

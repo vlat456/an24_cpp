@@ -442,7 +442,7 @@ Interface decode_interface(nlohmann::json const& arr,
             throw std::runtime_error("invalid interface entry: expected object");
         }
         static const std::unordered_set<std::string> allowed_interface_fields = {
-            "name", "domain", "direction"
+            "name", "domain", "direction", "type", "source_writer"
         };
         for (auto it = p.begin(); it != p.end(); ++it) {
             if (allowed_interface_fields.find(it.key()) == allowed_interface_fields.end()) {
@@ -566,17 +566,22 @@ Blueprint decode_nodes(Blueprint bp, nlohmann::json const& arr,
         if (n.contains("blueprint_path")) {
             node.blueprint_path = n["blueprint_path"].get<std::string>();
         }
-        if (!n.contains("position") || !n["position"].is_object()) {
-            throw std::runtime_error("invalid node entry: missing object field 'position'");
+        if (n.contains("position")) {
+            if (!n["position"].is_object()) {
+                throw std::runtime_error("invalid node entry: 'position' must be an object");
+            }
+            if (!n["position"].contains("x") || !n["position"]["x"].is_number()) {
+                throw std::runtime_error("invalid node entry: missing numeric field 'position.x'");
+            }
+            if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
+                throw std::runtime_error("invalid node entry: missing numeric field 'position.y'");
+            }
+            node.x = parse_finite_float(n["position"]["x"], "position.x");
+            node.y = parse_finite_float(n["position"]["y"], "position.y");
+        } else {
+            node.x = 0.0f;
+            node.y = 0.0f;
         }
-        if (!n["position"].contains("x") || !n["position"]["x"].is_number()) {
-            throw std::runtime_error("invalid node entry: missing numeric field 'position.x'");
-        }
-        if (!n["position"].contains("y") || !n["position"]["y"].is_number()) {
-            throw std::runtime_error("invalid node entry: missing numeric field 'position.y'");
-        }
-        node.x = parse_finite_float(n["position"]["x"], "position.x");
-        node.y = parse_finite_float(n["position"]["y"], "position.y");
         if (n.contains("width") && !n["width"].is_number()) {
             throw std::runtime_error("invalid node entry: width must be numeric");
         }
@@ -1068,7 +1073,9 @@ std::optional<Blueprint> BlueprintCodec::decode(
 
         static const std::unordered_set<std::string> allowed_top_level = {
             "version", "id", "display_name", "name", "interface", "nodes",
-            "wires", "nested", "pan_x", "pan_y", "zoom", "grid_step"
+            "wires", "nested", "pan_x", "pan_y", "zoom", "grid_step",
+            "cpp_class", "description", "domains", "scheduler_source",
+            "param_defaults", "param_schema", "solver_role"
         };
         for (auto it = j.begin(); it != j.end(); ++it) {
             if (allowed_top_level.find(it.key()) == allowed_top_level.end()) {

@@ -109,31 +109,35 @@
       "type": "CurrentSense"
     },
     {
-      "id": "subtract_fol",
-      "name": "FOL_Error",
+      "blueprint_path": "math/FirstOrderLag",
+      "expandable": true,
+      "height": 64.0,
+      "id": "firstorderlag_1",
+      "name": "FieldLag",
       "ports": {
-        "A": {
+        "in": {
           "direction": "In",
           "type": 7
         },
-        "B": {
+        "rate": {
           "direction": "In",
           "type": 7
         },
-        "o": {
+        "out": {
           "direction": "Out",
           "type": 7
         }
       },
       "position": {
-        "x": 1120.0,
-        "y": -400.0
+        "x": 1280.0,
+        "y": -336.0
       },
-      "type": "Subtract"
+      "type": "FirstOrderLag",
+      "width": 160.0
     },
     {
-      "id": "rate_fol",
-      "name": "FOL_Rate",
+      "id": "value_2",
+      "name": "FieldRate",
       "params": {
         "value": 6.0
       },
@@ -145,55 +149,10 @@
       },
       "position": {
         "x": 1120.0,
-        "y": -480.0
+        "y": -400.0
       },
       "render_hint": "ref",
       "type": "Value"
-    },
-    {
-      "id": "multiply_fol",
-      "name": "FOL_Scale",
-      "ports": {
-        "A": {
-          "direction": "In",
-          "type": 7
-        },
-        "B": {
-          "direction": "In",
-          "type": 7
-        },
-        "o": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 1264.0,
-        "y": -400.0
-      },
-      "type": "Multiply"
-    },
-    {
-      "id": "accumulator_fol",
-      "name": "FieldState",
-      "params": {
-        "initial_val": 0.6000000238418579
-      },
-      "ports": {
-        "in": {
-          "direction": "In",
-          "type": 7
-        },
-        "out": {
-          "direction": "Out",
-          "type": 7
-        }
-      },
-      "position": {
-        "x": 1408.0,
-        "y": -400.0
-      },
-      "type": "Accumulator"
     },
     {
       "id": "lut_1",
@@ -360,7 +319,7 @@
     },
     {
       "id": "wire_23",
-      "source": "/accumulator_fol:out",
+      "source": "/firstorderlag_1:out",
       "target": "/multiply_1:B"
     },
     {
@@ -426,27 +385,12 @@
     {
       "id": "wire_49",
       "source": "/lut_1:output",
-      "target": "/subtract_fol:A"
+      "target": "/firstorderlag_1:in"
     },
     {
       "id": "wire_50",
-      "source": "/accumulator_fol:out",
-      "target": "/subtract_fol:B"
-    },
-    {
-      "id": "wire_51",
-      "source": "/subtract_fol:o",
-      "target": "/multiply_fol:A"
-    },
-    {
-      "id": "wire_52",
-      "source": "/rate_fol:o",
-      "target": "/multiply_fol:B"
-    },
-    {
-      "id": "wire_53",
-      "source": "/multiply_fol:o",
-      "target": "/accumulator_fol:in"
+      "source": "/value_2:o",
+      "target": "/firstorderlag_1:rate"
     }
   ],
   "zoom": 0.6512259244918823

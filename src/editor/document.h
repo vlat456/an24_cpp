@@ -72,6 +72,7 @@ public:
 
     /// Root window convenience accessors
     BlueprintWindow& root() { return window_manager_.root(); }
+    const BlueprintWindow& root() const { return window_manager_.root(); }
     visual::Scene& scene() { return root().scene; }
     Viewport& viewport() { return root().viewport; }
     CanvasInput& input() { return root().input; }
@@ -107,6 +108,15 @@ public:
         std::unordered_set<std::string_view, visual::StringViewHash>& out,
         const std::string& group_id) const;
 
+    /// Build energized wire set for an external-reference window.
+    /// Iterates external blueprint wires and maps signal keys through parent_instance_id.
+    void buildEnergizedWireSetExternal(
+        std::unordered_set<std::string_view, visual::StringViewHash>& out,
+        const bp2::Blueprint& external_bp,
+        ui::StringInterner& external_interner,
+        bp2::PathArena& external_arena,
+        const std::string& parent_instance_id) const;
+
     // ── Signal overrides (switch/button clicks) ──
 
     std::unordered_map<std::string, float>& signalOverrides() { return signal_overrides_; }
@@ -136,6 +146,12 @@ public:
 
     void openSubWindow(const std::string& sub_blueprint_id);
 
+    /// Open a parent-bound external reference window for a composite node.
+    /// Loads the external blueprint and creates a read-only sub-window with
+    /// signal keys mapped through the parent instance id.
+    void openExternalRefWindow(const std::string& instance_id,
+                                const std::string& blueprint_file_path);
+
     // ── Input result dispatch ──
 
     struct InputResultAction {
@@ -151,6 +167,8 @@ public:
         std::string toggle_probe_group_id;
         bool has_toggle_probe_world_pos = false;
         Pt toggle_probe_world_pos;
+
+        std::string open_document_path;
     };
     InputResultAction applyInputResult(const InputResult& r, const std::string& group_id = "");
 

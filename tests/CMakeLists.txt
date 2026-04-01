@@ -187,6 +187,22 @@ target_link_libraries(arithmetic_tests PRIVATE
 )
 gtest_discover_tests(arithmetic_tests)
 
+# Splitter component tests (1-to-2 signal fan-out + FirstOrderLag regression)
+add_executable(splitter_tests
+    test_splitter.cpp
+)
+target_include_directories(splitter_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(splitter_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(splitter_tests)
+
 # AZS (Circuit Breaker) component tests
 add_executable(azs_tests
     test_azs.cpp
@@ -1504,6 +1520,7 @@ gtest_discover_tests(bp2_registry_tests)
 # Codec v2 tests (Phase 5)
 add_executable(bp2_codec_tests
     blueprint_v2/test_codec.cpp
+    blueprint_v2/test_subwindow_open_target.cpp
 )
 target_include_directories(bp2_codec_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
@@ -1610,3 +1627,20 @@ target_link_libraries(electrical_parity_fixtures_tests PRIVATE
 gtest_discover_tests(electrical_parity_fixtures_tests
     PROPERTIES LABELS "raw_builder;electrical"
 )
+
+# External reference signal mapping tests (parent-bound blueprint rendering)
+add_executable(external_ref_signal_mapping_tests
+    test_external_ref_signal_mapping.cpp
+)
+target_include_directories(external_ref_signal_mapping_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/src/json_parser
+    ${CMAKE_BINARY_DIR}/_deps/json-src/include
+)
+target_link_libraries(external_ref_signal_mapping_tests PRIVATE
+    jit_solver
+    json_parser
+    GTest::gtest_main
+)
+gtest_discover_tests(external_ref_signal_mapping_tests)

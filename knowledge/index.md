@@ -16,6 +16,7 @@ Use this file as the entry point before crawling the rest of the repo.
 | Testing | `knowledge/08_testing.md` | Test patterns, categories, helpers |
 | UI framework | `knowledge/09_ui_framework.md` | Widgets, math, layout, rendering |
 | Quick reference | `knowledge/10_quick_reference.md` | Build commands, paths, tuning defaults |
+| External blueprint rendering | `knowledge/nesting/01_external_blueprint_rendering_plan.md` | Plan for editor support of reusable referenced blueprints via second rendering mode |
 
 ## Practical Notes
 

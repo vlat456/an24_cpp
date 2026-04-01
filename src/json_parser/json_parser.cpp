@@ -420,6 +420,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
                                      TypeRegistry& registry,
                                      std::set<std::string> expanding) {
     spdlog::debug("[json_parser] Parsing JSON text");
+    const bool is_top_level = expanding.empty();
 
     auto j = json::parse(json_text);
     ParserContext ctx;
@@ -438,6 +439,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
     // Parse devices (also accepts "top_level_devices")
     std::vector<DeviceInstance> raw_devices;
+    std::set<std::string> expanded_instance_names;
     if (j.contains("devices")) {
         for (const auto& dev_j : j["devices"]) {
             raw_devices.push_back(parse_device(dev_j));
@@ -498,6 +500,7 @@ static ParserContext parse_json_impl(const std::string& json_text,
             expanding.insert(raw_dev.classname);
             ParserContext nested = parse_json_impl(nested_json.dump(), registry, expanding);
             merge_nested_blueprint(ctx, nested, raw_dev.name);
+            expanded_instance_names.insert(raw_dev.name);
 
             spdlog::info("[json_parser] Expanded blueprint '{}' as device '{}' ({} devices)",
                         raw_dev.classname, raw_dev.name, nested.devices.size());
@@ -545,8 +548,9 @@ static ParserContext parse_json_impl(const std::string& json_text,
     // So we need to rewrite "lamp_bp.vin" -> "lamp_bp:vin.port"
     // But we must NOT rewrite internal connections that already have the prefix
     // Skip this for recursive blueprint loading (only process at top level).
-    if (expanding.empty()) {
+    if (is_top_level) {
         std::set<std::string> expanded_blueprint_names;
+        expanded_blueprint_names.insert(expanded_instance_names.begin(), expanded_instance_names.end());
         // Find all expanded blueprints by looking for BlueprintInput/BlueprintOutput devices
         // These have names like "lamp_bp:vin" and "lamp_bp:vout"
         // The blueprint name is everything before the LAST colon
@@ -585,9 +589,12 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
                     // Check if this device is an expanded blueprint
                     if (expanded_blueprint_names.count(device_name)) {
-                        // Rewrite: "lamp_bp.vin" -> "lamp_bp:vin.port"
+                        // Rewrite parent-facing composite ports to the bridge node's
+                        // external side: "lamp_bp.vin" -> "lamp_bp:vin.ext".
+                        // The internal ".port" endpoint stays for connections inside
+                        // the expanded blueprint only.
                         std::string old_ref = port_ref;
-                        port_ref = device_name + ":" + port_name + ".port";
+                        port_ref = device_name + ":" + port_name + ".ext";
                         spdlog::info("[json_parser] Rewrote parent connection: '{}' -> '{}'",
                                     old_ref, port_ref);
                     }

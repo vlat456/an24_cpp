@@ -167,6 +167,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/subtract_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logic_gates_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/arithmetic_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/splitter_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/azs_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/logical_solver_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/blueprint_ports_tests.dir/DependInfo.cmake"
@@ -247,4 +248,5 @@ set(CMAKE_DEPEND_INFO_FILES
   "tests/CMakeFiles/bp2_validation_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/electrical_primitives_tests.dir/DependInfo.cmake"
   "tests/CMakeFiles/electrical_parity_fixtures_tests.dir/DependInfo.cmake"
+  "tests/CMakeFiles/external_ref_signal_mapping_tests.dir/DependInfo.cmake"
   )

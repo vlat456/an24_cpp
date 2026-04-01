@@ -126,6 +126,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/subtract_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logic_gates_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/arithmetic_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/splitter_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/azs_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/logical_solver_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/blueprint_ports_tests.dir
@@ -206,6 +207,7 @@
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/bp2_validation_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_primitives_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/electrical_parity_fixtures_tests.dir
+/Users/vladimir/an24_cpp/build/tests/CMakeFiles/external_ref_signal_mapping_tests.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/test.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/edit_cache.dir
 /Users/vladimir/an24_cpp/build/tests/CMakeFiles/rebuild_cache.dir

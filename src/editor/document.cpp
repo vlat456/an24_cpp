@@ -9,6 +9,8 @@
 #include "data/node_content.h"
 #include "json_parser/json_parser.h"
 #include "parse_number.h"
+#include "subwindow_open_target.h"
+#include "external_ref_mapping.h"
 #include <nlohmann/json.hpp>
 #include "blueprint_v2/path/path.h"
 #include <spdlog/spdlog.h>
@@ -23,13 +25,18 @@ Document::Document() {
 }
 
 std::string Document::title() const {
+    std::string base;
     if (!model_.current().name().empty()) {
-        return model_.current().name();
+        base = model_.current().name();
+    } else if (!model_.current().display_name().empty()) {
+        base = model_.current().display_name();
+    } else {
+        base = display_name_;
     }
-    if (!model_.current().display_name().empty()) {
-        return model_.current().display_name();
+    if (window_manager_.root().read_only) {
+        base += " [Read Only]";
     }
-    return display_name_;
+    return base;
 }
 
 // ============================================================================
@@ -61,7 +68,13 @@ std::string Document::build_simulation_json() const {
     std::set<std::string> emitted_ids;
 
     for (const bp2::Blueprint::Node& n : bp.nodes()) {
-        if (n.expandable) continue;
+        // Don't skip expandable (composite) nodes – emit them as regular
+        // devices so that parse_json_impl() can expand them via TypeRegistry.
+        if (n.expandable) {
+            // Expandable nodes only carry exposed interface ports.  Emit a
+            // minimal device entry – parse_json_impl will replace it with the
+            // expanded sub-graph.
+        }
 
         std::string nid = std::string(interner_.resolve(n.id));
         if (!emitted_ids.insert(nid).second) {
@@ -125,12 +138,9 @@ std::string Document::build_simulation_json() const {
     }
     out["devices"] = std::move(devices);
 
-    std::set<std::string> blueprint_node_ids;
-    for (const auto& n : bp.nodes()) {
-        if (n.expandable) {
-            blueprint_node_ids.insert(std::string(interner_.resolve(n.id)));
-        }
-    }
+    // No special rewriting needed for expandable/composite nodes – they are
+    // emitted as normal devices and parse_json_impl() expands them, rewriting
+    // connections to point at the bridge nodes automatically.
 
     json connections = json::array();
     std::set<std::string> emitted_conn_keys;
@@ -145,15 +155,6 @@ std::string Document::build_simulation_json() const {
         std::string src_port_s = std::string(interner_.resolve(src_port));
         std::string tgt_node_s = std::string(interner_.resolve(tgt_node));
         std::string tgt_port_s = std::string(interner_.resolve(tgt_port));
-
-        if (blueprint_node_ids.count(src_node_s) > 0) {
-            src_node_s = src_node_s + ":" + src_port_s;
-            src_port_s = "ext";
-        }
-        if (blueprint_node_ids.count(tgt_node_s) > 0) {
-            tgt_node_s = tgt_node_s + ":" + tgt_port_s;
-            tgt_port_s = "ext";
-        }
 
         const std::string key = src_node_s + "." + src_port_s + "→" + tgt_node_s + "." + tgt_port_s;
         if (!emitted_conn_keys.insert(key).second) {
@@ -320,8 +321,15 @@ void Document::rebuildAllWindows() {
     }
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = model_.current().grid_step();
-        visual::mutations::rebuild(win->scene, model_.current(),
-                                   interner_, arena_, win->group_id);
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            // External-ref windows rebuild from their own external blueprint
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
     }
     rebuildSimulation();
 }
@@ -460,16 +468,111 @@ void Document::buildEnergizedWireSet(
 
         std::string_view node_sv = interner_.resolve(src_node_id);
         std::string_view port_sv = interner_.resolve(src_port_id);
+
+        // For expandable composite nodes (with blueprint_path), the parser
+        // rewrites parent connections: "node.port" → "node:port.ext".
+        // Use the mapped key so the simulator lookup succeeds.
+        const bp2::Blueprint::Node* src_node = bp.find_node(src_node_id);
         std::string port_key;
-        port_key.reserve(node_sv.size() + 1 + port_sv.size());
-        port_key.append(node_sv);
-        port_key.push_back('.');
-        port_key.append(port_sv);
+        if (src_node && src_node->expandable && !src_node->blueprint_path.empty()) {
+            port_key = editor::map_composite_port_key(node_sv, port_sv);
+        } else {
+            port_key.reserve(node_sv.size() + 1 + port_sv.size());
+            port_key.append(node_sv);
+            port_key.push_back('.');
+            port_key.append(port_sv);
+        }
 
         if (simulation_.wire_is_energized(port_key)) {
             out.insert(interner_.resolve(w.id));
         }
     }
+}
+
+void Document::buildEnergizedWireSetExternal(
+    std::unordered_set<std::string_view, visual::StringViewHash>& out,
+    const bp2::Blueprint& external_bp,
+    ui::StringInterner& external_interner,
+    bp2::PathArena& external_arena,
+    const std::string& parent_instance_id) const {
+    out.clear();
+    if (!simulation_running_) return;
+
+    for (const bp2::Blueprint::Wire& w : external_bp.wires()) {
+        // Decode source endpoint using the external blueprint's arena
+        if (w.source.kind() != bp2::PathKind::Port) continue;
+        ui::InternedId src_port_iid = w.source.segment();
+        bp2::Path src_parent = external_arena.parent(w.source);
+        if (src_parent.kind() != bp2::PathKind::Node) continue;
+        ui::InternedId src_node_iid = src_parent.segment();
+
+        std::string_view node_sv = external_interner.resolve(src_node_iid);
+        std::string_view port_sv = external_interner.resolve(src_port_iid);
+
+        // Build child-local key, then map to parent
+        std::string child_key = editor::build_signal_key(node_sv, port_sv);
+        std::string parent_key = editor::resolve_external_ref_signal_key(
+            parent_instance_id, child_key);
+
+        if (simulation_.wire_is_energized(parent_key)) {
+            out.insert(external_interner.resolve(w.id));
+        }
+    }
+}
+
+// ============================================================================
+// External reference windows
+// ============================================================================
+
+void Document::openExternalRefWindow(const std::string& instance_id,
+                                      const std::string& blueprint_file_path) {
+    // Check if already open
+    if (auto* existing = window_manager_.find_external(instance_id)) {
+        existing->open = true;
+        spdlog::info("[editor] Reactivated external-ref window for '{}'", instance_id);
+        return;
+    }
+
+    // Load the external blueprint with its own interner/arena
+    auto ext_interner = std::make_unique<ui::StringInterner>();
+    auto ext_arena = std::make_unique<bp2::PathArena>(*ext_interner);
+    TypeRegistry parser_registry = load_type_registry("library/");
+    auto bp = load_blueprint_from_file_validated(
+        blueprint_file_path.c_str(), *ext_interner, *ext_arena, parser_registry);
+    if (!bp.has_value()) {
+        spdlog::error("[editor] Failed to load external blueprint '{}' for instance '{}'",
+                      blueprint_file_path, instance_id);
+        return;
+    }
+
+    // Derive title from the node name or instance id
+    std::string title = instance_id;
+    auto lookup_id = interner_.lookup(instance_id);
+    if (!lookup_id.empty()) {
+        const bp2::Blueprint::Node* node = model_.current().find_node(lookup_id);
+        if (node && !node->name.empty()) {
+            title = node->name + " [" + instance_id + "]";
+        }
+    }
+
+    auto* win = window_manager_.open_external_stub(instance_id, title);
+    if (!win) {
+        spdlog::error("[editor] Failed to create external-ref window for '{}'", instance_id);
+        return;
+    }
+
+    win->external_blueprint = std::move(*bp);
+    win->external_interner = std::move(ext_interner);
+    win->external_arena = std::move(ext_arena);
+    win->parent_instance_id = instance_id;
+    win->set_read_only(true);
+
+    // Rebuild scene from the external blueprint (root scope = empty group_id)
+    visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                               *win->external_interner, *win->external_arena, "");
+
+    spdlog::info("[editor] Opened external-ref window for '{}' from '{}'",
+                 instance_id, blueprint_file_path);
 }
 
 // ============================================================================
@@ -683,26 +786,31 @@ bool Document::extractToBlueprint(const std::vector<ui::InternedId>& selected_no
 // ============================================================================
 
 void Document::openSubWindow(const std::string& sub_blueprint_id) {
-    const bp2::Blueprint::Nested* nested = nullptr;
+    const auto target = editor::resolve_subwindow_open_target(model_.current(), interner_, sub_blueprint_id);
     auto lookup_id = interner_.lookup(sub_blueprint_id);
-    if (!lookup_id.empty()) {
-        nested = model_.current().find_nested(lookup_id);
-    }
+    const bp2::Blueprint::Nested* nested = lookup_id.empty() ? nullptr : model_.current().find_nested(lookup_id);
 
-    if (!nested) {
-        spdlog::error("[editor] Cannot open sub-window: nested '{}' not found", sub_blueprint_id);
+    if (target.kind == editor::SubWindowOpenTargetKind::Nested && nested) {
+        std::string type_name = std::string(interner_.resolve(nested->blueprint_id));
+        auto* win = window_manager_.open(sub_blueprint_id,
+                                         type_name + " [" + sub_blueprint_id + "]");
+        if (win) {
+            // Non-embedded (reference) sub-blueprints are read-only
+            win->set_read_only(!nested->embedded);
+        }
+
+        spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
         return;
     }
 
-    std::string type_name = std::string(interner_.resolve(nested->blueprint_id));
-    auto* win = window_manager_.open(sub_blueprint_id,
-                                     type_name + " [" + sub_blueprint_id + "]");
-    if (win) {
-        // Non-embedded (reference) sub-blueprints are read-only
-        win->set_read_only(!nested->embedded);
+    if (target.kind == editor::SubWindowOpenTargetKind::ExternalReference) {
+        // Open as a parent-bound external reference window instead of
+        // dispatching to openDocument (which would create a disconnected tab).
+        openExternalRefWindow(sub_blueprint_id, target.path);
+        return;
     }
 
-    spdlog::info("[editor] Opened sub-window for '{}'", sub_blueprint_id);
+    spdlog::error("[editor] Cannot open sub-window: nested '{}' not found", sub_blueprint_id);
 }
 
 // ============================================================================
@@ -776,8 +884,14 @@ bool Document::performUndo() {
 
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = model_.current().grid_step();
-        visual::mutations::rebuild(win->scene, model_.current(),
-                                   interner_, arena_, win->group_id);
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
     }
     rebuildSimulation();
     return true;
@@ -809,8 +923,14 @@ bool Document::performRedo() {
 
     for (auto& win : window_manager_.windows()) {
         win->viewport.grid_step = model_.current().grid_step();
-        visual::mutations::rebuild(win->scene, model_.current(),
-                                   interner_, arena_, win->group_id);
+        if (win->is_external_ref() && win->external_blueprint
+            && win->external_interner && win->external_arena) {
+            visual::mutations::rebuild(win->scene, *win->external_blueprint,
+                                       *win->external_interner, *win->external_arena, "");
+        } else {
+            visual::mutations::rebuild(win->scene, model_.current(),
+                                       interner_, arena_, win->group_id);
+        }
     }
     rebuildSimulation();
     return true;

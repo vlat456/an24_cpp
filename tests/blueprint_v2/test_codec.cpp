@@ -493,10 +493,11 @@ TEST(BlueprintCodec, DecodeMissingDisplayNameFails) {
     EXPECT_NE(err.message.find("display_name"), std::string::npos);
 }
 
-TEST(BlueprintCodec, DecodeNodeMissingPositionFails) {
+TEST(BlueprintCodec, DecodeNodeMissingPosition_DefaultsToOrigin) {
     ui::StringInterner interner;
     bp2::PathArena arena(interner);
     bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("Battery"), bp2::Interface(), "");
     bp2::DecodeError err;
 
     std::string json = R"({
@@ -512,8 +513,10 @@ TEST(BlueprintCodec, DecodeNodeMissingPositionFails) {
     })";
 
     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
-    EXPECT_FALSE(result.has_value());
-    EXPECT_NE(err.message.find("position"), std::string::npos);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    ASSERT_EQ(result->nodes().size(), 1u);
+    EXPECT_FLOAT_EQ(result->nodes()[0].x, 0.0f);
+    EXPECT_FLOAT_EQ(result->nodes()[0].y, 0.0f);
 }
 
 TEST(BlueprintCodec, DecodeWireInvalidRoutingPointsFails) {
@@ -1696,28 +1699,64 @@ TEST(BlueprintCodec, DecodeRejectsOptionalNodeWidthWrongType) {
     EXPECT_NE(err.message.find("width"), std::string::npos);
 }
 
-TEST(BlueprintCodec, DecodeRejectsOptionalNodeColorWrongType) {
-    ui::StringInterner interner;
-    bp2::PathArena arena(interner);
-    bp2::TypeRegistry reg;
-    bp2::DecodeError err;
+TEST(BlueprintCodec, AllowsLibraryMetadataFields) {
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
+     bp2::TypeRegistry reg;
 
-    std::string json = R"({
-        "version": "3.0",
-        "id": "test",
-        "display_name": "Test",
-        "interface": [],
-        "nodes": [
-            {
-                "id": "n1",
-                "type": "Battery",
-                "position": {"x": 0, "y": 0},
-                "has_color": true,
-                "color_r": "red"
-            }
-        ],
-        "wires": [],
-        "nested": []
+     std::string json = R"({
+         "version": "3.0",
+         "id": "math_filter",
+         "display_name": "Math Filter",
+         "cpp_class": "FirstOrderLagComponent",
+         "description": "First-order lag filter",
+         "domains": ["Electrical", "Logical"],
+         "scheduler_source": "SimClock",
+         "param_defaults": {"tau": 0.1, "gain": 1.0},
+         "param_schema": [{"name": "tau", "type": "Number"}],
+         "solver_role": "passive",
+         "interface": [
+             {
+                 "name": "input",
+                 "domain": 1,
+                 "direction": 0,
+                 "type": "V",
+                 "source_writer": true
+             }
+         ],
+         "nodes": [],
+         "wires": [],
+         "nested": []
+     })";
+
+     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg);
+     ASSERT_TRUE(result.has_value());
+     EXPECT_EQ(interner.resolve(result->id()), "math_filter");
+     EXPECT_EQ(result->display_name(), "Math Filter");
+ }
+
+TEST(BlueprintCodec, DecodeRejectsOptionalNodeColorWrongType) {
+     ui::StringInterner interner;
+     bp2::PathArena arena(interner);
+     bp2::TypeRegistry reg;
+     bp2::DecodeError err;
+
+     std::string json = R"({
+         "version": "3.0",
+         "id": "test",
+         "display_name": "Test",
+         "interface": [],
+         "nodes": [
+             {
+                 "id": "n1",
+                 "type": "Battery",
+                 "position": {"x": 0, "y": 0},
+                 "has_color": true,
+                 "color_r": "red"
+             }
+         ],
+         "wires": [],
+         "nested": []
     })";
 
     auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
@@ -1969,4 +2008,130 @@ TEST(BlueprintCodec, EncodeGoldenSnapshotStable) {
 })";
 
     EXPECT_EQ(actual, expected);
+}
+
+// =============================================================================
+// Regression: Library blueprints with missing position fields
+// =============================================================================
+
+TEST(BlueprintCodec, DecodeNodeWithoutPosition_DefaultsToZero) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("Subtract"), bp2::Interface(), "");
+
+    // Library blueprints (e.g. library/math/FirstOrderLag.blueprint) have nodes
+    // WITHOUT position fields. The codec must accept these and default to {0,0}.
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test_no_pos",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Subtract",
+                "ports": {
+                    "A": {"direction": "In", "type": "Any"},
+                    "B": {"direction": "In", "type": "Any"},
+                    "o": {"direction": "Out", "type": "Any"}
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    ASSERT_EQ(result->nodes().size(), 1u);
+    EXPECT_FLOAT_EQ(result->nodes()[0].x, 0.0f);
+    EXPECT_FLOAT_EQ(result->nodes()[0].y, 0.0f);
+}
+
+TEST(BlueprintCodec, DecodeNodeWithPosition_ParsesNormally) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("Subtract"), bp2::Interface(), "");
+
+    std::string json = R"({
+        "version": "3.0",
+        "id": "test_with_pos",
+        "display_name": "Test",
+        "interface": [],
+        "nodes": [
+            {
+                "id": "n1",
+                "type": "Subtract",
+                "position": {"x": 42.0, "y": -7.5}
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Decode failed: " << err.message;
+    ASSERT_EQ(result->nodes().size(), 1u);
+    EXPECT_FLOAT_EQ(result->nodes()[0].x, 42.0f);
+    EXPECT_FLOAT_EQ(result->nodes()[0].y, -7.5f);
+}
+
+TEST(BlueprintCodec, DecodeLibraryBlueprintFormat_FullExample) {
+    ui::StringInterner interner;
+    bp2::PathArena arena(interner);
+    bp2::TypeRegistry reg;
+    reg.register_component(interner.intern("BlueprintInput"), bp2::Interface(), "");
+    reg.register_component(interner.intern("BlueprintOutput"), bp2::Interface(), "");
+
+    // Simplified version of library/math/FirstOrderLag.blueprint structure:
+    // - nodes have "ports" but NO "position"
+    // - top-level has "cpp_class", "description", "domains", "scheduler_source"
+    std::string json = R"({
+        "version": "3.0",
+        "id": "FirstOrderLag",
+        "display_name": "FirstOrderLag",
+        "scheduler_source": false,
+        "cpp_class": false,
+        "description": "Test library blueprint",
+        "domains": ["Logical"],
+        "interface": [
+            {"name": "in", "domain": 1, "direction": 0, "type": "Any", "source_writer": false},
+            {"name": "out", "domain": 1, "direction": 1, "type": "Any", "source_writer": false}
+        ],
+        "nodes": [
+            {
+                "id": "in",
+                "type": "BlueprintInput",
+                "ports": {
+                    "ext": {"direction": "In", "type": "Any"},
+                    "port": {"direction": "Out", "type": "Any"}
+                }
+            },
+            {
+                "id": "out",
+                "type": "BlueprintOutput",
+                "ports": {
+                    "ext": {"direction": "Out", "type": "Any"},
+                    "port": {"direction": "In", "type": "Any"}
+                }
+            }
+        ],
+        "wires": [],
+        "nested": []
+    })";
+
+    bp2::DecodeError err;
+    auto result = bp2::BlueprintCodec::decode(json, interner, arena, reg, &err);
+    ASSERT_TRUE(result.has_value()) << "Library blueprint decode failed: " << err.message;
+    EXPECT_EQ(result->nodes().size(), 2u);
+
+    // All positions should default to {0, 0}
+    for (const auto& node : result->nodes()) {
+        EXPECT_FLOAT_EQ(node.x, 0.0f);
+        EXPECT_FLOAT_EQ(node.y, 0.0f);
+    }
 }

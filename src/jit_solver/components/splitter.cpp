@@ -4,8 +4,9 @@
 
 template <typename Provider>
 void Splitter<Provider>::execute(SimulationState& st, float /*dt*/) {
-    // No-op: splitter is a pass-through for signal routing
-    (void)st;
+    float val = st.values[provider.get(PortNames::i)];
+    st.values[provider.get(PortNames::o1)] = val;
+    st.values[provider.get(PortNames::o2)] = val;
 }
 
 template <typename Provider>
