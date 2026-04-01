@@ -120,7 +120,7 @@ constexpr size_t Bus_PORT_COUNT = 1;
 constexpr size_t Clamp_PORT_COUNT = 2;
 constexpr size_t Comparator_PORT_COUNT = 3;
 constexpr size_t ControlledCurrentSource_PORT_COUNT = 3;
-constexpr size_t ControlledVoltageSource_PORT_COUNT = 3;
+constexpr size_t ControlledVoltageSource_PORT_COUNT = 4;
 constexpr size_t CurrentSense_PORT_COUNT = 3;
 constexpr size_t DMR400_PORT_COUNT = 4;
 constexpr size_t Divide_PORT_COUNT = 3;
@@ -255,6 +255,7 @@ constexpr const char* ControlledCurrentSource_PORTS[] = {
 };
 constexpr const char* ControlledVoltageSource_PORTS[] = {
     "cmd",
+    "i_out",
     "v_neg",
     "v_pos"
 };
@@ -780,14 +781,17 @@ constexpr bool ControlledCurrentSource_SCHEDULER_SOURCE = false;
 constexpr RegistryPortDirection ControlledVoltageSource_PORT_DIRECTIONS[] = {
     RegistryPortDirection::In,
     RegistryPortDirection::Out,
+    RegistryPortDirection::Out,
     RegistryPortDirection::Out
 };
 constexpr uint8_t ControlledVoltageSource_PORT_DOMAINS[] = {
     2,
     1,
+    1,
     1
 };
 constexpr bool ControlledVoltageSource_PORT_SOURCE_WRITER[] = {
+    false,
     false,
     false,
     true
@@ -1855,7 +1859,7 @@ inline std::vector<std::string> get_component_ports(const std::string& classname
         {"Clamp", {"in", "out"}},
         {"Comparator", {"Va", "Vb", "o"}},
         {"ControlledCurrentSource", {"cmd", "v_neg", "v_pos"}},
-        {"ControlledVoltageSource", {"cmd", "v_neg", "v_pos"}},
+        {"ControlledVoltageSource", {"cmd", "i_out", "v_neg", "v_pos"}},
         {"CurrentSense", {"i_out", "v_in", "v_out"}},
         {"DMR400", {"lamp", "v_gen_ref", "v_in", "v_out"}},
         {"Divide", {"A", "B", "o"}},

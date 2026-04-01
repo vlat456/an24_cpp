@@ -20,7 +20,13 @@ void ControlledVoltageSource<Provider>::execute(SimulationState& /*st*/, float /
 
 template <typename Provider>
 void ControlledVoltageSource<Provider>::commit(SimulationState& st, float /*dt*/) {
-    (void)st;
+    // Commit runs after solve_electrical() in the solver-owned commit pass.
+    // Export solved source branch current for topology-agnostic derating logic.
+    float i_out = 0.0f;
+    if (st.electrical_rt != nullptr && is_valid(electrical_handle)) {
+        i_out = std::fabs(get_branch_current(*st.electrical_rt, electrical_handle));
+    }
+    st.values[provider.get(PortNames::i_out)] = i_out;
 }
 
 template class ControlledVoltageSource<JitProvider>;

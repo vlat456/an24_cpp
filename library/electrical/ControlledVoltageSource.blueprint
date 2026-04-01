@@ -24,6 +24,13 @@
       "direction": 0,
       "type": "Signal",
       "source_writer": false
+    },
+    {
+      "name": "i_out",
+      "domain": 1,
+      "direction": 1,
+      "type": "I",
+      "source_writer": false
     }
   ],
   "nodes": [],
