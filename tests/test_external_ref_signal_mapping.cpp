@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "editor/external_ref_mapping.h"
+#include "editor/signal_key_resolver.h"
 #include "jit_solver/simulator.h"
 #include "jit_solver/jit_solver.h"
 
@@ -367,4 +368,90 @@ TEST(CompositePortMapping, RootLevelWireEnergizedWithMapping) {
     EXPECT_TRUE(sim.wire_is_energized(mapped))
         << "Mapped key 'firstorderlag_1:out.ext' should be energized.\n"
         << "  value=" << sim.get_wire_voltage(mapped);
+}
+
+// ===========================================================================
+// REGRESSION: Root expandable vs raw key comparison
+// ===========================================================================
+
+TEST(ExternalRefIntegration, RootExpandableRawVsMappedKey) {
+    // Explicit regression test demonstrating the bug fix:
+    // Raw key (firstorderlag_1.out) reads 0 in simulation
+    // Mapped key (firstorderlag_1:out.ext) is non-zero after warmup
+    
+    std::string bp_path;
+    ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
+
+    std::string sim_json = blueprint_to_simulation_json(bp_path);
+
+    Simulator<JIT_Solver> sim;
+    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 120; ++i) {
+        sim.step(dt);
+    }
+
+    // Raw key that does NOT exist in expanded simulation
+     float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
+     EXPECT_FLOAT_EQ(raw_value, 0.0f)
+         << "Raw key 'firstorderlag_1.out' should NOT exist (returns 0)";
+
+     // Mapped key that DOES exist and has correct value
+     std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
+     float mapped_value = sim.get_wire_voltage(mapped_key);
+     EXPECT_GT(std::abs(mapped_value), 0.01f)
+         << "Mapped key 'firstorderlag_1:out.ext' must be non-zero after warmup.\n"
+         << "  This proves the resolver is handling root-level expandables correctly.";
+}
+
+// === PARITY HARDENING: Resolver/Parser Contract ===
+// INVARIANT: Root expandable resolved keys must match parser rewrite contract
+TEST(ExternalRefIntegration, RootExpandableResolvedKeyMatchesParserRewriteContract) {
+    // This test locks the contract between:
+    // 1. json_parser.cpp rewrite: instance.port -> instance:port.ext for expanded blueprints
+    // 2. signal_key_resolver.cpp: map_composite_port_key() -> instance:port.ext format
+    // 3. jit_solver.cpp bridge unification: .ext and .port unified in signal resolution
+    
+    std::string bp_path;
+    ASSERT_NO_THROW(bp_path = find_closed_circuit_blueprint());
+
+    std::string sim_json = blueprint_to_simulation_json(bp_path);
+
+    Simulator<JIT_Solver> sim;
+    ASSERT_NO_THROW(sim.start_from_json(sim_json));
+
+    const float dt = 1.0f / 60.0f;
+    for (int i = 0; i < 120; ++i) {
+        sim.step(dt);
+    }
+
+    // === CONTRACT CHECK 1: Mapped key format matches parser rewrite ===
+    // Parser rewrites parent connections to instance:port.ext
+    // Resolver must return the same format for root expandables
+    std::string mapped_key = editor::map_composite_port_key("firstorderlag_1", "out");
+    
+    // Contract: format MUST be "instance:port.ext" or "instance:port.port"
+    // NOT "instance.port" (raw format)
+    ASSERT_GT(mapped_key.find(':'), 0) 
+        << "Mapped key must contain ':' (composite instance separator): " << mapped_key;
+    ASSERT_NE(mapped_key.find('.'), std::string::npos)
+        << "Mapped key must contain '.' (port suffix): " << mapped_key;
+    
+    // === CONTRACT CHECK 2: Resolver maps to .ext for parent-level connections ===
+    // For root expandables accessed from editor, resolver should use .ext (parent-facing)
+    ASSERT_NE(mapped_key.find(".ext"), std::string::npos)
+        << "Resolver must map root expandable to .ext format (parent-facing): " << mapped_key
+        << "\n  This ensures parser rewrite contract is honored in simulation state.";
+
+    // === CONTRACT CHECK 3: Resolved signal must exist and be non-zero ===
+    float mapped_value = sim.get_wire_voltage(mapped_key);
+    EXPECT_GT(std::abs(mapped_value), 0.01f)
+        << "Mapped key from resolver contract must reference active signal: " << mapped_key;
+
+    // === CONTRACT CHECK 4: Raw key (pre-rewrite format) must NOT exist ===
+    float raw_value = sim.get_wire_voltage("firstorderlag_1.out");
+    EXPECT_FLOAT_EQ(raw_value, 0.0f)
+        << "Raw key 'firstorderlag_1.out' must NOT exist (parser should have rewritten it).\n"
+        << "  This validates that parser rewrite contract is consistently applied.";
 }

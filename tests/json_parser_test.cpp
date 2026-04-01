@@ -619,7 +619,7 @@ static const char* minimal_blueprint_v2(const char* classname) {
     // Returns a static buffer — only safe for one call at a time
     static char buf[1400];
     snprintf(buf, sizeof(buf),
-        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
+        R"({"version": "3.0", "id": "%s", "display_name": "%s", "interface": [], "cpp_class": true, "scheduler_source": false, "domains": ["Electrical"], "execution": {"electrical_passive": true, "electrical_observer": false, "logical": false, "control_commit": false, "electrical_actuator": false, "finalize": false, "mechanical": false, "hydraulic": false, "thermal": false}})",
         classname, classname);
     return buf;
 }
@@ -916,6 +916,87 @@ TEST(JsonParserTest, ParseTypeDefinition_SchedulerSourceDefaultsFalse) {
         "ports": {"v_out": {"direction": "Out", "type": "V"}}
     })");
 
-    TypeDefinition def = parse_type_definition(j);
-    EXPECT_FALSE(def.scheduler_source);
+     TypeDefinition def = parse_type_definition(j);
+     EXPECT_FALSE(def.scheduler_source);
+}
+
+// === PARITY HARDENING: Rewrite Contract Tests ===
+
+// Test 1: Composite parent port rewrite to .ext format
+// INVARIANT: Parent connections to expanded blueprint ports must rewrite to instance:port.ext format
+TEST(JsonParserTest, CompositeParentPortRewrite_ToExt) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "lag1", "classname": "FirstOrderLag"},
+            {"name": "bat1", "classname": "Battery"}
+        ],
+        "connections": [
+            {"from": "bat1.v_out", "to": "lag1.in"},
+            {"from": "lag1.out", "to": "bat1.v_gnd"}
+        ]
+    })";
+
+    auto ctx = parse_json(json);
+
+    // After rewrite, expanded blueprint connections should have .ext suffix
+    // because FirstOrderLag is an expandable composite blueprint in TypeRegistry
+    // The expansion adds internal connections, so total count > 2
+    ASSERT_GT(ctx.connections.size(), 2);
+    
+    // Key invariant: parent connections to lag1 must be rewritten to lag1:port.ext format
+    bool found_lag1_in_ext = false;
+    bool found_lag1_out_ext = false;
+    
+    for (const auto& conn : ctx.connections) {
+        if (conn.to.find("lag1:in.ext") != std::string::npos) found_lag1_in_ext = true;
+        if (conn.from.find("lag1:out.ext") != std::string::npos) found_lag1_out_ext = true;
+    }
+
+    ASSERT_TRUE(found_lag1_in_ext) 
+        << "Parent connection 'lag1.in' must be rewritten to 'lag1:in.ext' format";
+    ASSERT_TRUE(found_lag1_out_ext)
+        << "Parent connection 'lag1.out' must be rewritten to 'lag1:out.ext' format";
+
+    // Final check: no raw "lag1.out" or "lag1.in" should exist in parent connections
+    // (they should all be rewritten to .ext format)
+    for (const auto& conn : ctx.connections) {
+        if (conn.to.find("lag1") != std::string::npos && conn.to.find(":") == std::string::npos) {
+            // Skip if it's internal (has colon already processed)
+            if (conn.to.find(':') == std::string::npos && conn.to.find("lag1.") != std::string::npos) {
+                FAIL() << "Found unrewritten parent connection: " << conn.to;
+            }
+        }
+        if (conn.from.find("lag1") != std::string::npos && conn.from.find(":") == std::string::npos) {
+            if (conn.from.find(':') == std::string::npos && conn.from.find("lag1.") != std::string::npos) {
+                FAIL() << "Found unrewritten parent connection: " << conn.from;
+            }
+        }
+    }
+}
+
+// Test 2: Malformed endpoint (empty port) is skipped safely without crash
+// INVARIANT: Parser must not crash on malformed endpoints, must skip rewrite gracefully
+TEST(JsonParserTest, CompositeParentPortRewrite_EmptyPortIsSkippedWithWarning) {
+    std::string json = R"({
+        "templates": {},
+        "devices": [
+            {"name": "lag1", "classname": "FirstOrderLag"},
+            {"name": "bat1", "classname": "Battery"}
+        ],
+        "connections": [
+            {"from": "bat1.v_out", "to": "lag1."}
+        ]
+    })";
+
+    // This should NOT crash despite malformed endpoint
+    ASSERT_NO_THROW({
+        try {
+            auto ctx = parse_json(json);
+            // Verify parser completed and connections exist (malformed ones may be kept as-is)
+            EXPECT_GE(ctx.connections.size(), 1);
+        } catch (const std::exception& e) {
+            FAIL() << "Parser must not throw on malformed endpoints: " << e.what();
+        }
+    });
 }

@@ -1086,6 +1086,24 @@ CompositeCodegenResult CodeGen::generate_composite_systems(
         if (uf_rank[ra] == uf_rank[rb]) uf_rank[ra]++;
     };
 
+    // === PARITY GUARD: BlueprintInput/Output Bridge Union ===
+    // INVARIANT: ext↔port union MUST match JIT solver's logic.
+    // [CRITICAL] This code must remain in sync with jit_solver.cpp bridge unification.
+    // - Both paths (JIT in jit_solver.cpp:271-289, AOT here) must unify .ext and .port identically.
+    // - Parser rewrite ensures parent connections use :instance:port.ext format.
+    // - Failure to mirror this will cause JIT/AOT divergence for composite blueprints.
+    for (const auto& dev : expanded.devices) {
+        if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
+            std::string ext_key  = dev.name + ".ext";
+            std::string port_key = dev.name + ".port";
+            auto it_ext  = port_to_idx.find(ext_key);
+            auto it_port = port_to_idx.find(port_key);
+            if (it_ext != port_to_idx.end() && it_port != port_to_idx.end()) {
+                uf_unite(it_ext->second, it_port->second);
+            }
+        }
+    }
+
     // Union connected ports
     for (const auto& conn : expanded.connections) {
         auto it_from = port_to_idx.find(conn.from);

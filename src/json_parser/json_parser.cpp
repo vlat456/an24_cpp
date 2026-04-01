@@ -572,7 +572,13 @@ static ParserContext parse_json_impl(const std::string& json_text,
                          expanded_blueprint_names.size(),
                          fmt::join(expanded_blueprint_names, ", "));
 
-            // Rewrite connections (only parent connections, not internal ones)
+            // === PARITY GUARD: Parent Connection Rewrite ===
+            // INVARIANT: This rewrite is CANONICAL for parent-facing composite ports.
+            // - Blueprint expanded from TypeRegistry: device_name + ":" + port_name becomes exposed.
+            // - Parent connections (editor/root) use format: instance:port.ext (expanded side).
+            // - Internal connections (within expanded blueprint) use format: instance:port.port.
+            // - Root/editor resolver must map expandable root endpoints to :instance:port.ext format.
+            // - AOT and JIT solvers must agree on bridge semantics (.ext vs .port union).
             for (auto& conn : ctx.connections) {
                 // Helper to rewrite one side of a connection
                 auto rewrite_port = [&](std::string& port_ref) {
@@ -581,6 +587,15 @@ static ParserContext parse_json_impl(const std::string& json_text,
 
                     std::string device_name = port_ref.substr(0, dot_pos);
                     std::string port_name = port_ref.substr(dot_pos + 1);
+
+                    // INVARIANT: port_name must be non-empty after extraction.
+                    // If port_name is empty (malformed endpoint like "instance."),
+                    // skip rewrite and let downstream validation catch it.
+                    if (port_name.empty()) {
+                        spdlog::warn("[json_parser] Malformed endpoint (empty port): '{}' - skipping rewrite",
+                                    port_ref);
+                        return;
+                    }
 
                     // Skip if already has prefix (internal connection, already processed)
                     if (device_name.find(':') != std::string::npos) {
@@ -593,6 +608,10 @@ static ParserContext parse_json_impl(const std::string& json_text,
                         // external side: "lamp_bp.vin" -> "lamp_bp:vin.ext".
                         // The internal ".port" endpoint stays for connections inside
                         // the expanded blueprint only.
+                        // [PARITY] This contract must be mirrored in:
+                        //   - signal_key_resolver.cpp (root/external signal mapping)
+                        //   - jit_solver.cpp (BlueprintInput/BlueprintOutput bridge union)
+                        //   - codegen.cpp (AOT equivalent bridge union)
                         std::string old_ref = port_ref;
                         port_ref = device_name + ":" + port_name + ".ext";
                         spdlog::info("[json_parser] Rewrote parent connection: '{}' -> '{}'",

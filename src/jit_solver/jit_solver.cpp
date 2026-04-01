@@ -268,13 +268,14 @@ BuildResult build_systems_dev(
 
     UnionFind uf(all_ports.size());
 
-    // BlueprintInput/BlueprintOutput bridge nodes must have their ext and port
-    // ports unified into the same signal.  This is the fundamental semantic of
-    // these components: they act as pass-through junctions that connect an
-    // external (parent-facing) port to an internal (child-facing) port.
-    // Adding the implicit unification here makes it work regardless of how the
-    // devices arrived (TypeRegistry expansion, pre-expanded file, any nesting
-    // depth).
+    // === PARITY GUARD: BlueprintInput/Output Bridge Union ===
+    // INVARIANT: ext↔port union MUST be mirrored in AOT codegen.
+    // - BlueprintInput/BlueprintOutput bridge nodes have two ports:
+    //   .ext (external, parent-facing) and .port (internal, child-facing).
+    // - These ports must be unified into a single signal to implement transparent passthrough.
+    // - Parser rewrite ensures parent connections use :instance:port.ext format.
+    // - JIT (this path) and AOT (codegen.cpp) must unify these identically.
+    // [CRITICAL] If this logic changes, codegen.cpp bridge unification must mirror it exactly.
     for (const auto& dev : devices) {
         if (dev.visual_only) continue;
         if (dev.classname == "BlueprintInput" || dev.classname == "BlueprintOutput") {
